@@ -527,7 +527,7 @@ class MarkovChain(object):
 
         """
         :return: the Kemeny constant of the fundamental matrix of the Markov chain, None if the chain is not absorbing.
-        :rtype: numpy.ndarray | None
+        :rtype: float | None
         """
 
         if not self.is_absorbing:
@@ -748,6 +748,17 @@ class MarkovChain(object):
 
     def are_communicating(self, state1: tstate, state2: tstate) -> bool:
 
+        """
+        Verifies whether two states are communicating.
+
+        :param state1: the first state.
+        :type state1: int | str
+        :param state2: the second state.
+        :type state2: int | str
+        :return: True if the two states are communicating, False otherwise.
+        :rtype: bool
+        """
+
         try:
 
             state1 = validate_state(state1, self._states)
@@ -762,8 +773,19 @@ class MarkovChain(object):
 
         return a1 and a2
 
-    @alias('committor_backward')
+    @alias('backward_committor', 'backward_committor_probabilities', 'committor_backward')
     def committor_backward_probabilities(self, states1: titerable, states2: titerable) -> oarray:
+
+        """
+        Aliases: backward_committor, backward_committor_probabilities, committor_backward
+
+        :param states1: the first set of states.
+        :type states1: Union[Iterable[int] | Iterable[str]]
+        :param states2: the second set of states.
+        :type states2: Union[Iterable[int] | Iterable[str]]
+        :return: the backward committor probabilities between given sets of states, None if the chain is not ergodic.
+        :rtype: Optional[numpy.ndarray]
+        """
 
         try:
 
@@ -780,8 +802,7 @@ class MarkovChain(object):
         intersection = [s for s in states1 if s in states2]
 
         if len(intersection) > 0:
-            intersection = ', '.join([str(i) for i in intersection])
-            raise ValueError(f'The two sets of states must be disjoint. An intersection has been detected: {intersection}.')
+            raise ValueError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
         a = np.transpose(self.pi[0][:, np.newaxis] * (self._p - np.eye(self._size, dtype=float)))
         a[states1, :] = 0.0
@@ -797,8 +818,19 @@ class MarkovChain(object):
 
         return cb
 
-    @alias('committor_forward')
+    @alias('forward_committor', 'forward_committor_probabilities', 'committor_forward')
     def committor_forward_probabilities(self, states1: titerable, states2: titerable) -> oarray:
+
+        """
+        Aliases: forward_committor, forward_committor_probabilities, committor_forward
+
+        :param states1: the first set of states.
+        :type states1: Union[Iterable[int] | Iterable[str]]
+        :param states2: the second set of states.
+        :type states2: Union[Iterable[int] | Iterable[str]]
+        :return: the forward committor probabilities between given sets of states, None if the chain is not ergodic.
+        :rtype: Optional[numpy.ndarray]
+        """
 
         try:
 
@@ -815,8 +847,7 @@ class MarkovChain(object):
         intersection = [s for s in states1 if s in states2]
 
         if len(intersection) > 0:
-            intersection = ', '.join([str(i) for i in intersection])
-            raise ValueError('The two sets of states must be disjoint. An intersection has been detected: {}.'.format(intersection))
+            raise ValueError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
         a = self._p - np.eye(self._size, dtype=float)
         a[states1, :] = 0.0
