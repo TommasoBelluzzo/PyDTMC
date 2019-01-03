@@ -778,6 +778,7 @@ class MarkovChain(object):
 
         """
         Computes the backward committor probabilities between the given sets of states.
+        The two sets of states must be disjoint.
         Aliases: backward_committor, backward_committor_probabilities, committor_backward
 
         :param states1: the first set of states.
@@ -824,6 +825,7 @@ class MarkovChain(object):
 
         """
         Computes the forward committor probabilities between the given sets of states.
+        The two sets of states must be disjoint.
         Aliases: forward_committor, forward_committor_probabilities, committor_forward
 
         :param states1: the first set of states.
@@ -872,9 +874,9 @@ class MarkovChain(object):
         Returns the conditional probabilities of the given state.
         Aliases: conditional_distribution
 
-        :param state: the first state.
+        :param state: a state of the Markov chain.
         :type state: Union[int, str]
-        :return: the conditional probabilities of the given state.
+        :return: the conditional probabilities.
         :rtype: numpy.ndarray
         """
 
