@@ -46,6 +46,11 @@ class MarkovChain(object):
 
     def __init__(self, p: tnumeric, states: olstr = None):
 
+        """
+        :param p: transition matrix
+        :param states: state names
+        """
+
         try:
 
             p = validate_transition_matrix(p)
@@ -53,7 +58,7 @@ class MarkovChain(object):
             if states is None:
                 states = [str(i) for i in range(1, p.shape[0] + 1)]
             else:
-                states = validate_states_names(states, p.shape[0])
+                states = validate_state_names(states, p.shape[0])
 
         except Exception as e:
             argument = ''.join(ip.trace()[0][4]).split('=', 1)[0].strip()
@@ -65,7 +70,12 @@ class MarkovChain(object):
         self._states: lstr = states
 
     # noinspection PyListCreation
-    def __str__(self):
+    def __str__(self) -> str:
+
+        """
+        :return: the string representation of the MarkovChain object.
+        :rtype: str
+        """
 
         states_length = max([len(s) for s in self._states])
 
@@ -259,15 +269,25 @@ class MarkovChain(object):
     @cachedproperty
     def absorbing_states(self) -> lstr:
 
+        """
+        :return: the absorbing states of the Markov chain.
+        :rtype: list[str]
+        """
+
         return [*map(self._states.__getitem__, self._absorbing_states_indices)]
 
     @cachedproperty
     def absorption_probabilities(self) -> oarray:
 
-        n = self.fundamental_matrix
+        """
+        :return: the absorption probabilities of the Markov chain, None if the chain is not absorbing.
+        :rtype: numpy.ndarray | None
+        """
 
-        if n is None:
+        if not self.is_absorbing:
             return None
+
+        n = self.fundamental_matrix
 
         i = self._absorbing_states_indices
         j = self._transient_states_indices
@@ -278,18 +298,28 @@ class MarkovChain(object):
     @cachedproperty
     def absorption_times(self) -> oarray:
 
-        n = self.fundamental_matrix
+        """
+        :return: the absorption times of the Markov chain, None if the chain is not absorbing.
+        :rtype: numpy.ndarray | None
+        """
 
-        if n is None:
+        if not self.is_absorbing:
             return None
+
+        n = self.fundamental_matrix
 
         return np.transpose(np.dot(n, np.ones(n.shape[0])))
 
     @cachedproperty
     def accessibility_matrix(self) -> tarray:
 
+        """
+        :return: the accessibility matrix of the Markov chain.
+        :rtype: numpy.ndarray
+        """
+
         a = self.adjacency_matrix
-        i = np.eye(self._size)
+        i = np.eye(self._size, dtype=int)
 
         m = (i + a) ** (self._size - 1)
         m = (m > 0).astype(int)
@@ -299,25 +329,50 @@ class MarkovChain(object):
     @cachedproperty
     def adjacency_matrix(self) -> tarray:
 
+        """
+        :return: the adjacency matrix of the Markov chain.
+        :rtype: numpy.ndarray
+        """
+
         return (self._p > 0.0).astype(int)
 
     @cachedproperty
     def communicating_classes(self) -> llstr:
+
+        """
+        :return: the communicating classes of the Markov chain.
+        :rtype: list[list[str]]
+        """
 
         return [[*map(self._states.__getitem__, i)] for i in self._communicating_classes_indices]
 
     @cachedproperty
     def cyclic_classes(self) -> llstr:
 
+        """
+        :return: the cyclic classes of the Markov chain.
+        :rtype: list[list[str]]
+        """
+
         return [[*map(self._states.__getitem__, i)] for i in self._cyclic_classes_indices]
 
     @cachedproperty
     def cyclic_states(self) -> lstr:
 
+        """
+        :return: the cyclic states of the Markov chain.
+        :rtype: list[str]
+        """
+
         return [*map(self._states.__getitem__, self._cyclic_states_indices)]
 
     @cachedproperty
     def entropy_rate(self) -> ofloat:
+
+        """
+        :return: the entropy rate of the Markov chain, None if the chain is not ergodic.
+        :rtype: float | None
+        """
 
         if not self.is_ergodic:
             return None
@@ -335,7 +390,28 @@ class MarkovChain(object):
         return -h
 
     @cachedproperty
+    def entropy_rate_normalized(self) -> ofloat:
+
+        """
+        :return: the normalized entropy rate [0, 1] of the Markov chain, None if the chain is not ergodic.
+        :rtype: float | None
+        """
+
+        if not self.is_ergodic:
+            return None
+
+        values = npl.eigvalsh(self.adjacency_matrix)
+        values_abs = np.sort(np.abs(values))
+
+        return self.entropy_rate / np.log(values_abs[-1])
+
+    @cachedproperty
     def fundamental_matrix(self) -> oarray:
+
+        """
+        :return: the fundamental matrix of the Markov chain, None if the chain is not absorbing.
+        :rtype: numpy.ndarray | None
+        """
 
         if not self.is_absorbing:
             return None
@@ -349,6 +425,11 @@ class MarkovChain(object):
 
     @cachedproperty
     def is_absorbing(self) -> bool:
+
+        """
+        :return: True if the Markov chain is absorbing, False otherwise.
+        :rtype: bool
+        """
 
         if len(self.absorbing_states) == 0:
             return False
@@ -379,6 +460,11 @@ class MarkovChain(object):
     @cachedproperty
     def is_aperiodic(self) -> bool:
 
+        """
+        :return: True if the Markov chain is aperiodic, False otherwise.
+        :rtype: bool
+        """
+
         if self.is_irreducible:
             return self.periods[0] == 1
 
@@ -386,6 +472,11 @@ class MarkovChain(object):
 
     @cachedproperty
     def is_canonical(self) -> bool:
+
+        """
+        :return: True if the Markov chain is canonical, False otherwise.
+        :rtype: bool
+        """
 
         recurrent_indices = self._recurrent_states_indices
         transient_indices = self._transient_states_indices
@@ -398,15 +489,30 @@ class MarkovChain(object):
     @cachedproperty
     def is_ergodic(self) -> bool:
 
+        """
+        :return: True if the Markov chain is ergodic, False otherwise.
+        :rtype: bool
+        """
+
         return self.is_aperiodic and self.is_irreducible
 
     @cachedproperty
     def is_irreducible(self) -> bool:
 
+        """
+        :return: True if the Markov chain is irreducible, False otherwise.
+        :rtype: bool
+        """
+
         return len(self.communicating_classes) == 1
 
     @cachedproperty
     def is_reversible(self) -> bool:
+
+        """
+        :return: True if the Markov chain is reversible, False otherwise.
+        :rtype: bool
+        """
 
         if not self.is_ergodic:
             return False
@@ -419,16 +525,27 @@ class MarkovChain(object):
     @cachedproperty
     def kemeny_constant(self) -> ofloat:
 
-        n = self.fundamental_matrix
+        """
+        :return: the Kemeny constant of the fundamental matrix of the Markov chain, None if the chain is not absorbing.
+        :rtype: numpy.ndarray | None
+        """
 
-        if n is None:
+        if not self.is_absorbing:
             return None
+
+        n = self.fundamental_matrix
 
         return np.asscalar(np.trace(n))
 
     @alias('mfpt')
     @cachedproperty
     def mean_first_passage_times(self) -> oarray:
+
+        """
+        :aliases: mfpt
+        :return: the mean first passage times of the Markov chain, None if the chain is not ergodic.
+        :rtype: numpy.ndarray | None
+        """
 
         if not self.is_ergodic:
             return None
@@ -445,6 +562,11 @@ class MarkovChain(object):
     @cachedproperty
     def mixing_rate(self) -> ofloat:
 
+        """
+        :return: the mixing rate of the Markov chain, None if the SLEM (second largest eigenvalue modulus) cannot be computed.
+        :rtype: float | None
+        """
+
         slem = self._slem
 
         if slem is None:
@@ -452,24 +574,23 @@ class MarkovChain(object):
 
         return -1.0 / np.log(slem)
 
-    @cachedproperty
-    def normalized_entropy_rate(self) -> ofloat:
-
-        if not self.is_ergodic:
-            return None
-
-        values = npl.eigvalsh(self.adjacency_matrix)
-        values_abs = np.sort(np.abs(values))
-
-        return self.entropy_rate / np.log(values_abs[-1])
-
     @property
     def p(self) -> tarray:
+
+        """
+        :return: the transition matrix of the Markov chain.
+        :rtype: numpy.ndarray
+        """
 
         return self._p
 
     @cachedproperty
     def period(self) -> int:
+
+        """
+        :return: the period of the Markov chain.
+        :rtype: int
+        """
 
         if self.is_aperiodic:
             return 1
@@ -486,6 +607,11 @@ class MarkovChain(object):
 
     @cachedproperty
     def periods(self) -> lint:
+
+        """
+        :return: the period of each communicating class of the Markov chain.
+        :rtype: list[int]
+        """
 
         periods = [0] * len(self._communicating_classes_indices)
 
@@ -510,6 +636,12 @@ class MarkovChain(object):
     @cachedproperty
     def pi(self) -> larray:
 
+        """
+        :aliases: stationary_distributions, steady_states
+        :return: the stationary distributions of the Markov chain.
+        :rtype: list[numpy.ndarray]
+        """
+
         if self.is_irreducible:
             s = np.reshape(MarkovChain._gth_solve(self._p), (1, self._size))
         else:
@@ -529,26 +661,30 @@ class MarkovChain(object):
     @cachedproperty
     def recurrent_classes(self) -> llstr:
 
+        """
+        :return: the recurrent classes of the Markov chain.
+        :rtype: list[list[str]]
+        """
+
         return [[*map(self._states.__getitem__, i)] for i in self._recurrent_classes_indices]
 
     @cachedproperty
     def recurrent_states(self) -> lstr:
 
+        """
+        :return: the recurrent states of the Markov chain.
+        :rtype: list[str]
+        """
+
         return [*map(self._states.__getitem__, self._recurrent_states_indices)]
 
     @cachedproperty
-    def reflexive_closure(self) -> tarray:
-
-        closure = self.adjacency_matrix.copy()
-
-        for i in range(self._size):
-            if closure[i][i] != 1:
-                closure[i][i] = 1
-
-        return closure
-
-    @cachedproperty
     def relaxation_rate(self) -> ofloat:
+
+        """
+        :return: the relaxation rate of the Markov chain, None if the SLEM (second largest eigenvalue modulus) cannot be computed.
+        :rtype: float | None
+        """
 
         slem = self._slem
 
@@ -560,28 +696,30 @@ class MarkovChain(object):
     @property
     def size(self) -> int:
 
+        """
+        :return: the size of the Markov chain.
+        :rtype: int
+        """
+
         return self._size
 
     @property
     def states(self) -> lstr:
 
+        """
+        :return: the states of the Markov chain.
+        :rtype: list[str]
+        """
+
         return self._states
 
     @cachedproperty
-    def symmetric_closure(self) -> tarray:
-
-        closure = self.adjacency_matrix.copy()
-        r = list(range(self._size))
-
-        for i in r:
-            for j in r:
-                if (closure[i][j] == 1) and (closure[j][i] != 1):
-                    closure[j][i] = 1
-
-        return closure
-
-    @cachedproperty
     def topological_entropy(self) -> float:
+
+        """
+        :return: the topological entropy of the Markov chain.
+        :rtype: float
+        """
 
         values = npl.eigvals(self.adjacency_matrix)
         values_abs = np.sort(np.abs(values))
@@ -591,25 +729,22 @@ class MarkovChain(object):
     @cachedproperty
     def transient_classes(self) -> llstr:
 
+        """
+        :return: the transient classes of the Markov chain.
+        :rtype: list[list[str]]
+        """
+
         return [[*map(self._states.__getitem__, i)] for i in self._transient_classes_indices]
 
     @cachedproperty
     def transient_states(self) -> lstr:
 
+        """
+        :return: the transient states of the Markov chain.
+        :rtype: list[str]
+        """
+
         return [*map(self._states.__getitem__, self._transient_states_indices)]
-
-    @cachedproperty
-    def transitive_closure(self) -> tarray:
-
-        closure = self.adjacency_matrix.copy()
-        r = list(range(self._size))
-
-        for i in r:
-            for j in r:
-                for x in r:
-                    closure[j][x] = closure[j][x] or (closure[j][i] and closure[i][x])
-
-        return closure
 
     def are_communicating(self, state1: tstate, state2: tstate) -> bool:
 
@@ -1128,7 +1263,12 @@ class MarkovChain(object):
             argument = ''.join(ip.trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument))
 
-        closure = self.transitive_closure
+        closure = self.adjacency_matrix.copy()
+
+        for i in range(self._size):
+            for j in range(self._size):
+                for x in range(self._size):
+                    closure[j, x] = closure[j, x] or (closure[j, i] and closure[i, x])
 
         for s in states:
             for sc in np.ravel([np.where(closure[s, :] == 1)]):
@@ -1315,7 +1455,7 @@ class MarkovChain(object):
             p = validate_vector(p, size, 'C')
 
             if states is not None:
-                states = validate_states_names(states, size)
+                states = validate_state_names(states, size)
 
         except Exception as e:
             argument = ''.join(ip.trace()[0][4]).split('=', 1)[0].strip()
@@ -1334,7 +1474,7 @@ class MarkovChain(object):
 
         try:
 
-            possible_states = validate_states_names(possible_states)
+            possible_states = validate_state_names(possible_states)
             size = len(possible_states)
 
             walk = validate_states(walk, possible_states, 'W')
@@ -1377,7 +1517,7 @@ class MarkovChain(object):
 
         try:
 
-            possible_states = validate_states_names(possible_states)
+            possible_states = validate_state_names(possible_states)
             walk = validate_states(walk, possible_states, 'W')
             laplace_smoothing = validate_boolean(laplace_smoothing)
 
@@ -1406,7 +1546,7 @@ class MarkovChain(object):
     def identity(size: int, states: oiterable = None) -> 'MarkovChain':
 
         """
-        :param size:
+        :param size: the size of the stochastic process.
         :param states:
         :return:
         """
@@ -1418,7 +1558,7 @@ class MarkovChain(object):
             if states is None:
                 states = [str(i) for i in range(1, size + 1)]
             else:
-                states = validate_states_names(states, size)
+                states = validate_state_names(states, size)
 
         except Exception as e:
             argument = ''.join(ip.trace()[0][4]).split('=', 1)[0].strip()
@@ -1438,7 +1578,7 @@ class MarkovChain(object):
             if states is None:
                 states = [str(i) for i in range(1, size + 1)]
             else:
-                states = validate_states_names(states, size)
+                states = validate_state_names(states, size)
 
             zeros = validate_integer_non_negative(zeros)
 

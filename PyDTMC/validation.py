@@ -6,7 +6,7 @@ __all__ = [
     'validate_boolean', 'validate_enumerator', 'validate_integer_non_negative', 'validate_integer_positive',
     'validate_mask', 'validate_transition_matrix', 'validate_transition_matrix_size',
     'validate_distribution', 'validate_hyperparameter', 'validate_rewards', 'validate_vector', 'validate_walk',
-    'validate_state', 'validate_states', 'validate_states_names'
+    'validate_state', 'validate_states', 'validate_state_names'
 ]
 
 
@@ -250,6 +250,28 @@ def validate_state(state: tany, states: list) -> int:
     raise TypeError('The "@arg@" parameter must be either an integer representing the index of an existing state or a string matching the name of an existing state.')
 
 
+def validate_state_names(states: tany, size: oint = None) -> lstr:
+
+    try:
+        states = extract_non_numeric(states)
+    except Exception:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+
+    if not all(isinstance(s, str) for s in states):
+        raise TypeError('The "@arg@" parameter must contain only string values.')
+
+    states_length = len(states)
+    states_unique = len(set(states))
+
+    if states_unique < states_length:
+        raise ValueError('The "@arg@" parameter must contain only unique values.')
+
+    if size is not None and (states_length != size):
+        raise ValueError(f'The "@arg@" parameter must contain a number of elements equal {size:d}.')
+
+    return states
+
+
 def validate_states(states: tany, current_states: lstr, states_type: str = '') -> lint:
 
     try:
@@ -292,28 +314,6 @@ def validate_states(states: tany, current_states: lstr, states_type: str = '') -
         else:
             if states_length > current_states_length:
                 raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states ({current_states_length:d}).')
-
-    return states
-
-
-def validate_states_names(states: tany, size: oint = None) -> lstr:
-
-    try:
-        states = extract_non_numeric(states)
-    except Exception:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
-
-    if not all(isinstance(s, str) for s in states):
-        raise TypeError('The "@arg@" parameter must contain only string values.')
-
-    states_length = len(states)
-    states_unique = len(set(states))
-
-    if states_unique < states_length:
-        raise ValueError('The "@arg@" parameter must contain only unique values.')
-
-    if size is not None and (states_length != size):
-        raise ValueError(f'The "@arg@" parameter must contain a number of elements equal {size:d}.')
 
     return states
 
