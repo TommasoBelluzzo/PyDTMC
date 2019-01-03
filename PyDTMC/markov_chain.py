@@ -271,7 +271,7 @@ class MarkovChain(object):
 
         """
         :return: the absorbing states of the Markov chain.
-        :rtype: list[str]
+        :rtype: List[str]
         """
 
         return [*map(self._states.__getitem__, self._absorbing_states_indices)]
@@ -281,7 +281,7 @@ class MarkovChain(object):
 
         """
         :return: the absorption probabilities of the Markov chain, None if the chain is not absorbing.
-        :rtype: numpy.ndarray | None
+        :rtype: Optional[numpy.ndarray]
         """
 
         if not self.is_absorbing:
@@ -300,7 +300,7 @@ class MarkovChain(object):
 
         """
         :return: the absorption times of the Markov chain, None if the chain is not absorbing.
-        :rtype: numpy.ndarray | None
+        :rtype: Optional[numpy.ndarray]
         """
 
         if not self.is_absorbing:
@@ -341,7 +341,7 @@ class MarkovChain(object):
 
         """
         :return: the communicating classes of the Markov chain.
-        :rtype: list[list[str]]
+        :rtype: List[List[str]]
         """
 
         return [[*map(self._states.__getitem__, i)] for i in self._communicating_classes_indices]
@@ -351,7 +351,7 @@ class MarkovChain(object):
 
         """
         :return: the cyclic classes of the Markov chain.
-        :rtype: list[list[str]]
+        :rtype: List[List[str]]
         """
 
         return [[*map(self._states.__getitem__, i)] for i in self._cyclic_classes_indices]
@@ -361,7 +361,7 @@ class MarkovChain(object):
 
         """
         :return: the cyclic states of the Markov chain.
-        :rtype: list[str]
+        :rtype: List[str]
         """
 
         return [*map(self._states.__getitem__, self._cyclic_states_indices)]
@@ -371,7 +371,7 @@ class MarkovChain(object):
 
         """
         :return: the entropy rate of the Markov chain, None if the chain is not ergodic.
-        :rtype: float | None
+        :rtype: Optional[float]
         """
 
         if not self.is_ergodic:
@@ -394,7 +394,7 @@ class MarkovChain(object):
 
         """
         :return: the normalized entropy rate [0, 1] of the Markov chain, None if the chain is not ergodic.
-        :rtype: float | None
+        :rtype: Optional[float]
         """
 
         if not self.is_ergodic:
@@ -410,7 +410,7 @@ class MarkovChain(object):
 
         """
         :return: the fundamental matrix of the Markov chain, None if the chain is not absorbing.
-        :rtype: numpy.ndarray | None
+        :rtype: Optional[numpy.ndarray]
         """
 
         if not self.is_absorbing:
@@ -527,7 +527,7 @@ class MarkovChain(object):
 
         """
         :return: the Kemeny constant of the fundamental matrix of the Markov chain, None if the chain is not absorbing.
-        :rtype: float | None
+        :rtype: Optional[float]
         """
 
         if not self.is_absorbing:
@@ -544,7 +544,7 @@ class MarkovChain(object):
         """
         :aliases: mfpt
         :return: the mean first passage times of the Markov chain, None if the chain is not ergodic.
-        :rtype: numpy.ndarray | None
+        :rtype: Optional[numpy.ndarray]
         """
 
         if not self.is_ergodic:
@@ -564,7 +564,7 @@ class MarkovChain(object):
 
         """
         :return: the mixing rate of the Markov chain, None if the SLEM (second largest eigenvalue modulus) cannot be computed.
-        :rtype: float | None
+        :rtype: Optional[float]
         """
 
         slem = self._slem
@@ -610,7 +610,7 @@ class MarkovChain(object):
 
         """
         :return: the period of each communicating class of the Markov chain.
-        :rtype: list[int]
+        :rtype: List[int]
         """
 
         periods = [0] * len(self._communicating_classes_indices)
@@ -639,7 +639,7 @@ class MarkovChain(object):
         """
         :aliases: stationary_distributions, steady_states
         :return: the stationary distributions of the Markov chain.
-        :rtype: list[numpy.ndarray]
+        :rtype: List[numpy.ndarray]
         """
 
         if self.is_irreducible:
@@ -663,7 +663,7 @@ class MarkovChain(object):
 
         """
         :return: the recurrent classes of the Markov chain.
-        :rtype: list[list[str]]
+        :rtype: List[List[str]]
         """
 
         return [[*map(self._states.__getitem__, i)] for i in self._recurrent_classes_indices]
@@ -673,7 +673,7 @@ class MarkovChain(object):
 
         """
         :return: the recurrent states of the Markov chain.
-        :rtype: list[str]
+        :rtype: List[str]
         """
 
         return [*map(self._states.__getitem__, self._recurrent_states_indices)]
@@ -683,7 +683,7 @@ class MarkovChain(object):
 
         """
         :return: the relaxation rate of the Markov chain, None if the SLEM (second largest eigenvalue modulus) cannot be computed.
-        :rtype: float | None
+        :rtype: Optional[float]
         """
 
         slem = self._slem
@@ -708,7 +708,7 @@ class MarkovChain(object):
 
         """
         :return: the states of the Markov chain.
-        :rtype: list[str]
+        :rtype: List[str]
         """
 
         return self._states
@@ -731,7 +731,7 @@ class MarkovChain(object):
 
         """
         :return: the transient classes of the Markov chain.
-        :rtype: list[list[str]]
+        :rtype: List[List[str]]
         """
 
         return [[*map(self._states.__getitem__, i)] for i in self._transient_classes_indices]
@@ -741,7 +741,7 @@ class MarkovChain(object):
 
         """
         :return: the transient states of the Markov chain.
-        :rtype: list[str]
+        :rtype: List[str]
         """
 
         return [*map(self._states.__getitem__, self._transient_states_indices)]
@@ -752,9 +752,9 @@ class MarkovChain(object):
         Verifies whether two states are communicating.
 
         :param state1: the first state.
-        :type state1: int | str
+        :type state1: Union[int, str]
         :param state2: the second state.
-        :type state2: int | str
+        :type state2: Union[int, str]
         :return: True if the two states are communicating, False otherwise.
         :rtype: bool
         """
@@ -774,16 +774,17 @@ class MarkovChain(object):
         return a1 and a2
 
     @alias('backward_committor', 'backward_committor_probabilities', 'committor_backward')
-    def committor_backward_probabilities(self, states1: titerable, states2: titerable) -> oarray:
+    def committor_backward_probabilities(self, states1: tstates, states2: tstates) -> oarray:
 
         """
+        Computes the backward committor probabilities between the given sets of states.
         Aliases: backward_committor, backward_committor_probabilities, committor_backward
 
         :param states1: the first set of states.
         :type states1: Union[Iterable[int] | Iterable[str]]
         :param states2: the second set of states.
         :type states2: Union[Iterable[int] | Iterable[str]]
-        :return: the backward committor probabilities between given sets of states, None if the chain is not ergodic.
+        :return: the backward committor probabilities if the chain is ergodic, None otherwise.
         :rtype: Optional[numpy.ndarray]
         """
 
@@ -819,16 +820,17 @@ class MarkovChain(object):
         return cb
 
     @alias('forward_committor', 'forward_committor_probabilities', 'committor_forward')
-    def committor_forward_probabilities(self, states1: titerable, states2: titerable) -> oarray:
+    def committor_forward_probabilities(self, states1: tstates, states2: tstates) -> oarray:
 
         """
+        Computes the forward committor probabilities between the given sets of states.
         Aliases: forward_committor, forward_committor_probabilities, committor_forward
 
         :param states1: the first set of states.
         :type states1: Union[Iterable[int] | Iterable[str]]
         :param states2: the second set of states.
         :type states2: Union[Iterable[int] | Iterable[str]]
-        :return: the forward committor probabilities between given sets of states, None if the chain is not ergodic.
+        :return: the forward committor probabilities if the chain is ergodic, None otherwise.
         :rtype: Optional[numpy.ndarray]
         """
 
@@ -863,7 +865,18 @@ class MarkovChain(object):
 
         return cf
 
-    def conditional_distribution(self, state: tstate) -> tarray:
+    @alias('conditional_distribution')
+    def conditional_probabilities(self, state: tstate) -> tarray:
+
+        """
+        Returns the conditional probabilities of the given state.
+        Aliases: conditional_distribution
+
+        :param state: the first state.
+        :type state: Union[int, str]
+        :return: the conditional probabilities of the given state.
+        :rtype: numpy.ndarray
+        """
 
         try:
 
