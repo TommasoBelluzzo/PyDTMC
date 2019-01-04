@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from os import path
+from os import path, walk
 from setuptools import find_packages, setup
 from sys import exit, version_info
 
@@ -15,6 +15,12 @@ with open(path.join(base_directory, 'README.md'), encoding='utf-8') as f:
 with open(path.join(base_directory, 'LICENSE.md'), encoding='utf-8') as f:
     license_text = f.read()
 
+package_data_files = list()
+
+for (location, directories, files) in walk('data'):
+    for file in files:
+        package_data_files.append(path.join('..', location, file))
+
 setup(
     name='PyDTMC',
     version='0.1.0',
@@ -26,7 +32,8 @@ setup(
     author_email='tommaso.belluzzo@gmail.com',
     url='https://github.com/TommasoBelluzzo/PyDTMC',
     license=license_text,
-    packages=find_packages(exclude=['contrib', 'data', 'docs', 'tests*']),
+    packages=find_packages(exclude=['data', 'docs', 'tests']),
+    package_data={'': package_data_files},
     python_requires='>=3.6',
     install_requires=['matplotlib', 'networkx', 'numpy'],
     classifiers=[

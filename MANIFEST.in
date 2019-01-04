@@ -1,1 +1,16 @@
-include *.md
+# Include Folders
+graft data
+graft docs
+graft tests
+
+# Include Files
+include README.md
+include LICENSE.md
+include requirements.txt
+include setup.py
+
+# Prune Folders
+prune docs/_build
+
+# Exclude Files
+global-exclude *.pyc
