@@ -3,8 +3,8 @@
 __all__ = [
     'color_brightest', 'color_darkest', 'color_gray', 'colors', 'dpi',
     'larray', 'lfloat', 'lint', 'lstr', 'llfloat', 'llint', 'llstr',
-    'oarray', 'oaxes', 'odigraph', 'odistribution', 'ofigure', 'ofloat', 'ograph', 'oint', 'oiterable', 'olstr', 'onumeric', 'oplot', 'ostate', 'ostates', 'ostr', 'owalk',
-    'tany', 'tarray', 'taxes', 'tdigraph', 'tdistribution', 'tfigure', 'tgraph', 'titerable', 'tmultidigraph', 'tnumeric', 'tplot', 'tstate', 'tstates', 'twalk'
+    'oarray', 'oaxes', 'odigraph', 'odistribution', 'ofigure', 'ofloat', 'ograph', 'oint', 'oiterable', 'olstr', 'onumeric', 'oplot', 'ostate', 'ostates', 'ostatesflex', 'ostr', 'owalk',
+    'tany', 'tarray', 'taxes', 'tdigraph', 'tdistribution', 'tfigure', 'tgraph', 'titerable', 'tnumeric', 'tplot', 'tstate', 'tstates', 'tstatesflex', 'twalk'
 ]
 
 
@@ -50,9 +50,8 @@ dpi = 300
 tany = tpg.Any
 tarray = np.ndarray
 taxes = mlp.Axes
-tdigraph = nx.DiGraph
 tfigure = mlp.Figure
-tmultidigraph = nx.MultiDiGraph
+tgraph = nx.Graph
 
 # List Types
 larray = tpg.List[tarray]
@@ -64,12 +63,13 @@ llint = tpg.List[lint]
 llstr = tpg.List[lstr]
 
 # Compound Types
+tdigraph = tpg.Union[nx.DiGraph, nx.MultiDiGraph]
 tdistribution = tpg.Union[int, larray]
-tgraph = tpg.Union[tdigraph, tmultidigraph]
 titerable = tpg.Iterable
 tplot = tpg.Tuple[tfigure, taxes]
 tstate = tpg.Union[int, str]
 tstates = tpg.Union[lint, lstr]
+tstatesflex = tpg.Union[tstate, tstates]
 twalk = tpg.Union[int, tstates]
 
 tnumeric = tpg.Union[titerable, tarray]
@@ -91,10 +91,10 @@ ograph = tpg.Optional[tgraph]
 oint = tpg.Optional[int]
 oiterable = tpg.Optional[titerable]
 olstr = tpg.Optional[lstr]
-omultidigraph = tpg.Optional[tmultidigraph]
 onumeric = tpg.Optional[tnumeric]
 oplot = tpg.Optional[tplot]
 ostate = tpg.Optional[tstate]
 ostates = tpg.Optional[tstates]
+ostatesflex = tpg.Optional[tstatesflex]
 ostr = tpg.Optional[str]
 owalk = tpg.Optional[twalk]

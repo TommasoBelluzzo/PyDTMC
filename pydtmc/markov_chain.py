@@ -21,16 +21,6 @@ import numpy.random as npr
 import numpy.random.mtrand as nprm
 import re as re
 
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
-
-try:
-    import scipy.sparse.csr as spsc
-except ImportError:
-    spsc = None
-
 from decorators import *
 from globals import *
 from validation import *
@@ -51,7 +41,7 @@ class MarkovChain(object):
         | Creates a Markov chain with given transition matrix and state names.
         |
         :param p: the transition matrix of the chain.
-        :type p: tnumeric
+        :type p: array_like of numbers
         :param states: the name of every state of the chain; by default, an increasing sequence of integers starting at 1.
         :type states: Optional[List[str]]
         """
@@ -158,8 +148,8 @@ class MarkovChain(object):
         v = np.zeros(self._size, dtype=int)
         v[0] = 1
 
-        w = np.array([])
-        t = np.array([0])
+        w = np.array([], dtype=int)
+        t = np.array([0], dtype=int)
 
         d = 0
         m = 1
@@ -288,7 +278,7 @@ class MarkovChain(object):
     def absorption_probabilities(self) -> oarray:
 
         """
-        :return: the absorption probabilities of the Markov chain, None if the chain is not absorbing.
+        :return: if the Markov chain is absorbing, its absorption probabilities, None otherwise.
         :rtype: Optional[numpy.ndarray]
         """
 
@@ -307,7 +297,7 @@ class MarkovChain(object):
     def absorption_times(self) -> oarray:
 
         """
-        :return: the absorption times of the Markov chain, None if the chain is not absorbing.
+        :return: if the Markov chain is absorbing, its absorption times, None otherwise.
         :rtype: Optional[numpy.ndarray]
         """
 
@@ -378,7 +368,7 @@ class MarkovChain(object):
     def entropy_rate(self) -> ofloat:
 
         """
-        :return: the entropy rate of the Markov chain, None if the chain is not ergodic.
+        :return: if the Markov chain is ergodic, its entropy rate, None otherwise.
         :rtype: Optional[float]
         """
 
@@ -401,7 +391,7 @@ class MarkovChain(object):
     def entropy_rate_normalized(self) -> ofloat:
 
         """
-        :return: the normalized entropy rate [0, 1] of the Markov chain, None if the chain is not ergodic.
+        :return: if the Markov chain is ergodic, its entropy rate normalized between 0 and 1, None otherwise.
         :rtype: Optional[float]
         """
 
@@ -417,7 +407,7 @@ class MarkovChain(object):
     def fundamental_matrix(self) -> oarray:
 
         """
-        :return: the fundamental matrix of the Markov chain, None if the chain is not absorbing.
+        :return: if the Markov chain is absorbing, its fundamental matrix, None otherwise.
         :rtype: Optional[numpy.ndarray]
         """
 
@@ -534,7 +524,7 @@ class MarkovChain(object):
     def kemeny_constant(self) -> ofloat:
 
         """
-        :return: the Kemeny constant of the fundamental matrix of the Markov chain, None if the chain is not absorbing.
+        :return: if the Markov chain is absorbing, the Kemeny's constant of its fundamental matrix, None otherwise.
         :rtype: Optional[float]
         """
 
@@ -550,8 +540,10 @@ class MarkovChain(object):
     def mean_first_passage_times(self) -> oarray:
 
         """
-        :aliases: mfpt
-        :return: the mean first passage times of the Markov chain, None if the chain is not ergodic.
+        |
+        | Aliases: mfpt
+        |
+        :return: if the Markov chain is ergodic, its mean first passage times, None otherwise.
         :rtype: Optional[numpy.ndarray]
         """
 
@@ -571,7 +563,7 @@ class MarkovChain(object):
     def mixing_rate(self) -> ofloat:
 
         """
-        :return: the mixing rate of the Markov chain, None if the SLEM (second largest eigenvalue modulus) cannot be computed.
+        :return: if the SLEM (second largest eigenvalue modulus) can be computed, the mixing rate of the Markov chain, None otherwise.
         :rtype: Optional[float]
         """
 
@@ -617,7 +609,7 @@ class MarkovChain(object):
     def periods(self) -> lint:
 
         """
-        :return: the period of each communicating class of the Markov chain.
+        :return: the period of every communicating class defined by the Markov chain.
         :rtype: List[int]
         """
 
@@ -645,7 +637,9 @@ class MarkovChain(object):
     def pi(self) -> larray:
 
         """
-        :aliases: stationary_distributions, steady_states
+        |
+        | Aliases: stationary_distributions, steady_states
+        |
         :return: the stationary distributions of the Markov chain.
         :rtype: List[numpy.ndarray]
         """
@@ -670,7 +664,7 @@ class MarkovChain(object):
     def recurrent_classes(self) -> llstr:
 
         """
-        :return: the recurrent classes of the Markov chain.
+        :return: the recurrent classes defined by the Markov chain.
         :rtype: List[List[str]]
         """
 
@@ -690,7 +684,7 @@ class MarkovChain(object):
     def relaxation_rate(self) -> ofloat:
 
         """
-        :return: the relaxation rate of the Markov chain, None if the SLEM (second largest eigenvalue modulus) cannot be computed.
+        :return: if the SLEM (second largest eigenvalue modulus) can be computed, the relaxation rate of the Markov chain, None otherwise.
         :rtype: Optional[float]
         """
 
@@ -738,7 +732,7 @@ class MarkovChain(object):
     def transient_classes(self) -> llstr:
 
         """
-        :return: the transient classes of the Markov chain.
+        :return: the transient classes defined by the Markov chain.
         :rtype: List[List[str]]
         """
 
@@ -783,7 +777,7 @@ class MarkovChain(object):
         return a1 and a2
 
     @alias('backward_committor', 'backward_committor_probabilities', 'committor_backward')
-    def committor_backward_probabilities(self, states1: tstates, states2: tstates) -> oarray:
+    def committor_backward_probabilities(self, states1: tstatesflex, states2: tstatesflex) -> oarray:
 
         """
         |
@@ -793,17 +787,17 @@ class MarkovChain(object):
         | Aliases: backward_committor, backward_committor_probabilities, committor_backward
         |
         :param states1: the first set of states.
-        :type states1: Union[Iterable[int] | Iterable[str]]
+        :type states1: Union[int, str, Iterable[int], Iterable[str]]
         :param states2: the second set of states.
-        :type states2: Union[Iterable[int] | Iterable[str]]
-        :return: the backward committor probabilities if the chain is ergodic, None otherwise.
+        :type states2: Union[int, str, Iterable[int], Iterable[str]]
+        :return: if the Markov chain is ergodic, the backward committor probabilities between the given sets of states, None otherwise.
         :rtype: Optional[numpy.ndarray]
         """
 
         try:
 
-            states1 = validate_states(states1, self._states, 'S')
-            states2 = validate_states(states2, self._states, 'S')
+            states1 = validate_states(states1, self._states, 'subset', True)
+            states2 = validate_states(states2, self._states, 'subset', True)
 
         except Exception as e:
             argument = ''.join(ip.trace()[0][4]).split('=', 1)[0].strip()
@@ -832,7 +826,7 @@ class MarkovChain(object):
         return cb
 
     @alias('forward_committor', 'forward_committor_probabilities', 'committor_forward')
-    def committor_forward_probabilities(self, states1: tstates, states2: tstates) -> oarray:
+    def committor_forward_probabilities(self, states1: tstatesflex, states2: tstatesflex) -> oarray:
 
         """
         |
@@ -842,17 +836,17 @@ class MarkovChain(object):
         | Aliases: forward_committor, forward_committor_probabilities, committor_forward
         |
         :param states1: the first set of states.
-        :type states1: Union[Iterable[int] | Iterable[str]]
+        :type states1: Union[int, str, Iterable[int], Iterable[str]]
         :param states2: the second set of states.
-        :type states2: Union[Iterable[int] | Iterable[str]]
-        :return: the forward committor probabilities if the chain is ergodic, None otherwise.
+        :type states2: Union[int, str, Iterable[int], Iterable[str]]
+        :return: if the Markov chain is ergodic, the forward committor probabilities between the given sets of states, None otherwise.
         :rtype: Optional[numpy.ndarray]
         """
 
         try:
 
-            states1 = validate_states(states1, self._states, 'S')
-            states2 = validate_states(states2, self._states, 'S')
+            states1 = validate_states(states1, self._states, 'subset', True)
+            states2 = validate_states(states2, self._states, 'subset', True)
 
         except Exception as e:
             argument = ''.join(ip.trace()[0][4]).split('=', 1)[0].strip()
@@ -914,7 +908,7 @@ class MarkovChain(object):
         :param steps: the number of steps.
         :type steps: int
         :param rewards: the reward value of every state.
-        :type rewards: tnumeric
+        :type rewards: array_like of numbers
         :return: the expected reward values.
         :rtype: numpy.ndarray
         """
@@ -994,14 +988,14 @@ class MarkovChain(object):
 
         return expected_transitions
 
-    def hitting_probabilities(self, states: oiterable = None) -> tarray:
+    def hitting_probabilities(self, states: ostatesflex = None) -> tarray:
 
         try:
 
             if states is None:
                 states = self._states_indices.copy()
             else:
-                states = validate_states(states, self._states)
+                states = validate_states(states, self._states, 'regular', True)
 
         except Exception as e:
             argument = ''.join(ip.trace()[0][4]).split('=', 1)[0].strip()
@@ -1130,14 +1124,14 @@ class MarkovChain(object):
         return state in self._transient_states_indices
 
     @alias('mfpt_to')
-    def mean_first_passage_times_to(self, states: titerable, states_from: oiterable = None) -> oarray:
+    def mean_first_passage_times_to(self, states: tstatesflex, states_from: ostatesflex = None) -> oarray:
 
         try:
 
-            states = validate_states(states, self._states, 'S')
+            states = validate_states(states, self._states, 'subset', True)
 
             if states_from is not None:
-                states_from = validate_states(states_from, self._states, 'S')
+                states_from = validate_states(states_from, self._states, 'subset', True)
 
         except Exception as e:
             argument = ''.join(ip.trace()[0][4]).split('=', 1)[0].strip()
@@ -1368,11 +1362,11 @@ class MarkovChain(object):
 
         return MarkovChain(p_adjusted, self._states)
 
-    def to_subchain(self, states: titerable) -> 'MarkovChain':
+    def to_subchain(self, states: tstatesflex) -> 'MarkovChain':
 
         try:
 
-            states = validate_states(states, self._states, 'S')
+            states = validate_states(states, self._states, 'subset', True)
 
         except Exception as e:
             argument = ''.join(ip.trace()[0][4]).split('=', 1)[0].strip()
@@ -1461,7 +1455,7 @@ class MarkovChain(object):
 
         try:
 
-            walk = validate_states(walk, self._states, 'W')
+            walk = validate_states(walk, self._states, 'walk', False)
 
         except Exception as e:
             argument = ''.join(ip.trace()[0][4]).split('=', 1)[0].strip()
@@ -1479,7 +1473,7 @@ class MarkovChain(object):
         return np.exp(p)
 
     @staticmethod
-    def _calculate_period(graph: nx.Graph) -> int:
+    def _calculate_period(graph: tgraph) -> int:
 
         g = 0
 
@@ -1529,10 +1523,13 @@ class MarkovChain(object):
     @staticmethod
     def _create_rng(seed: tany) -> npr.RandomState:
 
+        if seed is None:
+            return nprm._rand
+
         if isinstance(seed, int):
             return npr.RandomState(seed)
 
-        return nprm._rand
+        raise TypeError('The specified seed is not a valid RNG initializer.')
 
     @staticmethod
     def _gth_solve(p: tarray) -> tarray:
@@ -1601,14 +1598,14 @@ class MarkovChain(object):
         return MarkovChain(p, states)
 
     @staticmethod
-    def fit_map(possible_states: lstr, walk: tany, hyperparameter: tany = None) -> 'MarkovChain':
+    def fit_map(possible_states: lstr, walk: tstates, hyperparameter: onumeric = None) -> 'MarkovChain':
 
         try:
 
             possible_states = validate_state_names(possible_states)
             size = len(possible_states)
 
-            walk = validate_states(walk, possible_states, 'W')
+            walk = validate_states(walk, possible_states, 'walk', False)
 
             if hyperparameter is None:
                 hyperparameter = np.ones((size, size), dtype=float)
@@ -1644,12 +1641,12 @@ class MarkovChain(object):
         return MarkovChain(p, possible_states)
 
     @staticmethod
-    def fit_mle(possible_states: lstr, walk: tany, laplace_smoothing: bool = False) -> 'MarkovChain':
+    def fit_mle(possible_states: lstr, walk: tstates, laplace_smoothing: bool = False) -> 'MarkovChain':
 
         try:
 
             possible_states = validate_state_names(possible_states)
-            walk = validate_states(walk, possible_states, 'W')
+            walk = validate_states(walk, possible_states, 'walk', False)
             laplace_smoothing = validate_boolean(laplace_smoothing)
 
         except Exception as e:
@@ -1704,7 +1701,25 @@ class MarkovChain(object):
         return MarkovChain(np.eye(size), states)
 
     @staticmethod
-    def random(size: int, states: oiterable = None, zeros: int = 0, mask: onumeric = None, seed: oint = None) -> 'MarkovChain':
+    def random(size: int, states: olstr = None, zeros: int = 0, mask: onumeric = None, seed: oint = None) -> 'MarkovChain':
+
+        """
+        |
+        | Generates a Markov chain of given size with random transition probabilities.
+        |
+        :param size: the size of the chain.
+        :type size: int
+        :param states: the name of every state of the chain; by default, an increasing sequence of integers starting at 1.
+        :type states: Optional[List[str]]
+        :param zeros: the number of zero-valued transition probabilities; the default value is 0.
+        :type zeros: int
+        :param mask: a matrix representing the locations and values of fixed transition probabilities; probabilities in any row must have a sum less than or equal to 1.
+        :type mask: array_like of NaNs and numbers
+        :param seed: a seed to be used as RNG initializer, for reproducibility purposes.
+        :type seed: Optional[int]
+        :return: a MarkovChain object.
+        :rtype: MarkovChain
+        """
 
         try:
 

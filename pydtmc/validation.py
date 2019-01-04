@@ -229,11 +229,11 @@ def validate_rewards(rewards: tany, size: int) -> tarray:
     return rewards
 
 
-def validate_state(state: tany, states: list) -> int:
+def validate_state(state: tany, current_states: list) -> int:
 
     if isinstance(state, int):
 
-        limit = len(states) - 1
+        limit = len(current_states) - 1
 
         if (state < 0) or (state > limit):
             raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and the number of existing states minus one ({limit:d}).')
@@ -242,12 +242,12 @@ def validate_state(state: tany, states: list) -> int:
 
     if isinstance(state, str):
 
-        if state not in states:
-            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(states)}).')
+        if state not in current_states:
+            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(current_states)}).')
 
-        return states.index(state)
+        return current_states.index(state)
 
-    raise TypeError('The "@arg@" parameter must be either an integer representing the index of an existing state or a string matching the name of an existing state.')
+    raise TypeError('The "@arg@" parameter must be either an integer or a string.')
 
 
 def validate_state_names(states: tany, size: oint = None) -> lstr:
@@ -272,7 +272,25 @@ def validate_state_names(states: tany, size: oint = None) -> lstr:
     return states
 
 
-def validate_states(states: tany, current_states: lstr, states_type: str = '') -> lint:
+def validate_states(states: tany, current_states: lstr, states_type: str, states_flex: bool) -> lint:
+
+    if states_flex:
+
+        if isinstance(states, int):
+
+            limit = len(current_states) - 1
+
+            if (states < 0) or (states > limit):
+                raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and the number of existing states minus one ({limit:d}).')
+
+            return [states]
+
+        if isinstance(states, str):
+
+            if states not in current_states:
+                raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(current_states)}).')
+
+            return [current_states.index(states)]
 
     try:
         states = extract_non_numeric(states)
@@ -294,26 +312,26 @@ def validate_states(states: tany, current_states: lstr, states_type: str = '') -
             raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the names of the existing states ({", ".join(current_states)}).')
 
     else:
-        raise TypeError('The "@arg@" parameter must be either an array_like object of integers representing the indices of existing states or an array_like object of strings matching the names of existing states.')
+
+        if states_flex:
+            raise TypeError('The "@arg@" parameter must be either an integer, a string, an array_like object of integers or an array_like object of strings.')
+        else:
+            raise TypeError('The "@arg@" parameter must be either an array_like object of integers or an array_like object of strings.')
 
     states_length = len(states)
 
-    if states_length < 1:
-        raise ValueError('The "@arg@" parameter must contain at least one element.')
+    if (states_type != 'walk') and (len(set(states)) < states_length):
+        raise ValueError('The "@arg@" parameter must contain only unique values.')
 
-    if states_type != 'W':
-
-        states_unique = len(set(states))
-
-        if states_unique < states_length:
-            raise ValueError('The "@arg@" parameter must contain only unique values.')
-
-        if states_type == 'S':
-            if states_length >= current_states_length:
-                raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states minus one ({current_states_length - 1:d}).')
-        else:
-            if states_length > current_states_length:
-                raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states ({current_states_length:d}).')
+    if states_type == 'regular':
+        if (states_length < 1) or (states_length > current_states_length):
+            raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states ({current_states_length:d}).')
+    elif states_type == 'subset':
+        if (states_length < 1) or (states_length >= current_states_length):
+            raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states minus one ({current_states_length - 1:d}).')
+    else:
+        if states_length < 2:
+            raise ValueError('The "@arg@" parameter must contain at least two elements.')
 
     return states
 
