@@ -47,8 +47,13 @@ class MarkovChain(object):
     def __init__(self, p: tnumeric, states: olstr = None):
 
         """
-        :param p: transition matrix
-        :param states: state names
+        |
+        | Creates a Markov chain with given transition matrix and state names.
+        |
+        :param p: the transition matrix of the chain.
+        :type p: tnumeric
+        :param states: the name of every state of the chain; by default, an increasing sequence of integers starting at 1.
+        :type states: Optional[List[str]]
         """
 
         try:
@@ -73,7 +78,10 @@ class MarkovChain(object):
     def __str__(self) -> str:
 
         """
-        :return: the string representation of the MarkovChain object.
+        |
+        | Creates the informal string representation of the Markov chain.
+        |
+        :return: the pretty-printed MarkovChain object.
         :rtype: str
         """
 
@@ -749,8 +757,9 @@ class MarkovChain(object):
     def are_communicating(self, state1: tstate, state2: tstate) -> bool:
 
         """
-        Verifies whether two states are communicating.
-
+        |
+        | Verifies whether two states are communicating.
+        |
         :param state1: the first state.
         :type state1: Union[int, str]
         :param state2: the second state.
@@ -777,10 +786,12 @@ class MarkovChain(object):
     def committor_backward_probabilities(self, states1: tstates, states2: tstates) -> oarray:
 
         """
-        Computes the backward committor probabilities between the given sets of states.
-        The two sets of states must be disjoint.
-        Aliases: backward_committor, backward_committor_probabilities, committor_backward
-
+        |
+        | Computes the backward committor probabilities between the given sets of states.
+        | The two sets of states must be disjoint.
+        |
+        | Aliases: backward_committor, backward_committor_probabilities, committor_backward
+        |
         :param states1: the first set of states.
         :type states1: Union[Iterable[int] | Iterable[str]]
         :param states2: the second set of states.
@@ -824,10 +835,12 @@ class MarkovChain(object):
     def committor_forward_probabilities(self, states1: tstates, states2: tstates) -> oarray:
 
         """
-        Computes the forward committor probabilities between the given sets of states.
-        The two sets of states must be disjoint.
-        Aliases: forward_committor, forward_committor_probabilities, committor_forward
-
+        |
+        | Computes the forward committor probabilities between the given sets of states.
+        | The two sets of states must be disjoint.
+        |
+        | Aliases: forward_committor, forward_committor_probabilities, committor_forward
+        |
         :param states1: the first set of states.
         :type states1: Union[Iterable[int] | Iterable[str]]
         :param states2: the second set of states.
@@ -871,9 +884,11 @@ class MarkovChain(object):
     def conditional_probabilities(self, state: tstate) -> tarray:
 
         """
-        Returns the conditional probabilities of the given state.
-        Aliases: conditional_distribution
-
+        |
+        | Returns the conditional probabilities of the given state.
+        |
+        | Aliases: conditional_distribution
+        |
         :param state: a state of the Markov chain.
         :type state: Union[int, str]
         :return: the conditional probabilities.
@@ -891,6 +906,18 @@ class MarkovChain(object):
         return self._p[state, :]
 
     def expected_rewards(self, steps: int, rewards: tnumeric) -> tarray:
+
+        """
+        |
+        | Calculates the expected reward values after N steps, given the reward value of every state.
+        |
+        :param steps: the number of steps.
+        :type steps: int
+        :param rewards: the reward value of every state.
+        :type rewards: tnumeric
+        :return: the expected reward values.
+        :rtype: numpy.ndarray
+        """
 
         try:
 
@@ -1013,6 +1040,18 @@ class MarkovChain(object):
 
     def is_accessible(self, state: tstate, state_from: tstate) -> bool:
 
+        """
+        |
+        | Verifies whether a state is reachable from another.
+        |
+        :param state: the target state.
+        :type state: Union[int, str]
+        :param state_from: the origin state.
+        :type state_from: Union[int, str]
+        :return: True if the target state is reachable from the origin state, False otherwise.
+        :rtype: bool
+        """
+
         try:
 
             state = validate_state(state, self._states)
@@ -1026,6 +1065,16 @@ class MarkovChain(object):
 
     def is_cyclic_state(self, state: tstate) -> bool:
 
+        """
+        |
+        | Verifies whether the given state is a cyclic state.
+        |
+        :param state: the target state.
+        :type state: Union[int, str]
+        :return: True if the state is cyclic, False otherwise.
+        :rtype: bool
+        """
+
         try:
 
             state = validate_state(state, self._states)
@@ -1038,6 +1087,16 @@ class MarkovChain(object):
 
     def is_recurrent_state(self, state: tstate) -> bool:
 
+        """
+        |
+        | Verifies whether the given state is a recurrent state.
+        |
+        :param state: the target state.
+        :type state: Union[int, str]
+        :return: True if the state is recurrent, False otherwise.
+        :rtype: bool
+        """
+
         try:
 
             state = validate_state(state, self._states)
@@ -1049,6 +1108,16 @@ class MarkovChain(object):
         return state in self._recurrent_states_indices
 
     def is_transient_state(self, state: tstate) -> bool:
+
+        """
+        |
+        | Verifies whether the given state is a transient state.
+        |
+        :param state: the target state.
+        :type state: Union[int, str]
+        :return: True if the state is transient, False otherwise.
+        :rtype: bool
+        """
 
         try:
 
@@ -1493,12 +1562,28 @@ class MarkovChain(object):
         return x
 
     @staticmethod
-    def birth_death(size: int, q: tarray, p: tarray, states: oiterable = None) -> 'MarkovChain':
+    def birth_death(size: int, p: tarray, q: tarray, states: olstr = None) -> 'MarkovChain':
+
+        """
+        |
+        | Generates a birth-death Markov chain of given size and from given probabilities.
+        |
+        :param size: the size of the chain.
+        :type size: int
+        :param q: the creation probabilities.
+        :type q: numpy.ndarray
+        :param p: the annihilation probabilities.
+        :type p: numpy.ndarray
+        :param states: the name of every state of the chain; by default, an increasing sequence of integers starting at 1.
+        :type states: Optional[List[str]]
+        :return: a MarkovChain object.
+        :rtype: MarkovChain
+        """
 
         try:
 
-            q = validate_vector(q, size, 'A')
             p = validate_vector(p, size, 'C')
+            q = validate_vector(q, size, 'A')
 
             if states is not None:
                 states = validate_state_names(states, size)
@@ -1589,12 +1674,18 @@ class MarkovChain(object):
         return MarkovChain(p, possible_states)
 
     @staticmethod
-    def identity(size: int, states: oiterable = None) -> 'MarkovChain':
+    def identity(size: int, states: olstr = None) -> 'MarkovChain':
 
         """
-        :param size: the size of the stochastic process.
-        :param states:
-        :return:
+        |
+        | Generates a Markov chain of given size based on an identity transition matrix.
+        |
+        :param size: the size of the chain.
+        :type size: int
+        :param states: the name of every state of the chain; by default, an increasing sequence of integers starting at 1.
+        :type states: Optional[List[str]]
+        :return: a MarkovChain object.
+        :rtype: MarkovChain
         """
 
         try:
