@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__all__ = [
-    'alias', 'aliased', 'cachedproperty'
-]
+__all__ = ['alias', 'aliased', 'cachedproperty']
 
 
 ###########
@@ -10,7 +8,14 @@ __all__ = [
 ###########
 
 
-from threading import RLock
+from functools import (
+    update_wrapper as _update_wrapper,
+    wraps as _wraps
+)
+
+from threading import (
+    RLock as _RLock
+)
 
 
 ###########
@@ -22,50 +27,80 @@ from threading import RLock
 class alias(object):
 
     """
-    A decorator for method aliases.
-    It can be used only inside a @aliased-decorated classes.
+    | A decorator for implementing method aliases.
+
+    | It can be used only inside @aliased-decorated classes.
     """
 
     def __init__(self, *aliases):
 
         self.aliases = set(aliases)
 
-    def __call__(self, f):
+    def __call__(self, obj):
 
-        if isinstance(f, property):
-            f.fget._aliases = self.aliases
+        if type(obj) == property:
+            obj.fget._aliases = self.aliases
         else:
-            f._aliases = self.aliases
+            obj._aliases = self.aliases
 
-        return f
+        return obj
 
 
-# noinspection PyPep8Naming
-class cachedproperty(object):
+# noinspection PyPep8Naming, PyUnusedLocal
+class cachedproperty(property):
 
     """
-    A decorator for lazy-evaluated properties.
+    A decorator for implementing lazy-evaluated read-only properties.
     """
 
-    def __init__(self, func):
+    def __init__(self, fget=None, fset=None, fdel=None, doc=None):
 
-        self.__doc__ = func.__doc__
-        self.func = func
-        self.lock = RLock()
+        doc = doc or fget.__doc__
+        super(cachedproperty, self).__init__(fget, None, None, doc)
 
-    def __get__(self, obj, cls):
+        if fget is None:
+            self._func = None
+            self._func_name = ''
+        else:
+            self._func = fget
+            self._func_name = self._func.__name__
+
+        _update_wrapper(self, fget)
+
+        self._lock = _RLock()
+
+    def __get__(self, obj, obj_type=None):
 
         if obj is None:
             return self
 
-        obj_dict = obj.__dict__
-        name = self.func.__name__
+        if self._func is None:
+            raise AttributeError('This property is unreadable.')
 
-        with self.lock:
+        with self._lock:
             try:
-                return obj_dict[name]
+                return obj.__dict__[self._func_name]
             except KeyError:
-                return obj_dict.setdefault(name, self.func(obj))
+                return obj.__dict__.setdefault(self._func_name, self._func(obj))
+
+    def __set__(self, obj, value):
+
+        if obj is None:
+            raise AttributeError
+
+        raise AttributeError('This property cannot be set.')
+
+    def deleter(self, fdel):
+
+        raise AttributeError('This property cannot implement a deleter.')
+
+    def getter(self, fget):
+
+        return type(self)(fget, None, None, None)
+
+    def setter(self, fset):
+
+        raise AttributeError('This property cannot implement a setter.')
 
 
 #############
@@ -74,29 +109,40 @@ class cachedproperty(object):
 
 
 # noinspection PyProtectedMember
-# noinspection PyUnresolvedReferences
 def aliased(aliased_class):
 
     """
-    A decorator that enables method aliases.
+    A decorator for enabling method aliases.
     """
 
-    original_methods = aliased_class.__dict__.copy()
+    def wrapper(func):
+        @_wraps(func)
+        def inner(*args, **kwargs):
+            return func(*args, **kwargs)
+        return inner
 
-    for name, method in original_methods.items():
+    aliased_class_dict = aliased_class.__dict__.copy()
+    aliased_class_set = set(aliased_class_dict)
+
+    for name, method in aliased_class_dict.items():
 
         aliases = None
 
-        if isinstance(method, property) and hasattr(method.fget, '_aliases'):
+        if (type(method) == property) and hasattr(method.fget, '_aliases'):
             aliases = method.fget._aliases
         elif hasattr(method, '_aliases'):
             aliases = method._aliases
 
         if aliases:
 
-            original_methods_set = set(original_methods)
+            for a in aliases - aliased_class_set:
 
-            for a in aliases - original_methods_set:
-                setattr(aliased_class, a, method)
+                doc = method.__doc__
+                doc_space = doc[:len(doc) - len(doc.lstrip())]
+
+                wrapped_method = wrapper(method)
+                wrapped_method.__doc__ = doc_space + 'Alias of **' + name + '**.'
+
+                setattr(aliased_class, a, wrapped_method)
 
     return aliased_class
