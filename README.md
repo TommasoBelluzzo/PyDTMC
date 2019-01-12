@@ -20,28 +20,30 @@ The core element of the library is the `MarkovChain` class, which can be instant
 
 ```console
 >>> import numpy as np
->>> mc = MarkovChain(np.array([[0.2, 0.8], [0.6, 0.4]]), ['A', 'B'])
+>>> mc = MarkovChain(np.array([[0.2, 0.7, 0.0, 0.1], [0.0, 0.6, 0.3, 0.1], [0.0, 0.0, 1.0, 0.0], [0.5, 0.0, 0.5, 0.0]]), ['A', 'B', 'C', 'D'])
 >>> print(mc)
 
 DISCRETE-TIME MARKOV CHAIN
 
  - TRANSITION MATRIX:
 
-            A       B
-      ------- -------
-  A | 0.20000 0.80000
-  B | 0.60000 0.40000
+            A       B       C       D
+      ------- ------- ------- -------
+  A | 0.20000 0.70000 0.00000 0.10000
+  B | 0.00000 0.60000 0.30000 0.10000
+  C | 0.00000 0.00000 1.00000 0.00000
+  D | 0.50000 0.00000 0.50000 0.00000
 
  - PROPERTIES:
 
-  ABSORBING:   NO
+  ABSORBING:   YES
   APERIODIC:   YES
-  IRREDUCIBLE: YES
-  ERGODIC:     YES
+  IRREDUCIBLE: NO
+  ERGODIC:     NO
 
  - COMMUNICATING CLASSES:
 
-          [A,B]
-  TYPE:       R
-  PERIOD:     1
+          [A,B,D] | [C]
+  TYPE:         T |   R
+  PERIOD:       1 |   1
 ```
