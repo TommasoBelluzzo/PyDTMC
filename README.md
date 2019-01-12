@@ -48,3 +48,31 @@ DISCRETE-TIME MARKOV CHAIN
   TYPE:         T |   R
   PERIOD:       1 |   1
 ```
+
+The static values of a `MarkovChain` instance can be retrieved through its properties:
+
+```console
+>>> print(mc.size)
+4
+
+>>> print(mc.recurrent_states)
+['C']
+
+>>> print(mc.transient_states)
+['A', 'B', 'D']
+
+>>> print(mc.pi)
+[array([0., 0., 1., 0.])]
+
+>>> print(mc.absorption_times)
+[4.56603774 3.32075472 3.28301887]
+
+print(mc.adjacency_matrix)
+[[1 1 0 1]
+ [0 1 1 1]
+ [0 0 1 0]
+ [1 0 1 0]]
+
+print(mc.topological_entropy)
+0.6931471805599457
+```
