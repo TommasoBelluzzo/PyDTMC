@@ -75,3 +75,19 @@ Static values of a `MarkovChain` instance can be retrieved through its propertie
 >>> print(mc.topological_entropy)
 0.6931471805599457
 ```
+
+Dynamic computations on a `MarkovChain` instance can be performed through its methods:
+
+```console
+>>> print(mc.expected_rewards(10, [2, -3, 8, -7]))
+[-2.76071635 -12.01665113  23.23460025  -8.45723276]
+
+>>> print(mc.expected_transitions(2))
+[[0.085  0.2975 0.     0.0425]
+ [0.     0.345  0.1725 0.0575]
+ [0.     0.     0.7    0.    ]
+ [0.15   0.     0.15   0.    ]]
+ 
+>>> print(mc.walk(10))
+['D', 'A', 'B', 'C', 'C', 'C', 'C', 'C', 'C', 'C']
+```
