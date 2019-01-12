@@ -97,3 +97,11 @@ Plotting functions can provide a visual representation of a `MarkovChain` instan
 ```console
 >>> plot_eigenvalues(mc)
 ```
+
+```console
+>>> plot_graph(mc)
+```
+
+
+
+
