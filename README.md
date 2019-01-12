@@ -10,6 +10,8 @@ PyDTMC only supports `Python 3` and the minimum version required is `3.6`. In ad
 * [NetworkX](https://networkx.github.io/)
 * [Numpy](https://www.numpy.org/)
 
+In order to use the `plot_graph` function, [Graphviz](https://www.graphviz.org/) and [PyDot](https://pypi.org/project/pydot/) must be installed too.
+
 ## Usage
 
 1. Create a properly structured database (see the paragraph below).
