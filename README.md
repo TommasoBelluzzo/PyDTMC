@@ -106,5 +106,8 @@ Plotting functions can provide a visual representation of a `MarkovChain` instan
 
 ![Graphplot](https://i.imgur.com/EmIO90h.png)
 
+```console
+>>> plot_walk(mc, 10, 'sequence')
+```
 
-
+![Walkplot](https://i.imgur.com/w8vaoeH.png)
