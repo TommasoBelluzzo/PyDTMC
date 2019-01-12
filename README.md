@@ -12,8 +12,13 @@ PyDTMC only supports `Python 3` and the minimum version required is `3.6`. In ad
 
 In order to use the `plot_graph` function, [Graphviz](https://www.graphviz.org/) and [PyDot](https://pypi.org/project/pydot/) must be installed too.
 
+## Installation
+
 ## Usage
 
-1. Create a properly structured database (see the paragraph below).
-1. Edit the `run.m` script following your needs.
-1. Execute the `run.m` script.
+The core element of the library is the `MarkovChain` class, which can be instantiated as follows:
+
+```console
+>>> import numpy as np
+>>> mc = MarkovChain(np.array([[0.2, 0.8], [0.6, 0.4]]), ['A', 'B'])
+```
