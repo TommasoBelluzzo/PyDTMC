@@ -65,5 +65,5 @@ setuptools.setup(
         'Topic :: Scientific/Engineering :: Physics',
         'Topic :: Software Development :: Libraries'
     ],
-    keywords='analysis markov chain models probability process random simulation stochastic'
+    keywords='analysis chain fitting markov models probability process random simulation stochastic'
 )
