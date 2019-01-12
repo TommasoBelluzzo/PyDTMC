@@ -98,6 +98,8 @@ Plotting functions can provide a visual representation of a `MarkovChain` instan
 >>> plot_eigenvalues(mc)
 ```
 
+|[asd](https://i.imgur.com/z3SxgQQ.png)
+
 ```console
 >>> plot_graph(mc)
 ```
