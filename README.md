@@ -49,7 +49,7 @@ DISCRETE-TIME MARKOV CHAIN
   PERIOD:       1 |   1
 ```
 
-The static values of a `MarkovChain` instance can be retrieved through its properties:
+Static values of a `MarkovChain` instance can be retrieved through its properties:
 
 ```console
 >>> print(mc.size)
@@ -61,7 +61,7 @@ The static values of a `MarkovChain` instance can be retrieved through its prope
 >>> print(mc.transient_states)
 ['A', 'B', 'D']
 
->>> print(mc.pi)
+>>> print(mc.steady_states)
 [array([0., 0., 1., 0.])]
 
 >>>print(mc.fundamental_matrix)
