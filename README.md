@@ -91,3 +91,9 @@ Dynamic computations on a `MarkovChain` instance can be performed through its me
 >>> print(mc.walk(10))
 ['D', 'A', 'B', 'C', 'C', 'C', 'C', 'C', 'C', 'C']
 ```
+
+Plotting functions can provide a visual representation of a `MarkovChain` instance and its attributes. In order to immediately display function outputs, the [interactive mode](https://matplotlib.org/faq/usage_faq.html#what-is-interactive-mode) of `Matplotlib` must be turned on.
+
+```console
+>>> plot_eigenvalues(mc)
+```
