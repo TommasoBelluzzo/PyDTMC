@@ -1,2 +1,4 @@
 # PyDTMC
-A framework for discrete-time Markov chains analysis and simulation.
+
+PyDTMC is a lightweight library for discrete-time Markov chains analysis.
+
