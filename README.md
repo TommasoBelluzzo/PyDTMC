@@ -20,7 +20,8 @@ The core element of the library is the `MarkovChain` class, which can be instant
 
 ```console
 >>> import numpy as np
->>> mc = MarkovChain(np.array([[0.2, 0.7, 0.0, 0.1], [0.0, 0.6, 0.3, 0.1], [0.0, 0.0, 1.0, 0.0], [0.5, 0.0, 0.5, 0.0]]), ['A', 'B', 'C', 'D'])
+>>> p = np.array([[0.2, 0.7, 0.0, 0.1], [0.0, 0.6, 0.3, 0.1], [0.0, 0.0, 1.0, 0.0], [0.5, 0.0, 0.5, 0.0]])
+>>> mc = MarkovChain(p, ['A', 'B', 'C', 'D'])
 >>> print(mc)
 
 DISCRETE-TIME MARKOV CHAIN
