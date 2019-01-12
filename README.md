@@ -64,14 +64,13 @@ The static values of a `MarkovChain` instance can be retrieved through its prope
 >>> print(mc.pi)
 [array([0., 0., 1., 0.])]
 
+>>>print(mc.fundamental_matrix)
+[[1.50943396 2.64150943 0.41509434]
+ [0.18867925 2.83018868 0.30188679]
+ [0.75471698 1.32075472 1.20754717]]
+
 >>> print(mc.absorption_times)
 [4.56603774 3.32075472 3.28301887]
-
->>> print(mc.adjacency_matrix)
-[[1 1 0 1]
- [0 1 1 1]
- [0 0 1 0]
- [1 0 1 0]]
 
 >>> print(mc.topological_entropy)
 0.6931471805599457
