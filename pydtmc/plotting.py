@@ -248,16 +248,16 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
     if edges_color:
         c = edge_colors(_color_gray, _color_black, 20)
         for edge in g_pydot.get_edges():
-            probability = mc.transition_probability(edge.get_source(), edge.get_destination())
+            probability = mc.transition_probability(edge.get_destination(), edge.get_source())
             x = int(round(probability * 20.0)) - 1
             edge.set_style('filled')
             edge.set_color(c[x])
 
     if edges_value:
         for edge in g_pydot.get_edges():
-            probability = mc.transition_probability(edge.get_source(), edge.get_destination())
+            probability = mc.transition_probability(edge.get_destination(), edge.get_source())
             if probability.is_integer():
-                edge.set_label(f' {round(probability,2):g}.0 ')
+                edge.set_label(f' {probability:g}.0 ')
             else:
                 edge.set_label(f' {round(probability,2):g} ')
 
