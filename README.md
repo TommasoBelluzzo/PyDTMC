@@ -110,4 +110,4 @@ Plotting functions can provide a visual representation of a `MarkovChain` instan
 >>> plot_walk(mc, 10, 'sequence')
 ```
 
-![Walkplot](https://i.imgur.com/w8vaoeH.png)
+![Walkplot](https://i.imgur.com/oxjDYr3.png)
