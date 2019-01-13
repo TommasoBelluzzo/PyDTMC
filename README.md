@@ -12,7 +12,17 @@ PyDTMC only supports `Python 3` and the minimum version required is `3.6`. In ad
 
 In order to use the `plot_graph` function, [Graphviz](https://www.graphviz.org/) and [PyDot](https://pypi.org/project/pydot/) must be installed too.
 
-## Installation
+## Installation & Upgrade
+
+Via GitHub:
+
+$ pip install git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=pydtmc
+$ pip install --upgrade git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=pydtmc
+
+Via Repository:
+
+$ pip install git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=pydtmc
+$ pip install --upgrade git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=pydtmc
 
 ## Usage
 
