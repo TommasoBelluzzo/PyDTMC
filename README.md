@@ -14,7 +14,7 @@ In order to use the `plot_graph` function, [Graphviz](https://www.graphviz.org/)
 
 ## Installation & Upgrade
 
-Via Repository:
+Via PyPI:
 
 ```sh
 $ pip install PyDTMC
