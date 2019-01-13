@@ -14,18 +14,18 @@ In order to use the `plot_graph` function, [Graphviz](https://www.graphviz.org/)
 
 ## Installation & Upgrade
 
-Via GitHub:
-
-```sh
-$ pip install git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=pydtmc
-$ pip install --upgrade git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=pydtmc
-```
-
 Via Repository:
 
 ```sh
-$ pip install git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=pydtmc
-$ pip install --upgrade git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=pydtmc
+$ pip install PyDTMC
+$ pip install --upgrade PyDTMC
+```
+
+Via GitHub:
+
+```sh
+$ pip install git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=PyDTMC
+$ pip install --upgrade git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=PyDTMC
 ```
 
 ## Usage
