@@ -326,6 +326,7 @@ def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_
 
         ax.set_xlabel('Steps', fontsize=13.0)
         ax.set_xticks(_np.arange(0.0, distribution_len, 1.0 if distribution_len <= 11 else 10.0))
+        ax.set_xticklabels(_np.arange(0, distribution_len, 1 if distribution_len <= 11 else 10))
         ax.set_xlim(-0.5, distribution_len - 0.5)
 
         ax.set_ylabel('Frequencies', fontsize=13.0)
@@ -345,7 +346,7 @@ def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_
         ax.set_xlabel('Steps', fontsize=13.0)
         ax.set_xticks(_np.arange(0.0, distribution_len + 1.0, 1.0 if distribution_len <= 11 else 10.0), minor=False)
         ax.set_xticks(_np.arange(-0.5, distribution_len, 1.0), minor=True)
-        ax.set_xticklabels(_np.arange(0.0, distribution_len, 1.0 if distribution_len <= 11 else 10.0))
+        ax.set_xticklabels(_np.arange(0, distribution_len, 1 if distribution_len <= 11 else 10))
         ax.set_xlim(-0.5, distribution_len - 0.5)
 
         ax.set_yticks(_np.arange(0.0, mc.size, 1.0), minor=False)
@@ -431,7 +432,7 @@ def plot_walk(mc: MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]]
         ax.set_xlabel('Steps', fontsize=13.0)
         ax.set_xticks(_np.arange(0.0, walk_len + 1.0, 1.0 if walk_len <= 11 else 10.0), minor=False)
         ax.set_xticks(_np.arange(-0.5, walk_len, 1.0), minor=True)
-        ax.set_xticklabels(_np.arange(0.0, walk_len, 1.0 if walk_len <= 11 else 10.0))
+        ax.set_xticklabels(_np.arange(0, walk_len, 1 if walk_len <= 11 else 10))
         ax.set_xlim(-0.5, walk_len - 0.5)
 
         ax.set_ylabel('States', fontsize=13.0)
