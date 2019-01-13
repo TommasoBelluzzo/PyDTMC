@@ -98,7 +98,7 @@ Plotting functions can provide a visual representation of a `MarkovChain` instan
 >>> plot_eigenvalues(mc)
 ```
 
-![Eigenplot](https://i.imgur.com/F5fTXKe.png)
+![Eigenplot](https://i.imgur.com/ARWWG7z.png)
 
 ```console
 >>> plot_graph(mc)
