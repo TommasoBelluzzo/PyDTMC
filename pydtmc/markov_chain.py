@@ -339,14 +339,42 @@ class MarkovChain(object):
         A property representing the absorption probabilities of the Markov chain. If the Markov chain is not *absorbing*, then None is returned.
         """
 
-        if not self.is_absorbing:
+        if self.is_absorbing:
+            print('Computing absorption probabilities to absorbing states')
+
+            # compute the fundamental matrix of this MC
+            n = self.fundamental_matrix
+
+            # restrict the transition matrix to the transitions from transient to absorbing states
+            i = self._transient_states_indices
+            j = self._absorbing_states_indices
+            r = self._p[_np.ix_(i, j)]
+
+        elif not self.is_irreducible:
+            print('Computing absorption probabilities to recurrent classes')
+
+            # if this MC is not absorbing but also not irreducible, we can compute how likely each transient
+            # state is to go to each recurrent class
+
+            # construct fundamental matrix
+            trans_indices = self._transient_states_indices
+            q = self._p[_np.ix_(trans_indices, trans_indices)]
+            i = _np.eye(len(trans_indices))
+            n = _npl.inv(i - q)
+
+            # construct matrix r which stores transitions from transient states to rec classes
+            rec_classes = self._recurrent_classes_indices
+            r = _np.zeros((len(trans_indices), len(rec_classes)))
+
+            for t_ix, trans_state in enumerate(trans_indices):
+                for r_ix, rec_class in enumerate(rec_classes):
+                    # sum up the probability of the trans state going to that rec class
+                    acc_prob = _np.sum(self._p[trans_state, :][:, rec_class])
+
+                    # write accumulated transition probability in matrix r
+                    r[t_ix, r_ix] = acc_prob
+        else:
             return None
-
-        n = self.fundamental_matrix
-
-        i = self._absorbing_states_indices
-        j = self._transient_states_indices
-        r = self._p[_np.ix_(i, j)]
 
         return _np.transpose(_np.matmul(n, r))
 
@@ -589,8 +617,9 @@ class MarkovChain(object):
         if not self.is_ergodic:
             return None
 
-        a = _np.tile(self.pi[0], (3, 1))
+        a = _np.tile(self.pi[0], (self._size, 1))
         i = _np.eye(self._size)
+        # z defines the fundamental matrix of the ergodic mc
         z = _npl.inv(i - self._p + a)
 
         e = _np.ones((self._size, self._size), dtype=float)
