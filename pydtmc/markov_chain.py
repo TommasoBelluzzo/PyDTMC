@@ -589,7 +589,7 @@ class MarkovChain(object):
         if not self.is_ergodic:
             return None
 
-        a = _np.tile(self.pi[0], (3, 1))
+        a = _np.tile(self.pi[0], (self._size, 1))
         i = _np.eye(self._size)
         z = _npl.inv(i - self._p + a)
 
