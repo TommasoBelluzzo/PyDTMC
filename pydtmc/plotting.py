@@ -65,7 +65,7 @@ _color_black = '#000000'
 _color_gray = '#E0E0E0'
 _color_white = '#FFFFFF'
 _colors = ['#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#FB8072', '#FCCDE5']
-_dpi = 300
+_dpi = 100
 
 
 #############

@@ -344,8 +344,8 @@ class MarkovChain(object):
 
         n = self.fundamental_matrix
 
-        i = self._absorbing_states_indices
-        j = self._transient_states_indices
+        i = self._transient_states_indices
+        j = self._absorbing_states_indices
         r = self._p[_np.ix_(i, j)]
 
         return _np.transpose(_np.matmul(n, r))
