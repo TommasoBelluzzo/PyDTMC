@@ -350,19 +350,17 @@ class MarkovChain(object):
             j = self._absorbing_states_indices
             r = self._p[_np.ix_(i, j)]
 
-        elif not self.is_irreducible:
+        elif len(self.transient_states) > 0:
             print('Computing absorption probabilities to recurrent classes')
 
-            # if this MC is not absorbing but also not irreducible, we can compute how likely each transient
-            # state is to go to each recurrent class
+            # if this MC is not absorbing but nevertheless has transient states. We can compute absorption probabilities
+            # for these to go to recurrent classes or absorbing states
 
             # construct fundamental matrix
-            trans_indices = self._transient_states_indices
-            q = self._p[_np.ix_(trans_indices, trans_indices)]
-            i = _np.eye(len(trans_indices))
-            n = _npl.inv(i - q)
+            n = self.fundamental_matrix
 
             # construct matrix r which stores transitions from transient states to rec classes
+            trans_indices = self._transient_states_indices
             rec_classes = self._recurrent_classes_indices
             r = _np.zeros((len(trans_indices), len(rec_classes)))
 
@@ -487,7 +485,8 @@ class MarkovChain(object):
         A property representing the fundamental matrix of the Markov chain. If the Markov chain is not *absorbing*, then None is returned.
         """
 
-        if not self.is_absorbing:
+        # this can be problematic for disconnected chains with two recurrent classes
+        if len(self.transient_states) == 0:
             return None
 
         indices = self._transient_states_indices
