@@ -1878,7 +1878,7 @@ class MarkovChain(object):
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
-        m = _np.interp(m, (_np.min(m), _np.max(m)), (0, +1))
+        m = _np.interp(m, (_np.min(m), _np.max(m)), (0, 1))
         m = m / _np.sum(m, axis=1, keepdims=True)
 
         return MarkovChain(m, states)
