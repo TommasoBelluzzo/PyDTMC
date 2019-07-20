@@ -3,7 +3,7 @@
 __all__ = [
     'ValidationError',
     'extract_non_numeric', 'extract_numeric',
-    'validate_boolean', 'validate_enumerator', 'validate_integer_non_negative', 'validate_integer_positive',
+    'validate_boolean', 'validate_enumerator', 'validate_integer_dpi', 'validate_integer_non_negative', 'validate_integer_positive',
     'validate_mask', 'validate_transition_matrix', 'validate_transition_matrix_size',
     'validate_distribution', 'validate_hyperparameter', 'validate_rewards', 'validate_vector', 'validate_walk',
     'validate_state', 'validate_states', 'validate_state_names'
@@ -169,6 +169,17 @@ def validate_hyperparameter(hyperparameter: _Any, size: int) -> _np.ndarray:
         raise ValueError('The "@arg@" parameter must contain only integer values greater than or equal to 1.')
 
     return hyperparameter
+
+
+def validate_integer_dpi(value: _Any) -> int:
+
+    if not isinstance(value, int):
+        raise TypeError('The "@arg@" parameter must be an integer value.')
+
+    if (value < 72) or (value > 300):
+        raise ValueError('The "@arg@" parameter must have a value between 72 and 300.')
+
+    return value
 
 
 def validate_integer_non_negative(value: _Any) -> int:

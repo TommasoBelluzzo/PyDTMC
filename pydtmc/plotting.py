@@ -52,6 +52,7 @@ from pydtmc.validation import (
     validate_boolean as _validate_boolean,
     validate_distribution as _validate_distribution,
     validate_enumerator as _validate_enumerator,
+    validate_integer_dpi as _validate_integer_dpi,
     validate_walk as _validate_walk
 )
 
@@ -65,7 +66,6 @@ _color_black = '#000000'
 _color_gray = '#E0E0E0'
 _color_white = '#FFFFFF'
 _colors = ['#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#FB8072', '#FCCDE5']
-_dpi = 100
 
 
 #############
@@ -73,12 +73,13 @@ _dpi = 100
 #############
 
 
-def plot_eigenvalues(mc: MarkovChain) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_eigenvalues(mc: MarkovChain, dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
 
     """
     The function plots the eigenvalues of the Markov chain on the complex plane.
 
     :param mc: the target Markov chain.
+    :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
     :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, the handles of the plot otherwise.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -86,7 +87,13 @@ def plot_eigenvalues(mc: MarkovChain) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]
     if not isinstance(mc, MarkovChain):
         raise ValidationError('A valid MarkovChain instance must be provided.')
 
-    figure, ax = _mp.subplots(dpi=_dpi)
+    try:
+        dpi = _validate_integer_dpi(dpi)
+    except Exception as e:
+        argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
+        raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+    figure, ax = _mp.subplots(dpi=dpi)
 
     handles = list()
     labels = list()
@@ -153,7 +160,7 @@ def plot_eigenvalues(mc: MarkovChain) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]
     return figure, ax
 
 
-def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
 
     """
     The function plots the directed graph of the Markov chain.
@@ -165,6 +172,7 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
     :param nodes_type: a boolean indicating whether to use a different shape for every node type (by default, True).
     :param edges_color: a boolean indicating whether to display colored edges based on transition probabilities (by default, True).
     :param edges_value: a boolean indicating whether to display the transition probability of every edge (by default, True).
+    :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
     :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, the handles of the plot otherwise.
     :raises EnvironmentError: if Graphviz is not installed.
     :raises ImportError: if Pydot is not installed.
@@ -204,12 +212,12 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
     try:
         _call(['dot', '-V'], stdout=_PIPE, stderr=_PIPE)
     except Exception:
-        raise EnvironmentError('Graphviz is required by this plotting function.')
+        raise EnvironmentError('Graphviz is required by this plotting function.') from None
 
     try:
         import pydot as pyd
     except ImportError:
-        raise ImportError('Pydot is required by this plotting function.')
+        raise ImportError('Pydot is required by this plotting function.') from None
 
     if not isinstance(mc, MarkovChain):
         raise ValidationError('A valid MarkovChain instance must be provided.')
@@ -220,10 +228,11 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
         nodes_type = _validate_boolean(nodes_type)
         edges_color = _validate_boolean(edges_color)
         edges_value = _validate_boolean(edges_value)
+        dpi = _validate_integer_dpi(dpi)
 
     except Exception as e:
         argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-        raise ValidationError(str(e).replace('@arg@', argument))
+        raise ValidationError(str(e).replace('@arg@', argument)) from None
 
     g = mc.to_directed_graph()
     g_pydot = _nx.nx_pydot.to_pydot(g)
@@ -266,10 +275,10 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
     buffer.seek(0)
 
     img = _mi.imread(buffer)
-    img_x = img.shape[0] / _dpi
-    img_y = img.shape[1] / _dpi
+    img_x = img.shape[0] / dpi
+    img_y = img.shape[1] / dpi
 
-    figure = _mp.figure(figsize=(img_y, img_x), dpi=_dpi)
+    figure = _mp.figure(figsize=(img_y, img_x), dpi=dpi)
     figure.figimage(img)
 
     if _mp.isinteractive():
@@ -279,7 +288,7 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
     return figure, figure.gca()
 
 
-def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_np.ndarray]], plot_type: str = 'curves') -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_np.ndarray]], plot_type: str = 'curves', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
 
     """
     The function plots a redistribution of states on the given Markov chain.
@@ -287,6 +296,7 @@ def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_
     :param mc: the target Markov chain.
     :param distributions: a sequence of redistributions or the number of redistributions to perform.
     :param plot_type: the type of plot to display (either curves or heatmap, curves by default).
+    :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
     :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, the handles of the plot otherwise.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -298,10 +308,11 @@ def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_
 
         distributions = _validate_distribution(distributions, mc.size)
         plot_type = _validate_enumerator(plot_type, ['curves', 'heatmap'])
+        dpi = _validate_integer_dpi(dpi)
 
     except Exception as e:
         argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-        raise ValidationError(str(e).replace('@arg@', argument))
+        raise ValidationError(str(e).replace('@arg@', argument)) from None
 
     if isinstance(distributions, int):
         distributions = mc.redistribute(distributions, include_initial=True)
@@ -309,7 +320,7 @@ def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_
     distribution_len = len(distributions)
     distributions = _np.array(distributions)
 
-    figure, ax = _mp.subplots(dpi=_dpi)
+    figure, ax = _mp.subplots(dpi=dpi)
 
     if plot_type == 'curves':
 
@@ -367,7 +378,7 @@ def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_
     return figure, ax
 
 
-def plot_walk(mc: MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]], plot_type: str = 'histogram') -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_walk(mc: MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]], plot_type: str = 'histogram', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
 
     """
     The function plots a random walk on the given Markov chain.
@@ -375,6 +386,7 @@ def plot_walk(mc: MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]]
     :param mc: the target Markov chain.
     :param walk: a sequence of states or the number of simulations to perform.
     :param plot_type: the type of plot to display (either histogram, sequence or transitions, histogram by default).
+    :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
     :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, the handles of the plot otherwise.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -386,17 +398,18 @@ def plot_walk(mc: MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]]
 
         walk = _validate_walk(walk, mc.states)
         plot_type = _validate_enumerator(plot_type, ['histogram', 'sequence', 'transitions'])
+        dpi = _validate_integer_dpi(dpi)
 
     except Exception as e:
         argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-        raise ValidationError(str(e).replace('@arg@', argument))
+        raise ValidationError(str(e).replace('@arg@', argument)) from None
 
     if isinstance(walk, int):
         walk = mc.walk(walk, include_initial=True, output_indices=True)
 
     walk_len = len(walk)
 
-    figure, ax = _mp.subplots(dpi=_dpi)
+    figure, ax = _mp.subplots(dpi=dpi)
 
     if plot_type == 'histogram':
 

@@ -124,7 +124,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         self._digraph: _nx.DiGraph = _nx.DiGraph(p)
         self._p: _np.ndarray = p
@@ -336,45 +336,35 @@ class MarkovChain(object):
     def absorption_probabilities(self) -> _Optional[_np.ndarray]:
 
         """
-        A property representing the absorption probabilities of the Markov chain. If the Markov chain is not *absorbing*, then None is returned.
+        A property representing the absorption probabilities of the Markov chain. If the Markov chain is not *absorbing* and has no transient states, then None is returned.
         """
 
         if self.is_absorbing:
-            print('Computing absorption probabilities to absorbing states')
 
-            # compute the fundamental matrix of this MC
             n = self.fundamental_matrix
 
-            # restrict the transition matrix to the transitions from transient to absorbing states
             i = self._transient_states_indices
             j = self._absorbing_states_indices
             r = self._p[_np.ix_(i, j)]
 
-        elif len(self.transient_states) > 0:
-            print('Computing absorption probabilities to recurrent classes')
+            return _np.transpose(_np.matmul(n, r))
 
-            # if this MC is not absorbing but nevertheless has transient states. We can compute absorption probabilities
-            # for these to go to recurrent classes or absorbing states
+        if len(self.transient_states) > 0:
 
-            # construct fundamental matrix
             n = self.fundamental_matrix
 
-            # construct matrix r which stores transitions from transient states to rec classes
             trans_indices = self._transient_states_indices
             rec_classes = self._recurrent_classes_indices
             r = _np.zeros((len(trans_indices), len(rec_classes)))
 
             for t_ix, trans_state in enumerate(trans_indices):
                 for r_ix, rec_class in enumerate(rec_classes):
-                    # sum up the probability of the trans state going to that rec class
                     acc_prob = _np.sum(self._p[trans_state, :][:, rec_class])
-
-                    # write accumulated transition probability in matrix r
                     r[t_ix, r_ix] = acc_prob
-        else:
-            return None
 
-        return _np.transpose(_np.matmul(n, r))
+            return _np.transpose(_np.matmul(n, r))
+
+        return None
 
     @_cachedproperty
     def absorption_times(self) -> _Optional[_np.ndarray]:
@@ -482,10 +472,9 @@ class MarkovChain(object):
     def fundamental_matrix(self) -> _Optional[_np.ndarray]:
 
         """
-        A property representing the fundamental matrix of the Markov chain. If the Markov chain is not *absorbing*, then None is returned.
+        A property representing the fundamental matrix of the Markov chain. If the Markov chain has no transient states, then None is returned.
         """
 
-        # this can be problematic for disconnected chains with two recurrent classes
         if len(self.transient_states) == 0:
             return None
 
@@ -618,7 +607,6 @@ class MarkovChain(object):
 
         a = _np.tile(self.pi[0], (self._size, 1))
         i = _np.eye(self._size)
-        # z defines the fundamental matrix of the ergodic mc
         z = _npl.inv(i - self._p + a)
 
         e = _np.ones((self._size, self._size), dtype=float)
@@ -819,7 +807,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         a1 = self.accessibility_matrix[state1, state2] != 0
         a2 = self.accessibility_matrix[state2, state1] != 0
@@ -848,7 +836,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if not self.is_ergodic:
             return None
@@ -891,7 +879,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         return self._p[state, :]
 
@@ -913,7 +901,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         original_rewards = rewards.copy()
 
@@ -944,7 +932,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if steps <= self._size:
 
@@ -1012,7 +1000,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if not self.is_ergodic:
             return None
@@ -1055,7 +1043,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         states = sorted(states)
 
@@ -1092,7 +1080,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         return state in self._absorbing_states_indices
 
@@ -1114,7 +1102,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         return self.accessibility_matrix[state_origin, state_target] != 0
 
@@ -1134,7 +1122,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         return state in self._cyclic_states_indices
 
@@ -1154,7 +1142,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         return state in self._recurrent_states_indices
 
@@ -1174,7 +1162,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         return state in self._transient_states_indices
 
@@ -1199,7 +1187,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if not self.is_irreducible:
             return None
@@ -1249,7 +1237,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         states = sorted(states)
 
@@ -1286,7 +1274,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if not self.is_ergodic:
             return None
@@ -1341,7 +1329,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         prediction = list()
 
@@ -1392,7 +1380,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         distributions = _np.zeros((steps, self._size), dtype=float)
 
@@ -1429,7 +1417,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if not self.is_irreducible:
             return None
@@ -1492,7 +1480,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if multi:
             graph = _nx.MultiDiGraph(self._p)
@@ -1519,7 +1507,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         p_adjusted = ((1.0 - inertial_weights)[:, _np.newaxis] * self._p) + (_np.eye(self._size) * inertial_weights)
 
@@ -1541,7 +1529,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         closure = self.adjacency_matrix.copy()
 
@@ -1582,7 +1570,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         return self._p[state_origin, state_target]
 
@@ -1621,7 +1609,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         walk = list()
 
@@ -1660,7 +1648,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         p = 0.0
 
@@ -1784,7 +1772,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if not _np.all(q + p <= 1.0):
             raise ValueError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
@@ -1821,7 +1809,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         frequencies = _np.zeros((size, size), dtype=float)
 
@@ -1866,7 +1854,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         p_size = len(possible_states)
         p = _np.zeros((p_size, p_size), dtype=int)
@@ -1908,7 +1896,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         return MarkovChain(_np.eye(size), states)
 
@@ -1948,7 +1936,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument))
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0)
 
