@@ -4,7 +4,7 @@ __all__ = [
     'ValidationError',
     'extract_non_numeric', 'extract_numeric',
     'validate_boolean', 'validate_enumerator', 'validate_integer_dpi', 'validate_integer_non_negative', 'validate_integer_positive',
-    'validate_mask', 'validate_transition_matrix', 'validate_transition_matrix_size',
+    'validate_mask', 'validate_matrix', 'validate_transition_matrix', 'validate_transition_matrix_size',
     'validate_distribution', 'validate_hyperparameter', 'validate_rewards', 'validate_vector', 'validate_walk',
     'validate_state', 'validate_states', 'validate_state_names'
 ]
@@ -229,6 +229,27 @@ def validate_mask(mask: _Any, size: int) -> _np.ndarray:
         raise ValueError('The "@arg@" parameter row sums must not exceed 1.')
 
     return mask
+
+
+def validate_matrix(m: _Any) -> _np.ndarray:
+
+    try:
+        m = extract_numeric(m)
+    except Exception:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+
+    if not _np.issubdtype(m.dtype, _np.number):
+        raise TypeError('The "@arg@" parameter must contain only numeric values.')
+
+    m = m.astype(float)
+
+    if (m.ndim != 2) or (m.shape[0] < 2) or (m.shape[0] != m.shape[1]):
+        raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
+
+    if not all(_np.isfinite(x) for x in _np.nditer(m)):
+        raise ValueError('The "@arg@" parameter must contain only finite values.')
+
+    return m
 
 
 def validate_rewards(rewards: _Any, size: int) -> _np.ndarray:

@@ -62,6 +62,7 @@ from pydtmc.validation import (
     validate_integer_non_negative as _validate_integer_non_negative,
     validate_integer_positive as _validate_integer_positive,
     validate_mask as _validate_mask,
+    validate_matrix as _validate_matrix,
     validate_rewards as _validate_rewards,
     validate_state as _validate_state,
     validate_states as _validate_states,
@@ -109,6 +110,7 @@ class MarkovChain(object):
 
     :param p: the transition matrix.
     :param states: the name of every state (by default, an increasing sequence of integers starting at 1).
+    :raises ValidationError: if any input argument is not compliant.
     """
 
     def __init__(self, p: _tnumeric, states: _Optional[_Iterable[str]] = None):
@@ -343,9 +345,9 @@ class MarkovChain(object):
 
             n = self.fundamental_matrix
 
-            i = self._transient_states_indices
-            j = self._absorbing_states_indices
-            r = self._p[_np.ix_(i, j)]
+            absorbing_indices = self._absorbing_states_indices
+            transient_indices = self._transient_states_indices
+            r = self._p[_np.ix_(transient_indices, absorbing_indices)]
 
             return _np.transpose(_np.matmul(n, r))
 
@@ -353,14 +355,13 @@ class MarkovChain(object):
 
             n = self.fundamental_matrix
 
-            trans_indices = self._transient_states_indices
-            rec_classes = self._recurrent_classes_indices
-            r = _np.zeros((len(trans_indices), len(rec_classes)))
+            recurrent_indices = self._recurrent_classes_indices
+            transient_indices = self._transient_states_indices
+            r = _np.zeros((len(transient_indices), len(recurrent_indices)), dtype=float)
 
-            for t_ix, trans_state in enumerate(trans_indices):
-                for r_ix, rec_class in enumerate(rec_classes):
-                    acc_prob = _np.sum(self._p[trans_state, :][:, rec_class])
-                    r[t_ix, r_ix] = acc_prob
+            for i, transient_state in enumerate(transient_indices):
+                for j, recurrent_class in enumerate(recurrent_indices):
+                    r[i, j] = _np.sum(self._p[transient_state, :][:, recurrent_class])
 
             return _np.transpose(_np.matmul(n, r))
 
@@ -874,9 +875,7 @@ class MarkovChain(object):
         """
 
         try:
-
             state = _validate_state(state, self._states)
-
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1075,9 +1074,7 @@ class MarkovChain(object):
         """
 
         try:
-
             state = _validate_state(state, self._states)
-
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1117,9 +1114,7 @@ class MarkovChain(object):
         """
 
         try:
-
             state = _validate_state(state, self._states)
-
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1137,9 +1132,7 @@ class MarkovChain(object):
         """
 
         try:
-
             state = _validate_state(state, self._states)
-
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1157,9 +1150,7 @@ class MarkovChain(object):
         """
 
         try:
-
             state = _validate_state(state, self._states)
-
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1412,9 +1403,7 @@ class MarkovChain(object):
         """
 
         try:
-
             state = _validate_state(state, self._states)
-
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1475,9 +1464,7 @@ class MarkovChain(object):
         """
 
         try:
-
             multi = _validate_boolean(multi)
-
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1502,9 +1489,7 @@ class MarkovChain(object):
         """
 
         try:
-
             inertial_weights = _validate_vector(inertial_weights, self._size, 'regular', True)
-
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1524,9 +1509,7 @@ class MarkovChain(object):
         """
 
         try:
-
             states = _validate_states(states, self._states, 'subset', True)
-
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1643,9 +1626,7 @@ class MarkovChain(object):
         """
 
         try:
-
             walk = _validate_states(walk, self._states, 'walk', False)
-
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1872,6 +1853,35 @@ class MarkovChain(object):
         p = p / _np.sum(p, axis=1, keepdims=True)
 
         return MarkovChain(p, possible_states)
+
+    @staticmethod
+    def from_matrix(m: _tnumeric, states: _Optional[_Iterable[str]] = None) -> 'MarkovChain':
+
+        """
+        The method generates a Markov chain with the given state names whose transition matrix is obtained through the normalization of the given matrix.
+
+        :param m: the matrix to transform into the transition matrix.
+        :param states: the name of every state (by default, an increasing sequence of integers starting at 1).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            m = _validate_matrix(m)
+
+            if states is None:
+                states = [str(i) for i in range(1, m.shape[0] + 1)]
+            else:
+                states = _validate_state_names(states, m.shape[0])
+
+        except Exception as e:
+            argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        m = _np.interp(m, (_np.min(m), _np.max(m)), (0, +1))
+        m = m / _np.sum(m, axis=1, keepdims=True)
+
+        return MarkovChain(m, states)
 
     @staticmethod
     def identity(size: int, states: _Optional[_Iterable[str]] = None) -> 'MarkovChain':
