@@ -31,7 +31,7 @@ for (location, directories, files) in os.walk('data'):
 
 setuptools.setup(
     name='PyDTMC',
-    version='0.1.0',
+    version='1.0.0',
     url='https://github.com/TommasoBelluzzo/PyDTMC',
     description='A framework for discrete-time Markov chains analysis.',
     long_description=long_description_text,
@@ -46,7 +46,7 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=['matplotlib', 'networkx', 'numpy'],
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
@@ -65,5 +65,5 @@ setuptools.setup(
         'Topic :: Scientific/Engineering :: Physics',
         'Topic :: Software Development :: Libraries'
     ],
-    keywords='analysis chain fitting markov models probability process random simulation stochastic'
+    keywords='analysis chain fitting markov models plotting probability process random simulation stochastic'
 )
