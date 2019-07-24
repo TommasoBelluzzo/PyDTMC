@@ -425,7 +425,7 @@ def validate_transition_matrix_size(size: _Any) -> int:
     return size
 
 
-def validate_vector(vector: any, size: int, vector_type: str, vector_flex: bool) -> _np.ndarray:
+def validate_vector(vector: _Any, size: int, vector_type: str, vector_flex: bool) -> _np.ndarray:
 
     if vector_flex:
 
