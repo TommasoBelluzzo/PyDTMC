@@ -34,10 +34,6 @@ from math import (
     gcd as _gcd
 )
 
-from re import (
-    sub as _sub
-)
-
 from typing import (
     Any as _Any,
     Iterable as _Iterable,
@@ -54,8 +50,11 @@ from pydtmc.decorators import (
     cachedproperty as _cachedproperty
 )
 
+from pydtmc.exceptions import (
+    ValidationError
+)
+
 from pydtmc.validation import (
-    ValidationError,
     validate_boolean as _validate_boolean,
     validate_enumerator as _validate_enumerator,
     validate_hyperparameter as _validate_hyperparameter,
@@ -89,8 +88,14 @@ except Exception:
 
 # noinspection PyBroadException
 try:
-    import scipy.sparse.csr as _spsc
-    _tnumeric = _Union[_tnumeric, _spsc.csr_matrix]
+    import scipy.sparse as _sps
+    _tnumeric = _Union[_tnumeric, _sps.bsr.bsr_matrix]
+    _tnumeric = _Union[_tnumeric, _sps.coo.coo_matrix]
+    _tnumeric = _Union[_tnumeric, _sps.csc.csc_matrix]
+    _tnumeric = _Union[_tnumeric, _sps.csr.csr_matrix]
+    _tnumeric = _Union[_tnumeric, _sps.dia.dia_matrix]
+    _tnumeric = _Union[_tnumeric, _sps.dok.dok_matrix]
+    _tnumeric = _Union[_tnumeric, _sps.lil.lil_matrix]
 except Exception:
     pass
 
@@ -136,48 +141,15 @@ class MarkovChain(object):
     # noinspection PyListCreation
     def __str__(self) -> str:
 
-        states_length = max([len(s) for s in self._states])
-
         indentation = (' ' * 2)
-        padding = max(7, states_length)
 
-        ccs = [_sub('[\' ]', '', str(cc)) for cc in self.communicating_classes]
-        ccs_period = [str(self.periods[i]).rjust(len(ccs[i])) for i in range(len(self.communicating_classes))]
-        ccs_type = [('R' if cc in self.recurrent_classes else 'T').rjust(len(ccs[i])) for i, cc in enumerate(self.communicating_classes)]
-
-        lines = ['']
+        lines = []
+        lines.append('')
         lines.append('DISCRETE-TIME MARKOV CHAIN')
-
-        lines.append('')
-        lines.append(' - TRANSITION MATRIX:')
-        lines.append('')
-        lines.append(f'{indentation}{(" " * (states_length + 3))}{(" ".join(map(lambda x: x.rjust(padding), self._states)))}')
-        lines.append(f'{indentation}{(" " * (states_length + 3))}{(" ".join(["-" * 7] * self._size))}')
-
-        for i in range(self._size):
-
-            line = [f'{indentation}{self._states[i].ljust(states_length)} |']
-
-            for j in range(self._size):
-                line.append(('%1.5f' % self._p[i, j]).rjust(padding))
-
-            lines.append(' '.join(line))
-
-        lines.append('')
-        lines.append(' - PROPERTIES:')
-        lines.append('')
         lines.append(f'{indentation}ABSORBING:   {("YES" if self.is_absorbing else "NO")}')
         lines.append(f'{indentation}APERIODIC:   {("YES" if self.is_aperiodic else "NO (" + str(self.period) + ")")}')
         lines.append(f'{indentation}IRREDUCIBLE: {("YES" if self.is_irreducible else "NO")}')
         lines.append(f'{indentation}ERGODIC:     {("YES" if self.is_ergodic else "NO")}')
-
-        lines.append('')
-        lines.append(' - COMMUNICATING CLASSES:')
-        lines.append('')
-        lines.append(f'{indentation}        {" | ".join(ccs)}')
-        lines.append(f'{indentation}TYPE:   {" | ".join(ccs_type)}')
-        lines.append(f'{indentation}PERIOD: {" | ".join(ccs_period)}')
-
         lines.append('')
 
         return '\n'.join(lines)

@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['ValidationError', 'MarkovChain', 'plot_eigenvalues', 'plot_graph', 'plot_redistributions', 'plot_walk']
+__all__ = [
+    'ValidationError',
+    'MarkovChain',
+    'plot_eigenvalues', 'plot_graph', 'plot_redistributions', 'plot_walk'
+]
 
-from pydtmc.validation import (
+from pydtmc.exceptions import (
     ValidationError
 )
 

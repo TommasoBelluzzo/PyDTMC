@@ -43,12 +43,15 @@ from typing import (
 
 # Internal
 
+from pydtmc.exceptions import (
+    ValidationError
+)
+
 from pydtmc.markov_chain import (
     MarkovChain
 )
 
 from pydtmc.validation import (
-    ValidationError,
     validate_boolean as _validate_boolean,
     validate_distribution as _validate_distribution,
     validate_enumerator as _validate_enumerator,

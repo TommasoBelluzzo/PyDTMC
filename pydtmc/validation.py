@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'ValidationError',
-    'extract_non_numeric', 'extract_numeric',
     'validate_boolean', 'validate_enumerator', 'validate_integer_dpi', 'validate_integer_non_negative', 'validate_integer_positive',
     'validate_mask', 'validate_matrix', 'validate_transition_matrix', 'validate_transition_matrix_size',
     'validate_distribution', 'validate_hyperparameter', 'validate_rewards', 'validate_vector', 'validate_walk',
@@ -44,18 +42,9 @@ except ImportError:
     _pd = None
 
 try:
-    import scipy.sparse.csr as _spsc
+    import scipy.sparse as _sps
 except ImportError:
-    _spsc = None
-
-
-###########
-# CLASSES #
-###########
-
-
-class ValidationError(Exception):
-    pass
+    _sps = None
 
 
 #############
@@ -85,7 +74,25 @@ def extract_numeric(data: _Any) -> _np.ndarray:
     if _pd and isinstance(data, (_pd.DataFrame, _pd.Series)):
         return data.values.copy()
 
-    if _spsc and isinstance(data, _spsc.csr_matrix):
+    if _sps and isinstance(data, _sps.bsr.bsr_matrix):
+        return _np.array(data.todense())
+
+    if _sps and isinstance(data, _sps.coo.coo_matrix):
+        return _np.array(data.todense())
+
+    if _sps and isinstance(data, _sps.csc.csc_matrix):
+        return _np.array(data.todense())
+
+    if _sps and isinstance(data, _sps.csr.csr_matrix):
+        return _np.array(data.todense())
+
+    if _sps and isinstance(data, _sps.dia.dia_matrix):
+        return _np.array(data.todense())
+
+    if _sps and isinstance(data, _sps.dok.dok_matrix):
+        return _np.array(data.todense())
+
+    if _sps and isinstance(data, _sps.lil.lil_matrix):
         return _np.array(data.todense())
 
     if isinstance(data, _CIterable):
