@@ -66,9 +66,6 @@ DISCRETE-TIME MARKOV CHAIN
 Static values of a `MarkovChain` instance can be retrieved through its properties:
 
 ```console
->>> print(mc.size)
-4
-
 >>> print(mc.recurrent_states)
 ['C']
 
