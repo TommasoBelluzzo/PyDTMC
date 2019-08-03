@@ -4,13 +4,13 @@ PyDTMC is a full-featured, lightweight library for discrete-time Markov chains a
 
 ## Requirements
 
-PyDTMC supports only `Python 3` and the minimum required version is `3.6`. In addition, the environment must include the following libraries:
+PyDTMC supports only `Python 3` and the minimum version required is `3.6`. In addition, the environment must include the following libraries:
 
 * [Matplotlib](https://matplotlib.org/)
 * [NetworkX](https://networkx.github.io/)
 * [Numpy](https://www.numpy.org/)
 
-In order to use the `plot_graph` function, [Graphviz](https://www.graphviz.org/) and [PyDot](https://pypi.org/project/pydot/) must be installed too.
+For a better user experience, it's recommended to install [Graphviz](https://www.graphviz.org/) and [PyDot](https://pypi.org/project/pydot/) before using the `plot_graph` function.
 
 ## Installation & Upgrade
 
@@ -39,28 +39,14 @@ The core element of the library is the `MarkovChain` class, which can be instant
 >>> print(mc)
 
 DISCRETE-TIME MARKOV CHAIN
-
- - TRANSITION MATRIX:
-
-            A       B       C       D
-      ------- ------- ------- -------
-  A | 0.20000 0.70000 0.00000 0.10000
-  B | 0.00000 0.60000 0.30000 0.10000
-  C | 0.00000 0.00000 1.00000 0.00000
-  D | 0.50000 0.00000 0.50000 0.00000
-
- - PROPERTIES:
-
-  ABSORBING:   YES
-  APERIODIC:   YES
-  IRREDUCIBLE: NO
-  ERGODIC:     NO
-
- - COMMUNICATING CLASSES:
-
-          [A,B,D] | [C]
-  TYPE:         T |   R
-  PERIOD:       1 |   1
+ SIZE:         4
+ CLASSES:      2
+  - RECURRENT: 1
+  - TRANSIENT: 1
+ ABSORBING:    YES
+ APERIODIC:    YES
+ IRREDUCIBLE:  NO
+ ERGODIC:      NO
 ```
 
 Static values of a `MarkovChain` instance can be retrieved through its properties:
@@ -103,7 +89,7 @@ Dynamic computations on a `MarkovChain` instance can be performed through its me
 ['D', 'A', 'B', 'C', 'C', 'C', 'C', 'C', 'C', 'C']
 ```
 
-Plotting functions can provide a visual representation of a `MarkovChain` instance and its attributes. In order to immediately display function outputs, the [interactive mode](https://matplotlib.org/faq/usage_faq.html#what-is-interactive-mode) of `Matplotlib` must be turned on.
+Plotting functions can provide a visual representation of `MarkovChain` instances. In order to display function outputs immediately, the [interactive mode](https://matplotlib.org/faq/usage_faq.html#what-is-interactive-mode) of `Matplotlib` must be turned on.
 
 ```console
 >>> plot_eigenvalues(mc)
