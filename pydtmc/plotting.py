@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['plot_eigenvalues', 'plot_graph', 'plot_redistributions', 'plot_walk']
+__all__ = [
+    'plot_eigenvalues', 'plot_graph', 'plot_redistributions', 'plot_walk'
+]
 
 
 ###########
@@ -55,7 +57,7 @@ from pydtmc.validation import (
     validate_boolean as _validate_boolean,
     validate_distribution as _validate_distribution,
     validate_enumerator as _validate_enumerator,
-    validate_integer_dpi as _validate_integer_dpi,
+    validate_dpi as _validate_dpi,
     validate_walk as _validate_walk
 )
 
@@ -91,7 +93,7 @@ def plot_eigenvalues(mc: MarkovChain, dpi: int = 100) -> _Optional[_Tuple[_mp.Fi
         raise ValidationError('A valid MarkovChain instance must be provided.')
 
     try:
-        dpi = _validate_integer_dpi(dpi)
+        dpi = _validate_dpi(dpi)
     except Exception as e:
         argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
         raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -168,17 +170,15 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
     """
     The function plots the directed graph of the Markov chain.
 
-    | **Notes:** Graphviz and Pydot are required.
+    | **Notes:** Graphviz and Pydot are not required, but they provide access to extended graphs with supplementar drawing functionalities.
 
     :param mc: the target Markov chain.
     :param nodes_color: a boolean indicating whether to display colored nodes based on communicating classes (by default, True).
     :param nodes_type: a boolean indicating whether to use a different shape for every node type (by default, True).
-    :param edges_color: a boolean indicating whether to display colored edges based on transition probabilities (by default, True).
+    :param edges_color: a boolean indicating whether to display edges using a gradient based on transition probabilities, valid only for extended graphs (by default, True).
     :param edges_value: a boolean indicating whether to display the transition probability of every edge (by default, True).
     :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
     :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, the handles of the plot otherwise.
-    :raises EnvironmentError: if Graphviz is not installed.
-    :raises ImportError: if Pydot is not installed.
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -212,16 +212,6 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
 
         return clist
 
-    try:
-        _call(['dot', '-V'], stdout=_PIPE, stderr=_PIPE)
-    except Exception:
-        raise EnvironmentError('Graphviz is required by this plotting function.') from None
-
-    try:
-        import pydot as pyd
-    except ImportError:
-        raise ImportError('Pydot is required by this plotting function.') from None
-
     if not isinstance(mc, MarkovChain):
         raise ValidationError('A valid MarkovChain instance must be provided.')
 
@@ -231,64 +221,140 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
         nodes_type = _validate_boolean(nodes_type)
         edges_color = _validate_boolean(edges_color)
         edges_value = _validate_boolean(edges_value)
-        dpi = _validate_integer_dpi(dpi)
+        dpi = _validate_dpi(dpi)
 
     except Exception as e:
         argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
         raise ValidationError(str(e).replace('@arg@', argument)) from None
 
+    extended_graph = True
+
+    # noinspection PyBroadException
+    try:
+        _call(['dot', '-V'], stdout=_PIPE, stderr=_PIPE)
+    except Exception:
+        extended_graph = False
+        pass
+
+    try:
+        import pydot as pyd
+    except ImportError:
+        extended_graph = False
+        pass
+
     g = mc.to_directed_graph()
-    g_pydot = _nx.nx_pydot.to_pydot(g)
 
-    if nodes_color:
-        c = node_colors(len(mc.communicating_classes))
-        for node in g_pydot.get_nodes():
-            state = node.get_name()
-            for x, cc in enumerate(mc.communicating_classes):
-                if state in cc:
-                    node.set_style('filled')
-                    node.set_fillcolor(c[x])
-                    break
+    if extended_graph:
 
-    if nodes_type:
-        for node in g_pydot.get_nodes():
-            if node.get_name() in mc.transient_states:
-                node.set_shape('box')
+        g_pydot = _nx.nx_pydot.to_pydot(g)
+
+        if nodes_color:
+            c = node_colors(len(mc.communicating_classes))
+            for node in g_pydot.get_nodes():
+                state = node.get_name()
+                for x, cc in enumerate(mc.communicating_classes):
+                    if state in cc:
+                        node.set_style('filled')
+                        node.set_fillcolor(c[x])
+                        break
+
+        if nodes_type:
+            for node in g_pydot.get_nodes():
+                if node.get_name() in mc.transient_states:
+                    node.set_shape('box')
+                else:
+                    node.set_shape('ellipse')
+
+        if edges_color:
+            c = edge_colors(_color_gray, _color_black, 20)
+            for edge in g_pydot.get_edges():
+                probability = mc.transition_probability(edge.get_destination(), edge.get_source())
+                x = int(round(probability * 20.0)) - 1
+                edge.set_style('filled')
+                edge.set_color(c[x])
+
+        if edges_value:
+            for edge in g_pydot.get_edges():
+                probability = mc.transition_probability(edge.get_destination(), edge.get_source())
+                if probability.is_integer():
+                    edge.set_label(f' {probability:g}.0 ')
+                else:
+                    edge.set_label(f' {round(probability,2):g} ')
+
+        buffer = _BytesIO()
+        buffer.write(g_pydot.create_png())
+        buffer.seek(0)
+
+        img = _mi.imread(buffer)
+        img_x = img.shape[0] / dpi
+        img_y = img.shape[1] / dpi
+
+        figure = _mp.figure(figsize=(img_y, img_x), dpi=dpi)
+        figure.figimage(img)
+        ax = figure.gca()
+
+    else:
+
+        mpi = _mp.isinteractive()
+        _mp.interactive(False)
+
+        figure, ax = _mp.subplots(dpi=dpi)
+
+        pos = _nx.spring_layout(g)
+        ncolors_all = node_colors(len(mc.communicating_classes))
+
+        for node in g.nodes:
+
+            ncolor = None
+
+            if nodes_color:
+                for x, cc in enumerate(mc.communicating_classes):
+                    if node in cc:
+                        ncolor = ncolors_all[x]
+                        break
+
+            if nodes_type:
+                if node in mc.transient_states:
+                    nshape = 's'
+                else:
+                    nshape = 'o'
             else:
-                node.set_shape('ellipse')
+                nshape = None
 
-    if edges_color:
-        c = edge_colors(_color_gray, _color_black, 20)
-        for edge in g_pydot.get_edges():
-            probability = mc.transition_probability(edge.get_destination(), edge.get_source())
-            x = int(round(probability * 20.0)) - 1
-            edge.set_style('filled')
-            edge.set_color(c[x])
-
-    if edges_value:
-        for edge in g_pydot.get_edges():
-            probability = mc.transition_probability(edge.get_destination(), edge.get_source())
-            if probability.is_integer():
-                edge.set_label(f' {probability:g}.0 ')
+            if ncolor is not None and nshape is not None:
+                _nx.draw_networkx_nodes(g, pos, ax=ax, nodelist=[node], edgecolors='k', node_color=ncolor, node_shape=nshape)
+            elif ncolor is not None and nshape is None:
+                _nx.draw_networkx_nodes(g, pos, ax=ax, nodelist=[node], edgecolors='k', node_color=ncolor)
+            elif ncolor is None and nshape is not None:
+                _nx.draw_networkx_nodes(g, pos, ax=ax, nodelist=[node], edgecolors='k', node_shape=nshape)
             else:
-                edge.set_label(f' {round(probability,2):g} ')
+                _nx.draw_networkx_nodes(g, pos, ax=ax, edgecolors='k')
 
-    buffer = _BytesIO()
-    buffer.write(g_pydot.create_png())
-    buffer.seek(0)
+        _nx.draw_networkx_labels(g, pos, ax=ax)
 
-    img = _mi.imread(buffer)
-    img_x = img.shape[0] / dpi
-    img_y = img.shape[1] / dpi
+        _nx.draw_networkx_edges(g, pos, ax=ax, arrows=False)
 
-    figure = _mp.figure(figsize=(img_y, img_x), dpi=dpi)
-    figure.figimage(img)
+        if edges_value:
+
+            evalues = dict()
+
+            for edge in g.edges:
+                probability = mc.transition_probability(edge[1], edge[0])
+                if probability.is_integer():
+                    value = f' {probability:g}.0 '
+                else:
+                    value = f' {round(probability,2):g} '
+                evalues[(edge[0], edge[1])] = value
+
+            _nx.draw_networkx_edge_labels(g, pos, ax=ax, edge_labels=evalues, label_pos=0.7)
+
+        _mp.interactive(mpi)
 
     if _mp.isinteractive():
         _mp.show(block=False)
         return None
 
-    return figure, figure.gca()
+    return figure, ax
 
 
 def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_np.ndarray]], plot_type: str = 'curves', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
@@ -311,7 +377,7 @@ def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_
 
         distributions = _validate_distribution(distributions, mc.size)
         plot_type = _validate_enumerator(plot_type, ['curves', 'heatmap'])
-        dpi = _validate_integer_dpi(dpi)
+        dpi = _validate_dpi(dpi)
 
     except Exception as e:
         argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
@@ -401,7 +467,7 @@ def plot_walk(mc: MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]]
 
         walk = _validate_walk(walk, mc.states)
         plot_type = _validate_enumerator(plot_type, ['histogram', 'sequence', 'transitions'])
-        dpi = _validate_integer_dpi(dpi)
+        dpi = _validate_dpi(dpi)
 
     except Exception as e:
         argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()

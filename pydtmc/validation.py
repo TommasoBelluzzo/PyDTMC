@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'validate_boolean', 'validate_enumerator', 'validate_integer_dpi', 'validate_integer_non_negative', 'validate_integer_positive',
+    'validate_boolean', 'validate_enumerator', 'validate_dpi', 'validate_integer',
     'validate_mask', 'validate_matrix', 'validate_transition_matrix', 'validate_transition_matrix_size',
     'validate_distribution', 'validate_hyperparameter', 'validate_rewards', 'validate_vector', 'validate_walk',
     'validate_state', 'validate_states', 'validate_state_names'
@@ -31,6 +31,7 @@ from typing import (
     Any as _Any,
     List as _List,
     Optional as _Optional,
+    Tuple as _Tuple,
     Union as _Union
 )
 
@@ -178,7 +179,7 @@ def validate_hyperparameter(hyperparameter: _Any, size: int) -> _np.ndarray:
     return hyperparameter
 
 
-def validate_integer_dpi(value: _Any) -> int:
+def validate_dpi(value: _Any) -> int:
 
     if not isinstance(value, int):
         raise TypeError('The "@arg@" parameter must be an integer value.')
@@ -189,24 +190,26 @@ def validate_integer_dpi(value: _Any) -> int:
     return value
 
 
-def validate_integer_non_negative(value: _Any) -> int:
-
-    if not isinstance(value, int):
-        raise TypeError('The "@arg@" parameter must an integer value.')
-
-    if value < 0:
-        raise ValueError('The "@arg@" parameter must be non-negative.')
-
-    return value
-
-
-def validate_integer_positive(value: _Any) -> int:
+def validate_integer(value: _Any, lower_limit: _Tuple[int, bool] = None, upper_limit: _Tuple[int, bool] = None) -> int:
 
     if not isinstance(value, int):
         raise TypeError('The "@arg@" parameter must be an integer value.')
 
-    if value <= 0:
-        raise ValueError('The "@arg@" parameter must be positive.')
+    if lower_limit is not None:
+        if lower_limit[1]:
+            if value <= lower_limit[0]:
+                raise ValueError(f'The "@arg@" parameter must be greater than {lower_limit[0]:d}.')
+        else:
+            if value < lower_limit[0]:
+                raise ValueError(f'The "@arg@" parameter must be greater than or equal to {lower_limit[0]:d}.')
+
+    if upper_limit is not None:
+        if upper_limit[1]:
+            if value >= upper_limit[0]:
+                raise ValueError(f'The "@arg@" parameter must be less than {upper_limit[0]:d}.')
+        else:
+            if value > upper_limit[0]:
+                raise ValueError(f'The "@arg@" parameter must be less than or equal to {upper_limit[0]:d}.')
 
     return value
 
@@ -328,9 +331,9 @@ def validate_state_names(states: _Any, size: _Optional[int] = None) -> _List[str
     return states
 
 
-def validate_states(states: _Any, current_states: _List[str], states_type: str, states_flex: bool) -> _List[int]:
+def validate_states(states: _Any, current_states: _List[str], state_type: str, flex: bool) -> _List[int]:
 
-    if states_flex:
+    if flex:
 
         if isinstance(states, int):
 
@@ -369,20 +372,20 @@ def validate_states(states: _Any, current_states: _List[str], states_type: str, 
 
     else:
 
-        if states_flex:
+        if flex:
             raise TypeError('The "@arg@" parameter must be either an integer, a string, an array_like object of integers or an array_like object of strings.')
         else:
             raise TypeError('The "@arg@" parameter must be either an array_like object of integers or an array_like object of strings.')
 
     states_length = len(states)
 
-    if (states_type != 'walk') and (len(set(states)) < states_length):
+    if (state_type != 'walk') and (len(set(states)) < states_length):
         raise ValueError('The "@arg@" parameter must contain only unique values.')
 
-    if states_type == 'regular':
+    if state_type == 'regular':
         if (states_length < 1) or (states_length > current_states_length):
             raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states ({current_states_length:d}).')
-    elif states_type == 'subset':
+    elif state_type == 'subset':
         if (states_length < 1) or (states_length >= current_states_length):
             raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states minus one ({current_states_length - 1:d}).')
     else:
@@ -432,19 +435,23 @@ def validate_transition_matrix_size(size: _Any) -> int:
     return size
 
 
-def validate_vector(vector: _Any, size: int, vector_type: str, vector_flex: bool) -> _np.ndarray:
+def validate_vector(vector: _Any, vector_type: str, flex: bool, size: _Optional[int] = None) -> _np.ndarray:
 
-    if vector_flex:
+    if flex:
 
         if isinstance(vector, int):
-            vector = float(vector)
+            value = float(vector)
+        elif isinstance(vector, float):
+            value = vector
+        else:
+            value = None
 
-        if isinstance(vector, float):
+        if value is not None:
 
-            if not _np.isfinite(vector) or (vector < 0.0) or (vector > 1.0):
+            if not _np.isfinite(value) or (value < 0.0) or (value > 1.0):
                 raise ValueError(f'The "@arg@" parameter, when specified as a numeric scalar, must have a value between 0 and 1.')
 
-            return _np.repeat(vector, size)
+            return _np.repeat(value, size)
 
     try:
         vector = extract_numeric(vector)
@@ -461,7 +468,7 @@ def validate_vector(vector: _Any, size: int, vector_type: str, vector_flex: bool
 
     vector = _np.ravel(vector)
 
-    if vector.size != size:
+    if size is not None and (vector.size != size):
         raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
 
     if not all(_np.isfinite(x) and (x >= 0.0) and (x <= 1.0) for x in _np.nditer(vector)):
@@ -473,7 +480,7 @@ def validate_vector(vector: _Any, size: int, vector_type: str, vector_flex: bool
     elif vector_type == 'creation':
         if not _np.isclose(vector[-1], 0.0):
             raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the last index.')
-    if vector_type == 'S':
+    elif vector_type == 'stochastic':
         if not _np.isclose(_np.sum(vector), 1.0):
             raise ValueError('The "@arg@" parameter values must sum to 1.')
 

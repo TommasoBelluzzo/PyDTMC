@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['alias', 'aliased', 'cachedproperty']
+__all__ = [
+    'alias', 'aliased',
+    'cachedproperty'
+]
 
 
 ###########

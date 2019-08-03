@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['ValidationError']
+__all__ = [
+    'ValidationError'
+]
 
 
 ###########

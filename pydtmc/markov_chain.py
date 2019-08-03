@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['MarkovChain']
+__all__ = [
+    'MarkovChain'
+]
 
 
 ###########
@@ -23,6 +25,9 @@ from copy import (
 )
 
 from inspect import (
+    getmembers as _getmembers,
+    isfunction as _isfunction,
+    stack as _stack,
     trace as _trace
 )
 
@@ -58,8 +63,7 @@ from pydtmc.validation import (
     validate_boolean as _validate_boolean,
     validate_enumerator as _validate_enumerator,
     validate_hyperparameter as _validate_hyperparameter,
-    validate_integer_non_negative as _validate_integer_non_negative,
-    validate_integer_positive as _validate_integer_positive,
+    validate_integer as _validate_integer,
     validate_mask as _validate_mask,
     validate_matrix as _validate_matrix,
     validate_rewards as _validate_rewards,
@@ -114,24 +118,29 @@ class MarkovChain(object):
     Defines a Markov chain with given transition matrix and state names.
 
     :param p: the transition matrix.
-    :param states: the name of every state (by default, an increasing sequence of integers starting at 1).
+    :param states: the name of each state (by default, an increasing sequence of integers starting at 1).
     :raises ValidationError: if any input argument is not compliant.
     """
 
     def __init__(self, p: _tnumeric, states: _Optional[_Iterable[str]] = None):
 
-        try:
+        caller = _stack()[1][3]
+        sm = [x[1].__name__ for x in _getmembers(MarkovChain, predicate=_isfunction) if x[1].__name__[0] != '_' and isinstance(MarkovChain.__dict__.get(x[1].__name__), staticmethod)]
 
-            p = _validate_transition_matrix(p)
+        if caller not in sm:
 
-            if states is None:
-                states = [str(i) for i in range(1, p.shape[0] + 1)]
-            else:
-                states = _validate_state_names(states, p.shape[0])
+            try:
 
-        except Exception as e:
-            argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+                p = _validate_transition_matrix(p)
+
+                if states is None:
+                    states = [str(i) for i in range(1, p.shape[0] + 1)]
+                else:
+                    states = _validate_state_names(states, p.shape[0])
+
+            except Exception as e:
+                argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
+                raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         self._digraph: _nx.DiGraph = _nx.DiGraph(p)
         self._p: _np.ndarray = p
@@ -141,15 +150,17 @@ class MarkovChain(object):
     # noinspection PyListCreation
     def __str__(self) -> str:
 
-        indentation = (' ' * 2)
-
         lines = []
         lines.append('')
         lines.append('DISCRETE-TIME MARKOV CHAIN')
-        lines.append(f'{indentation}ABSORBING:   {("YES" if self.is_absorbing else "NO")}')
-        lines.append(f'{indentation}APERIODIC:   {("YES" if self.is_aperiodic else "NO (" + str(self.period) + ")")}')
-        lines.append(f'{indentation}IRREDUCIBLE: {("YES" if self.is_irreducible else "NO")}')
-        lines.append(f'{indentation}ERGODIC:     {("YES" if self.is_ergodic else "NO")}')
+        lines.append(f' SIZE:         {self._size:d}')
+        lines.append(f' CLASSES:      {len(self.communicating_classes):d}')
+        lines.append(f'  - RECURRENT: {len(self.recurrent_classes):d}')
+        lines.append(f'  - TRANSIENT: {len(self.transient_classes):d}')
+        lines.append(f' ABSORBING:    {("YES" if self.is_absorbing else "NO")}')
+        lines.append(f' APERIODIC:    {("YES" if self.is_aperiodic else "NO (" + str(self.period) + ")")}')
+        lines.append(f' IRREDUCIBLE:  {("YES" if self.is_irreducible else "NO")}')
+        lines.append(f' ERGODIC:      {("YES" if self.is_ergodic else "NO")}')
         lines.append('')
 
         return '\n'.join(lines)
@@ -634,7 +645,7 @@ class MarkovChain(object):
     def periods(self) -> _List[int]:
 
         """
-        A property representing the period of every communicating class defined by the Markov chain.
+        A property representing the period of each communicating class defined by the Markov chain.
         """
 
         periods = [0] * len(self._communicating_classes_indices)
@@ -857,18 +868,18 @@ class MarkovChain(object):
     def expected_rewards(self, steps: int, rewards: _tnumeric) -> _np.ndarray:
 
         """
-        The method computes the expected rewards after N steps, given the reward value of every state.
+        The method computes the expected rewards after N steps, given the reward value of each state.
 
         :param steps: the number of steps.
         :param rewards: the reward values.
-        :return: the expected rewards of every state of the Markov chain.
+        :return: the expected rewards of each state of the Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
             rewards = _validate_rewards(rewards, self._size)
-            steps = _validate_integer_positive(steps)
+            steps = _validate_integer(steps, lower_limit=(0, True))
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
@@ -888,18 +899,18 @@ class MarkovChain(object):
 
         :param steps: the number of steps.
         :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
-        :return: the expected number of transitions on every state of the Markov chain.
+        :return: the expected number of transitions on each state of the Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            steps = _validate_integer_positive(steps)
+            steps = _validate_integer(steps, lower_limit=(0, True))
 
             if initial_distribution is None:
                 initial_distribution = _np.ones(self._size, dtype=float) / self._size
             else:
-                initial_distribution = _validate_vector(initial_distribution, self._size, 'stochastic', False)
+                initial_distribution = _validate_vector(initial_distribution, 'stochastic', False, size=self._size)
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
@@ -1001,7 +1012,7 @@ class MarkovChain(object):
         The method computes the hitting probability, for all the states, to the given set of states.
 
         :param states: the set of target states (if omitted, all the states are targeted).
-        :return: the hitting probability of every state of the Markov chain.
+        :return: the hitting probability of each state of the Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1187,7 +1198,7 @@ class MarkovChain(object):
         | **Aliases:** mfpt_to
 
         :param states: the set of target states (if omitted, all the states are targeted).
-        :return: the mean first passage times of every state of the Markov chain.
+        :return: the mean first passage times of each state of the Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1220,7 +1231,7 @@ class MarkovChain(object):
 
         :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
         :param jump: the number of steps in each iteration (by default, 1).
-        :param cutoff_type: the type of cutoff to be used (either natural or traditional, natural by default).
+        :param cutoff_type: the type of cutoff to use (either natural or traditional, natural by default).
         :return: the mixing time if the Markov chain is *ergodic*, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -1230,9 +1241,9 @@ class MarkovChain(object):
             if initial_distribution is None:
                 initial_distribution = _np.ones(self._size, dtype=float) / self._size
             else:
-                initial_distribution = _validate_vector(initial_distribution, self._size, 'stochastic', False)
+                initial_distribution = _validate_vector(initial_distribution, 'stochastic', False, size=self._size)
 
-            jump = _validate_integer_positive(jump)
+            jump = _validate_integer(jump, lower_limit=(0, True))
             cutoff_type = _validate_enumerator(cutoff_type, ['natural', 'traditional'])
 
         except Exception as e:
@@ -1280,7 +1291,7 @@ class MarkovChain(object):
 
             rng = MarkovChain._create_rng(seed)
 
-            steps = _validate_integer_positive(steps)
+            steps = _validate_integer(steps, lower_limit=(0, True))
 
             if initial_state is None:
                 initial_state = rng.randint(0, self._size)
@@ -1331,12 +1342,12 @@ class MarkovChain(object):
 
         try:
 
-            steps = _validate_integer_positive(steps)
+            steps = _validate_integer(steps, lower_limit=(0, True))
 
             if initial_distribution is None:
                 initial_distribution = _np.ones(self._size, dtype=float) / self._size
             else:
-                initial_distribution = _validate_vector(initial_distribution, self._size, 'stochastic', False)
+                initial_distribution = _validate_vector(initial_distribution, 'stochastic', False, size=self._size)
 
             include_initial = _validate_boolean(include_initial)
             output_last = _validate_boolean(output_last)
@@ -1461,7 +1472,7 @@ class MarkovChain(object):
         """
 
         try:
-            inertial_weights = _validate_vector(inertial_weights, self._size, 'regular', True)
+            inertial_weights = _validate_vector(inertial_weights, 'regular', True, size=self._size)
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1548,7 +1559,7 @@ class MarkovChain(object):
 
             rng = MarkovChain._create_rng(seed)
 
-            steps = _validate_integer_positive(steps)
+            steps = _validate_integer(steps, lower_limit=(0, True))
 
             if initial_state is None:
                 initial_state = rng.randint(0, self._size)
@@ -1701,34 +1712,46 @@ class MarkovChain(object):
         return x
 
     @staticmethod
-    def birth_death(size: int, p: _np.ndarray, q: _np.ndarray, states: _Optional[_Iterable[str]] = None) -> 'MarkovChain':
+    def birth_death(p: _np.ndarray, q: _np.ndarray, states: _Optional[_Iterable[str]] = None) -> 'MarkovChain':
 
         """
         The method generates a birth-death Markov chain of given size and from given probabilities.
 
-        :param size: the size of the chain.
         :param q: the creation probabilities.
         :param p: the annihilation probabilities.
-        :param states: the name of every state (by default, an increasing sequence of integers starting at 1).
+        :param states: the name of each state (by default, an increasing sequence of integers starting at 1).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the vector resulting from the sum of q and p contains any value greater than one.
+        :raises ValueError: if q and p have different a size or if the vector resulting from the sum of q and p contains any value greater than one.
         """
 
         try:
 
-            p = _validate_vector(p, size, 'creation', False)
-            q = _validate_vector(q, size, 'annihilation', False)
-
-            if states is not None:
-                states = _validate_state_names(states, size)
+            p = _validate_vector(p, 'creation', False)
+            q = _validate_vector(q, 'annihilation', False)
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
+        if p.shape[0] != q.shape[0]:
+            raise ValueError(f'The assets vector and the liabilities vector must have the same size.')
+
         if not _np.all(q + p <= 1.0):
             raise ValueError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
+
+        n = {p.shape[0], q.shape[0]}.pop()
+
+        try:
+
+            if states is None:
+                states = [str(i) for i in range(1, n + 1)]
+            else:
+                states = _validate_state_names(states, n)
+
+        except Exception as e:
+            argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         r = 1.0 - q - p
         p = _np.diag(r, k=0) + _np.diag(p[0:-1], k=1) + _np.diag(q[1:], k=-1)
@@ -1833,7 +1856,7 @@ class MarkovChain(object):
         The method generates a Markov chain with the given state names whose transition matrix is obtained through the normalization of the given matrix.
 
         :param m: the matrix to transform into the transition matrix.
-        :param states: the name of every state (by default, an increasing sequence of integers starting at 1).
+        :param states: the name of each state (by default, an increasing sequence of integers starting at 1).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1862,7 +1885,7 @@ class MarkovChain(object):
         The method generates a Markov chain of given size based on an identity transition matrix.
 
         :param size: the size of the chain.
-        :param states: the name of every state (by default, an increasing sequence of integers starting at 1).
+        :param states: the name of each state (by default, an increasing sequence of integers starting at 1).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -1889,7 +1912,7 @@ class MarkovChain(object):
         The method generates a Markov chain of given size with random transition probabilities.
 
         :param size: the size of the chain.
-        :param states: the name of every state (by default, an increasing sequence of integers starting at 1).
+        :param states: the name of each state (by default, an increasing sequence of integers starting at 1).
         :param zeros: the number of zero-valued transition probabilities (by default, 0).
         :param mask: a matrix representing the locations and values of fixed transition probabilities.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
@@ -1909,7 +1932,7 @@ class MarkovChain(object):
             else:
                 states = _validate_state_names(states, size)
 
-            zeros = _validate_integer_non_negative(zeros)
+            zeros = _validate_integer(zeros, lower_limit=(0, False))
 
             if mask is None:
                 mask = _np.full((size, size), _np.nan, dtype=float)
