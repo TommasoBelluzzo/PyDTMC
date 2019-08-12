@@ -85,7 +85,7 @@ def plot_eigenvalues(mc: MarkovChain, dpi: int = 100) -> _Optional[_Tuple[_mp.Fi
 
     :param mc: the target Markov chain.
     :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
-    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, the handles of the plot otherwise.
+    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, otherwise the handles of the plot.
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -178,7 +178,7 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
     :param edges_color: a boolean indicating whether to display edges using a gradient based on transition probabilities, valid only for extended graphs (by default, True).
     :param edges_value: a boolean indicating whether to display the transition probability of every edge (by default, True).
     :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
-    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, the handles of the plot otherwise.
+    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, otherwise the handles of the plot.
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -300,43 +300,43 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
 
         figure, ax = _mp.subplots(dpi=dpi)
 
-        pos = _nx.spring_layout(g)
-        ncolors_all = node_colors(len(mc.communicating_classes))
+        positions = _nx.spring_layout(g)
+        node_colors_all = node_colors(len(mc.communicating_classes))
 
         for node in g.nodes:
 
-            ncolor = None
+            node_color = None
 
             if nodes_color:
                 for x, cc in enumerate(mc.communicating_classes):
                     if node in cc:
-                        ncolor = ncolors_all[x]
+                        node_color = node_colors_all[x]
                         break
 
             if nodes_type:
                 if node in mc.transient_states:
-                    nshape = 's'
+                    node_shape = 's'
                 else:
-                    nshape = 'o'
+                    node_shape = 'o'
             else:
-                nshape = None
+                node_shape = None
 
-            if ncolor is not None and nshape is not None:
-                _nx.draw_networkx_nodes(g, pos, ax=ax, nodelist=[node], edgecolors='k', node_color=ncolor, node_shape=nshape)
-            elif ncolor is not None and nshape is None:
-                _nx.draw_networkx_nodes(g, pos, ax=ax, nodelist=[node], edgecolors='k', node_color=ncolor)
-            elif ncolor is None and nshape is not None:
-                _nx.draw_networkx_nodes(g, pos, ax=ax, nodelist=[node], edgecolors='k', node_shape=nshape)
+            if node_color is not None and node_shape is not None:
+                _nx.draw_networkx_nodes(g, positions, ax=ax, nodelist=[node], edgecolors='k', node_color=node_color, node_shape=node_shape)
+            elif node_color is not None and node_shape is None:
+                _nx.draw_networkx_nodes(g, positions, ax=ax, nodelist=[node], edgecolors='k', node_color=node_color)
+            elif node_color is None and node_shape is not None:
+                _nx.draw_networkx_nodes(g, positions, ax=ax, nodelist=[node], edgecolors='k', node_shape=node_shape)
             else:
-                _nx.draw_networkx_nodes(g, pos, ax=ax, edgecolors='k')
+                _nx.draw_networkx_nodes(g, positions, ax=ax, edgecolors='k')
 
-        _nx.draw_networkx_labels(g, pos, ax=ax)
+        _nx.draw_networkx_labels(g, positions, ax=ax)
 
-        _nx.draw_networkx_edges(g, pos, ax=ax, arrows=False)
+        _nx.draw_networkx_edges(g, positions, ax=ax, arrows=False)
 
         if edges_value:
 
-            evalues = dict()
+            edges_values = dict()
 
             for edge in g.edges:
                 probability = mc.transition_probability(edge[1], edge[0])
@@ -344,9 +344,9 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
                     value = f' {probability:g}.0 '
                 else:
                     value = f' {round(probability,2):g} '
-                evalues[(edge[0], edge[1])] = value
+                edges_values[(edge[0], edge[1])] = value
 
-            _nx.draw_networkx_edge_labels(g, pos, ax=ax, edge_labels=evalues, label_pos=0.7)
+            _nx.draw_networkx_edge_labels(g, positions, ax=ax, edge_labels=edges_values, label_pos=0.7)
 
         _mp.interactive(mpi)
 
@@ -364,9 +364,9 @@ def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_
 
     :param mc: the target Markov chain.
     :param distributions: a sequence of redistributions or the number of redistributions to perform.
-    :param plot_type: the type of plot to display (either curves or heatmap, curves by default).
+    :param plot_type: the type of plot to display (either curves or heatmap; curves by default).
     :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
-    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, the handles of the plot otherwise.
+    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, otherwise the handles of the plot.
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -454,9 +454,9 @@ def plot_walk(mc: MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]]
 
     :param mc: the target Markov chain.
     :param walk: a sequence of states or the number of simulations to perform.
-    :param plot_type: the type of plot to display (either histogram, sequence or transitions, histogram by default).
+    :param plot_type: the type of plot to display (one of histogram, sequence and transitions; histogram by default).
     :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
-    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, the handles of the plot otherwise.
+    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, otherwise the handles of the plot.
     :raises ValidationError: if any input argument is not compliant.
     """
 

@@ -118,7 +118,7 @@ class MarkovChain(object):
     Defines a Markov chain with given transition matrix and state names.
 
     :param p: the transition matrix.
-    :param states: the name of each state (by default, an increasing sequence of integers starting at 1).
+    :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -858,7 +858,9 @@ class MarkovChain(object):
         """
 
         try:
+
             state = _validate_state(state, self._states)
+
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1057,7 +1059,9 @@ class MarkovChain(object):
         """
 
         try:
+
             state = _validate_state(state, self._states)
+
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1097,7 +1101,9 @@ class MarkovChain(object):
         """
 
         try:
+
             state = _validate_state(state, self._states)
+
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1115,7 +1121,9 @@ class MarkovChain(object):
         """
 
         try:
+
             state = _validate_state(state, self._states)
+
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1133,7 +1141,9 @@ class MarkovChain(object):
         """
 
         try:
+
             state = _validate_state(state, self._states)
+
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1231,7 +1241,7 @@ class MarkovChain(object):
 
         :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
         :param jump: the number of steps in each iteration (by default, 1).
-        :param cutoff_type: the type of cutoff to use (either natural or traditional, natural by default).
+        :param cutoff_type: the type of cutoff to use (either natural or traditional; natural by default).
         :return: the mixing time if the Markov chain is *ergodic*, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -1386,7 +1396,9 @@ class MarkovChain(object):
         """
 
         try:
+
             state = _validate_state(state, self._states)
+
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1447,7 +1459,9 @@ class MarkovChain(object):
         """
 
         try:
+
             multi = _validate_boolean(multi)
+
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1472,7 +1486,9 @@ class MarkovChain(object):
         """
 
         try:
-            inertial_weights = _validate_vector(inertial_weights, 'regular', True, size=self._size)
+
+            inertial_weights = _validate_vector(inertial_weights, 'unconstrained', True, size=self._size)
+
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1492,7 +1508,9 @@ class MarkovChain(object):
         """
 
         try:
+
             states = _validate_states(states, self._states, 'subset', True)
+
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1609,7 +1627,9 @@ class MarkovChain(object):
         """
 
         try:
+
             walk = _validate_states(walk, self._states, 'walk', False)
+
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -1719,7 +1739,7 @@ class MarkovChain(object):
 
         :param q: the creation probabilities.
         :param p: the annihilation probabilities.
-        :param states: the name of each state (by default, an increasing sequence of integers starting at 1).
+        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if q and p have different a size or if the vector resulting from the sum of q and p contains any value greater than one.
@@ -1856,7 +1876,7 @@ class MarkovChain(object):
         The method generates a Markov chain with the given state names whose transition matrix is obtained through the normalization of the given matrix.
 
         :param m: the matrix to transform into the transition matrix.
-        :param states: the name of each state (by default, an increasing sequence of integers starting at 1).
+        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1885,7 +1905,7 @@ class MarkovChain(object):
         The method generates a Markov chain of given size based on an identity transition matrix.
 
         :param size: the size of the chain.
-        :param states: the name of each state (by default, an increasing sequence of integers starting at 1).
+        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -1912,7 +1932,7 @@ class MarkovChain(object):
         The method generates a Markov chain of given size with random transition probabilities.
 
         :param size: the size of the chain.
-        :param states: the name of each state (by default, an increasing sequence of integers starting at 1).
+        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
         :param zeros: the number of zero-valued transition probabilities (by default, 0).
         :param mask: a matrix representing the locations and values of fixed transition probabilities.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.

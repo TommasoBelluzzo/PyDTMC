@@ -437,34 +437,23 @@ def validate_transition_matrix_size(size: _Any) -> int:
 
 def validate_vector(vector: _Any, vector_type: str, flex: bool, size: _Optional[int] = None) -> _np.ndarray:
 
-    if flex:
-
-        if isinstance(vector, int):
-            value = float(vector)
-        elif isinstance(vector, float):
-            value = vector
-        else:
-            value = None
-
-        if value is not None:
-
-            if not _np.isfinite(value) or (value < 0.0) or (value > 1.0):
-                raise ValueError(f'The "@arg@" parameter, when specified as a numeric scalar, must have a value between 0 and 1.')
-
-            return _np.repeat(value, size)
-
-    try:
-        vector = extract_numeric(vector)
-    except Exception:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+    if flex and size is not None and isinstance(vector, int):
+        vector = _np.repeat(float(vector), size)
+    elif flex and size is not None and isinstance(vector, float):
+        vector = _np.repeat(vector, size)
+    else:
+        try:
+            vector = extract_numeric(vector)
+        except Exception:
+            raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
     if not _np.issubdtype(vector.dtype, _np.number):
         raise TypeError('The "@arg@" parameter must contain only numeric values.')
 
     vector = vector.astype(float)
 
-    if (vector.ndim < 1) or ((vector.ndim == 2) and (vector.shape[0] != 1)) or (vector.ndim > 2):
-        raise ValueError('The "@arg@" parameter must be a vector.')
+    if (vector.ndim < 1) or ((vector.ndim == 2) and (vector.shape[0] != 1) and (vector.shape[1] != 1)) or (vector.ndim > 2):
+        raise ValueError('The "@arg@" parameter must be a valid vector.')
 
     vector = _np.ravel(vector)
 
