@@ -56,7 +56,7 @@ from pydtmc.decorators import (
 )
 
 from pydtmc.exceptions import (
-    ValidationError
+    ValidationError as _ValidationError
 )
 
 from pydtmc.validation import (
@@ -140,7 +140,7 @@ class MarkovChain(object):
 
             except Exception as e:
                 argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-                raise ValidationError(str(e).replace('@arg@', argument)) from None
+                raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         self._digraph: _nx.DiGraph = _nx.DiGraph(p)
         self._p: _np.ndarray = p
@@ -605,12 +605,10 @@ class MarkovChain(object):
         A property representing the mixing rate of the Markov chain. If the *SLEM* (second largest eigenvalue modulus) cannot be computed, then None is returned.
         """
 
-        slem = self._slem
-
-        if slem is None:
+        if self._slem is None:
             return None
 
-        return -1.0 / _np.log(slem)
+        return -1.0 / _np.log(self._slem)
 
     @property
     def p(self) -> _np.ndarray:
@@ -718,12 +716,10 @@ class MarkovChain(object):
         A property representing the relaxation rate of the Markov chain. If the *SLEM* (second largest eigenvalue modulus) cannot be computed, then None is returned.
         """
 
-        slem = self._slem
-
-        if slem is None:
+        if self._slem is None:
             return None
 
-        return 1.0 / (1.0 - slem)
+        return 1.0 / (1.0 - self._slem)
 
     @property
     def size(self) -> int:
@@ -776,7 +772,7 @@ class MarkovChain(object):
     def are_communicating(self, state1: _Union[int, str], state2: _Union[int, str]) -> bool:
 
         """
-        The method verifies whether the given states are communicating.
+        The method verifies whether the given states of the Markov chain are communicating.
 
         :param state1: the first state.
         :param state2: the second state.
@@ -791,7 +787,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         a1 = self.accessibility_matrix[state1, state2] != 0
         a2 = self.accessibility_matrix[state2, state1] != 0
@@ -802,7 +798,7 @@ class MarkovChain(object):
     def backward_committor_probabilities(self, states1: _Union[int, str, _Iterable[int], _Iterable[str]], states2: _Union[int, str, _Iterable[int], _Iterable[str]]) -> _Optional[_np.ndarray]:
 
         """
-        The method computes the backward committor probabilities between the given subsets of the state space.
+        The method computes the backward committor probabilities between the given subsets of the state space defined by the Markov chain.
 
         | **Aliases:** backward_committor
 
@@ -820,7 +816,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         if not self.is_ergodic:
             return None
@@ -848,7 +844,7 @@ class MarkovChain(object):
     def conditional_probabilities(self, state: _Union[int, str]) -> _np.ndarray:
 
         """
-        The method computes the probabilities, for all the states, conditioned on the process being at a given state.
+        The method computes the probabilities, for all the states of the Markov chain, conditioned on the process being at a given state.
 
         | **Aliases:** conditional_distribution
 
@@ -863,14 +859,14 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         return self._p[state, :]
 
     def expected_rewards(self, steps: int, rewards: _tnumeric) -> _np.ndarray:
 
         """
-        The method computes the expected rewards after N steps, given the reward value of each state.
+        The method computes the expected rewards of the Markov chain after N steps, given the reward value of each state.
 
         :param steps: the number of steps.
         :param rewards: the reward values.
@@ -885,7 +881,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         original_rewards = rewards.copy()
 
@@ -897,7 +893,7 @@ class MarkovChain(object):
     def expected_transitions(self, steps: int, initial_distribution: _onumeric = None) -> _Optional[_np.ndarray]:
 
         """
-        The method computes the expected number of transitions after N steps, given the initial distribution of the states.
+        The method computes the expected number of transitions performed by the Markov chain after N steps, given the initial distribution of the states.
 
         :param steps: the number of steps.
         :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
@@ -916,7 +912,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         if steps <= self._size:
 
@@ -966,7 +962,7 @@ class MarkovChain(object):
     def forward_committor_probabilities(self, states1: _Union[int, str, _Iterable[int], _Iterable[str]], states2: _Union[int, str, _Iterable[int], _Iterable[str]]) -> _Optional[_np.ndarray]:
 
         """
-        The method computes the forward committor probabilities between the given subsets of the state space.
+        The method computes the forward committor probabilities between the given subsets of the state space defined by the Markov chain.
 
         | **Aliases:** forward_committor
 
@@ -984,7 +980,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         if not self.is_ergodic:
             return None
@@ -1011,7 +1007,7 @@ class MarkovChain(object):
     def hitting_probabilities(self, states: _Optional[_Union[int, str, _Iterable[int], _Iterable[str]]] = None) -> _np.ndarray:
 
         """
-        The method computes the hitting probability, for all the states, to the given set of states.
+        The method computes the hitting probability, for all the states of the Markov chain, to the given set of states.
 
         :param states: the set of target states (if omitted, all the states are targeted).
         :return: the hitting probability of each state of the Markov chain.
@@ -1027,7 +1023,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         states = sorted(states)
 
@@ -1051,7 +1047,7 @@ class MarkovChain(object):
     def is_absorbing_state(self, state: _Union[int, str]) -> bool:
 
         """
-        The method verifies whether the given state is absorbing.
+        The method verifies whether the given state of the Markov chain is absorbing.
 
         :param state: the target state.
         :return: True if the state is absorbing, False otherwise.
@@ -1064,7 +1060,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         return state in self._absorbing_states_indices
 
@@ -1086,7 +1082,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         return self.accessibility_matrix[state_origin, state_target] != 0
 
@@ -1106,7 +1102,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         return state in self._cyclic_states_indices
 
@@ -1126,7 +1122,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         return state in self._recurrent_states_indices
 
@@ -1146,7 +1142,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         return state in self._transient_states_indices
 
@@ -1171,7 +1167,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         if not self.is_irreducible:
             return None
@@ -1221,7 +1217,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         states = sorted(states)
 
@@ -1258,7 +1254,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         if not self.is_ergodic:
             return None
@@ -1313,7 +1309,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         prediction = list()
 
@@ -1364,7 +1360,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         distributions = _np.zeros((steps, self._size), dtype=float)
 
@@ -1401,7 +1397,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         if not self.is_irreducible:
             return None
@@ -1449,7 +1445,7 @@ class MarkovChain(object):
     def to_directed_graph(self, multi: bool = True) -> _Union[_nx.DiGraph, _nx.MultiDiGraph]:
 
         """
-        The method returns a directed graph representing the process.
+        The method returns a directed graph representing the Markov chain.
 
         | **Aliases:** to_digraph
 
@@ -1464,7 +1460,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         if multi:
             graph = _nx.MultiDiGraph(self._p)
@@ -1491,7 +1487,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         p_adjusted = ((1.0 - inertial_weights)[:, _np.newaxis] * self._p) + (_np.eye(self._size) * inertial_weights)
 
@@ -1513,7 +1509,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         closure = self.adjacency_matrix.copy()
 
@@ -1554,7 +1550,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         return self._p[state_origin, state_target]
 
@@ -1593,7 +1589,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         walk = list()
 
@@ -1632,7 +1628,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         p = 0.0
 
@@ -1752,7 +1748,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         if p.shape[0] != q.shape[0]:
             raise ValueError(f'The assets vector and the liabilities vector must have the same size.')
@@ -1771,7 +1767,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         r = 1.0 - q - p
         p = _np.diag(r, k=0) + _np.diag(p[0:-1], k=1) + _np.diag(q[1:], k=-1)
@@ -1805,7 +1801,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         frequencies = _np.zeros((size, size), dtype=float)
 
@@ -1850,7 +1846,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         p_size = len(possible_states)
         p = _np.zeros((p_size, p_size), dtype=int)
@@ -1891,7 +1887,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         m = _np.interp(m, (_np.min(m), _np.max(m)), (0, 1))
         m = m / _np.sum(m, axis=1, keepdims=True)
@@ -1921,7 +1917,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         return MarkovChain(_np.eye(size), states)
 
@@ -1961,7 +1957,7 @@ class MarkovChain(object):
 
         except Exception as e:
             argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
         full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0)
 

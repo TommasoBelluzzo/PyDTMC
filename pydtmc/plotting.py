@@ -46,11 +46,11 @@ from typing import (
 # Internal
 
 from pydtmc.exceptions import (
-    ValidationError
+    ValidationError as _ValidationError
 )
 
 from pydtmc.markov_chain import (
-    MarkovChain
+    MarkovChain as _MarkovChain
 )
 
 from pydtmc.validation import (
@@ -78,7 +78,7 @@ _colors = ['#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#F
 #############
 
 
-def plot_eigenvalues(mc: MarkovChain, dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_eigenvalues(mc: _MarkovChain, dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
 
     """
     The function plots the eigenvalues of the Markov chain on the complex plane.
@@ -89,14 +89,16 @@ def plot_eigenvalues(mc: MarkovChain, dpi: int = 100) -> _Optional[_Tuple[_mp.Fi
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    if not isinstance(mc, MarkovChain):
-        raise ValidationError('A valid MarkovChain instance must be provided.')
+    if not isinstance(mc, _MarkovChain):
+        raise ValueError('A valid MarkovChain instance must be provided.')
 
     try:
+
         dpi = _validate_dpi(dpi)
+
     except Exception as e:
         argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-        raise ValidationError(str(e).replace('@arg@', argument)) from None
+        raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
     figure, ax = _mp.subplots(dpi=dpi)
 
@@ -165,12 +167,12 @@ def plot_eigenvalues(mc: MarkovChain, dpi: int = 100) -> _Optional[_Tuple[_mp.Fi
     return figure, ax
 
 
-def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
 
     """
     The function plots the directed graph of the Markov chain.
 
-    | **Notes:** Graphviz and Pydot are not required, but they provide access to extended graphs with supplementar drawing functionalities.
+    | **Notes:** Graphviz and Pydot are not required, but they provide access to extended graphs with additional features.
 
     :param mc: the target Markov chain.
     :param nodes_color: a boolean indicating whether to display colored nodes based on communicating classes (by default, True).
@@ -212,8 +214,8 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
 
         return clist
 
-    if not isinstance(mc, MarkovChain):
-        raise ValidationError('A valid MarkovChain instance must be provided.')
+    if not isinstance(mc, _MarkovChain):
+        raise ValueError('A valid MarkovChain instance must be provided.')
 
     try:
 
@@ -225,7 +227,7 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
 
     except Exception as e:
         argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-        raise ValidationError(str(e).replace('@arg@', argument)) from None
+        raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
     extended_graph = True
 
@@ -357,7 +359,7 @@ def plot_graph(mc: MarkovChain, nodes_color: bool = True, nodes_type: bool = Tru
     return figure, ax
 
 
-def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_np.ndarray]], plot_type: str = 'curves', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[_np.ndarray]], plot_type: str = 'curves', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
 
     """
     The function plots a redistribution of states on the given Markov chain.
@@ -370,8 +372,8 @@ def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    if not isinstance(mc, MarkovChain):
-        raise ValidationError('A valid MarkovChain instance must be provided.')
+    if not isinstance(mc, _MarkovChain):
+        raise ValueError('A valid MarkovChain instance must be provided.')
 
     try:
 
@@ -381,7 +383,7 @@ def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_
 
     except Exception as e:
         argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-        raise ValidationError(str(e).replace('@arg@', argument)) from None
+        raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
     if isinstance(distributions, int):
         distributions = mc.redistribute(distributions, include_initial=True)
@@ -447,7 +449,7 @@ def plot_redistributions(mc: MarkovChain, distributions: _Union[int, _Iterable[_
     return figure, ax
 
 
-def plot_walk(mc: MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]], plot_type: str = 'histogram', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_walk(mc: _MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]], plot_type: str = 'histogram', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
 
     """
     The function plots a random walk on the given Markov chain.
@@ -460,8 +462,8 @@ def plot_walk(mc: MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]]
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    if not isinstance(mc, MarkovChain):
-        raise ValidationError('A valid MarkovChain instance must be provided.')
+    if not isinstance(mc, _MarkovChain):
+        raise ValueError('A valid MarkovChain instance must be provided.')
 
     try:
 
@@ -471,7 +473,7 @@ def plot_walk(mc: MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]]
 
     except Exception as e:
         argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
-        raise ValidationError(str(e).replace('@arg@', argument)) from None
+        raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
     if isinstance(walk, int):
         walk = mc.walk(walk, include_initial=True, output_indices=True)

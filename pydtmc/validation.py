@@ -27,6 +27,10 @@ from copy import (
     deepcopy as _deepcopy
 )
 
+from numbers import (
+    Number as _Number
+)
+
 from typing import (
     Any as _Any,
     List as _List,
@@ -53,53 +57,52 @@ except ImportError:
 #############
 
 
-def extract_non_numeric(data: _Any) -> list:
+def extract_non_numeric(data: _Any) -> _List[_Any]:
+
+    result = None
 
     if isinstance(data, list):
-        return _deepcopy(data)
+        result = _deepcopy(data)
+    elif isinstance(data, _CIterable) and not isinstance(data, str):
+        result = list(data)
 
-    if isinstance(data, _CIterable) and not isinstance(data, str):
-        return list(data)
+    if result is None or any(isinstance(x, _Number) for x in result):
+        raise TypeError('The data type is not supported.')
 
-    raise TypeError('The data type is not supported.')
+    return result
 
 
 def extract_numeric(data: _Any) -> _np.ndarray:
 
+    result = None
+
     if isinstance(data, list):
-        return _np.array(data)
+        result = _np.array(data)
+    elif isinstance(data, _np.ndarray):
+        result = _np.copy(data)
+    elif _pd and isinstance(data, (_pd.DataFrame, _pd.Series)):
+        result = data.to_numpy(copy=True)
+    elif _sps and isinstance(data, _sps.bsr.bsr_matrix):
+        result = _np.array(data.todense())
+    elif _sps and isinstance(data, _sps.coo.coo_matrix):
+        result = _np.array(data.todense())
+    elif _sps and isinstance(data, _sps.csc.csc_matrix):
+        result = _np.array(data.todense())
+    elif _sps and isinstance(data, _sps.csr.csr_matrix):
+        result = _np.array(data.todense())
+    elif _sps and isinstance(data, _sps.dia.dia_matrix):
+        result = _np.array(data.todense())
+    elif _sps and isinstance(data, _sps.dok.dok_matrix):
+        result = _np.array(data.todense())
+    elif _sps and isinstance(data, _sps.lil.lil_matrix):
+        result = _np.array(data.todense())
+    elif isinstance(data, _CIterable):
+        result = _np.array(list(data))
 
-    if isinstance(data, _np.ndarray):
-        return data.copy()
+    if result is None or not _np.issubdtype(result.dtype, _np.number):
+        raise TypeError('The data type is not supported.')
 
-    if _pd and isinstance(data, (_pd.DataFrame, _pd.Series)):
-        return data.values.copy()
-
-    if _sps and isinstance(data, _sps.bsr.bsr_matrix):
-        return _np.array(data.todense())
-
-    if _sps and isinstance(data, _sps.coo.coo_matrix):
-        return _np.array(data.todense())
-
-    if _sps and isinstance(data, _sps.csc.csc_matrix):
-        return _np.array(data.todense())
-
-    if _sps and isinstance(data, _sps.csr.csr_matrix):
-        return _np.array(data.todense())
-
-    if _sps and isinstance(data, _sps.dia.dia_matrix):
-        return _np.array(data.todense())
-
-    if _sps and isinstance(data, _sps.dok.dok_matrix):
-        return _np.array(data.todense())
-
-    if _sps and isinstance(data, _sps.lil.lil_matrix):
-        return _np.array(data.todense())
-
-    if isinstance(data, _CIterable):
-        return _np.array(list(data))
-
-    raise TypeError('The data type is not supported.')
+    return result
 
 
 def validate_boolean(value: _Any) -> bool:
