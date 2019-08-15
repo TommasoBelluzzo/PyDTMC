@@ -49,7 +49,7 @@ DISCRETE-TIME MARKOV CHAIN
  ERGODIC:      NO
 ```
 
-Static values of a `MarkovChain` instance can be retrieved through its properties:
+Static values of `MarkovChain` instances can be retrieved through their properties:
 
 ```console
 >>> print(mc.recurrent_states)
@@ -73,7 +73,7 @@ Static values of a `MarkovChain` instance can be retrieved through its propertie
 0.6931471805599457
 ```
 
-Dynamic computations on a `MarkovChain` instance can be performed through its methods:
+Dynamic computations on `MarkovChain` instances can be performed through their methods:
 
 ```console
 >>> print(mc.expected_rewards(10, [2, -3, 8, -7]))
