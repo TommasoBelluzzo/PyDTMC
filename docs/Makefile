@@ -4,9 +4,9 @@ SOURCEDIR   = _source
 BUILDDIR    = _build
 
 help:
-	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@$(SPHINXBUILD) --help
 
 .PHONY: help Makefile
 
 %: Makefile
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@$(SPHINXBUILD) -b $@ -c . "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
