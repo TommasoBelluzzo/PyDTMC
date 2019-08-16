@@ -4,7 +4,7 @@ PyDTMC is a full-featured, lightweight library for discrete-time Markov chains a
 
 ## Requirements
 
-PyDTMC supports only `Python 3` and the minimum version required is `3.6`. In addition, the environment must include the following libraries:
+PyDTMC supports only `Python 3` and the minimum required version is `3.6`. In addition, the environment must include the following libraries:
 
 * [Matplotlib](https://matplotlib.org/)
 * [NetworkX](https://networkx.github.io/)
@@ -61,7 +61,7 @@ Static values of `MarkovChain` instances can be retrieved through their properti
 >>> print(mc.steady_states)
 [array([0., 0., 1., 0.])]
 
->>>print(mc.fundamental_matrix)
+>>> print(mc.fundamental_matrix)
 [[1.50943396 2.64150943 0.41509434]
  [0.18867925 2.83018868 0.30188679]
  [0.75471698 1.32075472 1.20754717]]

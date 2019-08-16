@@ -19,10 +19,6 @@ import numpy as _np
 
 # Minor
 
-from collections.abc import (
-    Iterable as _CIterable
-)
-
 from copy import (
     deepcopy as _deepcopy
 )
@@ -33,6 +29,8 @@ from numbers import (
 
 from typing import (
     Any as _Any,
+    Dict as _Dict,
+    Iterable as _Iterable,
     List as _List,
     Optional as _Optional,
     Tuple as _Tuple,
@@ -63,7 +61,7 @@ def extract_non_numeric(data: _Any) -> _List[_Any]:
 
     if isinstance(data, list):
         result = _deepcopy(data)
-    elif isinstance(data, _CIterable) and not isinstance(data, str):
+    elif isinstance(data, _Iterable) and not isinstance(data, str):
         result = list(data)
 
     if result is None or any(isinstance(x, _Number) for x in result):
@@ -96,7 +94,9 @@ def extract_numeric(data: _Any) -> _np.ndarray:
         result = _np.array(data.todense())
     elif _sps and isinstance(data, _sps.lil.lil_matrix):
         result = _np.array(data.todense())
-    elif isinstance(data, _CIterable):
+    elif isinstance(data, _Dict):
+        result = _np.array(list(data.values()))
+    elif isinstance(data, _Iterable) and not isinstance(data, str):
         result = _np.array(list(data))
 
     if result is None or not _np.issubdtype(result.dtype, _np.number):
