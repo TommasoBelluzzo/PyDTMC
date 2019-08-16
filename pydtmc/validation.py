@@ -59,7 +59,9 @@ def extract_non_numeric(data: _Any) -> _List[_Any]:
 
     result = None
 
-    if isinstance(data, list):
+    if isinstance(data, _Dict):
+        result = list(data.values())
+    elif isinstance(data, _List):
         result = _deepcopy(data)
     elif isinstance(data, _Iterable) and not isinstance(data, str):
         result = list(data)
