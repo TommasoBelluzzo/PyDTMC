@@ -45,6 +45,10 @@ from typing import (
 
 # Internal
 
+from pydtmc.custom_types import (
+    tnumeric as _tnumeric
+)
+
 from pydtmc.exceptions import (
     ValidationError as _ValidationError
 )
@@ -58,6 +62,8 @@ from pydtmc.validation import (
     validate_distribution as _validate_distribution,
     validate_enumerator as _validate_enumerator,
     validate_dpi as _validate_dpi,
+    validate_state as _validate_state,
+    validate_status as _validate_status,
     validate_walk as _validate_walk
 )
 
@@ -359,14 +365,15 @@ def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = Tr
     return figure, ax
 
 
-def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[_np.ndarray]], plot_type: str = 'curves', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[_np.ndarray]], initial_status: _Optional[_Union[int, str, _tnumeric]] = None, plot_type: str = 'projection', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
 
     """
     The function plots a redistribution of states on the given Markov chain.
 
     :param mc: the target Markov chain.
     :param distributions: a sequence of redistributions or the number of redistributions to perform.
-    :param plot_type: the type of plot to display (either curves or heatmap; curves by default).
+    :param initial_status: the initial state or the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
+    :param plot_type: the type of plot to display (either heatmap or projection; projection by default).
     :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
     :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, otherwise the handles of the plot.
     :raises ValidationError: if any input argument is not compliant.
@@ -378,7 +385,11 @@ def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[
     try:
 
         distributions = _validate_distribution(distributions, mc.size)
-        plot_type = _validate_enumerator(plot_type, ['curves', 'heatmap'])
+
+        if initial_status is not None:
+            initial_status = _validate_status(initial_status, mc.states)
+
+        plot_type = _validate_enumerator(plot_type, ['heatmap', 'projection'])
         dpi = _validate_dpi(dpi)
 
     except Exception as e:
@@ -386,41 +397,16 @@ def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[
         raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
     if isinstance(distributions, int):
-        distributions = mc.redistribute(distributions, include_initial=True)
+        distributions = mc.redistribute(distributions, initial_status=initial_status, include_initial=True, output_last=False)
+    elif initial_status is not None and not _np.array_equal(distributions[0], initial_status):
+        raise ValueError('The "initial_status" parameter, if specified when the "distributions" parameter represents a sequence of redistributions, must match the first element.')
 
     distribution_len = len(distributions)
     distributions = _np.array(distributions)
 
     figure, ax = _mp.subplots(dpi=dpi)
 
-    if plot_type == 'curves':
-
-        ax.set_prop_cycle('color', _colors)
-
-        for i in range(mc.size):
-            ax.plot(_np.arange(0.0, distribution_len, 1.0), distributions[:, i], label=mc.states[i], marker='o')
-
-        if _np.array_equal(distributions[0, :], _np.ones(mc.size, dtype=float) / mc.size):
-            ax.plot(0.0, distributions[0, 0], color=_color_black, label="Start", marker='o', markeredgecolor=_color_black, markerfacecolor=_color_black)
-            legend_size = mc.size + 1
-        else:
-            legend_size = mc.size
-
-        ax.set_xlabel('Steps', fontsize=13.0)
-        ax.set_xticks(_np.arange(0.0, distribution_len, 1.0 if distribution_len <= 11 else 10.0))
-        ax.set_xticklabels(_np.arange(0, distribution_len, 1 if distribution_len <= 11 else 10))
-        ax.set_xlim(-0.5, distribution_len - 0.5)
-
-        ax.set_ylabel('Frequencies', fontsize=13.0)
-        ax.set_yticks(_np.linspace(0.0, 1.0, 11))
-        ax.set_ylim(0.0, 1.0)
-
-        ax.legend(bbox_to_anchor=(0.5, -0.15), loc='upper center', ncol=legend_size)
-        ax.set_title('Redistplot (Curves)', fontsize=15.0, fontweight='bold')
-
-        _mp.subplots_adjust(bottom=0.2)
-
-    else:
+    if plot_type == 'heatmap':
 
         color_map = _mc.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
         ax_is = ax.imshow(_np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
@@ -442,6 +428,38 @@ def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[
 
         ax.set_title('Redistplot (Heatmap)', fontsize=15.0, fontweight='bold')
 
+    else:
+
+        ax.set_prop_cycle('color', _colors)
+
+        if distribution_len == 2:
+            for i in range(mc.size):
+                ax.plot(_np.arange(0.0, distribution_len, 1.0), distributions[:, i], label=mc.states[i], marker='o')
+        else:
+            for i in range(mc.size):
+                ax.plot(_np.arange(0.0, distribution_len, 1.0), distributions[:, i], label=mc.states[i])
+
+        if _np.array_equal(distributions[0, :], _np.ones(mc.size, dtype=float) / mc.size):
+            ax.plot(0.0, distributions[0, 0], color=_color_black, label="Start", marker='o', markeredgecolor=_color_black, markerfacecolor=_color_black)
+            legend_size = mc.size + 1
+        else:
+            legend_size = mc.size
+
+        ax.set_xlabel('Steps', fontsize=13.0)
+        ax.set_xticks(_np.arange(0.0, distribution_len, 1.0 if distribution_len <= 11 else 10.0))
+        ax.set_xticklabels(_np.arange(0, distribution_len, 1 if distribution_len <= 11 else 10))
+        ax.set_xlim(-1.0 * (distribution_len * 0.05), distribution_len * 1.05)
+
+        ax.set_ylabel('Frequencies', fontsize=13.0)
+        ax.set_yticks(_np.linspace(0.0, 1.0, 11))
+        ax.set_ylim(-0.05, 1.05)
+
+        ax.grid()
+        ax.legend(bbox_to_anchor=(0.5, -0.15), loc='upper center', ncol=legend_size)
+        ax.set_title('Redistplot (Projection)', fontsize=15.0, fontweight='bold')
+
+        _mp.subplots_adjust(bottom=0.2)
+
     if _mp.isinteractive():
         _mp.show(block=False)
         return None
@@ -449,13 +467,14 @@ def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[
     return figure, ax
 
 
-def plot_walk(mc: _MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]], plot_type: str = 'histogram', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_walk(mc: _MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]], initial_state: _Optional[_Union[int, str]] = None, plot_type: str = 'histogram', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
 
     """
     The function plots a random walk on the given Markov chain.
 
     :param mc: the target Markov chain.
     :param walk: a sequence of states or the number of simulations to perform.
+    :param initial_state: the initial state of the walk (if omitted, it is chosen uniformly at random).
     :param plot_type: the type of plot to display (one of histogram, sequence and transitions; histogram by default).
     :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
     :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, otherwise the handles of the plot.
@@ -468,6 +487,10 @@ def plot_walk(mc: _MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]
     try:
 
         walk = _validate_walk(walk, mc.states)
+
+        if initial_state is not None:
+            initial_state = _validate_state(initial_state, mc.states)
+
         plot_type = _validate_enumerator(plot_type, ['histogram', 'sequence', 'transitions'])
         dpi = _validate_dpi(dpi)
 
@@ -476,7 +499,9 @@ def plot_walk(mc: _MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]
         raise _ValidationError(str(e).replace('@arg@', argument)) from None
 
     if isinstance(walk, int):
-        walk = mc.walk(walk, include_initial=True, output_indices=True)
+        walk = mc.walk(walk, initial_state=initial_state, include_initial=True, output_indices=True)
+    elif initial_state is not None and (walk[0] != initial_state):
+        raise ValueError('The "initial_state" parameter, if specified when the "walk" parameter represents a sequence of states, must match the first element.')
 
     walk_len = len(walk)
 

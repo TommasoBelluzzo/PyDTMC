@@ -2,9 +2,9 @@
 
 __all__ = [
     'validate_boolean', 'validate_enumerator', 'validate_dpi', 'validate_integer',
-    'validate_mask', 'validate_matrix', 'validate_transition_matrix', 'validate_transition_matrix_size',
+    'validate_dictionary', 'validate_mask', 'validate_matrix', 'validate_transition_matrix', 'validate_transition_matrix_size',
     'validate_distribution', 'validate_hyperparameter', 'validate_rewards', 'validate_vector', 'validate_walk',
-    'validate_state', 'validate_states', 'validate_state_names'
+    'validate_state', 'validate_states', 'validate_state_names', 'validate_status'
 ]
 
 
@@ -120,16 +120,24 @@ def validate_distribution(distribution: _Any, size: int) -> _Union[int, _List[_n
     if isinstance(distribution, int):
 
         if distribution <= 0:
-            raise ValueError('The "@arg@" parameter must be positive.')
+            raise ValueError('The "@arg@" parameter, when specified as an integer, must be greater than or equal to 1.')
 
         return distribution
 
     elif isinstance(distribution, list):
 
+        distribution_len = len(distribution)
+
+        if distribution_len == 0:
+            raise ValueError('The "@arg@" parameter, when specified as a list of vectors, must be non-empty.')
+
         for i, vector in distribution:
 
             if not isinstance(vector, _np.ndarray) or not _np.issubdtype(vector.dtype, _np.number):
                 raise TypeError('The "@arg@" parameter must contain only numeric vectors.')
+
+            if distribution_len <= 1:
+                raise ValueError('The "@arg@" parameter, when specified as a list of vectors, must contain at least 2 elements.')
 
             vector = vector.astype(float)
             distribution[i] = vector
@@ -182,6 +190,39 @@ def validate_hyperparameter(hyperparameter: _Any, size: int) -> _np.ndarray:
         raise ValueError('The "@arg@" parameter must contain only integer values greater than or equal to 1.')
 
     return hyperparameter
+
+
+def validate_dictionary(d: _Any) -> _Dict[_Tuple[str, str], float]:
+
+    if not isinstance(d, dict):
+        raise ValueError('The "@arg@" parameter must be a dictionary.')
+
+    keys = d.keys()
+
+    if not all(isinstance(key, tuple) and (len(key) == 2) and isinstance(key[0], str) and isinstance(key[1], str) for key in keys):
+        raise ValueError('The "@arg@" parameter keys must be tuples containing 2 string values.')
+
+    keys = sorted(list(set(sum(keys, ()))))
+
+    if not all(key is not None and (len(key) > 0) for key in keys):
+        raise TypeError('The "@arg@" parameter keys must contain only valid string values.')
+
+    values = d.values()
+
+    if not all(isinstance(value, (float, int)) for value in values):
+        raise ValueError('The "@arg@" parameter values must be float or integer numbers.')
+
+    values = [float(value) for value in values]
+
+    if not all((value >= 0.0) and (value <= 1.0) for value in values):
+        raise ValueError('The "@arg@" parameter values can contain only numbers between 0 and 1.')
+
+    result = {}
+
+    for key, value in d.items():
+        result[key] = float(value)
+
+    return result
 
 
 def validate_dpi(value: _Any) -> int:
@@ -314,6 +355,61 @@ def validate_state(state: _Any, current_states: list) -> int:
     raise TypeError('The "@arg@" parameter must be either an integer or a string.')
 
 
+def validate_status(status: _Any, current_states: list) -> _np.ndarray:
+
+    size = len(current_states)
+
+    if isinstance(status, int):
+
+        limit = size - 1
+
+        if (status < 0) or (status > limit):
+            raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and the number of existing states minus one ({limit:d}).')
+
+        result = _np.zeros(size, dtype=float)
+        result[status] = 1.0
+
+        return result
+
+    if isinstance(status, str):
+
+        if status not in current_states:
+            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(current_states)}).')
+
+        status = current_states.index(status)
+
+        result = _np.zeros(size, dtype=float)
+        result[status] = 1.0
+
+        return result
+
+    try:
+        status = extract_numeric(status)
+    except Exception:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+
+    if not _np.issubdtype(status.dtype, _np.number):
+        raise TypeError('The "@arg@" parameter must contain only numeric values.')
+
+    status = status.astype(float)
+
+    if (status.ndim < 1) or ((status.ndim == 2) and (status.shape[0] != 1) and (status.shape[1] != 1)) or (status.ndim > 2):
+        raise ValueError('The "@arg@" parameter must be a valid vector.')
+
+    status = _np.ravel(status)
+
+    if status.size != size:
+        raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
+
+    if not all(_np.isfinite(x) and (x >= 0.0) and (x <= 1.0) for x in _np.nditer(status)):
+        raise ValueError('The "@arg@" parameter must contain only values between 0 and 1.')
+
+    if not _np.isclose(_np.sum(status), 1.0):
+        raise ValueError('The "@arg@" parameter values must sum to 1.')
+
+    return status
+
+
 def validate_state_names(states: _Any, size: _Optional[int] = None) -> _List[str]:
 
     try:
@@ -324,6 +420,9 @@ def validate_state_names(states: _Any, size: _Optional[int] = None) -> _List[str
     if not all(isinstance(s, str) for s in states):
         raise TypeError('The "@arg@" parameter must contain only string values.')
 
+    if not all(s is not None and (len(s) > 0) for s in states):
+        raise TypeError('The "@arg@" parameter must contain only valid string values.')
+
     states_length = len(states)
     states_unique = len(set(states))
 
@@ -331,7 +430,7 @@ def validate_state_names(states: _Any, size: _Optional[int] = None) -> _List[str
         raise ValueError('The "@arg@" parameter must contain only unique values.')
 
     if size is not None and (states_length != size):
-        raise ValueError(f'The "@arg@" parameter must contain a number of elements equal {size:d}.')
+        raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {size:d}.')
 
     return states
 
@@ -481,7 +580,7 @@ def validate_vector(vector: _Any, vector_type: str, flex: bool, size: _Optional[
     return vector
 
 
-def validate_walk(walk: _Any, current_states: _List[str]) -> _Union[int, _Union[_List[int], _List[str]]]:
+def validate_walk(walk: _Any, current_states: _List[str]) -> _Union[int, _List[int], _List[str]]:
 
     if isinstance(walk, int):
 

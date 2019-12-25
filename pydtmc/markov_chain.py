@@ -41,13 +41,20 @@ from math import (
 
 from typing import (
     Any as _Any,
+    Dict as _Dict,
     Iterable as _Iterable,
     List as _List,
     Optional as _Optional,
+    Tuple as _Tuple,
     Union as _Union
 )
 
 # Internal
+
+from pydtmc.custom_types import (
+    onumeric as _onumeric,
+    tnumeric as _tnumeric
+)
 
 from pydtmc.decorators import (
     alias as _alias,
@@ -61,6 +68,7 @@ from pydtmc.exceptions import (
 
 from pydtmc.validation import (
     validate_boolean as _validate_boolean,
+    validate_dictionary as _validate_dictionary,
     validate_enumerator as _validate_enumerator,
     validate_hyperparameter as _validate_hyperparameter,
     validate_integer as _validate_integer,
@@ -68,42 +76,13 @@ from pydtmc.validation import (
     validate_matrix as _validate_matrix,
     validate_rewards as _validate_rewards,
     validate_state as _validate_state,
-    validate_states as _validate_states,
     validate_state_names as _validate_state_names,
+    validate_states as _validate_states,
+    validate_status as _validate_status,
     validate_transition_matrix as _validate_transition_matrix,
     validate_transition_matrix_size as _validate_transition_matrix_size,
     validate_vector as _validate_vector
 )
-
-
-##############
-# ATTRIBUTES #
-##############
-
-
-_tnumeric = _Union[_Iterable, _np.ndarray]
-
-# noinspection PyBroadException
-try:
-    import pandas as _pd
-    _tnumeric = _Union[_tnumeric, _pd.DataFrame, _pd.Series]
-except Exception:
-    pass
-
-# noinspection PyBroadException
-try:
-    import scipy.sparse as _sps
-    _tnumeric = _Union[_tnumeric, _sps.bsr.bsr_matrix]
-    _tnumeric = _Union[_tnumeric, _sps.coo.coo_matrix]
-    _tnumeric = _Union[_tnumeric, _sps.csc.csc_matrix]
-    _tnumeric = _Union[_tnumeric, _sps.csr.csr_matrix]
-    _tnumeric = _Union[_tnumeric, _sps.dia.dia_matrix]
-    _tnumeric = _Union[_tnumeric, _sps.dok.dok_matrix]
-    _tnumeric = _Union[_tnumeric, _sps.lil.lil_matrix]
-except Exception:
-    pass
-
-_onumeric = _Optional[_tnumeric]
 
 
 ###########
@@ -171,14 +150,14 @@ class MarkovChain(object):
         return [i for i in range(self._size) if _np.isclose(self._p[i, i], 1.0)]
 
     @_cachedproperty
+    def _classes_indices(self) -> _List[_List[int]]:
+
+        return [sorted([index for index in component]) for component in _nx.strongly_connected_components(self._digraph)]
+
+    @_cachedproperty
     def _communicating_classes_indices(self) -> _List[_List[int]]:
 
-        indices = list()
-
-        for sccs in _nx.strongly_connected_components(self._digraph):
-            indices.append(sorted(list(sccs)))
-
-        return sorted(indices, key=lambda x: (-len(x), x[0]))
+        return sorted(self._classes_indices, key=lambda x: (-len(x), x[0]))
 
     @_cachedproperty
     def _cyclic_classes_indices(self) -> _List[_List[int]]:
@@ -240,18 +219,7 @@ class MarkovChain(object):
     @_cachedproperty
     def _recurrent_classes_indices(self) -> _List[_List[int]]:
 
-        indices = list()
-
-        for sccs in _nx.strongly_connected_components(self._digraph):
-
-            sccs_reachable = sccs.copy()
-
-            for scc_reachable in sccs_reachable:
-                spl = _nx.shortest_path_length(self._digraph, scc_reachable).keys()
-                sccs_reachable = sccs_reachable.union(spl)
-
-            if (sccs_reachable - sccs) == set():
-                indices.append(sorted(list(sccs)))
+        indices = [index for index in self._classes_indices if index not in self._transient_classes_indices]
 
         return sorted(indices, key=lambda x: (-len(x), x[0]))
 
@@ -266,7 +234,7 @@ class MarkovChain(object):
         if not self.is_ergodic:
             return None
 
-        values, _ = _npl.eig(self._p)
+        values = _npl.eigvals(self._p)
         values_abs = _np.sort(_np.abs(values))
         values_ct1 = _np.isclose(values_abs, 1.0)
 
@@ -288,18 +256,8 @@ class MarkovChain(object):
     @_cachedproperty
     def _transient_classes_indices(self) -> _List[_List[int]]:
 
-        indices = list()
-
-        for sccs in _nx.strongly_connected_components(self._digraph):
-
-            sccs_reachable = sccs.copy()
-
-            for scc_reachable in sccs_reachable:
-                spl = _nx.shortest_path_length(self._digraph, scc_reachable).keys()
-                sccs_reachable = sccs_reachable.union(spl)
-
-            if (sccs_reachable - sccs) != set():
-                indices.append(sorted(list(sccs)))
+        edges = set([edge1 for (edge1, edge2) in _nx.condensation(self._digraph).edges])
+        indices = [self._classes_indices[edge] for edge in edges]
 
         return sorted(indices, key=lambda x: (-len(x), x[0]))
 
@@ -414,6 +372,15 @@ class MarkovChain(object):
         """
 
         return [*map(self._states.__getitem__, self._cyclic_states_indices)]
+
+    @_cachedproperty
+    def determinant(self) -> float:
+
+        """
+        A property representing the determinant the transition matrix of the Markov chain.
+        """
+
+        return _npl.det(self._p)
 
     @_cachedproperty
     def entropy_rate(self) -> _Optional[float]:
@@ -548,6 +515,19 @@ class MarkovChain(object):
         return len(self.communicating_classes) == 1
 
     @_cachedproperty
+    def is_regular(self) -> bool:
+
+        """
+        A property indicating whether the Markov chain is regular.
+        """
+
+        values = _npl.eigvals(self._p)
+        values_abs = _np.sort(_np.abs(values))
+        values_ct1 = _np.isclose(values_abs, 1.0)
+
+        return values_ct1[0] and not any(values_ct1[1:])
+
+    @_cachedproperty
     def is_reversible(self) -> bool:
 
         """
@@ -576,8 +556,8 @@ class MarkovChain(object):
 
         return _np.asscalar(_np.trace(n))
 
-    @_alias('mfpt')
     @_cachedproperty
+    @_alias('mfpt')
     def mean_first_passage_times(self) -> _Optional[_np.ndarray]:
 
         """
@@ -665,8 +645,8 @@ class MarkovChain(object):
 
         return periods
 
-    @_alias('stationary_distributions', 'steady_states')
     @_cachedproperty
+    @_alias('stationary_distributions', 'steady_states')
     def pi(self) -> _List[_np.ndarray]:
 
         """
@@ -1333,13 +1313,13 @@ class MarkovChain(object):
 
         return prediction
 
-    def redistribute(self, steps: int, initial_distribution: _onumeric = None, include_initial: bool = False, output_last: bool = True) -> _List[_np.ndarray]:
+    def redistribute(self, steps: int, initial_status: _Optional[_Union[int, str, _tnumeric]] = None, include_initial: bool = False, output_last: bool = True) -> _List[_np.ndarray]:
 
         """
         The method simulates a redistribution of states of N steps.
 
         :param steps: the number of steps.
-        :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
+        :param initial_status: the initial state or the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
         :param include_initial: a boolean indicating whether to include the initial distribution in the output sequence (by default, False).
         :param output_last: a boolean indicating whether to the output only the last distributions (by default, True).
         :return: the sequence of redistributions produced by the simulation.
@@ -1350,10 +1330,10 @@ class MarkovChain(object):
 
             steps = _validate_integer(steps, lower_limit=(0, True))
 
-            if initial_distribution is None:
-                initial_distribution = _np.ones(self._size, dtype=float) / self._size
+            if initial_status is None:
+                initial_status = _np.ones(self._size, dtype=float) / self._size
             else:
-                initial_distribution = _validate_vector(initial_distribution, 'stochastic', False, size=self._size)
+                initial_status = _validate_status(initial_status, self._states)
 
             include_initial = _validate_boolean(include_initial)
             output_last = _validate_boolean(output_last)
@@ -1367,7 +1347,7 @@ class MarkovChain(object):
         for i in range(steps):
 
             if i == 0:
-                distributions[i, :] = initial_distribution.dot(self._p)
+                distributions[i, :] = initial_status.dot(self._p)
             else:
                 distributions[i, :] = distributions[i - 1, :].dot(self._p)
 
@@ -1377,7 +1357,7 @@ class MarkovChain(object):
             distributions = distributions[-1:, :]
 
         if include_initial:
-            distributions = _np.vstack((initial_distribution, distributions))
+            distributions = _np.vstack((initial_status, distributions))
 
         return [_np.ravel(x) for x in _np.split(distributions, distributions.shape[0])]
 
@@ -1866,10 +1846,44 @@ class MarkovChain(object):
         return MarkovChain(p, possible_states)
 
     @staticmethod
+    def from_dictionary(d: _Dict[_Tuple[str, str], _Union[float, int]]) -> 'MarkovChain':
+
+        """
+        The method generates a Markov chain from the given dictionary, whose keys represent state pairs and whose values represent transition probabilities.
+
+        :param d: the dictionary to transform into the transition matrix.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            d = _validate_dictionary(d)
+
+        except Exception as e:
+            argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
+
+        states = sorted(list(set(sum(d.keys(), ()))))
+        size = len(states)
+
+        if size < 2:
+            raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
+
+        m = _np.zeros((size, size), dtype=float)
+
+        for transition, probability in d.items():
+            m[states.index(transition[0]), states.index(transition[1])] = probability
+
+        if not _np.allclose(_np.sum(m, axis=1), _np.ones(size)):
+            raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.')
+
+        return MarkovChain(m, states)
+
+    @staticmethod
     def from_matrix(m: _tnumeric, states: _Optional[_Iterable[str]] = None) -> 'MarkovChain':
 
         """
-        The method generates a Markov chain with the given state names whose transition matrix is obtained through the normalization of the given matrix.
+        The method generates a Markov chain with the given state names, whose transition matrix is obtained through the normalization of the given matrix.
 
         :param m: the matrix to transform into the transition matrix.
         :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).

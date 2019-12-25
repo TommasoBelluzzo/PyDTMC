@@ -41,7 +41,7 @@ class alias(object):
 
     def __call__(self, obj):
 
-        if type(obj) == property:
+        if isinstance(obj, property):
             obj.fget._aliases = self.aliases
         else:
             obj._aliases = self.aliases
@@ -131,20 +131,22 @@ def aliased(aliased_class):
 
         aliases = None
 
-        if (type(method) == property) and hasattr(method.fget, '_aliases'):
+        if isinstance(method, property) and hasattr(method.fget, '_aliases'):
             aliases = method.fget._aliases
         elif hasattr(method, '_aliases'):
             aliases = method._aliases
 
         if aliases:
-
             for a in aliases - aliased_class_set:
 
                 doc = method.__doc__
-                doc_space = doc[:len(doc) - len(doc.lstrip())]
+                doc_alias = doc[:len(doc) - len(doc.lstrip())] + 'Alias of **' + name + '**.'
 
-                wrapped_method = wrapper(method)
-                wrapped_method.__doc__ = doc_space + 'Alias of **' + name + '**.'
+                if isinstance(method, property):
+                    wrapped_method = property(method.fget, method.fset, method.fdel, doc_alias)
+                else:
+                    wrapped_method = wrapper(method)
+                    wrapped_method.__doc__ = doc_alias
 
                 setattr(aliased_class, a, wrapped_method)
 
