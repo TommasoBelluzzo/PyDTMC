@@ -673,6 +673,26 @@ class MarkovChain(object):
         return pi
 
     @_cachedproperty
+    def recurrence_times(self) -> _Optional[_np.ndarray]:
+
+        """
+        A property representing the recurrence times of the Markov chain. If the Markov chain has no recurrent states, then None is returned.
+        """
+
+        if len(self._recurrent_states_indices) == 0:
+            return None
+
+        pi = _np.vstack(self.pi)
+        rts = []
+
+        for i in range(pi.shape[0]):
+            for j in range(pi.shape[1]):
+                if not _np.isclose(pi[i,j], 0.0):
+                    rts.append(1.0 / pi[i,j])
+
+        return _np.array(rts)
+
+    @_cachedproperty
     def recurrent_classes(self) -> _List[_List[str]]:
 
         """
@@ -1317,7 +1337,7 @@ class MarkovChain(object):
     def prior_probabilities(self, hyperparameter: _onumeric = None) -> _np.ndarray:
 
         """
-        The method computes the prior probabilities of the process.
+        The method computes the prior probabilities (in logarithmic form) of the process.
 
         :param hyperparameter: the matrix for the a priori distribution (if omitted, a default value of 1 is assigned to each parameter).
         :return: a Markov chain.
