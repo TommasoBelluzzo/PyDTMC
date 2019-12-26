@@ -23,13 +23,3 @@ from pydtmc.plotting import (
     plot_redistributions,
     plot_walk
 )
-
-if __name__ == "__main__":
-
-    import numpy as np
-    p = np.array([[0.0, 0.5, 0.5, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0, 0.0]])
-    mc = MarkovChain(p)
-
-    print(mc.recurrence_times)
-
-    exit(0)
