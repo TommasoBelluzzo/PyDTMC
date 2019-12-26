@@ -36,7 +36,8 @@ from itertools import (
 )
 
 from math import (
-    gcd as _gcd
+    gcd as _gcd,
+    lgamma as _lgamma
 )
 
 from typing import (
@@ -1312,6 +1313,41 @@ class MarkovChain(object):
             prediction = [*map(self._states.__getitem__, prediction)]
 
         return prediction
+
+    def prior_probabilities(self, hyperparameter: _onumeric = None) -> _np.ndarray:
+
+        """
+        The method computes the prior probabilities of the process.
+
+        :param hyperparameter: the matrix for the a priori distribution (if omitted, a default value of 1 is assigned to each parameter).
+        :return: a Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            if hyperparameter is None:
+                hyperparameter = _np.ones((self.size, self.size), dtype=float)
+            else:
+                hyperparameter = _validate_hyperparameter(hyperparameter, self.size)
+
+        except Exception as e:
+            argument = ''.join(_trace()[0][4]).split('=', 1)[0].strip()
+            raise _ValidationError(str(e).replace('@arg@', argument)) from None
+
+        lps = _np.zeros(self.size)
+
+        for i in range(self.size):
+
+            lp = 0.0
+
+            for j in range(self.size):
+                hij = hyperparameter[i, j]
+                lp += (hij - 1.0) * _np.log(self._p[i, j]) - _lgamma(hij)
+
+            lps[i] = (lp + _lgamma(_np.sum(hyperparameter[i, :])))
+
+        return lps
 
     def redistribute(self, steps: int, initial_status: _Optional[_Union[int, str, _tnumeric]] = None, include_initial: bool = False, output_last: bool = True) -> _List[_np.ndarray]:
 

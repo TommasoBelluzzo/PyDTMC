@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __title__ = 'PyDTMC'
-__version__ = '2.3.0'
+__version__ = '2.4.0'
 __author__ = 'Tommaso Belluzzo'
 __all__ = [
     'ValidationError',
