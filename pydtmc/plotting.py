@@ -39,14 +39,14 @@ from typing import (
     Iterable as _Iterable,
     List as _List,
     Optional as _Optional,
-    Tuple as _Tuple,
     Union as _Union
 )
 
 # Internal
 
 from pydtmc.custom_types import (
-    tnumeric as _tnumeric
+    tnumeric as _tnumeric,
+    oplot as _oplot
 )
 
 from pydtmc.exceptions import (
@@ -84,7 +84,7 @@ _colors = ['#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#F
 #############
 
 
-def plot_eigenvalues(mc: _MarkovChain, dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_eigenvalues(mc: _MarkovChain, dpi: int = 100) -> _oplot:
 
     """
     The function plots the eigenvalues of the Markov chain on the complex plane.
@@ -173,7 +173,7 @@ def plot_eigenvalues(mc: _MarkovChain, dpi: int = 100) -> _Optional[_Tuple[_mp.F
     return figure, ax
 
 
-def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, dpi: int = 100) -> _oplot:
 
     """
     The function plots the directed graph of the Markov chain.
@@ -365,7 +365,7 @@ def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = Tr
     return figure, ax
 
 
-def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[_np.ndarray]], initial_status: _Optional[_Union[int, str, _tnumeric]] = None, plot_type: str = 'projection', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[_np.ndarray]], initial_status: _Optional[_Union[int, str, _tnumeric]] = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
 
     """
     The function plots a redistribution of states on the given Markov chain.
@@ -467,7 +467,7 @@ def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[
     return figure, ax
 
 
-def plot_walk(mc: _MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]], initial_state: _Optional[_Union[int, str]] = None, plot_type: str = 'histogram', dpi: int = 100) -> _Optional[_Tuple[_mp.Figure, _mp.Axes]]:
+def plot_walk(mc: _MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]], initial_state: _Optional[_Union[int, str]] = None, plot_type: str = 'histogram', dpi: int = 100) -> _oplot:
 
     """
     The function plots a random walk on the given Markov chain.

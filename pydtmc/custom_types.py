@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'onumeric', 'tnumeric'
+    'onumeric', 'tnumeric',
+    'oplot', 'tplot'
 ]
 
 
@@ -12,6 +13,7 @@ __all__ = [
 
 # Major
 
+import matplotlib.pyplot as _mp
 import numpy as _np
 
 # Minor
@@ -19,6 +21,7 @@ import numpy as _np
 from typing import (
     Iterable as _Iterable,
     Optional as _Optional,
+    Tuple as _Tuple,
     Union as _Union
 )
 
@@ -51,3 +54,6 @@ except Exception:
     pass
 
 onumeric = _Optional[tnumeric]
+
+tplot = _Tuple[_mp.Figure, _mp.Axes]
+oplot = _Optional[tplot]
