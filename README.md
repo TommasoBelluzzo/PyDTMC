@@ -9,7 +9,8 @@ PyDTMC supports only `Python 3` and the minimum required version is `3.6`. In ad
 * [Matplotlib](https://matplotlib.org/)
 * [NetworkX](https://networkx.github.io/)
 * [Numpy](https://www.numpy.org/)
-* [PyTest](https://pytest.org/) (Unit Testing Framework)
+* [PyTest](https://pytest.org/)
+* [SciPy](https://www.scipy.org/)
 
 For a better user experience, it's recommended to install [Graphviz](https://www.graphviz.org/) and [PyDot](https://pypi.org/project/pydot/) before using the `plot_graph` function.
 

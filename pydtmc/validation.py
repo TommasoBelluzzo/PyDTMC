@@ -16,6 +16,7 @@ __all__ = [
 # Major
 
 import numpy as _np
+import scipy.sparse as _sps
 
 # Minor
 
@@ -43,11 +44,6 @@ try:
     import pandas as _pd
 except ImportError:
     _pd = None
-
-try:
-    import scipy.sparse as _sps
-except ImportError:
-    _sps = None
 
 
 #############
@@ -80,21 +76,7 @@ def extract_numeric(data: _Any) -> _np.ndarray:
         result = _np.array(data)
     elif isinstance(data, _np.ndarray):
         result = _np.copy(data)
-    elif _pd and isinstance(data, (_pd.DataFrame, _pd.Series)):
-        result = data.to_numpy(copy=True)
-    elif _sps and isinstance(data, _sps.bsr.bsr_matrix):
-        result = _np.array(data.todense())
-    elif _sps and isinstance(data, _sps.coo.coo_matrix):
-        result = _np.array(data.todense())
-    elif _sps and isinstance(data, _sps.csc.csc_matrix):
-        result = _np.array(data.todense())
-    elif _sps and isinstance(data, _sps.csr.csr_matrix):
-        result = _np.array(data.todense())
-    elif _sps and isinstance(data, _sps.dia.dia_matrix):
-        result = _np.array(data.todense())
-    elif _sps and isinstance(data, _sps.dok.dok_matrix):
-        result = _np.array(data.todense())
-    elif _sps and isinstance(data, _sps.lil.lil_matrix):
+    elif isinstance(data, _sps.spmatrix):
         result = _np.array(data.todense())
     elif isinstance(data, _Dict):
         result = _np.array(list(data.values()))
@@ -194,7 +176,7 @@ def validate_hyperparameter(hyperparameter: _Any, size: int) -> _np.ndarray:
 
 def validate_dictionary(d: _Any) -> _Dict[_Tuple[str, str], float]:
 
-    if not isinstance(d, dict):
+    if not isinstance(d, _Dict):
         raise ValueError('The "@arg@" parameter must be a dictionary.')
 
     keys = d.keys()

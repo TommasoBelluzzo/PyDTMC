@@ -62,7 +62,7 @@ cases = [
 )
 def test_steady_states(p, steady_states):
 
-    actual = _MarkovChain(_np.array(p)).pi
+    actual = _MarkovChain(p).pi
     expected = [_np.array(steady_state) for steady_state in steady_states]
     matches = 0
 

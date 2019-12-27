@@ -8,10 +8,6 @@
 
 # Major
 
-import numpy as _np
-
-# Minor
-
 from pydtmc import (
     MarkovChain as _MarkovChain
 )
@@ -62,7 +58,7 @@ cases = [
 )
 def test_periodicity(p, period):
 
-    mc = _MarkovChain(_np.array(p))
+    mc = _MarkovChain(p)
 
     assert mc.period == period
     assert mc.is_aperiodic == (period == 1)

@@ -35,18 +35,18 @@ from subprocess import (
     PIPE as _PIPE
 )
 
-from typing import (
-    Iterable as _Iterable,
-    List as _List,
-    Optional as _Optional,
-    Union as _Union
-)
-
 # Internal
 
 from pydtmc.custom_types import (
-    tnumeric as _tnumeric,
+    tlist_str as _tlist_str,
     oplot as _oplot
+)
+
+from pydtmc.custom_types import (
+    tdistributions_flex as _tdistributions_flex,
+    ostate as _ostate,
+    tstateswalk_flex as _tstateswalk_flex,
+    ostatus as _ostatus
 )
 
 from pydtmc.exceptions import (
@@ -96,7 +96,7 @@ def plot_eigenvalues(mc: _MarkovChain, dpi: int = 100) -> _oplot:
     """
 
     if not isinstance(mc, _MarkovChain):
-        raise ValueError('A valid MarkovChain instance must be provided.')
+        raise _ValidationError('A valid MarkovChain instance must be provided.')
 
     try:
 
@@ -190,7 +190,7 @@ def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = Tr
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    def edge_colors(hex_from: str, hex_to: str, steps: int) -> _List[str]:
+    def edge_colors(hex_from: str, hex_to: str, steps: int) -> _tlist_str:
 
         begin = [int(hex_from[i:i + 2], 16) for i in range(1, 6, 2)]
         end = [int(hex_to[i:i + 2], 16) for i in range(1, 6, 2)]
@@ -204,7 +204,7 @@ def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = Tr
 
         return clist
 
-    def node_colors(count: int) -> _List[str]:
+    def node_colors(count: int) -> _tlist_str:
 
         colors_limit = len(_colors) - 1
         offset = 0
@@ -221,7 +221,7 @@ def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = Tr
         return clist
 
     if not isinstance(mc, _MarkovChain):
-        raise ValueError('A valid MarkovChain instance must be provided.')
+        raise _ValidationError('A valid MarkovChain instance must be provided.')
 
     try:
 
@@ -365,7 +365,7 @@ def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = Tr
     return figure, ax
 
 
-def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[_np.ndarray]], initial_status: _Optional[_Union[int, str, _tnumeric]] = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
+def plot_redistributions(mc: _MarkovChain, distributions: _tdistributions_flex, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
 
     """
     The function plots a redistribution of states on the given Markov chain.
@@ -380,7 +380,7 @@ def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[
     """
 
     if not isinstance(mc, _MarkovChain):
-        raise ValueError('A valid MarkovChain instance must be provided.')
+        raise _ValidationError('A valid MarkovChain instance must be provided.')
 
     try:
 
@@ -467,7 +467,7 @@ def plot_redistributions(mc: _MarkovChain, distributions: _Union[int, _Iterable[
     return figure, ax
 
 
-def plot_walk(mc: _MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]], initial_state: _Optional[_Union[int, str]] = None, plot_type: str = 'histogram', dpi: int = 100) -> _oplot:
+def plot_walk(mc: _MarkovChain, walk: _tstateswalk_flex, initial_state: _ostate = None, plot_type: str = 'histogram', dpi: int = 100) -> _oplot:
 
     """
     The function plots a random walk on the given Markov chain.
@@ -482,7 +482,7 @@ def plot_walk(mc: _MarkovChain, walk: _Union[int, _Iterable[int], _Iterable[str]
     """
 
     if not isinstance(mc, _MarkovChain):
-        raise ValueError('A valid MarkovChain instance must be provided.')
+        raise _ValidationError('A valid MarkovChain instance must be provided.')
 
     try:
 

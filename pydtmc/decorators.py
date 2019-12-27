@@ -120,8 +120,8 @@ def aliased(aliased_class):
 
     def wrapper(func):
         @_wraps(func)
-        def inner(*args, **kwargs):
-            return func(*args, **kwargs)
+        def inner(self, *args, **kwargs):
+            return func(self, *args, **kwargs)
         return inner
 
     aliased_class_dict = aliased_class.__dict__.copy()
