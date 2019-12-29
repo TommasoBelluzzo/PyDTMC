@@ -41,10 +41,6 @@ from math import (
     lgamma as _lgamma
 )
 
-from typing import (
-    Optional as _Optional
-)
-
 # Internal
 
 from pydtmc.base_class import (
@@ -61,8 +57,9 @@ from pydtmc.custom_types import (
 )
 
 from pydtmc.custom_types import (
-    tdict as _tdict, tdict_flex as _tdict_flex,
+    tmcdict as _tmcdict, tmcdict_flex as _tmcdict_flex,
     tlist_states as _tlist_states,
+    tmc as _tmc, omc as _omc,
     tstate as _tstate, ostate as _ostate,
     tstatenames as _tstatenames, ostatenames as _ostatenames,
     tstates as _tstates, ostates as _ostates,
@@ -1319,7 +1316,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return mixing_time
 
-    def closest_reversible(self, distribution: _tnumeric, weighted: bool = False) -> _Optional['MarkovChain']:
+    def closest_reversible(self, distribution: _tnumeric, weighted: bool = False) -> _omc:
 
         """
         The method computes the closest reversible of the Markov chain.
@@ -1662,7 +1659,7 @@ class MarkovChain(metaclass=_BaseClass):
         return sensitivity
 
     @_alias('to_canonical')
-    def to_canonical_form(self) -> 'MarkovChain':
+    def to_canonical_form(self) -> _tmc:
 
         """
         The method returns the canonical form of the Markov chain.
@@ -1684,7 +1681,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return MarkovChain(p, states)
 
-    def to_dictionary(self) -> _tdict:
+    def to_dictionary(self) -> _tmcdict:
 
         """
         The method returns a dictionary representing the Markov chain.
@@ -1751,7 +1748,7 @@ class MarkovChain(metaclass=_BaseClass):
                 file.write(f"{it[0]} {it[1]} {ip}\n")
 
     @_alias('to_lazy')
-    def to_lazy_chain(self, inertial_weights: _tweights = 0.5) -> 'MarkovChain':
+    def to_lazy_chain(self, inertial_weights: _tweights = 0.5) -> _tmc:
 
         """
         The method returns a lazy chain by adjusting the state inertia of the original process.
@@ -1773,7 +1770,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return MarkovChain(p_adjusted, self._states)
 
-    def to_subchain(self, states: _tstates) -> 'MarkovChain':
+    def to_subchain(self, states: _tstates) -> _tmc:
 
         """
         The method returns a subchain containing all the given states plus all the states reachable from them.
@@ -2008,7 +2005,7 @@ class MarkovChain(metaclass=_BaseClass):
         return x
 
     @staticmethod
-    def birth_death(p: _tarray, q: _tarray, states: _ostatenames = None) -> 'MarkovChain':
+    def birth_death(p: _tarray, q: _tarray, states: _ostatenames = None) -> _tmc:
 
         """
         The method generates a birth-death Markov chain of given size and from given probabilities.
@@ -2055,7 +2052,7 @@ class MarkovChain(metaclass=_BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def fit_map(possible_states: _tstatenames, walk: _tstateswalk, hyperparameter: _onumeric = None) -> 'MarkovChain':
+    def fit_map(possible_states: _tstatenames, walk: _tstateswalk, hyperparameter: _onumeric = None) -> _tmc:
 
         """
         The method fits a Markov chain using the maximum a posteriori approach.
@@ -2106,7 +2103,7 @@ class MarkovChain(metaclass=_BaseClass):
         return MarkovChain(p, possible_states)
 
     @staticmethod
-    def fit_mle(possible_states: _tstatenames, walk: _tstateswalk, laplace_smoothing: bool = False) -> 'MarkovChain':
+    def fit_mle(possible_states: _tstatenames, walk: _tstateswalk, laplace_smoothing: bool = False) -> _tmc:
 
         """
         The method fits a Markov chain using the maximum likelihood approach.
@@ -2146,7 +2143,7 @@ class MarkovChain(metaclass=_BaseClass):
         return MarkovChain(p, possible_states)
 
     @staticmethod
-    def from_dictionary(d: _tdict_flex) -> 'MarkovChain':
+    def from_dictionary(d: _tmcdict_flex) -> _tmc:
 
         """
         The method generates a Markov chain from the given dictionary, whose keys represent state pairs and whose values represent transition probabilities.
@@ -2182,7 +2179,7 @@ class MarkovChain(metaclass=_BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def from_file(file_path: str) -> 'MarkovChain':
+    def from_file(file_path: str) -> _tmc:
 
         """
         | The method reads a Markov chain from the given file. Every line of the file must have the following format:
@@ -2235,7 +2232,7 @@ class MarkovChain(metaclass=_BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def from_matrix(m: _tnumeric, states: _ostatenames = None) -> 'MarkovChain':
+    def from_matrix(m: _tnumeric, states: _ostatenames = None) -> _tmc:
 
         """
         The method generates a Markov chain with the given state names, whose transition matrix is obtained through the normalization of the given matrix.
@@ -2265,7 +2262,7 @@ class MarkovChain(metaclass=_BaseClass):
         return MarkovChain(m, states)
 
     @staticmethod
-    def identity(size: int, states: _ostatenames = None) -> 'MarkovChain':
+    def identity(size: int, states: _ostatenames = None) -> _tmc:
 
         """
         The method generates a Markov chain of given size based on an identity transition matrix.
@@ -2292,7 +2289,7 @@ class MarkovChain(metaclass=_BaseClass):
         return MarkovChain(_np.eye(size), states)
 
     @staticmethod
-    def random(size: int, states: _ostatenames = None, zeros: int = 0, mask: _onumeric = None, seed: _oint = None) -> 'MarkovChain':
+    def random(size: int, states: _ostatenames = None, zeros: int = 0, mask: _onumeric = None, seed: _oint = None) -> _tmc:
 
         """
         The method generates a Markov chain of given size with random transition probabilities.

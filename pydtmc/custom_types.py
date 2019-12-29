@@ -10,9 +10,10 @@ __all__ = [
     'tnumeric', 'onumeric',
     'tplot', 'oplot',
     # Specific
-    'tdict', 'odict', 'tdict_flex', 'odict_flex',
+    'tmcdict', 'omcdict', 'tmcdict_flex', 'omcdict_flex',
     'tdistributions_flex', 'odistributions_flex',
     'tlist_states', 'olist_states',
+    'tmc', 'omc',
     'tstate', 'ostate', 'tstatenames', 'ostatenames', 'tstates', 'ostates', 'tstateswalk', 'ostateswalk', 'tstateswalk_flex', 'ostateswalk_flex',
     'tstatus', 'ostatus',
     'tweights', 'oweights'
@@ -39,6 +40,7 @@ from typing import (
     List as _List,
     Optional as _Optional,
     Tuple as _Tuple,
+    TypeVar as _TypeVar,
     Union as _Union
 )
 
@@ -87,16 +89,19 @@ oplot = _Optional[tplot]
 
 # Specific
 
-tdict = _Dict[_Tuple[str, str], float]
-odict = _Optional[tdict]
-tdict_flex = _Dict[_Tuple[str, str], _Union[float, int]]
-odict_flex = _Optional[tdict_flex]
+tmcdict = _Dict[_Tuple[str, str], float]
+omcdict = _Optional[tmcdict]
+tmcdict_flex = _Dict[_Tuple[str, str], _Union[float, int]]
+omcdict_flex = _Optional[tmcdict_flex]
 
 tdistributions_flex = _Union[int, _Iterable[tarray]]
 odistributions_flex = _Optional[tdistributions_flex]
 
 tlist_states = _Union[_List[int], _List[str]]
 olist_states = _Optional[tlist_states]
+
+tmc = _TypeVar('MarkovChain')
+omc = _Optional[tmc]
 
 tstate = _Union[int, str]
 ostate = _Optional[tstate]

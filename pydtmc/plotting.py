@@ -44,6 +44,7 @@ from pydtmc.custom_types import (
 
 from pydtmc.custom_types import (
     tdistributions_flex as _tdistributions_flex,
+    tmc as _tmc,
     ostate as _ostate,
     tstateswalk_flex as _tstateswalk_flex,
     ostatus as _ostatus
@@ -51,10 +52,6 @@ from pydtmc.custom_types import (
 
 from pydtmc.exceptions import (
     ValidationError as _ValidationError
-)
-
-from pydtmc.markov_chain import (
-    MarkovChain as _MarkovChain
 )
 
 from pydtmc.validation import (
@@ -84,7 +81,7 @@ _colors = ['#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#F
 #############
 
 
-def plot_eigenvalues(mc: _MarkovChain, dpi: int = 100) -> _oplot:
+def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
 
     """
     The function plots the eigenvalues of the Markov chain on the complex plane.
@@ -95,7 +92,7 @@ def plot_eigenvalues(mc: _MarkovChain, dpi: int = 100) -> _oplot:
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    if not isinstance(mc, _MarkovChain):
+    if not isinstance(mc, _tmc):
         raise _ValidationError('A valid MarkovChain instance must be provided.')
 
     try:
@@ -173,7 +170,7 @@ def plot_eigenvalues(mc: _MarkovChain, dpi: int = 100) -> _oplot:
     return figure, ax
 
 
-def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, dpi: int = 100) -> _oplot:
+def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, dpi: int = 100) -> _oplot:
 
     """
     The function plots the directed graph of the Markov chain.
@@ -220,7 +217,7 @@ def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = Tr
 
         return clist
 
-    if not isinstance(mc, _MarkovChain):
+    if not isinstance(mc, _tmc):
         raise _ValidationError('A valid MarkovChain instance must be provided.')
 
     try:
@@ -365,7 +362,7 @@ def plot_graph(mc: _MarkovChain, nodes_color: bool = True, nodes_type: bool = Tr
     return figure, ax
 
 
-def plot_redistributions(mc: _MarkovChain, distributions: _tdistributions_flex, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
+def plot_redistributions(mc: _tmc, distributions: _tdistributions_flex, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
 
     """
     The function plots a redistribution of states on the given Markov chain.
@@ -379,7 +376,7 @@ def plot_redistributions(mc: _MarkovChain, distributions: _tdistributions_flex, 
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    if not isinstance(mc, _MarkovChain):
+    if not isinstance(mc, _tmc):
         raise _ValidationError('A valid MarkovChain instance must be provided.')
 
     try:
@@ -467,7 +464,7 @@ def plot_redistributions(mc: _MarkovChain, distributions: _tdistributions_flex, 
     return figure, ax
 
 
-def plot_walk(mc: _MarkovChain, walk: _tstateswalk_flex, initial_state: _ostate = None, plot_type: str = 'histogram', dpi: int = 100) -> _oplot:
+def plot_walk(mc: _tmc, walk: _tstateswalk_flex, initial_state: _ostate = None, plot_type: str = 'histogram', dpi: int = 100) -> _oplot:
 
     """
     The function plots a random walk on the given Markov chain.
@@ -481,7 +478,7 @@ def plot_walk(mc: _MarkovChain, walk: _tstateswalk_flex, initial_state: _ostate 
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    if not isinstance(mc, _MarkovChain):
+    if not isinstance(mc, _tmc):
         raise _ValidationError('A valid MarkovChain instance must be provided.')
 
     try:
