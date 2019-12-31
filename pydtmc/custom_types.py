@@ -5,18 +5,20 @@ __all__ = [
     'ofloat', 'oint',
     'tarray', 'oarray',
     'tgraph', 'ograph', 'tgraphs', 'ographs',
-    'tlist_array', 'olist_array', 'tlist_int', 'olist_int', 'tlist_str', 'olist_str',
-    'tlists_int', 'olists_int', 'tlists_str', 'olists_str',
     'tnumeric', 'onumeric',
     'tplot', 'oplot',
+    'tlist_array', 'olist_array', 'tlist_int', 'olist_int', 'tlist_str', 'olist_str',
+    'tlists_array', 'olists_array', 'tlists_int', 'olists_int', 'tlists_str', 'olists_str',
     # Specific
+    'tmc', 'omc',
     'tmcdict', 'omcdict', 'tmcdict_flex', 'omcdict_flex',
     'tdistributions_flex', 'odistributions_flex',
-    'tlist_states', 'olist_states',
-    'tmc', 'omc',
-    'tstate', 'ostate', 'tstatenames', 'ostatenames', 'tstates', 'ostates', 'tstateswalk', 'ostateswalk', 'tstateswalk_flex', 'ostateswalk_flex',
+    'tstate', 'ostate', 'tstates', 'ostates',
+    'tstatenames', 'ostatenames',
+    'tstateswalk', 'ostateswalk', 'tstateswalk_flex', 'ostateswalk_flex',
     'tstatus', 'ostatus',
-    'tweights', 'oweights'
+    'tweights', 'oweights',
+    'tlist_states', 'olist_states'
 ]
 
 
@@ -63,18 +65,6 @@ ograph = _Optional[tgraph]
 tgraphs = _Union[_nx.DiGraph, _nx.MultiDiGraph]
 ographs = _Optional[tgraphs]
 
-tlist_array = _List[tarray]
-olist_array = _Optional[tlist_array]
-tlist_int = _List[int]
-olist_int = _Optional[tlist_int]
-tlist_str = _List[str]
-olist_str = _Optional[tlist_str]
-
-tlists_int = _List[_List[int]]
-olists_int = _Optional[tlists_int]
-tlists_str = _List[_List[str]]
-olists_str = _Optional[tlists_str]
-
 try:
     import pandas as _pd
     tnumeric = _Union[_Iterable, tarray, _sps.spmatrix, _pd.DataFrame, _pd.Series]
@@ -87,7 +77,24 @@ onumeric = _Optional[tnumeric]
 tplot = _Tuple[_mp.Figure, _mp.Axes]
 oplot = _Optional[tplot]
 
+tlist_array = _List[tarray]
+olist_array = _Optional[tlist_array]
+tlist_int = _List[int]
+olist_int = _Optional[tlist_int]
+tlist_str = _List[str]
+olist_str = _Optional[tlist_str]
+
+tlists_array = _List[_List[tarray]]
+olists_array = _Optional[tlists_array]
+tlists_int = _List[_List[int]]
+olists_int = _Optional[tlists_int]
+tlists_str = _List[_List[str]]
+olists_str = _Optional[tlists_str]
+
 # Specific
+
+tmc = _TypeVar('MarkovChain')
+omc = _Optional[tmc]
 
 tmcdict = _Dict[_Tuple[str, str], float]
 omcdict = _Optional[tmcdict]
@@ -97,19 +104,14 @@ omcdict_flex = _Optional[tmcdict_flex]
 tdistributions_flex = _Union[int, _Iterable[tarray]]
 odistributions_flex = _Optional[tdistributions_flex]
 
-tlist_states = _Union[_List[int], _List[str]]
-olist_states = _Optional[tlist_states]
-
-tmc = _TypeVar('MarkovChain')
-omc = _Optional[tmc]
-
 tstate = _Union[int, str]
 ostate = _Optional[tstate]
+tstates = _Union[int, str, _Iterable[int], _Iterable[str]]
+ostates = _Optional[tstates]
+
 tstatenames = _Iterable[str]
 ostatenames = _Optional[tstatenames]
 
-tstates = _Union[int, str, _Iterable[int], _Iterable[str]]
-ostates = _Optional[tstates]
 tstateswalk = _Union[_Iterable[int], _Iterable[str]]
 ostateswalk = _Optional[tstateswalk]
 tstateswalk_flex = _Union[int, _Iterable[int], _Iterable[str]]
@@ -120,3 +122,6 @@ ostatus = _Optional[tstatus]
 
 tweights = _Union[float, int, tnumeric]
 oweights = _Optional[tweights]
+
+tlist_states = _Union[_List[int], _List[str]]
+olist_states = _Optional[tlist_states]

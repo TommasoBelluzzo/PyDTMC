@@ -55,10 +55,10 @@ def extract_non_numeric(data: _Any) -> _List[_Any]:
 
     result = None
 
-    if isinstance(data, _Dict):
-        result = list(data.values())
-    elif isinstance(data, _List):
+    if isinstance(data, _List):
         result = _deepcopy(data)
+    elif isinstance(data, _Dict):
+        result = list(data.values())
     elif isinstance(data, _Iterable) and not isinstance(data, str):
         result = list(data)
 
@@ -74,12 +74,14 @@ def extract_numeric(data: _Any) -> _np.ndarray:
 
     if isinstance(data, list):
         result = _np.array(data)
+    elif isinstance(data, _Dict):
+        result = _np.array(list(data.values()))
     elif isinstance(data, _np.ndarray):
         result = _np.copy(data)
     elif isinstance(data, _sps.spmatrix):
         result = _np.array(data.todense())
-    elif isinstance(data, _Dict):
-        result = _np.array(list(data.values()))
+    elif _pd and isinstance(data, (_pd.DataFrame, _pd.Series)):
+        result = data.to_numpy(copy=True)
     elif isinstance(data, _Iterable) and not isinstance(data, str):
         result = _np.array(list(data))
 

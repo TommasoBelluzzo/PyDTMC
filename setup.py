@@ -31,7 +31,7 @@ for (location, directories, files) in os.walk('data'):
 
 setuptools.setup(
     name='PyDTMC',
-    version='2.8.0',
+    version='2.9.0',
     url='https://github.com/TommasoBelluzzo/PyDTMC',
     description='A framework for discrete-time Markov chains analysis.',
     long_description=long_description_text,

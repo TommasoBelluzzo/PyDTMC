@@ -38,13 +38,13 @@ from subprocess import (
 # Internal
 
 from pydtmc.custom_types import (
-    tlist_str as _tlist_str,
-    oplot as _oplot
+    oplot as _oplot,
+    tlist_str as _tlist_str
 )
 
 from pydtmc.custom_types import (
-    tdistributions_flex as _tdistributions_flex,
     tmc as _tmc,
+    tdistributions_flex as _tdistributions_flex,
     ostate as _ostate,
     tstateswalk_flex as _tstateswalk_flex,
     ostatus as _ostatus

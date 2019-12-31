@@ -51,21 +51,20 @@ from pydtmc.custom_types import (
     ofloat as _ofloat, oint as _oint,
     tarray as _tarray, oarray as _oarray,
     tgraph as _tgraph, tgraphs as _tgraphs,
+    tnumeric as _tnumeric, onumeric as _onumeric,
     tlist_array as _tlist_array, tlist_int as _tlist_int, tlist_str as _tlist_str,
-    tlists_int as _tlists_int, tlists_str as _tlists_str,
-    tnumeric as _tnumeric, onumeric as _onumeric
+    tlists_int as _tlists_int, tlists_str as _tlists_str
 )
 
 from pydtmc.custom_types import (
-    tmcdict as _tmcdict, tmcdict_flex as _tmcdict_flex,
-    tlist_states as _tlist_states,
     tmc as _tmc, omc as _omc,
-    tstate as _tstate, ostate as _ostate,
+    tmcdict as _tmcdict, tmcdict_flex as _tmcdict_flex,
+    tstate as _tstate, ostate as _ostate, tstates as _tstates, ostates as _ostates,
     tstatenames as _tstatenames, ostatenames as _ostatenames,
-    tstates as _tstates, ostates as _ostates,
     tstateswalk as _tstateswalk,
     ostatus as _ostatus,
-    tweights as _tweights
+    tweights as _tweights,
+    tlist_states as _tlist_states
 )
 
 from pydtmc.decorators import (
@@ -709,6 +708,15 @@ class MarkovChain(metaclass=_BaseClass):
             pi.append(s[i, :])
 
         return pi
+
+    @_cachedproperty
+    def rank(self) -> int:
+
+        """
+        A property representing the rank of the transition matrix of the Markov chain.
+        """
+
+        return _npl.matrix_rank(self._p)
 
     @_cachedproperty
     def recurrence_times(self) -> _oarray:
