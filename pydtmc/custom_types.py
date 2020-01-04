@@ -30,7 +30,7 @@ __all__ = [
     'tlists_any', 'olists_any',
     'tlists_array', 'olists_array',
     'tlists_int', 'olists_int',
-    'tlists_str', 'olists_str',
+    'tlists_str', 'olists_str'
 ]
 
 
