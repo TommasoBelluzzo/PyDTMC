@@ -50,14 +50,14 @@ from pydtmc.base_class import (
 from pydtmc.custom_types import (
     # Generic
     ofloat, oint,
+    # Specific
     tarray, oarray,
     tgraph,
     tgraphs,
-    tnumeric, onumeric,
-    # Specific
     tmc, omc,
     tmcdict,
     tmcdict_flex,
+    tnumeric, onumeric,
     tstate, ostate,
     tstates, ostates,
     tstateswalk,

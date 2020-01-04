@@ -3,19 +3,18 @@
 __all__ = [
     # Generic
     'ofloat', 'oint',
-    'tany',
+    'tany', 'titerable',
+    # Specific
     'tarray', 'oarray',
+    'tdistributions', 'odistributions',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
-    'titerable',
-    'tnumeric', 'onumeric',
-    'tplot', 'oplot',
-    # Specific
-    'tdistributions', 'odistributions',
     'tlimit', 'olimit',
     'tmc', 'omc',
     'tmcdict', 'omcdict',
     'tmcdict_flex', 'omcdict_flex',
+    'tnumeric', 'onumeric',
+    'tplot', 'oplot',
     'tstate', 'ostate',
     'tstates', 'ostates',
     'tstateswalk', 'ostateswalk',
@@ -77,28 +76,21 @@ ofloat = Optional[float]
 oint = Optional[int]
 
 tany = Any
+titerable = Iterable
+
+# Specific
 
 tarray = np.ndarray
 oarray = Optional[tarray]
+
+tdistributions = Union[int, List[tarray]]
+odistributions = Optional[tdistributions]
 
 tgraph = nx.DiGraph
 ograph = Optional[tgraph]
 
 tgraphs = Union[nx.DiGraph, nx.MultiDiGraph]
 ographs = Optional[tgraphs]
-
-titerable = Iterable
-
-tnumeric = Union[titerable, tarray, spsp.spmatrix, pd.DataFrame, pd.Series] if pd is not None else Union[titerable, tarray, spsp.spmatrix]
-onumeric = Optional[tnumeric]
-
-tplot = Tuple[pp.Figure, pp.Axes]
-oplot = Optional[tplot]
-
-# Specific
-
-tdistributions = Union[int, List[tarray]]
-odistributions = Optional[tdistributions]
 
 tlimit = Tuple[int, bool]
 olimit = Optional[tlimit]
@@ -111,6 +103,12 @@ omcdict = Optional[tmcdict]
 
 tmcdict_flex = Dict[Tuple[str, str], Union[float, int]]
 omcdict_flex = Optional[tmcdict_flex]
+
+tnumeric = Union[titerable, tarray, spsp.spmatrix, pd.DataFrame, pd.Series] if pd is not None else Union[titerable, tarray, spsp.spmatrix]
+onumeric = Optional[tnumeric]
+
+tplot = Tuple[pp.Figure, pp.Axes]
+oplot = Optional[tplot]
 
 tstate = Union[int, str]
 ostate = Optional[tstate]

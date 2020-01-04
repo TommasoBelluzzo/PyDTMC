@@ -41,11 +41,10 @@ from subprocess import (
 # Internal
 
 from pydtmc.custom_types import (
-    # Generic
-    oplot,
     # Specific
     tdistributions,
     tmc,
+    oplot,
     ostate,
     tstateswalk_flex,
     ostatus,

@@ -47,8 +47,11 @@ DISCRETE-TIME MARKOV CHAIN
   - TRANSIENT: 1
  ABSORBING:    YES
  APERIODIC:    YES
- IRREDUCIBLE:  NO
  ERGODIC:      NO
+ IRREDUCIBLE:  NO
+ REGULAR:      NO
+ REVERSIBLE:   NO
+ SYMMETRIC:    NO
 ```
 
 Static values of `MarkovChain` instances can be retrieved through their properties:
