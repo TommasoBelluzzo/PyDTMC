@@ -20,9 +20,9 @@ IF ERRORLEVEL 9009 (
 )
 
 IF "%1" == "" (
-	SET SPHINXTYPE=html
-) ELSE (
 	SET SPHINXTYPE=%1
+) ELSE (
+	SET SPHINXTYPE=html
 )
 
 SET SOURCEDIR=_source

@@ -8,16 +8,16 @@
 
 # Major
 
-import numpy as _np
+import numpy as np
 
 # Minor
 
 from pydtmc import (
-    MarkovChain as _MarkovChain
+    MarkovChain
 )
 
 from pytest import (
-    mark as _mark
+    mark
 )
 
 
@@ -55,19 +55,19 @@ cases = [
 ########
 
 
-@_mark.parametrize(
+@mark.parametrize(
     argnames=('p', 'steady_states'),
     argvalues=cases,
     ids=[str(i + 1) for i in range(len(cases))]
 )
 def test_steady_states(p, steady_states):
 
-    actual = _MarkovChain(p).pi
-    expected = [_np.array(steady_state) for steady_state in steady_states]
+    actual = MarkovChain(p).pi
+    expected = [np.array(steady_state) for steady_state in steady_states]
     matches = 0
 
     for a in actual:
         for e in expected:
-            matches += 1 if _np.allclose(a, e, rtol=0.0, atol=1e-6) else 0
+            matches += 1 if np.allclose(a, e, rtol=0.0, atol=1e-6) else 0
 
     assert matches == len(expected)

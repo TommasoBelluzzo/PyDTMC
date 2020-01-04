@@ -12,12 +12,12 @@ __all__ = [
 
 
 from functools import (
-    update_wrapper as _update_wrapper,
-    wraps as _wraps
+    update_wrapper,
+    wraps
 )
 
 from threading import (
-    RLock as _RLock
+    RLock
 )
 
 
@@ -30,7 +30,7 @@ from threading import (
 class alias(object):
 
     """
-    | A decorator for implementing method aliases.
+    A decorator for implementing method aliases.
 
     | It can be used only inside @aliased-decorated classes.
     """
@@ -68,9 +68,9 @@ class cachedproperty(property):
             self._func = fget
             self._func_name = self._func.__name__
 
-        _update_wrapper(self, fget)
+        update_wrapper(self, fget)
 
-        self._lock = _RLock()
+        self._lock = RLock()
 
     def __get__(self, obj, obj_type=None):
 
@@ -119,7 +119,7 @@ def aliased(aliased_class):
     """
 
     def wrapper(func):
-        @_wraps(func)
+        @wraps(func)
         def inner(self, *args, **kwargs):
             return func(self, *args, **kwargs)
         return inner

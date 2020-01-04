@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 __title__ = 'PyDTMC'
-__version__ = '2.9.0'
+__version__ = '3.0.0'
 __author__ = 'Tommaso Belluzzo'
+
 __all__ = [
     'ValidationError',
     'MarkovChain',

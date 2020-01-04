@@ -9,11 +9,11 @@
 # Major
 
 from pydtmc import (
-    MarkovChain as _MarkovChain
+    MarkovChain
 )
 
 from pytest import (
-    mark as _mark
+    mark
 )
 
 
@@ -51,14 +51,14 @@ cases = [
 ########
 
 
-@_mark.parametrize(
+@mark.parametrize(
     argnames=('p', 'period'),
     argvalues=cases,
     ids=[str(i + 1) for i in range(len(cases))]
 )
 def test_periodicity(p, period):
 
-    mc = _MarkovChain(p)
+    mc = MarkovChain(p)
 
     assert mc.period == period
     assert mc.is_aperiodic == (period == 1)
