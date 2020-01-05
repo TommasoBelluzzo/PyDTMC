@@ -58,7 +58,7 @@ from pydtmc.custom_types import (
     titerable,
     # Specific
     tdistributions,
-    tlimit,
+    olimit,
     tmc,
     tmcdict,
     tstateswalk_flex,
@@ -243,7 +243,7 @@ def validate_dpi(value: tany) -> int:
     return value
 
 
-def validate_integer(value: tany, lower_limit: tlimit = None, upper_limit: tlimit = None) -> int:
+def validate_integer(value: tany, lower_limit: olimit = None, upper_limit: olimit = None) -> int:
 
     if not isinstance(value, int):
         raise TypeError('The "@arg@" parameter must be an integer value.')
