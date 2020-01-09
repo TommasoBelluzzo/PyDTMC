@@ -40,7 +40,7 @@ from subprocess import (
 
 # Internal
 
-from pydtmc.custom_types import (
+from .custom_types import (
     # Specific
     tdistributions,
     tmc,
@@ -52,11 +52,11 @@ from pydtmc.custom_types import (
     tlist_str
 )
 
-from pydtmc.exceptions import (
+from .exceptions import (
     ValidationError
 )
 
-from pydtmc.validation import (
+from .validation import (
     validate_boolean,
     validate_distribution,
     validate_enumerator,

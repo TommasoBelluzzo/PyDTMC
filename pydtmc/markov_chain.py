@@ -43,11 +43,11 @@ from math import (
 
 # Internal
 
-from pydtmc.base_class import (
+from .base_class import (
     BaseClass
 )
 
-from pydtmc.custom_types import (
+from .custom_types import (
     # Generic
     ofloat, oint,
     # Specific
@@ -72,17 +72,17 @@ from pydtmc.custom_types import (
     tlists_str
 )
 
-from pydtmc.decorators import (
+from .decorators import (
     alias,
     aliased,
     cachedproperty
 )
 
-from pydtmc.exceptions import (
+from .exceptions import (
     ValidationError
 )
 
-from pydtmc.validation import (
+from .validation import (
     validate_boolean,
     validate_dictionary,
     validate_enumerator,
@@ -1334,6 +1334,8 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the closest reversible of the Markov chain.
 
+        | **Notes:** the referece paper can be found `here <http://doi.org/10.1002/nla.1967>`_.
+
         :param distribution: the distribution of the states.
         :param weighted: a boolean indicating whether to use a weighted Frobenius norm (by default, False).
         :return: a Markov chain if the algorithm finds a solution, None otherwise.
@@ -2195,8 +2197,9 @@ class MarkovChain(metaclass=BaseClass):
     def from_file(file_path: str) -> tmc:
 
         """
-        | The method reads a Markov chain from the given file. Every line of the file must have the following format:
-        | *<state_from> <state_to> <probability>*
+        The method reads a Markov chain from the given file.
+
+        | **Notes:** every line of the file must have the following format: *<state_from> <state_to> <probability>*
 
         :param file_path: the location of the file that defines the Markov chain.
         :return: a Markov chain.

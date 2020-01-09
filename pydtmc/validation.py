@@ -50,7 +50,7 @@ from numbers import (
 
 # Internal
 
-from pydtmc.custom_types import (
+from .custom_types import (
     # Generic
     oint,
     tany,
