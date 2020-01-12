@@ -16,6 +16,7 @@ __all__ = [
     'validate_state_names',
     'validate_states',
     'validate_status',
+    'validate_transition_function',
     'validate_transition_matrix',
     'validate_transition_matrix_size',
     'validate_vector',
@@ -44,6 +45,10 @@ from copy import (
     deepcopy
 )
 
+from inspect import (
+    signature
+)
+
 from numbers import (
     Number
 )
@@ -62,6 +67,7 @@ from .custom_types import (
     tmc,
     tmcdict,
     tstateswalk_flex,
+    ttfunc,
     # Lists
     tlist_any,
     tlist_int,
@@ -512,6 +518,19 @@ def validate_states(states: tany, current_states: tlist_str, state_type: str, fl
             raise ValueError('The "@arg@" parameter must contain at least two elements.')
 
     return states
+
+
+def validate_transition_function(f: tany) -> ttfunc:
+
+    if not callable(f):
+        raise TypeError('The "@arg@" parameter must be a callable.')
+
+    s = signature(f)
+
+    if len(s.parameters) != 2:
+        raise TypeError('The "@arg@" parameter must accept 2 input arguments.')
+
+    return f
 
 
 def validate_transition_matrix(p: tany) -> tarray:

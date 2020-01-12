@@ -18,6 +18,7 @@ import numpy.linalg as npl
 import numpy.random as npr
 import numpy.random.mtrand as nprm
 import scipy.optimize as spo
+import scipy.special as sps
 
 # Minor
 
@@ -62,6 +63,7 @@ from .custom_types import (
     tstates, ostates,
     tstateswalk,
     ostatus,
+    ttfunc,
     tweights,
     # Lists
     tlist_array,
@@ -95,6 +97,7 @@ from .validation import (
     validate_state_names,
     validate_states,
     validate_status,
+    validate_transition_function,
     validate_transition_matrix,
     validate_transition_matrix_size,
     validate_vector
@@ -782,6 +785,23 @@ class MarkovChain(metaclass=BaseClass):
 
         return self._size
 
+    @cachedproperty
+    def spectral_gap(self) -> ofloat:
+
+        """
+        A property representing the spectral gap of the Markov chain. If the Markov chain is not *ergodic*, then None is returned.
+        """
+
+        if not self.is_ergodic:
+            return None
+
+        values = npl.eigvals(self._p)
+        values = values.astype(complex)
+        values = np.unique(np.append(values, np.array([1.0]).astype(complex)))
+        values = np.sort(np.abs(values))[::-1]
+
+        return values[0] - values[1]
+
     @property
     def states(self) -> tlist_str:
 
@@ -1334,7 +1354,7 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the closest reversible of the Markov chain.
 
-        | **Notes:** the referece paper can be found `here <http://doi.org/10.1002/nla.1967>`_.
+        | **Notes:** the algorithm is described in `Computing the nearest reversible Markov Chain (Nielsen & Weber, 2015) <http://doi.org/10.1002/nla.1967>`_.
 
         :param distribution: the distribution of the states.
         :param weighted: a boolean indicating whether to use a weighted Frobenius norm (by default, False).
@@ -2140,8 +2160,8 @@ class MarkovChain(metaclass=BaseClass):
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
-        p_size = len(possible_states)
-        p = np.zeros((p_size, p_size), dtype=int)
+        size = len(possible_states)
+        p = np.zeros((size, size), dtype=int)
 
         for step in zip(walk[:-1], walk[1:]):
             p[step[0], step[1]] += 1
@@ -2150,7 +2170,7 @@ class MarkovChain(metaclass=BaseClass):
             p = p.astype(float)
             p += 0.001
         else:
-            p[np.where(~p.any(axis=1)), :] = np.ones(p_size, dtype=float)
+            p[np.where(~p.any(axis=1)), :] = np.ones(size, dtype=float)
             p = p.astype(float)
 
         p = p / np.sum(p, axis=1, keepdims=True)
@@ -2246,6 +2266,64 @@ class MarkovChain(metaclass=BaseClass):
             raise ValueError('The rows of the transition matrix defined by the file must sum to 1.')
 
         return MarkovChain(p, states)
+
+    # noinspection PyUnresolvedReferences
+    @staticmethod
+    def from_function(f: ttfunc, possible_states: tlist_str, quadrature: str = 'newton-cotes') -> tmc:
+
+        """
+        The method generates a Markov chain from the given transition function.
+
+        :param f: the transition function of the process.
+        :param possible_states: the possible states of the process.
+        :param quadrature: the quadrature to use for computing nodes and weights (one of gauss-chebyshev, gauss-hermite or newton-cotes; newton-cotes by default).
+        :return: a Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            f = validate_transition_function(f)
+            possible_states = validate_state_names(possible_states)
+            quadrature = validate_enumerator(quadrature, ['gauss-chebyshev', 'gauss-hermite', 'newton-cotes'])
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        size = len(possible_states)
+
+        if quadrature == 'gauss-chebyshev':
+
+            w1 = np.cos((np.pi / size) * np.transpose(np.mat(np.arange(size) + 0.5)) * np.mat(np.arange(0, size, 2))).A
+            w2 = np.hstack([np.ones(1, dtype=float), -2.0 / (np.arange(1, size - 1, 2) * np.arange(3, size + 1, 2))])
+
+            nodes = 0.5 - (0.5 * np.cos((np.pi / size) * (np.arange(size) + 0.5)))
+            weights = (1.0 / size) * np.dot(w1, w2)
+
+        elif quadrature == 'gauss-hermite':
+
+            nodes, weights = sps.he_roots(size)
+            nodes = np.real(nodes)
+            weights /= np.sum(weights)
+
+        else:
+
+            h = 1.0 / size
+
+            nodes = (np.arange(size) + 0.5) * h
+            weights = np.repeat(h, size)
+
+        p = np.zeros((size, size), dtype=float)
+
+        for i in range(size):
+            for j in range(size):
+                p[i, j] = f(nodes[i], nodes[j]) * weights[j]
+
+        for i in range(p.shape[0]):
+            p[i, :] /= np.sum(p[i, :])
+
+        return MarkovChain(p, possible_states)
 
     @staticmethod
     def from_matrix(m: tnumeric, states: olist_str = None) -> tmc:

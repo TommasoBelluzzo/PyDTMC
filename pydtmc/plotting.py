@@ -111,7 +111,7 @@ def plot_eigenvalues(mc: tmc, dpi: int = 100) -> oplot:
 
     theta = np.linspace(0.0, 2.0 * np.pi, 200)
 
-    values, _ = npl.eig(mc.p)
+    values = npl.eigvals(mc.p)
     values = values.astype(complex)
     values_final = np.unique(np.append(values, np.array([1.0]).astype(complex)))
 
@@ -134,7 +134,7 @@ def plot_eigenvalues(mc: tmc, dpi: int = 100) -> oplot:
 
                 cs = np.linspace(-1.1, 1.1, 201)
                 x_spectral_gap, y_spectral_gap = np.meshgrid(cs, cs)
-                z_spectral_gap = x_spectral_gap ** 2 + y_spectral_gap ** 2
+                z_spectral_gap = x_spectral_gap**2 + y_spectral_gap**2
 
                 h = ax.contourf(x_spectral_gap, y_spectral_gap, z_spectral_gap, alpha=0.2, colors='r', levels=[mu ** 2.0, 1.0])
                 handles.append(pp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.collections[0].get_facecolor()[0]))

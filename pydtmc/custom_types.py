@@ -20,6 +20,7 @@ __all__ = [
     'tstateswalk', 'ostateswalk',
     'tstateswalk_flex', 'ostateswalk_flex',
     'tstatus', 'ostatus',
+    'ttfunc', 'otfunc',
     'tweights', 'oweights',
     # Lists
     'tlist_any', 'olist_any',
@@ -55,6 +56,7 @@ except ImportError:
 
 from typing import (
     Any,
+    Callable,
     Dict,
     Iterable,
     List,
@@ -124,6 +126,9 @@ ostateswalk_flex = Optional[tstateswalk_flex]
 
 tstatus = Union[int, str, tnumeric]
 ostatus = Optional[tstatus]
+
+ttfunc = Callable[[float, float], float]
+otfunc = Optional[ttfunc]
 
 tweights = Union[float, int, tnumeric]
 oweights = Optional[tweights]
