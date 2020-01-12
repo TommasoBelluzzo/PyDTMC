@@ -18,7 +18,6 @@ import numpy.linalg as npl
 import numpy.random as npr
 import numpy.random.mtrand as nprm
 import scipy.optimize as spo
-import scipy.special as sps
 
 # Minor
 
@@ -55,6 +54,7 @@ from .custom_types import (
     tarray, oarray,
     tgraph,
     tgraphs,
+    ointerval,
     tmc, omc,
     tmcdict,
     tmcdict_flex,
@@ -90,6 +90,7 @@ from .validation import (
     validate_enumerator,
     validate_hyperparameter,
     validate_integer,
+    validate_interval,
     validate_mask,
     validate_matrix,
     validate_rewards,
@@ -2267,25 +2268,31 @@ class MarkovChain(metaclass=BaseClass):
 
         return MarkovChain(p, states)
 
-    # noinspection PyUnresolvedReferences
     @staticmethod
-    def from_function(f: ttfunc, possible_states: tlist_str, quadrature: str = 'newton-cotes') -> tmc:
+    def from_function(f: ttfunc, possible_states: tlist_str, quadrature_interval: ointerval = None, quadrature_type: str = 'newton-cotes') -> tmc:
 
         """
         The method generates a Markov chain from the given transition function.
 
         :param f: the transition function of the process.
         :param possible_states: the possible states of the process.
-        :param quadrature: the quadrature to use for computing nodes and weights (one of gauss-chebyshev, gauss-hermite or newton-cotes; newton-cotes by default).
+        :param quadrature_type: the quadrature type to use for the computation of nodes and weights (one of gauss-chebyshev, gauss-legendre, newton-cotes, simpson or trapezoid-rule; newton-cotes by default).
+        :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (if omitted, the interval [0, 1] is used).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the Gauss-Legendre quadrature fails to converge or if the Simpson quadrature is attempted on an even number of possible states.
         """
 
         try:
 
             f = validate_transition_function(f)
             possible_states = validate_state_names(possible_states)
-            quadrature = validate_enumerator(quadrature, ['gauss-chebyshev', 'gauss-hermite', 'newton-cotes'])
+            quadrature_type = validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'newton-cotes', 'simpson', 'trapezoid-rule'])
+
+            if quadrature_interval is None:
+                quadrature_interval = (0.0, 1.0)
+            else:
+                quadrature_interval = validate_interval(quadrature_interval)
 
         except Exception as e:
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
@@ -2293,26 +2300,86 @@ class MarkovChain(metaclass=BaseClass):
 
         size = len(possible_states)
 
-        if quadrature == 'gauss-chebyshev':
+        a = quadrature_interval[0]
+        b = quadrature_interval[1]
 
-            w1 = np.cos((np.pi / size) * np.transpose(np.mat(np.arange(size) + 0.5)) * np.mat(np.arange(0, size, 2))).A
-            w2 = np.hstack([np.ones(1, dtype=float), -2.0 / (np.arange(1, size - 1, 2) * np.arange(3, size + 1, 2))])
+        if quadrature_type == 'gauss-chebyshev':
 
-            nodes = 0.5 - (0.5 * np.cos((np.pi / size) * (np.arange(size) + 0.5)))
-            weights = (1.0 / size) * np.dot(w1, w2)
+            t1 = np.arange(size) + 0.5
+            t2 = np.arange(0.0, size, 2.0)
+            t3 = np.concatenate((np.array([1.0]), -2.0 / (np.arange(1.0, size - 1.0, 2) * np.arange(3.0, size + 1.0, 2))))
 
-        elif quadrature == 'gauss-hermite':
+            nodes = ((b + a) / 2.0) - ((b - a) / 2.0) * np.cos((np.pi / size) * t1)
+            weights = ((b - a) / size) * np.cos((np.pi / size) * np.outer(t1, t2)) @ t3
 
-            nodes, weights = sps.he_roots(size)
-            nodes = np.real(nodes)
-            weights /= np.sum(weights)
+        elif quadrature_type == 'gauss-legendre':
+
+            nodes = np.zeros(size, dtype=float)
+            weights = np.zeros(size, dtype=float)
+
+            iterations = 0
+            i = np.arange(int(np.fix((size + 1.0) / 2.0)))
+            pp = 0.0
+            z = np.cos(np.pi * ((i + 1.0) - 0.25) / (size + 0.5))
+
+            while iterations < 100:
+
+                iterations += 1
+
+                p1 = np.ones_like(z, dtype=float)
+                p2 = np.zeros_like(z, dtype=float)
+
+                for j in range(1, size + 1):
+                    p3 = p2
+                    p2 = p1
+                    p1 = ((((2.0 * j) - 1.0) * z * p2) - ((j - 1) * p3)) / j
+
+                pp = size * (((z * p1) - p2) / (z**2.0 - 1.0))
+
+                z1 = np.copy(z)
+                z = z1 - (p1 / pp)
+
+                if np.allclose(abs(z - z1), 0.0):
+                    break
+
+            if iterations == 100:
+                raise ValueError('The Gauss-Legendre quadrature failed to converge.')
+
+            xl = 0.5 * (b - a)
+            xm = 0.5 * (b + a)
+
+            nodes[i] = xm - (xl * z)
+            nodes[-i - 1] = xm + (xl * z)
+
+            weights[i] = (2.0 * xl) / ((1.0 - z**2.0) * pp**2.0)
+            weights[-i - 1] = weights[i]
+
+        elif quadrature_type == 'simpson':
+
+            if (size % 2) == 0:
+                raise ValueError('The Simpson quadrature requires an odd number of possible states.')
+
+            nodes = np.linspace(a, b, size)
+
+            weights = np.kron(np.ones((size + 1) // 2, dtype=float), np.array([2.0, 4.0]))
+            weights = weights[:size]
+            weights[0] = weights[-1] = 1
+            weights = ((nodes[1] - nodes[0]) / 3.0) * weights
+
+        elif quadrature_type == 'trapezoid-rule':
+
+            nodes = np.linspace(a, b, size)
+
+            weights = (nodes[1] - nodes[0]) * np.ones(size)
+            weights[0] *= 0.5
+            weights[-1] *= 0.5
 
         else:
 
-            h = 1.0 / size
+            bandwidth = (b - a) / size
 
-            nodes = (np.arange(size) + 0.5) * h
-            weights = np.repeat(h, size)
+            nodes = (np.arange(size) + 0.5) * bandwidth
+            weights = np.repeat(bandwidth, size)
 
         p = np.zeros((size, size), dtype=float)
 

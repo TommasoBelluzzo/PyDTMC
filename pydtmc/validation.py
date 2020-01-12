@@ -8,6 +8,7 @@ __all__ = [
     'validate_enumerator',
     'validate_hyperparameter',
     'validate_integer',
+    'validate_interval',
     'validate_markov_chain',
     'validate_mask',
     'validate_matrix',
@@ -63,6 +64,7 @@ from .custom_types import (
     titerable,
     # Specific
     tdistributions,
+    tinterval,
     olimit,
     tmc,
     tmcdict,
@@ -128,6 +130,39 @@ def validate_boolean(value: tany) -> bool:
     raise TypeError('The "@arg@" parameter must be a boolean value.')
 
 
+def validate_dictionary(d: tany) -> tmcdict:
+
+    if not isinstance(d, dict):
+        raise ValueError('The "@arg@" parameter must be a dictionary.')
+
+    keys = d.keys()
+
+    if not all(isinstance(key, tuple) and (len(key) == 2) and isinstance(key[0], str) and isinstance(key[1], str) for key in keys):
+        raise ValueError('The "@arg@" parameter keys must be tuples containing 2 string values.')
+
+    keys = sorted(list(set(sum(keys, ()))))
+
+    if not all(key is not None and (len(key) > 0) for key in keys):
+        raise TypeError('The "@arg@" parameter keys must contain only valid string values.')
+
+    values = d.values()
+
+    if not all(isinstance(value, (float, int)) for value in values):
+        raise ValueError('The "@arg@" parameter values must be float or integer numbers.')
+
+    values = [float(value) for value in values]
+
+    if not all((value >= 0.0) and (value <= 1.0) for value in values):
+        raise ValueError('The "@arg@" parameter values can contain only numbers between 0 and 1.')
+
+    result = {}
+
+    for key, value in d.items():
+        result[key] = float(value)
+
+    return result
+
+
 def validate_distribution(distribution: tany, size: int) -> tdistributions:
 
     if isinstance(distribution, int):
@@ -170,6 +205,17 @@ def validate_distribution(distribution: tany, size: int) -> tdistributions:
         raise TypeError('The "@arg@" parameter must be either an integer representing the number of redistributions to perform or a list of valid distributions.')
 
 
+def validate_dpi(value: tany) -> int:
+
+    if not isinstance(value, int):
+        raise TypeError('The "@arg@" parameter must be an integer value.')
+
+    if value not in [75, 100, 150, 200, 300]:
+        raise ValueError('The "@arg@" parameter must have one of the following values: 75, 100, 150, 200, 300.')
+
+    return value
+
+
 def validate_enumerator(value: tany, possible_values: tlist_str) -> str:
 
     if not isinstance(value, str):
@@ -205,50 +251,6 @@ def validate_hyperparameter(hyperparameter: tany, size: int) -> tarray:
     return hyperparameter
 
 
-def validate_dictionary(d: tany) -> tmcdict:
-
-    if not isinstance(d, dict):
-        raise ValueError('The "@arg@" parameter must be a dictionary.')
-
-    keys = d.keys()
-
-    if not all(isinstance(key, tuple) and (len(key) == 2) and isinstance(key[0], str) and isinstance(key[1], str) for key in keys):
-        raise ValueError('The "@arg@" parameter keys must be tuples containing 2 string values.')
-
-    keys = sorted(list(set(sum(keys, ()))))
-
-    if not all(key is not None and (len(key) > 0) for key in keys):
-        raise TypeError('The "@arg@" parameter keys must contain only valid string values.')
-
-    values = d.values()
-
-    if not all(isinstance(value, (float, int)) for value in values):
-        raise ValueError('The "@arg@" parameter values must be float or integer numbers.')
-
-    values = [float(value) for value in values]
-
-    if not all((value >= 0.0) and (value <= 1.0) for value in values):
-        raise ValueError('The "@arg@" parameter values can contain only numbers between 0 and 1.')
-
-    result = {}
-
-    for key, value in d.items():
-        result[key] = float(value)
-
-    return result
-
-
-def validate_dpi(value: tany) -> int:
-
-    if not isinstance(value, int):
-        raise TypeError('The "@arg@" parameter must be an integer value.')
-
-    if value not in [75, 100, 150, 200, 300]:
-        raise ValueError('The "@arg@" parameter must have one of the following values: 75, 100, 150, 200, 300.')
-
-    return value
-
-
 def validate_integer(value: tany, lower_limit: olimit = None, upper_limit: olimit = None) -> int:
 
     if not isinstance(value, int):
@@ -271,6 +273,32 @@ def validate_integer(value: tany, lower_limit: olimit = None, upper_limit: olimi
                 raise ValueError(f'The "@arg@" parameter must be less than or equal to {upper_limit[0]:d}.')
 
     return value
+
+
+def validate_interval(interval: tany) -> tinterval:
+
+    if not isinstance(interval, tuple):
+        raise TypeError('The "@arg@" parameter must be a tuple.')
+
+    if len(interval) != 2:
+        raise ValueError('The "@arg@" parameter must contain 2 elements.')
+
+    a = interval[0]
+    b = interval[1]
+
+    if not isinstance(a, (float, int)) or not isinstance(b, (float, int)):
+        raise ValueError('The "@arg@" parameter must contain only float and integer values.')
+
+    a = float(a)
+    b = float(b)
+
+    if not all(np.isfinite(x) and np.isreal(x) for x in [a, b]):
+        raise ValueError('The "@arg@" parameter must contain only valid float and integer values.')
+
+    if a >= b:
+        raise ValueError('The "@arg@" parameter must two distinct values, and the first value must be less than the second one.')
+
+    return a, b
 
 
 def validate_markov_chain(mc: tany) -> tmc:
@@ -528,7 +556,7 @@ def validate_transition_function(f: tany) -> ttfunc:
     s = signature(f)
 
     if len(s.parameters) != 2:
-        raise TypeError('The "@arg@" parameter must accept 2 input arguments.')
+        raise ValueError('The "@arg@" parameter must accept 2 input arguments.')
 
     return f
 

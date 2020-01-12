@@ -9,6 +9,7 @@ __all__ = [
     'tdistributions', 'odistributions',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
+    'tinterval', 'ointerval',
     'tlimit', 'olimit',
     'tmc', 'omc',
     'tmcdict', 'omcdict',
@@ -93,6 +94,9 @@ ograph = Optional[tgraph]
 
 tgraphs = Union[nx.DiGraph, nx.MultiDiGraph]
 ographs = Optional[tgraphs]
+
+tinterval = Tuple[Union[float, int], Union[float, int]]
+ointerval = Optional[tinterval]
 
 tlimit = Tuple[int, bool]
 olimit = Optional[tlimit]
