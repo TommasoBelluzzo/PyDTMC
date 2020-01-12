@@ -18,6 +18,7 @@ import numpy.linalg as npl
 import numpy.random as npr
 import numpy.random.mtrand as nprm
 import scipy.optimize as spo
+import scipy.stats as sps
 
 # Minor
 
@@ -88,6 +89,7 @@ from .validation import (
     validate_boolean,
     validate_dictionary,
     validate_enumerator,
+    validate_float,
     validate_hyperparameter,
     validate_integer,
     validate_interval,
@@ -1110,12 +1112,12 @@ class MarkovChain(metaclass=BaseClass):
         b = np.sum(-self._p[origin, :][:, target], axis=1)
         x = npl.solve(a, b)
 
-        result = np.ones(self._size, dtype=float)
-        result[origin] = x
-        result[states] = 1.0
-        result[stable] = 0.0
+        hp = np.ones(self._size, dtype=float)
+        hp[origin] = x
+        hp[states] = 1.0
+        hp[stable] = 0.0
 
-        return result
+        return hp
 
     def is_absorbing_state(self, state: tstate) -> bool:
 
@@ -2276,7 +2278,7 @@ class MarkovChain(metaclass=BaseClass):
 
         :param f: the transition function of the process.
         :param possible_states: the possible states of the process.
-        :param quadrature_type: the quadrature type to use for the computation of nodes and weights (one of gauss-chebyshev, gauss-legendre, integration-neiderreiter, integration-random, newton-cotes, simpson or trapezoid-rule; newton-cotes by default).
+        :param quadrature_type: the quadrature type to use for the computation of nodes and weights (one of gauss-chebyshev, gauss-legendre, neiderreiter, newton-cotes, simpson or trapezoid-rule; newton-cotes by default).
         :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (if omitted, the interval [0, 1] is used).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
@@ -2287,7 +2289,7 @@ class MarkovChain(metaclass=BaseClass):
 
             f = validate_transition_function(f)
             possible_states = validate_state_names(possible_states)
-            quadrature_type = validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'integration-neiderreiter', 'integration-random', 'newton-cotes', 'simpson', 'trapezoid-rule'])
+            quadrature_type = validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'neiderreiter', 'newton-cotes', 'simpson', 'trapezoid-rule'])
 
             if quadrature_interval is None:
                 quadrature_interval = (0.0, 1.0)
@@ -2354,21 +2356,12 @@ class MarkovChain(metaclass=BaseClass):
             weights[i] = (2.0 * xl) / ((1.0 - z**2.0) * pp**2.0)
             weights[-i - 1] = weights[i]
 
-        elif quadrature_type == 'integration-neiderreiter':
+        elif quadrature_type == 'neiderreiter':
 
             r = b - a
 
             nodes = np.arange(1.0, size + 1.0) * 2.0**0.5
             nodes = nodes - np.fix(nodes)
-            nodes = a + (nodes * r)
-
-            weights = (r / size) * np.ones(size, dtype=float)
-
-        elif quadrature_type == 'integration-random':
-
-            r = b - a
-
-            nodes = npr.rand(size)
             nodes = a + (nodes * r)
 
             weights = (r / size) * np.ones(size, dtype=float)
@@ -2548,5 +2541,120 @@ class MarkovChain(metaclass=BaseClass):
             if s > 0.0:
                 si = np.sum(p[i, ~assigned_columns])
                 p[i, assigned_columns] = p[i, assigned_columns] * ((1.0 - si) / s)
+
+        return MarkovChain(p, states)
+
+    @staticmethod
+    def rouwenhorst_approximation(size: int, y_bar: float, sigma_e: float, rho: float) -> tmc:
+
+        """
+        The method, using the Rouwenhorst approximation, computes the Markov chain associated with the discretized version of the following AR(1) process:
+
+        | :math:`y_t = \\bar{y} + \\rho y_{t-1} + \\varepsilon_t`
+        | with :math:`\\varepsilon_t \\overset{i.i.d}{\\sim} \\mathcal{N}(0, \\sigma)`
+
+        :param size: the size of the chain.
+        :param y_bar: the value of the constant term :math:`\\bar{y}`.
+        :param sigma_e: the standard deviation of the random process :math:`\\varepsilon`.
+        :param rho: the value of the autocorrelation coefficient :math:`\\rho`.
+        :return: a Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        def build_matrix(bm_size, bm_p, bm_q):
+
+            if bm_size == 2:
+                theta = np.array([[bm_p, 1 - bm_p], [1 - bm_q, bm_q]])
+            else:
+
+                p1 = np.zeros((bm_size, bm_size))
+                p2 = np.zeros((bm_size, bm_size))
+                p3 = np.zeros((bm_size, bm_size))
+                p4 = np.zeros((bm_size, bm_size))
+
+                theta_inner = build_matrix(bm_size - 1, bm_p, bm_q)
+
+                p1[:bm_size - 1, :bm_size - 1] = bm_p * theta_inner
+                p2[:bm_size - 1, 1:] = (1 - bm_p) * theta_inner
+                p3[1:, :-1] = (1 - bm_q) * theta_inner
+                p4[1:, 1:] = bm_q * theta_inner
+
+                theta = p1 + p2 + p3 + p4
+                theta[1:bm_size - 1, :] = theta[1:bm_size - 1, :] / 2.0
+
+            return theta
+
+        try:
+
+            size = validate_transition_matrix_size(size)
+            y_bar = validate_float(y_bar)
+            sigma_e = validate_float(sigma_e)
+            rho = validate_float(rho)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        p = (1.0 + rho) / 2.0
+        q = p
+        p = build_matrix(size, p, q)
+
+        u = np.sqrt(sigma_e ** 2.0 / (1.0 - rho ** 2.0)) * np.sqrt(size - 1.0)
+        k = np.linspace(-u, u, size) + (y_bar / (1.0 - rho))
+        states = ['%.4f' % x for x in np.nditer(k)]
+
+        return MarkovChain(p, states)
+
+    @staticmethod
+    def tauchen_approximation(size: int, b: float, sigma_u: float, rho: float, omega: ofloat = None) -> tmc:
+
+        """
+        The method, using the Tauchen approximation, computes the Markov chain associated with the discretized version of the following AR(1) process:
+
+        | :math:`y_{t+1} = b + \\rho y_t + u_{t+1}`
+        | with :math:`u_t \\overset{i.i.d}{\\sim} \\mathcal{N}(0, \\sigma)`
+
+        :param size: the size of the chain.
+        :param b: the value of the constant term :math:`b`.
+        :param sigma_u: the standard deviation of the random process :math:`u`.
+        :param rho: the value of the autocorrelation coefficient :math:`\\rho`.
+        :param omega: the number of standard deviations to approximate out to (by default, 3).
+        :return: a Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            size = validate_transition_matrix_size(size)
+            b = validate_float(b)
+            sigma_u = validate_float(sigma_u)
+            rho = validate_float(rho)
+
+            if omega is None:
+                omega = 3.0
+            else:
+                omega = validate_float(omega)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        x_max = omega * np.sqrt(sigma_u**2.0 / (1.0 - rho**2.0))
+        x_min = -x_max
+        x = np.linspace(x_min, x_max, size)
+
+        half_step = 0.5 * ((x_max - x_min) / (size - 1))
+        p = np.empty((size, size))
+
+        for i in range(size):
+            p[i, 0] = sps.norm.cdf((x[0] - (rho * x[i]) + half_step) / sigma_u)
+            p[i, size - 1] = 1.0 - sps.norm.cdf((x[size - 1] - (rho * x[i]) - half_step) / sigma_u)
+
+            for j in range(1, size - 1):
+                z = x[j] - (rho * x[i])
+                p[i, j] = sps.norm.cdf((z + half_step) / sigma_u) - sps.norm.cdf((z - half_step) / sigma_u)
+
+        k = x + (b / (1.0 - rho))
+        states = ['%.4f' % x for x in np.nditer(k)]
 
         return MarkovChain(p, states)

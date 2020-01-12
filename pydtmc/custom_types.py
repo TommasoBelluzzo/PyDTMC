@@ -10,7 +10,8 @@ __all__ = [
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
     'tinterval', 'ointerval',
-    'tlimit', 'olimit',
+    'tlimit_float', 'olimit_float',
+    'tlimit_int', 'olimit_int',
     'tmc', 'omc',
     'tmcdict', 'omcdict',
     'tmcdict_flex', 'omcdict_flex',
@@ -98,8 +99,11 @@ ographs = Optional[tgraphs]
 tinterval = Tuple[Union[float, int], Union[float, int]]
 ointerval = Optional[tinterval]
 
-tlimit = Tuple[int, bool]
-olimit = Optional[tlimit]
+tlimit_float = Tuple[float, bool]
+olimit_float = Optional[tlimit_float]
+
+tlimit_int = Tuple[int, bool]
+olimit_int = Optional[tlimit_int]
 
 tmc = TypeVar('MarkovChain')
 omc = Optional[tmc]

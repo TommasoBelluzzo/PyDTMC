@@ -6,6 +6,7 @@ __all__ = [
     'validate_distribution',
     'validate_dpi',
     'validate_enumerator',
+    'validate_float',
     'validate_hyperparameter',
     'validate_integer',
     'validate_interval',
@@ -65,7 +66,8 @@ from .custom_types import (
     # Specific
     tdistributions,
     tinterval,
-    olimit,
+    olimit_float,
+    olimit_int,
     tmc,
     tmcdict,
     tstateswalk_flex,
@@ -227,6 +229,33 @@ def validate_enumerator(value: tany, possible_values: tlist_str) -> str:
     return value
 
 
+def validate_float(value: tany, lower_limit: olimit_float = None, upper_limit: olimit_float = None) -> float:
+
+    if not isinstance(value, float):
+        raise TypeError('The "@arg@" parameter must be a float value.')
+
+    if not np.isfinite(value) or not np.isreal(value):
+        raise ValueError('The "@arg@" parameter be a real finite float value.')
+
+    if lower_limit is not None:
+        if lower_limit[1]:
+            if value <= lower_limit[0]:
+                raise ValueError(f'The "@arg@" parameter must be greater than {lower_limit[0]:f}.')
+        else:
+            if value < lower_limit[0]:
+                raise ValueError(f'The "@arg@" parameter must be greater than or equal to {lower_limit[0]:f}.')
+
+    if upper_limit is not None:
+        if upper_limit[1]:
+            if value >= upper_limit[0]:
+                raise ValueError(f'The "@arg@" parameter must be less than {upper_limit[0]:f}.')
+        else:
+            if value > upper_limit[0]:
+                raise ValueError(f'The "@arg@" parameter must be less than or equal to {upper_limit[0]:f}.')
+
+    return value
+
+
 def validate_hyperparameter(hyperparameter: tany, size: int) -> tarray:
 
     try:
@@ -251,7 +280,7 @@ def validate_hyperparameter(hyperparameter: tany, size: int) -> tarray:
     return hyperparameter
 
 
-def validate_integer(value: tany, lower_limit: olimit = None, upper_limit: olimit = None) -> int:
+def validate_integer(value: tany, lower_limit: olimit_int = None, upper_limit: olimit_int = None) -> int:
 
     if not isinstance(value, int):
         raise TypeError('The "@arg@" parameter must be an integer value.')
@@ -626,7 +655,7 @@ def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = Non
     if size is not None and (vector.size != size):
         raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
 
-    if not all(np.isfinite(x) and (x >= 0.0) and (x <= 1.0) for x in np.nditer(vector)):
+    if not all(np.isfinite(x) and np.isreal(x) and (x >= 0.0) and (x <= 1.0) for x in np.nditer(vector)):
         raise ValueError('The "@arg@" parameter must contain only values between 0 and 1.')
 
     if vector_type == 'annihilation':
