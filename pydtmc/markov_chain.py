@@ -2276,7 +2276,7 @@ class MarkovChain(metaclass=BaseClass):
 
         :param f: the transition function of the process.
         :param possible_states: the possible states of the process.
-        :param quadrature_type: the quadrature type to use for the computation of nodes and weights (one of gauss-chebyshev, gauss-legendre, newton-cotes, simpson or trapezoid-rule; newton-cotes by default).
+        :param quadrature_type: the quadrature type to use for the computation of nodes and weights (one of gauss-chebyshev, gauss-legendre, integration-neiderreiter, integration-random, newton-cotes, simpson or trapezoid-rule; newton-cotes by default).
         :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (if omitted, the interval [0, 1] is used).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
@@ -2287,7 +2287,7 @@ class MarkovChain(metaclass=BaseClass):
 
             f = validate_transition_function(f)
             possible_states = validate_state_names(possible_states)
-            quadrature_type = validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'newton-cotes', 'simpson', 'trapezoid-rule'])
+            quadrature_type = validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'integration-neiderreiter', 'integration-random', 'newton-cotes', 'simpson', 'trapezoid-rule'])
 
             if quadrature_interval is None:
                 quadrature_interval = (0.0, 1.0)
@@ -2353,6 +2353,25 @@ class MarkovChain(metaclass=BaseClass):
 
             weights[i] = (2.0 * xl) / ((1.0 - z**2.0) * pp**2.0)
             weights[-i - 1] = weights[i]
+
+        elif quadrature_type == 'integration-neiderreiter':
+
+            r = b - a
+
+            nodes = np.arange(1.0, size + 1.0) * 2.0**0.5
+            nodes = nodes - np.fix(nodes)
+            nodes = a + (nodes * r)
+
+            weights = (r / size) * np.ones(size, dtype=float)
+
+        elif quadrature_type == 'integration-random':
+
+            r = b - a
+
+            nodes = npr.rand(size)
+            nodes = a + (nodes * r)
+
+            weights = (r / size) * np.ones(size, dtype=float)
 
         elif quadrature_type == 'simpson':
 
