@@ -57,26 +57,7 @@ from numbers import (
 
 # Internal
 
-from .custom_types import (
-    # Generic
-    oint,
-    tany,
-    tarray,
-    titerable,
-    # Specific
-    tdistributions,
-    tinterval,
-    olimit_float,
-    olimit_int,
-    tmc,
-    tmcdict,
-    tstateswalk_flex,
-    ttfunc,
-    # Lists
-    tlist_any,
-    tlist_int,
-    tlist_str
-)
+from .custom_types import *
 
 
 #############
@@ -132,7 +113,7 @@ def validate_boolean(value: tany) -> bool:
     raise TypeError('The "@arg@" parameter must be a boolean value.')
 
 
-def validate_dictionary(d: tany) -> tmcdict:
+def validate_dictionary(d: tany) -> tmc_dict:
 
     if not isinstance(d, dict):
         raise ValueError('The "@arg@" parameter must be a dictionary.')
@@ -165,7 +146,7 @@ def validate_dictionary(d: tany) -> tmcdict:
     return result
 
 
-def validate_distribution(distribution: tany, size: int) -> tdistributions:
+def validate_distribution(distribution: tany, size: int) -> tdists_flex:
 
     if isinstance(distribution, int):
 
@@ -671,7 +652,7 @@ def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = Non
     return vector
 
 
-def validate_walk(walk: tany, current_states: tlist_str) -> tstateswalk_flex:
+def validate_walk(walk: tany, current_states: tlist_str) -> twalk_flex:
 
     if isinstance(walk, int):
 

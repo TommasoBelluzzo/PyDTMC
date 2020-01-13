@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __title__ = 'PyDTMC'
-__version__ = '3.7.0'
+__version__ = '3.8.0'
 __author__ = 'Tommaso Belluzzo'
 
 __all__ = [

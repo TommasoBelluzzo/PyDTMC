@@ -6,23 +6,25 @@ __all__ = [
     'tany', 'titerable',
     # Specific
     'tarray', 'oarray',
-    'tdistributions', 'odistributions',
+    'tdists', 'odists',
+    'tdists_flex', 'odists_flex',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
     'tinterval', 'ointerval',
     'tlimit_float', 'olimit_float',
     'tlimit_int', 'olimit_int',
     'tmc', 'omc',
-    'tmcdict', 'omcdict',
-    'tmcdict_flex', 'omcdict_flex',
+    'tmc_approx', 'omc_approx',
+    'tmc_dict', 'omc_dict',
+    'tmc_dict_flex', 'omc_dict_flex',
     'tnumeric', 'onumeric',
     'tplot', 'oplot',
     'tstate', 'ostate',
     'tstates', 'ostates',
-    'tstateswalk', 'ostateswalk',
-    'tstateswalk_flex', 'ostateswalk_flex',
     'tstatus', 'ostatus',
     'ttfunc', 'otfunc',
+    'twalk', 'owalk',
+    'twalk_flex', 'owalk_flex',
     'tweights', 'oweights',
     # Lists
     'tlist_any', 'olist_any',
@@ -87,8 +89,11 @@ titerable = Iterable
 tarray = np.ndarray
 oarray = Optional[tarray]
 
-tdistributions = Union[int, List[tarray]]
-odistributions = Optional[tdistributions]
+tdists = List[np.ndarray]
+odists = Optional[tdists]
+
+tdists_flex = Union[int, List[np.ndarray]]
+odists_flex = Optional[tdists_flex]
 
 tgraph = nx.DiGraph
 ograph = Optional[tgraph]
@@ -108,13 +113,16 @@ olimit_int = Optional[tlimit_int]
 tmc = TypeVar('MarkovChain')
 omc = Optional[tmc]
 
-tmcdict = Dict[Tuple[str, str], float]
-omcdict = Optional[tmcdict]
+tmc_approx = Tuple[tmc, np.ndarray]
+omc_approx = Optional[tmc_approx]
 
-tmcdict_flex = Dict[Tuple[str, str], Union[float, int]]
-omcdict_flex = Optional[tmcdict_flex]
+tmc_dict = Dict[Tuple[str, str], float]
+omc_dict = Optional[tmc_dict]
 
-tnumeric = Union[titerable, tarray, spsp.spmatrix, pd.DataFrame, pd.Series] if pd is not None else Union[titerable, tarray, spsp.spmatrix]
+tmc_dict_flex = Dict[Tuple[str, str], Union[float, int]]
+omc_dict_flex = Optional[tmc_dict_flex]
+
+tnumeric = Union[titerable, np.ndarray, spsp.spmatrix, pd.DataFrame, pd.Series] if pd is not None else Union[titerable, tarray, spsp.spmatrix]
 onumeric = Optional[tnumeric]
 
 tplot = Tuple[pp.Figure, pp.Axes]
@@ -126,17 +134,17 @@ ostate = Optional[tstate]
 tstates = Union[tstate, List[int], List[str]]
 ostates = Optional[tstates]
 
-tstateswalk = Union[List[int], List[str]]
-ostateswalk = Optional[tstateswalk]
-
-tstateswalk_flex = Union[int, List[int], List[str]]
-ostateswalk_flex = Optional[tstateswalk_flex]
-
 tstatus = Union[int, str, tnumeric]
 ostatus = Optional[tstatus]
 
 ttfunc = Callable[[float, float], float]
 otfunc = Optional[ttfunc]
+
+twalk = Union[List[int], List[str]]
+owalk = Optional[twalk]
+
+twalk_flex = Union[int, List[int], List[str]]
+owalk_flex = Optional[twalk_flex]
 
 tweights = Union[float, int, tnumeric]
 oweights = Optional[tweights]

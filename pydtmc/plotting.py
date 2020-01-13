@@ -40,17 +40,7 @@ from subprocess import (
 
 # Internal
 
-from .custom_types import (
-    # Specific
-    tdistributions,
-    tmc,
-    oplot,
-    ostate,
-    tstateswalk_flex,
-    ostatus,
-    # Lists
-    tlist_str
-)
+from .custom_types import *
 
 from .exceptions import (
     ValidationError
@@ -361,7 +351,7 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
     return figure, ax
 
 
-def plot_redistributions(mc: tmc, distributions: tdistributions, initial_status: ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> oplot:
+def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> oplot:
 
     """
     The function plots a redistribution of states on the given Markov chain.
@@ -462,7 +452,7 @@ def plot_redistributions(mc: tmc, distributions: tdistributions, initial_status:
     return figure, ax
 
 
-def plot_walk(mc: tmc, walk: tstateswalk_flex, initial_state: ostate = None, plot_type: str = 'histogram', dpi: int = 100) -> oplot:
+def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type: str = 'histogram', dpi: int = 100) -> oplot:
 
     """
     The function plots a random walk on the given Markov chain.

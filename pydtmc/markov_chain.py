@@ -17,6 +17,7 @@ import numpy as np
 import numpy.linalg as npl
 import numpy.random as npr
 import numpy.random.mtrand as nprm
+import scipy.integrate as spi
 import scipy.optimize as spo
 import scipy.stats as sps
 
@@ -48,32 +49,7 @@ from .base_class import (
     BaseClass
 )
 
-from .custom_types import (
-    # Generic
-    ofloat, oint,
-    # Specific
-    tarray, oarray,
-    tgraph,
-    tgraphs,
-    ointerval,
-    tmc, omc,
-    tmcdict,
-    tmcdict_flex,
-    tnumeric, onumeric,
-    tstate, ostate,
-    tstates, ostates,
-    tstateswalk,
-    ostatus,
-    ttfunc,
-    tweights,
-    # Lists
-    tlist_array,
-    tlist_int,
-    tlist_str, olist_str,
-    # Lists of Lists
-    tlists_int,
-    tlists_str
-)
+from .custom_types import *
 
 from .decorators import (
     alias,
@@ -1520,7 +1496,7 @@ class MarkovChain(metaclass=BaseClass):
 
         return cr
 
-    def predict(self, steps: int, initial_state: ostate = None, include_initial: bool = False, output_indices: bool = False, seed: oint = None) -> tstateswalk:
+    def predict(self, steps: int, initial_state: ostate = None, include_initial: bool = False, output_indices: bool = False, seed: oint = None) -> twalk:
 
         """
         The method simulates the most probable outcome of a random walk of N steps.
@@ -1719,7 +1695,7 @@ class MarkovChain(metaclass=BaseClass):
 
         return MarkovChain(p, states)
 
-    def to_dictionary(self) -> tmcdict:
+    def to_dictionary(self) -> tmc_dict:
 
         """
         The method returns a dictionary representing the Markov chain.
@@ -1869,7 +1845,7 @@ class MarkovChain(metaclass=BaseClass):
 
         return self._p[state_origin, state_target]
 
-    def walk(self, steps: int, initial_state: ostate = None, final_state: ostate = None, include_initial: bool = False, output_indices: bool = False, seed: oint = None) -> tstateswalk:
+    def walk(self, steps: int, initial_state: ostate = None, final_state: ostate = None, include_initial: bool = False, output_indices: bool = False, seed: oint = None) -> twalk:
 
         """
         The method simulates a random walk of N steps.
@@ -1927,7 +1903,7 @@ class MarkovChain(metaclass=BaseClass):
 
         return walk
 
-    def walk_probability(self, walk: tstateswalk) -> float:
+    def walk_probability(self, walk: twalk) -> float:
 
         """
         The method computes the probability of a given sequence of states.
@@ -2043,6 +2019,192 @@ class MarkovChain(metaclass=BaseClass):
         return x
 
     @staticmethod
+    def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: ofloat = None) -> tmc_approx:
+
+        """
+        The method approximates the Markov chain associated with the discretized version of the following first-order autoregressive process:
+
+        | :math:`y_t = (1 - \\rho) \\alpha + \\rho y_{t-1} + \\varepsilon_t`
+        | with :math:`\\varepsilon_t \\overset{i.i.d}{\\sim} \\mathcal{N}(0, \\sigma_{\\varepsilon}^{2})`
+
+        :param size: the size of the chain.
+        :param approximation_type: the approximation type to use (one of adda-cooper, rouwenhorst, tauchen or tauchen-hussey).
+        :param alpha: the constant term :math:`\\alpha`, representing the unconditional mean of the process.
+        :param sigma: the standard deviation of the innovation term :math:`\\varepsilon`.
+        :param rho: the autocorrelation coefficient :math:`\\rho`, representing the persistence of the process across periods.
+        :param k: additional parameter representing the number of standard deviations to approximate out to in the Tauchen approximation or the standard deviation used for the gaussian quadrature in the Tauchen-Hussey approximation (if omitted but required, a default optimal value is taken).
+        :return: a tuple whose first element is a Markov chain and whose second element is a vector of nodes.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the additional parameter **k** is not equal to None and the approximation type is neither Tauchen nor Tauchen-Hussey or if the gaussian quadrature fails to converge in the Tauchen-Hussey approach.
+        """
+
+        def adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
+
+            t1 = np.exp((-1.0 * (aci_x - aci_alpha)**2.0) / (2.0 * aci_sigma_z**2.0))
+            t2 = sps.norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
+            t3 = sps.norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
+
+            return t1 * (t2 - t3)
+
+        def rouwenhorst_matrix(rm_size: int, rm_p: float, rm_q: float) -> tarray:
+
+            if rm_size == 2:
+                theta = np.array([[rm_p, 1 - rm_p], [1 - rm_q, rm_q]])
+            else:
+
+                t1 = np.zeros((rm_size, rm_size))
+                t2 = np.zeros((rm_size, rm_size))
+                t3 = np.zeros((rm_size, rm_size))
+                t4 = np.zeros((rm_size, rm_size))
+
+                theta_inner = rouwenhorst_matrix(rm_size - 1, rm_p, rm_q)
+
+                t1[:rm_size - 1, :rm_size - 1] = rm_p * theta_inner
+                t2[:rm_size - 1, 1:] = (1.0 - rm_p) * theta_inner
+                t3[1:, :-1] = (1.0 - rm_q) * theta_inner
+                t4[1:, 1:] = rm_q * theta_inner
+
+                theta = t1 + t2 + t3 + t4
+                theta[1:rm_size - 1, :] /= 2.0
+
+            return theta
+
+        try:
+
+            size = validate_transition_matrix_size(size)
+            approximation_type = validate_enumerator(approximation_type, ['adda-cooper', 'rouwenhorst', 'tauchen', 'tauchen-hussey'])
+            alpha = validate_float(alpha)
+            sigma = validate_float(sigma, lower_limit=(0.0, True))
+            rho = validate_float(rho, lower_limit=(-1.0, False), upper_limit=(1.0, False))
+
+            if approximation_type == 'tauchen':
+                if k is None:
+                    k = 3.0
+                else:
+                    k = validate_float(k, lower_limit=(1.0, False))
+            elif approximation_type == 'tauchen-hussey':
+                if k is None:
+                    w = 0.5 + (rho / 4.0)
+                    k = (w * sigma) + ((1 - w) * (sigma / np.sqrt(1.0 - rho ** 2.0)))
+                else:
+                    k = validate_float(k, lower_limit=(0.0, True))
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        if approximation_type == 'adda-cooper':
+
+            z_sigma = sigma / (1.0 - rho**2.00)**0.5
+            z = (z_sigma * sps.norm.ppf(np.arange(size + 1) / size)) + alpha
+
+            p = np.zeros((size, size), dtype=float)
+
+            for i in range(size):
+                for j in range(size):
+                    iq = spi.quad(adda_cooper_integrand, z[i], z[i + 1], args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
+                    p[i, j] = (size / np.sqrt(2.0 * np.pi * z_sigma**2.0)) * iq[0]
+
+            nodes = (size * z_sigma * (sps.norm.pdf((z[:-1] - alpha) / z_sigma) - sps.norm.pdf((z[1:] - alpha) / z_sigma))) + alpha
+
+        elif approximation_type == 'rouwenhorst':
+
+            p = (1.0 + rho) / 2.0
+            q = p
+            p = rouwenhorst_matrix(size, p, q)
+
+            y_std = np.sqrt(sigma**2.0 / (1.0 - rho**2.0))
+            psi = y_std * np.sqrt(size - 1)
+            nodes = np.linspace(-psi, psi, size) + (alpha / (1.0 - rho))
+
+        elif approximation_type == 'tauchen-hussey':
+
+            nodes = np.zeros(size, dtype=float)
+            weights = np.zeros(size, dtype=float)
+
+            pp = 0.0
+            z = 0.0
+
+            for i in range(int(np.fix((size + 1) / 2))):
+
+                if i == 0:
+                    z = np.sqrt((2.0 * size) + 1.0) - (1.85575 * ((2.0 * size) + 1.0)**-0.16393)
+                elif i == 1:
+                    z = z - ((1.140 * size**0.426) / z)
+                elif i == 2:
+                    z = (1.86 * z) + (0.86 * nodes[0])
+                elif i == 3:
+                    z = (1.91 * z) + (0.91 * nodes[1])
+                else:
+                    z = (2.0 * z) + nodes[i - 2]
+
+                iterations = 0
+
+                while iterations < 100:
+                    iterations += 1
+
+                    p1 = 1.0 / np.pi**0.25
+                    p2 = 0.0
+
+                    for j in range(1, size + 1):
+                        p3 = p2
+                        p2 = p1
+                        p1 = (z * np.sqrt(2.0 / j) * p2) - (np.sqrt((j - 1.0) / j) * p3)
+
+                    pp = np.sqrt(2.0 * size) * p2
+
+                    z1 = z
+                    z = z1 - p1 / pp
+
+                    if np.abs(z - z1) < 1e-14:
+                        break
+
+                if iterations == 100:
+                    raise ValueError('The gaussian quadrature failed to converge.')
+
+                nodes[i] = -z
+                nodes[size - i - 1] = z
+
+                weights[i] = 2.0 / pp**2.0
+                weights[size - i - 1] = weights[i]
+
+            nodes = (nodes * np.sqrt(2.0) * np.sqrt(2.0 * k ** 2.0)) + alpha
+            weights = weights / np.sqrt(np.pi)**2.0
+
+            p = np.zeros((size, size), dtype=float)
+
+            for i in range(size):
+                for j in range(size):
+                    prime = ((1.0 - rho) * alpha) + (rho * nodes[i])
+                    p[i, j] = (weights[j] * sps.norm.pdf(nodes[j], prime, sigma) / sps.norm.pdf(nodes[j], alpha, k))
+
+            for i in range(size):
+                p[i, :] /= np.sum(p[i, :])
+
+        else:
+
+            y_std = np.sqrt(sigma**2.0 / (1.0 - rho**2.0))
+
+            x_max = y_std * k
+            x_min = -x_max
+            x = np.linspace(x_min, x_max, size)
+
+            step = 0.5 * ((x_max - x_min) / (size - 1))
+            p = np.zeros((size, size), dtype=float)
+
+            for i in range(size):
+                p[i, 0] = sps.norm.cdf((x[0] - (rho * x[i]) + step) / sigma)
+                p[i, size - 1] = 1.0 - sps.norm.cdf((x[size - 1] - (rho * x[i]) - step) / sigma)
+
+                for j in range(1, size - 1):
+                    z = x[j] - (rho * x[i])
+                    p[i, j] = sps.norm.cdf((z + step) / sigma) - sps.norm.cdf((z - step) / sigma)
+
+            nodes = x + (alpha / (1.0 - rho))
+
+        return MarkovChain(p), nodes
+
+    @staticmethod
     def birth_death(p: tarray, q: tarray, states: olist_str = None) -> tmc:
 
         """
@@ -2090,7 +2252,7 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def fit_map(possible_states: tlist_str, walk: tstateswalk, hyperparameter: onumeric = None) -> tmc:
+    def fit_map(possible_states: tlist_str, walk: twalk, hyperparameter: onumeric = None) -> tmc:
 
         """
         The method fits a Markov chain using the maximum a posteriori approach.
@@ -2141,7 +2303,7 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, possible_states)
 
     @staticmethod
-    def fit_mle(possible_states: tlist_str, walk: tstateswalk, laplace_smoothing: bool = False) -> tmc:
+    def fit_mle(possible_states: tlist_str, walk: twalk, laplace_smoothing: bool = False) -> tmc:
 
         """
         The method fits a Markov chain using the maximum likelihood approach.
@@ -2181,7 +2343,7 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, possible_states)
 
     @staticmethod
-    def from_dictionary(d: tmcdict_flex) -> tmc:
+    def from_dictionary(d: tmc_dict_flex) -> tmc:
 
         """
         The method generates a Markov chain from the given dictionary, whose keys represent state pairs and whose values represent transition probabilities.
@@ -2271,7 +2433,7 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def from_function(f: ttfunc, possible_states: tlist_str, quadrature_interval: ointerval = None, quadrature_type: str = 'newton-cotes') -> tmc:
+    def from_function(f: ttfunc, possible_states: tlist_str, quadrature_type: str = 'newton-cotes', quadrature_interval: ointerval = None) -> tmc:
 
         """
         The method generates a Markov chain from the given transition function.
@@ -2279,7 +2441,7 @@ class MarkovChain(metaclass=BaseClass):
         :param f: the transition function of the process.
         :param possible_states: the possible states of the process.
         :param quadrature_type: the quadrature type to use for the computation of nodes and weights (one of gauss-chebyshev, gauss-legendre, neiderreiter, newton-cotes, simpson or trapezoid-rule; newton-cotes by default).
-        :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (if omitted, the interval [0, 1] is used).
+        :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (by default, [0, 1]).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Gauss-Legendre quadrature fails to converge or if the Simpson quadrature is attempted on an even number of possible states.
@@ -2480,7 +2642,6 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             rng = MarkovChain._create_rng(seed)
-
             size = validate_transition_matrix_size(size)
 
             if states is None:
@@ -2541,120 +2702,5 @@ class MarkovChain(metaclass=BaseClass):
             if s > 0.0:
                 si = np.sum(p[i, ~assigned_columns])
                 p[i, assigned_columns] = p[i, assigned_columns] * ((1.0 - si) / s)
-
-        return MarkovChain(p, states)
-
-    @staticmethod
-    def rouwenhorst_approximation(size: int, y_bar: float, sigma_e: float, rho: float) -> tmc:
-
-        """
-        The method, using the Rouwenhorst approximation, computes the Markov chain associated with the discretized version of the following AR(1) process:
-
-        | :math:`y_t = \\bar{y} + \\rho y_{t-1} + \\varepsilon_t`
-        | with :math:`\\varepsilon_t \\overset{i.i.d}{\\sim} \\mathcal{N}(0, \\sigma)`
-
-        :param size: the size of the chain.
-        :param y_bar: the value of the constant term :math:`\\bar{y}`.
-        :param sigma_e: the standard deviation of the random process :math:`\\varepsilon`.
-        :param rho: the value of the autocorrelation coefficient :math:`\\rho`.
-        :return: a Markov chain.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        def build_matrix(bm_size, bm_p, bm_q):
-
-            if bm_size == 2:
-                theta = np.array([[bm_p, 1 - bm_p], [1 - bm_q, bm_q]])
-            else:
-
-                p1 = np.zeros((bm_size, bm_size))
-                p2 = np.zeros((bm_size, bm_size))
-                p3 = np.zeros((bm_size, bm_size))
-                p4 = np.zeros((bm_size, bm_size))
-
-                theta_inner = build_matrix(bm_size - 1, bm_p, bm_q)
-
-                p1[:bm_size - 1, :bm_size - 1] = bm_p * theta_inner
-                p2[:bm_size - 1, 1:] = (1 - bm_p) * theta_inner
-                p3[1:, :-1] = (1 - bm_q) * theta_inner
-                p4[1:, 1:] = bm_q * theta_inner
-
-                theta = p1 + p2 + p3 + p4
-                theta[1:bm_size - 1, :] = theta[1:bm_size - 1, :] / 2.0
-
-            return theta
-
-        try:
-
-            size = validate_transition_matrix_size(size)
-            y_bar = validate_float(y_bar)
-            sigma_e = validate_float(sigma_e)
-            rho = validate_float(rho)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        p = (1.0 + rho) / 2.0
-        q = p
-        p = build_matrix(size, p, q)
-
-        u = np.sqrt(sigma_e ** 2.0 / (1.0 - rho ** 2.0)) * np.sqrt(size - 1.0)
-        k = np.linspace(-u, u, size) + (y_bar / (1.0 - rho))
-        states = ['%.4f' % x for x in np.nditer(k)]
-
-        return MarkovChain(p, states)
-
-    @staticmethod
-    def tauchen_approximation(size: int, b: float, sigma_u: float, rho: float, omega: ofloat = None) -> tmc:
-
-        """
-        The method, using the Tauchen approximation, computes the Markov chain associated with the discretized version of the following AR(1) process:
-
-        | :math:`y_{t+1} = b + \\rho y_t + u_{t+1}`
-        | with :math:`u_t \\overset{i.i.d}{\\sim} \\mathcal{N}(0, \\sigma)`
-
-        :param size: the size of the chain.
-        :param b: the value of the constant term :math:`b`.
-        :param sigma_u: the standard deviation of the random process :math:`u`.
-        :param rho: the value of the autocorrelation coefficient :math:`\\rho`.
-        :param omega: the number of standard deviations to approximate out to (by default, 3).
-        :return: a Markov chain.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            size = validate_transition_matrix_size(size)
-            b = validate_float(b)
-            sigma_u = validate_float(sigma_u)
-            rho = validate_float(rho)
-
-            if omega is None:
-                omega = 3.0
-            else:
-                omega = validate_float(omega)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        x_max = omega * np.sqrt(sigma_u**2.0 / (1.0 - rho**2.0))
-        x_min = -x_max
-        x = np.linspace(x_min, x_max, size)
-
-        half_step = 0.5 * ((x_max - x_min) / (size - 1))
-        p = np.empty((size, size))
-
-        for i in range(size):
-            p[i, 0] = sps.norm.cdf((x[0] - (rho * x[i]) + half_step) / sigma_u)
-            p[i, size - 1] = 1.0 - sps.norm.cdf((x[size - 1] - (rho * x[i]) - half_step) / sigma_u)
-
-            for j in range(1, size - 1):
-                z = x[j] - (rho * x[i])
-                p[i, j] = sps.norm.cdf((z + half_step) / sigma_u) - sps.norm.cdf((z - half_step) / sigma_u)
-
-        k = x + (b / (1.0 - rho))
-        states = ['%.4f' % x for x in np.nditer(k)]
 
         return MarkovChain(p, states)
