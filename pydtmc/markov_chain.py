@@ -2252,14 +2252,15 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def fit_map(possible_states: tlist_str, walk: twalk, hyperparameter: onumeric = None) -> tmc:
+    def fit(possible_states: tlist_str, walk: twalk, fitting_type: str, k: tany = None) -> tmc:
 
         """
-        The method fits a Markov chain using the maximum a posteriori approach.
+        The method fits a Markov chain using either the maximum a posteriori approach (MAP) or the maximum likelihood approach (MLE).
 
         :param possible_states: the possible states of the process.
         :param walk: the observed sequence of states.
-        :param hyperparameter: the matrix for the a priori distribution (if omitted, a default value of 1 is assigned to each parameter).
+        :param fitting_type: the type of fitting to use (either map or mle).
+        :param k: the matrix for the a priori distribution in the MAP approach (if omitted, a default value of 1 is assigned to each parameter) or a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations in the MLE approach (by default, False).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -2268,77 +2269,59 @@ class MarkovChain(metaclass=BaseClass):
 
             possible_states = validate_state_names(possible_states)
             size = len(possible_states)
-
             walk = validate_states(walk, possible_states, 'walk', False)
+            fitting_type = validate_enumerator(fitting_type, ['map', 'mle'])
 
-            if hyperparameter is None:
-                hyperparameter = np.ones((size, size), dtype=float)
+            if fitting_type == 'map':
+                if k is None:
+                    k = np.ones((size, size), dtype=float)
+                else:
+                    k = validate_hyperparameter(k, size)
             else:
-                hyperparameter = validate_hyperparameter(hyperparameter, size)
+                if k is None:
+                    k = False
+                else:
+                    k = validate_boolean(k)
 
         except Exception as e:
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        frequencies = np.zeros((size, size), dtype=float)
-
-        for step in zip(walk[:-1], walk[1:]):
-            frequencies[step[0], step[1]] += 1.0
 
         p = np.zeros((size, size), dtype=float)
 
-        for i in range(size):
+        if fitting_type == 'map':
 
-            row_total = np.sum(frequencies[i, :]) + np.sum(hyperparameter[i, :])
+            frequencies = np.zeros((size, size), dtype=float)
 
-            for j in range(size):
+            for step in zip(walk[:-1], walk[1:]):
+                frequencies[step[0], step[1]] += 1.0
 
-                cell_total = frequencies[i, j] + hyperparameter[i, j]
+            for i in range(size):
+                row_total = np.sum(frequencies[i, :]) + np.sum(k[i, :])
 
-                if row_total == size:
-                    p[i, j] = 1.0 / size
-                else:
-                    p[i, j] = (cell_total - 1.0) / (row_total - size)
+                for j in range(size):
+                    cell_total = frequencies[i, j] + k[i, j]
 
-        return MarkovChain(p, possible_states)
+                    if row_total == size:
+                        p[i, j] = 1.0 / size
+                    else:
+                        p[i, j] = (cell_total - 1.0) / (row_total - size)
 
-    @staticmethod
-    def fit_mle(possible_states: tlist_str, walk: twalk, laplace_smoothing: bool = False) -> tmc:
-
-        """
-        The method fits a Markov chain using the maximum likelihood approach.
-
-        :param possible_states: the possible states of the process.
-        :param walk: the observed sequence of states.
-        :param laplace_smoothing: a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (by default, False).
-        :return: a Markov chain.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            possible_states = validate_state_names(possible_states)
-            walk = validate_states(walk, possible_states, 'walk', False)
-            laplace_smoothing = validate_boolean(laplace_smoothing)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        size = len(possible_states)
-        p = np.zeros((size, size), dtype=int)
-
-        for step in zip(walk[:-1], walk[1:]):
-            p[step[0], step[1]] += 1
-
-        if laplace_smoothing:
-            p = p.astype(float)
-            p += 0.001
         else:
-            p[np.where(~p.any(axis=1)), :] = np.ones(size, dtype=float)
-            p = p.astype(float)
 
-        p = p / np.sum(p, axis=1, keepdims=True)
+            p = np.zeros((size, size), dtype=int)
+
+            for step in zip(walk[:-1], walk[1:]):
+                p[step[0], step[1]] += 1
+
+            if k:
+                p = p.astype(float)
+                p += 0.001
+            else:
+                p[np.where(~p.any(axis=1)), :] = np.ones(size, dtype=float)
+                p = p.astype(float)
+
+            p = p / np.sum(p, axis=1, keepdims=True)
 
         return MarkovChain(p, possible_states)
 
