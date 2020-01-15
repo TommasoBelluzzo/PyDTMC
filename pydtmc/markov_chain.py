@@ -1288,7 +1288,7 @@ class MarkovChain(metaclass=BaseClass):
 
         :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
         :param jump: the number of steps in each iteration (by default, 1).
-        :param cutoff_type: the type of cutoff to use (either natural or traditional; natural by default).
+        :param cutoff_type: the type of cutoff to use (either natural or traditional; by default, natural).
         :return: the mixing time if the Markov chain is *ergodic*, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -2032,10 +2032,12 @@ class MarkovChain(metaclass=BaseClass):
         :param alpha: the constant term :math:`\\alpha`, representing the unconditional mean of the process.
         :param sigma: the standard deviation of the innovation term :math:`\\varepsilon`.
         :param rho: the autocorrelation coefficient :math:`\\rho`, representing the persistence of the process across periods.
-        :param k: additional parameter representing the number of standard deviations to approximate out to in the Tauchen approximation or the standard deviation used for the gaussian quadrature in the Tauchen-Hussey approximation (if omitted but required, a default optimal value is taken).
+        :param k:
+         - in the Tauchen approximation, the number of standard deviations to approximate out to (if omitted, the value is set to 3);
+         - in the Tauchen-Hussey approximation, the standard deviation used for the gaussian quadrature (if omitted, the value is set to an optimal default).
         :return: a tuple whose first element is a Markov chain and whose second element is a vector of nodes.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the additional parameter **k** is not equal to None and the approximation type is neither Tauchen nor Tauchen-Hussey or if the gaussian quadrature fails to converge in the Tauchen-Hussey approach.
+        :raises ValueError: if the approximation type is neither Tauchen nor Tauchen-Hussey and *k* is not equal to None or if the gaussian quadrature fails to converge in the Tauchen-Hussey approach.
         """
 
         def adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
@@ -2215,7 +2217,7 @@ class MarkovChain(metaclass=BaseClass):
         :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if q and p have different a size or if the vector resulting from the sum of q and p contains any value greater than 1.
+        :raises ValueError: if *q* and *p* have a different size or if the vector resulting from the sum of *q* and *p* contains any value greater than 1.
         """
 
         try:
@@ -2260,7 +2262,9 @@ class MarkovChain(metaclass=BaseClass):
         :param possible_states: the possible states of the process.
         :param walk: the observed sequence of states.
         :param fitting_type: the type of fitting to use (either map or mle).
-        :param k: the matrix for the a priori distribution in the MAP approach (if omitted, a default value of 1 is assigned to each parameter) or a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations in the MLE approach (by default, False).
+        :param k:
+         - in the maximum a posteriori approach, the matrix for the a priori distribution (if omitted, a default value of 1 is assigned to each parameter);
+         - in the maximum likelihood approach, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (if omitted, the value is set to False).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -2423,18 +2427,18 @@ class MarkovChain(metaclass=BaseClass):
 
         :param f: the transition function of the process.
         :param possible_states: the possible states of the process.
-        :param quadrature_type: the quadrature type to use for the computation of nodes and weights (one of gauss-chebyshev, gauss-legendre, neiderreiter, newton-cotes, simpson or trapezoid-rule; newton-cotes by default).
-        :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (by default, [0, 1]).
+        :param quadrature_type: the quadrature type to use for the computation of nodes and weights (one of gauss-chebyshev, gauss-legendre, neiderreiter, newton-cotes, simpson-rule or trapezoid-rule; by default, newton-cotes).
+        :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (by default, the interval [0, 1]).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Gauss-Legendre quadrature fails to converge or if the Simpson quadrature is attempted on an even number of possible states.
+        :raises ValueError: if the Gauss-Legendre quadrature fails to converge or if the Simpson rule quadrature is attempted on an even number of possible states.
         """
 
         try:
 
             f = validate_transition_function(f)
             possible_states = validate_state_names(possible_states)
-            quadrature_type = validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'neiderreiter', 'newton-cotes', 'simpson', 'trapezoid-rule'])
+            quadrature_type = validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'neiderreiter', 'newton-cotes', 'simpson-rule', 'trapezoid-rule'])
 
             if quadrature_interval is None:
                 quadrature_interval = (0.0, 1.0)
@@ -2511,7 +2515,7 @@ class MarkovChain(metaclass=BaseClass):
 
             weights = (r / size) * np.ones(size, dtype=float)
 
-        elif quadrature_type == 'simpson':
+        elif quadrature_type == 'simpson-rule':
 
             if (size % 2) == 0:
                 raise ValueError('The Simpson quadrature requires an odd number of possible states.')
