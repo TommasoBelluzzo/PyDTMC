@@ -1075,7 +1075,7 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the committor probabilities between the given subsets of the state space defined by the Markov chain.
 
-        :param committor_type: the type of committor whose probabilities must be computed.
+        :param committor_type: the type of committor whose probabilities must be computed (either backward or forward).
         :param states1: the first subset of the state space.
         :param states2: the second subset of the state space.
         :return: the committor probabilities if the Markov chain is *ergodic*, None otherwise.
@@ -2510,51 +2510,6 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def ehrenfest(n: int, states: olist_str = None) -> tmc:
-
-        """
-        The method generates a Markov chain based on the Ehrenfest model.
-
-        :param n: the number of elements in a single container of the Ehrenfest model (the size of the Markov chain is therefore *2n + 1*).
-        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
-        :return: a Markov chain.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            n = validate_integer(n, lower_limit=(1, False))
-
-            if states is None:
-                states = [str(i) for i in range(1, (n * 2) + 1)]
-            else:
-                states = validate_state_names(states, (n * 2) + 1)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        dn = n * 2
-        size = dn + 1
-        p = np.zeros((size, size), dtype=float)
-
-        for i in range(size):
-
-            p_row = np.repeat(0.0, size)
-
-            if i == 0:
-                p_row[1] = 1.0
-            elif i == dn:
-                p_row[-2] = 1.0
-            else:
-                p_row[i - 1] = i / dn
-                p_row[i + 1] = 1.0 - (i / dn)
-
-            p[i, :] = p_row
-
-        return MarkovChain(p, states)
-
-    @staticmethod
     def fit_function(f: ttfunc, possible_states: tlist_str, quadrature_type: str = 'newton-cotes', quadrature_interval: ointerval = None) -> tmc:
 
         """
@@ -3053,5 +3008,73 @@ class MarkovChain(metaclass=BaseClass):
             if s > 0.0:
                 si = np.sum(p[i, ~assigned_columns])
                 p[i, assigned_columns] = p[i, assigned_columns] * ((1.0 - si) / s)
+
+        return MarkovChain(p, states)
+
+    @staticmethod
+    def urn_model(n: int, model: str, states: olist_str = None) -> tmc:
+
+        """
+        The method generates a Markov chain of size *2n + 1* based on either the Bernoulli-Laplace or the Ehrenfest urn model.
+
+        :param n: the number of elements in each urn.
+        :param model: the model to use (either bernoulli-laplace or ehrenfest).
+        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
+        :return: a Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            n = validate_integer(n, lower_limit=(1, False))
+            model = validate_enumerator(model, ['bernoulli-laplace', 'ehrenfest'])
+
+            if states is None:
+                states = [str(i) for i in range(1, (n * 2) + 2)]
+            else:
+                states = validate_state_names(states, (n * 2) + 1)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        dn = n * 2
+        size = dn + 1
+
+        p = np.zeros((size, size), dtype=float)
+        p_row = np.repeat(0.0, size)
+
+        if model == 'bernoulli-laplace':
+
+            for i in range(size):
+
+                r = np.copy(p_row)
+
+                if i == 0:
+                    r[1] = 1.0
+                elif i == dn:
+                    r[-2] = 1.0
+                else:
+                    r[i - 1] = (i / dn) ** 2.0
+                    r[i] = 2.0 * (i / dn) * (1.0 - (i / dn))
+                    r[i + 1] = (1.0 - (i / dn)) ** 2.0
+
+                p[i, :] = r
+
+        else:
+
+            for i in range(size):
+
+                r = np.copy(p_row)
+
+                if i == 0:
+                    r[1] = 1.0
+                elif i == dn:
+                    r[-2] = 1.0
+                else:
+                    r[i - 1] = i / dn
+                    r[i + 1] = 1.0 - (i / dn)
+
+                p[i, :] = r
 
         return MarkovChain(p, states)
