@@ -18,11 +18,12 @@ __all__ = [
     'validate_state_names',
     'validate_states',
     'validate_status',
+    'validate_string',
+    'validate_time_points',
     'validate_transition_function',
     'validate_transition_matrix',
     'validate_transition_matrix_size',
-    'validate_vector',
-    'validate_walk'
+    'validate_vector'
 ]
 
 
@@ -51,10 +52,6 @@ from inspect import (
     signature
 )
 
-from numbers import (
-    Number
-)
-
 # Internal
 
 from .custom_types import *
@@ -65,7 +62,7 @@ from .custom_types import *
 #############
 
 
-def extract_non_numeric(data: tany) -> tlist_any:
+def extract(data: tany) -> tlist_any:
 
     result = None
 
@@ -76,13 +73,13 @@ def extract_non_numeric(data: tany) -> tlist_any:
     elif isinstance(data, titerable) and not isinstance(data, str):
         result = list(data)
 
-    if result is None or any(isinstance(x, Number) for x in result):
+    if result is None:
         raise TypeError('The data type is not supported.')
 
     return result
 
 
-def extract_numeric(data: tany) -> tarray:
+def extract_as_numeric(data: tany) -> tarray:
 
     result = None
 
@@ -240,7 +237,7 @@ def validate_float(value: tany, lower_limit: olimit_float = None, upper_limit: o
 def validate_hyperparameter(hyperparameter: tany, size: int) -> tarray:
 
     try:
-        hyperparameter = extract_numeric(hyperparameter)
+        hyperparameter = extract_as_numeric(hyperparameter)
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
@@ -303,7 +300,7 @@ def validate_interval(interval: tany) -> tinterval:
     b = float(b)
 
     if not all(np.isfinite(x) and np.isreal(x) for x in [a, b]):
-        raise ValueError('The "@arg@" parameter must contain only valid float and integer values.')
+        raise ValueError('The "@arg@" parameter must contain only real finite float values and integer values.')
 
     if a >= b:
         raise ValueError('The "@arg@" parameter must two distinct values, and the first value must be less than the second one.')
@@ -322,7 +319,7 @@ def validate_markov_chain(mc: tany) -> tmc:
 def validate_mask(mask: tany, size: int) -> tarray:
 
     try:
-        mask = extract_numeric(mask)
+        mask = extract_as_numeric(mask)
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
@@ -349,7 +346,7 @@ def validate_mask(mask: tany, size: int) -> tarray:
 def validate_matrix(m: tany) -> tarray:
 
     try:
-        m = extract_numeric(m)
+        m = extract_as_numeric(m)
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
@@ -370,7 +367,7 @@ def validate_matrix(m: tany) -> tarray:
 def validate_rewards(rewards: tany, size: int) -> tarray:
 
     try:
-        rewards = extract_numeric(rewards)
+        rewards = extract_as_numeric(rewards)
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
@@ -443,7 +440,7 @@ def validate_status(status: tany, current_states: list) -> tarray:
         return result
 
     try:
-        status = extract_numeric(status)
+        status = extract_as_numeric(status)
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
@@ -472,7 +469,7 @@ def validate_status(status: tany, current_states: list) -> tarray:
 def validate_state_names(states: tany, size: oint = None) -> tlist_str:
 
     try:
-        states = extract_non_numeric(states)
+        states = extract(states)
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
@@ -507,7 +504,7 @@ def validate_states(states: tany, current_states: tlist_str, state_type: str, fl
 
             return [states]
 
-        if isinstance(states, str):
+        if (state_type != 'walk') and isinstance(states, str):
 
             if states not in current_states:
                 raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(current_states)}).')
@@ -515,7 +512,7 @@ def validate_states(states: tany, current_states: tlist_str, state_type: str, fl
             return [current_states.index(states)]
 
     try:
-        states = extract_non_numeric(states)
+        states = extract(states)
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
@@ -536,7 +533,10 @@ def validate_states(states: tany, current_states: tlist_str, state_type: str, fl
     else:
 
         if flex:
-            raise TypeError('The "@arg@" parameter must be either an integer, a string, an array_like object of integers or an array_like object of strings.')
+            if state_type == 'walk':
+                raise TypeError('The "@arg@" parameter must be either an integer, an array_like object of integers or an array_like object of strings.')
+            else:
+                raise TypeError('The "@arg@" parameter must be either an integer, a string, an array_like object of integers or an array_like object of strings.')
         else:
             raise TypeError('The "@arg@" parameter must be either an array_like object of integers or an array_like object of strings.')
 
@@ -558,6 +558,50 @@ def validate_states(states: tany, current_states: tlist_str, state_type: str, fl
     return states
 
 
+def validate_string(value: tany) -> str:
+
+    if not isinstance(value, str):
+        raise TypeError('The "@arg@" parameter must be a string value.')
+
+    value = value.strip()
+
+    if len(value) == 0:
+        raise ValueError('The "@arg@" parameter must not be a non-empty string.')
+
+    return value
+
+
+def validate_time_points(time_points: tany) -> ttimes_in:
+
+    if isinstance(time_points, int):
+
+        if time_points < 0:
+            raise ValueError('The "@arg@" parameter, when specified as an integer, must be greater than or equal to 0.')
+
+        return time_points
+
+    try:
+        time_points = extract(time_points)
+    except Exception:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+
+    if all(isinstance(tp, int) for tp in time_points):
+        if any(tp < 0 for tp in time_points):
+            raise ValueError('The "@arg@" parameter, when specified as a list of integers, must contain only values greater than or equal to 0.')
+    else:
+        raise TypeError('The "@arg@" parameter must be either an integer or an array_like object of integers.')
+
+    time_points_length = len(time_points)
+
+    if time_points_length < 1:
+        raise ValueError('The "@arg@" parameter must contain at least one element.')
+
+    if len(set(time_points)) < time_points_length:
+        raise ValueError('The "@arg@" parameter must contain only unique values.')
+
+    return sorted(time_points)
+
+
 def validate_transition_function(f: tany) -> ttfunc:
 
     if not callable(f):
@@ -574,7 +618,7 @@ def validate_transition_function(f: tany) -> ttfunc:
 def validate_transition_matrix(p: tany) -> tarray:
 
     try:
-        p = extract_numeric(p)
+        p = extract_as_numeric(p)
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
@@ -619,7 +663,7 @@ def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = Non
         vector = np.repeat(vector, size)
     else:
         try:
-            vector = extract_numeric(vector)
+            vector = extract_as_numeric(vector)
         except Exception:
             raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
@@ -650,42 +694,3 @@ def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = Non
             raise ValueError('The "@arg@" parameter values must sum to 1.')
 
     return vector
-
-
-def validate_walk(walk: tany, current_states: tlist_str) -> twalk_flex:
-
-    if isinstance(walk, int):
-
-        if walk <= 0:
-            raise ValueError('The "@arg@" parameter must be positive.')
-
-        return walk
-
-    elif isinstance(walk, list):
-
-        current_states_length = len(current_states)
-
-        if all(isinstance(s, int) for s in walk):
-
-            if any((s < 0) or (s >= current_states_length) for s in walk):
-                raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and the number of existing states minus one ({current_states_length - 1:d}).')
-
-        elif all(isinstance(s, str) for s in walk):
-
-            walk = [current_states.index(s) if s in current_states else -1 for s in walk]
-
-            if any(s == -1 for s in walk):
-                raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the names of the existing states ({", ".join(current_states)}).')
-
-        else:
-            raise TypeError('The "@arg@" parameter must be either an array_like object of integers representing the indices of existing states or an array_like object of strings matching the names of existing states.')
-
-        states_length = len(walk)
-
-        if states_length < 1:
-            raise ValueError('The "@arg@" parameter must contain at least one element.')
-
-        return walk
-
-    else:
-        raise TypeError('The "@arg@" parameter must be either an integer representing the number of walks to perform or a list of valid states.')

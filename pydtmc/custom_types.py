@@ -19,10 +19,13 @@ __all__ = [
     'tmc_dict_flex', 'omc_dict_flex',
     'tnumeric', 'onumeric',
     'tplot', 'oplot',
+    'trdl', 'ordl',
     'tstate', 'ostate',
     'tstates', 'ostates',
     'tstatus', 'ostatus',
     'ttfunc', 'otfunc',
+    'ttimes_in', 'otimes_in',
+    'ttimes_out', 'otimes_out',
     'twalk', 'owalk',
     'twalk_flex', 'owalk_flex',
     'tweights', 'oweights',
@@ -92,7 +95,7 @@ oarray = Optional[tarray]
 tdists = List[np.ndarray]
 odists = Optional[tdists]
 
-tdists_flex = Union[int, List[np.ndarray]]
+tdists_flex = Union[int, tdists]
 odists_flex = Optional[tdists_flex]
 
 tgraph = nx.DiGraph
@@ -128,6 +131,9 @@ onumeric = Optional[tnumeric]
 tplot = Tuple[pp.Figure, pp.Axes]
 oplot = Optional[tplot]
 
+trdl = Tuple[tarray, tarray, tarray]
+ordl = Optional[trdl]
+
 tstate = Union[int, str]
 ostate = Optional[tstate]
 
@@ -140,10 +146,16 @@ ostatus = Optional[tstatus]
 ttfunc = Callable[[float, float], float]
 otfunc = Optional[ttfunc]
 
+ttimes_in = Union[int, List[int]]
+otimes_in = Optional[ttimes_in]
+
+ttimes_out = Union[float, List[float]]
+otimes_out = Optional[ttimes_out]
+
 twalk = Union[List[int], List[str]]
 owalk = Optional[twalk]
 
-twalk_flex = Union[int, List[int], List[str]]
+twalk_flex = Union[int, twalk]
 owalk_flex = Optional[twalk_flex]
 
 tweights = Union[float, int, tnumeric]

@@ -38,6 +38,11 @@ from itertools import (
     chain
 )
 
+from json import (
+    dump,
+    load
+)
+
 from math import (
     gcd,
     lgamma
@@ -76,6 +81,8 @@ from .validation import (
     validate_state_names,
     validate_states,
     validate_status,
+    validate_string,
+    validate_time_points,
     validate_transition_function,
     validate_transition_matrix,
     validate_transition_matrix_size,
@@ -146,13 +153,16 @@ class MarkovChain(metaclass=BaseClass):
         lines.append('')
         lines.append('DISCRETE-TIME MARKOV CHAIN')
         lines.append(f' SIZE:         {self._size:d}')
+
         lines.append(f' CLASSES:      {len(self.communicating_classes):d}')
-        lines.append(f'  - RECURRENT: {len(self.recurrent_classes):d}')
-        lines.append(f'  - TRANSIENT: {len(self.transient_classes):d}')
-        lines.append(f' ABSORBING:    {("YES" if self.is_absorbing else "NO")}')
-        lines.append(f' APERIODIC:    {("YES" if self.is_aperiodic else "NO (" + str(self.period) + ")")}')
+        lines.append(f'  > RECURRENT: {len(self.recurrent_classes):d}')
+        lines.append(f'  > TRANSIENT: {len(self.transient_classes):d}')
+
         lines.append(f' ERGODIC:      {("YES" if self.is_ergodic else "NO")}')
-        lines.append(f' IRREDUCIBLE:  {("YES" if self.is_irreducible else "NO")}')
+        lines.append(f'  > APERIODIC:    {("YES" if self.is_aperiodic else "NO (" + str(self.period) + ")")}')
+        lines.append(f'  > IRREDUCIBLE:  {("YES" if self.is_irreducible else "NO")}')
+
+        lines.append(f' ABSORBING:    {("YES" if self.is_absorbing else "NO")}')
         lines.append(f' REGULAR:      {("YES" if self.is_regular else "NO")}')
         lines.append(f' REVERSIBLE:   {("YES" if self.is_reversible else "NO")}')
         lines.append(f' SYMMETRIC:    {("YES" if self.is_symmetric else "NO")}')
@@ -233,6 +243,36 @@ class MarkovChain(metaclass=BaseClass):
         return sorted(list(chain.from_iterable(self._cyclic_classes_indices)))
 
     @cachedproperty
+    def _eigenvalues_sorted(self) -> oarray:
+
+        values = npl.eigvals(self._p)
+        values = np.sort(np.abs(values))
+
+        return values
+
+    @cachedproperty
+    def _rdl_decomposition(self) -> trdl:
+
+        values, vectors = npl.eig(self._p)
+
+        indices = np.argsort(np.abs(values))[::-1]
+        values = values[indices]
+        vectors = vectors[:, indices]
+
+        r = np.copy(vectors)
+        d = np.diag(values)
+        l = npl.solve(np.transpose(r), np.eye(self._size))
+
+        r[:, 0] *= np.sum(l[:, 0])
+        l[:, 0] /= np.sum(l[:, 0])
+
+        r = np.real(r)
+        d = np.real(d)
+        l = np.transpose(np.real(l))
+
+        return r, d, l
+
+    @cachedproperty
     def _recurrent_classes_indices(self) -> tlists_int:
 
         indices = [index for index in self._classes_indices if index not in self._transient_classes_indices]
@@ -250,14 +290,13 @@ class MarkovChain(metaclass=BaseClass):
         if not self.is_ergodic:
             return None
 
-        values = npl.eigvals(self._p)
-        values_abs = np.sort(np.abs(values))
-        values_ct1 = np.isclose(values_abs, 1.0)
+        values = self._eigenvalues_sorted
+        values_ct1 = np.isclose(values, 1.0)
 
         if np.all(values_ct1):
             return None
 
-        slem = values_abs[~values_ct1][-1]
+        slem = values[~values_ct1][-1]
 
         if np.isclose(slem, 0.0):
             return None
@@ -393,7 +432,7 @@ class MarkovChain(metaclass=BaseClass):
     def determinant(self) -> float:
 
         """
-        A property representing the determinant the transition matrix of the Markov chain.
+        A property representing the determinant of the transition matrix of the Markov chain.
         """
 
         return npl.det(self._p)
@@ -408,15 +447,17 @@ class MarkovChain(metaclass=BaseClass):
         if not self.is_ergodic:
             return None
 
-        p = self._p.copy()
         pi = self.pi[0]
 
         h = 0.0
 
         for i in range(self._size):
             for j in range(self._size):
-                if p[i, j] > 0.0:
-                    h += pi[i] * p[i, j] * np.log(p[i, j])
+                if self._p[i, j] > 0.0:
+                    h += pi[i] * self._p[i, j] * np.log(self._p[i, j])
+
+        if h == 0.0:
+            return h
 
         return -h
 
@@ -430,7 +471,7 @@ class MarkovChain(metaclass=BaseClass):
         if not self.is_ergodic:
             return None
 
-        values = npl.eigvalsh(self.adjacency_matrix)
+        values = npl.eigvals(self.adjacency_matrix)
         values_abs = np.sort(np.abs(values))
 
         return self.entropy_rate / np.log(values_abs[-1])
@@ -451,6 +492,20 @@ class MarkovChain(metaclass=BaseClass):
         i = np.eye(len(indices), dtype=float)
 
         return npl.inv(i - q)
+
+    @cachedproperty
+    def implied_timescales(self) -> oarray:
+
+        """
+        A property representing the implied timescales of the Markov chain. If the Markov chain is not *ergodic*, then None is returned.
+        """
+
+        if not self.is_ergodic:
+            return None
+
+        values = self._eigenvalues_sorted[::-1]
+
+        return np.append(np.inf, -1.0 / np.log(values[1:]))
 
     @cachedproperty
     def is_absorbing(self) -> bool:
@@ -537,9 +592,8 @@ class MarkovChain(metaclass=BaseClass):
         A property indicating whether the Markov chain is regular.
         """
 
-        values = npl.eigvals(self._p)
-        values_abs = np.sort(np.abs(values))
-        values_ct1 = np.isclose(values_abs, 1.0)
+        values = self._eigenvalues_sorted
+        values_ct1 = np.isclose(values, 1.0)
 
         return values_ct1[0] and not any(values_ct1[1:])
 
@@ -550,7 +604,7 @@ class MarkovChain(metaclass=BaseClass):
         A property indicating whether the Markov chain is reversible.
         """
 
-        if not self.is_ergodic:
+        if not self.is_irreducible:
             return False
 
         pi = self.pi[0]
@@ -601,7 +655,10 @@ class MarkovChain(metaclass=BaseClass):
         e = np.ones((self._size, self._size), dtype=float)
         k = np.dot(e, np.diag(np.diag(z)))
 
-        return np.dot(i - z + k, np.diag(1.0 / np.diag(a)))
+        m = np.dot(i - z + k, np.diag(1.0 / np.diag(a)))
+        np.fill_diagonal(m, 0.0)
+
+        return m
 
     @cachedproperty
     def mixing_rate(self) -> ofloat:
@@ -683,6 +740,7 @@ class MarkovChain(metaclass=BaseClass):
         if self.is_irreducible:
             s = np.reshape(MarkovChain._gth_solve(self._p), (1, self._size))
         else:
+
             s = np.zeros((len(self.recurrent_classes), self._size), dtype=float)
 
             for i, indices in enumerate(self._recurrent_classes_indices):
@@ -774,8 +832,7 @@ class MarkovChain(metaclass=BaseClass):
         if not self.is_ergodic:
             return None
 
-        values = npl.eigvals(self._p)
-        values = values.astype(complex)
+        values = npl.eigvals(self._p).astype(complex)
         values = np.unique(np.append(values, np.array([1.0]).astype(complex)))
         values = np.sort(np.abs(values))[::-1]
 
@@ -844,489 +901,6 @@ class MarkovChain(metaclass=BaseClass):
         a2 = self.accessibility_matrix[state2, state1] != 0
 
         return a1 and a2
-
-    @alias('backward_committor')
-    def backward_committor_probabilities(self, states1: tstates, states2: tstates) -> oarray:
-
-        """
-        The method computes the backward committor probabilities between the given subsets of the state space defined by the Markov chain.
-
-        | **Aliases:** backward_committor
-
-        :param states1: the first subset of states.
-        :param states2: the second subset of states.
-        :return: the backward committor probabilities if the Markov chain is *ergodic*, None otherwise.
-        :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the two sets are not disjoint.
-        """
-
-        try:
-
-            states1 = validate_states(states1, self._states, 'subset', True)
-            states2 = validate_states(states2, self._states, 'subset', True)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        if not self.is_ergodic:
-            return None
-
-        intersection = [s for s in states1 if s in states2]
-
-        if len(intersection) > 0:
-            raise ValueError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
-
-        a = np.transpose(self.pi[0][:, np.newaxis] * (self._p - np.eye(self._size, dtype=float)))
-        a[states1, :] = 0.0
-        a[states1, states1] = 1.0
-        a[states2, :] = 0.0
-        a[states2, states2] = 1.0
-
-        b = np.zeros(self._size, dtype=float)
-        b[states1] = 1.0
-
-        cb = npl.solve(a, b)
-        cb[np.isclose(cb, 0.0)] = 0.0
-
-        return cb
-
-    @alias('conditional_distribution')
-    def conditional_probabilities(self, state: tstate) -> tarray:
-
-        """
-        The method computes the probabilities, for all the states of the Markov chain, conditioned on the process being at a given state.
-
-        | **Aliases:** conditional_distribution
-
-        :param state: the current state.
-        :return: the conditional probabilities of the Markov chain states.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            state = validate_state(state, self._states)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        return self._p[state, :]
-
-    def expected_rewards(self, steps: int, rewards: tnumeric) -> tarray:
-
-        """
-        The method computes the expected rewards of the Markov chain after N steps, given the reward value of each state.
-
-        :param steps: the number of steps.
-        :param rewards: the reward values.
-        :return: the expected rewards of each state of the Markov chain.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            rewards = validate_rewards(rewards, self._size)
-            steps = validate_integer(steps, lower_limit=(0, True))
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        original_rewards = rewards.copy()
-
-        for i in range(steps):
-            rewards = original_rewards + np.dot(rewards, self._p)
-
-        return rewards
-
-    def expected_transitions(self, steps: int, initial_distribution: onumeric = None) -> oarray:
-
-        """
-        The method computes the expected number of transitions performed by the Markov chain after N steps, given the initial distribution of the states.
-
-        :param steps: the number of steps.
-        :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
-        :return: the expected number of transitions on each state of the Markov chain.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            steps = validate_integer(steps, lower_limit=(0, True))
-
-            if initial_distribution is None:
-                initial_distribution = np.ones(self._size, dtype=float) / self._size
-            else:
-                initial_distribution = validate_vector(initial_distribution, 'stochastic', False, size=self._size)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        if steps <= self._size:
-
-            pi = initial_distribution
-            p_sum = initial_distribution
-
-            for i in range(steps - 1):
-                pi = np.dot(pi, self._p)
-                p_sum += pi
-
-            expected_transitions = p_sum[:, np.newaxis] * self._p
-
-        else:
-
-            values, rvecs = npl.eig(self._p)
-            indices = np.argsort(np.abs(values))[::-1]
-
-            d = np.diag(values[indices])
-            rvecs = rvecs[:, indices]
-            lvecs = npl.solve(np.transpose(rvecs), np.eye(self._size, dtype=float))
-
-            lvecs_sum = np.sum(lvecs[:, 0])
-
-            if not np.isclose(lvecs_sum, 0.0):
-                rvecs[:, 0] = rvecs[:, 0] * lvecs_sum
-                lvecs[:, 0] = lvecs[:, 0] / lvecs_sum
-
-            q = np.asarray(np.diagonal(d))
-
-            if np.isscalar(q):
-                ds = steps if np.isclose(q, 1.0) else (1.0 - (q ** steps)) / (1.0 - q)
-            else:
-                ds = np.zeros(np.shape(q), dtype=q.dtype)
-                indices_et1 = (q == 1.0)
-                ds[indices_et1] = steps
-                ds[~indices_et1] = (1.0 - q[~indices_et1] ** steps) / (1.0 - q[~indices_et1])
-
-            ds = np.diag(ds)
-            ts = np.dot(np.dot(rvecs, ds), np.conjugate(np.transpose(lvecs)))
-            ps = np.dot(initial_distribution, ts)
-
-            expected_transitions = np.real(ps[:, np.newaxis] * self._p)
-
-        return expected_transitions
-
-    @alias('forward_committor')
-    def forward_committor_probabilities(self, states1: tstates, states2: tstates) -> oarray:
-
-        """
-        The method computes the forward committor probabilities between the given subsets of the state space defined by the Markov chain.
-
-        | **Aliases:** forward_committor
-
-        :param states1: the first subset of states.
-        :param states2: the second subset of states.
-        :return: the forward committor probabilities if the Markov chain is *ergodic*, None otherwise.
-        :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the two sets are not disjoint.
-        """
-
-        try:
-
-            states1 = validate_states(states1, self._states, 'subset', True)
-            states2 = validate_states(states2, self._states, 'subset', True)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        if not self.is_ergodic:
-            return None
-
-        intersection = [s for s in states1 if s in states2]
-
-        if len(intersection) > 0:
-            raise ValueError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
-
-        a = self._p - np.eye(self._size, dtype=float)
-        a[states1, :] = 0.0
-        a[states1, states1] = 1.0
-        a[states2, :] = 0.0
-        a[states2, states2] = 1.0
-
-        b = np.zeros(self._size, dtype=float)
-        b[states2] = 1.0
-
-        cf = npl.solve(a, b)
-        cf[np.isclose(cf, 0.0)] = 0.0
-
-        return cf
-
-    def hitting_probabilities(self, states: ostates = None) -> tarray:
-
-        """
-        The method computes the hitting probability, for all the states of the Markov chain, to the given set of states.
-
-        :param states: the set of target states (if omitted, all the states are targeted).
-        :return: the hitting probability of each state of the Markov chain.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            if states is None:
-                states = self._states_indices.copy()
-            else:
-                states = validate_states(states, self._states, 'regular', True)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        states = sorted(states)
-
-        target = np.array(states)
-        non_target = np.setdiff1d(np.arange(self._size, dtype=int), target)
-
-        stable = np.ravel(np.where(np.isclose(np.diag(self._p), 1.0)))
-        origin = np.setdiff1d(non_target, stable)
-
-        a = self._p[origin, :][:, origin] - np.eye((len(origin)), dtype=float)
-        b = np.sum(-self._p[origin, :][:, target], axis=1)
-        x = npl.solve(a, b)
-
-        hp = np.ones(self._size, dtype=float)
-        hp[origin] = x
-        hp[states] = 1.0
-        hp[stable] = 0.0
-
-        return hp
-
-    def is_absorbing_state(self, state: tstate) -> bool:
-
-        """
-        The method verifies whether the given state of the Markov chain is absorbing.
-
-        :param state: the target state.
-        :return: True if the state is absorbing, False otherwise.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            state = validate_state(state, self._states)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        return state in self._absorbing_states_indices
-
-    def is_accessible(self, state_target: tstate, state_origin: tstate) -> bool:
-
-        """
-        The method verifies whether the given target state is reachable from the given origin state.
-
-        :param state_target: the target state.
-        :param state_origin: the origin state.
-        :return: True if the target state is reachable from the origin state, False otherwise.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            state_target = validate_state(state_target, self._states)
-            state_origin = validate_state(state_origin, self._states)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        return self.accessibility_matrix[state_origin, state_target] != 0
-
-    def is_cyclic_state(self, state: tstate) -> bool:
-
-        """
-        The method verifies whether the given state is cyclic.
-
-        :param state: the target state.
-        :return: True if the state is cyclic, False otherwise.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            state = validate_state(state, self._states)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        return state in self._cyclic_states_indices
-
-    def is_recurrent_state(self, state: tstate) -> bool:
-
-        """
-        The method verifies whether the given state is recurrent.
-
-        :param state: the target state.
-        :return: True if the state is recurrent, False otherwise.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            state = validate_state(state, self._states)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        return state in self._recurrent_states_indices
-
-    def is_transient_state(self, state: tstate) -> bool:
-
-        """
-        The method verifies whether the given state is transient.
-
-        :param state: the target state.
-        :return: True if the state is transient, False otherwise.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            state = validate_state(state, self._states)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        return state in self._transient_states_indices
-
-    @alias('mfpt_between')
-    def mean_first_passage_times_between(self, states_target: tstates, states_origin: tstates) -> oarray:
-
-        """
-        The method computes the  mean first passage times between the given subsets of the state space.
-
-        | **Aliases:** mfpt_between
-
-        :param states_target: the subset of target states.
-        :param states_origin: the subset of origin states.
-        :return: the mean first passage times between the given subsets if the Markov chain is *irreducible*, None otherwise.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            states_target = validate_states(states_target, self._states, 'subset', True)
-            states_origin = validate_states(states_origin, self._states, 'subset', True)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        if not self.is_irreducible:
-            return None
-
-        states_target = sorted(states_target)
-        states_origin = sorted(states_origin)
-
-        a = np.eye(self._size, dtype=float) - self._p
-        a[states_target, :] = 0.0
-        a[states_target, states_target] = 1.0
-
-        b = np.ones(self._size, dtype=float)
-        b[states_target] = 0.0
-
-        mfpt_to = npl.solve(a, b)
-
-        pi = self.pi[0]
-        pi_origin_states = pi[states_origin]
-        mu = pi_origin_states / np.sum(pi_origin_states)
-
-        mfpt_between = np.dot(mu, mfpt_to[states_origin])
-
-        if np.isscalar(mfpt_between):
-            mfpt_between = np.array([mfpt_between])
-
-        return mfpt_between
-
-    @alias('mfpt_to')
-    def mean_first_passage_times_to(self, states: ostates = None) -> tarray:
-
-        """
-        The method computes the mean first passage times, for all the states, to the given set of states.
-
-        | **Aliases:** mfpt_to
-
-        :param states: the set of target states (if omitted, all the states are targeted).
-        :return: the mean first passage times of each state of the Markov chain.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            if states is None:
-                states = self._states_indices.copy()
-            else:
-                states = validate_states(states, self._states, 'regular', True)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        states = sorted(states)
-
-        a = np.eye(self._size, dtype=float) - self._p
-        a[states, :] = 0.0
-        a[states, states] = 1.0
-
-        b = np.ones(self._size, dtype=float)
-        b[states] = 0.0
-
-        return npl.solve(a, b)
-
-    def mixing_time(self, initial_distribution: onumeric = None, jump: int = 1, cutoff_type: str = 'natural') -> oint:
-
-        """
-        The method computes the mixing time of the Markov chain, given the initial distribution of the states.
-
-        :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
-        :param jump: the number of steps in each iteration (by default, 1).
-        :param cutoff_type: the type of cutoff to use (either natural or traditional; by default, natural).
-        :return: the mixing time if the Markov chain is *ergodic*, None otherwise.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            if initial_distribution is None:
-                initial_distribution = np.ones(self._size, dtype=float) / self._size
-            else:
-                initial_distribution = validate_vector(initial_distribution, 'stochastic', False, size=self._size)
-
-            jump = validate_integer(jump, lower_limit=(0, True))
-            cutoff_type = validate_enumerator(cutoff_type, ['natural', 'traditional'])
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        if not self.is_ergodic:
-            return None
-
-        if cutoff_type == 'traditional':
-            cutoff = 0.25
-        else:
-            cutoff = 1.0 / (2.0 * np.exp(1.0))
-
-        mixing_time = 0
-        tvd = 1.0
-
-        d = initial_distribution.dot(self._p)
-        pi = self.pi[0]
-
-        while tvd > cutoff:
-            tvd = np.sum(np.abs(d - pi))
-            mixing_time += jump
-            d = d.dot(self._p)
-
-        return mixing_time
 
     def closest_reversible(self, distribution: tnumeric, weighted: bool = False) -> omc:
 
@@ -1496,10 +1070,457 @@ class MarkovChain(metaclass=BaseClass):
 
         return cr
 
+    def committor_probabilities(self, committor_type: str, states1: tstates, states2: tstates) -> oarray:
+
+        """
+        The method computes the committor probabilities between the given subsets of the state space defined by the Markov chain.
+
+        :param committor_type: the type of committor whose probabilities must be computed.
+        :param states1: the first subset of the state space.
+        :param states2: the second subset of the state space.
+        :return: the committor probabilities if the Markov chain is *ergodic*, None otherwise.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the two subsets of the state space are not disjoint.
+        """
+
+        try:
+
+            committor_type = validate_enumerator(committor_type, ['backward', 'forward'])
+            states1 = validate_states(states1, self._states, 'subset', True)
+            states2 = validate_states(states2, self._states, 'subset', True)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        if not self.is_ergodic:
+            return None
+
+        intersection = np.intersect1d(states1, states2)
+
+        if len(intersection) > 0:
+            raise ValueError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
+
+        if committor_type == 'backward':
+            a = np.transpose(self.pi[0][:, np.newaxis] * (self._p - np.eye(self._size, dtype=float)))
+        else:
+            a = self._p - np.eye(self._size, dtype=float)
+
+        a[states1, :] = 0.0
+        a[states1, states1] = 1.0
+        a[states2, :] = 0.0
+        a[states2, states2] = 1.0
+
+        b = np.zeros(self._size, dtype=float)
+
+        if committor_type == 'backward':
+            b[states1] = 1.0
+        else:
+            b[states2] = 1.0
+
+        c = npl.solve(a, b)
+        c[np.isclose(c, 0.0)] = 0.0
+
+        return c
+
+    @alias('conditional_distribution')
+    def conditional_probabilities(self, state: tstate) -> tarray:
+
+        """
+        The method computes the probabilities, for all the states of the Markov chain, conditioned on the process being at a given state.
+
+        | **Aliases:** conditional_distribution
+
+        :param state: the current state.
+        :return: the conditional probabilities of the Markov chain states.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            state = validate_state(state, self._states)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        return self._p[state, :]
+
+    def expected_rewards(self, steps: int, rewards: tnumeric) -> tarray:
+
+        """
+        The method computes the expected rewards of the Markov chain after N steps, given the reward value of each state.
+
+        :param steps: the number of steps.
+        :param rewards: the reward values.
+        :return: the expected rewards of each state of the Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            rewards = validate_rewards(rewards, self._size)
+            steps = validate_integer(steps, lower_limit=(0, True))
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        original_rewards = rewards.copy()
+
+        for i in range(steps):
+            rewards = original_rewards + np.dot(rewards, self._p)
+
+        return rewards
+
+    def expected_transitions(self, steps: int, initial_distribution: onumeric = None) -> oarray:
+
+        """
+        The method computes the expected number of transitions performed by the Markov chain after N steps, given the initial distribution of the states.
+
+        :param steps: the number of steps.
+        :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
+        :return: the expected number of transitions on each state of the Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            steps = validate_integer(steps, lower_limit=(0, True))
+
+            if initial_distribution is None:
+                initial_distribution = np.ones(self._size, dtype=float) / self._size
+            else:
+                initial_distribution = validate_vector(initial_distribution, 'stochastic', False, size=self._size)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        if steps <= self._size:
+
+            pi = initial_distribution
+            p_sum = initial_distribution
+
+            for i in range(steps - 1):
+                pi = np.dot(pi, self._p)
+                p_sum += pi
+
+            expected_transitions = p_sum[:, np.newaxis] * self._p
+
+        else:
+
+            values, rvecs = npl.eig(self._p)
+            indices = np.argsort(np.abs(values))[::-1]
+
+            d = np.diag(values[indices])
+            rvecs = rvecs[:, indices]
+            lvecs = npl.solve(np.transpose(rvecs), np.eye(self._size, dtype=float))
+
+            lvecs_sum = np.sum(lvecs[:, 0])
+
+            if not np.isclose(lvecs_sum, 0.0):
+                rvecs[:, 0] = rvecs[:, 0] * lvecs_sum
+                lvecs[:, 0] = lvecs[:, 0] / lvecs_sum
+
+            q = np.asarray(np.diagonal(d))
+
+            if np.isscalar(q):
+                ds = steps if np.isclose(q, 1.0) else (1.0 - (q ** steps)) / (1.0 - q)
+            else:
+                ds = np.zeros(np.shape(q), dtype=q.dtype)
+                indices_et1 = (q == 1.0)
+                ds[indices_et1] = steps
+                ds[~indices_et1] = (1.0 - q[~indices_et1] ** steps) / (1.0 - q[~indices_et1])
+
+            ds = np.diag(ds)
+            ts = np.dot(np.dot(rvecs, ds), np.conjugate(np.transpose(lvecs)))
+            ps = np.dot(initial_distribution, ts)
+
+            expected_transitions = np.real(ps[:, np.newaxis] * self._p)
+
+        return expected_transitions
+
+    def hitting_probabilities(self, states: ostates = None) -> tarray:
+
+        """
+        The method computes the hitting probability, for all the states of the Markov chain, to the given set of states.
+
+        :param states: the set of target states (if omitted, all the states are targeted).
+        :return: the hitting probability of each state of the Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            if states is None:
+                states = self._states_indices.copy()
+            else:
+                states = validate_states(states, self._states, 'regular', True)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        states = sorted(states)
+
+        target = np.array(states)
+        non_target = np.setdiff1d(np.arange(self._size, dtype=int), target)
+
+        stable = np.ravel(np.where(np.isclose(np.diag(self._p), 1.0)))
+        origin = np.setdiff1d(non_target, stable)
+
+        a = self._p[origin, :][:, origin] - np.eye((len(origin)), dtype=float)
+        b = np.sum(-self._p[origin, :][:, target], axis=1)
+        x = npl.solve(a, b)
+
+        hp = np.ones(self._size, dtype=float)
+        hp[origin] = x
+        hp[states] = 1.0
+        hp[stable] = 0.0
+
+        return hp
+
+    def is_absorbing_state(self, state: tstate) -> bool:
+
+        """
+        The method verifies whether the given state of the Markov chain is absorbing.
+
+        :param state: the target state.
+        :return: True if the state is absorbing, False otherwise.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            state = validate_state(state, self._states)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        return state in self._absorbing_states_indices
+
+    def is_accessible(self, state_target: tstate, state_origin: tstate) -> bool:
+
+        """
+        The method verifies whether the given target state is reachable from the given origin state.
+
+        :param state_target: the target state.
+        :param state_origin: the origin state.
+        :return: True if the target state is reachable from the origin state, False otherwise.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            state_target = validate_state(state_target, self._states)
+            state_origin = validate_state(state_origin, self._states)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        return self.accessibility_matrix[state_origin, state_target] != 0
+
+    def is_cyclic_state(self, state: tstate) -> bool:
+
+        """
+        The method verifies whether the given state is cyclic.
+
+        :param state: the target state.
+        :return: True if the state is cyclic, False otherwise.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            state = validate_state(state, self._states)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        return state in self._cyclic_states_indices
+
+    def is_recurrent_state(self, state: tstate) -> bool:
+
+        """
+        The method verifies whether the given state is recurrent.
+
+        :param state: the target state.
+        :return: True if the state is recurrent, False otherwise.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            state = validate_state(state, self._states)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        return state in self._recurrent_states_indices
+
+    def is_transient_state(self, state: tstate) -> bool:
+
+        """
+        The method verifies whether the given state is transient.
+
+        :param state: the target state.
+        :return: True if the state is transient, False otherwise.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            state = validate_state(state, self._states)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        return state in self._transient_states_indices
+
+    @alias('mfpt_between')
+    def mean_first_passage_times_between(self, states_target: tstates, states_origin: tstates) -> oarray:
+
+        """
+        The method computes the mean first passage times between the given subsets of the state space.
+
+        | **Aliases:** mfpt_between
+
+        :param states_target: the subset of target states.
+        :param states_origin: the subset of origin states.
+        :return: the mean first passage times between the given subsets if the Markov chain is *ergodic*, None otherwise.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            states_target = validate_states(states_target, self._states, 'subset', True)
+            states_origin = validate_states(states_origin, self._states, 'subset', True)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        if not self.is_ergodic:
+            return None
+
+        states_target = sorted(states_target)
+        states_origin = sorted(states_origin)
+
+        a = np.eye(self._size, dtype=float) - self._p
+        a[states_target, :] = 0.0
+        a[states_target, states_target] = 1.0
+
+        b = np.ones(self._size, dtype=float)
+        b[states_target] = 0.0
+
+        mfpt_to = npl.solve(a, b)
+
+        pi = self.pi[0]
+        pi_origin_states = pi[states_origin]
+        mu = pi_origin_states / np.sum(pi_origin_states)
+
+        mfpt_between = np.dot(mu, mfpt_to[states_origin])
+
+        if np.isscalar(mfpt_between):
+            mfpt_between = np.array([mfpt_between])
+
+        return mfpt_between
+
+    @alias('mfpt_to')
+    def mean_first_passage_times_to(self, states: ostates = None) -> oarray:
+
+        """
+        The method computes the mean first passage times, for all the states, to the given set of states.
+
+        | **Aliases:** mfpt_to
+
+        :param states: the set of target states (if omitted, all the states are targeted).
+        :return: the mean first passage times of each state if the Markov chain is *ergodic*, None otherwise.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            if states is None:
+                states = self._states_indices.copy()
+            else:
+                states = validate_states(states, self._states, 'regular', True)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        if not self.is_ergodic:
+            return None
+
+        states = sorted(states)
+
+        a = np.eye(self._size, dtype=float) - self._p
+        a[states, :] = 0.0
+        a[states, states] = 1.0
+
+        b = np.ones(self._size, dtype=float)
+        b[states] = 0.0
+
+        return npl.solve(a, b)
+
+    def mixing_time(self, initial_distribution: onumeric = None, jump: int = 1, cutoff_type: str = 'natural') -> oint:
+
+        """
+        The method computes the mixing time of the Markov chain, given the initial distribution of the states.
+
+        :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
+        :param jump: the number of steps in each iteration (by default, 1).
+        :param cutoff_type: the type of cutoff to use (either natural or traditional; by default, natural).
+        :return: the mixing time if the Markov chain is *ergodic*, None otherwise.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            if initial_distribution is None:
+                initial_distribution = np.ones(self._size, dtype=float) / self._size
+            else:
+                initial_distribution = validate_vector(initial_distribution, 'stochastic', False, size=self._size)
+
+            jump = validate_integer(jump, lower_limit=(0, True))
+            cutoff_type = validate_enumerator(cutoff_type, ['natural', 'traditional'])
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        if not self.is_ergodic:
+            return None
+
+        if cutoff_type == 'traditional':
+            cutoff = 0.25
+        else:
+            cutoff = 1.0 / (2.0 * np.exp(1.0))
+
+        mixing_time = 0
+        tvd = 1.0
+
+        d = initial_distribution.dot(self._p)
+        pi = self.pi[0]
+
+        while tvd > cutoff:
+            tvd = np.sum(np.abs(d - pi))
+            mixing_time += jump
+            d = d.dot(self._p)
+
+        return mixing_time
+
     def predict(self, steps: int, initial_state: ostate = None, include_initial: bool = False, output_indices: bool = False, seed: oint = None) -> twalk:
 
         """
-        The method simulates the most probable outcome of a random walk of N steps.
+        The method simulates the most probable outcome in a random walk of N steps.
 
         | **Notes:** in case of probability tie, the subsequent state is chosen uniformly at random among all the equiprobable states.
 
@@ -1672,6 +1693,219 @@ class MarkovChain(metaclass=BaseClass):
 
         return sensitivity
 
+    def time_correlations(self, walk1: twalk, walk2: owalk = None, time_points: ttimes_in = 1) -> otimes_out:
+
+        """
+        The method computes the time autocorrelations of a single observed sequence of states or the time cross-correlations of two observed sequences of states.
+
+        :param walk1: the first observed sequence of states.
+        :param walk2: the second observed sequence of states.
+        :param time_points: the time point or a list of time points at which the computation is performed (by default, 1).
+        :return: None if the Markov chain is not *ergodic*, a float value if *time_points* is provided as an integer, a list of float values otherwise.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            walk1 = validate_states(walk1, self._states, 'walk', False)
+
+            if walk2 is not None:
+                walk2 = validate_states(walk2, self._states, 'walk', False)
+
+            time_points = validate_time_points(time_points)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        if not self.is_ergodic:
+            return None
+
+        if isinstance(time_points, int):
+            time_points = [time_points]
+            time_points_integer = True
+            time_points_length = 1
+        else:
+            time_points_integer = False
+            time_points_length = len(time_points)
+
+        pi = self.pi[0]
+
+        observations1 = np.zeros(self._size, dtype=float)
+
+        for state in walk1:
+            observations1[state] += 1.0
+
+        if walk2 is None:
+            observations2 = np.copy(observations1)
+        else:
+            observations2 = np.zeros(self._size, dtype=int)
+
+            for state in walk1:
+                observations2[state] += 1.0
+
+        time_correlations = []
+
+        if time_points[-1] > self._size:
+
+            r, d, l = self._rdl_decomposition
+
+            for i in range(time_points_length):
+
+                t = np.zeros(d.shape, dtype=float)
+                t[np.diag_indices_from(d)] = np.diag(d)**time_points[i]
+
+                p_times = np.dot(np.dot(r, t), l)
+
+                m1 = np.multiply(observations1, pi)
+                m2 = np.dot(p_times, observations2)
+
+                time_correlation = np.asscalar(np.dot(m1, m2))
+                time_correlations.append(time_correlation)
+
+        else:
+
+            start_values = None
+
+            m = np.multiply(observations1, pi)
+
+            for i in range(time_points_length):
+
+                time_point = time_points[i]
+
+                if start_values is not None:
+
+                    pk_i = start_values[1]
+                    time_prev = start_values[0]
+                    t_diff = time_point - time_prev
+
+                    for k in range(t_diff):
+                        pk_i = np.dot(self._p, pk_i)
+
+                else:
+
+                    if time_point >= 2:
+
+                        pk_i = np.dot(self._p, np.dot(self._p, observations2))
+
+                        for k in range(time_point - 2):
+                            pk_i = np.dot(self._p, pk_i)
+
+                    elif time_point == 1:
+                        pk_i = np.dot(self._p, observations2)
+                    else:
+                        pk_i = observations2
+
+                start_values = (time_point, pk_i)
+
+                time_correlation = np.dot(m, pk_i)
+                time_correlations.append(time_correlation)
+
+        if time_points_integer:
+            return time_correlations[0]
+
+        return time_correlations
+
+    def time_relaxations(self, walk: twalk, initial_distribution: onumeric = None, time_points: ttimes_in = 1) -> otimes_out:
+
+        """
+        The method computes the time relaxations of an observed sequence of states with respect to the given initial distribution of the states.
+
+        :param walk: the observed sequence of states.
+        :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
+        :param time_points: the time point or a list of time points at which the computation is performed (by default, 1).
+        :return: None if the Markov chain is not *ergodic*, a float value if *time_points* is provided as an integer, a list of float values otherwise.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            walk = validate_states(walk, self._states, 'walk', False)
+
+            if initial_distribution is None:
+                initial_distribution = np.ones(self._size, dtype=float) / self._size
+            else:
+                initial_distribution = validate_vector(initial_distribution, 'stochastic', False, size=self._size)
+
+            time_points = validate_time_points(time_points)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        if not self.is_ergodic:
+            return None
+
+        if isinstance(time_points, int):
+            time_points = [time_points]
+            time_points_integer = True
+            time_points_length = 1
+        else:
+            time_points_integer = False
+            time_points_length = len(time_points)
+
+        observations = np.zeros(self._size, dtype=float)
+
+        for state in walk:
+            observations[state] += 1.0
+
+        time_relaxations = []
+
+        if time_points[-1] > self._size:
+
+            r, d, l = self._rdl_decomposition
+
+            for i in range(time_points_length):
+
+                t = np.zeros(d.shape, dtype=float)
+                t[np.diag_indices_from(d)] = np.diag(d)**time_points[i]
+
+                p_times = np.dot(np.dot(r, t), l)
+
+                time_relaxation = np.asscalar(np.dot(np.dot(initial_distribution, p_times), observations))
+                time_relaxations.append(time_relaxation)
+
+        else:
+
+            start_values = None
+
+            for i in range(time_points_length):
+
+                time_point = time_points[i]
+
+                if start_values is not None:
+
+                    pk_i = start_values[1]
+                    time_prev = start_values[0]
+                    t_diff = time_point - time_prev
+
+                    for k in range(t_diff):
+                        pk_i = np.dot(pk_i, self._p)
+
+                else:
+
+                    if time_point >= 2:
+
+                        pk_i = np.dot(np.dot(initial_distribution, self._p), self._p)
+
+                        for k in range(time_point - 2):
+                            pk_i = np.dot(pk_i, self._p)
+
+                    elif time_point == 1:
+                        pk_i = np.dot(initial_distribution, self._p)
+                    else:
+                        pk_i = initial_distribution
+
+                start_values = (time_point, pk_i)
+
+                time_relaxation = np.asscalar(np.dot(pk_i, observations))
+                time_relaxations.append(time_relaxation)
+
+        if time_points_integer:
+            return time_relaxations[0]
+
+        return time_relaxations
+
     @alias('to_canonical')
     def to_canonical_form(self) -> tmc:
 
@@ -1741,31 +1975,54 @@ class MarkovChain(metaclass=BaseClass):
 
         return graph
 
-    def to_file(self, file_path: str):
+    def to_file(self, file_path: str, file_type: str = 'json'):
 
         """
         The method writes a Markov chain to the given file.
 
         :param file_path: the location of the file in which the Markov chain must be written.
+        :param file_type: the type of file that defines the Markov chain (either json or text; by default, json).
         :raises OSError: if the file cannot be written.
-        :raises ValueError: if the file path is invalid.
+        :raises ValidationError: if any input argument is not compliant.
         """
 
-        if file_path is None or (len(file_path) == 0):
-            raise ValueError('The file path is not valid.')
+        try:
+
+            file_path = validate_string(file_path)
+            file_type = validate_enumerator(file_type, ['json', 'text'])
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         d = self.to_dictionary()
 
-        with open(file_path, mode='w') as file:
+        if file_type == 'json':
+
+            if not file_path.lower().endswith('.json'):
+                raise ValidationError('The path must point to a valid json file.')
+
+            output = []
 
             for it, ip in d.items():
-                file.write(f"{it[0]} {it[1]} {ip}\n")
+                output.append({'state_from': it[0], 'state_to': it[1], 'probability': ip})
 
-    @alias('to_lazy')
+            with open(file_path, mode='w') as file:
+                dump(output, file)
+
+        else:
+
+            if not file_path.lower().endswith('.txt'):
+                raise ValidationError('The path must point to a valid text file.')
+
+            with open(file_path, mode='w') as file:
+                for it, ip in d.items():
+                    file.write(f'{it[0]} {it[1]} {ip}\n')
+
     def to_lazy_chain(self, inertial_weights: tweights = 0.5) -> tmc:
 
         """
-        The method returns a lazy chain by adjusting the state inertia of the original process.
+        The method returns a lazy Markov chain by adjusting the state inertia of the original process.
 
         :param inertial_weights: the inertial weights to apply for the transformation (by default, 0.5).
         :return: a Markov chain.
@@ -1863,8 +2120,7 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             rng = MarkovChain._create_rng(seed)
-
-            steps = validate_integer(steps, lower_limit=(0, True))
+            steps = validate_integer(steps, lower_limit=(1, False))
 
             if initial_state is None:
                 initial_state = rng.randint(0, self._size)
@@ -1908,7 +2164,7 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the probability of a given sequence of states.
 
-        :param walk: the sequence of states.
+        :param walk: the observed sequence of states.
         :return: the probability of the sequence of states.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -1923,9 +2179,9 @@ class MarkovChain(metaclass=BaseClass):
 
         p = 0.0
 
-        for step in zip(walk[:-1], walk[1:]):
-            if self._p[step[0], step[1]] > 0:
-                p += np.log(self._p[step[0], step[1]])
+        for (i, j) in zip(walk[:-1], walk[1:]):
+            if self._p[i, j] > 0.0:
+                p += np.log(self._p[i, j])
             else:
                 p = -np.inf
                 break
@@ -2027,7 +2283,7 @@ class MarkovChain(metaclass=BaseClass):
         | :math:`y_t = (1 - \\rho) \\alpha + \\rho y_{t-1} + \\varepsilon_t`
         | with :math:`\\varepsilon_t \\overset{i.i.d}{\\sim} \\mathcal{N}(0, \\sigma_{\\varepsilon}^{2})`
 
-        :param size: the size of the chain.
+        :param size: the size of the Markov chain.
         :param approximation_type: the approximation type to use (one of adda-cooper, rouwenhorst, tauchen or tauchen-hussey).
         :param alpha: the constant term :math:`\\alpha`, representing the unconditional mean of the process.
         :param sigma: the standard deviation of the innovation term :math:`\\varepsilon`.
@@ -2254,176 +2510,55 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def fit(possible_states: tlist_str, walk: twalk, fitting_type: str, k: tany = None) -> tmc:
+    def ehrenfest(n: int, states: olist_str = None) -> tmc:
 
         """
-        The method fits a Markov chain using either the maximum a posteriori approach (MAP) or the maximum likelihood approach (MLE).
+        The method generates a Markov chain based on the Ehrenfest model.
 
-        :param possible_states: the possible states of the process.
-        :param walk: the observed sequence of states.
-        :param fitting_type: the type of fitting to use (either map or mle).
-        :param k:
-         - in the maximum a posteriori approach, the matrix for the a priori distribution (if omitted, a default value of 1 is assigned to each parameter);
-         - in the maximum likelihood approach, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (if omitted, the value is set to False).
+        :param n: the number of elements in a single container of the Ehrenfest model (the size of the Markov chain is therefore *2n + 1*).
+        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            possible_states = validate_state_names(possible_states)
-            size = len(possible_states)
-            walk = validate_states(walk, possible_states, 'walk', False)
-            fitting_type = validate_enumerator(fitting_type, ['map', 'mle'])
+            n = validate_integer(n, lower_limit=(1, False))
 
-            if fitting_type == 'map':
-                if k is None:
-                    k = np.ones((size, size), dtype=float)
-                else:
-                    k = validate_hyperparameter(k, size)
+            if states is None:
+                states = [str(i) for i in range(1, (n * 2) + 1)]
             else:
-                if k is None:
-                    k = False
-                else:
-                    k = validate_boolean(k)
+                states = validate_state_names(states, (n * 2) + 1)
 
         except Exception as e:
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
+        dn = n * 2
+        size = dn + 1
         p = np.zeros((size, size), dtype=float)
 
-        if fitting_type == 'map':
+        for i in range(size):
 
-            frequencies = np.zeros((size, size), dtype=float)
+            p_row = np.repeat(0.0, size)
 
-            for step in zip(walk[:-1], walk[1:]):
-                frequencies[step[0], step[1]] += 1.0
-
-            for i in range(size):
-                row_total = np.sum(frequencies[i, :]) + np.sum(k[i, :])
-
-                for j in range(size):
-                    cell_total = frequencies[i, j] + k[i, j]
-
-                    if row_total == size:
-                        p[i, j] = 1.0 / size
-                    else:
-                        p[i, j] = (cell_total - 1.0) / (row_total - size)
-
-        else:
-
-            p = np.zeros((size, size), dtype=int)
-
-            for step in zip(walk[:-1], walk[1:]):
-                p[step[0], step[1]] += 1
-
-            if k:
-                p = p.astype(float)
-                p += 0.001
+            if i == 0:
+                p_row[1] = 1.0
+            elif i == dn:
+                p_row[-2] = 1.0
             else:
-                p[np.where(~p.any(axis=1)), :] = np.ones(size, dtype=float)
-                p = p.astype(float)
+                p_row[i - 1] = i / dn
+                p_row[i + 1] = 1.0 - (i / dn)
 
-            p = p / np.sum(p, axis=1, keepdims=True)
-
-        return MarkovChain(p, possible_states)
-
-    @staticmethod
-    def from_dictionary(d: tmc_dict_flex) -> tmc:
-
-        """
-        The method generates a Markov chain from the given dictionary, whose keys represent state pairs and whose values represent transition probabilities.
-
-        :param d: the dictionary to transform into the transition matrix.
-        :return: a Markov chain.
-        :raises ValueError: if the transition matrix defined by the dictionary is not valid.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            d = validate_dictionary(d)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        states = sorted(list(set(sum(d.keys(), ()))))
-        size = len(states)
-
-        if size < 2:
-            raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
-
-        p = np.zeros((size, size), dtype=float)
-
-        for it, ip in d.items():
-            p[states.index(it[0]), states.index(it[1])] = ip
-
-        if not np.allclose(np.sum(p, axis=1), np.ones(size, dtype=float)):
-            raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.')
+            p[i, :] = p_row
 
         return MarkovChain(p, states)
 
     @staticmethod
-    def from_file(file_path: str) -> tmc:
+    def fit_function(f: ttfunc, possible_states: tlist_str, quadrature_type: str = 'newton-cotes', quadrature_interval: ointerval = None) -> tmc:
 
         """
-        The method reads a Markov chain from the given file.
-
-        | **Notes:** every line of the file must have the following format: *<state_from> <state_to> <probability>*
-
-        :param file_path: the location of the file that defines the Markov chain.
-        :return: a Markov chain.
-        :raises FileNotFoundError: if the file does not exist.
-        :raises OSError: if the file cannot be read.
-        :raises ValueError: if the file path is invalid or if the file contains invalid data.
-        """
-
-        if file_path is None or (len(file_path) == 0):
-            raise ValueError('The file path is not valid.')
-
-        d = {}
-
-        with open(file_path, mode='r') as file:
-            for line in file:
-
-                if not line.strip():
-                    raise ValueError('The file contains invalid lines.')
-
-                ls = line.split()
-
-                if len(ls) != 3:
-                    raise ValueError('The file contains invalid lines.')
-
-                try:
-                    ls2 = float(ls[2])
-                except Exception:
-                    raise ValueError('The file contains invalid lines.')
-
-                d[(ls[0], ls[1])] = ls2
-
-        states = sorted(list(set(sum(d.keys(), ()))))
-        size = len(states)
-
-        if size < 2:
-            raise ValueError('The size of the transition matrix defined by the file must be greater than or equal to 2.')
-
-        p = np.zeros((size, size), dtype=float)
-
-        for it, ip in d.items():
-            p[states.index(it[0]), states.index(it[1])] = ip
-
-        if not np.allclose(np.sum(p, axis=1), np.ones(size, dtype=float)):
-            raise ValueError('The rows of the transition matrix defined by the file must sum to 1.')
-
-        return MarkovChain(p, states)
-
-    @staticmethod
-    def from_function(f: ttfunc, possible_states: tlist_str, quadrature_type: str = 'newton-cotes', quadrature_interval: ointerval = None) -> tmc:
-
-        """
-        The method generates a Markov chain from the given transition function.
+        The method fits a Markov chain using the given transition function and with the given quadrature type.
 
         :param f: the transition function of the process.
         :param possible_states: the possible states of the process.
@@ -2554,6 +2689,235 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, possible_states)
 
     @staticmethod
+    def fit_standard(possible_states: tlist_str, walk: twalk, fitting_type: str, k: tany = None) -> tmc:
+
+        """
+        The method fits a Markov chain using either the maximum a posteriori approach (MAP) or the maximum likelihood approach (MLE).
+
+        :param possible_states: the possible states of the process.
+        :param walk: the observed sequence of states.
+        :param fitting_type: the type of fitting to use (either map or mle).
+        :param k:
+         - in the maximum a posteriori approach, the matrix for the a priori distribution (if omitted, a default value of 1 is assigned to each parameter);
+         - in the maximum likelihood approach, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (if omitted, the value is set to False).
+        :return: a Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            possible_states = validate_state_names(possible_states)
+            walk = validate_states(walk, possible_states, 'walk', False)
+            fitting_type = validate_enumerator(fitting_type, ['map', 'mle'])
+
+            if fitting_type == 'map':
+                if k is None:
+                    k = np.ones((len(possible_states), len(possible_states)), dtype=float)
+                else:
+                    k = validate_hyperparameter(k, len(possible_states))
+            else:
+                if k is None:
+                    k = False
+                else:
+                    k = validate_boolean(k)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        size = len(possible_states)
+        p = np.zeros((size, size), dtype=float)
+
+        if fitting_type == 'map':
+
+            frequencies = np.zeros((size, size), dtype=float)
+
+            for step in zip(walk[:-1], walk[1:]):
+                frequencies[step[0], step[1]] += 1.0
+
+            for i in range(size):
+                row_total = np.sum(frequencies[i, :]) + np.sum(k[i, :])
+
+                for j in range(size):
+                    cell_total = frequencies[i, j] + k[i, j]
+
+                    if row_total == size:
+                        p[i, j] = 1.0 / size
+                    else:
+                        p[i, j] = (cell_total - 1.0) / (row_total - size)
+
+        else:
+
+            p = np.zeros((size, size), dtype=int)
+
+            for (i, j) in zip(walk[:-1], walk[1:]):
+                p[i, j] += 1
+
+            if k:
+                p = p.astype(float)
+                p += 0.001
+            else:
+                p[np.where(~p.any(axis=1)), :] = np.ones(size, dtype=float)
+                p = p.astype(float)
+
+            p /= np.sum(p, axis=1, keepdims=True)
+
+        return MarkovChain(p, possible_states)
+
+    @staticmethod
+    def from_dictionary(d: tmc_dict_flex) -> tmc:
+
+        """
+        The method generates a Markov chain from the given dictionary, whose keys represent state pairs and whose values represent transition probabilities.
+
+        :param d: the dictionary to transform into the transition matrix.
+        :return: a Markov chain.
+        :raises ValueError: if the transition matrix defined by the dictionary is not valid.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            d = validate_dictionary(d)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        states = sorted(list(set(sum(d.keys(), ()))))
+        size = len(states)
+
+        if size < 2:
+            raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
+
+        p = np.zeros((size, size), dtype=float)
+
+        for it, ip in d.items():
+            p[states.index(it[0]), states.index(it[1])] = ip
+
+        if not np.allclose(np.sum(p, axis=1), np.ones(size, dtype=float)):
+            raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.')
+
+        return MarkovChain(p, states)
+
+    @staticmethod
+    def from_file(file_path: str, file_type: str = 'json') -> tmc:
+
+        """
+        The method reads a Markov chain from the given file.
+
+        | In the *json format*, data must be structured as an array of objects with the following properties:
+        | *state_from* (string)
+        | *state_to* (string)
+        | *probability* (float or int)
+        |
+        | In the *text format*, every line of the file must have the following format:
+        | *<state_from> <state_to> <probability>*
+
+        :param file_path: the location of the file that defines the Markov chain.
+        :param file_type: the type of file that defines the Markov chain (either json or text; by default, json).
+        :return: a Markov chain.
+        :raises FileNotFoundError: if the file does not exist.
+        :raises OSError: if the file cannot be read or is empty.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the file contains invalid data.
+        """
+
+        try:
+
+            file_path = validate_string(file_path)
+            file_type = validate_enumerator(file_type, ['json', 'text'])
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        d = {}
+
+        if file_type == 'json':
+
+            if not file_path.lower().endswith('.json'):
+                raise ValidationError('The path must point to a valid json file.')
+
+            with open(file_path, mode='r') as file:
+
+                file.seek(0)
+
+                if not file.read(1):
+                    raise OSError('The file is empty.')
+                else:
+                    file.seek(0)
+
+                data = load(file)
+
+                if not isinstance(data, list):
+                    raise ValueError('The file is malformed.')
+
+                for obj in data:
+
+                    if not isinstance(obj, dict):
+                        raise ValueError('The file contains invalid entries.')
+
+                    if sorted(list(set(obj.keys()))) != ['probability', 'state_from', 'state_to']:
+                        raise ValueError('The file contains invalid lines.')
+
+                    state_from = obj['state_from']
+                    state_to = obj['state_to']
+                    probability = obj['probability']
+
+                    if not isinstance(state_from, str) or not isinstance(state_to, str) or not isinstance(probability, (float, int)):
+                        raise ValueError('The file contains invalid lines.')
+
+                    d[(state_from, state_to)] = float(probability)
+
+        else:
+
+            if not file_path.lower().endswith('.txt'):
+                raise ValidationError('The path must point to a valid text file.')
+
+            with open(file_path, mode='r') as file:
+
+                file.seek(0)
+
+                if not file.read(1):
+                    raise OSError('The file is empty.')
+                else:
+                    file.seek(0)
+
+                for line in file:
+
+                    if not line.strip():
+                        raise ValueError('The file contains invalid lines.')
+
+                    ls = line.split()
+
+                    if len(ls) != 3:
+                        raise ValueError('The file contains invalid lines.')
+
+                    try:
+                        ls2 = float(ls[2])
+                    except Exception:
+                        raise ValueError('The file contains invalid lines.')
+
+                    d[(ls[0], ls[1])] = ls2
+
+        states = sorted(list(set(sum(d.keys(), ()))))
+        size = len(states)
+
+        if size < 2:
+            raise ValueError('The size of the transition matrix defined by the file must be greater than or equal to 2.')
+
+        p = np.zeros((size, size), dtype=float)
+
+        for it, ip in d.items():
+            p[states.index(it[0]), states.index(it[1])] = ip
+
+        if not np.allclose(np.sum(p, axis=1), np.ones(size, dtype=float)):
+            raise ValueError('The rows of the transition matrix defined by the file must sum to 1.')
+
+        return MarkovChain(p, states)
+
+    @staticmethod
     def from_matrix(m: tnumeric, states: olist_str = None) -> tmc:
 
         """
@@ -2589,7 +2953,7 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method generates a Markov chain of given size based on an identity transition matrix.
 
-        :param size: the size of the chain.
+        :param size: the size of the Markov chain.
         :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
@@ -2616,7 +2980,7 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method generates a Markov chain of given size with random transition probabilities.
 
-        :param size: the size of the chain.
+        :param size: the size of the Markov chain.
         :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
         :param zeros: the number of zero-valued transition probabilities (by default, 0).
         :param mask: a matrix representing the locations and values of fixed transition probabilities.

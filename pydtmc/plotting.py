@@ -49,12 +49,13 @@ from .exceptions import (
 from .validation import (
     validate_boolean,
     validate_distribution,
-    validate_enumerator,
     validate_dpi,
+    validate_enumerator,
+    validate_integer,
     validate_markov_chain,
     validate_state,
-    validate_status,
-    validate_walk
+    validate_states,
+    validate_status
 )
 
 
@@ -101,8 +102,7 @@ def plot_eigenvalues(mc: tmc, dpi: int = 100) -> oplot:
 
     theta = np.linspace(0.0, 2.0 * np.pi, 200)
 
-    values = npl.eigvals(mc.p)
-    values = values.astype(complex)
+    values = npl.eigvals(mc.p).astype(complex)
     values_final = np.unique(np.append(values, np.array([1.0]).astype(complex)))
 
     x_unit_circle = np.cos(theta)
@@ -470,7 +470,14 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
     try:
 
         mc = validate_markov_chain(mc)
-        walk = validate_walk(walk, mc.states)
+
+        if isinstance(walk, int):
+            if initial_state is None:
+                walk = validate_integer(walk, lower_limit=(2, False))
+            else:
+                walk = validate_integer(walk, lower_limit=(1, False))
+        else:
+            walk = validate_states(walk, mc.states, 'walk', False)
 
         if initial_state is not None:
             initial_state = validate_state(initial_state, mc.states)
