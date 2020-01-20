@@ -2284,7 +2284,11 @@ class MarkovChain(metaclass=BaseClass):
         | with :math:`\\varepsilon_t \\overset{i.i.d}{\\sim} \\mathcal{N}(0, \\sigma_{\\varepsilon}^{2})`
 
         :param size: the size of the Markov chain.
-        :param approximation_type: the approximation type to use (one of adda-cooper, rouwenhorst, tauchen or tauchen-hussey).
+        :param approximation_type:
+         - *adda-cooper* for the Adda-Cooper approximation;
+         - *rouwenhorst* for the Rouwenhorst approximation;
+         - *tauchen* for the Tauchen approximation;
+         - *tauchen-hussey* for the Tauchen-Hussey approximation.
         :param alpha: the constant term :math:`\\alpha`, representing the unconditional mean of the process.
         :param sigma: the standard deviation of the innovation term :math:`\\varepsilon`.
         :param rho: the autocorrelation coefficient :math:`\\rho`, representing the persistence of the process across periods.
@@ -2510,14 +2514,20 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def fit_function(f: ttfunc, possible_states: tlist_str, quadrature_type: str = 'newton-cotes', quadrature_interval: ointerval = None) -> tmc:
+    def fit_function(f: ttfunc, possible_states: tlist_str, quadrature_type: str, quadrature_interval: ointerval = None) -> tmc:
 
         """
-        The method fits a Markov chain using the given transition function and with the given quadrature type.
+        The method fits a Markov chain using the given transition function and the given quadrature type for the computation of nodes and weights.
 
         :param f: the transition function of the process.
         :param possible_states: the possible states of the process.
-        :param quadrature_type: the quadrature type to use for the computation of nodes and weights (one of gauss-chebyshev, gauss-legendre, neiderreiter, newton-cotes, simpson-rule or trapezoid-rule; by default, newton-cotes).
+        :param quadrature_type:
+         - *gauss-chebyshev* for the Gauss-Chebyshev quadrature;
+         - *gauss-legendre* for the Gauss-Legendre quadrature;
+         - *niederreiter* for the Niederreiter equidistributed sequence;
+         - *newton-cotes* for the Newton-Cotes quadrature;
+         - *simpson-rule* for the Simpson rule;
+         - *trapezoid-rule* for the Trapezoid rule.
         :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (by default, the interval [0, 1]).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
@@ -2528,7 +2538,7 @@ class MarkovChain(metaclass=BaseClass):
 
             f = validate_transition_function(f)
             possible_states = validate_state_names(possible_states)
-            quadrature_type = validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'neiderreiter', 'newton-cotes', 'simpson-rule', 'trapezoid-rule'])
+            quadrature_type = validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'niederreiter', 'newton-cotes', 'simpson-rule', 'trapezoid-rule'])
 
             if quadrature_interval is None:
                 quadrature_interval = (0.0, 1.0)
@@ -2595,7 +2605,7 @@ class MarkovChain(metaclass=BaseClass):
             weights[i] = (2.0 * xl) / ((1.0 - z**2.0) * pp**2.0)
             weights[-i - 1] = weights[i]
 
-        elif quadrature_type == 'neiderreiter':
+        elif quadrature_type == 'niederreiter':
 
             r = b - a
 
@@ -2647,11 +2657,13 @@ class MarkovChain(metaclass=BaseClass):
     def fit_standard(possible_states: tlist_str, walk: twalk, fitting_type: str, k: tany = None) -> tmc:
 
         """
-        The method fits a Markov chain using either the maximum a posteriori approach (MAP) or the maximum likelihood approach (MLE).
+        The method fits a Markov chain using the specified fitting approach.
 
         :param possible_states: the possible states of the process.
         :param walk: the observed sequence of states.
-        :param fitting_type: the type of fitting to use (either map or mle).
+        :param fitting_type:
+         - *map* for the maximum a posteriori approach;
+         - *mle* for the maximum likelihood approach.
         :param k:
          - in the maximum a posteriori approach, the matrix for the a priori distribution (if omitted, a default value of 1 is assigned to each parameter);
          - in the maximum likelihood approach, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (if omitted, the value is set to False).
@@ -3012,14 +3024,15 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def urn_model(n: int, model: str, states: olist_str = None) -> tmc:
+    def urn_model(n: int, model: str) -> tmc:
 
         """
-        The method generates a Markov chain of size *2n + 1* based on either the Bernoulli-Laplace or the Ehrenfest urn model.
+        The method generates a Markov chain of size *2n + 1* based on either the specified urn model.
 
         :param n: the number of elements in each urn.
-        :param model: the model to use (either bernoulli-laplace or ehrenfest).
-        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
+        :param model:
+         - *bernoulli-laplace* for the Bernoulli-Laplace urn model;
+         - *ehrenfest* for the Ehrenfest urn model.
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -3028,11 +3041,6 @@ class MarkovChain(metaclass=BaseClass):
 
             n = validate_integer(n, lower_limit=(1, False))
             model = validate_enumerator(model, ['bernoulli-laplace', 'ehrenfest'])
-
-            if states is None:
-                states = [str(i) for i in range(1, (n * 2) + 2)]
-            else:
-                states = validate_state_names(states, (n * 2) + 1)
 
         except Exception as e:
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
@@ -3077,4 +3085,4 @@ class MarkovChain(metaclass=BaseClass):
 
                 p[i, :] = r
 
-        return MarkovChain(p, states)
+        return MarkovChain(p, [f'U{i}' for i in range(1, (n * 2) + 2)])
