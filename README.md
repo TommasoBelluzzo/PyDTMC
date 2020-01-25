@@ -43,12 +43,12 @@ The core element of the library is the `MarkovChain` class, which can be instant
 DISCRETE-TIME MARKOV CHAIN
  SIZE:         4
  CLASSES:      2
-  - RECURRENT: 1
-  - TRANSIENT: 1
- ABSORBING:    YES
- APERIODIC:    YES
+  > RECURRENT: 1
+  > TRANSIENT: 1
  ERGODIC:      NO
- IRREDUCIBLE:  NO
+  > APERIODIC:    YES
+  > IRREDUCIBLE:  NO
+ ABSORBING:    YES
  REGULAR:      NO
  REVERSIBLE:   NO
  SYMMETRIC:    NO

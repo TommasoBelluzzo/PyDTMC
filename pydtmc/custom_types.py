@@ -6,6 +6,7 @@ __all__ = [
     'tany', 'titerable',
     # Specific
     'tarray', 'oarray',
+    'tbcond', 'obcond',
     'tdists', 'odists',
     'tdists_flex', 'odists_flex',
     'tgraph', 'ograph',
@@ -18,6 +19,8 @@ __all__ = [
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
     'tnumeric', 'onumeric',
+    'tpart', 'opart',
+    'tparts', 'oparts',
     'tplot', 'oplot',
     'trdl', 'ordl',
     'tstate', 'ostate',
@@ -92,6 +95,9 @@ titerable = Iterable
 tarray = np.ndarray
 oarray = Optional[tarray]
 
+tbcond = Union[float, str]
+obcond = Optional[tbcond]
+
 tdists = List[np.ndarray]
 odists = Optional[tdists]
 
@@ -127,6 +133,12 @@ omc_dict_flex = Optional[tmc_dict_flex]
 
 tnumeric = Union[titerable, np.ndarray, spsp.spmatrix, pd.DataFrame, pd.Series] if pd is not None else Union[titerable, tarray, spsp.spmatrix]
 onumeric = Optional[tnumeric]
+
+tpart = List[Union[List[int], List[str]]]
+opart = Optional[tpart]
+
+tparts = List[tpart]
+oparts = Optional[tparts]
 
 tplot = Tuple[pp.Figure, pp.Axes]
 oplot = Optional[tplot]

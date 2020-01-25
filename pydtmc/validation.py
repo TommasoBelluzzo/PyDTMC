@@ -2,6 +2,7 @@
 
 __all__ = [
     'validate_boolean',
+    'validate_boundary_condition',
     'validate_dictionary',
     'validate_distribution',
     'validate_dpi',
@@ -13,6 +14,7 @@ __all__ = [
     'validate_markov_chain',
     'validate_mask',
     'validate_matrix',
+    'validate_partitions',
     'validate_rewards',
     'validate_state',
     'validate_state_names',
@@ -22,7 +24,6 @@ __all__ = [
     'validate_time_points',
     'validate_transition_function',
     'validate_transition_matrix',
-    'validate_transition_matrix_size',
     'validate_vector'
 ]
 
@@ -108,6 +109,27 @@ def validate_boolean(value: tany) -> bool:
         return value
 
     raise TypeError('The "@arg@" parameter must be a boolean value.')
+
+
+def validate_boundary_condition(boundary_condition: tany) -> tbcond:
+
+    if isinstance(boundary_condition, float):
+
+        if (boundary_condition < 0.0) or (boundary_condition > 1.0):
+            raise ValueError('The "@arg@" parameter, when specified as a float, must have a value between 0 and 1.')
+
+        return boundary_condition
+
+    if isinstance(boundary_condition, str):
+
+        possible_values = ['absorbing', 'reflecting']
+
+        if boundary_condition not in possible_values:
+            raise ValueError(f'The "@arg@" parameter, when specified as a string, must have one of the following values: {", ".join(possible_values)}.')
+
+        return boundary_condition
+
+    raise TypeError('The "@arg@" parameter must be either a float representing the first probability of the semi-reflecting condition or a string representing the boundary condition type.')
 
 
 def validate_dictionary(d: tany) -> tmc_dict:
@@ -362,6 +384,66 @@ def validate_matrix(m: tany) -> tarray:
         raise ValueError('The "@arg@" parameter must contain only finite values.')
 
     return m
+
+
+def validate_partitions(partitions: tany, current_states: tlist_str) -> tparts:
+
+    if not isinstance(partitions, list):
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+
+    partitions_length = len(partitions)
+    current_states_length = len(current_states)
+
+    if (partitions_length < 2) or (partitions_length >= current_states_length):
+        raise ValueError(f'The "@arg@" parameter must contain a number of elements between 0 and the number of existing states minus one ({current_states_length - 1:d}).')
+
+    partitions_flat = []
+    partitions_groups = []
+
+    for partition in partitions:
+
+        if not isinstance(partition, titerable):
+            raise TypeError('The "@arg@" parameter must contain only array_like objects.')
+
+        partition_sorted = list(partition)
+
+        partitions_flat.extend(partition_sorted)
+        partitions_groups.append(len(partition_sorted))
+
+    if all(isinstance(s, int) for s in partitions_flat):
+
+        if any((s < 0) or (s >= current_states_length) for s in partitions_flat):
+            raise ValueError(f'The "@arg@" parameter subelements, when specified as integers, must be values between 0 and the number of existing states minus one ({current_states_length - 1:d}).')
+
+    elif all(isinstance(s, str) for s in partitions_flat):
+
+        partitions_flat = [current_states.index(s) if s in current_states else -1 for s in partitions_flat]
+
+        if any(s == -1 for s in partitions_flat):
+            raise ValueError(f'The "@arg@" parameter subelements, when specified as strings, must contain only values matching the names of the existing states ({", ".join(current_states)}).')
+
+    else:
+        raise TypeError('The "@arg@" parameter must contain only array_like objects of integers or array_like objects of strings.')
+
+    partitions_flat_length = len(partitions_flat)
+
+    if len(set(partitions_flat)) < partitions_flat_length:
+        raise ValueError('The "@arg@" parameter subelements must be unique.')
+
+    if partitions_flat_length != current_states_length:
+        raise ValueError('The "@arg@" parameter subelements must include all the existing states.')
+
+    if partitions_flat != list(range(current_states_length)):
+        raise ValueError('The "@arg@" parameter subelements must follow a sequential order.')
+
+    partitions = []
+    partitions_offset = 0
+
+    for partitions_group in partitions_groups:
+        partitions.append(partitions_flat[partitions_offset:partitions_offset+partitions_group])
+        partitions_offset += partitions_group
+
+    return partitions
 
 
 def validate_rewards(rewards: tany, size: int) -> tarray:

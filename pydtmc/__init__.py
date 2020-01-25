@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __title__ = 'PyDTMC'
-__version__ = '4.4.0'
+__version__ = '4.6.0'
 __author__ = 'Tommaso Belluzzo'
 
 __all__ = [
@@ -24,6 +24,3 @@ from pydtmc.plotting import (
     plot_redistributions,
     plot_walk
 )
-
-x = MarkovChain.dna_model('kimura2', (0.2, 0.3))
-asd = True

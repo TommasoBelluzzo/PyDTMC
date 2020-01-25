@@ -68,6 +68,7 @@ from .exceptions import (
 
 from .validation import (
     validate_boolean,
+    validate_boundary_condition,
     validate_dictionary,
     validate_enumerator,
     validate_float,
@@ -76,6 +77,7 @@ from .validation import (
     validate_interval,
     validate_mask,
     validate_matrix,
+    validate_partitions,
     validate_rewards,
     validate_state,
     validate_state_names,
@@ -85,7 +87,6 @@ from .validation import (
     validate_time_points,
     validate_transition_function,
     validate_transition_matrix,
-    validate_transition_matrix_size,
     validate_vector
 )
 
@@ -634,6 +635,62 @@ class MarkovChain(metaclass=BaseClass):
         n = self.fundamental_matrix
 
         return np.asscalar(np.trace(n))
+
+    # noinspection PyBroadException
+    @cachedproperty
+    def lumping_partitions(self) -> tparts:
+
+        """
+        A property representing all the partitions of the Markov chain that satisfy the ordinary lumpability criterion.
+        """
+
+        if self._size == 2:
+            return []
+
+        k = self._size - 1
+        possible_partitions = []
+
+        for i in range(2**k):
+
+            partition = []
+            subset = []
+
+            for position in range(self._size):
+
+                subset.append(self._states_indices[position])
+
+                if ((1 << position) & i) or (position == k):
+                    partition.append(subset)
+                    subset = []
+
+            partition_length = len(partition)
+
+            if (partition_length >= 2) and (partition_length < self._size):
+                possible_partitions.append(partition)
+
+        partitions = []
+
+        for partition in possible_partitions:
+
+            r = np.zeros((self._size, len(partition)), dtype=float)
+
+            for i, lumping in enumerate(partition):
+                for state in lumping:
+                    r[state, i] = 1.0
+
+            try:
+                k = np.dot(np.linalg.inv(np.dot(np.transpose(r), r)), np.transpose(r))
+            except Exception:
+                continue
+
+            left = np.dot(np.dot(np.dot(r, k), self._p), r)
+            right = np.dot(self._p, r)
+            lumpability = np.array_equal(left, right)
+
+            if lumpability:
+                partitions.append(partition)
+
+        return partitions
 
     @alias('mfpt')
     @cachedproperty
@@ -1383,6 +1440,52 @@ class MarkovChain(metaclass=BaseClass):
 
         return state in self._transient_states_indices
 
+    # noinspection PyTypeChecker
+    def lump(self, partitions: tpart) -> tmc:
+
+        """
+        The method attempts to reduce the state space of the Markov chain with respect to the given partitions following the ordinary lumpability criterion.
+
+        :param partitions: the partitions of the state space.
+        :return: a Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the Markov defines only two states or is not strongly lumpable into the given partitions.
+        """
+
+        try:
+
+            partitions = validate_partitions(partitions, self._states)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        if self._size == 2:
+            raise ValueError('The Markov defines only two states and cannot be lumped.')
+
+        r = np.zeros((self._size, len(partitions)), dtype=float)
+
+        for i, lumping in enumerate(partitions):
+            for state in lumping:
+                r[state, i] = 1.0
+
+        try:
+            k = np.dot(np.linalg.inv(np.dot(np.transpose(r), r)), np.transpose(r))
+        except Exception:
+            raise ValueError('The Markov chain is not strongly lumpable with respect to the given partitions.')
+
+        left = np.dot(np.dot(np.dot(r, k), self._p), r)
+        right = np.dot(self._p, r)
+        is_lumpable = np.array_equal(left, right)
+
+        if not is_lumpable:
+            raise ValueError('The Markov chain is not strongly lumpable with respect to the given partitions.')
+
+        lump = np.dot(np.dot(k, self._p), r)
+        states = [','.join(list(map(self._states.__getitem__, partition))) for partition in partitions]
+
+        return MarkovChain(lump, states)
+
     @alias('mfpt_between')
     def mean_first_passage_times_between(self, states_target: tstates, states_origin: tstates) -> oarray:
 
@@ -1906,6 +2009,48 @@ class MarkovChain(metaclass=BaseClass):
 
         return time_relaxations
 
+    def to_bounded_chain(self, boundary_condition: tbcond) -> tmc:
+
+        """
+        The method returns a bounded Markov chain by adjusting the transition matrix of the original process using the specified boundary condition.
+
+        :param boundary_condition:
+         - a float representing the first probability of the semi-reflecting condition;
+         - a string representing the boundary condition type (either absorbing or reflecting).
+        :return: a Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            boundary_condition = validate_boundary_condition(boundary_condition)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        first = np.zeros(self._size, dtype=float)
+        last = np.zeros(self._size, dtype=float)
+
+        if isinstance(boundary_condition, float):
+            first[0] = 1.0 - boundary_condition
+            first[1] = boundary_condition
+            last[-1] = boundary_condition
+            last[-2] = 1.0 - boundary_condition
+        else:
+            if boundary_condition == 'absorbing':
+                first[0] = 1.0
+                last[-1] = 1.0
+            else:
+                first[1] = 1.0
+                last[-2] = 1.0
+
+        p_adjusted = np.copy(self._p)
+        p_adjusted[0] = first
+        p_adjusted[-1] = last
+
+        return MarkovChain(p_adjusted, self._states)
+
     @alias('to_canonical')
     def to_canonical_form(self) -> tmc:
 
@@ -2333,7 +2478,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            size = validate_transition_matrix_size(size)
+            size = validate_integer(size, lower_limit=(2, False))
             approximation_type = validate_enumerator(approximation_type, ['adda-cooper', 'rouwenhorst', 'tauchen', 'tauchen-hussey'])
             alpha = validate_float(alpha)
             sigma = validate_float(sigma, lower_limit=(0.0, True))
@@ -2490,7 +2635,7 @@ class MarkovChain(metaclass=BaseClass):
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if p.shape[0] != q.shape[0]:
-            raise ValueError(f'The assets vector and the liabilities vector must have the same size.')
+            raise ValueError(f'The vector of annihilation probabilities and the vector of creation probabilities must have the same size.')
 
         if not np.all(q + p <= 1.0):
             raise ValueError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
@@ -2915,6 +3060,43 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(m, states)
 
     @staticmethod
+    def gamblers_ruin(size: int, w: float, states: olist_str = None) -> tmc:
+
+        """
+        The method generates a gambler's ruin Markov chain of given size and win probability.
+
+        :param size: the size of the Markov chain.
+        :param w: the win probability.
+        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
+        :return: a Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            size = validate_integer(size, lower_limit=(3, False))
+            w = validate_float(w, lower_limit=(0.0, True), upper_limit=(1.0, True))
+
+            if states is None:
+                states = [str(i) for i in range(1, size + 1)]
+            else:
+                states = validate_state_names(states, size)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        p = np.zeros((size, size), dtype=float)
+        p[0, 0] = 1.0
+        p[-1, -1] = 1.0
+
+        for i in range(1, size - 1):
+            p[i, i - 1] = 1.0 - w
+            p[i, i + 1] = w
+
+        return MarkovChain(p, states)
+
+    @staticmethod
     def identity(size: int, states: olist_str = None) -> tmc:
 
         """
@@ -2928,7 +3110,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            size = validate_transition_matrix_size(size)
+            size = validate_integer(size, lower_limit=(2, False))
 
             if states is None:
                 states = [str(i) for i in range(1, size + 1)]
@@ -2960,7 +3142,7 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             rng = MarkovChain._create_rng(seed)
-            size = validate_transition_matrix_size(size)
+            size = validate_integer(size, lower_limit=(2, False))
 
             if states is None:
                 states = [str(i) for i in range(1, size + 1)]
