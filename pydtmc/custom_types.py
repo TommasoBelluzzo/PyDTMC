@@ -18,6 +18,7 @@ __all__ = [
     'tmc_approx', 'omc_approx',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
+    'tmc_fit', 'omc_fit',
     'tnumeric', 'onumeric',
     'tpart', 'opart',
     'tparts', 'oparts',
@@ -130,6 +131,9 @@ omc_dict = Optional[tmc_dict]
 
 tmc_dict_flex = Dict[Tuple[str, str], Union[float, int]]
 omc_dict_flex = Optional[tmc_dict_flex]
+
+tmc_fit = Tuple[tmc, List[tarray]]
+omc_fit = Optional[tmc_fit]
 
 tnumeric = Union[titerable, np.ndarray, spsp.spmatrix, pd.DataFrame, pd.Series] if pd is not None else Union[titerable, tarray, spsp.spmatrix]
 onumeric = Optional[tnumeric]

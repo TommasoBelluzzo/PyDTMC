@@ -44,8 +44,13 @@ from json import (
 )
 
 from math import (
+    gamma,
     gcd,
     lgamma
+)
+
+from os.path import (
+    splitext
 )
 
 # Internal
@@ -152,21 +157,23 @@ class MarkovChain(metaclass=BaseClass):
 
         lines = []
         lines.append('')
+
         lines.append('DISCRETE-TIME MARKOV CHAIN')
-        lines.append(f' SIZE:         {self._size:d}')
+        lines.append(f' SIZE:           {self._size:d}')
 
-        lines.append(f' CLASSES:      {len(self.communicating_classes):d}')
-        lines.append(f'  > RECURRENT: {len(self.recurrent_classes):d}')
-        lines.append(f'  > TRANSIENT: {len(self.transient_classes):d}')
+        lines.append(f' CLASSES:        {len(self.communicating_classes):d}')
+        lines.append(f'  > RECURRENT:   {len(self.recurrent_classes):d}')
+        lines.append(f'  > TRANSIENT:   {len(self.transient_classes):d}')
 
-        lines.append(f' ERGODIC:      {("YES" if self.is_ergodic else "NO")}')
-        lines.append(f'  > APERIODIC:    {("YES" if self.is_aperiodic else "NO (" + str(self.period) + ")")}')
-        lines.append(f'  > IRREDUCIBLE:  {("YES" if self.is_irreducible else "NO")}')
+        lines.append(f' ERGODIC:        {("YES" if self.is_ergodic else "NO")}')
+        lines.append(f'  > APERIODIC:   {("YES" if self.is_aperiodic else "NO (" + str(self.period) + ")")}')
+        lines.append(f'  > IRREDUCIBLE: {("YES" if self.is_irreducible else "NO")}')
 
-        lines.append(f' ABSORBING:    {("YES" if self.is_absorbing else "NO")}')
-        lines.append(f' REGULAR:      {("YES" if self.is_regular else "NO")}')
-        lines.append(f' REVERSIBLE:   {("YES" if self.is_reversible else "NO")}')
-        lines.append(f' SYMMETRIC:    {("YES" if self.is_symmetric else "NO")}')
+        lines.append(f' ABSORBING:      {("YES" if self.is_absorbing else "NO")}')
+        lines.append(f' REGULAR:        {("YES" if self.is_regular else "NO")}')
+        lines.append(f' REVERSIBLE:     {("YES" if self.is_reversible else "NO")}')
+        lines.append(f' SYMMETRIC:      {("YES" if self.is_symmetric else "NO")}')
+
         lines.append('')
 
         return '\n'.join(lines)
@@ -388,7 +395,7 @@ class MarkovChain(metaclass=BaseClass):
         a = self.adjacency_matrix
         i = np.eye(self._size, dtype=int)
 
-        m = (i + a) ** (self._size - 1)
+        m = (i + a)**(self._size - 1)
         m = (m > 0).astype(int)
 
         return m
@@ -964,13 +971,12 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the closest reversible of the Markov chain.
 
-        | **Notes:** the algorithm is described in `Computing the nearest reversible Markov Chain (Nielsen & Weber, 2015) <http://doi.org/10.1002/nla.1967>`_.
+        | **Notes:** the algorithm is described in `Computing the nearest reversible Markov chain (Nielsen & Weber, 2015) <http://doi.org/10.1002/nla.1967>`_.
 
         :param distribution: the distribution of the states.
-        :param weighted: a boolean indicating whether to use a weighted Frobenius norm (by default, False).
+        :param weighted: a boolean indicating whether to use the weighted Frobenius norm (by default, False).
         :return: a Markov chain if the algorithm finds a solution, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if a weighted Frobenius norm is used and the distribution contains zero-valued probabilities.
         """
 
         def jacobian(xj: tarray, hj: tarray, fj: tarray):
@@ -992,7 +998,7 @@ class MarkovChain(metaclass=BaseClass):
         zeros = len(distribution) - non_zeros
 
         if weighted and (zeros > 0):
-            raise ValueError('The distribution contains zero-valued probabilities.')
+            raise ValidationError('If the weighted Frobenius norm is used, the distribution must not contain zero-valued probabilities.')
 
         m = int((((self._size - 1) * self._size) / 2) + (((zeros - 1) * zeros) / 2) + 1)
 
@@ -1137,7 +1143,6 @@ class MarkovChain(metaclass=BaseClass):
         :param states2: the second subset of the state space.
         :return: the committor probabilities if the Markov chain is *ergodic*, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the two subsets of the state space are not disjoint.
         """
 
         try:
@@ -1156,7 +1161,7 @@ class MarkovChain(metaclass=BaseClass):
         intersection = np.intersect1d(states1, states2)
 
         if len(intersection) > 0:
-            raise ValueError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
+            raise ValidationError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
         if committor_type == 'backward':
             a = np.transpose(self.pi[0][:, np.newaxis] * (self._p - np.eye(self._size, dtype=float)))
@@ -1223,7 +1228,7 @@ class MarkovChain(metaclass=BaseClass):
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
-        original_rewards = rewards.copy()
+        original_rewards = np.copy(rewards)
 
         for i in range(steps):
             rewards = original_rewards + np.dot(rewards, self._p)
@@ -1283,12 +1288,12 @@ class MarkovChain(metaclass=BaseClass):
             q = np.asarray(np.diagonal(d))
 
             if np.isscalar(q):
-                ds = steps if np.isclose(q, 1.0) else (1.0 - (q ** steps)) / (1.0 - q)
+                ds = steps if np.isclose(q, 1.0) else (1.0 - q**steps) / (1.0 - q)
             else:
                 ds = np.zeros(np.shape(q), dtype=q.dtype)
                 indices_et1 = (q == 1.0)
                 ds[indices_et1] = steps
-                ds[~indices_et1] = (1.0 - q[~indices_et1] ** steps) / (1.0 - q[~indices_et1])
+                ds[~indices_et1] = (1.0 - q[~indices_et1]**steps) / (1.0 - q[~indices_et1])
 
             ds = np.diag(ds)
             ts = np.dot(np.dot(rvecs, ds), np.conjugate(np.transpose(lvecs)))
@@ -1449,7 +1454,7 @@ class MarkovChain(metaclass=BaseClass):
         :param partitions: the partitions of the state space.
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Markov defines only two states or is not strongly lumpable into the given partitions.
+        :raises ValueError: if the Markov chain defines only two states or is not strongly lumpable with respect to the given partitions.
         """
 
         try:
@@ -1461,7 +1466,7 @@ class MarkovChain(metaclass=BaseClass):
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if self._size == 2:
-            raise ValueError('The Markov defines only two states and cannot be lumped.')
+            raise ValueError('The Markov chain defines only two states and cannot be lumped.')
 
         r = np.zeros((self._size, len(partitions)), dtype=float)
 
@@ -2067,7 +2072,7 @@ class MarkovChain(metaclass=BaseClass):
 
         indices = self._transient_states_indices + self._recurrent_states_indices
 
-        p = self._p.copy()
+        p = np.copy(self._p)
         p = p[np.ix_(indices, indices)]
 
         states = [*map(self._states.__getitem__, indices)]
@@ -2120,13 +2125,14 @@ class MarkovChain(metaclass=BaseClass):
 
         return graph
 
-    def to_file(self, file_path: str, file_type: str = 'json'):
+    def to_file(self, file_path: str):
 
         """
         The method writes a Markov chain to the given file.
 
+        | Only json and plain text files are supported, data format is inferred from the file extension.
+
         :param file_path: the location of the file in which the Markov chain must be written.
-        :param file_type: the type of file that defines the Markov chain (either json or text; by default, json).
         :raises OSError: if the file cannot be written.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -2134,18 +2140,19 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             file_path = validate_string(file_path)
-            file_type = validate_enumerator(file_type, ['json', 'text'])
 
         except Exception as e:
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
+        file_extension = splitext(file_path)[1][1:].lower()
+
+        if file_extension not in ['json', 'txt']:
+            raise ValidationError('Only json and plain text files are supported.')
+
         d = self.to_dictionary()
 
-        if file_type == 'json':
-
-            if not file_path.lower().endswith('.json'):
-                raise ValidationError('The path must point to a valid json file.')
+        if file_extension == 'json':
 
             output = []
 
@@ -2156,9 +2163,6 @@ class MarkovChain(metaclass=BaseClass):
                 dump(output, file)
 
         else:
-
-            if not file_path.lower().endswith('.txt'):
-                raise ValidationError('The path must point to a valid text file.')
 
             with open(file_path, mode='w') as file:
                 for it, ip in d.items():
@@ -2204,7 +2208,7 @@ class MarkovChain(metaclass=BaseClass):
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
-        closure = self.adjacency_matrix.copy()
+        closure = np.copy(self.adjacency_matrix)
 
         for i in range(self._size):
             for j in range(self._size):
@@ -2218,7 +2222,7 @@ class MarkovChain(metaclass=BaseClass):
 
         states = sorted(states)
 
-        p = self._p.copy()
+        p = np.copy(self._p)
         p = p[np.ix_(states, states)]
 
         states = [*map(self._states.__getitem__, states)]
@@ -2442,7 +2446,7 @@ class MarkovChain(metaclass=BaseClass):
          - in the Tauchen-Hussey approximation, the standard deviation used for the gaussian quadrature (if omitted, the value is set to an optimal default).
         :return: a tuple whose first element is a Markov chain and whose second element is a vector of nodes.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the approximation type is neither Tauchen nor Tauchen-Hussey and *k* is not equal to None or if the gaussian quadrature fails to converge in the Tauchen-Hussey approach.
+        :raises ValueError: if the gaussian quadrature fails to converge in the Tauchen-Hussey approach.
         """
 
         def adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
@@ -2492,7 +2496,7 @@ class MarkovChain(metaclass=BaseClass):
             elif approximation_type == 'tauchen-hussey':
                 if k is None:
                     w = 0.5 + (rho / 4.0)
-                    k = (w * sigma) + ((1 - w) * (sigma / np.sqrt(1.0 - rho ** 2.0)))
+                    k = (w * sigma) + ((1 - w) * (sigma / np.sqrt(1.0 - rho**2.0)))
                 else:
                     k = validate_float(k, lower_limit=(0.0, True))
 
@@ -2501,6 +2505,9 @@ class MarkovChain(metaclass=BaseClass):
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if approximation_type == 'adda-cooper':
+
+            if k is not None:
+                raise ValidationError('The k parameter must be left undefined when the Adda-Cooper approximation is selected.')
 
             z_sigma = sigma / (1.0 - rho**2.00)**0.5
             z = (z_sigma * sps.norm.ppf(np.arange(size + 1) / size)) + alpha
@@ -2515,6 +2522,9 @@ class MarkovChain(metaclass=BaseClass):
             nodes = (size * z_sigma * (sps.norm.pdf((z[:-1] - alpha) / z_sigma) - sps.norm.pdf((z[1:] - alpha) / z_sigma))) + alpha
 
         elif approximation_type == 'rouwenhorst':
+
+            if k is not None:
+                raise ValidationError('The k parameter must be left undefined when the Rouwenhorst approximation is selected.')
 
             p = (1.0 + rho) / 2.0
             q = p
@@ -2537,7 +2547,7 @@ class MarkovChain(metaclass=BaseClass):
                 if i == 0:
                     z = np.sqrt((2.0 * size) + 1.0) - (1.85575 * ((2.0 * size) + 1.0)**-0.16393)
                 elif i == 1:
-                    z = z - ((1.140 * size**0.426) / z)
+                    z = z - ((1.14 * size**0.426) / z)
                 elif i == 2:
                     z = (1.86 * z) + (0.86 * nodes[0])
                 elif i == 3:
@@ -2575,7 +2585,7 @@ class MarkovChain(metaclass=BaseClass):
                 weights[i] = 2.0 / pp**2.0
                 weights[size - i - 1] = weights[i]
 
-            nodes = (nodes * np.sqrt(2.0) * np.sqrt(2.0 * k ** 2.0)) + alpha
+            nodes = (nodes * np.sqrt(2.0) * np.sqrt(2.0 * k**2.0)) + alpha
             weights = weights / np.sqrt(np.pi)**2.0
 
             p = np.zeros((size, size), dtype=float)
@@ -2622,7 +2632,6 @@ class MarkovChain(metaclass=BaseClass):
         :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if *q* and *p* have a different size or if the vector resulting from the sum of *q* and *p* contains any value greater than 1.
         """
 
         try:
@@ -2635,10 +2644,10 @@ class MarkovChain(metaclass=BaseClass):
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         if p.shape[0] != q.shape[0]:
-            raise ValueError(f'The vector of annihilation probabilities and the vector of creation probabilities must have the same size.')
+            raise ValidationError(f'The vector of annihilation probabilities and the vector of creation probabilities must have the same size.')
 
         if not np.all(q + p <= 1.0):
-            raise ValueError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
+            raise ValidationError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
 
         n = {p.shape[0], q.shape[0]}.pop()
 
@@ -2659,13 +2668,13 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def fit_function(f: ttfunc, possible_states: tlist_str, quadrature_type: str, quadrature_interval: ointerval = None) -> tmc:
+    def fit_function(possible_states: tlist_str, f: ttfunc, quadrature_type: str, quadrature_interval: ointerval = None) -> tmc:
 
         """
         The method fits a Markov chain using the given transition function and the given quadrature type for the computation of nodes and weights.
 
-        :param f: the transition function of the process.
         :param possible_states: the possible states of the process.
+        :param f: the transition function of the process.
         :param quadrature_type:
          - *gauss-chebyshev* for the Gauss-Chebyshev quadrature;
          - *gauss-legendre* for the Gauss-Legendre quadrature;
@@ -2676,13 +2685,13 @@ class MarkovChain(metaclass=BaseClass):
         :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (by default, the interval [0, 1]).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Gauss-Legendre quadrature fails to converge or if the Simpson rule quadrature is attempted on an even number of possible states.
+        :raises ValueError: if the Gauss-Legendre quadrature fails to converge.
         """
 
         try:
 
-            f = validate_transition_function(f)
             possible_states = validate_state_names(possible_states)
+            f = validate_transition_function(f)
             quadrature_type = validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'niederreiter', 'newton-cotes', 'simpson-rule', 'trapezoid-rule'])
 
             if quadrature_interval is None:
@@ -2763,7 +2772,7 @@ class MarkovChain(metaclass=BaseClass):
         elif quadrature_type == 'simpson-rule':
 
             if (size % 2) == 0:
-                raise ValueError('The Simpson quadrature requires an odd number of possible states.')
+                raise ValidationError('The Simpson quadrature requires an odd number of possible states.')
 
             nodes = np.linspace(a, b, size)
 
@@ -2799,28 +2808,93 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, possible_states)
 
     @staticmethod
-    def fit_standard(possible_states: tlist_str, walk: twalk, fitting_type: str, k: tany = None) -> tmc:
+    def fit_walk(fitting_type: str, possible_states: tlist_str, walk: twalk, k: tany = None, confidence_level: float = 0.95) -> tmc_fit:
 
         """
-        The method fits a Markov chain using the specified fitting approach.
+        The method fits a Markov chain from an observed sequence of states using the specified approach and computes the multinomial confidence intervals of the fitting.
 
-        :param possible_states: the possible states of the process.
-        :param walk: the observed sequence of states.
+        | **Notes:** the algorithm for the computation of multinomial confidence intervals is described in `Constructing two-sided simultaneous confidence intervals for multinomial proportions (May & Johnson, 2000) <http://dx.doi.org/10.18637/jss.v005.i06>`_.
+
         :param fitting_type:
          - *map* for the maximum a posteriori approach;
          - *mle* for the maximum likelihood approach.
+        :param possible_states: the possible states of the process.
+        :param walk: the observed sequence of states.
         :param k:
          - in the maximum a posteriori approach, the matrix for the a priori distribution (if omitted, a default value of 1 is assigned to each parameter);
          - in the maximum likelihood approach, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (if omitted, the value is set to False).
-        :return: a Markov chain.
+        :param confidence_level: the confidence level used for the computation of the multinomial confidence intervals (by default, 0.95).
+        :return: a tuple whose first element is a Markov chain and whose second element represents the multinomial confidence intervals of the fitting (0: lower, 1: upper).
         :raises ValidationError: if any input argument is not compliant.
         """
 
+        def compute_moments(cm_c: int, cm_xi: int) -> tarray:
+
+            cm_a = cm_xi + cm_c
+            cm_b = max(0, cm_xi - cm_c)
+
+            if cm_b > 0:
+                d = sps.poisson.cdf(cm_a, cm_xi) - sps.poisson.cdf(cm_b - 1, cm_xi)
+            else:
+                d = sps.poisson.cdf(cm_a, cm_xi)
+
+            cm_mu = np.zeros(4, dtype=float)
+
+            for cm_i in range(1, 5):
+
+                if (cm_a - cm_i) >= 0:
+                    pa = sps.poisson.cdf(cm_a, cm_xi) - sps.poisson.cdf(cm_a - cm_i, cm_xi)
+                else:
+                    pa = sps.poisson.cdf(cm_a, cm_xi)
+
+                if (cm_b - cm_i - 1) >= 0:
+                    pb = sps.poisson.cdf(cm_b - 1, cm_xi) - sps.poisson.cdf(cm_b - cm_i - 1, cm_xi)
+                else:
+                    if (cm_b - 1) >= 0:
+                        pb = sps.poisson.cdf(cm_b - 1, cm_xi)
+                    else:
+                        pb = 0
+
+                cm_mu[cm_i - 1] = cm_xi**cm_i * (1.0 - ((pa - pb) / d))
+
+            cm_mom = np.zeros(5, dtype=float)
+            cm_mom[0] = cm_mu[0]
+            cm_mom[1] = cm_mu[1] + cm_mu[0] - cm_mu[0]**2.0
+            cm_mom[2] = cm_mu[2] + (cm_mu[1] * (3.0 - (3.0 * cm_mu[0]))) + (cm_mu[0] - (3.0 * cm_mu[0]**2.0) + (2.0 * cm_mu[0]**3.0))
+            cm_mom[3] = cm_mu[3] + (cm_mu[2] * (6.0 - (4.0 * cm_mu[0]))) + (cm_mu[1] * (7.0 - (12.0 * cm_mu[0]) + (6.0 * cm_mu[0]**2.0))) + cm_mu[0] - (4.0 * cm_mu[0]**2.0) + (6.0 * cm_mu[0]**3.0) - (3.0 * cm_mu[0]**4.0)
+            cm_mom[4] = d
+
+            return cm_mom
+
+        def truncated_poisson(tp_c: int, tp_x: tarray, tp_n: int, tp_k: int) -> float:
+
+            tp_m = np.zeros((tp_k, 5), dtype=float)
+
+            for tp_i in range(tp_k):
+                tp_m[tp_i, :] = compute_moments(tp_c, tp_x[tp_i])
+
+            tp_m[:, 3] -= 3.0 * tp_m[:, 1]**2.0
+
+            tp_s = np.sum(tp_m, axis=0)
+            tp_z = (tp_n - tp_s[0]) / np.sqrt(tp_s[1])
+            tp_g1 = tp_s[2] / tp_s[1]**1.5
+            tp_g2 = tp_s[3] / tp_s[1]**2.0
+
+            tp_e1 = tp_g1 * ((tp_z**3.0 - (3.0 * tp_z)) / 6.0)
+            tp_e2 = tp_g2 * ((tp_z**4.0 - (6.0 * tp_z**2.0) + 3.0) / 24.0)
+            tp_e3 = tp_g1**2.0 * ((tp_z**6.0 - (15.0 * tp_z**4.0) + (45.0 * tp_z**2.0) - 15.0) / 72.0)
+            tp_poly = 1.0 + tp_e1 + tp_e2 + tp_e3
+
+            tp_f = tp_poly * (np.exp(-tp_z**2.0 / 2.0) / (np.sqrt(2.0) * gamma(0.5)))
+            tp_value = (1.0 / (sps.poisson.cdf(tp_n, tp_n) - sps.poisson.cdf(tp_n - 1, tp_n))) * np.prod(tp_m[:, 4]) * (tp_f / np.sqrt(tp_s[1]))
+
+            return tp_value
+
         try:
 
+            fitting_type = validate_enumerator(fitting_type, ['map', 'mle'])
             possible_states = validate_state_names(possible_states)
             walk = validate_states(walk, possible_states, 'walk', False)
-            fitting_type = validate_enumerator(fitting_type, ['map', 'mle'])
 
             if fitting_type == 'map':
                 if k is None:
@@ -2833,6 +2907,8 @@ class MarkovChain(metaclass=BaseClass):
                 else:
                     k = validate_boolean(k)
 
+            confidence_level = validate_float(confidence_level, lower_limit=(0.0, False), upper_limit=(1.0, False))
+
         except Exception as e:
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -2840,41 +2916,81 @@ class MarkovChain(metaclass=BaseClass):
         size = len(possible_states)
         p = np.zeros((size, size), dtype=float)
 
+        f = np.zeros((size, size), dtype=int)
+
+        for (i, j) in zip(walk[:-1], walk[1:]):
+            f[i, j] += 1
+
         if fitting_type == 'map':
 
-            frequencies = np.zeros((size, size), dtype=float)
-
-            for step in zip(walk[:-1], walk[1:]):
-                frequencies[step[0], step[1]] += 1.0
-
             for i in range(size):
-                row_total = np.sum(frequencies[i, :]) + np.sum(k[i, :])
+                rt = np.sum(f[i, :]) + np.sum(k[i, :])
 
                 for j in range(size):
-                    cell_total = frequencies[i, j] + k[i, j]
+                    ct = f[i, j] + k[i, j]
 
-                    if row_total == size:
+                    if rt == size:
                         p[i, j] = 1.0 / size
                     else:
-                        p[i, j] = (cell_total - 1.0) / (row_total - size)
+                        p[i, j] = (ct - 1.0) / (rt - size)
 
         else:
 
-            p = np.zeros((size, size), dtype=int)
-
             for (i, j) in zip(walk[:-1], walk[1:]):
-                p[i, j] += 1
+                p[i, j] += 1.0
 
             if k:
-                p = p.astype(float)
                 p += 0.001
             else:
                 p[np.where(~p.any(axis=1)), :] = np.ones(size, dtype=float)
-                p = p.astype(float)
 
             p /= np.sum(p, axis=1, keepdims=True)
 
-        return MarkovChain(p, possible_states)
+        ci_lower = np.zeros((size, size), dtype=float)
+        ci_upper = np.zeros((size, size), dtype=float)
+
+        for i in range(size):
+
+            fi = f[i, :]
+            n = np.asscalar(np.sum(fi))
+
+            c = -1
+            tp = tp_previous = 0.0
+
+            for c_current in range(1, n + 1):
+
+                tp = truncated_poisson(c_current, fi, n, size)
+
+                if (tp > confidence_level) and (tp_previous < confidence_level):
+                    c = c_current - 1
+                    break
+
+                tp_previous = tp
+
+            delta = (confidence_level - tp_previous) / (tp - tp_previous)
+            cdn = c / n
+
+            buffer = np.zeros((size, 5), dtype=float)
+            result = np.zeros((size, 2), dtype=float)
+
+            for j in range(size):
+
+                obs = fi[j] / n
+                buffer[j, 0] = obs
+                buffer[j, 1] = max(0.0, obs - cdn)
+                buffer[j, 2] = min(1.0, obs + cdn + (2.0 * (delta / n)))
+                buffer[j, 3] = obs - cdn - (1.0 / n)
+                buffer[j, 4] = obs + cdn + (1.0 / n)
+
+                result[j, 0] = buffer[j, 1]
+                result[j, 1] = buffer[j, 2]
+
+            for j in range(size):
+
+                ci_lower[i, j] = result[j, 0]
+                ci_upper[i, j] = result[j, 1]
+
+        return MarkovChain(p, possible_states), [ci_lower, ci_upper]
 
     @staticmethod
     def from_dictionary(d: tmc_dict_flex) -> tmc:
@@ -2913,21 +3029,22 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(p, states)
 
     @staticmethod
-    def from_file(file_path: str, file_type: str = 'json') -> tmc:
+    def from_file(file_path: str) -> tmc:
 
         """
         The method reads a Markov chain from the given file.
 
-        | In the *json format*, data must be structured as an array of objects with the following properties:
+        | Only json and plain text files are supported, data format is inferred from the file extension.
+        |
+        | In *json* files, data must be structured as an array of objects with the following properties:
         | *state_from* (string)
         | *state_to* (string)
         | *probability* (float or int)
         |
-        | In the *text format*, every line of the file must have the following format:
+        | In *text* files, every line of the file must have the following format:
         | *<state_from> <state_to> <probability>*
 
         :param file_path: the location of the file that defines the Markov chain.
-        :param file_type: the type of file that defines the Markov chain (either json or text; by default, json).
         :return: a Markov chain.
         :raises FileNotFoundError: if the file does not exist.
         :raises OSError: if the file cannot be read or is empty.
@@ -2938,18 +3055,19 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             file_path = validate_string(file_path)
-            file_type = validate_enumerator(file_type, ['json', 'text'])
 
         except Exception as e:
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
+        file_extension = splitext(file_path)[1][1:].lower()
+
+        if file_extension not in ['json', 'txt']:
+            raise ValidationError('Only json and plain text files are supported.')
+
         d = {}
 
-        if file_type == 'json':
-
-            if not file_path.lower().endswith('.json'):
-                raise ValidationError('The path must point to a valid json file.')
+        if file_extension == 'json':
 
             with open(file_path, mode='r') as file:
 
@@ -2983,9 +3101,6 @@ class MarkovChain(metaclass=BaseClass):
                     d[(state_from, state_to)] = float(probability)
 
         else:
-
-            if not file_path.lower().endswith('.txt'):
-                raise ValidationError('The path must point to a valid text file.')
 
             with open(file_path, mode='r') as file:
 
@@ -3055,7 +3170,7 @@ class MarkovChain(metaclass=BaseClass):
             raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         m = np.interp(m, (np.min(m), np.max(m)), (0.0, 1.0))
-        m = m / np.sum(m, axis=1, keepdims=True)
+        m /= np.sum(m, axis=1, keepdims=True)
 
         return MarkovChain(m, states)
 
@@ -3136,7 +3251,6 @@ class MarkovChain(metaclass=BaseClass):
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the number of zero-valued transition probabilities exceeds the maximum threshold.
         """
 
         try:
@@ -3169,7 +3283,7 @@ class MarkovChain(metaclass=BaseClass):
         zeros_required = np.asscalar(np.sum(mask_unassigned) - np.sum(~full_rows))
 
         if zeros > zeros_required:
-            raise ValueError(f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.')
+            raise ValidationError(f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.')
 
         n = np.arange(size)
 
@@ -3190,7 +3304,7 @@ class MarkovChain(metaclass=BaseClass):
         mask[indices_rows, indices_columns] = 0.0
         mask[np.isinf(mask)] = np.nan
 
-        p = mask.copy()
+        p = np.copy(mask)
         p_unassigned = np.isnan(mask)
         p[p_unassigned] = np.ravel(rng.rand(1, np.asscalar(np.sum(p_unassigned, dtype=int))))
 
@@ -3209,7 +3323,7 @@ class MarkovChain(metaclass=BaseClass):
     def urn_model(n: int, model: str) -> tmc:
 
         """
-        The method generates a Markov chain of size *2n + 1* based on either the specified urn model.
+        The method generates a Markov chain of size *2n + 1* based on the specified urn model.
 
         :param n: the number of elements in each urn.
         :param model:
@@ -3245,9 +3359,9 @@ class MarkovChain(metaclass=BaseClass):
                 elif i == dn:
                     r[-2] = 1.0
                 else:
-                    r[i - 1] = (i / dn) ** 2.0
+                    r[i - 1] = (i / dn)**2.0
                     r[i] = 2.0 * (i / dn) * (1.0 - (i / dn))
-                    r[i + 1] = (1.0 - (i / dn)) ** 2.0
+                    r[i + 1] = (1.0 - (i / dn))**2.0
 
                 p[i, :] = r
 

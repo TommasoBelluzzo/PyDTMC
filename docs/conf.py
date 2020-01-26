@@ -11,8 +11,8 @@ sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
 
 project = 'PyDTMC'
 project_title = project + ' Documentation'
-release = '4.6.0'
-version = '4.6.0'
+release = '4.8.0'
+version = '4.8.0'
 author = 'Tommaso Belluzzo'
 copyright = '2019, Tommaso Belluzzo'
 
@@ -34,10 +34,12 @@ extensions = [
 # Mapping
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'matplotlib': ('http://matplotlib.sourceforge.net', None),
+    'python': ('https://docs.python.org/3/', None),
+    'matplotlib': ('https://matplotlib.org/users/', None),
     'networkx': ('https://networkx.github.io/documentation/stable/', None),
-    'numpy': ('http://docs.scipy.org/doc/numpy', None)
+    'numpy': ('https://docs.scipy.org/doc/numpy/', None),
+    'pytest': ('https://docs.pytest.org/en/latest/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None)
 }
 
 # Settings
