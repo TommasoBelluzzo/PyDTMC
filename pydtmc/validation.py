@@ -628,12 +628,21 @@ def validate_states(states: tany, current_states: tlist_str, state_type: str, fl
         raise ValueError('The "@arg@" parameter must contain only unique values.')
 
     if state_type == 'regular':
+
         if (states_length < 1) or (states_length > current_states_length):
             raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states ({current_states_length:d}).')
+
+        states = sorted(states)
+
     elif state_type == 'subset':
+
         if (states_length < 1) or (states_length >= current_states_length):
             raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states minus one ({current_states_length - 1:d}).')
+
+        states = sorted(states)
+
     else:
+
         if states_length < 2:
             raise ValueError('The "@arg@" parameter must contain at least two elements.')
 

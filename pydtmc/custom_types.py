@@ -36,11 +36,13 @@ __all__ = [
     # Lists
     'tlist_any', 'olist_any',
     'tlist_array', 'olist_array',
+    'tlist_float', 'olist_float',
     'tlist_int', 'olist_int',
     'tlist_str', 'olist_str',
     # Lists of Lists
     'tlists_any', 'olists_any',
     'tlists_array', 'olists_array',
+    'tlists_float', 'olists_float',
     'tlists_int', 'olists_int',
     'tlists_str', 'olists_str'
 ]
@@ -185,6 +187,9 @@ olist_any = Optional[tlist_any]
 tlist_array = List[tarray]
 olist_array = Optional[tlist_array]
 
+tlist_float = List[float]
+olist_float = Optional[tlist_float]
+
 tlist_int = List[int]
 olist_int = Optional[tlist_int]
 
@@ -198,6 +203,9 @@ olists_any = Optional[tlists_any]
 
 tlists_array = List[tlist_array]
 olists_array = Optional[tlists_array]
+
+tlists_float = List[tlist_float]
+olists_float = Optional[tlists_float]
 
 tlists_int = List[tlist_int]
 olists_int = Optional[tlists_int]

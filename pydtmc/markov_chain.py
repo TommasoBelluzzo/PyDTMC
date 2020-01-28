@@ -699,31 +699,6 @@ class MarkovChain(metaclass=BaseClass):
 
         return partitions
 
-    @alias('mfpt')
-    @cachedproperty
-    def mean_first_passage_times(self) -> oarray:
-
-        """
-        A property representing the mean first passage times of the Markov chain. If the Markov chain is not *ergodic*, then None is returned.
-
-        | **Aliases:** mfpt
-        """
-
-        if not self.is_ergodic:
-            return None
-
-        a = np.tile(self.pi[0], (self._size, 1))
-        i = np.eye(self._size, dtype=float)
-        z = npl.inv(i - self._p + a)
-
-        e = np.ones((self._size, self._size), dtype=float)
-        k = np.dot(e, np.diag(np.diag(z)))
-
-        m = np.dot(i - z + k, np.diag(1.0 / np.diag(a)))
-        np.fill_diagonal(m, 0.0)
-
-        return m
-
     @cachedproperty
     def mixing_rate(self) -> ofloat:
 
@@ -1211,7 +1186,7 @@ class MarkovChain(metaclass=BaseClass):
     def expected_rewards(self, steps: int, rewards: tnumeric) -> tarray:
 
         """
-        The method computes the expected rewards of the Markov chain after N steps, given the reward value of each state.
+        The method computes the expected rewards of the Markov chain after *N* steps, given the reward value of each state.
 
         :param steps: the number of steps.
         :param rewards: the reward values.
@@ -1238,7 +1213,7 @@ class MarkovChain(metaclass=BaseClass):
     def expected_transitions(self, steps: int, initial_distribution: onumeric = None) -> oarray:
 
         """
-        The method computes the expected number of transitions performed by the Markov chain after N steps, given the initial distribution of the states.
+        The method computes the expected number of transitions performed by the Markov chain after *N* steps, given the initial distribution of the states.
 
         :param steps: the number of steps.
         :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
@@ -1303,6 +1278,113 @@ class MarkovChain(metaclass=BaseClass):
 
         return expected_transitions
 
+    def first_passage_probabilities(self, steps: int, initial_state: tstate, first_passage_states: ostates = None) -> tarray:
+
+        """
+        The method computes the first passage probabilities of the Markov chain after *N* steps, given an initial state and, optionally, the first passage states.
+
+        :param steps: the number of steps.
+        :param initial_state: the initial state.
+        :param first_passage_states: the first passage states.
+        :return: the first passage probabilities of the Markov chain for the given configuration.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            steps = validate_integer(steps, lower_limit=(0, True))
+            initial_state = validate_state(initial_state, self._states)
+
+            if first_passage_states is not None:
+                first_passage_states = validate_states(first_passage_states, self._states, 'regular', True)
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        e = np.ones((self._size, self._size), dtype=float) - np.eye(self._size, dtype=float)
+        g = np.copy(self._p)
+
+        if first_passage_states is None:
+
+            probabilities = np.zeros((steps, self._size), dtype=float)
+            probabilities[0, :] = self._p[initial_state, :]
+
+            for i in range(1, steps):
+                g = np.dot(self._p, g * e)
+                probabilities[i, :] = g[initial_state, :]
+
+        else:
+
+            probabilities = np.zeros(steps, dtype=float)
+            probabilities[0] = np.sum(self._p[initial_state, first_passage_states])
+
+            for i in range(1, steps):
+                g = np.dot(self._p, g * e)
+                probabilities[i] = np.sum(g[initial_state, first_passage_states])
+
+        return probabilities
+
+    def first_passage_reward(self, steps: int, initial_state: tstate, first_passage_states: tstates, rewards: tnumeric) -> float:
+
+        """
+        The method computes the first passage reward of the Markov chain after *N* steps, given the reward value of each state, the initial state and the first passage states.
+
+        :param steps: the number of steps.
+        :param initial_state: the initial state.
+        :param first_passage_states: the first passage states.
+        :param rewards: the reward values.
+        :return: the first passage reward of the Markov chain for the given configuration.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            initial_state = validate_state(initial_state, self._states)
+            first_passage_states = validate_states(first_passage_states, self._states, 'subset', True)
+            rewards = validate_rewards(rewards, self._size)
+            steps = validate_integer(steps, lower_limit=(0, True))
+
+        except Exception as e:
+            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
+            raise ValidationError(str(e).replace('@arg@', argument)) from None
+
+        if initial_state in first_passage_states:
+            raise ValidationError(f'The first passage states cannot include the initial state.')
+
+        if len(first_passage_states) == (self._size - 1):
+            raise ValidationError(f'The first passage states cannot include all the states except the initial one.')
+
+        other_states = sorted(list(set(self._states_indices) - set(first_passage_states)))
+
+        m = self._p[np.ix_(other_states, other_states)]
+        mt = np.copy(m)
+        mr = rewards[other_states]
+
+        k = 1
+        offset = 0
+
+        for j in range(self._size):
+
+            if j not in first_passage_states:
+
+                if j == initial_state:
+                    offset = k
+                    break
+
+                k += 1
+
+        i = np.zeros(len(other_states))
+        i[offset - 1] = 1.0
+
+        reward = 0.0
+
+        for _ in range(steps):
+            reward += np.dot(i, np.dot(mt, mr))
+            mt = np.dot(mt, m)
+
+        return reward
+
     def hitting_probabilities(self, states: ostates = None) -> tarray:
 
         """
@@ -1323,8 +1405,6 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
-
-        states = sorted(states)
 
         target = np.array(states)
         non_target = np.setdiff1d(np.arange(self._size, dtype=int), target)
@@ -1492,23 +1572,23 @@ class MarkovChain(metaclass=BaseClass):
         return MarkovChain(lump, states)
 
     @alias('mfpt_between')
-    def mean_first_passage_times_between(self, states_target: tstates, states_origin: tstates) -> oarray:
+    def mean_first_passage_times_between(self, origins: tstates, targets: tstates) -> ofloat:
 
         """
         The method computes the mean first passage times between the given subsets of the state space.
 
         | **Aliases:** mfpt_between
 
-        :param states_target: the subset of target states.
-        :param states_origin: the subset of origin states.
-        :return: the mean first passage times between the given subsets if the Markov chain is *ergodic*, None otherwise.
+        :param origins: the origin states.
+        :param targets: the target states.
+        :return: the mean first passage times between the given subsets of the state space if the Markov chain is *ergodic*, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            states_target = validate_states(states_target, self._states, 'subset', True)
-            states_origin = validate_states(states_origin, self._states, 'subset', True)
+            origins = validate_states(origins, self._states, 'subset', True)
+            targets = validate_states(targets, self._states, 'subset', True)
 
         except Exception as e:
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
@@ -1517,28 +1597,25 @@ class MarkovChain(metaclass=BaseClass):
         if not self.is_ergodic:
             return None
 
-        states_target = sorted(states_target)
-        states_origin = sorted(states_origin)
-
         a = np.eye(self._size, dtype=float) - self._p
-        a[states_target, :] = 0.0
-        a[states_target, states_target] = 1.0
+        a[targets, :] = 0.0
+        a[targets, targets] = 1.0
 
         b = np.ones(self._size, dtype=float)
-        b[states_target] = 0.0
+        b[targets] = 0.0
 
         mfpt_to = npl.solve(a, b)
 
         pi = self.pi[0]
-        pi_origin_states = pi[states_origin]
+        pi_origin_states = pi[origins]
         mu = pi_origin_states / np.sum(pi_origin_states)
 
-        mfpt_between = np.dot(mu, mfpt_to[states_origin])
+        mfpt_between = np.dot(mu, mfpt_to[origins])
 
         if np.isscalar(mfpt_between):
             mfpt_between = np.array([mfpt_between])
 
-        return mfpt_between
+        return np.asscalar(mfpt_between)
 
     @alias('mfpt_to')
     def mean_first_passage_times_to(self, states: ostates = None) -> oarray:
@@ -1549,15 +1626,13 @@ class MarkovChain(metaclass=BaseClass):
         | **Aliases:** mfpt_to
 
         :param states: the set of target states (if omitted, all the states are targeted).
-        :return: the mean first passage times of each state if the Markov chain is *ergodic*, None otherwise.
+        :return: the mean first passage times to targeted states if the Markov chain is *ergodic*, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            if states is None:
-                states = self._states_indices.copy()
-            else:
+            if states is not None:
                 states = validate_states(states, self._states, 'regular', True)
 
         except Exception as e:
@@ -1567,16 +1642,31 @@ class MarkovChain(metaclass=BaseClass):
         if not self.is_ergodic:
             return None
 
-        states = sorted(states)
+        if states is None:
 
-        a = np.eye(self._size, dtype=float) - self._p
-        a[states, :] = 0.0
-        a[states, states] = 1.0
+            a = np.tile(self.pi[0], (self._size, 1))
+            i = np.eye(self._size, dtype=float)
+            z = npl.inv(i - self._p + a)
 
-        b = np.ones(self._size, dtype=float)
-        b[states] = 0.0
+            e = np.ones((self._size, self._size), dtype=float)
+            k = np.dot(e, np.diag(np.diag(z)))
 
-        return npl.solve(a, b)
+            m = np.dot(i - z + k, np.diag(1.0 / np.diag(a)))
+            np.fill_diagonal(m, 0.0)
+            m = np.transpose(m)
+
+        else:
+
+            a = np.eye(self._size, dtype=float) - self._p
+            a[states, :] = 0.0
+            a[states, states] = 1.0
+
+            b = np.ones(self._size, dtype=float)
+            b[states] = 0.0
+
+            m = npl.solve(a, b)
+
+        return m
 
     def mixing_time(self, initial_distribution: onumeric = None, jump: int = 1, cutoff_type: str = 'natural') -> oint:
 
@@ -1628,7 +1718,7 @@ class MarkovChain(metaclass=BaseClass):
     def predict(self, steps: int, initial_state: ostate = None, include_initial: bool = False, output_indices: bool = False, seed: oint = None) -> twalk:
 
         """
-        The method simulates the most probable outcome in a random walk of N steps.
+        The method simulates the most probable outcome in a random walk of *N* steps.
 
         | **Notes:** in case of probability tie, the subsequent state is chosen uniformly at random among all the equiprobable states.
 
@@ -1719,7 +1809,7 @@ class MarkovChain(metaclass=BaseClass):
     def redistribute(self, steps: int, initial_status: ostatus = None, include_initial: bool = False, output_last: bool = True) -> tlist_array:
 
         """
-        The method simulates a redistribution of states of N steps.
+        The method simulates a redistribution of states of *N* steps.
 
         :param steps: the number of steps.
         :param initial_status: the initial state or the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
@@ -2216,7 +2306,7 @@ class MarkovChain(metaclass=BaseClass):
                     closure[j, x] = closure[j, x] or (closure[j, i] and closure[i, x])
 
         for s in states:
-            for sc in np.ravel([np.where(closure[s, :] == 1)]):
+            for sc in np.ravel([np.where(closure[s, :] == 1.0)]):
                 if sc not in states:
                     states.append(sc)
 
@@ -2254,7 +2344,7 @@ class MarkovChain(metaclass=BaseClass):
     def walk(self, steps: int, initial_state: ostate = None, final_state: ostate = None, include_initial: bool = False, output_indices: bool = False, seed: oint = None) -> twalk:
 
         """
-        The method simulates a random walk of N steps.
+        The method simulates a random walk of *N* steps.
 
         :param steps: the number of steps.
         :param initial_state: the initial state of the walk (if omitted, it is chosen uniformly at random).
@@ -2639,6 +2729,11 @@ class MarkovChain(metaclass=BaseClass):
             p = validate_vector(p, 'creation', False)
             q = validate_vector(q, 'annihilation', False)
 
+            if states is None:
+                states = [str(i) for i in range(1, {p.shape[0], q.shape[0]}.pop() + 1)]
+            else:
+                states = validate_state_names(states, {p.shape[0], q.shape[0]}.pop())
+
         except Exception as e:
             argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
             raise ValidationError(str(e).replace('@arg@', argument)) from None
@@ -2648,19 +2743,6 @@ class MarkovChain(metaclass=BaseClass):
 
         if not np.all(q + p <= 1.0):
             raise ValidationError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
-
-        n = {p.shape[0], q.shape[0]}.pop()
-
-        try:
-
-            if states is None:
-                states = [str(i) for i in range(1, n + 1)]
-            else:
-                states = validate_state_names(states, n)
-
-        except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
 
         r = 1.0 - q - p
         p = np.diag(r, k=0) + np.diag(p[0:-1], k=1) + np.diag(q[1:], k=-1)
