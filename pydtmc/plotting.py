@@ -283,9 +283,10 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
         img_x = img.shape[0] / dpi
         img_y = img.shape[1] / dpi
 
-        figure = pp.figure(figsize=(img_y, img_x), dpi=dpi)
+        figure = pp.figure(figsize=(img_y + 1.1, img_x + 1.1), dpi=dpi)
         figure.figimage(img)
         ax = figure.gca()
+        ax.axis('off')
 
     else:
 
@@ -532,7 +533,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
         ax.set_xlabel('Steps', fontsize=13.0)
         ax.set_xticks(np.arange(0.0, walk_len + 1.0, 1.0 if walk_len <= 11 else 10.0), minor=False)
         ax.set_xticks(np.arange(-0.5, walk_len, 1.0), minor=True)
-        ax.set_xticklabels(np.arange(0, walk_len, 1 if walk_len <= 11 else 10))
+        ax.set_xticklabels(np.arange(0, walk_len + 1, 1 if walk_len <= 11 else 10))
         ax.set_xlim(-0.5, walk_len - 0.5)
 
         ax.set_ylabel('States', fontsize=13.0)
