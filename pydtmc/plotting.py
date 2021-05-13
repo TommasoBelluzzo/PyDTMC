@@ -283,9 +283,10 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
         img_x = img.shape[0] / dpi
         img_y = img.shape[1] / dpi
 
-        figure = pp.figure(figsize=(img_y, img_x), dpi=dpi)
+        figure = pp.figure(figsize=(img_y + 1.1, img_x + 1.1), dpi=dpi)
         figure.figimage(img)
         ax = figure.gca()
+        ax.axis('off')
 
     else:
 
