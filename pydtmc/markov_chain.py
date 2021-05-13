@@ -641,7 +641,7 @@ class MarkovChain(metaclass=BaseClass):
 
         n = self.fundamental_matrix
 
-        return np.asscalar(np.trace(n))
+        return np.trace(n).item()
 
     # noinspection PyBroadException
     @cachedproperty
@@ -1615,7 +1615,7 @@ class MarkovChain(metaclass=BaseClass):
         if np.isscalar(mfpt_between):
             mfpt_between = np.array([mfpt_between])
 
-        return np.asscalar(mfpt_between)
+        return mfpt_between.item()
 
     @alias('mfpt_to')
     def mean_first_passage_times_to(self, states: ostates = None) -> oarray:
@@ -1763,7 +1763,7 @@ class MarkovChain(metaclass=BaseClass):
             w = np.zeros(self._size, dtype=float)
             w[d_max] = 1.0 / d_max.size
 
-            current_state = np.asscalar(rng.choice(self._size, size=1, p=w))
+            current_state = rng.choice(self._size, size=1, p=w).item()
             prediction.append(current_state)
 
         if not output_indices:
@@ -1958,7 +1958,7 @@ class MarkovChain(metaclass=BaseClass):
                 m1 = np.multiply(observations1, pi)
                 m2 = np.dot(p_times, observations2)
 
-                time_correlation = np.asscalar(np.dot(m1, m2))
+                time_correlation = np.dot(m1, m2).item()
                 time_correlations.append(time_correlation)
 
         else:
@@ -2060,7 +2060,7 @@ class MarkovChain(metaclass=BaseClass):
 
                 p_times = np.dot(np.dot(r, t), l)
 
-                time_relaxation = np.asscalar(np.dot(np.dot(initial_distribution, p_times), observations))
+                time_relaxation = np.dot(np.dot(initial_distribution, p_times), observations).item()
                 time_relaxations.append(time_relaxation)
 
         else:
@@ -2096,7 +2096,7 @@ class MarkovChain(metaclass=BaseClass):
 
                 start_values = (time_point, pk_i)
 
-                time_relaxation = np.asscalar(np.dot(pk_i, observations))
+                time_relaxation = np.dot(pk_i, observations).item()
                 time_relaxations.append(time_relaxation)
 
         if time_points_integer:
@@ -2387,7 +2387,7 @@ class MarkovChain(metaclass=BaseClass):
         for i in range(steps):
 
             w = self._p[current_state, :]
-            current_state = np.asscalar(rng.choice(self._size, size=1, p=w))
+            current_state = rng.choice(self._size, size=1, p=w).item()
             walk.append(current_state)
 
             if current_state == final_state:
@@ -3034,7 +3034,7 @@ class MarkovChain(metaclass=BaseClass):
         for i in range(size):
 
             fi = f[i, :]
-            n = np.asscalar(np.sum(fi))
+            n = np.sum(fi).item()
 
             c = -1
             tp = tp_previous = 0.0
@@ -3362,7 +3362,7 @@ class MarkovChain(metaclass=BaseClass):
         mask[np.isnan(mask) & mask_full] = 0.0
 
         mask_unassigned = np.isnan(mask)
-        zeros_required = np.asscalar(np.sum(mask_unassigned) - np.sum(~full_rows))
+        zeros_required = (np.sum(mask_unassigned) - np.sum(~full_rows)).item()
 
         if zeros > zeros_required:
             raise ValidationError(f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.')
@@ -3373,7 +3373,7 @@ class MarkovChain(metaclass=BaseClass):
             if not full_rows[i]:
                 row = mask_unassigned[i, :]
                 columns = np.flatnonzero(row)
-                j = columns[rng.randint(0, np.asscalar(np.sum(row)))]
+                j = columns[rng.randint(0, np.sum(row).item())]
                 mask[i, j] = np.inf
 
         mask_unassigned = np.isnan(mask)
@@ -3388,7 +3388,7 @@ class MarkovChain(metaclass=BaseClass):
 
         p = np.copy(mask)
         p_unassigned = np.isnan(mask)
-        p[p_unassigned] = np.ravel(rng.rand(1, np.asscalar(np.sum(p_unassigned, dtype=int))))
+        p[p_unassigned] = np.ravel(rng.rand(1, np.sum(p_unassigned, dtype=int).item()))
 
         for i in n:
 
