@@ -3,7 +3,7 @@
 __all__ = [
     # Generic
     'ofloat', 'oint',
-    'tany', 'titerable',
+    'tany', 'texception', 'titerable',
     # Specific
     'tarray', 'oarray',
     'tbcond', 'obcond',
@@ -91,6 +91,7 @@ ofloat = Optional[float]
 oint = Optional[int]
 
 tany = Any
+texception = Exception
 titerable = Iterable
 
 # Specific

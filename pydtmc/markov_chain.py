@@ -15,8 +15,6 @@ __all__ = [
 import networkx as nx
 import numpy as np
 import numpy.linalg as npl
-import numpy.random as npr
-import numpy.random.mtrand as nprm
 import scipy.integrate as spi
 import scipy.optimize as spo
 import scipy.stats as sps
@@ -55,45 +53,13 @@ from os.path import (
 
 # Internal
 
-from .base_class import (
-    BaseClass
-)
-
+from .algorithms import *
+from .base_class import *
 from .custom_types import *
-
-from .decorators import (
-    alias,
-    aliased,
-    cachedproperty
-)
-
-from .exceptions import (
-    ValidationError
-)
-
-from .validation import (
-    validate_boolean,
-    validate_boundary_condition,
-    validate_dictionary,
-    validate_enumerator,
-    validate_float,
-    validate_hyperparameter,
-    validate_integer,
-    validate_interval,
-    validate_mask,
-    validate_matrix,
-    validate_partitions,
-    validate_rewards,
-    validate_state,
-    validate_state_names,
-    validate_states,
-    validate_status,
-    validate_string,
-    validate_time_points,
-    validate_transition_function,
-    validate_transition_matrix,
-    validate_vector
-)
+from .decorators import *
+from .exceptions import *
+from .utilities import *
+from .validation import *
 
 
 ###########
@@ -129,8 +95,7 @@ class MarkovChain(metaclass=BaseClass):
                     states = validate_state_names(states, p.shape[0])
 
             except Exception as e:
-                argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-                raise ValidationError(str(e).replace('@arg@', argument)) from None
+                raise generate_validation_error(e, trace()) from None
 
         self._digraph: tgraph = nx.DiGraph(p)
         self._p: tarray = p
@@ -160,6 +125,7 @@ class MarkovChain(metaclass=BaseClass):
 
         lines.append('DISCRETE-TIME MARKOV CHAIN')
         lines.append(f' SIZE:           {self._size:d}')
+        lines.append(f' RANK:           {self.rank:d}')
 
         lines.append(f' CLASSES:        {len(self.communicating_classes):d}')
         lines.append(f'  > RECURRENT:   {len(self.recurrent_classes):d}')
@@ -181,17 +147,23 @@ class MarkovChain(metaclass=BaseClass):
     @cachedproperty
     def _absorbing_states_indices(self) -> tlist_int:
 
-        return [i for i in range(self._size) if np.isclose(self._p[i, i], 1.0)]
+        indices = [index for index in range(self._size) if np.isclose(self._p[index, index], 1.0)]
+
+        return indices
 
     @cachedproperty
     def _classes_indices(self) -> tlists_int:
 
-        return [sorted([index for index in component]) for component in nx.strongly_connected_components(self._digraph)]
+        indices = [sorted([index for index in scc]) for scc in nx.strongly_connected_components(self._digraph)]
+
+        return indices
 
     @cachedproperty
     def _communicating_classes_indices(self) -> tlists_int:
 
-        return sorted(self._classes_indices, key=lambda x: (-len(x), x[0]))
+        indices = sorted(self._classes_indices, key=lambda x: (-len(x), x[0]))
+
+        return indices
 
     @cachedproperty
     def _cyclic_classes_indices(self) -> tlists_int:
@@ -202,53 +174,17 @@ class MarkovChain(metaclass=BaseClass):
         if self.is_aperiodic:
             return self._communicating_classes_indices.copy()
 
-        v = np.zeros(self._size, dtype=int)
-        v[0] = 1
+        indices = find_cyclic_classes(self._p)
+        indices = sorted(indices, key=lambda x: (-len(x), x[0]))
 
-        w = np.array([], dtype=int)
-        t = np.array([0], dtype=int)
-
-        d = 0
-        m = 1
-
-        while (m > 0) and (d != 1):
-
-            i = t[0]
-            j = 0
-
-            t = np.delete(t, 0)
-            w = np.append(w, i)
-
-            while j < self._size:
-
-                if self._p[i, j] > 0.0:
-                    r = np.append(w, t)
-                    k = np.sum(r == j)
-
-                    if k > 0:
-                        b = v[i] - v[j] + 1
-                        d = gcd(d, b)
-                    else:
-                        t = np.append(t, j)
-                        v[j] = v[i] + 1
-
-                j += 1
-
-            m = t.size
-
-        v = np.remainder(v, d)
-
-        indices = list()
-
-        for u in np.unique(v):
-            indices.append(list(chain.from_iterable(np.argwhere(v == u))))
-
-        return sorted(indices, key=lambda x: (-len(x), x[0]))
+        return indices
 
     @cachedproperty
     def _cyclic_states_indices(self) -> tlist_int:
 
-        return sorted(list(chain.from_iterable(self._cyclic_classes_indices)))
+        indices = sorted(list(chain.from_iterable(self._cyclic_classes_indices)))
+
+        return indices
 
     @cachedproperty
     def _eigenvalues_sorted(self) -> oarray:
@@ -261,22 +197,7 @@ class MarkovChain(metaclass=BaseClass):
     @cachedproperty
     def _rdl_decomposition(self) -> trdl:
 
-        values, vectors = npl.eig(self._p)
-
-        indices = np.argsort(np.abs(values))[::-1]
-        values = values[indices]
-        vectors = vectors[:, indices]
-
-        r = np.copy(vectors)
-        d = np.diag(values)
-        l = npl.solve(np.transpose(r), np.eye(self._size))
-
-        r[:, 0] *= np.sum(l[:, 0])
-        l[:, 0] /= np.sum(l[:, 0])
-
-        r = np.real(r)
-        d = np.real(d)
-        l = np.transpose(np.real(l))
+        r, d, l = rdl_decomposition(self._p)
 
         return r, d, l
 
@@ -284,13 +205,16 @@ class MarkovChain(metaclass=BaseClass):
     def _recurrent_classes_indices(self) -> tlists_int:
 
         indices = [index for index in self._classes_indices if index not in self._transient_classes_indices]
+        indices = sorted(indices, key=lambda x: (-len(x), x[0]))
 
-        return sorted(indices, key=lambda x: (-len(x), x[0]))
+        return indices
 
     @cachedproperty
     def _recurrent_states_indices(self) -> tlist_int:
 
-        return sorted(list(chain.from_iterable(self._recurrent_classes_indices)))
+        indices = sorted(list(chain.from_iterable(self._recurrent_classes_indices)))
+
+        return indices
 
     @cachedproperty
     def _slem(self) -> ofloat:
@@ -299,12 +223,12 @@ class MarkovChain(metaclass=BaseClass):
             return None
 
         values = self._eigenvalues_sorted
-        values_ct1 = np.isclose(values, 1.0)
+        indices = np.isclose(values, 1.0)
 
-        if np.all(values_ct1):
+        if np.all(indices):
             return None
 
-        slem = values[~values_ct1][-1]
+        slem = values[~indices][-1]
 
         if np.isclose(slem, 0.0):
             return None
@@ -314,20 +238,26 @@ class MarkovChain(metaclass=BaseClass):
     @cachedproperty
     def _states_indices(self) -> tlist_int:
 
-        return list(range(self._size))
+        indices = list(range(self._size))
+
+        return indices
 
     @cachedproperty
     def _transient_classes_indices(self) -> tlists_int:
 
         edges = set([edge1 for (edge1, edge2) in nx.condensation(self._digraph).edges])
-        indices = [self._classes_indices[edge] for edge in edges]
 
-        return sorted(indices, key=lambda x: (-len(x), x[0]))
+        indices = [self._classes_indices[edge] for edge in edges]
+        indices = sorted(indices, key=lambda x: (-len(x), x[0]))
+
+        return indices
 
     @cachedproperty
     def _transient_states_indices(self) -> tlist_int:
 
-        return sorted(list(chain.from_iterable(self._transient_classes_indices)))
+        indices = sorted(list(chain.from_iterable(self._transient_classes_indices)))
+
+        return indices
 
     @cachedproperty
     def absorbing_states(self) -> tlists_str:
@@ -336,28 +266,31 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the absorbing states of the Markov chain.
         """
 
-        return [*map(self._states.__getitem__, self._absorbing_states_indices)]
+        states = [*map(self._states.__getitem__, self._absorbing_states_indices)]
+
+        return states
 
     @cachedproperty
     def absorption_probabilities(self) -> oarray:
 
         """
-        A property representing the absorption probabilities of the Markov chain. If the Markov chain is not *absorbing* and has no transient states, then None is returned.
+        A property representing the absorption probabilities of the Markov chain. If the Markov chain has no transient states, then None is returned.
         """
 
-        if self.is_absorbing:
+        if len(self.transient_states) == 0:
+            return None
 
-            n = self.fundamental_matrix
+        n = self.fundamental_matrix
+
+        if self.is_absorbing:
 
             absorbing_indices = self._absorbing_states_indices
             transient_indices = self._transient_states_indices
             r = self._p[np.ix_(transient_indices, absorbing_indices)]
 
-            return np.transpose(np.matmul(n, r))
+            ap = np.transpose(np.matmul(n, r))
 
-        if len(self.transient_states) > 0:
-
-            n = self.fundamental_matrix
+        else:
 
             recurrent_indices = self._recurrent_classes_indices
             transient_indices = self._transient_states_indices
@@ -367,23 +300,9 @@ class MarkovChain(metaclass=BaseClass):
                 for j, recurrent_class in enumerate(recurrent_indices):
                     r[i, j] = np.sum(self._p[transient_state, :][:, recurrent_class])
 
-            return np.transpose(np.matmul(n, r))
+            ap = np.transpose(np.matmul(n, r))
 
-        return None
-
-    @cachedproperty
-    def absorption_times(self) -> oarray:
-
-        """
-        A property representing the absorption times of the Markov chain. If the Markov chain is not *absorbing*, then None is returned.
-        """
-
-        if not self.is_absorbing:
-            return None
-
-        n = self.fundamental_matrix
-
-        return np.transpose(np.dot(n, np.ones(n.shape[0], dtype=float)))
+        return ap
 
     @cachedproperty
     def accessibility_matrix(self) -> tarray:
@@ -416,7 +335,23 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the communicating classes of the Markov chain.
         """
 
-        return [[*map(self._states.__getitem__, i)] for i in self._communicating_classes_indices]
+        classes = [[*map(self._states.__getitem__, i)] for i in self._communicating_classes_indices]
+
+        return classes
+
+    @cachedproperty
+    def communication_matrix(self) -> tarray:
+
+        """
+        A property representing the communication matrix of the Markov chain.
+        """
+
+        m = np.zeros((self._size, self._size), dtype=int)
+
+        for index in self._communicating_classes_indices:
+            m[np.ix_(index, index)] = 1
+
+        return m
 
     @cachedproperty
     def cyclic_classes(self) -> tlists_str:
@@ -425,7 +360,9 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the cyclic classes of the Markov chain.
         """
 
-        return [[*map(self._states.__getitem__, i)] for i in self._cyclic_classes_indices]
+        classes = [[*map(self._states.__getitem__, i)] for i in self._cyclic_classes_indices]
+
+        return classes
 
     @cachedproperty
     def cyclic_states(self) -> tlists_str:
@@ -434,7 +371,9 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the cyclic states of the Markov chain.
         """
 
-        return [*map(self._states.__getitem__, self._cyclic_states_indices)]
+        states = [*map(self._states.__getitem__, self._cyclic_states_indices)]
+
+        return states
 
     @cachedproperty
     def determinant(self) -> float:
@@ -570,10 +509,12 @@ class MarkovChain(metaclass=BaseClass):
         recurrent_indices = self._recurrent_states_indices
         transient_indices = self._transient_states_indices
 
-        if (len(recurrent_indices) == 0) or (len(transient_indices) == 0):
+        if len(recurrent_indices) == 0 or len(transient_indices) == 0:
             return True
 
-        return max(transient_indices) < min(recurrent_indices)
+        result = max(transient_indices) < min(recurrent_indices)
+
+        return result
 
     @cachedproperty
     def is_ergodic(self) -> bool:
@@ -600,10 +541,17 @@ class MarkovChain(metaclass=BaseClass):
         A property indicating whether the Markov chain is regular.
         """
 
-        values = self._eigenvalues_sorted
-        values_ct1 = np.isclose(values, 1.0)
+        d = np.diagonal(self._p)
+        nz = np.count_nonzero(d)
 
-        return values_ct1[0] and not any(values_ct1[1:])
+        if nz > 0:
+            k = (2 * self._size) - nz - 1
+        else:
+            k = self._size**self._size - (2 * self._size) + 2
+
+        reachable = self._p**k
+
+        return np.all(reachable > 0.0)
 
     @cachedproperty
     def is_reversible(self) -> bool:
@@ -618,7 +566,7 @@ class MarkovChain(metaclass=BaseClass):
         pi = self.pi[0]
         x = pi[:, np.newaxis] * self._p
 
-        return np.allclose(x, np.transpose(x), atol=1e-10)
+        return np.allclose(x, np.transpose(x))
 
     @cachedproperty
     def is_symmetric(self) -> bool:
@@ -627,7 +575,7 @@ class MarkovChain(metaclass=BaseClass):
         A property indicating whether the Markov chain is symmetric.
         """
 
-        return np.allclose(self._p, np.transpose(self._p), atol=1e-10)
+        return np.allclose(self._p, np.transpose(self._p))
 
     @cachedproperty
     def kemeny_constant(self) -> ofloat:
@@ -636,14 +584,13 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the Kemeny's constant of the fundamental matrix of the Markov chain. If the Markov chain is not *absorbing*, then None is returned.
         """
 
-        if not self.is_absorbing:
+        if not self.is_absorbing or len(self.transient_states) == 0:
             return None
 
         n = self.fundamental_matrix
 
         return np.trace(n).item()
 
-    # noinspection PyBroadException
     @cachedproperty
     def lumping_partitions(self) -> tparts:
 
@@ -654,50 +601,38 @@ class MarkovChain(metaclass=BaseClass):
         if self._size == 2:
             return []
 
-        k = self._size - 1
-        possible_partitions = []
-
-        for i in range(2**k):
-
-            partition = []
-            subset = []
-
-            for position in range(self._size):
-
-                subset.append(self._states_indices[position])
-
-                if ((1 << position) & i) or (position == k):
-                    partition.append(subset)
-                    subset = []
-
-            partition_length = len(partition)
-
-            if (partition_length >= 2) and (partition_length < self._size):
-                possible_partitions.append(partition)
-
-        partitions = []
-
-        for partition in possible_partitions:
-
-            r = np.zeros((self._size, len(partition)), dtype=float)
-
-            for i, lumping in enumerate(partition):
-                for state in lumping:
-                    r[state, i] = 1.0
-
-            try:
-                k = np.dot(np.linalg.inv(np.dot(np.transpose(r), r)), np.transpose(r))
-            except Exception:
-                continue
-
-            left = np.dot(np.dot(np.dot(r, k), self._p), r)
-            right = np.dot(self._p, r)
-            lumpability = np.array_equal(left, right)
-
-            if lumpability:
-                partitions.append(partition)
+        partitions = find_lumping_partitions(self._p)
 
         return partitions
+
+    @cachedproperty
+    def mean_absorption_times(self) -> oarray:
+
+        """
+        A property representing the mean absorption times of the Markov chain. If the Markov chain is not *absorbing* or has no transient states, then None is returned.
+        """
+
+        if not self.is_absorbing or len(self.transient_states) == 0:
+            return None
+
+        n = self.fundamental_matrix
+        mat = np.transpose(np.dot(n, np.ones(n.shape[0], dtype=float)))
+
+        return mat
+
+    @cachedproperty
+    def mean_recurrence_times(self) -> oarray:
+
+        """
+        A property representing the mean recurrence times of the Markov chain. If the Markov chain is not *ergodic*, then None is returned.
+        """
+
+        if not self.is_ergodic:
+            return None
+
+        mrt = np.array([0.0 if np.isclose(v, 0.0) else 1.0 / v for v in self.pi[0]])
+
+        return mrt
 
     @cachedproperty
     def mixing_rate(self) -> ofloat:
@@ -760,7 +695,7 @@ class MarkovChain(metaclass=BaseClass):
             index = self._communicating_classes_indices.index(sorted(list(sccs)))
 
             if (sccs_reachable - sccs) == set():
-                periods[index] = MarkovChain._calculate_period(self._digraph.subgraph(sccs))
+                periods[index] = calculate_period(self._digraph.subgraph(sccs))
             else:
                 periods[index] = 1
 
@@ -777,14 +712,14 @@ class MarkovChain(metaclass=BaseClass):
         """
 
         if self.is_irreducible:
-            s = np.reshape(MarkovChain._gth_solve(self._p), (1, self._size))
+            s = np.reshape(gth_solve(self._p), (1, self._size))
         else:
 
             s = np.zeros((len(self.recurrent_classes), self._size), dtype=float)
 
             for i, indices in enumerate(self._recurrent_classes_indices):
                 pr = self._p[np.ix_(indices, indices)]
-                s[i, indices] = MarkovChain._gth_solve(pr)
+                s[i, indices] = gth_solve(pr)
 
         pi = list()
 
@@ -801,26 +736,6 @@ class MarkovChain(metaclass=BaseClass):
         """
 
         return npl.matrix_rank(self._p)
-
-    @cachedproperty
-    def recurrence_times(self) -> oarray:
-
-        """
-        A property representing the recurrence times of the Markov chain. If the Markov chain has no recurrent states, then None is returned.
-        """
-
-        if len(self._recurrent_states_indices) == 0:
-            return None
-
-        pi = np.vstack(self.pi)
-        rts = []
-
-        for i in range(pi.shape[0]):
-            for j in range(pi.shape[1]):
-                if not np.isclose(pi[i, j], 0.0):
-                    rts.append(1.0 / pi[i, j])
-
-        return np.array(rts)
 
     @cachedproperty
     def recurrent_classes(self) -> tlists_str:
@@ -933,8 +848,7 @@ class MarkovChain(metaclass=BaseClass):
             state2 = validate_state(state2, self._states)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         a1 = self.accessibility_matrix[state1, state2] != 0
         a2 = self.accessibility_matrix[state2, state1] != 0
@@ -966,8 +880,7 @@ class MarkovChain(metaclass=BaseClass):
             weighted = validate_boolean(weighted)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         non_zeros = np.count_nonzero(distribution)
         zeros = len(distribution) - non_zeros
@@ -1127,8 +1040,7 @@ class MarkovChain(metaclass=BaseClass):
             states2 = validate_states(states2, self._states, 'subset', True)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if not self.is_ergodic:
             return None
@@ -1178,8 +1090,7 @@ class MarkovChain(metaclass=BaseClass):
             state = validate_state(state, self._states)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         return self._p[state, :]
 
@@ -1200,8 +1111,7 @@ class MarkovChain(metaclass=BaseClass):
             steps = validate_integer(steps, lower_limit=(0, True))
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         original_rewards = np.copy(rewards)
 
@@ -1231,8 +1141,7 @@ class MarkovChain(metaclass=BaseClass):
                 initial_distribution = validate_vector(initial_distribution, 'stochastic', False, size=self._size)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if steps <= self._size:
 
@@ -1243,40 +1152,29 @@ class MarkovChain(metaclass=BaseClass):
                 pi = np.dot(pi, self._p)
                 p_sum += pi
 
-            expected_transitions = p_sum[:, np.newaxis] * self._p
+            et = p_sum[:, np.newaxis] * self._p
 
         else:
 
-            values, rvecs = npl.eig(self._p)
-            indices = np.argsort(np.abs(values))[::-1]
-
-            d = np.diag(values[indices])
-            rvecs = rvecs[:, indices]
-            lvecs = npl.solve(np.transpose(rvecs), np.eye(self._size, dtype=float))
-
-            lvecs_sum = np.sum(lvecs[:, 0])
-
-            if not np.isclose(lvecs_sum, 0.0):
-                rvecs[:, 0] = rvecs[:, 0] * lvecs_sum
-                lvecs[:, 0] = lvecs[:, 0] / lvecs_sum
-
+            r, d, l = self._rdl_decomposition(self._p)
             q = np.asarray(np.diagonal(d))
 
-            if np.isscalar(q):
-                ds = steps if np.isclose(q, 1.0) else (1.0 - q**steps) / (1.0 - q)
+            if q.size == 1:
+                q = q.item()
+                gs = steps if np.isclose(q, 1.0) else (1.0 - q**steps) / (1.0 - q)
             else:
-                ds = np.zeros(np.shape(q), dtype=q.dtype)
-                indices_et1 = (q == 1.0)
-                ds[indices_et1] = steps
-                ds[~indices_et1] = (1.0 - q[~indices_et1]**steps) / (1.0 - q[~indices_et1])
+                gs = np.zeros(np.shape(q), dtype=q.dtype)
+                indices = (q == 1.0)
+                gs[indices] = steps
+                gs[~indices] = (1.0 - q[~indices]**steps) / (1.0 - q[~indices])
 
-            ds = np.diag(ds)
-            ts = np.dot(np.dot(rvecs, ds), np.conjugate(np.transpose(lvecs)))
+            ds = np.diag(gs)
+            ts = np.dot(np.dot(r, ds), np.conjugate(l))
             ps = np.dot(initial_distribution, ts)
 
-            expected_transitions = np.real(ps[:, np.newaxis] * self._p)
+            et = np.real(ps[:, np.newaxis] * self._p)
 
-        return expected_transitions
+        return et
 
     def first_passage_probabilities(self, steps: int, initial_state: tstate, first_passage_states: ostates = None) -> tarray:
 
@@ -1299,8 +1197,7 @@ class MarkovChain(metaclass=BaseClass):
                 first_passage_states = validate_states(first_passage_states, self._states, 'regular', True)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         e = np.ones((self._size, self._size), dtype=float) - np.eye(self._size, dtype=float)
         g = np.copy(self._p)
@@ -1346,8 +1243,7 @@ class MarkovChain(metaclass=BaseClass):
             steps = validate_integer(steps, lower_limit=(0, True))
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if initial_state in first_passage_states:
             raise ValidationError(f'The first passage states cannot include the initial state.')
@@ -1385,43 +1281,88 @@ class MarkovChain(metaclass=BaseClass):
 
         return reward
 
-    def hitting_probabilities(self, states: ostates = None) -> tarray:
+    def hitting_probabilities(self, targets: ostates = None) -> tarray:
 
         """
-        The method computes the hitting probability, for all the states of the Markov chain, to the given set of states.
+        The method computes the hitting probability, for the states of the Markov chain, to the given set of states.
 
-        :param states: the set of target states (if omitted, all the states are targeted).
+        :param targets: the target states (if omitted, all the states are targeted).
         :return: the hitting probability of each state of the Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            if states is None:
-                states = self._states_indices.copy()
+            if targets is None:
+                targets = self._states_indices.copy()
             else:
-                states = validate_states(states, self._states, 'regular', True)
+                targets = validate_states(targets, self._states, 'regular', True)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
-        target = np.array(states)
+        target = np.array(targets)
         non_target = np.setdiff1d(np.arange(self._size, dtype=int), target)
 
-        stable = np.ravel(np.where(np.isclose(np.diag(self._p), 1.0)))
-        origin = np.setdiff1d(non_target, stable)
-
-        a = self._p[origin, :][:, origin] - np.eye((len(origin)), dtype=float)
-        b = np.sum(-self._p[origin, :][:, target], axis=1)
-        x = npl.solve(a, b)
-
         hp = np.ones(self._size, dtype=float)
-        hp[origin] = x
-        hp[states] = 1.0
-        hp[stable] = 0.0
+
+        if non_target.size > 0:
+
+            a = self._p[non_target, :][:, non_target] - np.eye(non_target.size, dtype=float)
+            b = np.sum(-self._p[non_target, :][:, target], axis=1)
+            x = spo.nnls(a, b)[0]
+            hp[non_target] = x
 
         return hp
+
+    def hitting_times(self, targets: ostates = None) -> tarray:
+
+        """
+        The method computes the hitting times, for all the states of the Markov chain, to the given set of states.
+
+        :param targets: the target states (if omitted, all the states are targeted).
+        :return: the hitting probability of each state of the Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            if targets is None:
+                targets = self._states_indices.copy()
+            else:
+                targets = validate_states(targets, self._states, 'regular', True)
+
+        except Exception as e:
+            raise generate_validation_error(e, trace()) from None
+
+        target = np.array(targets)
+
+        hp = self.hitting_probabilities(targets)
+        ht = np.zeros(self._size, dtype=float)
+
+        infinity = np.flatnonzero(np.isclose(hp, 0.0))
+        current_size = infinity.size
+        new_size = 0
+
+        while current_size != new_size:
+
+            x = np.flatnonzero(np.sum(self._p[:, infinity], axis=1))
+            infinity = np.setdiff1d(np.union1d(infinity, x), target)
+            new_size = current_size
+            current_size = infinity.size
+
+        ht[infinity] = np.Inf
+
+        solve = np.setdiff1d(self._states_indices, np.union1d(target, infinity))
+
+        if solve.size > 0:
+
+            a = self._p[solve, :][:, solve] - np.eye(solve.size, dtype=float)
+            b = -np.ones(solve.size, dtype=float)
+            x = spo.nnls(a, b)[0]
+            ht[solve] = x
+
+        return ht
 
     def is_absorbing_state(self, state: tstate) -> bool:
 
@@ -1438,8 +1379,7 @@ class MarkovChain(metaclass=BaseClass):
             state = validate_state(state, self._states)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         return state in self._absorbing_states_indices
 
@@ -1460,8 +1400,7 @@ class MarkovChain(metaclass=BaseClass):
             state_origin = validate_state(state_origin, self._states)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         return self.accessibility_matrix[state_origin, state_target] != 0
 
@@ -1480,8 +1419,7 @@ class MarkovChain(metaclass=BaseClass):
             state = validate_state(state, self._states)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         return state in self._cyclic_states_indices
 
@@ -1500,8 +1438,7 @@ class MarkovChain(metaclass=BaseClass):
             state = validate_state(state, self._states)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         return state in self._recurrent_states_indices
 
@@ -1520,8 +1457,7 @@ class MarkovChain(metaclass=BaseClass):
             state = validate_state(state, self._states)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         return state in self._transient_states_indices
 
@@ -1542,8 +1478,7 @@ class MarkovChain(metaclass=BaseClass):
             partitions = validate_partitions(partitions, self._states)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if self._size == 2:
             raise ValueError('The Markov chain defines only two states and cannot be lumped.')
@@ -1591,8 +1526,7 @@ class MarkovChain(metaclass=BaseClass):
             targets = validate_states(targets, self._states, 'subset', True)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if not self.is_ergodic:
             return None
@@ -1618,31 +1552,30 @@ class MarkovChain(metaclass=BaseClass):
         return mfpt_between.item()
 
     @alias('mfpt_to')
-    def mean_first_passage_times_to(self, states: ostates = None) -> oarray:
+    def mean_first_passage_times_to(self, targets: ostates = None) -> oarray:
 
         """
         The method computes the mean first passage times, for all the states, to the given set of states.
 
         | **Aliases:** mfpt_to
 
-        :param states: the set of target states (if omitted, all the states are targeted).
+        :param targets: the target states (if omitted, all the states are targeted).
         :return: the mean first passage times to targeted states if the Markov chain is *ergodic*, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            if states is not None:
-                states = validate_states(states, self._states, 'regular', True)
+            if targets is not None:
+                targets = validate_states(targets, self._states, 'regular', True)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if not self.is_ergodic:
             return None
 
-        if states is None:
+        if targets is None:
 
             a = np.tile(self.pi[0], (self._size, 1))
             i = np.eye(self._size, dtype=float)
@@ -1653,16 +1586,15 @@ class MarkovChain(metaclass=BaseClass):
 
             m = np.dot(i - z + k, np.diag(1.0 / np.diag(a)))
             np.fill_diagonal(m, 0.0)
-            m = np.transpose(m)
 
         else:
 
             a = np.eye(self._size, dtype=float) - self._p
-            a[states, :] = 0.0
-            a[states, states] = 1.0
+            a[targets, :] = 0.0
+            a[targets, targets] = 1.0
 
             b = np.ones(self._size, dtype=float)
-            b[states] = 0.0
+            b[targets] = 0.0
 
             m = npl.solve(a, b)
 
@@ -1691,8 +1623,7 @@ class MarkovChain(metaclass=BaseClass):
             cutoff_type = validate_enumerator(cutoff_type, ['natural', 'traditional'])
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if not self.is_ergodic:
             return None
@@ -1733,7 +1664,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            rng = MarkovChain._create_rng(seed)
+            rng = create_rng(seed)
 
             steps = validate_integer(steps, lower_limit=(0, True))
 
@@ -1746,8 +1677,7 @@ class MarkovChain(metaclass=BaseClass):
             output_indices = validate_boolean(output_indices)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         prediction = list()
 
@@ -1789,8 +1719,7 @@ class MarkovChain(metaclass=BaseClass):
                 hyperparameter = validate_hyperparameter(hyperparameter, self._size)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         lps = np.zeros(self._size, dtype=float)
 
@@ -1832,8 +1761,7 @@ class MarkovChain(metaclass=BaseClass):
             output_last = validate_boolean(output_last)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         distributions = np.zeros((steps, self._size), dtype=float)
 
@@ -1869,8 +1797,7 @@ class MarkovChain(metaclass=BaseClass):
             state = validate_state(state, self._states)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if not self.is_irreducible:
             return None
@@ -1913,8 +1840,7 @@ class MarkovChain(metaclass=BaseClass):
             time_points = validate_time_points(time_points)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if not self.is_ergodic:
             return None
@@ -2028,8 +1954,7 @@ class MarkovChain(metaclass=BaseClass):
             time_points = validate_time_points(time_points)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if not self.is_ergodic:
             return None
@@ -2121,8 +2046,7 @@ class MarkovChain(metaclass=BaseClass):
             boundary_condition = validate_boundary_condition(boundary_condition)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         first = np.zeros(self._size, dtype=float)
         last = np.zeros(self._size, dtype=float)
@@ -2203,8 +2127,7 @@ class MarkovChain(metaclass=BaseClass):
             multi = validate_boolean(multi)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if multi:
             graph = nx.MultiDiGraph(self._p)
@@ -2232,8 +2155,7 @@ class MarkovChain(metaclass=BaseClass):
             file_path = validate_string(file_path)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         file_extension = splitext(file_path)[1][1:].lower()
 
@@ -2273,8 +2195,7 @@ class MarkovChain(metaclass=BaseClass):
             inertial_weights = validate_vector(inertial_weights, 'unconstrained', True, size=self._size)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         p_adjusted = ((1.0 - inertial_weights)[:, np.newaxis] * self._p) + (np.eye(self._size, dtype=float) * inertial_weights)
 
@@ -2295,8 +2216,7 @@ class MarkovChain(metaclass=BaseClass):
             states = validate_states(states, self._states, 'subset', True)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         closure = np.copy(self.adjacency_matrix)
 
@@ -2336,8 +2256,7 @@ class MarkovChain(metaclass=BaseClass):
             state_origin = validate_state(state_origin, self._states)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         return self._p[state_origin, state_target]
 
@@ -2358,7 +2277,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            rng = MarkovChain._create_rng(seed)
+            rng = create_rng(seed)
             steps = validate_integer(steps, lower_limit=(1, False))
 
             if initial_state is None:
@@ -2374,8 +2293,7 @@ class MarkovChain(metaclass=BaseClass):
             output_indices = validate_boolean(output_indices)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         walk = list()
 
@@ -2413,8 +2331,7 @@ class MarkovChain(metaclass=BaseClass):
             walk = validate_states(walk, self._states, 'walk', False)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         p = 0.0
 
@@ -2426,92 +2343,6 @@ class MarkovChain(metaclass=BaseClass):
                 break
 
         return np.exp(p)
-
-    @staticmethod
-    def _calculate_period(graph: nx.Graph) -> int:
-
-        g = 0
-
-        for sccs in nx.strongly_connected_components(graph):
-
-            sccs = list(sccs)
-
-            levels = dict((scc, None) for scc in sccs)
-            vertices = levels
-
-            scc = sccs[0]
-            levels[scc] = 0
-
-            current_level = [scc]
-            previous_level = 1
-
-            while current_level:
-
-                next_level = []
-
-                for u in current_level:
-                    for v in graph[u]:
-
-                        if v not in vertices:
-                            continue
-
-                        level = levels[v]
-
-                        if level is not None:
-
-                            g = gcd(g, previous_level - level)
-
-                            if g == 1:
-                                return 1
-
-                        else:
-
-                            next_level.append(v)
-                            levels[v] = previous_level
-
-                current_level = next_level
-                previous_level += 1
-
-        return g
-
-    # noinspection PyProtectedMember
-    @staticmethod
-    def _create_rng(seed) -> npr.RandomState:
-
-        if seed is None:
-            return nprm._rand
-
-        if isinstance(seed, int):
-            return npr.RandomState(seed)
-
-        raise TypeError('The specified seed is not a valid RNG initializer.')
-
-    @staticmethod
-    def _gth_solve(p: tarray) -> tarray:
-
-        a = np.array(p, copy=True)
-        n = a.shape[0]
-
-        for i in range(n - 1):
-
-            scale = np.sum(a[i, i + 1:n])
-
-            if scale <= 0.0:
-                n = i + 1
-                break
-
-            a[i + 1:n, i] /= scale
-            a[i + 1:n, i + 1:n] += np.dot(a[i + 1:n, i:i + 1], a[i:i + 1, i + 1:n])
-
-        x = np.zeros(n, dtype=float)
-        x[n - 1] = 1.0
-
-        for i in range(n - 2, -1, -1):
-            x[i] = np.dot(x[i + 1:n], a[i + 1:n, i])
-
-        x /= np.sum(x)
-
-        return x
 
     @staticmethod
     def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: ofloat = None) -> tmc_approx:
@@ -2591,8 +2422,7 @@ class MarkovChain(metaclass=BaseClass):
                     k = validate_float(k, lower_limit=(0.0, True))
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if approximation_type == 'adda-cooper':
 
@@ -2735,8 +2565,7 @@ class MarkovChain(metaclass=BaseClass):
                 states = validate_state_names(states, {p.shape[0], q.shape[0]}.pop())
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         if p.shape[0] != q.shape[0]:
             raise ValidationError(f'The vector of annihilation probabilities and the vector of creation probabilities must have the same size.')
@@ -2782,8 +2611,7 @@ class MarkovChain(metaclass=BaseClass):
                 quadrature_interval = validate_interval(quadrature_interval)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         size = len(possible_states)
 
@@ -2992,8 +2820,7 @@ class MarkovChain(metaclass=BaseClass):
             confidence_level = validate_float(confidence_level, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         size = len(possible_states)
         p = np.zeros((size, size), dtype=float)
@@ -3091,8 +2918,7 @@ class MarkovChain(metaclass=BaseClass):
             d = validate_dictionary(d)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         states = sorted(list(set(sum(d.keys(), ()))))
         size = len(states)
@@ -3139,8 +2965,7 @@ class MarkovChain(metaclass=BaseClass):
             file_path = validate_string(file_path)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         file_extension = splitext(file_path)[1][1:].lower()
 
@@ -3248,8 +3073,7 @@ class MarkovChain(metaclass=BaseClass):
                 states = validate_state_names(states, m.shape[0])
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         m = np.interp(m, (np.min(m), np.max(m)), (0.0, 1.0))
         m /= np.sum(m, axis=1, keepdims=True)
@@ -3280,8 +3104,7 @@ class MarkovChain(metaclass=BaseClass):
                 states = validate_state_names(states, size)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         p = np.zeros((size, size), dtype=float)
         p[0, 0] = 1.0
@@ -3315,8 +3138,7 @@ class MarkovChain(metaclass=BaseClass):
                 states = validate_state_names(states, size)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         return MarkovChain(np.eye(size, dtype=float), states)
 
@@ -3337,7 +3159,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            rng = MarkovChain._create_rng(seed)
+            rng = create_rng(seed)
             size = validate_integer(size, lower_limit=(2, False))
 
             if states is None:
@@ -3353,8 +3175,7 @@ class MarkovChain(metaclass=BaseClass):
                 mask = validate_mask(mask, size)
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         full_rows = np.isclose(np.nansum(mask, axis=1, dtype=float), 1.0)
 
@@ -3421,8 +3242,7 @@ class MarkovChain(metaclass=BaseClass):
             model = validate_enumerator(model, ['bernoulli-laplace', 'ehrenfest'])
 
         except Exception as e:
-            argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-            raise ValidationError(str(e).replace('@arg@', argument)) from None
+            raise generate_validation_error(e, trace()) from None
 
         dn = n * 2
         size = dn + 1

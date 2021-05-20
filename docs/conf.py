@@ -11,8 +11,8 @@ sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
 
 project = 'PyDTMC'
 project_title = project + ' Documentation'
-release = '5.0.0'
-version = '5.0.0'
+release = '5.1.0'
+version = '5.1.0'
 author = 'Tommaso Belluzzo'
 copyright = '2019, Tommaso Belluzzo'
 
