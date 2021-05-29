@@ -28,7 +28,7 @@ from .exceptions import *
 
 
 # noinspection PyProtectedMember
-def create_rng(seed: oint) -> npr.RandomState:
+def create_rng(seed: oint) -> trand:
 
     if seed is None:
         return nprm._rand

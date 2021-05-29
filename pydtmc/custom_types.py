@@ -4,35 +4,8 @@ __all__ = [
     # Generic
     'ofloat', 'oint',
     'tany', 'texception', 'titerable',
-    # Specific
     'tarray', 'oarray',
-    'tbcond', 'obcond',
-    'tdists', 'odists',
-    'tdists_flex', 'odists_flex',
-    'tgraph', 'ograph',
-    'tgraphs', 'ographs',
-    'tinterval', 'ointerval',
-    'tlimit_float', 'olimit_float',
-    'tlimit_int', 'olimit_int',
     'tmc', 'omc',
-    'tmc_approx', 'omc_approx',
-    'tmc_dict', 'omc_dict',
-    'tmc_dict_flex', 'omc_dict_flex',
-    'tmc_fit', 'omc_fit',
-    'tnumeric', 'onumeric',
-    'tpart', 'opart',
-    'tparts', 'oparts',
-    'tplot', 'oplot',
-    'trdl', 'ordl',
-    'tstate', 'ostate',
-    'tstates', 'ostates',
-    'tstatus', 'ostatus',
-    'ttfunc', 'otfunc',
-    'ttimes_in', 'otimes_in',
-    'ttimes_out', 'otimes_out',
-    'twalk', 'owalk',
-    'twalk_flex', 'owalk_flex',
-    'tweights', 'oweights',
     # Lists
     'tlist_any', 'olist_any',
     'tlist_array', 'olist_array',
@@ -44,7 +17,36 @@ __all__ = [
     'tlists_array', 'olists_array',
     'tlists_float', 'olists_float',
     'tlists_int', 'olists_int',
-    'tlists_str', 'olists_str'
+    'tlists_str', 'olists_str',
+    # Specific
+    'tbcond', 'obcond',
+    'tcache', 'ocache',
+    'tdists_flex', 'odists_flex',
+    'tgraph', 'ograph',
+    'tgraphs', 'ographs',
+    'tinterval', 'ointerval',
+    'tlimit_float', 'olimit_float',
+    'tlimit_int', 'olimit_int',
+    'tmc_approx', 'omc_approx',
+    'tmc_data', 'omc_data',
+    'tmc_dict', 'omc_dict',
+    'tmc_dict_flex', 'omc_dict_flex',
+    'tmc_fit', 'omc_fit',
+    'tnumeric', 'onumeric',
+    'tpart', 'opart',
+    'tparts', 'oparts',
+    'tplot', 'oplot',
+    'trand', 'orand',
+    'trdl', 'ordl',
+    'tstate', 'ostate',
+    'tstates', 'ostates',
+    'tstatus', 'ostatus',
+    'ttfunc', 'otfunc',
+    'ttimes_in', 'otimes_in',
+    'ttimes_out', 'otimes_out',
+    'twalk', 'owalk',
+    'twalk_flex', 'owalk_flex',
+    'tweights', 'oweights'
 ]
 
 
@@ -58,6 +60,7 @@ __all__ = [
 import matplotlib.pyplot as pp
 import networkx as nx
 import numpy as np
+import numpy.random as npr
 import scipy.sparse as spsp
 
 try:
@@ -94,91 +97,11 @@ tany = Any
 texception = Exception
 titerable = Iterable
 
-# Specific
-
 tarray = np.ndarray
 oarray = Optional[tarray]
 
-tbcond = Union[float, str]
-obcond = Optional[tbcond]
-
-tdists = List[np.ndarray]
-odists = Optional[tdists]
-
-tdists_flex = Union[int, tdists]
-odists_flex = Optional[tdists_flex]
-
-tgraph = nx.DiGraph
-ograph = Optional[tgraph]
-
-tgraphs = Union[nx.DiGraph, nx.MultiDiGraph]
-ographs = Optional[tgraphs]
-
-tinterval = Tuple[Union[float, int], Union[float, int]]
-ointerval = Optional[tinterval]
-
-tlimit_float = Tuple[float, bool]
-olimit_float = Optional[tlimit_float]
-
-tlimit_int = Tuple[int, bool]
-olimit_int = Optional[tlimit_int]
-
 tmc = TypeVar('MarkovChain')
 omc = Optional[tmc]
-
-tmc_approx = Tuple[tmc, np.ndarray]
-omc_approx = Optional[tmc_approx]
-
-tmc_dict = Dict[Tuple[str, str], float]
-omc_dict = Optional[tmc_dict]
-
-tmc_dict_flex = Dict[Tuple[str, str], Union[float, int]]
-omc_dict_flex = Optional[tmc_dict_flex]
-
-tmc_fit = Tuple[tmc, List[tarray]]
-omc_fit = Optional[tmc_fit]
-
-tnumeric = Union[titerable, np.ndarray, spsp.spmatrix, pd.DataFrame, pd.Series] if pd is not None else Union[titerable, tarray, spsp.spmatrix]
-onumeric = Optional[tnumeric]
-
-tpart = List[Union[List[int], List[str]]]
-opart = Optional[tpart]
-
-tparts = List[tpart]
-oparts = Optional[tparts]
-
-tplot = Tuple[pp.Figure, pp.Axes]
-oplot = Optional[tplot]
-
-trdl = Tuple[tarray, tarray, tarray]
-ordl = Optional[trdl]
-
-tstate = Union[int, str]
-ostate = Optional[tstate]
-
-tstates = Union[tstate, List[int], List[str]]
-ostates = Optional[tstates]
-
-tstatus = Union[int, str, tnumeric]
-ostatus = Optional[tstatus]
-
-ttfunc = Callable[[float, float], float]
-otfunc = Optional[ttfunc]
-
-ttimes_in = Union[int, List[int]]
-otimes_in = Optional[ttimes_in]
-
-ttimes_out = Union[float, List[float]]
-otimes_out = Optional[ttimes_out]
-
-twalk = Union[List[int], List[str]]
-owalk = Optional[twalk]
-
-twalk_flex = Union[int, twalk]
-owalk_flex = Optional[twalk_flex]
-
-tweights = Union[float, int, tnumeric]
-oweights = Optional[tweights]
 
 # Lists
 
@@ -213,3 +136,89 @@ olists_int = Optional[tlists_int]
 
 tlists_str = List[tlist_str]
 olists_str = Optional[tlists_str]
+
+# Specific
+
+tbcond = Union[float, str]
+obcond = Optional[tbcond]
+
+tcache = Dict[str, tany]
+ocache = Optional[tcache]
+
+tdists_flex = Union[int, tlist_array]
+odists_flex = Optional[tdists_flex]
+
+tgraph = nx.DiGraph
+ograph = Optional[tgraph]
+
+tgraphs = Union[nx.DiGraph, nx.MultiDiGraph]
+ographs = Optional[tgraphs]
+
+tinterval = Tuple[Union[float, int], Union[float, int]]
+ointerval = Optional[tinterval]
+
+tlimit_float = Tuple[float, bool]
+olimit_float = Optional[tlimit_float]
+
+tlimit_int = Tuple[int, bool]
+olimit_int = Optional[tlimit_int]
+
+tmc_approx = Tuple[tmc, tarray]
+omc_approx = Optional[tmc_approx]
+
+tmc_data = Tuple[tarray, tlist_str]
+omc_data = Optional[tmc_data]
+
+tmc_dict = Dict[Tuple[str, str], float]
+omc_dict = Optional[tmc_dict]
+
+tmc_dict_flex = Dict[Tuple[str, str], Union[float, int]]
+omc_dict_flex = Optional[tmc_dict_flex]
+
+tmc_fit = Tuple[tmc, tlist_array]
+omc_fit = Optional[tmc_fit]
+
+tnumeric = Union[titerable, tarray, spsp.spmatrix, pd.DataFrame, pd.Series] if pd is not None else Union[titerable, tarray, spsp.spmatrix]
+onumeric = Optional[tnumeric]
+
+tpart = List[Union[tlist_int, tlist_str]]
+opart = Optional[tpart]
+
+tparts = List[tpart]
+oparts = Optional[tparts]
+
+tplot = Tuple[pp.Figure, pp.Axes]
+oplot = Optional[tplot]
+
+trand = npr.RandomState
+orand = Optional[trand]
+
+trdl = Tuple[tarray, tarray, tarray]
+ordl = Optional[trdl]
+
+tstate = Union[int, str]
+ostate = Optional[tstate]
+
+tstates = Union[tstate, tlist_int, tlist_str]
+ostates = Optional[tstates]
+
+tstatus = Union[int, str, tnumeric]
+ostatus = Optional[tstatus]
+
+ttfunc = Callable[[float, float], float]
+otfunc = Optional[ttfunc]
+
+ttimes_in = Union[int, tlist_int]
+otimes_in = Optional[ttimes_in]
+
+ttimes_out = Union[float, tlist_float]
+otimes_out = Optional[ttimes_out]
+
+twalk = Union[tlist_int, tlist_str]
+owalk = Optional[twalk]
+
+twalk_flex = Union[int, twalk]
+owalk_flex = Optional[twalk_flex]
+
+tweights = Union[float, int, tnumeric]
+oweights = Optional[tweights]

@@ -31,7 +31,11 @@ from pytest import (
 ##############
 
 
-Case = namedtuple('Case', ['id', 'p', 'steady_states'])
+Case = namedtuple('Case', [
+    'id',
+    'p',
+    'steady_states'
+])
 
 cases = [
     Case(
@@ -140,5 +144,5 @@ def test_values(p, steady_states):
 
     assert len(actual) == len(expected)
 
-    for i in range(0, len(expected)):
+    for i in range(len(expected)):
         assert np.allclose(actual[i], expected[i])

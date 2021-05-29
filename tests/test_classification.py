@@ -29,7 +29,15 @@ from pytest import (
 ##############
 
 
-Case = namedtuple('Case', ['id', 'p', 'recurrent_classes', 'transient_classes', 'communicating_classes', 'cyclic_classes', 'absorbing_states'])
+Case = namedtuple('Case', [
+    'id',
+    'p',
+    'recurrent_classes',
+    'transient_classes',
+    'communicating_classes',
+    'cyclic_classes',
+    'absorbing_states'
+])
 
 cases = [
     Case(
