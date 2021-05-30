@@ -2,7 +2,8 @@
 
 __all__ = [
     'create_rng',
-    'generate_validation_error'
+    'generate_validation_error',
+    'get_file_extension'
 ]
 
 
@@ -15,6 +16,7 @@ __all__ = [
 
 import numpy.random as npr
 import numpy.random.mtrand as nprm
+import pathlib as pl
 
 # Minor
 
@@ -45,3 +47,8 @@ def generate_validation_error(e: texception, trace: tany) -> ValidationError:
     message = str(e).replace('@arg@', arguments)
 
     return ValidationError(message)
+
+
+def get_file_extension(file_path: str) -> str:
+
+    return ''.join(pl.Path(file_path).suffixes).lower()

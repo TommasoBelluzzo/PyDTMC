@@ -2,7 +2,7 @@
 
 __all__ = [
     # Generic
-    'ofloat', 'oint',
+    'ofloat', 'oint', 'ostr',
     'tany', 'texception', 'titerable',
     'tarray', 'oarray',
     'tmc', 'omc',
@@ -22,13 +22,14 @@ __all__ = [
     'tbcond', 'obcond',
     'tcache', 'ocache',
     'tdists_flex', 'odists_flex',
+    'tgenres', 'ogenres',
+    'tgenres_ext', 'ogenres_ext',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
     'tinterval', 'ointerval',
     'tlimit_float', 'olimit_float',
     'tlimit_int', 'olimit_int',
     'tmc_approx', 'omc_approx',
-    'tmc_data', 'omc_data',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
     'tmc_fit', 'omc_fit',
@@ -92,6 +93,7 @@ from typing import (
 
 ofloat = Optional[float]
 oint = Optional[int]
+ostr = Optional[str]
 
 tany = Any
 texception = Exception
@@ -148,6 +150,12 @@ ocache = Optional[tcache]
 tdists_flex = Union[int, tlist_array]
 odists_flex = Optional[tdists_flex]
 
+tgenres = Tuple[oarray, ostr]
+ogenres = Optional[tgenres]
+
+tgenres_ext = Tuple[oarray, olist_str, ostr]
+ogenres_ext = Optional[tgenres_ext]
+
 tgraph = nx.DiGraph
 ograph = Optional[tgraph]
 
@@ -165,9 +173,6 @@ olimit_int = Optional[tlimit_int]
 
 tmc_approx = Tuple[tmc, tarray]
 omc_approx = Optional[tmc_approx]
-
-tmc_data = Tuple[tarray, tlist_str]
-omc_data = Optional[tmc_data]
 
 tmc_dict = Dict[Tuple[str, str], float]
 omc_dict = Optional[tmc_dict]

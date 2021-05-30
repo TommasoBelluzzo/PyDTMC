@@ -3,6 +3,8 @@
 __all__ = [
     'absorption_probabilities',
     'committor_probabilities',
+    'first_passage_probabilities',
+    'first_passage_reward',
     'hitting_probabilities',
     'hitting_times',
     'mean_absorption_times',
@@ -92,6 +94,65 @@ def committor_probabilities(mc: tmc, committor_type: str, states1: tlist_int, st
     cp[np.isclose(cp, 0.0)] = 0.0
 
     return cp
+
+
+def first_passage_probabilities(mc: tmc, steps: int, initial_state: int, first_passage_states: olist_int) -> tarray:
+
+    e = np.ones((mc.size, mc.size), dtype=float) - np.eye(mc.size, dtype=float)
+    g = np.copy(mc.p)
+
+    if first_passage_states is None:
+
+        z = np.zeros((steps, mc.size), dtype=float)
+        z[0, :] = mc.p[initial_state, :]
+
+        for i in range(1, steps):
+            g = np.dot(mc.p, g * e)
+            z[i, :] = g[initial_state, :]
+
+    else:
+
+        z = np.zeros(steps, dtype=float)
+        z[0] = np.sum(mc.p[initial_state, first_passage_states])
+
+        for i in range(1, steps):
+            g = np.dot(mc.p, g * e)
+            z[i] = np.sum(g[initial_state, first_passage_states])
+
+    return z
+
+
+def first_passage_reward(mc: tmc, steps: int, initial_state: int, first_passage_states: tlist_int, rewards: tarray) -> float:
+
+    other_states = sorted(list(set(range(mc.size)) - set(first_passage_states)))
+
+    m = mc.p[np.ix_(other_states, other_states)]
+    mt = np.copy(m)
+    mr = rewards[other_states]
+
+    k = 1
+    offset = 0
+
+    for j in range(mc.size):
+
+        if j not in first_passage_states:
+
+            if j == initial_state:
+                offset = k
+                break
+
+            k += 1
+
+    i = np.zeros(len(other_states))
+    i[offset - 1] = 1.0
+
+    reward = 0.0
+
+    for _ in range(steps):
+        reward += np.dot(i, np.dot(mt, mr))
+        mt = np.dot(mt, m)
+
+    return reward
 
 
 def hitting_probabilities(mc: tmc, targets: tlist_int) -> tarray:
@@ -300,6 +361,7 @@ def mixing_time(mc: tmc, initial_distribution: tarray, jump: int, cutoff: float)
 
     d = initial_distribution.dot(p)
     tvd = 1.0
+
     mt = 0
 
     while tvd > cutoff:

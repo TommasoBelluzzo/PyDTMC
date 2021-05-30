@@ -359,7 +359,7 @@ def validate_mask(mask: tany, size: int) -> tarray:
     if not all(np.isnan(x) or ((x >= 0.0) and (x <= 1.0)) for x in np.nditer(mask)):
         raise ValueError('The "@arg@" parameter can contain only NaNs and values between 0 and 1.')
 
-    if not np.any(np.nansum(mask, axis=1, dtype=float) > 1.0):
+    if np.any(np.nansum(mask, axis=1, dtype=float) > 1.0):
         raise ValueError('The "@arg@" parameter row sums must not exceed 1.')
 
     return mask

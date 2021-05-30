@@ -2,7 +2,6 @@
 
 __all__ = [
     'calculate_periods',
-    'find_closest_reversible',
     'find_cyclic_classes',
     'find_lumping_partitions'
 ]
@@ -17,8 +16,6 @@ __all__ = [
 
 import networkx as nx
 import numpy as np
-import numpy.linalg as npl
-import scipy.optimize as spo
 
 # Minor
 
@@ -114,144 +111,6 @@ def calculate_periods(graph: tgraph) -> tlist_int:
     return periods
 
 
-def find_closest_reversible(p: tarray, distribution: tnumeric, weighted: bool = False) -> oarray:
-
-    def jacobian(xj: tarray, hj: tarray, fj: tarray):
-        return np.dot(np.transpose(xj), hj) + fj
-
-    def objective(xo: tarray, ho: tarray, fo: tarray):
-        return (0.5 * npl.multi_dot([np.transpose(xo), ho, xo])) + np.dot(np.transpose(fo), xo)
-
-    size = p.shape[0]
-
-    zeros = len(distribution) - np.count_nonzero(distribution)
-    m = int((((size - 1) * size) / 2) + (((zeros - 1) * zeros) / 2) + 1)
-
-    basis_vectors = []
-
-    for r in range(size - 1):
-        for s in range(r + 1, size):
-
-            if (distribution[r] == 0.0) and (distribution[s] == 0.0):
-
-                bv = np.eye(size, dtype=float)
-                bv[r, r] = 0.0
-                bv[r, s] = 1.0
-                basis_vectors.append(bv)
-
-                bv = np.eye(size, dtype=float)
-                bv[r, r] = 1.0
-                bv[r, s] = 0.0
-                bv[s, s] = 0.0
-                bv[s, r] = 1.0
-                basis_vectors.append(bv)
-
-            else:
-
-                bv = np.eye(size, dtype=float)
-                bv[r, r] = 1.0 - distribution[s]
-                bv[r, s] = distribution[s]
-                bv[s, s] = 1.0 - distribution[r]
-                bv[s, r] = distribution[r]
-                basis_vectors.append(bv)
-
-    basis_vectors.append(np.eye(size, dtype=float))
-
-    h = np.zeros((m, m), dtype=float)
-    f = np.zeros(m, dtype=float)
-
-    if weighted:
-
-        d = np.diag(distribution)
-        di = npl.inv(d)
-
-        for i in range(m):
-
-            bv_i = basis_vectors[i]
-            z = npl.multi_dot([d, bv_i, di])
-
-            f[i] = -2.0 * np.trace(np.dot(z, np.transpose(p)))
-
-            for j in range(m):
-                bv_j = basis_vectors[j]
-
-                tau = 2.0 * np.trace(np.dot(np.transpose(z), bv_j))
-                h[i, j] = tau
-                h[j, i] = tau
-
-    else:
-
-        for i in range(m):
-
-            bv_i = basis_vectors[i]
-            f[i] = -2.0 * np.trace(np.dot(np.transpose(bv_i), p))
-
-            for j in range(m):
-                bv_j = basis_vectors[j]
-
-                tau = 2.0 * np.trace(np.dot(np.transpose(bv_i), bv_j))
-                h[i, j] = tau
-                h[j, i] = tau
-
-    a = np.zeros((m + size - 1, m), dtype=float)
-    np.fill_diagonal(a, -1.0)
-    a[m - 1, m - 1] = 0.0
-
-    for i in range(size):
-
-        k = 0
-
-        for r in range(size - 1):
-            for s in range(r + 1, size):
-
-                if (distribution[s] == 0.0) and (distribution[r] == 0.0):
-
-                    if r != i:
-                        a[m + i - 1, k] = -1.0
-                    else:
-                        a[m + i - 1, k] = 0.0
-
-                    k += 1
-
-                    if s != i:
-                        a[m + i - 1, k] = -1.0
-                    else:
-                        a[m + i - 1, k] = 0.0
-
-                elif s == i:
-                    a[m + i - 1, k] = -1.0 + distribution[r]
-                elif r == i:
-                    a[m + i - 1, k] = -1.0 + distribution[s]
-                else:
-                    a[m + i - 1, k] = -1.0
-
-                k += 1
-
-        a[m + i - 1, m - 1] = -1.0
-
-    b = np.zeros(m + size - 1, dtype=float)
-    x0 = np.zeros(m, dtype=float)
-
-    constraints = (
-        {'type': 'eq', 'fun': lambda x: np.sum(x) - 1.0},
-        {'type': 'ineq', 'fun': lambda x: b - np.dot(a, x), 'jac': lambda x: -a}
-    )
-
-    # noinspection PyTypeChecker
-    solution = spo.minimize(objective, x0, jac=jacobian, args=(h, f), constraints=constraints, method='SLSQP', options={'disp': False})
-
-    if not solution['success']:
-        return None
-
-    p = np.zeros((size, size), dtype=float)
-    solution = solution['x']
-
-    for i in range(m):
-        p += solution[i] * basis_vectors[i]
-
-    return p
-
-
 def find_cyclic_classes(p: tarray) -> tarray:
 
     size = p.shape[0]
@@ -300,7 +159,6 @@ def find_cyclic_classes(p: tarray) -> tarray:
     return indices
 
 
-# noinspection PyBroadException
 def find_lumping_partitions(p: tarray) -> tparts:
 
     size = p.shape[0]
@@ -338,6 +196,7 @@ def find_lumping_partitions(p: tarray) -> tparts:
             for state in lumping:
                 r[state, i] = 1.0
 
+        # noinspection PyBroadException
         try:
             k = np.dot(np.linalg.inv(np.dot(np.transpose(r), r)), np.transpose(r))
         except Exception:

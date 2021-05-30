@@ -31,6 +31,9 @@ from pytest import (
 ##############
 
 
+correctness_seed = 7331
+correctness_maximum_size = 30
+
 Case = namedtuple('Case', [
     'id',
     'p',
@@ -89,9 +92,6 @@ cases = [
         [[0.0, 0.0, 0.0, 0.2, 0.4, 0.4], [0.0, 0.5, 0.5, 0.0, 0.0, 0.0]]
     )
 ]
-
-correctness_seed = 7331
-correctness_maximum_size = 30
 
 
 ########

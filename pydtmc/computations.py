@@ -3,7 +3,8 @@
 __all__ = [
     'eigenvalues_sorted',
     'gth_solve',
-    'rdl_decomposition'
+    'rdl_decomposition',
+    'slem'
 ]
 
 
@@ -85,3 +86,19 @@ def rdl_decomposition(p: tarray) -> trdl:
     l = np.transpose(np.real(l))
 
     return r, d, l
+
+
+def slem(m: tarray) -> ofloat:
+
+    ev = eigenvalues_sorted(m)
+    indices = np.isclose(ev, 1.0)
+
+    if np.all(indices):
+        return None
+
+    value = ev[~indices][-1]
+
+    if np.isclose(value, 0.0):
+        return None
+
+    return value

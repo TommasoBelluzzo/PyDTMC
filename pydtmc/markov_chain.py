@@ -41,10 +41,6 @@ from math import (
     lgamma
 )
 
-from os.path import (
-    splitext
-)
-
 # Internal
 
 from .algorithms import *
@@ -225,20 +221,11 @@ class MarkovChain(metaclass=BaseClass):
     def _slem(self) -> ofloat:
 
         if not self.is_ergodic:
-            return None
+            value = None
+        else:
+            value = slem(self._p)
 
-        ev = self._eigenvalues_sorted
-        indices = np.isclose(ev, 1.0)
-
-        if np.all(indices):
-            return None
-
-        slem = ev[~indices][-1]
-
-        if np.isclose(slem, 0.0):
-            return None
-
-        return slem
+        return value
 
     @cachedproperty
     def _states_indices(self) -> tlist_int:
@@ -866,13 +853,17 @@ class MarkovChain(metaclass=BaseClass):
         if weighted and zeros > 0:
             raise ValidationError('If the weighted Frobenius norm is used, the distribution must not contain zero-valued probabilities.')
 
-        p = find_closest_reversible(self._p, distribution, weighted)
-        cr = MarkovChain(p, self._states)
+        p, error_message = closest_reversible(self._p, distribution, weighted)
 
-        if not cr.is_reversible:
+        if error_message is not None:
+            raise ValueError(error_message)
+
+        mc = MarkovChain(p, self._states)
+
+        if not mc.is_reversible:
             raise ValueError('The closest reversible could not be computed.')
 
-        return cr
+        return mc
 
     def committor_probabilities(self, committor_type: str, states1: tstates, states2: tstates) -> oarray:
 
@@ -1036,28 +1027,9 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             raise generate_validation_error(e, trace()) from None
 
-        e = np.ones((self._size, self._size), dtype=float) - np.eye(self._size, dtype=float)
-        g = np.copy(self._p)
+        value = first_passage_probabilities(self, steps, initial_state, first_passage_states)
 
-        if first_passage_states is None:
-
-            probabilities = np.zeros((steps, self._size), dtype=float)
-            probabilities[0, :] = self._p[initial_state, :]
-
-            for i in range(1, steps):
-                g = np.dot(self._p, g * e)
-                probabilities[i, :] = g[initial_state, :]
-
-        else:
-
-            probabilities = np.zeros(steps, dtype=float)
-            probabilities[0] = np.sum(self._p[initial_state, first_passage_states])
-
-            for i in range(1, steps):
-                g = np.dot(self._p, g * e)
-                probabilities[i] = np.sum(g[initial_state, first_passage_states])
-
-        return probabilities
+        return value
 
     @alias('fpt')
     def first_passage_reward(self, steps: int, initial_state: tstate, first_passage_states: tstates, rewards: tnumeric) -> float:
@@ -1073,6 +1045,7 @@ class MarkovChain(metaclass=BaseClass):
         :param rewards: the reward values.
         :return: the first passage reward of the Markov chain for the given configuration.
         :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the Markov chain defines only two states.
         """
 
         try:
@@ -1085,41 +1058,18 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             raise generate_validation_error(e, trace()) from None
 
+        if self._size == 2:
+            raise ValueError('The Markov chain defines only two states and the first passage rewards cannot be computed.')
+
         if initial_state in first_passage_states:
             raise ValidationError(f'The first passage states cannot include the initial state.')
 
         if len(first_passage_states) == (self._size - 1):
             raise ValidationError(f'The first passage states cannot include all the states except the initial one.')
 
-        other_states = sorted(list(set(self._states_indices) - set(first_passage_states)))
+        value = first_passage_reward(self, steps, initial_state, first_passage_states, rewards)
 
-        m = self._p[np.ix_(other_states, other_states)]
-        mt = np.copy(m)
-        mr = rewards[other_states]
-
-        k = 1
-        offset = 0
-
-        for j in range(self._size):
-
-            if j not in first_passage_states:
-
-                if j == initial_state:
-                    offset = k
-                    break
-
-                k += 1
-
-        i = np.zeros(len(other_states))
-        i[offset - 1] = 1.0
-
-        reward = 0.0
-
-        for _ in range(steps):
-            reward += np.dot(i, np.dot(mt, mr))
-            mt = np.dot(mt, m)
-
-        return reward
+        return value
 
     def hitting_probabilities(self, targets: ostates = None) -> tarray:
 
@@ -1276,7 +1226,6 @@ class MarkovChain(metaclass=BaseClass):
 
         return result
 
-    # noinspection PyTypeChecker
     def lump(self, partitions: tpart) -> tmc:
 
         """
@@ -1298,28 +1247,14 @@ class MarkovChain(metaclass=BaseClass):
         if self._size == 2:
             raise ValueError('The Markov chain defines only two states and cannot be lumped.')
 
-        r = np.zeros((self._size, len(partitions)), dtype=float)
+        p, states, error_message = lump(self.p, self.states, partitions)
 
-        for i, lumping in enumerate(partitions):
-            for state in lumping:
-                r[state, i] = 1.0
+        if error_message is not None:
+            raise ValueError(error_message)
 
-        try:
-            k = np.dot(np.linalg.inv(np.dot(np.transpose(r), r)), np.transpose(r))
-        except Exception:
-            raise ValueError('The Markov chain is not strongly lumpable with respect to the given partitions.')
+        mc = MarkovChain(p, states)
 
-        left = np.dot(np.dot(np.dot(r, k), self._p), r)
-        right = np.dot(self._p, r)
-        is_lumpable = np.array_equal(left, right)
-
-        if not is_lumpable:
-            raise ValueError('The Markov chain is not strongly lumpable with respect to the given partitions.')
-
-        lump = np.dot(np.dot(k, self._p), r)
-        states = [','.join(list(map(self._states.__getitem__, partition))) for partition in partitions]
-
-        return MarkovChain(lump, states)
+        return mc
 
     @alias('mat')
     def mean_absorption_times(self) -> oarray:
@@ -1822,10 +1757,13 @@ class MarkovChain(metaclass=BaseClass):
 
         return time_relaxations
 
+    @alias('to_bounded')
     def to_bounded_chain(self, boundary_condition: tbcond) -> tmc:
 
         """
         The method returns a bounded Markov chain by adjusting the transition matrix of the original process using the specified boundary condition.
+
+        | **Aliases:** to_bounded
 
         :param boundary_condition:
          - a float representing the first probability of the semi-reflecting condition;
@@ -1841,7 +1779,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             raise generate_validation_error(e, trace()) from None
 
-        p = bounded(self._p, boundary_condition)
+        p, _ = bounded(self._p, boundary_condition)
         mc = MarkovChain(p, self._states)
 
         return mc
@@ -1932,7 +1870,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             raise generate_validation_error(e, trace()) from None
 
-        file_extension = splitext(file_path)[1][1:].lower()
+        file_extension = get_file_extension(file_path)
 
         if file_extension not in ['csv', 'json', 'txt']:
             raise ValidationError('Only csv, json and plain text files are supported.')
@@ -1946,10 +1884,13 @@ class MarkovChain(metaclass=BaseClass):
         else:
             write_txt(d, file_path)
 
+    @alias('to_lazy')
     def to_lazy_chain(self, inertial_weights: tweights = 0.5) -> tmc:
 
         """
         The method returns a lazy Markov chain by adjusting the state inertia of the original process.
+
+        | **Aliases:** to_lazy
 
         :param inertial_weights: the inertial weights to apply for the transformation (by default, 0.5).
         :return: a Markov chain.
@@ -1963,7 +1904,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             raise generate_validation_error(e, trace()) from None
 
-        p = lazy(self._p, inertial_weights)
+        p, _ = lazy(self._p, inertial_weights)
         mc = MarkovChain(p, self._states)
 
         return mc
@@ -1976,6 +1917,7 @@ class MarkovChain(metaclass=BaseClass):
         :param states: the states to include in the subchain.
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the subchain is not a valid Markov chain.
         """
 
         try:
@@ -1985,7 +1927,11 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             raise generate_validation_error(e, trace()) from None
 
-        p, states = sub(self._p, self._states, self.adjacency_matrix, states)
+        p, states, error_message = sub(self._p, self._states, self.adjacency_matrix, states)
+
+        if error_message is not None:
+            raise ValueError(error_message)
+
         mc = MarkovChain(p, states)
 
         return mc
@@ -2326,7 +2272,7 @@ class MarkovChain(metaclass=BaseClass):
         if not np.all(q + p <= 1.0):
             raise ValidationError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
 
-        p = birth_death(p, q)
+        p, _ = birth_death(p, q)
         mc = MarkovChain(p, states)
 
         return mc
@@ -2728,7 +2674,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             raise generate_validation_error(e, trace()) from None
 
-        file_extension = splitext(file_path)[1][1:].lower()
+        file_extension = get_file_extension(file_path)
 
         if file_extension not in ['csv', 'json', 'txt']:
             raise ValidationError('Only csv, json and plain text files are supported.')
@@ -2813,7 +2759,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             raise generate_validation_error(e, trace()) from None
 
-        p = gamblers_ruin(size, w)
+        p, _ = gamblers_ruin(size, w)
         mc = MarkovChain(p, states)
 
         return mc
@@ -2856,7 +2802,7 @@ class MarkovChain(metaclass=BaseClass):
         :param size: the size of the Markov chain.
         :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
         :param zeros: the number of zero-valued transition probabilities (by default, 0).
-        :param mask: a matrix representing the locations and values of fixed transition probabilities.
+        :param mask: a matrix representing the locations and values of fixed transition probabilities (random transition probabilities are represented by NaN values).
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
@@ -2882,10 +2828,10 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             raise generate_validation_error(e, trace()) from None
 
-        p = random(rng, size, zeros, mask)
+        p, error_message = random(rng, size, zeros, mask)
 
-        if p is None:
-            raise ValidationError(f'The number of zero-valued transition probabilities exceeds the maximum threshold.')
+        if error_message is not None:
+            raise ValidationError(error_message)
 
         mc = MarkovChain(p, states)
 
@@ -2913,7 +2859,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             raise generate_validation_error(e, trace()) from None
 
-        p, states = urn_model(n, model)
+        p, states, _ = urn_model(n, model)
         mc = MarkovChain(p, states)
 
         return mc
