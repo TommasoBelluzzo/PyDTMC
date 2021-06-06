@@ -1,0 +1,10 @@
+[run]
+omit =
+    setup.py
+    pydtmc/__init__.py
+    pydtmc/base_class.py
+    pydtmc/custom_types.py
+    pydtmc/decorators.py
+    pydtmc/exceptions.py
+    pydtmc/utilities.py
+    tests/*
