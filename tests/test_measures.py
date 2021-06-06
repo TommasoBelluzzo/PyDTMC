@@ -466,7 +466,7 @@ def test_first_passage_reward(p, steps, initial_state, first_passage_states, rew
         actual = mc.first_passage_reward(steps, initial_state, first_passage_states, rewards)
         expected = value
 
-        assert actual == expected
+        assert np.isclose(actual, expected)
 
 
 @mark.parametrize(
@@ -516,7 +516,10 @@ def test_mean_first_passage_times_between(p, origins, targets, value):
     actual = mc.mean_first_passage_times_between(origins, targets)
     expected = value
 
-    assert actual == expected
+    if actual is not None and expected is not None:
+        assert np.isclose(actual, expected)
+    else:
+        assert actual == expected
 
 
 @mark.parametrize(

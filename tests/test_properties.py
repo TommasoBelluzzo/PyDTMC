@@ -430,17 +430,23 @@ def test_entropy(p, entropy_rate, entropy_rate_normalized, topological_entropy):
     actual = mc.entropy_rate
     expected = entropy_rate
 
-    assert actual == expected
+    if actual is not None and expected is not None:
+        assert np.isclose(actual, expected)
+    else:
+        assert actual == expected
 
     actual = mc.entropy_rate_normalized
     expected = entropy_rate_normalized
 
-    assert actual == expected
+    if actual is not None and expected is not None:
+        assert np.isclose(actual, expected)
+    else:
+        assert actual == expected
 
     actual = mc.topological_entropy
     expected = topological_entropy
 
-    assert actual == expected
+    assert np.isclose(actual, expected)
 
 
 @mark.parametrize(
@@ -464,7 +470,10 @@ def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
     actual = mc.kemeny_constant
     expected = kemeny_constant
 
-    assert actual == expected
+    if actual is not None and expected is not None:
+        assert np.isclose(actual, expected)
+    else:
+        assert actual == expected
 
 
 @mark.parametrize(
@@ -499,17 +508,26 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     actual = mc.mixing_rate
     expected = mixing_rate
 
-    assert actual == expected
+    if actual is not None and expected is not None:
+        assert np.isclose(actual, expected)
+    else:
+        assert actual == expected
 
     actual = mc.relaxation_rate
     expected = relaxation_rate
 
-    assert actual == expected
+    if actual is not None and expected is not None:
+        assert np.isclose(actual, expected)
+    else:
+        assert actual == expected
 
     actual = mc.spectral_gap
     expected = spectral_gap
 
-    assert actual == expected
+    if actual is not None and expected is not None:
+        assert np.isclose(actual, expected)
+    else:
+        assert actual == expected
 
     actual = mc.implied_timescales
     expected = implied_timescales
