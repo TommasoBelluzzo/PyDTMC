@@ -10,9 +10,8 @@ python:
   - "3.9"
 install:
   - pip install -r requirements.txt
+  - pip install coverage
   - pip install coveralls
-after_success:
-  - coveralls -v
 script:
   - pytest --cov=pydtmc ./tests
 after_success:
