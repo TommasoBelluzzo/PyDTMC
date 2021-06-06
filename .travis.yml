@@ -17,3 +17,4 @@ script:
   - pytest --cov=pydtmc ./tests
 after_success:
   - coveralls -v
+  - bash < (curl -s https://codecov.io/bash)
