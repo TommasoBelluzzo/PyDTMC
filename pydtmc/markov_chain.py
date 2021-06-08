@@ -38,7 +38,8 @@ from itertools import (
 from math import (
     gamma,
     gcd,
-    lgamma
+    lgamma,
+    sqrt
 )
 
 # Internal
@@ -1871,14 +1872,14 @@ class MarkovChain(metaclass=BaseClass):
 
         file_extension = get_file_extension(file_path)
 
-        if file_extension not in ['csv', 'json', 'txt']:
+        if file_extension not in ['.csv', '.json', '.txt']:
             raise ValidationError('Only csv, json and plain text files are supported.')
 
         d = self.to_dictionary()
 
-        if file_extension == 'csv':
+        if file_extension == '.csv':
             write_csv(d, file_path)
-        elif file_extension == 'json':
+        elif file_extension == '.json':
             write_json(d, file_path)
         else:
             write_txt(d, file_path)
@@ -2675,17 +2676,17 @@ class MarkovChain(metaclass=BaseClass):
 
         file_extension = get_file_extension(file_path)
 
-        if file_extension not in ['csv', 'json', 'txt']:
+        if file_extension not in ['.csv', '.json', '.txt']:
             raise ValidationError('Only csv, json and plain text files are supported.')
 
-        if file_extension == 'csv':
+        if file_extension == '.csv':
             d = read_csv(file_path)
-        elif file_extension == 'json':
+        elif file_extension == '.json':
             d = read_json(file_path)
         else:
             d = read_txt(file_path)
 
-        states = sorted(list(set(sum(d.keys(), ()))))
+        states = [key[0] for key in d.keys() if key[0] == key[1]]
         size = len(states)
 
         if size < 2:
