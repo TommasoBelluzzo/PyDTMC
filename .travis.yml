@@ -6,13 +6,18 @@ python:
   - "3.7"
   - "3.8"
   - "3.9"
+before_install:
+  - sudo apt-get -q update
+  - sudo apt-get -y install graphviz
 install:
+  - pip install --upgrade pip
   - pip install -r requirements.txt
   - pip install coverage
   - pip install pytest-cov
+  - pip install codecov
   - pip install coveralls
 script:
   - pytest --cov=pydtmc ./tests
 after_success:
+  - codecov
   - coveralls -v
-  - bash < (curl -s https://codecov.io/bash)
