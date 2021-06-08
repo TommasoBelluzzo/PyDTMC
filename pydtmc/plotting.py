@@ -147,7 +147,7 @@ def plot_eigenvalues(mc: tmc, dpi: int = 100) -> oplot:
     return figure, ax
 
 
-def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, dpi: int = 100) -> oplot:
+def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, force_standard: bool = False, dpi: int = 100) -> oplot:
 
     """
     The function plots the directed graph of the Markov chain.
@@ -159,6 +159,7 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
     :param nodes_type: a boolean indicating whether to use a different shape for every node type (by default, True).
     :param edges_color: a boolean indicating whether to display edges using a gradient based on transition probabilities, valid only for extended graphs (by default, True).
     :param edges_value: a boolean indicating whether to display the transition probability of every edge (by default, True).
+    :param force_standard: a boolean indicating whether to use a standard graph even if Graphviz and Pydot are installed (by default, False).
     :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
     :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, otherwise the handles of the plot.
     :raises ValidationError: if any input argument is not compliant.
@@ -201,26 +202,31 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
         nodes_type = validate_boolean(nodes_type)
         edges_color = validate_boolean(edges_color)
         edges_value = validate_boolean(edges_value)
+        force_standard = validate_boolean(force_standard)
         dpi = validate_dpi(dpi)
 
     except Exception as e:
         argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
         raise ValidationError(str(e).replace('@arg@', argument)) from None
 
-    extended_graph = True
-
-    # noinspection PyBroadException
-    try:
-        call(['dot', '-V'], stdout=PIPE, stderr=PIPE)
-    except Exception:
+    if force_standard:
         extended_graph = False
-        pass
+    else:
 
-    try:
-        import pydot as pyd
-    except ImportError:
-        extended_graph = False
-        pass
+        extended_graph = True
+
+        # noinspection PyBroadException
+        try:
+            call(['dot', '-V'], stdout=PIPE, stderr=PIPE)
+        except Exception:
+            extended_graph = False
+            pass
+
+        try:
+            import pydot as pyd
+        except ImportError:
+            extended_graph = False
+            pass
 
     g = mc.to_directed_graph()
 

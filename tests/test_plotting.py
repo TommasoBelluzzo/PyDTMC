@@ -36,7 +36,7 @@ from random import (
 
 plotting_seed = 7331
 plotting_maximum_size = 6
-plotting_runs = 20
+plotting_runs = 25
 
 
 ########
@@ -65,6 +65,7 @@ def test_plot_eigenvalues(seed, maximum_size, runs):
             pp.close(figure)
         except Exception:
             exception = True
+            pass
 
         assert exception is False
 
@@ -86,9 +87,18 @@ def test_plot_graph(seed, maximum_size, runs):
 
         # noinspection PyBroadException
         try:
-            figure, ax = plot_graph(mc)
+            figure, ax = plot_graph(mc, force_standard=True)
             pp.close(figure)
         except Exception:
             exception = True
+            pass
+
+        # noinspection PyBroadException
+        try:
+            figure, ax = plot_graph(mc, force_standard=False)
+            pp.close(figure)
+        except Exception:
+            exception = True
+            pass
 
         assert exception is False

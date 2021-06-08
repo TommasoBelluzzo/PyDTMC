@@ -847,8 +847,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:
             raise generate_validation_error(e, trace()) from None
 
-        non_zeros = np.count_nonzero(distribution)
-        zeros = len(distribution) - non_zeros
+        zeros = len(distribution) - np.count_nonzero(distribution)
 
         if weighted and zeros > 0:
             raise ValidationError('If the weighted Frobenius norm is used, the distribution must not contain zero-valued probabilities.')

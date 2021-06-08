@@ -168,7 +168,7 @@ def find_lumping_partitions(p: tarray) -> tparts:
 
     possible_partitions = []
 
-    for i in range(2 ** k):
+    for i in range(2**k):
 
         partition = []
         subset = []
