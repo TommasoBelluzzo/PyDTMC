@@ -11,7 +11,7 @@ before_install:
   - sudo apt-get -y install graphviz
 install:
   - pip install --upgrade pip
-  - pip install -r requirements.txt
+  - pip install -r requirements.txt --use-feature=in-tree-build
   - pip install coverage
   - pip install pytest-cov
   - pip install codecov
