@@ -9,21 +9,16 @@ python:
 before_install:
   - sudo apt-get -q update
   - sudo apt-get -y install graphviz
-  - sudo apt-get -y install python-sphinx
 install:
   - pip install --upgrade pip
   - pip install -r requirements.txt --use-feature=in-tree-build
   - pip install pydot
-  - pip install Sphinx
-  - pip install sphinx-autodoc-typehints
   - pip install coverage
   - pip install pytest-cov
   - pip install codecov
   - pip install coveralls
 script:
   - pytest --cov=pydtmc ./tests
-  - make -C docs/ html
-  - touch docs/_build/html/.nojekyll
 after_success:
   - codecov
   - coveralls -v
