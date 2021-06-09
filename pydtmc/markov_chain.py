@@ -825,7 +825,7 @@ class MarkovChain(metaclass=BaseClass):
 
         return result
 
-    def closest_reversible(self, distribution: tnumeric, weighted: bool = False) -> omc:
+    def closest_reversible(self, distribution: tnumeric, weighted: bool = False) -> tmc:
 
         """
         The method computes the closest reversible of the Markov chain.
@@ -938,11 +938,12 @@ class MarkovChain(metaclass=BaseClass):
             raise generate_validation_error(e, trace()) from None
 
         original_rewards = np.copy(rewards)
+        value = np.copy(rewards)
 
-        for i in range(steps):
-            rewards = original_rewards + np.dot(rewards, self._p)
+        for _ in range(steps):
+            value = original_rewards + np.dot(value, self._p)
 
-        return rewards
+        return value
 
     def expected_transitions(self, steps: int, initial_distribution: onumeric = None) -> oarray:
 
@@ -972,7 +973,7 @@ class MarkovChain(metaclass=BaseClass):
             pi = initial_distribution
             p_sum = initial_distribution
 
-            for i in range(steps - 1):
+            for _ in range(steps - 1):
                 pi = np.dot(pi, self._p)
                 p_sum += pi
 
@@ -1428,7 +1429,7 @@ class MarkovChain(metaclass=BaseClass):
 
         current_state = initial_state
 
-        for i in range(steps):
+        for _ in range(steps):
             d = self._p[current_state, :]
             d_max = np.argwhere(d == np.max(d))
 
@@ -2009,7 +2010,7 @@ class MarkovChain(metaclass=BaseClass):
 
         current_state = initial_state
 
-        for i in range(steps):
+        for _ in range(steps):
 
             w = self._p[current_state, :]
             current_state = rng.choice(self._size, size=1, p=w).item()

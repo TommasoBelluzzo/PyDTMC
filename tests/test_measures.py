@@ -67,7 +67,7 @@ cases = [
             SubcaseFirstPassage(2, 1, 0, None, None, [1.0, 0.0], None)
         ],
         [
-            SubcaseHitting(0, [1.0, 1.0], [0.0, 1.0]),
+            SubcaseHitting(None, [1.0, 1.0], [0.0, 0.0]),
             SubcaseHitting(1, [1.0, 1.0], [1.0, 0.0])
         ],
         [
@@ -139,7 +139,7 @@ cases = [
             SubcaseFirstPassage(7, 0, 2, 1, [4.7, 1.0, 3.9], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 32.9)
         ],
         [
-            SubcaseHitting(0, [1.0, 0.0, 0.0], [0.0, np.inf, np.inf]),
+            SubcaseHitting(None, [1.0, 1.0, 1.0], [0.0, 0.0, 0.0]),
             SubcaseHitting([1, 2], [0.0, 1.0, 1.0], [np.inf, 0.0, 0.0])
         ],
         [
@@ -247,7 +247,7 @@ cases = [
             SubcaseFirstPassage(6, 2, [0, 1], [0, 1], [5.2, 0.2, 0.0, 1.5], [0.5, 0.25, 0.0, 0.0625, 0.0, 0.015625], 4.5)
         ],
         [
-            SubcaseHitting(0, [1.0, 0.66666667, 0.33333333, 0.0], [0.0, np.inf, np.inf, np.inf]),
+            SubcaseHitting(None, [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]),
             SubcaseHitting([0, 1], [1.0, 1.0, 0.5, 0.0], [0.0, 0.0, np.inf, np.inf])
         ],
         [

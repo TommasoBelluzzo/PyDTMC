@@ -591,6 +591,17 @@ def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communicatio
 
     assert np.array_equal(actual, expected)
 
+    for i in range(mc.size):
+        for j in range(mc.size):
+
+            actual = mc.is_accessible(j, i)
+            expected = mc.accessibility_matrix[i, j] != 0
+            assert actual == expected
+
+            actual = mc.are_communicating(i, j)
+            expected = mc.accessibility_matrix[i, j] != 0 and mc.accessibility_matrix[j, i] != 0
+            assert actual == expected
+
     actual = mc.adjacency_matrix
     expected = np.asarray(adjacency_matrix)
 

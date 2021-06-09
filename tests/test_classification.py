@@ -235,6 +235,14 @@ def test_states_space(p, recurrent_classes, transient_classes):
 
     assert actual == expected
 
+    if len(mc.recurrent_states) > 0:
+        for state in mc.recurrent_states:
+            assert mc.is_recurrent_state(state) is True
+
+    if len(mc.transient_states) > 0:
+        for state in mc.transient_states:
+            assert mc.is_transient_state(state) is True
+
 
 @mark.parametrize(
     argnames=('p', 'recurrent_classes', 'absorbing_states'),
@@ -255,11 +263,29 @@ def test_states_absorbing(p, recurrent_classes, absorbing_states):
 
     assert actual == expected
 
+    if len(mc.absorbing_states) > 0:
+        for state in mc.absorbing_states:
+            assert mc.is_absorbing_state(state) is True
+
+
+@mark.parametrize(
+    argnames='p',
+    argvalues=[case.p for case in cases],
+    ids=['test_states_cyclic ' + case.id for case in cases]
+)
+def test_states_cyclic(p):
+
+    mc = MarkovChain(p)
+
+    if len(mc.cyclic_states) > 0:
+        for state in mc.cyclic_states:
+            assert mc.is_cyclic_state(state) is True
+
 
 @mark.parametrize(
     argnames='maximum_size',
     argvalues=[identity_maximum_size],
-    ids=['states_recurrent_identity']
+    ids=['test_states_recurrent_identity']
 )
 def test_states_recurrent_identity(maximum_size):
 
