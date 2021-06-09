@@ -10,5 +10,5 @@ help:
 
 %: Makefile
 	@rm -rf "$(BUILD_DIR)/$@/*"
-	@$(SPHINX_EXE) -nW -b $@ -c . "$(SOURCE_DIR)" "$(BUILD_DIR)/$@" $(O)
-	@$(SPHINX_EXE) -nW -b coverage -c . "$(SOURCE_DIR)" "$(BUILD_DIR)/$@" $(O)
+	@$(SPHINX_EXE) -n -b $@ -c . "$(SOURCE_DIR)" "$(BUILD_DIR)/$@" $(O)
+	@$(SPHINX_EXE) -n -b coverage -c . "$(SOURCE_DIR)" "$(BUILD_DIR)/$@" $(O)
