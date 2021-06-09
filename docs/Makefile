@@ -1,4 +1,4 @@
-SPHINX_EXE  = sphinx-build
+SPHINX_EXE  = python -m sphinx
 SOURCE_DIR  = _source
 BUILD_DIR   = _build
 SPHINX_OPTS =
