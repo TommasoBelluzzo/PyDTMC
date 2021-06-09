@@ -13,8 +13,9 @@ before_install:
 install:
   - pip install --upgrade pip
   - pip install -r requirements.txt --use-feature=in-tree-build
-  - pip install Sphinx
   - pip install pydot
+  - pip install Sphinx
+  - pip install sphinx_autodoc_typehints
   - pip install coverage
   - pip install pytest-cov
   - pip install codecov
