@@ -12,12 +12,12 @@ __all__ = [
 ###########
 
 
-# Major
+# Full
 
 import networkx as nx
 import numpy as np
 
-# Minor
+# Partial
 
 from itertools import (
     chain

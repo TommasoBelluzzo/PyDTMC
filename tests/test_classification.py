@@ -5,11 +5,12 @@
 # IMPORTS #
 ###########
 
-# Major
+
+# Full
 
 import numpy as np
 
-# Minor
+# Partial
 
 from collections import (
     namedtuple
@@ -28,6 +29,8 @@ from pytest import (
 # TEST CASES #
 ##############
 
+
+identity_maximum_size = 20
 
 Case = namedtuple('Case', [
     'id',
@@ -112,12 +115,10 @@ cases = [
     )
 ]
 
-identity_maximum_size = 20
 
-
-########
-# TEST #
-########
+#########
+# TESTS #
+#########
 
 
 @mark.parametrize(

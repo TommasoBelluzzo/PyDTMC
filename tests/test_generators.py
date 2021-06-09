@@ -4,11 +4,12 @@
 # IMPORTS #
 ###########
 
-# Major
+
+# Full
 
 import numpy as np
 
-# Minor
+# Partial
 
 from collections import (
     namedtuple
@@ -22,9 +23,11 @@ from pytest import (
     mark
 )
 
+
 ##############
 # TEST CASES #
 ##############
+
 
 random_seed = 7331
 
@@ -200,9 +203,9 @@ cases_static = CaseStatic(
 )
 
 
-########
-# TEST #
-########
+#########
+# TESTS #
+#########
 
 
 @mark.parametrize(

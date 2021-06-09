@@ -10,7 +10,7 @@ __all__ = [
 ###########
 
 
-# Major
+# Full
 
 import networkx as nx
 import numpy as np
@@ -18,7 +18,7 @@ import numpy.linalg as npl
 import scipy.integrate as spi
 import scipy.stats as sps
 
-# Minor
+# Partial
 
 from copy import (
     deepcopy
@@ -38,8 +38,7 @@ from itertools import (
 from math import (
     gamma,
     gcd,
-    lgamma,
-    sqrt
+    lgamma
 )
 
 # Internal
@@ -1810,7 +1809,7 @@ class MarkovChain(metaclass=BaseClass):
     def to_dictionary(self) -> tmc_dict:
 
         """
-        The method returns a dictionary representing the Markov chain.
+        The method returns a dictionary representing the Markov chain transitions.
 
         :return: a dictionary.
         """
@@ -1823,15 +1822,12 @@ class MarkovChain(metaclass=BaseClass):
 
         return d
 
-    @alias('to_graph')
-    def to_directed_graph(self, multi: bool = True) -> tgraphs:
+    def to_graph(self, multi: bool = False) -> tgraphs:
 
         """
         The method returns a directed graph representing the Markov chain.
 
-        | **Aliases:** to_graph
-
-        :param multi: a boolean indicating whether the graph is allowed to define multiple edges between two nodes (by default, True).
+        :param multi: a boolean indicating whether the graph is allowed to define multiple edges between two nodes (by default, False).
         :return: a directed graph.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -1908,6 +1904,18 @@ class MarkovChain(metaclass=BaseClass):
         mc = MarkovChain(p, self._states)
 
         return mc
+
+    def to_matrix(self) -> tarray:
+
+        """
+        The method returns a transition matrix representing the Markov chain.
+
+        :return: a transition matrix.
+        """
+
+        m = np.copy(self._p)
+
+        return m
 
     def to_subchain(self, states: tstates) -> tmc:
 
@@ -2632,6 +2640,40 @@ class MarkovChain(metaclass=BaseClass):
 
         if not np.allclose(np.sum(p, axis=1), np.ones(size, dtype=float)):
             raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.')
+
+        mc = MarkovChain(p, states)
+
+        return mc
+
+    @staticmethod
+    def from_graph(graph: tgraphs) -> tmc:
+
+        """
+        The method generates a Markov chain from the given directed graph.
+
+        :return: a Markov chain.
+        :raises ValueError: if the transition matrix defined by the directed graph is not valid.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            graph = validate_graph(graph)
+
+        except Exception as e:
+            raise generate_validation_error(e, trace()) from None
+
+        states = list(graph.nodes)
+        size = len(states)
+
+        p = np.zeros((size, size), dtype=float)
+
+        for state_from, weights in graph.adjacency():
+            i = states.index(state_from)
+            for state_to, data in weights.items():
+                j = states.index(state_to)
+                w = data['weight']
+                p[i, j] = w
 
         mc = MarkovChain(p, states)
 

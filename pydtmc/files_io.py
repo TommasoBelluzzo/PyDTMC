@@ -15,11 +15,11 @@ __all__ = [
 ###########
 
 
-# Major
+# Full
 
 import numpy as np
 
-# Minor
+# Partial
 
 from csv import (
     reader as csv_reader,

@@ -6,18 +6,16 @@
 ###########
 
 
-# Major
+# Full
 
 import matplotlib.pyplot as pp
 
-# Minor
+# Partial
 
 from pydtmc import (
     MarkovChain,
     plot_eigenvalues,
-    plot_graph,
-    plot_redistributions,
-    plot_walk
+    plot_graph
 )
 
 from pytest import (
@@ -39,9 +37,9 @@ plotting_maximum_size = 6
 plotting_runs = 25
 
 
-########
-# TEST #
-########
+#########
+# TESTS #
+#########
 
 
 @mark.parametrize(

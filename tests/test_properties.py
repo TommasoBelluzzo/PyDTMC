@@ -6,12 +6,12 @@
 ###########
 
 
-# Major
+# Full
 
 import numpy as np
 import numpy.linalg as npl
 
-# Minor
+# Partial
 
 from collections import (
     namedtuple
@@ -330,9 +330,9 @@ cases = [
 ]
 
 
-########
-# TEST #
-########
+#########
+# TESTS #
+#########
 
 
 @mark.parametrize(

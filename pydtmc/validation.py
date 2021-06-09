@@ -8,6 +8,7 @@ __all__ = [
     'validate_dpi',
     'validate_enumerator',
     'validate_float',
+    'validate_graph',
     'validate_hyperparameter',
     'validate_integer',
     'validate_interval',
@@ -33,8 +34,9 @@ __all__ = [
 ###########
 
 
-# Major
+# Full
 
+import networkx as nx
 import numpy as np
 import scipy.sparse as spsp
 
@@ -43,7 +45,7 @@ try:
 except ImportError:
     pd = None
 
-# Minor
+# Partial
 
 from copy import (
     deepcopy
@@ -142,7 +144,7 @@ def validate_dictionary(d: tany) -> tmc_dict:
     if not all(isinstance(key, tuple) and (len(key) == 2) and isinstance(key[0], str) and isinstance(key[1], str) for key in keys):
         raise ValueError('The "@arg@" parameter keys must be tuples containing 2 string values.')
 
-    keys = sorted(list(set(sum(keys, ()))))
+    keys = [key[0] for key in keys if key[0] == key[1]]
 
     if not all(key is not None and (len(key) > 0) for key in keys):
         raise TypeError('The "@arg@" parameter keys must contain only valid string values.')
@@ -157,12 +159,12 @@ def validate_dictionary(d: tany) -> tmc_dict:
     if not all((value >= 0.0) and (value <= 1.0) for value in values):
         raise ValueError('The "@arg@" parameter values can contain only numbers between 0 and 1.')
 
-    result = {}
+    dictionary = {}
 
     for key, value in d.items():
-        result[key] = float(value)
+        dictionary[key] = float(value)
 
-    return result
+    return dictionary
 
 
 def validate_distribution(distribution: tany, size: int) -> tdists_flex:
@@ -254,6 +256,28 @@ def validate_float(value: tany, lower_limit: olimit_float = None, upper_limit: o
                 raise ValueError(f'The "@arg@" parameter must be less than or equal to {upper_limit[0]:f}.')
 
     return value
+
+
+def validate_graph(graph: tany) -> tgraphs:
+
+    if graph is None:
+        raise ValueError('The "@arg@" parameter must be a directed graph.')
+
+    non_multi = isinstance(graph, nx.DiGraph)
+    multi = isinstance(graph, nx.MultiDiGraph)
+
+    if not non_multi and not multi:
+        raise ValueError('The "@arg@" parameter must be a directed graph.')
+
+    if multi:
+        graph = nx.DiGraph(graph)
+
+    size = len(list(graph.nodes))
+
+    if size < 2:
+        raise ValueError('The "@arg@" parameter must contain a number of nodes greater than or equal to 2.')
+
+    return graph
 
 
 def validate_hyperparameter(hyperparameter: tany, size: int) -> tarray:
@@ -690,7 +714,9 @@ def validate_time_points(time_points: tany) -> ttimes_in:
     if len(set(time_points)) < time_points_length:
         raise ValueError('The "@arg@" parameter must contain only unique values.')
 
-    return sorted(time_points)
+    time_points = sorted(time_points)
+
+    return time_points
 
 
 def validate_transition_function(f: tany) -> ttfunc:

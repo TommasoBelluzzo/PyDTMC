@@ -2,8 +2,6 @@
 
 PyDTMC is a full-featured, lightweight library for discrete-time Markov chains analysis. It provides classes and functions for creating, manipulating and simulating markovian stochastic processes.
 
-[![PyPI Version](https://img.shields.io/pypi/v/PyDTMC?label=PyPI%20Version&color=79C83D)](https://pypi.org/project/PyDTMC/) [![PyPI Downloads](https://img.shields.io/pypi/dm/PyDTMC?label=PyPI%20Downloads&color=79C83D)](https://pypi.org/project/PyDTMC/)
-
 ## Requirements
 
 PyDTMC supports only `Python 3` and the minimum required version is `3.6`. In addition, the environment must include the following libraries:

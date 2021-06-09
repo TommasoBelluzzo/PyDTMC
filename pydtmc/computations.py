@@ -13,7 +13,7 @@ __all__ = [
 ###########
 
 
-# Major
+# Full
 
 import numpy as np
 import numpy.linalg as npl

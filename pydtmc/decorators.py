@@ -12,6 +12,8 @@ __all__ = [
 ###########
 
 
+# Partial
+
 from functools import (
     update_wrapper,
     wraps

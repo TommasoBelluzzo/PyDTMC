@@ -13,7 +13,7 @@ __all__ = [
 ###########
 
 
-# Major
+# Full
 
 import matplotlib.colors as mplc
 import matplotlib.image as mpli
@@ -23,7 +23,7 @@ import networkx as nx
 import numpy as np
 import numpy.linalg as npl
 
-# Minor
+# Partial
 
 from inspect import (
     trace

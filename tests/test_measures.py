@@ -6,11 +6,11 @@
 ###########
 
 
-# Major
+# Full
 
 import numpy as np
 
-# Minor
+# Partial
 
 from collections import (
     namedtuple
@@ -382,9 +382,9 @@ cases = [
 ]
 
 
-########
-# TEST #
-########
+#########
+# TESTS #
+#########
 
 
 @mark.parametrize(

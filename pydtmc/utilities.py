@@ -12,13 +12,13 @@ __all__ = [
 ###########
 
 
-# Major
+# Full
 
 import numpy.random as npr
 import numpy.random.mtrand as nprm
 import pathlib as pl
 
-# Minor
+# Internal
 
 from .custom_types import *
 from .exceptions import *

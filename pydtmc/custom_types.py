@@ -56,7 +56,7 @@ __all__ = [
 ###########
 
 
-# Major
+# Full
 
 import matplotlib.pyplot as pp
 import networkx as nx
@@ -69,7 +69,7 @@ try:
 except ImportError:
     pd = None
 
-# Minor
+# Partial
 
 from typing import (
     Any,
