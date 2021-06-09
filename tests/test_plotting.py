@@ -91,6 +91,8 @@ def test_plot_graph(seed, maximum_size, runs):
             exception = True
             pass
 
+        assert exception is False
+
         # noinspection PyBroadException
         try:
             figure, ax = plot_graph(mc, force_standard=False)

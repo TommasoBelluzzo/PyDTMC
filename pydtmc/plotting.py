@@ -228,7 +228,7 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
             extended_graph = False
             pass
 
-    g = mc.to_directed_graph()
+    g = mc.to_graph()
 
     if extended_graph:
 
