@@ -1,12 +1,14 @@
-SPHINXOPTS  =
-SPHINXBUILD = sphinx-build
-SOURCEDIR   = _source
-BUILDDIR    = _build
+SPHINX_EXE  = sphinx-build
+SOURCE_DIR  = _source
+BUILD_DIR   = _build
+SPHINX_OPTS =
 
 help:
-	@$(SPHINXBUILD) --help
+	@$(SPHINX_EXE) --help
 
 .PHONY: help Makefile
 
 %: Makefile
-	@$(SPHINXBUILD) -b $@ -c . "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@rm -rf "$(BUILD_DIR)/$@/*" $(O)
+	@$(SPHINX_EXE) -nW -b $@ -c . "$(SOURCE_DIR)" "$(BUILD_DIR)/$@" $(O)
+	@$(SPHINX_EXE) -nW -b coverage -c . "$(SOURCE_DIR)" "$(BUILD_DIR)/$@" $(O)

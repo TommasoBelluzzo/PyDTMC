@@ -1,0 +1,2 @@
+py:class matplotlib.axes._axes.Axes
+py:class networkx.classes.digraph.DiGraph

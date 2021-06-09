@@ -27,6 +27,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
+    'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'sphinx_autodoc_typehints'
 ]
@@ -36,8 +37,8 @@ extensions = [
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
     'matplotlib': ('https://matplotlib.org/users/', None),
-    'networkx': ('https://networkx.github.io/documentation/stable/', None),
-    'numpy': ('https://docs.scipy.org/doc/numpy/', None),
+    'networkx': ('https://networkx.org/documentation/stable/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
     'pytest': ('https://docs.pytest.org/en/latest/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None)
 }
@@ -49,6 +50,16 @@ master_doc = 'index'
 pygments_style = 'sphinx'
 source_suffix = '.rst'
 templates_path = ['_templates']
+
+nitpick_ignore = []
+
+if os.path.exists('nitpick-exceptions.txt'):
+    with open('nitpick-exceptions.txt', 'r') as file:
+        for line in file:
+            if line.strip() == '' or line.startswith('#'):
+                continue
+            ne_type, ne_target = line.split(None, 1)
+            nitpick_ignore.append((ne_type.strip(), ne_target.strip()))
 
 # ePub Output
 
@@ -64,9 +75,7 @@ html_show_sourcelink = False
 html_show_sphinx = False
 html_static_path = ['_static']
 html_theme = 'traditional'
-html_theme_options = {
-    'nosidebar': True
-}
+html_theme_options = {'nosidebar': True}
 html_title = ''
 htmlhelp_basename = project + 'doc'
 

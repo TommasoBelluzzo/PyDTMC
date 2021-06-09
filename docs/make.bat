@@ -1,33 +1,31 @@
 @ECHO OFF
+
 PUSHD %~dp0
 
-IF "%SPHINXBUILD%" == "" (
-	SET SPHINXBUILD=sphinx-build.exe
+IF "%SPHINX_BUILD%" == "" (
+	SET SPHINX_BUILD=sphinx-build.exe
 )
 
-%SPHINXBUILD% >NUL 2>NUL
+%SPHINX_BUILD% >NUL 2>NUL
 
 IF ERRORLEVEL 9009 (
 	ECHO.
-	ECHO.The 'sphinx-build' command was not found. Make sure you have Sphinx
-	ECHO.installed, then set the SPHINXBUILD environment variable to point
-	ECHO.to the full path of the 'sphinx-build' executable. Alternatively you
-	ECHO.may add the Sphinx directory to PATH.
-	ECHO.
-	ECHO.If you don't have Sphinx installed, get it from:
+	ECHO.Install Sphinx from:
 	ECHO.http://sphinx-doc.org/
 	EXIT /b 1
 )
 
 IF "%1" == "" (
-	SET SPHINXTYPE=html
+	SET SPHINX_TYPE=html
 ) ELSE (
-	SET SPHINXTYPE=%1
+	SET SPHINX_TYPE=%1
 )
 
-SET SOURCEDIR=_source
-SET BUILDDIR=_build
+SET SOURCE_DIR=_source
+SET BUILD_DIR=_build
 
-%SPHINXBUILD% -b %SPHINXTYPE% -c . %SOURCEDIR% %BUILDDIR%
+DEL /S /Q %BUILD_DIR%\%SPHINX_TYPE%\* >NUL 2>NUL
+%SPHINX_BUILD% -nW -b %SPHINX_TYPE% -c . %SOURCE_DIR% %BUILD_DIR%\%SPHINX_TYPE%
+%SPHINX_BUILD% -nW -b coverage -c . %SOURCE_DIR% %BUILD_DIR%\%SPHINX_TYPE%
 
 POPD
