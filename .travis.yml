@@ -9,9 +9,11 @@ python:
 before_install:
   - sudo apt-get -q update
   - sudo apt-get -y install graphviz
+  - sudo apt-get -y install python-sphinx
 install:
   - pip install --upgrade pip
   - pip install -r requirements.txt --use-feature=in-tree-build
+  - pip install Sphinx
   - pip install pydot
   - pip install coverage
   - pip install pytest-cov
