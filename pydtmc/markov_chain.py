@@ -88,7 +88,7 @@ class MarkovChain(metaclass=BaseClass):
                 else:
                     states = validate_state_names(states, p.shape[0])
 
-            except Exception as e:
+            except Exception as e:  # pragma: no cover
                 raise generate_validation_error(e, trace()) from None
 
         size = p.shape[0]
@@ -816,7 +816,7 @@ class MarkovChain(metaclass=BaseClass):
             state1 = validate_state(state1, self._states)
             state2 = validate_state(state2, self._states)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         a1 = self.accessibility_matrix[state1, state2] != 0
@@ -844,7 +844,7 @@ class MarkovChain(metaclass=BaseClass):
             distribution = validate_vector(distribution, 'stochastic', False, size=self._size)
             weighted = validate_boolean(weighted)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         zeros = len(distribution) - np.count_nonzero(distribution)
@@ -882,7 +882,7 @@ class MarkovChain(metaclass=BaseClass):
             states1 = validate_states(states1, self._states, 'subset', True)
             states2 = validate_states(states2, self._states, 'subset', True)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         intersection = np.intersect1d(states1, states2)
@@ -911,7 +911,7 @@ class MarkovChain(metaclass=BaseClass):
 
             state = validate_state(state, self._states)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         value = self._p[state, :]
@@ -934,7 +934,7 @@ class MarkovChain(metaclass=BaseClass):
             rewards = validate_rewards(rewards, self._size)
             steps = validate_integer(steps, lower_limit=(0, True))
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         original_rewards = np.copy(rewards)
@@ -964,7 +964,7 @@ class MarkovChain(metaclass=BaseClass):
             else:
                 initial_distribution = validate_vector(initial_distribution, 'stochastic', False, size=self._size)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         if steps <= self._size:
@@ -1023,7 +1023,7 @@ class MarkovChain(metaclass=BaseClass):
             if first_passage_states is not None:
                 first_passage_states = validate_states(first_passage_states, self._states, 'regular', True)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         value = first_passage_probabilities(self, steps, initial_state, first_passage_states)
@@ -1054,7 +1054,7 @@ class MarkovChain(metaclass=BaseClass):
             rewards = validate_rewards(rewards, self._size)
             steps = validate_integer(steps, lower_limit=(0, True))
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         if self._size == 2:
@@ -1087,7 +1087,7 @@ class MarkovChain(metaclass=BaseClass):
             else:
                 targets = validate_states(targets, self._states, 'regular', True)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         value = hitting_probabilities(self, targets)
@@ -1111,7 +1111,7 @@ class MarkovChain(metaclass=BaseClass):
             else:
                 targets = validate_states(targets, self._states, 'regular', True)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         value = hitting_times(self, targets)
@@ -1132,7 +1132,7 @@ class MarkovChain(metaclass=BaseClass):
 
             state = validate_state(state, self._states)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         result = state in self._absorbing_states_indices
@@ -1155,7 +1155,7 @@ class MarkovChain(metaclass=BaseClass):
             state_target = validate_state(state_target, self._states)
             state_origin = validate_state(state_origin, self._states)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         result = self.accessibility_matrix[state_origin, state_target] != 0
@@ -1176,7 +1176,7 @@ class MarkovChain(metaclass=BaseClass):
 
             state = validate_state(state, self._states)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         result = state in self._cyclic_states_indices
@@ -1197,7 +1197,7 @@ class MarkovChain(metaclass=BaseClass):
 
             state = validate_state(state, self._states)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         result = state in self._recurrent_states_indices
@@ -1218,7 +1218,7 @@ class MarkovChain(metaclass=BaseClass):
 
             state = validate_state(state, self._states)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         result = state in self._transient_states_indices
@@ -1240,7 +1240,7 @@ class MarkovChain(metaclass=BaseClass):
 
             partitions = validate_partitions(partitions, self._states)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         if self._size == 2:
@@ -1290,7 +1290,7 @@ class MarkovChain(metaclass=BaseClass):
             origins = validate_states(origins, self._states, 'subset', True)
             targets = validate_states(targets, self._states, 'subset', True)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         value = mean_first_passage_times_between(self, origins, targets)
@@ -1315,7 +1315,7 @@ class MarkovChain(metaclass=BaseClass):
             if targets is not None:
                 targets = validate_states(targets, self._states, 'regular', True)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         value = mean_first_passage_times_to(self, targets)
@@ -1376,7 +1376,7 @@ class MarkovChain(metaclass=BaseClass):
             jump = validate_integer(jump, lower_limit=(0, True))
             cutoff_type = validate_enumerator(cutoff_type, ['natural', 'traditional'])
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         if cutoff_type == 'traditional':
@@ -1418,7 +1418,7 @@ class MarkovChain(metaclass=BaseClass):
             include_initial = validate_boolean(include_initial)
             output_indices = validate_boolean(output_indices)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         prediction = list()
@@ -1460,7 +1460,7 @@ class MarkovChain(metaclass=BaseClass):
             else:
                 hyperparameter = validate_hyperparameter(hyperparameter, self._size)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         lps = np.zeros(self._size, dtype=float)
@@ -1502,7 +1502,7 @@ class MarkovChain(metaclass=BaseClass):
             include_initial = validate_boolean(include_initial)
             output_last = validate_boolean(output_last)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         distributions = np.zeros((steps, self._size), dtype=float)
@@ -1538,7 +1538,7 @@ class MarkovChain(metaclass=BaseClass):
 
             state = validate_state(state, self._states)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         value = sensitivity(self, state)
@@ -1566,7 +1566,7 @@ class MarkovChain(metaclass=BaseClass):
 
             time_points = validate_time_points(time_points)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         if not self.is_ergodic:
@@ -1680,7 +1680,7 @@ class MarkovChain(metaclass=BaseClass):
 
             time_points = validate_time_points(time_points)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         if not self.is_ergodic:
@@ -1775,7 +1775,7 @@ class MarkovChain(metaclass=BaseClass):
 
             boundary_condition = validate_boundary_condition(boundary_condition)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         p, _ = bounded(self._p, boundary_condition)
@@ -1836,7 +1836,7 @@ class MarkovChain(metaclass=BaseClass):
 
             multi = validate_boolean(multi)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         if multi:
@@ -1863,7 +1863,7 @@ class MarkovChain(metaclass=BaseClass):
 
             file_path = validate_string(file_path)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         file_extension = get_file_extension(file_path)
@@ -1897,7 +1897,7 @@ class MarkovChain(metaclass=BaseClass):
 
             inertial_weights = validate_vector(inertial_weights, 'unconstrained', True, size=self._size)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         p, _ = lazy(self._p, inertial_weights)
@@ -1932,7 +1932,7 @@ class MarkovChain(metaclass=BaseClass):
 
             states = validate_states(states, self._states, 'subset', True)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         p, states, error_message = sub(self._p, self._states, self.adjacency_matrix, states)
@@ -1960,7 +1960,7 @@ class MarkovChain(metaclass=BaseClass):
             state_target = validate_state(state_target, self._states)
             state_origin = validate_state(state_origin, self._states)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         tp = self._p[state_origin, state_target]
@@ -1999,7 +1999,7 @@ class MarkovChain(metaclass=BaseClass):
 
             output_indices = validate_boolean(output_indices)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         walk = list()
@@ -2037,7 +2037,7 @@ class MarkovChain(metaclass=BaseClass):
 
             walk = validate_states(walk, self._states, 'walk', False)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         p = 0.0
@@ -2128,7 +2128,7 @@ class MarkovChain(metaclass=BaseClass):
                 else:
                     k = validate_float(k, lower_limit=(0.0, True))
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         if approximation_type == 'adda-cooper':
@@ -2271,7 +2271,7 @@ class MarkovChain(metaclass=BaseClass):
             else:
                 states = validate_state_names(states, {p.shape[0], q.shape[0]}.pop())
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         if p.shape[0] != q.shape[0]:
@@ -2317,7 +2317,7 @@ class MarkovChain(metaclass=BaseClass):
             else:
                 quadrature_interval = validate_interval(quadrature_interval)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         size = len(possible_states)
@@ -2526,7 +2526,7 @@ class MarkovChain(metaclass=BaseClass):
 
             confidence_level = validate_float(confidence_level, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         size = len(possible_states)
@@ -2624,7 +2624,7 @@ class MarkovChain(metaclass=BaseClass):
 
             d = validate_dictionary(d)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         states = [key[0] for key in d.keys() if key[0] == key[1]]
@@ -2660,7 +2660,7 @@ class MarkovChain(metaclass=BaseClass):
 
             graph = validate_graph(graph)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         states = list(graph.nodes)
@@ -2713,7 +2713,7 @@ class MarkovChain(metaclass=BaseClass):
 
             file_path = validate_string(file_path)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         file_extension = get_file_extension(file_path)
@@ -2767,7 +2767,7 @@ class MarkovChain(metaclass=BaseClass):
             else:
                 states = validate_state_names(states, m.shape[0])
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         m = np.interp(m, (np.min(m), np.max(m)), (0.0, 1.0))
@@ -2798,7 +2798,7 @@ class MarkovChain(metaclass=BaseClass):
             else:
                 states = validate_state_names(states, size)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         p, _ = gamblers_ruin(size, w)
@@ -2827,7 +2827,7 @@ class MarkovChain(metaclass=BaseClass):
             else:
                 states = validate_state_names(states, size)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         p = np.eye(size, dtype=float)
@@ -2867,7 +2867,7 @@ class MarkovChain(metaclass=BaseClass):
             else:
                 mask = validate_mask(mask, size)
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         p, error_message = random(rng, size, zeros, mask)
@@ -2898,7 +2898,7 @@ class MarkovChain(metaclass=BaseClass):
             n = validate_integer(n, lower_limit=(1, False))
             model = validate_enumerator(model, ['bernoulli-laplace', 'ehrenfest'])
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
         p, states, _ = urn_model(n, model)

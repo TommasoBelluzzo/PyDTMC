@@ -41,7 +41,7 @@ from subprocess import (
 # Internal
 
 from .custom_types import *
-from .exceptions import *
+from .utilities import *
 from .validation import *
 
 
@@ -77,9 +77,8 @@ def plot_eigenvalues(mc: tmc, dpi: int = 100) -> oplot:
         mc = validate_markov_chain(mc)
         dpi = validate_dpi(dpi)
 
-    except Exception as e:
-        argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-        raise ValidationError(str(e).replace('@arg@', argument)) from None
+    except Exception as e:  # pragma: no cover
+        raise generate_validation_error(e, trace()) from None
 
     figure, ax = pp.subplots(dpi=dpi)
 
@@ -140,7 +139,7 @@ def plot_eigenvalues(mc: tmc, dpi: int = 100) -> oplot:
 
     pp.subplots_adjust(bottom=0.2)
 
-    if pp.isinteractive():
+    if pp.isinteractive():  # pragma: no cover
         pp.show(block=False)
         return None
 
@@ -205,9 +204,8 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
         force_standard = validate_boolean(force_standard)
         dpi = validate_dpi(dpi)
 
-    except Exception as e:
-        argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-        raise ValidationError(str(e).replace('@arg@', argument)) from None
+    except Exception as e:  # pragma: no cover
+        raise generate_validation_error(e, trace()) from None
 
     if force_standard:
         extended_graph = False
@@ -337,7 +335,7 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
 
         pp.interactive(mpi)
 
-    if pp.isinteractive():
+    if pp.isinteractive():  # pragma: no cover
         pp.show(block=False)
         return None
 
@@ -370,9 +368,8 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
         plot_type = validate_enumerator(plot_type, ['heatmap', 'projection'])
         dpi = validate_dpi(dpi)
 
-    except Exception as e:
-        argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-        raise ValidationError(str(e).replace('@arg@', argument)) from None
+    except Exception as e:  # pragma: no cover
+        raise generate_validation_error(e, trace()) from None
 
     if isinstance(distributions, int):
         distributions = mc.redistribute(distributions, initial_status=initial_status, include_initial=True, output_last=False)
@@ -438,7 +435,7 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
 
         pp.subplots_adjust(bottom=0.2)
 
-    if pp.isinteractive():
+    if pp.isinteractive():  # pragma: no cover
         pp.show(block=False)
         return None
 
@@ -478,9 +475,8 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
         plot_type = validate_enumerator(plot_type, ['histogram', 'sequence', 'transitions'])
         dpi = validate_dpi(dpi)
 
-    except Exception as e:
-        argument = ''.join(trace()[0][4]).split('=', 1)[0].strip()
-        raise ValidationError(str(e).replace('@arg@', argument)) from None
+    except Exception as e:  # pragma: no cover
+        raise generate_validation_error(e, trace()) from None
 
     if isinstance(walk, int):
         walk = mc.walk(walk, initial_state=initial_state, include_initial=True, output_indices=True)
@@ -564,7 +560,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
 
         ax.set_title('Walkplot (Transitions)', fontsize=15.0, fontweight='bold')
 
-    if pp.isinteractive():
+    if pp.isinteractive():  # pragma: no cover
         pp.show(block=False)
         return None
 
