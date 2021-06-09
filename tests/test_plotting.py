@@ -23,7 +23,11 @@ from pytest import (
 )
 
 from random import (
-    randint
+    getstate,
+    randint,
+    random,
+    seed as setseed,
+    setstate
 )
 
 
@@ -75,17 +79,29 @@ def test_plot_eigenvalues(seed, maximum_size, runs):
 )
 def test_plot_graph(seed, maximum_size, runs):
 
+    rs = getstate()
+    setseed(seed)
+
+    configs = []
+
     for _ in range(runs):
+        configs.append(tuple([random() < 0.5 for _ in range(4)]))
+
+    setstate(rs)
+
+    for i in range(runs):
 
         size = randint(2, maximum_size)
         zeros = randint(0, size)
         mc = MarkovChain.random(size, zeros=zeros, seed=seed)
 
+        nodes_color, nodes_type, edges_color, edges_value = configs[i]
+
         exception = False
 
         # noinspection PyBroadException
         try:
-            figure, ax = plot_graph(mc, force_standard=True)
+            figure, ax = plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=True)
             pp.close(figure)
         except Exception:
             exception = True
@@ -95,7 +111,7 @@ def test_plot_graph(seed, maximum_size, runs):
 
         # noinspection PyBroadException
         try:
-            figure, ax = plot_graph(mc, force_standard=False)
+            figure, ax = plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=False)
             pp.close(figure)
         except Exception:
             exception = True
