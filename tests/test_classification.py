@@ -5,7 +5,6 @@
 # IMPORTS #
 ###########
 
-
 # Full
 
 import numpy as np
@@ -28,7 +27,6 @@ from pytest import (
 ##############
 # TEST CASES #
 ##############
-
 
 identity_maximum_size = 20
 
@@ -119,7 +117,6 @@ cases = [
 #########
 # TESTS #
 #########
-
 
 @mark.parametrize(
     argnames=('p', 'recurrent_classes'),

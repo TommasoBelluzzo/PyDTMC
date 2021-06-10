@@ -2,15 +2,14 @@
 
 __all__ = [
     'alias',
-    'aliased',
-    'cachedproperty'
+    'cachedproperty',
+    'aliased'
 ]
 
 
 ###########
 # IMPORTS #
 ###########
-
 
 # Partial
 
@@ -27,7 +26,6 @@ from threading import (
 ###########
 # CLASSES #
 ###########
-
 
 # noinspection PyPep8Naming
 class alias(object):
@@ -113,18 +111,20 @@ class cachedproperty(property):
 # FUNCTIONS #
 #############
 
-
 # noinspection PyProtectedMember
 def aliased(aliased_class):
 
     """
-    A decorator for enabling method aliases.
+    A decorator for enabling aliases.
     """
 
     def wrapper(func):
+
         @wraps(func)
         def inner(self, *args, **kwargs):
+
             return func(self, *args, **kwargs)
+
         return inner
 
     aliased_class_dict = aliased_class.__dict__.copy()
@@ -138,8 +138,10 @@ def aliased(aliased_class):
             aliases = method.fget._aliases
         elif hasattr(method, '_aliases'):
             aliases = method._aliases
+        else:
+            aliases = None
 
-        if aliases:
+        if aliases is not None:
             for a in aliases - aliased_class_set:
 
                 doc = method.__doc__

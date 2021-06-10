@@ -14,7 +14,6 @@ __all__ = [
 # IMPORTS #
 ###########
 
-
 # Full
 
 import numpy as np
@@ -40,7 +39,6 @@ from .custom_types import *
 #############
 # FUNCTIONS #
 #############
-
 
 def read_csv(file_path: str) -> tmc_dict:
 

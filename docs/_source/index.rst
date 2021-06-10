@@ -12,6 +12,6 @@ PyDTMC
 
 | Current Version: |version|
 
-* `Package <pydtmc.html>`_
+* :doc:`Package <pydtmc>`
 * :ref:`genindex`
 * :ref:`search`

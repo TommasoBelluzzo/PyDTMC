@@ -55,7 +55,6 @@ __all__ = [
 # IMPORTS #
 ###########
 
-
 # Full
 
 import matplotlib.pyplot as pp
@@ -87,7 +86,6 @@ from typing import (
 #########
 # TYPES #
 #########
-
 
 # Generic
 
@@ -159,7 +157,7 @@ ogenres_ext = Optional[tgenres_ext]
 tgraph = nx.DiGraph
 ograph = Optional[tgraph]
 
-tgraphs = Union[nx.DiGraph, nx.MultiDiGraph]
+tgraphs = Union[tgraph, nx.MultiDiGraph]
 ographs = Optional[tgraphs]
 
 tinterval = Tuple[Union[float, int], Union[float, int]]

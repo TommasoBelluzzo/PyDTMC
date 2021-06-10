@@ -9,6 +9,5 @@ __all__ = [
 # CLASSES #
 ###########
 
-
 class ValidationError(Exception):
     pass

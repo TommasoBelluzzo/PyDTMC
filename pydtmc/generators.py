@@ -17,7 +17,6 @@ __all__ = [
 # IMPORTS #
 ###########
 
-
 # Full
 
 import numpy as np
@@ -32,7 +31,6 @@ from .custom_types import *
 #############
 # FUNCTIONS #
 #############
-
 
 def birth_death(p: tarray, q: tarray) -> tgenres:
 
@@ -75,7 +73,7 @@ def bounded(p: tarray, boundary_condition: tbcond) -> tgenres:
     return p_adjusted, None
 
 
-def closest_reversible(p: tarray, distribution: tnumeric, weighted: bool = False) -> tgenres:
+def closest_reversible(p: tarray, distribution: tnumeric, weighted) -> tgenres:
 
     def jacobian(xj: tarray, hj: tarray, fj: tarray):
         return np.dot(np.transpose(xj), hj) + fj

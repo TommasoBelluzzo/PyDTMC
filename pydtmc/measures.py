@@ -21,7 +21,6 @@ __all__ = [
 # IMPORTS #
 ###########
 
-
 # Full
 
 import numpy as np
@@ -36,7 +35,6 @@ from .custom_types import *
 #############
 # FUNCTIONS #
 #############
-
 
 def absorption_probabilities(mc: tmc) -> oarray:
 

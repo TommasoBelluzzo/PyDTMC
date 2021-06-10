@@ -5,7 +5,6 @@
 # IMPORTS #
 ###########
 
-
 # Full
 
 import numpy as np
@@ -22,14 +21,14 @@ from pydtmc import (
 )
 
 from pytest import (
-    mark
+    mark,
+    skip
 )
 
 
 ##############
 # TEST CASES #
 ##############
-
 
 Case = namedtuple('Case', [
     'id',
@@ -217,13 +216,13 @@ cases = [
     ),
     Case(
         '#13',
-        [[0.5, 0.5, 0.0], [0.5, 0.25, 0.25], [0, 1/3, 2/3]],
+        [[0.5, 0.5, 0.0], [0.5, 0.25, 0.25], [0, 0.33, 0.67]],
         -0.12500000000000003, 3,
         False, True, True, True, False,
         None, None,
         1,
-        0.8037285736803539, 0.9119045380044191, 0.8813735870195428,
-        2.08276541630889, 2.622623436526918, 0.3812975915918291, [np.inf, 2.08276542, 0.62526939],
+        0.8026275636153916, 0.9106553400693125, 0.8813735870195428,
+        2.1005151596269247, 2.6400389096682244, 0.37878229610095815, [np.inf, 2.10051516, 0.6236872],
         [],
         [[1, 1, 0], [1, 1, 1], [0, 1, 1]],
         [[1, 1, 0], [1, 1, 1], [0, 1, 1]],
@@ -334,7 +333,6 @@ cases = [
 # TESTS #
 #########
 
-
 @mark.parametrize(
     argnames='p',
     argvalues=[case.p for case in cases],
@@ -344,7 +342,9 @@ def test_irreducibility(p):
 
     mc = MarkovChain(p)
 
-    if mc.is_irreducible:
+    if not mc.is_irreducible:
+        skip('Markov chain is not irreducible.')
+    else:
 
         actual = mc.states
         expected = mc.recurrent_states
@@ -372,7 +372,9 @@ def test_regularity(p):
 
     mc = MarkovChain(p)
 
-    if mc.is_regular:
+    if not mc.is_regular:
+        skip('Markov chain is not regular.')
+    else:
 
         actual = mc.is_irreducible
         expected = True

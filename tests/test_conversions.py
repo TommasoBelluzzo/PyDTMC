@@ -5,7 +5,6 @@
 # IMPORTS #
 ###########
 
-
 # Full
 
 import numpy as np
@@ -39,7 +38,6 @@ from tempfile import (
 # TEST CASES #
 ##############
 
-
 conversions_seed = 7331
 conversions_maximum_size = 20
 conversions_runs = 50
@@ -48,7 +46,6 @@ conversions_runs = 50
 #########
 # TESTS #
 #########
-
 
 @mark.parametrize(
     argnames=('seed', 'maximum_size', 'runs'),
@@ -104,21 +101,24 @@ def test_file_csv(seed, maximum_size, runs):
 
         size = randint(2, maximum_size)
         zeros = randint(0, size)
-
-        mc_from = None
         mc_to = MarkovChain.random(size, zeros=zeros, seed=seed)
 
         file_handler, file_path = mkstemp(suffix='.csv')
         close(file_handler)
 
-        exception = False
-
         # noinspection PyBroadException
         try:
+
             mc_to.to_file(file_path)
             mc_from = MarkovChain.from_file(file_path)
+
+            exception = False
+
         except Exception:
+
+            mc_from = None
             exception = True
+
             pass
 
         remove(file_path)
@@ -138,21 +138,24 @@ def test_file_json(seed, maximum_size, runs):
 
         size = randint(2, maximum_size)
         zeros = randint(0, size)
-
-        mc_from = None
         mc_to = MarkovChain.random(size, zeros=zeros, seed=seed)
 
         file_handler, file_path = mkstemp(suffix='.json')
         close(file_handler)
 
-        exception = False
-
         # noinspection PyBroadException
         try:
+
             mc_to.to_file(file_path)
             mc_from = MarkovChain.from_file(file_path)
+
+            exception = False
+
         except Exception:
+
+            mc_from = None
             exception = True
+
             pass
 
         remove(file_path)
@@ -172,21 +175,24 @@ def test_file_text(seed, maximum_size, runs):
 
         size = randint(2, maximum_size)
         zeros = randint(0, size)
-
-        mc_from = None
         mc_to = MarkovChain.random(size, zeros=zeros, seed=seed)
 
         file_handler, file_path = mkstemp(suffix='.txt')
         close(file_handler)
 
-        exception = False
-
         # noinspection PyBroadException
         try:
+
             mc_to.to_file(file_path)
             mc_from = MarkovChain.from_file(file_path)
+
+            exception = False
+
         except Exception:
+
+            mc_from = None
             exception = True
+
             pass
 
         remove(file_path)

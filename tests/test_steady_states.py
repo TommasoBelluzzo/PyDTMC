@@ -5,7 +5,6 @@
 # IMPORTS #
 ###########
 
-
 # Full
 
 import numpy as np
@@ -29,7 +28,6 @@ from pytest import (
 ##############
 # TEST CASES #
 ##############
-
 
 correctness_seed = 7331
 correctness_maximum_size = 30
@@ -98,7 +96,6 @@ cases = [
 # TESTS #
 #########
 
-
 @mark.parametrize(
     argnames=('seed', 'maximum_size'),
     argvalues=[(correctness_seed, correctness_maximum_size)],
@@ -139,10 +136,13 @@ def test_values(p, steady_states):
     mc = MarkovChain(p)
     steady_states = [np.array(steady_state) for steady_state in steady_states]
 
+    actual = len(mc.steady_states)
+    expected = len(steady_states)
+
+    assert actual == expected
+
     actual = mc.steady_states
     expected = steady_states
-
-    assert len(actual) == len(expected)
 
     for i in range(len(expected)):
         assert np.allclose(actual[i], expected[i])

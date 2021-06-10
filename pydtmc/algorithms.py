@@ -11,7 +11,6 @@ __all__ = [
 # IMPORTS #
 ###########
 
-
 # Full
 
 import networkx as nx
@@ -35,7 +34,6 @@ from .custom_types import *
 #############
 # FUNCTIONS #
 #############
-
 
 def calculate_period(graph: tgraph) -> int:
 

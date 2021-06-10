@@ -10,22 +10,34 @@ IF "%SPHINX_BUILD%" == "" (
 
 IF ERRORLEVEL 9009 (
 	ECHO.
-	ECHO.Install Sphinx from:
+	ECHO.Sphinx not found. Install it from:
 	ECHO.http://sphinx-doc.org/
-	EXIT /b 1
+    ECHO.
+	EXIT /B 1
 )
 
 IF "%1" == "" (
-	SET SPHINX_TYPE=html
+	%SPHINX_BUILD% --help
 ) ELSE (
 	SET SPHINX_TYPE=%1
+    SET SOURCE_DIR=_source
+    SET BUILD_DIR=_build
+    SET SPHINX_OPTS=-n
+
+    DEL /S /Q %BUILD_DIR%\doctest\* >NUL 2>NUL
+    DEL /S /Q %BUILD_DIR%\linkcheck\* >NUL 2>NUL
+    DEL /S /Q %BUILD_DIR%\coverage\* >NUL 2>NUL
+    DEL /S /Q %BUILD_DIR%\%SPHINX_TYPE%\* >NUL 2>NUL
+
+	ECHO.
+    %SPHINX_BUILD% -b doctest -c . %SOURCE_DIR% %BUILD_DIR%\doctest -W
+    ECHO.
+    %SPHINX_BUILD% -b linkcheck -c . %SOURCE_DIR% %BUILD_DIR%\linkcheck -W
+    ECHO.
+    %SPHINX_BUILD% -b coverage -c . %SOURCE_DIR% %BUILD_DIR%\coverage -W
+    ECHO.
+    %SPHINX_BUILD% -b %SPHINX_TYPE% -c . %SOURCE_DIR% %BUILD_DIR%\%SPHINX_TYPE% %SPHINX_OPTS%
+    ECHO.
 )
-
-SET SOURCE_DIR=_source
-SET BUILD_DIR=_build
-
-DEL /S /Q %BUILD_DIR%\%SPHINX_TYPE%\* >NUL 2>NUL
-%SPHINX_BUILD% -nW -b %SPHINX_TYPE% -c . %SOURCE_DIR% %BUILD_DIR%\%SPHINX_TYPE%
-%SPHINX_BUILD% -nW -b coverage -c . %SOURCE_DIR% %BUILD_DIR%\%SPHINX_TYPE%
 
 POPD

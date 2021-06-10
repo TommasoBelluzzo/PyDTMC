@@ -11,7 +11,6 @@ __all__ = [
 # IMPORTS #
 ###########
 
-
 # Full
 
 import numpy.random as npr
@@ -27,7 +26,6 @@ from .exceptions import *
 #############
 # FUNCTIONS #
 #############
-
 
 # noinspection PyProtectedMember
 def create_rng(seed: oint) -> trand:

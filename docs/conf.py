@@ -1,22 +1,56 @@
 # -*- coding: utf-8 -*-
 
-# Imports & Configuration
 
-import os
-import sys
+#############
+# REFERENCE #
+#############
 
-sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
+from os.path import (
+    dirname,
+    join
+)
 
-# Project Information
+from sys import (
+    path
+)
+
+path.append(join(dirname(__name__), '..'))
+
+
+###########
+# IMPORTS #
+###########
+
+# Partial
+
+from datetime import (
+    datetime
+)
+
+from pydtmc import (
+    __version__
+)
+
+from sphinx.ext.intersphinx import (
+    InventoryAdapter
+)
+
+
+###############
+# INFORMATION #
+###############
 
 project = 'PyDTMC'
 project_title = project + ' Documentation'
-release = '5.3.0'
-version = '5.3.0'
+release = __version__
+version = __version__
 author = 'Tommaso Belluzzo'
-copyright = '2019, Tommaso Belluzzo'
+copyright = f'2019-{datetime.now().strftime("%Y")}, Tommaso Belluzzo'
 
-# Extensions
+
+##############
+# EXTENSIONS #
+##############
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -32,41 +66,53 @@ extensions = [
     'sphinx_autodoc_typehints'
 ]
 
-# Mapping
+
+#################
+# CORE SETTINGS #
+#################
+
+# Base
+
+master_doc = 'index'
+source_suffix = '.rst'
+exclude_patterns = ['_build']
+templates_path = ['_templates']
+pygments_style = 'sphinx'
+nitpick_ignore = []
+
+# InterSphinx
+
+intersphinx_aliases = {
+    ('py:class', 'matplotlib.axes._axes.Axes'): ('py:class', 'matplotlib.axes.Axes'),
+    ('py:class', 'networkx.classes.digraph.DiGraph'): ('py:class', 'networkx.DiGraph'),
+    ('py:class', 'networkx.classes.digraph.MultiDiGraph'): ('py:class', 'networkx.MultiDiGraph')
+}
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
-    'matplotlib': ('https://matplotlib.org/users/', None),
+    'matplotlib': ('https://matplotlib.org/stable/', None),
     'networkx': ('https://networkx.org/documentation/stable/', None),
     'numpy': ('https://numpy.org/doc/stable/', None),
     'pytest': ('https://docs.pytest.org/en/latest/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None)
 }
 
-# Settings
+# Autodoc Typehints
 
-exclude_patterns = ['_build']
-master_doc = 'index'
-pygments_style = 'sphinx'
-source_suffix = '.rst'
-templates_path = ['_templates']
+set_type_checking_flag = True
+typehints_fully_qualified = False
 
-nitpick_ignore = []
 
-if os.path.exists('nitpick-exceptions.txt'):
-    with open('nitpick-exceptions.txt', 'r') as file:
-        for line in file:
-            if line.strip() == '' or line.startswith('#'):
-                continue
-            ne_type, ne_target = line.split(None, 1)
-            nitpick_ignore.append((ne_type.strip(), ne_target.strip()))
+#####################
+# DOCUMENT SETTINGS #
+#####################
 
-# ePub Output
+# ePub
 
 epub_title = project
 epub_exclude_files = ['search.html']
 
-# HTML Output
+# HTML
 
 show_relbars = False
 html_copy_source = False
@@ -79,15 +125,51 @@ html_theme_options = {'nosidebar': True}
 html_title = ''
 htmlhelp_basename = project + 'doc'
 
-# LaTeX Output
+# LaTeX
 
 latex_documents = [(master_doc, project + '.tex', project_title, [author], 'manual')]
 latex_elements = {}
 
-# Manual Output
+# Manual
 
 man_pages = [(master_doc, 'pydtmc', project_title, [author], 1)]
 
-# Texinfo Output
+# Texinfo
 
 texinfo_documents = [(master_doc, project, project_title, author, project, 'A framework for discrete-time Markov chains analysis.', 'Miscellaneous')]
+
+
+#############
+# FUNCTIONS #
+#############
+
+def process_intersphinx_aliases(app):
+
+    inventories = InventoryAdapter(app.builder.env)
+
+    for alias, target in app.config.intersphinx_aliases.items():
+
+        alias_domain, alias_name = alias
+        target_domain, target_name = target
+
+        try:
+            found = inventories.main_inventory[target_domain][target_name]
+        except KeyError:
+            found = None
+            pass
+
+        if found is not None:
+            try:
+                inventories.main_inventory[alias_domain][alias_name] = found
+            except KeyError:
+                continue
+
+
+#########
+# SETUP #
+#########
+
+def setup(app):
+
+    app.add_config_value('intersphinx_aliases', {}, 'env')
+    app.connect('builder-inited', process_intersphinx_aliases)

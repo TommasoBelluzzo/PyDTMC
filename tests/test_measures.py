@@ -5,7 +5,6 @@
 # IMPORTS #
 ###########
 
-
 # Full
 
 import numpy as np
@@ -21,14 +20,14 @@ from pydtmc import (
 )
 
 from pytest import (
-    mark
+    mark,
+    skip
 )
 
 
 ##############
 # TEST CASES #
 ##############
-
 
 Case = namedtuple('Case', [
     'id',
@@ -386,7 +385,6 @@ cases = [
 # TESTS #
 #########
 
-
 @mark.parametrize(
     argnames=('p', 'absorption_probabilities'),
     argvalues=[(case.p, case.absorption_probabilities) for case in cases],
@@ -461,7 +459,9 @@ def test_first_passage_reward(p, steps, initial_state, first_passage_states, rew
 
     mc = MarkovChain(p)
 
-    if mc.size > 2:
+    if mc.size <= 2:
+        skip('Markov chain size is less than or equal to 2.')
+    else:
 
         actual = mc.first_passage_reward(steps, initial_state, first_passage_states, rewards)
         expected = value
@@ -651,11 +651,14 @@ def test_mpft_and_recurrence_relation(p, mfptt_targets):
 
     mc = MarkovChain(p)
 
-    mfpt = mc.mean_first_passage_times_to(mfptt_targets)
+    if not mc.is_ergodic:
+        skip('Markov chain is not ergodic.')
+    else:
 
-    if mfpt is not None:
+        mfpt = mc.mean_first_passage_times_to(mfptt_targets)
+        mrt = mc.mean_recurrence_times()
 
         actual = mfpt
-        expected = np.dot(mc.p, mfpt) + np.ones((mc.size, mc.size), dtype=float) - np.diag(mc.mean_recurrence_times())
+        expected = np.dot(mc.p, mfpt) + np.ones((mc.size, mc.size), dtype=float) - np.diag(mrt)
 
         assert np.allclose(actual, expected)

@@ -5,7 +5,6 @@
 # IMPORTS #
 ###########
 
-
 # Full
 
 import matplotlib.pyplot as pp
@@ -35,7 +34,6 @@ from random import (
 # TEST CASES #
 ##############
 
-
 plotting_seed = 7331
 plotting_maximum_size = 6
 plotting_runs = 25
@@ -44,7 +42,6 @@ plotting_runs = 25
 #########
 # TESTS #
 #########
-
 
 @mark.parametrize(
     argnames=('seed', 'maximum_size', 'runs'),
@@ -59,12 +56,14 @@ def test_plot_eigenvalues(seed, maximum_size, runs):
         zeros = randint(0, size)
         mc = MarkovChain.random(size, zeros=zeros, seed=seed)
 
-        exception = False
-
         # noinspection PyBroadException
         try:
+
             figure, ax = plot_eigenvalues(mc)
             pp.close(figure)
+
+            exception = False
+
         except Exception:
             exception = True
             pass
@@ -97,12 +96,14 @@ def test_plot_graph(seed, maximum_size, runs):
 
         nodes_color, nodes_type, edges_color, edges_value = configs[i]
 
-        exception = False
-
         # noinspection PyBroadException
         try:
+
             figure, ax = plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=True)
             pp.close(figure)
+
+            exception = False
+
         except Exception:
             exception = True
             pass
@@ -111,8 +112,12 @@ def test_plot_graph(seed, maximum_size, runs):
 
         # noinspection PyBroadException
         try:
+
             figure, ax = plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=False)
             pp.close(figure)
+
+            exception = False
+
         except Exception:
             exception = True
             pass

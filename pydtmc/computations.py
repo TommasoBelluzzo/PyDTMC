@@ -12,7 +12,6 @@ __all__ = [
 # IMPORTS #
 ###########
 
-
 # Full
 
 import numpy as np
@@ -26,7 +25,6 @@ from .custom_types import *
 #############
 # FUNCTIONS #
 #############
-
 
 def eigenvalues_sorted(m: tarray) -> tarray:
 

@@ -12,7 +12,6 @@ __all__ = [
 # IMPORTS #
 ###########
 
-
 # Full
 
 import matplotlib.colors as mplc
@@ -49,7 +48,6 @@ from .validation import *
 # CONSTANTS #
 #############
 
-
 color_black = '#000000'
 color_gray = '#E0E0E0'
 color_white = '#FFFFFF'
@@ -59,7 +57,6 @@ colors = ['#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#FB
 #############
 # FUNCTIONS #
 #############
-
 
 def plot_eigenvalues(mc: tmc, dpi: int = 100) -> oplot:
 

@@ -9,7 +9,6 @@ __all__ = [
 # IMPORTS #
 ###########
 
-
 # Full
 
 import networkx as nx
@@ -59,7 +58,6 @@ from .validation import *
 ###########
 # CLASSES #
 ###########
-
 
 @aliased
 class MarkovChain(metaclass=BaseClass):
@@ -825,14 +823,14 @@ class MarkovChain(metaclass=BaseClass):
 
         return result
 
-    def closest_reversible(self, distribution: tnumeric, weighted: bool = False) -> tmc:
+    def closest_reversible(self, distribution: onumeric = None, weighted: bool = False) -> tmc:
 
         """
         The method computes the closest reversible of the Markov chain.
 
         | **Notes:** the algorithm is described in `Computing the nearest reversible Markov chain (Nielsen & Weber, 2015) <http://doi.org/10.1002/nla.1967>`_.
 
-        :param distribution: the distribution of the states.
+        :param distribution: the distribution of the states (if omitted, the states are assumed to be uniformly distributed).
         :param weighted: a boolean indicating whether to use the weighted Frobenius norm (by default, False).
         :return: a Markov chain representing the closest reversible.
         :raises ValidationError: if any input argument is not compliant.
@@ -841,7 +839,11 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            distribution = validate_vector(distribution, 'stochastic', False, size=self._size)
+            if distribution is None:
+                distribution = np.ones(self._size, dtype=float) / self._size
+            else:
+                distribution = validate_vector(distribution, 'stochastic', False, size=self._size)
+
             weighted = validate_boolean(weighted)
 
         except Exception as e:  # pragma: no cover
@@ -852,10 +854,14 @@ class MarkovChain(metaclass=BaseClass):
         if weighted and zeros > 0:
             raise ValidationError('If the weighted Frobenius norm is used, the distribution must not contain zero-valued probabilities.')
 
-        p, error_message = closest_reversible(self._p, distribution, weighted)
+        if self.is_reversible:
+            p = self._p
+        else:
 
-        if error_message is not None:
-            raise ValueError(error_message)
+            p, error_message = closest_reversible(self._p, distribution, weighted)
+
+            if error_message is not None:
+                raise ValueError(error_message)
 
         mc = MarkovChain(p, self._states)
 
@@ -2773,6 +2779,7 @@ class MarkovChain(metaclass=BaseClass):
 
         m = np.interp(m, (np.min(m), np.max(m)), (0.0, 1.0))
         m /= np.sum(m, axis=1, keepdims=True)
+        m = np.nan_to_num(m, 1.0 / m.shape[0])
 
         return MarkovChain(m, states)
 

@@ -33,7 +33,6 @@ __all__ = [
 # IMPORTS #
 ###########
 
-
 # Full
 
 import networkx as nx
@@ -63,7 +62,6 @@ from .custom_types import *
 #############
 # FUNCTIONS #
 #############
-
 
 def extract(data: tany) -> tlist_any:
 

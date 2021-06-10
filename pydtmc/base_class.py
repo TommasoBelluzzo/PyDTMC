@@ -9,7 +9,6 @@ __all__ = [
 # CLASSES #
 ###########
 
-
 class BaseClass(type):
 
     def __new__(mcs, name, bases, classes):
