@@ -132,8 +132,6 @@ def aliased(aliased_class):
 
     for name, method in aliased_class_dict.items():
 
-        aliases = None
-
         if isinstance(method, property) and hasattr(method.fget, '_aliases'):
             aliases = method.fget._aliases
         elif hasattr(method, '_aliases'):

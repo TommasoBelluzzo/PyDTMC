@@ -19,7 +19,8 @@ from pydtmc import (
 )
 
 from pytest import (
-    mark
+    mark,
+    skip
 )
 
 
@@ -258,13 +259,14 @@ def test_lazy(p, inertial_weights, value):
 )
 def test_lump(p, partitions, value):
 
-    mc = MarkovChain(p)
+    if value is None:
+        skip('Markov chain is not lumpable.')
+    else:
 
-    if value is not None:
+        mc = MarkovChain(p)
+        mc_lump = mc.lump(partitions)
 
-        mc_lazy = mc.lump(partitions)
-
-        actual = mc_lazy.p
+        actual = mc_lump.p
         expected = np.asarray(value)
 
         assert np.allclose(actual, expected)
@@ -277,28 +279,25 @@ def test_lump(p, partitions, value):
 )
 def test_sub(p, states, value):
 
-    mc = MarkovChain(p)
-
-    try:
-
-        mc_sub = mc.to_subchain(states)
-        exception = False
-
-    except ValueError:
-
-        mc_sub = None
-        exception = True
-
-        pass
-
     if value is None:
-
-        actual = exception
-        expected = True
-
-        assert actual == expected
-
+        skip('Markov chain cannot generate the specified subchain.')
     else:
+
+        mc = MarkovChain(p)
+
+        try:
+
+            mc_sub = mc.to_subchain(states)
+            exception = False
+
+        except ValueError:
+
+            mc_sub = None
+            exception = True
+
+            pass
+
+        assert exception is False
 
         actual = mc_sub.p
         expected = np.asarray(value)

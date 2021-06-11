@@ -73,7 +73,7 @@ def bounded(p: tarray, boundary_condition: tbcond) -> tgenres:
     return p_adjusted, None
 
 
-def closest_reversible(p: tarray, distribution: tnumeric, weighted) -> tgenres:
+def closest_reversible(p: tarray, distribution: tnumeric, weighted: bool) -> tgenres:
 
     def jacobian(xj: tarray, hj: tarray, fj: tarray):
         return np.dot(np.transpose(xj), hj) + fj
@@ -199,7 +199,7 @@ def closest_reversible(p: tarray, distribution: tnumeric, weighted) -> tgenres:
     # noinspection PyTypeChecker
     solution = spo.minimize(objective, x0, jac=jacobian, args=(h, f), constraints=constraints, method='SLSQP', options={'disp': False})
 
-    if not solution['success']:
+    if not solution['success']:  # pragma: no cover
         return None, 'The closest reversible could not be computed.'
 
     p = np.zeros((size, size), dtype=float)
@@ -248,7 +248,7 @@ def lump(p: tarray, states: tlist_str, partitions: tparts) -> tgenres_ext:
     # noinspection PyBroadException
     try:
         k = np.dot(np.linalg.inv(np.dot(np.transpose(r), r)), np.transpose(r))
-    except Exception:
+    except Exception:  # pragma: no cover
         return None, None, 'The Markov chain is not strongly lumpable with respect to the given partitions.'
 
     left = np.dot(np.dot(np.dot(r, k), p), r)
@@ -276,7 +276,7 @@ def random(rng: trand, size: int, zeros: int, mask: tarray) -> tgenres:
     mask_unassigned = np.isnan(mask)
     zeros_required = (np.sum(mask_unassigned) - np.sum(~full_rows)).item()
 
-    if zeros > zeros_required:
+    if zeros > zeros_required:  # pragma: no cover
         return None, f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.'
 
     n = np.arange(size)
@@ -335,7 +335,7 @@ def sub(p: tarray, states: tlist_str, adjacency_matrix: tarray, sub_states: tlis
     p = np.copy(p)
     p = p[np.ix_(sub_states, sub_states)]
 
-    if p.size == 1:
+    if p.size == 1:  # pragma: no cover
         return None, None, 'The subchain is not a valid Markov chain.'
 
     state_names = [*map(states.__getitem__, sub_states)]

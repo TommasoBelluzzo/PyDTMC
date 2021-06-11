@@ -537,7 +537,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
         for i in range(1, walk_len):
             walk_transitions[walk[i - 1], walk[i]] += 1.0
 
-        walk_transitions = walk_transitions / np.sum(walk_transitions)
+        walk_transitions /= np.sum(walk_transitions)
 
         color_map = mplc.LinearSegmentedColormap.from_list('ColorMap', [color_white, colors[0]], 20)
         ax_is = ax.imshow(walk_transitions, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)

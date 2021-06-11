@@ -1250,7 +1250,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        if self._size == 2:
+        if self._size == 2:  # pragma: no cover
             raise ValueError('The Markov chain defines only two states and cannot be lumped.')
 
         p, states, error_message = lump(self.p, self.states, partitions)
@@ -2390,7 +2390,7 @@ class MarkovChain(metaclass=BaseClass):
             r = b - a
 
             nodes = np.arange(1.0, size + 1.0) * 2.0**0.5
-            nodes = nodes - np.fix(nodes)
+            nodes -= np.fix(nodes)
             nodes = a + (nodes * r)
 
             weights = (r / size) * np.ones(size, dtype=float)

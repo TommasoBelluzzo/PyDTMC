@@ -66,8 +66,7 @@ package_data_files = list()
 
 for (location, directories, files) in walk('data'):
     for file in files:
-        if file != 'empty.txt':
-            package_data_files.append(join('..', location, file))
+        package_data_files.append(join('..', location, file))
 
 # Setup
 
