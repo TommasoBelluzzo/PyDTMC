@@ -18,7 +18,9 @@ install:
   - pip install codecov
   - pip install coveralls
 script:
-  - pytest --cov=pydtmc ./tests
+  - pytest --cov=pydtmc tests/
+  - make -C docs/ html
+  - touch docs/_build/html/.nojekyll
 after_success:
   - codecov
   - coveralls -v
