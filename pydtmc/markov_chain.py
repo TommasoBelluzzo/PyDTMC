@@ -1859,7 +1859,7 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method writes a Markov chain to the given file.
 
-        | Only csv, json and plain text files are supported; data format is inferred from the file extension.
+        | Only csv, json, xml and plain text files are supported; data format is inferred from the file extension.
 
         :param file_path: the location of the file in which the Markov chain must be written.
         :raises OSError: if the file cannot be written.
@@ -1875,8 +1875,8 @@ class MarkovChain(metaclass=BaseClass):
 
         file_extension = get_file_extension(file_path)
 
-        if file_extension not in ['.csv', '.json', '.txt']:
-            raise ValidationError('Only csv, json and plain text files are supported.')
+        if file_extension not in ['.csv', '.json', '.txt', '.xml']:
+            raise ValidationError('Only csv, json, xml and plain text files are supported.')
 
         d = self.to_dictionary()
 
@@ -1884,8 +1884,10 @@ class MarkovChain(metaclass=BaseClass):
             write_csv(d, file_path)
         elif file_extension == '.json':
             write_json(d, file_path)
-        else:
+        elif file_extension == '.txt':
             write_txt(d, file_path)
+        else:
+            write_xml(d, file_path)
 
     @alias('to_lazy')
     def to_lazy_chain(self, inertial_weights: tweights = 0.5) -> tmc:
@@ -2692,9 +2694,9 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method reads a Markov chain from the given file.
 
-        | Only csv, json and plain text files are supported; data format is inferred from the file extension.
+        | Only csv, json, xml and plain text files are supported; data format is inferred from the file extension.
         |
-        | In *csv* files, the header must contain the state names and every subsequent row must represent a row of the transition matrix.
+        | In *csv* files, the header must contain the state names and every row must represent a row of the transition matrix.
         | The following format settings are required:
         | delimiter: *,*
         | quoting: *minimal*
@@ -2707,6 +2709,12 @@ class MarkovChain(metaclass=BaseClass):
         |
         | In *text* files, every line of the file must have the following format:
         | *<state_from> <state_to> <probability>*
+        |
+        | In *xml* files, the root element must be called *MarkovChain* and child elements must be called *Transition*.
+        | Every child element must have the following attributes:
+        | *state_from* (string)
+        | *state_to* (string)
+        | *probability* (float or int)
 
         :param file_path: the location of the file that defines the Markov chain.
         :return: a Markov chain.
@@ -2725,15 +2733,17 @@ class MarkovChain(metaclass=BaseClass):
 
         file_extension = get_file_extension(file_path)
 
-        if file_extension not in ['.csv', '.json', '.txt']:
-            raise ValidationError('Only csv, json and plain text files are supported.')
+        if file_extension not in ['.csv', '.json', '.xml', '.txt']:
+            raise ValidationError('Only csv, json, xml and plain text files are supported.')
 
         if file_extension == '.csv':
             d = read_csv(file_path)
         elif file_extension == '.json':
             d = read_json(file_path)
-        else:
+        elif file_extension == '.txt':
             d = read_txt(file_path)
+        else:
+            d = read_xml(file_path)
 
         states = [key[0] for key in d.keys() if key[0] == key[1]]
         size = len(states)

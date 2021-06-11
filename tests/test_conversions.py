@@ -41,6 +41,7 @@ from tempfile import (
 conversions_seed = 7331
 conversions_maximum_size = 20
 conversions_runs = 50
+conversions_file_extensions = ['.csv', '.json', '.txt', '.xml']
 
 
 #########
@@ -91,11 +92,11 @@ def test_graph(seed, maximum_size, runs):
 
 
 @mark.parametrize(
-    argnames=('seed', 'maximum_size', 'runs'),
-    argvalues=[(conversions_seed, conversions_maximum_size, conversions_runs)],
-    ids=['test_file_csv']
+    argnames=('seed', 'maximum_size', 'runs', 'file_extension'),
+    argvalues=[(conversions_seed, conversions_maximum_size, conversions_runs, conversions_file_extension) for conversions_file_extension in conversions_file_extensions],
+    ids=['test_file_' + conversions_file_extension[1:] for conversions_file_extension in conversions_file_extensions],
 )
-def test_file_csv(seed, maximum_size, runs):
+def test_file(seed, maximum_size, runs, file_extension):
 
     for _ in range(runs):
 
@@ -103,81 +104,7 @@ def test_file_csv(seed, maximum_size, runs):
         zeros = randint(0, size)
         mc_to = MarkovChain.random(size, zeros=zeros, seed=seed)
 
-        file_handler, file_path = mkstemp(suffix='.csv')
-        close(file_handler)
-
-        # noinspection PyBroadException
-        try:
-
-            mc_to.to_file(file_path)
-            mc_from = MarkovChain.from_file(file_path)
-
-            exception = False
-
-        except Exception:
-
-            mc_from = None
-            exception = True
-
-            pass
-
-        remove(file_path)
-
-        assert exception is False
-        assert np.allclose(mc_from.p, mc_to.p)
-
-
-@mark.parametrize(
-    argnames=('seed', 'maximum_size', 'runs'),
-    argvalues=[(conversions_seed, conversions_maximum_size, conversions_runs)],
-    ids=['test_file_json']
-)
-def test_file_json(seed, maximum_size, runs):
-
-    for _ in range(runs):
-
-        size = randint(2, maximum_size)
-        zeros = randint(0, size)
-        mc_to = MarkovChain.random(size, zeros=zeros, seed=seed)
-
-        file_handler, file_path = mkstemp(suffix='.json')
-        close(file_handler)
-
-        # noinspection PyBroadException
-        try:
-
-            mc_to.to_file(file_path)
-            mc_from = MarkovChain.from_file(file_path)
-
-            exception = False
-
-        except Exception:
-
-            mc_from = None
-            exception = True
-
-            pass
-
-        remove(file_path)
-
-        assert exception is False
-        assert np.allclose(mc_from.p, mc_to.p)
-
-
-@mark.parametrize(
-    argnames=('seed', 'maximum_size', 'runs'),
-    argvalues=[(conversions_seed, conversions_maximum_size, conversions_runs)],
-    ids=['test_file_text']
-)
-def test_file_text(seed, maximum_size, runs):
-
-    for _ in range(runs):
-
-        size = randint(2, maximum_size)
-        zeros = randint(0, size)
-        mc_to = MarkovChain.random(size, zeros=zeros, seed=seed)
-
-        file_handler, file_path = mkstemp(suffix='.txt')
+        file_handler, file_path = mkstemp(suffix=file_extension)
         close(file_handler)
 
         # noinspection PyBroadException
