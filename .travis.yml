@@ -13,6 +13,8 @@ install:
   - pip install --upgrade pip
   - pip install -r requirements.txt --use-feature=in-tree-build
   - pip install pydot
+  - pip install sphinx
+  - pip install sphinx-autodoc-typehints
   - pip install coverage
   - pip install pytest-cov
   - pip install codecov
