@@ -62,35 +62,40 @@ class cachedproperty(property):
         doc = doc or fget.__doc__
         super(cachedproperty, self).__init__(fget, None, None, doc)
 
-        if fget is None:
-            self._func = None
-            self._func_name = ''
-        else:
-            self._func = fget
-            self._func_name = self._func.__name__
+        self._func = fget
+        self._func_name = None
 
         update_wrapper(self, fget)
 
         self._lock = RLock()
 
-    def __get__(self, obj, obj_type=None):
+    def __set_name__(self, owner, name):
 
-        if obj is None:
+        if self._func_name is None:
+            self._func_name = name
+        elif name != self._func_name:
+            raise AttributeError(f'Cannot assign the same cached property to two different names: {self._func_name} and {name}.')
+
+    def __get__(self, instance, owner=None):
+
+        if instance is None:
             return self
 
-        if self._func is None:
-            raise AttributeError('This property is unreadable.')
+        if self._func_name is None:
+            raise AttributeError('Cannot use a cached property without calling "__set_name__" on it.')
+
+        cache = instance.__dict__
 
         with self._lock:
             try:
-                return obj.__dict__[self._func_name]
+                return instance.__dict__[self._func_name]
             except KeyError:
-                return obj.__dict__.setdefault(self._func_name, self._func(obj))
+                return instance.__dict__.setdefault(self._func_name, self._func(instance))
 
     def __set__(self, obj, value):
 
         if obj is None:
-            raise AttributeError
+            raise AttributeError('The parameter "obj" is null.')
 
         raise AttributeError('This property cannot be set.')
 

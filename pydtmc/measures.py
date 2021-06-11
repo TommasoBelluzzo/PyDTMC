@@ -51,7 +51,7 @@ def absorption_probabilities(mc: tmc) -> oarray:
 
         ap = np.transpose(np.matmul(n, r))
 
-    else:
+    else:  # pragma: no cover
 
         recurrent_indices = [[*map(mc.states.index, recurrent_class)] for recurrent_class in mc.recurrent_classes]
         transient_indices = [mc.states.index(state) for state in mc.transient_states]

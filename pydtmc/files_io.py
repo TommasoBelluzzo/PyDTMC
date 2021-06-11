@@ -61,6 +61,13 @@ def read_csv(file_path: str) -> tmc_dict:
 
     with open(file_path, mode='r', newline='') as file:
 
+        file.seek(0)
+
+        if not file.read(1):  # pragma: no cover
+            raise OSError('The file is empty.')
+        else:
+            file.seek(0)
+
         data = csv_reader(file)
 
         for index, row in enumerate(data):
@@ -83,7 +90,7 @@ def read_csv(file_path: str) -> tmc_dict:
                 probabilities = row
 
                 if len(probabilities) != size or not all(isinstance(p, str) for p in probabilities) or not all(p is not None and len(p) > 0 for p in probabilities):  # pragma: no cover
-                    raise ValueError('The file contains invalid lines.')
+                    raise ValueError('The file contains invalid rows.')
 
                 state_from = states[index - 1]
 
@@ -94,7 +101,7 @@ def read_csv(file_path: str) -> tmc_dict:
                     try:
                         probability = float(probabilities[i])
                     except Exception:  # pragma: no cover
-                        raise ValueError('The file contains invalid lines.')
+                        raise ValueError('The file contains invalid rows.')
 
                     d[(state_from, state_to)] = probability
 
@@ -104,6 +111,7 @@ def read_csv(file_path: str) -> tmc_dict:
 def read_json(file_path: str) -> tmc_dict:
 
     d = {}
+    valid_keys = ['probability', 'state_from', 'state_to']
 
     with open(file_path, mode='r') as file:
 
@@ -117,22 +125,28 @@ def read_json(file_path: str) -> tmc_dict:
         data = json_load(file)
 
         if not isinstance(data, list):  # pragma: no cover
-            raise ValueError('The file is malformed.')
+            raise ValueError('The file format is not compliant.')
 
         for obj in data:
 
             if not isinstance(obj, dict):  # pragma: no cover
-                raise ValueError('The file contains invalid entries.')
+                raise ValueError('The file format is not compliant.')
 
-            if sorted(list(set(obj.keys()))) != ['probability', 'state_from', 'state_to']:
-                raise ValueError('The file contains invalid lines.')
+            if sorted(list(obj.keys())) != valid_keys:  # pragma: no cover
+                raise ValueError('The file contains invalid elements.')
 
             state_from = obj['state_from']
             state_to = obj['state_to']
             probability = obj['probability']
 
-            if not isinstance(state_from, str) or not isinstance(state_to, str) or not isinstance(probability, (float, int)):
-                raise ValueError('The file contains invalid lines.')
+            if not isinstance(state_from, str) or len(state_from) == 0:  # pragma: no cover
+                raise ValueError('The file contains invalid elements.')
+
+            if not isinstance(state_to, str) or len(state_to) == 0:  # pragma: no cover
+                raise ValueError('The file contains invalid elements.')
+
+            if not isinstance(probability, (float, int)):  # pragma: no cover
+                raise ValueError('The file contains invalid elements.')
 
             d[(state_from, state_to)] = float(probability)
 
@@ -175,14 +189,26 @@ def read_txt(file_path: str) -> tmc_dict:
 def read_xml(file_path: str) -> tmc_dict:
 
     d = {}
+    valid_keys = ['probability', 'state_from', 'state_to']
 
-    document = xml_tree.parse(file_path)
+    with open(file_path, mode='r') as file:
+
+        file.seek(0)
+
+        if not file.read(1):  # pragma: no cover
+            raise OSError('The file is empty.')
+        else:
+            file.seek(0)
+
+    try:
+        document = xml_tree.parse(file_path)
+    except Exception:  # pragma: no cover
+        raise ValueError('The file format is not compliant.')
+
     root = document.getroot()
 
     if root.tag != 'MarkovChain':  # pragma: no cover
         raise ValueError('The file root element is invalid.')
-
-    valid_keys = ['state_from', 'state_to', 'probability']
 
     for element in root.iter():
 
@@ -199,7 +225,7 @@ def read_xml(file_path: str) -> tmc_dict:
 
         keys = [attribute[0] for attribute in attributes]
 
-        if any([valid_key not in keys for valid_key in valid_keys]):  # pragma: no cover
+        if sorted(keys) != valid_keys:  # pragma: no cover
             raise ValueError('The file contains invalid subelements.')
 
         values = [attribute[1].strip() for attribute in attributes]

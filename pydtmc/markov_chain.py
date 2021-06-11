@@ -348,14 +348,13 @@ class MarkovChain(metaclass=BaseClass):
     def entropy_rate(self) -> ofloat:
 
         """
-        A property representing the entropy rate of the Markov chain. If the Markov chain is not *ergodic*, then None is returned.
+        A property representing the entropy rate of the Markov chain. If the Markov chain has multiple stationary distributions, then None is returned.
         """
 
-        if not self.is_irreducible:
+        if len(self.pi) > 1:
             return None
 
         pi = self.pi[0]
-
         h = 0.0
 
         for i in range(self._size):
@@ -363,7 +362,7 @@ class MarkovChain(metaclass=BaseClass):
                 if self._p[i, j] > 0.0:
                     h += pi[i] * self._p[i, j] * np.log(self._p[i, j])
 
-        if h == 0.0:
+        if np.isclose(h, 0.0):
             return h
 
         return -h
@@ -375,10 +374,10 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the entropy rate, normalized between 0 and 1, of the Markov chain. If the Markov chain is not *ergodic*, then None is returned.
         """
 
-        if not self.is_irreducible:
-            return None
-
         h = self.entropy_rate
+
+        if h is None:
+            return None
 
         if np.isclose(h, 0.0):
             hn = 0.0
@@ -469,7 +468,7 @@ class MarkovChain(metaclass=BaseClass):
             result = set(self.periods).pop() == 1
         elif all(period == 1 for period in self.periods):
             result = True
-        else:
+        else:  # pragma: no cover
             result = nx.is_aperiodic(self._digraph)
 
         return result
@@ -539,7 +538,7 @@ class MarkovChain(metaclass=BaseClass):
         A property indicating whether the Markov chain is reversible.
         """
 
-        if not self.is_irreducible:
+        if len(self.pi) > 1:
             return False
 
         pi = self.pi[0]
@@ -855,7 +854,7 @@ class MarkovChain(metaclass=BaseClass):
             raise ValidationError('If the weighted Frobenius norm is used, the distribution must not contain zero-valued probabilities.')
 
         if self.is_reversible:
-            p = self._p
+            p = np.copy(self._p)
         else:
 
             p, error_message = closest_reversible(self._p, distribution, weighted)
@@ -1560,7 +1559,7 @@ class MarkovChain(metaclass=BaseClass):
         :param walk1: the first observed sequence of states.
         :param walk2: the second observed sequence of states.
         :param time_points: the time point or a list of time points at which the computation is performed (by default, 1).
-        :return: None if the Markov chain is not *ergodic*, a float value if *time_points* is provided as an integer, a list of float values otherwise.
+        :return: None if the Markov chain has multiple stationary distributions, a float value if *time_points* is provided as an integer, a list of float values otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1576,7 +1575,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        if not self.is_ergodic:
+        if len(self.pi) > 1:
             return None
 
         if isinstance(time_points, int):

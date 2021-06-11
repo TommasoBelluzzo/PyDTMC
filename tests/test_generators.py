@@ -180,12 +180,12 @@ cases_2 = Case2(
         SubcaseClosestReversible([[0.5, 0.5], [0.5, 0.5]], None, False, None),
         SubcaseClosestReversible([[1.0, 0.0], [0.25, 0.75]], [0.45, 0.55], False, [[0.87747525, 0.12252475], [0.10024752, 0.89975248]]),
         SubcaseClosestReversible([[0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0]], None, False, [[0.0, 0.5, 0.5], [0.5, 0.0, 0.5], [0.5, 0.5, 0.0]]),
-        SubcaseClosestReversible([[0.0, 0.4, 0.6], [0.2, 0.4, 0.4], [0.2, 0.1, 0.7]], [0.6, 0.2, 0.2], True, [[0.70910296, 0.16386663, 0.12703041], [0.4915999, 0.37654805, 0.13185205], [0.38109123, 0.13185205, 0.48705672]]),
+        SubcaseClosestReversible([[0.0, 0.4, 0.6], [0.2, 0.4, 0.4], [0.2, 0.1, 0.7]], [0.35, 0.2, 0.45], True, [[0.22015467, 0.28762135, 0.49222398], [0.50333736, 0.33452121, 0.16214142], [0.38284088, 0.07206285, 0.54509627]]),
         SubcaseClosestReversible([[0.0, 1.0, 0.0], [0.2, 0.0, 0.8], [0.0, 1.0, 0.0]], None, False, None),
         SubcaseClosestReversible([[0.1, 0.8, 0.1], [0.6, 0.3, 0.1], [0.3, 0.3, 0.4]], None, True, [[0.10015506, 0.63315675, 0.2666882], [0.63315675, 0.16663912, 0.20020413], [0.2666882, 0.20020413, 0.53310768]]),
         SubcaseClosestReversible([[0.1, 0.1, 0.8], [0.3, 0.3, 0.4], [0.25, 0.5, 0.25]], None, False, [[0.21661389, 0.27502444, 0.50836167], [0.27502444, 0.3332825, 0.39169306], [0.50836167, 0.39169306, 0.09994527]]),
         SubcaseClosestReversible([[0.5, 0.5, 0.0], [0.4, 0.3, 0.3], [0, 0.15, 0.85]], [0.5, 0.2, 0.3], False, None),
-        SubcaseClosestReversible([[0.7, 0.1, 0.1, 0.1], [0.85, 0.05, 0.05, 0.05], [0.1, 0.1, 0.7, 0.1], [0.8, 0.05, 0.05, 0.1]], [0.1, 0.35, 0.05, 0.5], True, [[0.53624547, 0.25598434, 0.02086178, 0.1869084], [0.07313838, 0.3914667, 0.01964587, 0.51574905], [0.04172357, 0.13752107, 0.68395951, 0.13679585], [0.03738168, 0.36102433, 0.01367958, 0.5879144]])
+        SubcaseClosestReversible([[0.7, 0.1, 0.1, 0.1], [0.85, 0.05, 0.05, 0.05], [0.1, 0.1, 0.7, 0.1], [0.8, 0.05, 0.05, 0.1]], [0.0, 0.0, 0.0, 1.0], False, [[0.70001732, 0.09999423, 0.09999423, 0.09999423], [0.85005628, 0.04992467, 0.05000953, 0.05000953], [0.09999423, 0.09999423, 0.70001732, 0.09999423], [0.0, 0.0, 0.0, 1.0]])
     ],
     [
         SubcaseGamblersRuin(3, 0.1, [[1.0, 0.0, 0.0], [0.9, 0.0, 0.1], [0.0, 0.0, 1.0]]),
@@ -321,14 +321,14 @@ def test_birth_death(p, q, value):
 
 
 @mark.parametrize(
-    argnames=('p', 'distribution', 'value'),
-    argvalues=[(case.p, case.distribution, case.value) for case in cases_2.closest_reversible_data],
+    argnames=('p', 'distribution', 'weighted', 'value'),
+    argvalues=[(case.p, case.distribution, case.weighted, case.value) for case in cases_2.closest_reversible_data],
     ids=['test_closest_reversible #' + str(index + 1) for (index, _) in enumerate(cases_2.closest_reversible_data)]
 )
-def test_closest_reversible(p, distribution, value):
+def test_closest_reversible(p, distribution, weighted, value):
 
     mc = MarkovChain(p)
-    cr = mc.closest_reversible(distribution)
+    cr = mc.closest_reversible(distribution, weighted)
 
     if mc.is_reversible:
         actual = cr.p

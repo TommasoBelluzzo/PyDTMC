@@ -59,7 +59,7 @@ def calculate_period(graph: tgraph) -> int:
             for u in current_level:
                 for v in graph[u]:
 
-                    if v not in vertices:
+                    if v not in vertices:  # pragma: no cover
                         continue
 
                     level = levels[v]
@@ -197,7 +197,7 @@ def find_lumping_partitions(p: tarray) -> tparts:
         # noinspection PyBroadException
         try:
             k = np.dot(np.linalg.inv(np.dot(np.transpose(r), r)), np.transpose(r))
-        except Exception:
+        except Exception:  # pragma: no cover
             continue
 
         left = np.dot(np.dot(np.dot(r, k), p), r)

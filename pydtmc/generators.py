@@ -91,7 +91,7 @@ def closest_reversible(p: tarray, distribution: tnumeric, weighted: bool) -> tge
     for r in range(size - 1):
         for s in range(r + 1, size):
 
-            if (distribution[r] == 0.0) and (distribution[s] == 0.0):
+            if distribution[r] == 0.0 and distribution[s] == 0.0:
 
                 bv = np.eye(size, dtype=float)
                 bv[r, r] = 0.0
@@ -163,7 +163,7 @@ def closest_reversible(p: tarray, distribution: tnumeric, weighted: bool) -> tge
         for r in range(size - 1):
             for s in range(r + 1, size):
 
-                if (distribution[s] == 0.0) and (distribution[r] == 0.0):
+                if distribution[s] == 0.0 and distribution[r] == 0.0:
 
                     if r != i:
                         a[m + i - 1, k] = -1.0
@@ -207,6 +207,8 @@ def closest_reversible(p: tarray, distribution: tnumeric, weighted: bool) -> tge
 
     for i in range(m):
         p += solution[i] * basis_vectors[i]
+
+    p /= np.sum(p, axis=1, keepdims=True)
 
     return p, None
 
