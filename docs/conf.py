@@ -1,22 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-#############
-# REFERENCE #
-#############
-
-from os.path import (
-    dirname,
-    join
-)
-
-from sys import (
-    path
-)
-
-path.append(join(dirname(__name__), '..'))
-
-
 ###########
 # IMPORTS #
 ###########
@@ -27,23 +11,45 @@ from datetime import (
     datetime
 )
 
-from pydtmc import (
-    __version__
+from os.path import (
+    dirname,
+    join
+)
+
+from re import (
+    MULTILINE,
+    search
 )
 
 from sphinx.ext.intersphinx import (
     InventoryAdapter
 )
 
+from sys import (
+    path
+)
+
+
+#############
+# REFERENCE #
+#############
+
+path.append(join(dirname(__name__), '..'))
+
 
 ###############
 # INFORMATION #
 ###############
 
+with open('../pydtmc/__init__.py', 'r') as file:
+    file_content = file.read()
+    matches = search(r'^\s*__version__\s*=\s*[\'"]([^\'"]*)[\'"]\s*$', file_content, MULTILINE)
+    current_version = matches.group(1)
+
 project = 'PyDTMC'
 project_title = project + ' Documentation'
-release = __version__
-version = __version__
+release = current_version
+version = current_version
 author = 'Tommaso Belluzzo'
 copyright = f'2019-{datetime.now().strftime("%Y")}, Tommaso Belluzzo'
 

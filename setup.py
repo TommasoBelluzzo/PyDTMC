@@ -17,8 +17,9 @@ from os.path import (
     join
 )
 
-from pydtmc import (
-    __version__
+from re import (
+    MULTILINE,
+    search
 )
 
 from setuptools import (
@@ -32,9 +33,9 @@ from sys import (
 )
 
 
-#################
-# VERSION CHECK #
-#################
+################
+# PYTHON CHECK #
+################
 
 if version_info < (3, 6):
     exit('Python 3.6 or greater is required.')
@@ -43,6 +44,13 @@ if version_info < (3, 6):
 #################
 # DYNAMIC SETUP #
 #################
+
+# Version
+
+with open('pydtmc/__init__.py', 'r') as file:
+    file_content = file.read()
+    matches = search(r'^\s*__version__\s*=\s*[\'"]([^\'"]*)[\'"]\s*$', file_content, MULTILINE)
+    current_version = matches.group(1)
 
 # Description
 
@@ -64,7 +72,7 @@ for (location, directories, files) in walk('data'):
 # Setup
 
 setup(
-    version=__version__,
+    version=current_version,
     long_description=long_description_text,
     long_description_content_type='text/markdown',
     packages=find_packages(exclude=['data', 'docs', 'tests']),
