@@ -129,18 +129,18 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
         mc = MarkovChain.random(size, zeros=zeros, seed=seed)
 
         # noinspection PyBroadException
-        #try:
+        try:
 
-        figure, ax = plot_redistributions(mc, distributions, plot_type=plot_type)
-        pp.close(figure)
+            figure, ax = plot_redistributions(mc, distributions, plot_type=plot_type)
+            pp.close(figure)
 
-        exception = False
+            exception = False
 
-        #except Exception:
-        #    exception = True
-        #    pass
+        except Exception:
+            exception = True
+            pass
 
-        #assert exception is False
+        assert exception is False
 
 
 @mark.slow
