@@ -8,6 +8,7 @@
 # Full
 
 import numpy as np
+import numpy.testing as npt
 
 # Partial
 
@@ -32,7 +33,7 @@ def test_bounded(p, boundary_condition, value):
     actual = mc_bounded.p
     expected = np.asarray(value)
 
-    assert np.allclose(actual, expected)
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_lazy(p, inertial_weights, value):
@@ -43,13 +44,13 @@ def test_lazy(p, inertial_weights, value):
     actual = mc_lazy.p
     expected = np.asarray(value)
 
-    assert np.allclose(actual, expected)
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_lump(p, partitions, value):
 
     if value is None:
-        skip('Markov chain is not lumpable.')
+        skip('Markov chain is not lumpable for the specified partitions.')
     else:
 
         mc = MarkovChain(p)
@@ -58,7 +59,7 @@ def test_lump(p, partitions, value):
         actual = mc_lump.p
         expected = np.asarray(value)
 
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_sub(p, states, value):
@@ -86,4 +87,4 @@ def test_sub(p, states, value):
         actual = mc_sub.p
         expected = np.asarray(value)
 
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

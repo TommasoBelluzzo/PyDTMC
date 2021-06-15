@@ -7,8 +7,8 @@
 
 # Full
 
-import numpy as np
 import numpy.random as npr
+import numpy.testing as npt
 
 # Partial
 
@@ -49,7 +49,7 @@ def test_dictionary(seed, maximum_size, runs):
         d = mc_to.to_dictionary()
         mc_from = MarkovChain.from_dictionary(d)
 
-        assert np.allclose(mc_from.p, mc_to.p)
+        npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
 @mark.slow
@@ -64,12 +64,12 @@ def test_graph(seed, maximum_size, runs):
         graph = mc_to.to_graph(False)
         mc_from = MarkovChain.from_graph(graph)
 
-        assert np.allclose(mc_from.p, mc_to.p)
+        npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
         graph = mc_to.to_graph(True)
         mc_from = MarkovChain.from_graph(graph)
 
-        assert np.allclose(mc_from.p, mc_to.p)
+        npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
 @mark.slow
@@ -102,7 +102,7 @@ def test_file(seed, maximum_size, runs, file_extension):
         remove(file_path)
 
         assert exception is False
-        assert np.allclose(mc_from.p, mc_to.p)
+        npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
 def test_matrix(seed, maximum_size, runs):
@@ -119,4 +119,4 @@ def test_matrix(seed, maximum_size, runs):
         m = mc1.to_matrix()
         mc2 = MarkovChain.from_matrix(m)
 
-        assert np.allclose(mc1.p, mc2.p)
+        npt.assert_allclose(mc1.p, mc2.p, rtol=1e-5, atol=1e-8)

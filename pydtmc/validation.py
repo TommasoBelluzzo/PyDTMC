@@ -113,7 +113,9 @@ def validate_boolean(value: tany) -> bool:
 
 def validate_boundary_condition(boundary_condition: tany) -> tbcond:
 
-    if isinstance(boundary_condition, float):
+    if isinstance(boundary_condition, (float, np.floating)):
+
+        boundary_condition = float(boundary_condition)
 
         if (boundary_condition < 0.0) or (boundary_condition > 1.0):
             raise ValueError('The "@arg@" parameter, when specified as a float, must have a value between 0 and 1.')
@@ -149,7 +151,7 @@ def validate_dictionary(d: tany) -> tmc_dict:
 
     values = d.values()
 
-    if not all(isinstance(value, (float, int)) for value in values):
+    if not all(isinstance(value, (float, int, np.floating, np.integer)) for value in values):
         raise ValueError('The "@arg@" parameter values must be float or integer numbers.')
 
     values = [float(value) for value in values]
@@ -167,7 +169,9 @@ def validate_dictionary(d: tany) -> tmc_dict:
 
 def validate_distribution(distribution: tany, size: int) -> tdists_flex:
 
-    if isinstance(distribution, int):
+    if isinstance(distribution, (int, np.integer)):
+
+        distribution = int(distribution)
 
         if distribution <= 0:
             raise ValueError('The "@arg@" parameter, when specified as an integer, must be greater than or equal to 1.')
@@ -209,8 +213,10 @@ def validate_distribution(distribution: tany, size: int) -> tdists_flex:
 
 def validate_dpi(value: tany) -> int:
 
-    if not isinstance(value, int):
+    if not isinstance(value, (int, np.integer)):
         raise TypeError('The "@arg@" parameter must be an integer value.')
+
+    value = int(value)
 
     if value not in [75, 100, 150, 200, 300]:
         raise ValueError('The "@arg@" parameter must have one of the following values: 75, 100, 150, 200, 300.')
@@ -231,8 +237,10 @@ def validate_enumerator(value: tany, possible_values: tlist_str) -> str:
 
 def validate_float(value: tany, lower_limit: olimit_float = None, upper_limit: olimit_float = None) -> float:
 
-    if not isinstance(value, float):
+    if not isinstance(value, (float, np.floating)):
         raise TypeError('The "@arg@" parameter must be a float value.')
+
+    value = float(value)
 
     if not np.isfinite(value) or not np.isreal(value):
         raise ValueError('The "@arg@" parameter be a real finite float value.')
@@ -304,8 +312,10 @@ def validate_hyperparameter(hyperparameter: tany, size: int) -> tarray:
 
 def validate_integer(value: tany, lower_limit: olimit_int = None, upper_limit: olimit_int = None) -> int:
 
-    if not isinstance(value, int):
+    if not isinstance(value, (int, np.integer)):
         raise TypeError('The "@arg@" parameter must be an integer value.')
+
+    value = int(value)
 
     if lower_limit is not None:
         if lower_limit[1]:
@@ -337,7 +347,7 @@ def validate_interval(interval: tany) -> tinterval:
     a = interval[0]
     b = interval[1]
 
-    if not isinstance(a, (float, int)) or not isinstance(b, (float, int)):
+    if not isinstance(a, (float, int, np.floating, np.integer)) or not isinstance(b, (float, int, np.floating, np.integer)):
         raise ValueError('The "@arg@" parameter must contain only float and integer values.')
 
     a = float(a)
@@ -408,7 +418,7 @@ def validate_matrix(m: tany) -> tarray:
     return m
 
 
-def validate_partitions(partitions: tany, current_states: tlist_str) -> tparts:
+def validate_partitions(partitions: tany, current_states: tlist_str) -> tlists_int:
 
     if not isinstance(partitions, list):
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
@@ -427,14 +437,16 @@ def validate_partitions(partitions: tany, current_states: tlist_str) -> tparts:
         if not isinstance(partition, titerable):
             raise TypeError('The "@arg@" parameter must contain only array_like objects.')
 
-        partition_sorted = list(partition)
+        partition_list = list(partition)
 
-        partitions_flat.extend(partition_sorted)
-        partitions_groups.append(len(partition_sorted))
+        partitions_flat.extend(partition_list)
+        partitions_groups.append(len(partition_list))
 
-    if all(isinstance(s, int) for s in partitions_flat):
+    if all(isinstance(state, (int, np.integer)) for state in partitions_flat):
 
-        if any((s < 0) or (s >= current_states_length) for s in partitions_flat):
+        partitions_flat = [int(state) for state in partitions_flat]
+
+        if any((state < 0) or (state >= current_states_length) for state in partitions_flat):
             raise ValueError(f'The "@arg@" parameter subelements, when specified as integers, must be values between 0 and the number of existing states minus one ({current_states_length - 1:d}).')
 
     elif all(isinstance(s, str) for s in partitions_flat):
@@ -497,8 +509,9 @@ def validate_rewards(rewards: tany, size: int) -> tarray:
 
 def validate_state(state: tany, current_states: list) -> int:
 
-    if isinstance(state, int):
+    if isinstance(state, (int, np.integer)):
 
+        state = int(state)
         limit = len(current_states) - 1
 
         if (state < 0) or (state > limit):
@@ -520,8 +533,9 @@ def validate_status(status: tany, current_states: list) -> tarray:
 
     size = len(current_states)
 
-    if isinstance(status, int):
+    if isinstance(status, (int, np.integer)):
 
+        status = int(status)
         limit = size - 1
 
         if (status < 0) or (status > limit):
@@ -600,8 +614,9 @@ def validate_states(states: tany, current_states: tlist_str, state_type: str, fl
 
     if flex:
 
-        if isinstance(states, int):
+        if isinstance(states, (int, np.integer)):
 
+            states = int(states)
             limit = len(current_states) - 1
 
             if (states < 0) or (states > limit):
@@ -623,7 +638,9 @@ def validate_states(states: tany, current_states: tlist_str, state_type: str, fl
 
     current_states_length = len(current_states)
 
-    if all(isinstance(s, int) for s in states):
+    if all(isinstance(s, (int, np.integer)) for s in states):
+
+        states = [int(state) for state in states]
 
         if any((s < 0) or (s >= current_states_length) for s in states):
             raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and the number of existing states minus one ({current_states_length - 1:d}).')
@@ -687,7 +704,9 @@ def validate_string(value: tany) -> str:
 
 def validate_time_points(time_points: tany) -> ttimes_in:
 
-    if isinstance(time_points, int):
+    if isinstance(time_points, (int, np.integer)):
+
+        time_points = int(time_points)
 
         if time_points < 0:
             raise ValueError('The "@arg@" parameter, when specified as an integer, must be greater than or equal to 0.')
@@ -699,9 +718,13 @@ def validate_time_points(time_points: tany) -> ttimes_in:
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
-    if all(isinstance(tp, int) for tp in time_points):
-        if any(tp < 0 for tp in time_points):
+    if all(isinstance(time_point, (int, np.integer)) for time_point in time_points):
+
+        time_points = [int(time_point) for time_point in time_points]
+
+        if any(time_point < 0 for time_point in time_points):
             raise ValueError('The "@arg@" parameter, when specified as a list of integers, must contain only values greater than or equal to 0.')
+
     else:
         raise TypeError('The "@arg@" parameter must be either an integer or an array_like object of integers.')
 
@@ -762,8 +785,10 @@ def validate_transition_matrix(p: tany) -> tarray:
 
 def validate_transition_matrix_size(size: tany) -> int:
 
-    if not isinstance(size, int):
+    if not isinstance(size, (int, np.integer)):
         raise TypeError('The "@arg@" parameter must be an integer value.')
+
+    size = int(size)
 
     if size < 2:
         raise ValueError('The "@arg@" parameter must be greater than or equal to 2.')
@@ -773,10 +798,8 @@ def validate_transition_matrix_size(size: tany) -> int:
 
 def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = None) -> tarray:
 
-    if flex and size is not None and isinstance(vector, int):
+    if flex and size is not None and isinstance(vector, (float, int, np.floating, np.integer)):
         vector = np.repeat(float(vector), size)
-    elif flex and size is not None and isinstance(vector, float):
-        vector = np.repeat(vector, size)
     else:
         try:
             vector = extract_as_numeric(vector)

@@ -183,10 +183,13 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
         clist = list()
 
         while count > 0:
+
             clist.append(colors[offset])
             offset += 1
-            if offset > colors_limit:
+
+            if offset > colors_limit:  # pragma: no cover
                 offset = 0
+
             count -= 1
 
         return clist
@@ -213,13 +216,13 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
         # noinspection PyBroadException
         try:
             call(['dot', '-V'], stdout=PIPE, stderr=PIPE)
-        except Exception:
+        except Exception:  # pragma: no cover
             extended_graph = False
             pass
 
         try:
             import pydot as pyd
-        except ImportError:
+        except ImportError:  # pragma: no cover
             extended_graph = False
             pass
 

@@ -585,9 +585,6 @@ class MarkovChain(metaclass=BaseClass):
         A property representing all the partitions of the Markov chain that satisfy the ordinary lumpability criterion.
         """
 
-        if self._size == 2:
-            return []
-
         lp = find_lumping_partitions(self._p)
 
         return lp
@@ -1254,7 +1251,7 @@ class MarkovChain(metaclass=BaseClass):
 
         p, states, error_message = lump(self.p, self.states, partitions)
 
-        if error_message is not None:
+        if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
         mc = MarkovChain(p, states)
@@ -1575,93 +1572,9 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        if len(self.pi) > 1:
-            return None
+        value = time_correlations(self, self._rdl_decomposition, walk1, walk2, time_points)
 
-        if isinstance(time_points, int):
-            time_points = [time_points]
-            time_points_integer = True
-            time_points_length = 1
-        else:
-            time_points_integer = False
-            time_points_length = len(time_points)
-
-        pi = self.pi[0]
-
-        observations1 = np.zeros(self._size, dtype=float)
-
-        for state in walk1:
-            observations1[state] += 1.0
-
-        if walk2 is None:
-            observations2 = np.copy(observations1)
-        else:
-            observations2 = np.zeros(self._size, dtype=int)
-
-            for state in walk1:
-                observations2[state] += 1.0
-
-        time_correlations = []
-
-        if time_points[-1] > self._size:
-
-            r, d, l = self._rdl_decomposition
-
-            for i in range(time_points_length):
-
-                t = np.zeros(d.shape, dtype=float)
-                t[np.diag_indices_from(d)] = np.diag(d)**time_points[i]
-
-                p_times = np.dot(np.dot(r, t), l)
-
-                m1 = np.multiply(observations1, pi)
-                m2 = np.dot(p_times, observations2)
-
-                time_correlation = np.dot(m1, m2).item()
-                time_correlations.append(time_correlation)
-
-        else:
-
-            start_values = None
-
-            m = np.multiply(observations1, pi)
-
-            for i in range(time_points_length):
-
-                time_point = time_points[i]
-
-                if start_values is not None:
-
-                    pk_i = start_values[1]
-                    time_prev = start_values[0]
-                    t_diff = time_point - time_prev
-
-                    for k in range(t_diff):
-                        pk_i = np.dot(self._p, pk_i)
-
-                else:
-
-                    if time_point >= 2:
-
-                        pk_i = np.dot(self._p, np.dot(self._p, observations2))
-
-                        for k in range(time_point - 2):
-                            pk_i = np.dot(self._p, pk_i)
-
-                    elif time_point == 1:
-                        pk_i = np.dot(self._p, observations2)
-                    else:
-                        pk_i = observations2
-
-                start_values = (time_point, pk_i)
-
-                time_correlation = np.dot(m, pk_i)
-                time_correlations.append(time_correlation)
-
-        if time_points_integer:
-            return time_correlations[0]
-
-        return time_correlations
+        return value
 
     def time_relaxations(self, walk: twalk, initial_distribution: onumeric = None, time_points: ttimes_in = 1) -> otimes_out:
 
@@ -1671,7 +1584,7 @@ class MarkovChain(metaclass=BaseClass):
         :param walk: the observed sequence of states.
         :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
         :param time_points: the time point or a list of time points at which the computation is performed (by default, 1).
-        :return: None if the Markov chain is not *ergodic*, a float value if *time_points* is provided as an integer, a list of float values otherwise.
+        :return: None if the Markov chain has multiple stationary distributions, a float value if *time_points* is provided as an integer, a list of float values otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1689,78 +1602,9 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        if not self.is_ergodic:
-            return None
+        value = time_relaxations(self, self._rdl_decomposition, walk, initial_distribution, time_points)
 
-        if isinstance(time_points, int):
-            time_points = [time_points]
-            time_points_integer = True
-            time_points_length = 1
-        else:
-            time_points_integer = False
-            time_points_length = len(time_points)
-
-        observations = np.zeros(self._size, dtype=float)
-
-        for state in walk:
-            observations[state] += 1.0
-
-        time_relaxations = []
-
-        if time_points[-1] > self._size:
-
-            r, d, l = self._rdl_decomposition
-
-            for i in range(time_points_length):
-
-                t = np.zeros(d.shape, dtype=float)
-                t[np.diag_indices_from(d)] = np.diag(d)**time_points[i]
-
-                p_times = np.dot(np.dot(r, t), l)
-
-                time_relaxation = np.dot(np.dot(initial_distribution, p_times), observations).item()
-                time_relaxations.append(time_relaxation)
-
-        else:
-
-            start_values = None
-
-            for i in range(time_points_length):
-
-                time_point = time_points[i]
-
-                if start_values is not None:
-
-                    pk_i = start_values[1]
-                    time_prev = start_values[0]
-                    t_diff = time_point - time_prev
-
-                    for k in range(t_diff):
-                        pk_i = np.dot(pk_i, self._p)
-
-                else:
-
-                    if time_point >= 2:
-
-                        pk_i = np.dot(np.dot(initial_distribution, self._p), self._p)
-
-                        for k in range(time_point - 2):
-                            pk_i = np.dot(pk_i, self._p)
-
-                    elif time_point == 1:
-                        pk_i = np.dot(initial_distribution, self._p)
-                    else:
-                        pk_i = initial_distribution
-
-                start_values = (time_point, pk_i)
-
-                time_relaxation = np.dot(pk_i, observations).item()
-                time_relaxations.append(time_relaxation)
-
-        if time_points_integer:
-            return time_relaxations[0]
-
-        return time_relaxations
+        return value
 
     @alias('to_bounded')
     def to_bounded_chain(self, boundary_condition: tbcond) -> tmc:
@@ -1874,7 +1718,7 @@ class MarkovChain(metaclass=BaseClass):
 
         file_extension = get_file_extension(file_path)
 
-        if file_extension not in ['.csv', '.json', '.txt', '.xml']:
+        if file_extension not in ['.csv', '.json', '.txt', '.xml']:  # pragma: no cover
             raise ValidationError('Only csv, json, xml and plain text files are supported.')
 
         d = self.to_dictionary()
@@ -1971,9 +1815,9 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        tp = self._p[state_origin, state_target]
+        value = self._p[state_origin, state_target]
 
-        return tp
+        return value
 
     def walk(self, steps: int, initial_state: ostate = None, final_state: ostate = None, include_initial: bool = False, output_indices: bool = False, seed: oint = None) -> twalk:
 
@@ -2732,7 +2576,7 @@ class MarkovChain(metaclass=BaseClass):
 
         file_extension = get_file_extension(file_path)
 
-        if file_extension not in ['.csv', '.json', '.xml', '.txt']:
+        if file_extension not in ['.csv', '.json', '.xml', '.txt']:  # pragma: no cover
             raise ValidationError('Only csv, json, xml and plain text files are supported.')
 
         if file_extension == '.csv':
@@ -2747,7 +2591,7 @@ class MarkovChain(metaclass=BaseClass):
         states = [key[0] for key in d.keys() if key[0] == key[1]]
         size = len(states)
 
-        if size < 2:
+        if size < 2:  # pragma: no cover
             raise ValueError('The size of the transition matrix defined by the file must be greater than or equal to 2.')
 
         p = np.zeros((size, size), dtype=float)
@@ -2755,7 +2599,7 @@ class MarkovChain(metaclass=BaseClass):
         for it, ip in d.items():
             p[states.index(it[0]), states.index(it[1])] = ip
 
-        if not np.allclose(np.sum(p, axis=1), np.ones(size, dtype=float)):
+        if not np.allclose(np.sum(p, axis=1), np.ones(size, dtype=float)):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the file must sum to 1.')
 
         mc = MarkovChain(p, states)

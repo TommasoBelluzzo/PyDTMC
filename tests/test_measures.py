@@ -8,6 +8,7 @@
 # Full
 
 import numpy as np
+import numpy.testing as npt
 
 # Partial
 
@@ -33,7 +34,7 @@ def test_absorption_probabilities(p, absorption_probabilities):
 
     if actual is not None and expected is not None:
         expected = np.asarray(expected)
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -47,7 +48,7 @@ def test_committor_probabilities(p, states1, states2, value_backward, value_forw
 
     if actual is not None and expected is not None:
         expected = np.asarray(expected)
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -56,7 +57,7 @@ def test_committor_probabilities(p, states1, states2, value_backward, value_forw
 
     if actual is not None and expected is not None:
         expected = np.asarray(expected)
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -71,7 +72,7 @@ def test_first_passage_probabilities(p, steps, initial_state, first_passage_stat
     if first_passage_states is not None:
         assert actual.size == steps
 
-    assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_first_passage_reward(p, steps, initial_state, first_passage_states, rewards, value):
@@ -95,12 +96,12 @@ def test_hitting_probabilities(p, targets, value):
     actual = mc.hitting_probabilities(targets)
     expected = np.asarray(value)
 
-    assert np.allclose(actual, expected)
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     if mc.is_irreducible:
 
         expected = np.ones(mc.size, dtype=float)
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_hitting_times(p, targets, value):
@@ -110,7 +111,7 @@ def test_hitting_times(p, targets, value):
     actual = mc.hitting_times(targets)
     expected = np.asarray(value)
 
-    assert np.allclose(actual, expected)
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_mean_first_passage_times_between(p, origins, targets, value):
@@ -121,7 +122,8 @@ def test_mean_first_passage_times_between(p, origins, targets, value):
     expected = value
 
     if actual is not None and expected is not None:
-        assert np.isclose(actual, expected)
+        expected = np.asarray(expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -136,12 +138,12 @@ def test_mean_first_passage_times_to(p, targets, value):
     if actual is not None and expected is not None:
 
         expected = np.asarray(expected)
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         if targets is None:
 
             expected = np.dot(mc.p, expected) + np.ones((mc.size, mc.size), dtype=float) - np.diag(mc.mean_recurrence_times())
-            assert np.allclose(actual, expected)
+            npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     else:
         assert actual == expected
@@ -156,7 +158,7 @@ def test_mean_absorption_times(p, mean_absorption_times):
 
     if actual is not None and expected is not None:
         expected = np.asarray(expected)
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -175,7 +177,7 @@ def test_mean_number_visits(p, mean_number_visits):
     actual = mc.mean_number_visits()
     expected = np.asarray(mean_number_visits)
 
-    assert np.allclose(actual, expected)
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_mean_recurrence_times(p, mean_recurrence_times):
@@ -187,7 +189,7 @@ def test_mean_recurrence_times(p, mean_recurrence_times):
 
     if actual is not None and expected is not None:
         expected = np.asarray(expected)
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -196,7 +198,7 @@ def test_mean_recurrence_times(p, mean_recurrence_times):
         actual = np.nan_to_num(actual**-1.0)
         expected = np.dot(actual, mc.p)
 
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_mixing_time(p, initial_distribution, jump, cutoff_type, value):
@@ -218,6 +220,42 @@ def test_sensitivity(p, state, value):
 
     if actual is not None and expected is not None:
         expected = np.asarray(expected)
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
+
+
+def test_time_correlations(p, walk1, walk2, time_points, value):
+
+    mc = MarkovChain(p)
+
+    if len(mc.stationary_distributions) > 1:
+        skip('Markov chain has multiple stationary distributions.')
+    else:
+
+        actual = np.asarray(mc.time_correlations(walk1, walk2, time_points))
+        expected = np.asarray(value)
+
+        if actual is not None and expected is not None:
+            expected = np.asarray(expected)
+            npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        else:
+            assert actual == expected
+
+
+def test_time_relaxations(p, walk, initial_distribution, time_points, value):
+
+    mc = MarkovChain(p)
+
+    if len(mc.stationary_distributions) > 1:
+        skip('Markov chain has multiple stationary distributions.')
+    else:
+
+        actual = np.asarray(mc.time_relaxations(walk, initial_distribution, time_points))
+        expected = np.asarray(value)
+
+        if actual is not None and expected is not None:
+            expected = np.asarray(expected)
+            npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        else:
+            assert actual == expected

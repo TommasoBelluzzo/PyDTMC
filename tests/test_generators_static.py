@@ -8,6 +8,7 @@
 # Full
 
 import numpy as np
+import numpy.testing as npt
 
 # Partial
 
@@ -27,7 +28,7 @@ def test_birth_death(p, q, value):
     actual = mc.p
     expected = np.asarray(value)
 
-    assert np.allclose(actual, expected)
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_closest_reversible(p, distribution, weighted, value):
@@ -42,7 +43,7 @@ def test_closest_reversible(p, distribution, weighted, value):
         actual = cr.p
         expected = np.asarray(value)
 
-    assert np.allclose(actual, expected)
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_gamblers_ruin(size, w, value):
@@ -52,7 +53,17 @@ def test_gamblers_ruin(size, w, value):
     actual = mc.p
     expected = np.asarray(value)
 
-    assert np.allclose(actual, expected)
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_identity(size, value):
+
+    mc = MarkovChain.identity(size)
+
+    actual = mc.p
+    expected = np.asarray(value)
+
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_random(seed, size, zeros, mask, value):
@@ -62,7 +73,7 @@ def test_random(seed, size, zeros, mask, value):
     actual = mc.p
     expected = np.asarray(value)
 
-    assert np.allclose(actual, expected)
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     if zeros > 0 and mask is None:
 
@@ -78,7 +89,7 @@ def test_random(seed, size, zeros, mask, value):
         actual = mc.p[indices]
         expected = np.asarray(value)[indices]
 
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_urn_model(n, model, value):
@@ -88,4 +99,4 @@ def test_urn_model(n, model, value):
     actual = mc.p
     expected = np.asarray(value)
 
-    assert np.allclose(actual, expected)
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

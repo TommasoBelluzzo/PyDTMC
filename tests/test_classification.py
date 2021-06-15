@@ -8,6 +8,7 @@
 # Full
 
 import numpy as np
+import numpy.testing as npt
 
 # Partial
 
@@ -31,7 +32,7 @@ def test_classes_communicating(p, communicating_classes):
 
     if len(communicating_classes) > 1:
 
-        assert np.array_equal(mc.communication_matrix, np.transpose(mc.communication_matrix))
+        npt.assert_array_equal(mc.communication_matrix, np.transpose(mc.communication_matrix))
 
     if np.array_equal(mc.p, np.eye(mc.size, dtype=float)):
 

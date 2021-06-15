@@ -112,6 +112,34 @@
         "value": [[-0.125, 0.125], [-0.125, 0.125]]
       }
     ],
+    "time_correlations_data": [
+      {
+        "walk1": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+        "walk2": null,
+        "time_points": 30,
+        "value": 25.0
+      },
+      {
+        "walk1": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+        "walk2": [1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+        "time_points": [0, 5, 10],
+        "value": [25.0, 25.0, 25.0]
+      }
+    ],
+    "time_relaxations_data": [
+      {
+        "walk": [0, 1, 0, 1, 0, 1, 0],
+        "initial_distribution": null,
+        "time_points": [0, 100],
+        "value": [3.5, 3.5]
+      },
+      {
+        "walk": [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+        "initial_distribution": [0.1, 0.9],
+        "time_points": 50,
+        "value": 11.9
+      }
+    ],
     "absorption_probabilities": null,
     "mean_absorption_times": null,
     "mean_number_visits": [["Infinity", "Infinity"], ["Infinity", "Infinity"]],
@@ -230,6 +258,34 @@
         "value": [[-0.20411139, 0.07289692], [-0.57151188, 0.20411139]]
       }
     ],
+    "time_correlations_data": [
+      {
+        "walk1": [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        "walk2": null,
+        "time_points": [0, 1, 2, 3],
+        "value": [60.736842, 51.710526, 51.259211, 51.236645]
+      },
+      {
+        "walk1": [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        "walk2": [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1],
+        "time_points": 500,
+        "value": 95.313019
+      }
+    ],
+    "time_relaxations_data": [
+      {
+        "walk": [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        "initial_distribution": null,
+        "time_points": 75,
+        "value": 9.105263
+      },
+      {
+        "walk": [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0],
+        "initial_distribution": [0.75, 0.25],
+        "time_points": [10, 10000],
+        "value": [14.631579, 14.631579]
+      }
+    ],
     "absorption_probabilities": null,
     "mean_absorption_times": null,
     "mean_number_visits": [["Infinity", "Infinity"], ["Infinity", "Infinity"]],
@@ -345,6 +401,34 @@
       },
       {
         "state": 2,
+        "value": null
+      }
+    ],
+    "time_correlations_data": [
+      {
+        "walk1": [0, 0, 0, 0, 0, 0],
+        "walk2": null,
+        "time_points": 0,
+        "value": null
+      },
+      {
+        "walk1": [0, 0, 0, 0, 0, 0],
+        "walk2": [2, 2, 2, 2, 2, 2],
+        "time_points": 15,
+        "value": null
+      }
+    ],
+    "time_relaxations_data": [
+      {
+        "walk": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        "initial_distribution": null,
+        "time_points": 0,
+        "value": null
+      },
+      {
+        "walk": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        "initial_distribution": [0.6, 0.1, 0.3],
+        "time_points": [0, 1, 2],
         "value": null
       }
     ],
@@ -466,6 +550,34 @@
         "value": [[-0.04961327, 0.33966009, -0.17937106], [-0.02646041, 0.18115205, -0.09566456], [-0.03638307, 0.24908406, -0.13153877]]
       }
     ],
+    "time_correlations_data": [
+      {
+        "walk1": [2, 2, 2, 0, 0, 1, 2, 2, 2, 0, 1, 0, 1, 2, 2],
+        "walk2": null,
+        "time_points": [1, 10],
+        "value": [25.678527, 25.591696]
+      },
+      {
+        "walk1": [2, 2, 2, 0, 0, 1, 2, 2, 2, 0, 1, 0, 1, 2, 2],
+        "walk2": [2, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 1, 2, 2, 2, 2, 2, 1, 1, 2],
+        "time_points": [5, 10, 80],
+        "value": [33.626341, 33.626298, 33.626298]
+      }
+    ],
+    "time_relaxations_data": [
+      {
+        "walk": [2, 0, 1, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 2],
+        "initial_distribution": null,
+        "time_points": [15, 30],
+        "value": [6.617647, 6.617647]
+      },
+      {
+        "walk": [2, 2, 2, 0, 2, 0, 0, 0, 1, 1, 1, 0, 1, 1, 2, 2, 0, 0, 0, 0, 1, 1],
+        "initial_distribution": [0.1, 0.8, 0.1],
+        "time_points": [20, 40, 60, 80],
+        "value": [7.558824, 7.558824, 7.558824, 7.558824]
+      }
+    ],
     "absorption_probabilities": null,
     "mean_absorption_times": null,
     "mean_number_visits": [["Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity"]],
@@ -584,6 +696,34 @@
         "value": [[-0.23466667, -0.128, 0.29866667], [-0.11733333, -0.064, 0.14933333], [-0.23466667, -0.128, 0.29866667]]
       }
     ],
+    "time_correlations_data": [
+      {
+        "walk1": [2, 1, 2, 2, 2, 1, 0, 2, 2, 2, 2, 1, 0, 0, 0, 0, 1],
+        "walk2": null,
+        "time_points": [0, 1, 2, 10, 100, 1000],
+        "value": [38.8, 36.2, 36.175, 36.000003, 36.0, 36.0]
+      },
+      {
+        "walk1": [2, 1, 2, 2, 2, 1, 0, 2, 2, 2, 2, 1, 0, 0, 0, 0, 1],
+        "walk2": [0, 1, 0, 0, 0, 2, 1, 0, 0, 0, 1, 2, 2, 1, 2, 1, 0],
+        "time_points": [0, 1, 2, 10, 100, 1000],
+        "value": [32.8, 34.1, 34.675, 34.799998, 34.8, 34.8]
+      }
+    ],
+    "time_relaxations_data": [
+      {
+        "walk": [0, 1, 2, 0, 2, 1, 2, 0, 1, 2, 2, 2, 2, 0, 0, 0, 1, 0, 0, 1, 2],
+        "initial_distribution": null,
+        "time_points": [0, 5, 10, 100],
+        "value": [7.0, 7.400391, 7.4, 7.4]
+      },
+      {
+        "walk": [2, 0, 2, 2, 2, 2, 0, 0, 0, 1],
+        "initial_distribution": [0.4, 0.3, 0.3],
+        "time_points": [1, 3, 6],
+        "value": [3.875, 3.804687, 3.799902]
+      }
+    ],
     "absorption_probabilities": null,
     "mean_absorption_times": null,
     "mean_number_visits": [["Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity"]],
@@ -699,6 +839,34 @@
       },
       {
         "state": 3,
+        "value": null
+      }
+    ],
+    "time_correlations_data": [
+      {
+        "walk1": [1, 0, 0, 0, 0, 0, 0, 0],
+        "walk2": null,
+        "time_points": 45,
+        "value": null
+      },
+      {
+        "walk1": [1, 0, 0, 0, 0, 0, 0, 0],
+        "walk2": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+        "time_points": [2, 20],
+        "value": null
+      }
+    ],
+    "time_relaxations_data": [
+      {
+        "walk": [2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "initial_distribution": null,
+        "time_points": 45,
+        "value": null
+      },
+      {
+        "walk": [3, 3, 3, 3, 3, 3, 3],
+        "initial_distribution": [0.2, 0.2, 0.4, 0.2],
+        "time_points": [2, 20],
         "value": null
       }
     ],
@@ -820,6 +988,34 @@
         "value": [[-0.19165042, -0.24667706, 0.78048689, -0.00822828], [-0.04258898, -0.05481712, 0.17344153, -0.00182851], [-0.0608414, -0.07831018, 0.24777362, -0.00261215], [-0.0304207, -0.03915509, 0.12388681, -0.00130608]]
       }
     ],
+    "time_correlations_data": [
+      {
+        "walk1": [0, 0, 0, 3, 1, 3, 2, 2, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2],
+        "walk2": null,
+        "time_points": 5,
+        "value": 60.96064
+      },
+      {
+        "walk1": [0, 0, 0, 3, 1, 3, 2, 2, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2],
+        "walk2": [0, 0, 0, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+        "time_points": [10, 100, 1000],
+        "value": [51.053037, 51.052494, 51.052494]
+      }
+    ],
+    "time_relaxations_data": [
+      {
+        "walk": [2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 0, 0, 0],
+        "initial_distribution": null,
+        "time_points": [0, 100],
+        "value": [5.987876, 7.635514]
+      },
+      {
+        "walk": [1, 0, 0, 0, 0, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0],
+        "initial_distribution": [0.25, 0.0, 0.25, 0.5],
+        "time_points": 40,
+        "value": 11.915888
+      }
+    ],
     "absorption_probabilities": null,
     "mean_absorption_times": null,
     "mean_number_visits": [["Infinity", "Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity", "Infinity"]],
@@ -938,6 +1134,34 @@
         "value": [[-0.00947624, -0.01678084, 0.04165597, 0.23888022, -0.05330385], [-0.00473812, -0.00839042, 0.02082799, 0.11944011, -0.02665193], [-0.00473812, -0.00839042, 0.02082799, 0.11944011, -0.02665193], [-0.00284287, -0.00503425, 0.01249679, 0.07166407, -0.01599116], [-0.01326674, -0.02349318, 0.05831836, 0.33443231, -0.07462539]]
       }
     ],
+    "time_correlations_data": [
+      {
+        "walk1": [0, 2, 4, 4, 0, 1, 3, 0, 2, 4, 4, 4],
+        "walk2": null,
+        "time_points": [0, 5, 10, 50, 100, 500],
+        "value": [12.48958, 10.16942, 10.170943, 10.170928, 10.170928, 10.170928]
+      },
+      {
+        "walk1": [0, 2, 4, 4, 0, 1, 3, 0, 2, 4, 4, 4],
+        "walk2": [0, 2, 4, 0, 1, 4, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+        "time_points": 0,
+        "value": 40.135135
+      }
+    ],
+    "time_relaxations_data": [
+      {
+        "walk": [0, 1, 4, 4, 4, 0, 1, 3, 0, 1, 4, 0, 1, 4, 4, 4, 0, 2],
+        "initial_distribution": null,
+        "time_points": 0,
+        "value": 3.6
+      },
+      {
+        "walk": [0, 1, 4, 0, 1, 4, 4, 0, 2, 4, 0, 1, 3, 0, 2, 3, 0, 2, 4, 4, 4, 4, 4],
+        "initial_distribution": [0.3, 0.05, 0.05, 0.2, 0.4],
+        "time_points": [0, 50, 100],
+        "value": [5.751532, 6.0, 6.0]
+      }
+    ],
     "absorption_probabilities": null,
     "mean_absorption_times": null,
     "mean_number_visits": [["Infinity", "Infinity", "Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity", "Infinity", "Infinity"]],
@@ -1053,6 +1277,34 @@
       },
       {
         "state": 5,
+        "value": null
+      }
+    ],
+    "time_correlations_data": [
+      {
+        "walk1": [5, 4, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "walk2": null,
+        "time_points": [6, 18],
+        "value": null
+      },
+      {
+        "walk1": [5, 4, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "walk2": [2, 3, 2, 3, 2, 3, 2, 3, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "time_points": [1, 2, 10, 25, 50, 100, 1000],
+        "value": null
+      }
+    ],
+    "time_relaxations_data": [
+      {
+        "walk": [0, 0, 0, 0, 0],
+        "initial_distribution": null,
+        "time_points": [0, 1, 2, 3, 4],
+        "value": null
+      },
+      {
+        "walk": [3, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+        "initial_distribution": [0.25, 0.1, 0.25, 0.4, 0.0, 0.0],
+        "time_points": 75,
         "value": null
       }
     ],

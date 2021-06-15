@@ -237,15 +237,15 @@ def lazy(p: tarray, inertial_weights: tarray) -> tgenres:
     return p, None
 
 
-def lump(p: tarray, states: tlist_str, partitions: tparts) -> tgenres_ext:
+def lump(p: tarray, states: tlist_str, partitions: tlists_int) -> tgenres_ext:
 
     size = p.shape[0]
 
     r = np.zeros((size, len(partitions)), dtype=float)
 
-    for i, lumping in enumerate(partitions):
-        for state in lumping:
-            r[state, i] = 1.0
+    for index, partition in enumerate(partitions):
+        for state in partition:
+            r[state, index] = 1.0
 
     # noinspection PyBroadException
     try:

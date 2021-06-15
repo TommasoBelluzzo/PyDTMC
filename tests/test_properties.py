@@ -9,6 +9,7 @@
 
 import numpy as np
 import numpy.linalg as npl
+import numpy.testing as npt
 
 # Partial
 
@@ -121,7 +122,7 @@ def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
 
     if actual is not None and expected is not None:
         expected = np.asarray(expected)
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -156,7 +157,7 @@ def test_irreducibility(p):
         actual = cf.p
         expected = mc.p
 
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_lumping_partitions(p, lumping_partitions):
@@ -243,12 +244,35 @@ def test_stationary_distributions(p, stationary_distributions):
     for i in range(len(stationary_distributions)):
 
         assert np.isclose(np.sum(mc.steady_states[i]), 1.0)
-        assert np.allclose(np.dot(mc.steady_states[i], mc.p), mc.steady_states[i])
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         actual = mc.steady_states[i]
         expected = stationary_distributions[i]
 
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_transitions(p):
+
+    mc = MarkovChain(p)
+
+    transition_matrix = mc.p
+    states = mc.states
+
+    for index, state in enumerate(states):
+
+        actual = mc.conditional_probabilities(state)
+        expected = transition_matrix[index, :]
+
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+    for index1, state1 in enumerate(states):
+        for index2, state2 in enumerate(states):
+
+            actual = mc.transition_probability(state1, state2)
+            expected = transition_matrix[index2, index1]
+
+            assert np.isclose(actual, expected)
 
 
 def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales):
@@ -284,6 +308,6 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
 
     if actual is not None and expected is not None:
         expected = np.asarray(expected)
-        assert np.allclose(actual, expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected

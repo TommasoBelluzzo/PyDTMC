@@ -13,7 +13,9 @@ __all__ = [
     'mean_number_visits',
     'mean_recurrence_times',
     'mixing_time',
-    'sensitivity'
+    'sensitivity',
+    'time_correlations',
+    'time_relaxations'
 ]
 
 
@@ -383,3 +385,167 @@ def sensitivity(mc: tmc, state: int) -> oarray:
     s = -np.outer(rev, phi) + (np.dot(phi, rev) * np.outer(rev, lev))
 
     return s
+
+
+def time_correlations(mc: tmc, rdl: trdl, walk1: twalk, walk2: owalk, time_points: ttimes_in) -> otimes_out:
+
+    if len(mc.pi) > 1:
+        return None
+
+    pi = mc.pi[0]
+
+    observations1 = np.zeros(mc.size, dtype=float)
+
+    for state in walk1:
+        observations1[state] += 1.0
+
+    if walk2 is None:
+        observations2 = np.copy(observations1)
+    else:
+
+        observations2 = np.zeros(mc.size, dtype=int)
+
+        for state in walk2:
+            observations2[state] += 1.0
+
+    if isinstance(time_points, int):
+        time_points = [time_points]
+        time_points_integer = True
+        time_points_length = 1
+    else:
+        time_points_integer = False
+        time_points_length = len(time_points)
+
+    tcs = []
+
+    if time_points[-1] > mc.size:
+
+        r, d, l = rdl
+
+        for i in range(time_points_length):
+
+            t = np.zeros(d.shape, dtype=float)
+            t[np.diag_indices_from(d)] = np.diag(d) ** time_points[i]
+
+            p_times = np.dot(np.dot(r, t), l)
+
+            m1 = np.multiply(observations1, pi)
+            m2 = np.dot(p_times, observations2)
+
+            tcs.append(np.dot(m1, m2).item())
+
+    else:
+
+        start_values = None
+
+        m = np.multiply(observations1, pi)
+
+        for i in range(time_points_length):
+
+            time_point = time_points[i]
+
+            if start_values is not None:
+
+                pk_i = start_values[1]
+                time_prev = start_values[0]
+                t_diff = time_point - time_prev
+
+                for k in range(t_diff):
+                    pk_i = np.dot(mc.p, pk_i)
+
+            else:
+
+                if time_point >= 2:
+
+                    pk_i = np.dot(mc.p, np.dot(mc.p, observations2))
+
+                    for k in range(time_point - 2):
+                        pk_i = np.dot(mc.p, pk_i)
+
+                elif time_point == 1:
+                    pk_i = np.dot(mc.p, observations2)
+                else:
+                    pk_i = observations2
+
+            start_values = (time_point, pk_i)
+
+            tcs.append(np.dot(m, pk_i).item())
+
+    if time_points_integer:
+        return tcs[0]
+
+    return tcs
+
+
+def time_relaxations(mc: tmc, rdl: trdl, walk: twalk, initial_distribution: tarray, time_points: ttimes_in) -> otimes_out:
+
+    if len(mc.pi) > 1:
+        return None
+
+    observations = np.zeros(mc.size, dtype=float)
+
+    for state in walk:
+        observations[state] += 1.0
+
+    if isinstance(time_points, int):
+        time_points = [time_points]
+        time_points_integer = True
+        time_points_length = 1
+    else:
+        time_points_integer = False
+        time_points_length = len(time_points)
+
+    trs = []
+
+    if time_points[-1] > mc.size:
+
+        r, d, l = rdl
+
+        for i in range(time_points_length):
+
+            t = np.zeros(d.shape, dtype=float)
+            t[np.diag_indices_from(d)] = np.diag(d) ** time_points[i]
+
+            p_times = np.dot(np.dot(r, t), l)
+
+            trs.append(np.dot(np.dot(initial_distribution, p_times), observations).item())
+
+    else:
+
+        start_values = None
+
+        for i in range(time_points_length):
+
+            time_point = time_points[i]
+
+            if start_values is not None:
+
+                pk_i = start_values[1]
+                time_prev = start_values[0]
+                t_diff = time_point - time_prev
+
+                for k in range(t_diff):
+                    pk_i = np.dot(pk_i, mc.p)
+
+            else:
+
+                if time_point >= 2:
+
+                    pk_i = np.dot(np.dot(initial_distribution, mc.p), mc.p)
+
+                    for k in range(time_point - 2):
+                        pk_i = np.dot(pk_i, mc.p)
+
+                elif time_point == 1:
+                    pk_i = np.dot(initial_distribution, mc.p)
+                else:
+                    pk_i = initial_distribution
+
+            start_values = (time_point, pk_i)
+
+            trs.append(np.dot(pk_i, observations).item())
+
+    if time_points_integer:
+        return trs[0]
+
+    return trs
