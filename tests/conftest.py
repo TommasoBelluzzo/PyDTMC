@@ -67,7 +67,7 @@ def parse_fixture_dictionary(fixture, fixture_names, subtest_name):
 
         elif isinstance(fixture_data, list):
 
-            for case in fixture_data:
+            for index, case in enumerate(fixture_data):
 
                 case_id = case['id'] if 'id' in case else f' #{str(index + 1)}'
                 values_current = tuple([case[fixture_name] for fixture_name in fixture_names if fixture_name in case])
@@ -89,30 +89,31 @@ def parse_fixture_list(fixture, fixture_names, subtest_name):
 
     if any([subtest_reference in case for case in fixture]):
 
-        for case in fixture:
+        for index_case, case in enumerate(fixture):
 
             if subtest_reference in case:
 
-                case_id = case['id']
+                case_id = case['id'] if 'id' in case else f' #{str(index_case + 1)}'
                 case_values = tuple([case[fixture_name] for fixture_name in fixture_names if fixture_name in case])
 
-                for index, subcase in enumerate(case[subtest_reference]):
+                for index_subcase, subcase in enumerate(case[subtest_reference]):
 
                     values_current = case_values + tuple([subcase[fixture_name] for fixture_name in fixture_names if fixture_name in subcase])
 
                     if len(values_current) == expected_args:
                         values.append(values_current)
-                        ids.append(f'{subtest_name} {case_id}-{str(index + 1)}')
+                        ids.append(f'{subtest_name} {case_id}-{str(index_subcase + 1)}')
 
     else:
 
-        for case in fixture:
+        for index, case in enumerate(fixture):
 
+            case_id = case['id'] if 'id' in case else f' #{str(index + 1)}'
             values_current = tuple([case[fixture_name] for fixture_name in fixture_names if fixture_name in case])
 
             if len(values_current) == expected_args:
                 values.append(values_current)
-                ids.append(f'{subtest_name} {case["id"]}')
+                ids.append(f'{subtest_name} {case_id}')
 
     return values, ids
 

@@ -88,7 +88,7 @@ True
 [1.0 1.0 1.0]
 
 >>> print(mc.entropy_rate)
-None
+0.0
 ```
 
 Dynamic computations on `MarkovChain` instances can be performed through their parametrized methods:
