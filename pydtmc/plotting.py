@@ -421,9 +421,10 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
             legend_size = mc.size
 
         ax.set_xlabel('Steps', fontsize=13.0)
-        ax.set_xticks(np.arange(0.0, distribution_len, 1.0 if distribution_len <= 11 else 10.0))
-        ax.set_xticklabels(np.arange(0, distribution_len, 1 if distribution_len <= 11 else 10))
-        ax.set_xlim(-1.0 * (distribution_len * 0.05), distribution_len * 1.05)
+        ax.set_xticks(np.arange(0.0, distribution_len + 1.0, 1.0 if distribution_len <= 11 else 10.0), minor=False)
+        ax.set_xticks(np.arange(-0.5, distribution_len, 1.0), minor=True)
+        ax.set_xticklabels(np.arange(0, distribution_len + 1, 1 if distribution_len <= 11 else 10))
+        ax.set_xlim(-0.5, distribution_len - 0.5)
 
         ax.set_ylabel('Frequencies', fontsize=13.0)
         ax.set_yticks(np.linspace(0.0, 1.0, 11))
