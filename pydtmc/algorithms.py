@@ -161,6 +161,9 @@ def find_lumping_partitions(p: tarray) -> tparts:
 
     size = p.shape[0]
 
+    if size == 2:
+        return []
+
     k = size - 1
     indices = list(range(size))
 
@@ -202,9 +205,9 @@ def find_lumping_partitions(p: tarray) -> tparts:
 
         left = np.dot(np.dot(np.dot(r, k), p), r)
         right = np.dot(p, r)
-        lumpability = np.array_equal(left, right)
+        is_lumpable = np.array_equal(left, right)
 
-        if lumpability:
+        if is_lumpable:
             partitions.append(partition)
 
     return partitions

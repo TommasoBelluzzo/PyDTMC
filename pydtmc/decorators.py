@@ -84,8 +84,6 @@ class cachedproperty(property):
         if self._func_name is None:
             raise AttributeError('Cannot use a cached property without calling "__set_name__" on it.')
 
-        cache = instance.__dict__
-
         with self._lock:
             try:
                 return instance.__dict__[self._func_name]

@@ -850,7 +850,7 @@ class MarkovChain(metaclass=BaseClass):
 
         zeros = len(distribution) - np.count_nonzero(distribution)
 
-        if weighted and zeros > 0:
+        if weighted and zeros > 0:  # pragma: no cover
             raise ValidationError('If the weighted Frobenius norm is used, the distribution must not contain zero-valued probabilities.')
 
         if self.is_reversible:
@@ -859,12 +859,12 @@ class MarkovChain(metaclass=BaseClass):
 
             p, error_message = closest_reversible(self._p, distribution, weighted)
 
-            if error_message is not None:
+            if error_message is not None:  # pragma: no cover
                 raise ValueError(error_message)
 
         mc = MarkovChain(p, self._states)
 
-        if not mc.is_reversible:
+        if not mc.is_reversible:  # pragma: no cover
             raise ValueError('The closest reversible could not be computed.')
 
         return mc
@@ -892,7 +892,7 @@ class MarkovChain(metaclass=BaseClass):
 
         intersection = np.intersect1d(states1, states2)
 
-        if len(intersection) > 0:
+        if len(intersection) > 0:  # pragma: no cover
             raise ValidationError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
         value = committor_probabilities(self, committor_type, states1, states2)
@@ -1063,14 +1063,14 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        if self._size == 2:
+        if self._size == 2:  # pragma: no cover
             raise ValueError('The Markov chain defines only two states and the first passage rewards cannot be computed.')
 
-        if initial_state in first_passage_states:
-            raise ValidationError(f'The first passage states cannot include the initial state.')
+        if initial_state in first_passage_states:  # pragma: no cover
+            raise ValidationError('The first passage states cannot include the initial state.')
 
-        if len(first_passage_states) == (self._size - 1):
-            raise ValidationError(f'The first passage states cannot include all the states except the initial one.')
+        if len(first_passage_states) == (self._size - 1):  # pragma: no cover
+            raise ValidationError('The first passage states cannot include all the states except the initial one.')
 
         value = first_passage_reward(self, steps, initial_state, first_passage_states, rewards)
 
@@ -2283,7 +2283,7 @@ class MarkovChain(metaclass=BaseClass):
             raise generate_validation_error(e, trace()) from None
 
         if p.shape[0] != q.shape[0]:
-            raise ValidationError(f'The vector of annihilation probabilities and the vector of creation probabilities must have the same size.')
+            raise ValidationError('The vector of annihilation probabilities and the vector of creation probabilities must have the same size.')
 
         if not np.all(q + p <= 1.0):
             raise ValidationError('The sums of annihilation and creation probabilities must be less than or equal to 1.')

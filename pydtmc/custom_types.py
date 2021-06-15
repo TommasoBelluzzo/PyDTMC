@@ -3,7 +3,7 @@
 __all__ = [
     # Generic
     'ofloat', 'oint', 'ostr',
-    'tany', 'texception', 'titerable',
+    'tany', 'texception', 'titerable', 'tmapping',
     'tarray', 'oarray',
     'tmc', 'omc',
     # Lists
@@ -76,10 +76,11 @@ from typing import (
     Dict,
     Iterable,
     List,
+    Mapping,
     Optional,
     Tuple,
     TypeVar,
-    Union
+    Union,
 )
 
 
@@ -95,6 +96,7 @@ ostr = Optional[str]
 
 tany = Any
 texception = Exception
+tmapping = Mapping
 titerable = Iterable
 
 tarray = np.ndarray

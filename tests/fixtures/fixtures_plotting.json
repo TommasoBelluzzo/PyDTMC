@@ -1,0 +1,12 @@
+{
+  "plot_graph_data": {
+    "seed": 7331,
+    "maximum_size": 6,
+    "runs": 25
+  },
+  "plot_eigenvalues_data": {
+    "seed": 7331,
+    "maximum_size": 6,
+    "runs": 25
+  }
+}

@@ -30,24 +30,11 @@ from random import (
 )
 
 
-##############
-# TEST CASES #
-##############
-
-plotting_seed = 7331
-plotting_maximum_size = 6
-plotting_runs = 25
-
-
 #########
 # TESTS #
 #########
 
-@mark.parametrize(
-    argnames=('seed', 'maximum_size', 'runs'),
-    argvalues=[(plotting_seed, plotting_maximum_size, plotting_runs)],
-    ids=['test_plot_eigenvalues']
-)
+@mark.slow
 def test_plot_eigenvalues(seed, maximum_size, runs):
 
     for _ in range(runs):
@@ -71,11 +58,7 @@ def test_plot_eigenvalues(seed, maximum_size, runs):
         assert exception is False
 
 
-@mark.parametrize(
-    argnames=('seed', 'maximum_size', 'runs'),
-    argvalues=[(plotting_seed, plotting_maximum_size, plotting_runs)],
-    ids=['test_plot_graph']
-)
+@mark.slow
 def test_plot_graph(seed, maximum_size, runs):
 
     rs = getstate()

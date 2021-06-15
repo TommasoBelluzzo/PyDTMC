@@ -257,7 +257,7 @@ def lump(p: tarray, states: tlist_str, partitions: tparts) -> tgenres_ext:
     right = np.dot(p, r)
     is_lumpable = np.array_equal(left, right)
 
-    if not is_lumpable:
+    if not is_lumpable:  # pragma: no cover
         return None, None, 'The Markov chain is not strongly lumpable with respect to the given partitions.'
 
     p_lump = np.dot(np.dot(k, p), r)

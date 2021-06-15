@@ -462,7 +462,8 @@ def validate_partitions(partitions: tany, current_states: tlist_str) -> tparts:
     partitions_offset = 0
 
     for partitions_group in partitions_groups:
-        partitions.append(partitions_flat[partitions_offset:partitions_offset+partitions_group])
+        partitions_extension = partitions_offset + partitions_group
+        partitions.append(partitions_flat[partitions_offset:partitions_extension])
         partitions_offset += partitions_group
 
     return partitions

@@ -34,25 +34,10 @@ from tempfile import (
 )
 
 
-##############
-# TEST CASES #
-##############
-
-conversions_seed = 7331
-conversions_maximum_size = 20
-conversions_runs = 50
-conversions_file_extensions = ['.csv', '.json', '.txt', '.xml']
-
-
 #########
 # TESTS #
 #########
 
-@mark.parametrize(
-    argnames=('seed', 'maximum_size', 'runs'),
-    argvalues=[(conversions_seed, conversions_maximum_size, conversions_runs)],
-    ids=['test_dictionary']
-)
 def test_dictionary(seed, maximum_size, runs):
 
     for _ in range(runs):
@@ -67,11 +52,7 @@ def test_dictionary(seed, maximum_size, runs):
         assert np.allclose(mc_from.p, mc_to.p)
 
 
-@mark.parametrize(
-    argnames=('seed', 'maximum_size', 'runs'),
-    argvalues=[(conversions_seed, conversions_maximum_size, conversions_runs)],
-    ids=['test_graph']
-)
+@mark.slow
 def test_graph(seed, maximum_size, runs):
 
     for _ in range(runs):
@@ -91,11 +72,7 @@ def test_graph(seed, maximum_size, runs):
         assert np.allclose(mc_from.p, mc_to.p)
 
 
-@mark.parametrize(
-    argnames=('seed', 'maximum_size', 'runs', 'file_extension'),
-    argvalues=[(conversions_seed, conversions_maximum_size, conversions_runs, conversions_file_extension) for conversions_file_extension in conversions_file_extensions],
-    ids=['test_file_' + conversions_file_extension[1:] for conversions_file_extension in conversions_file_extensions],
-)
+@mark.slow
 def test_file(seed, maximum_size, runs, file_extension):
 
     for _ in range(runs):
@@ -128,11 +105,6 @@ def test_file(seed, maximum_size, runs, file_extension):
         assert np.allclose(mc_from.p, mc_to.p)
 
 
-@mark.parametrize(
-    argnames=('seed', 'maximum_size', 'runs'),
-    argvalues=[(conversions_seed, conversions_maximum_size, conversions_runs)],
-    ids=['test_matrix']
-)
 def test_matrix(seed, maximum_size, runs):
 
     npr.seed(seed)

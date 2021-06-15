@@ -202,10 +202,10 @@ def hitting_times(mc: tmc, targets: tlist_int) -> tarray:
 def mean_absorption_times(mc: tmc) -> oarray:
 
     if not mc.is_absorbing or len(mc.transient_states) == 0:
-        mat = None
-    else:
-        n = mc.fundamental_matrix
-        mat = np.transpose(np.dot(n, np.ones(n.shape[0], dtype=float)))
+        return None
+
+    n = mc.fundamental_matrix
+    mat = np.transpose(np.dot(n, np.ones(n.shape[0], dtype=float)))
 
     return mat
 
@@ -215,17 +215,10 @@ def mean_first_passage_times_between(mc: tmc, origins: tlist_int, targets: tlist
     if not mc.is_ergodic:
         return None
 
-    a = np.eye(mc.size, dtype=float) - mc.p
-    a[targets, :] = 0.0
-    a[targets, targets] = 1.0
+    mfptt = mean_first_passage_times_to(mc, targets)
 
-    b = np.ones(mc.size, dtype=float)
-    b[targets] = 0.0
-
-    mfptt = npl.solve(a, b)
-
-    pi_origin_states = mc.pi[0][origins]
-    mu = pi_origin_states / np.sum(pi_origin_states)
+    pi_origins = mc.pi[0][origins]
+    mu = pi_origins / np.sum(pi_origins)
 
     mfptb = np.dot(mu, mfptt[origins])
 
@@ -342,9 +335,9 @@ def mean_number_visits(mc: tmc) -> oarray:
 def mean_recurrence_times(mc: tmc) -> oarray:
 
     if not mc.is_ergodic:
-        mrt = None
-    else:
-        mrt = np.array([0.0 if np.isclose(v, 0.0) else 1.0 / v for v in mc.pi[0]])
+        return None
+
+    mrt = np.array([0.0 if np.isclose(v, 0.0) else 1.0 / v for v in mc.pi[0]])
 
     return mrt
 
