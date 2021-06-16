@@ -229,33 +229,28 @@ def test_time_correlations(p, walk1, walk2, time_points, value):
 
     mc = MarkovChain(p)
 
-    if len(mc.stationary_distributions) > 1:
-        skip('Markov chain has multiple stationary distributions.')
+    actual = np.asarray(mc.time_correlations(walk1, walk2, time_points))
+    expected = value
+
+    x = mc.walk(25)
+    y = mc.walk(25)
+
+    if actual is not None and expected is not None:
+        expected = np.asarray(expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
-
-        actual = np.asarray(mc.time_correlations(walk1, walk2, time_points))
-        expected = np.asarray(value)
-
-        if actual is not None and expected is not None:
-            expected = np.asarray(expected)
-            npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-        else:
-            assert actual == expected
+        assert actual == expected
 
 
 def test_time_relaxations(p, walk, initial_distribution, time_points, value):
 
     mc = MarkovChain(p)
 
-    if len(mc.stationary_distributions) > 1:
-        skip('Markov chain has multiple stationary distributions.')
+    actual = np.asarray(mc.time_relaxations(walk, initial_distribution, time_points))
+    expected = value
+
+    if actual is not None and expected is not None:
+        expected = np.asarray(expected)
+        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
-
-        actual = np.asarray(mc.time_relaxations(walk, initial_distribution, time_points))
-        expected = np.asarray(value)
-
-        if actual is not None and expected is not None:
-            expected = np.asarray(expected)
-            npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-        else:
-            assert actual == expected
+        assert actual == expected

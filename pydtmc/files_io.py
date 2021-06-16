@@ -145,7 +145,7 @@ def read_json(file_path: str) -> tmc_dict:
             if not isinstance(state_to, str) or len(state_to) == 0:  # pragma: no cover
                 raise ValueError('The file contains invalid elements.')
 
-            if not isinstance(probability, (float, int)):  # pragma: no cover
+            if not isinstance(probability, (float, int, np.floating, np.integer)):  # pragma: no cover
                 raise ValueError('The file contains invalid elements.')
 
             d[(state_from, state_to)] = float(probability)

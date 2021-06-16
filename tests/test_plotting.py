@@ -8,6 +8,7 @@
 # Full
 
 import matplotlib.pyplot as pp
+import numpy.random as npr
 
 # Partial
 
@@ -108,35 +109,48 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
     rs = getstate()
     setseed(seed)
 
-    plot_types = ['heatmap', 'projection']
     configs = []
 
     for _ in range(runs):
 
         size = randint(2, maximum_size)
         zeros = randint(0, size)
-        distributions = randint(1, maximum_distributions)
-        plot_type = choice(plot_types)
 
-        configs.append((size, zeros, distributions, plot_type))
+        configs.append((size, zeros))
 
     setstate(rs)
 
+    mcs = []
+    plot_types = ['heatmap', 'projection']
+
     for i in range(runs):
 
-        size, zeros, distributions, plot_type = configs[i]
-
+        size, zeros = configs[i]
         mc = MarkovChain.random(size, zeros=zeros, seed=seed)
+
+        r = randint(1, maximum_distributions)
+
+        distributions = r if random() < 0.5 else mc.redistribute(r, include_initial=True, output_last=False)
+        initial_status = None if isinstance(distributions, int) or random() < 0.5 else distributions[0]
+        plot_type = choice(plot_types)
+
+        configs[i] = (distributions, initial_status, plot_type)
+        mcs.append(mc)
+
+    for i in range(runs):
+
+        mc = mcs[i]
+        distributions, initial_status, plot_type = configs[i]
 
         # noinspection PyBroadException
         try:
 
-            figure, ax = plot_redistributions(mc, distributions, plot_type=plot_type)
+            figure, ax = plot_redistributions(mc, distributions, initial_status, plot_type)
             pp.close(figure)
 
             exception = False
 
-        except Exception:
+        except Exception as ex:
             exception = True
             pass
 
@@ -149,30 +163,43 @@ def test_plot_walk(seed, maximum_size, maximum_simulations, runs):
     rs = getstate()
     setseed(seed)
 
-    plot_types = ['histogram', 'sequence', 'transitions']
     configs = []
 
     for _ in range(runs):
 
         size = randint(2, maximum_size)
         zeros = randint(0, size)
-        simulations = randint(2, maximum_simulations)
-        plot_type = choice(plot_types)
 
-        configs.append((size, zeros, simulations, plot_type))
+        configs.append((size, zeros))
 
     setstate(rs)
 
+    mcs = []
+    plot_types = ['histogram', 'sequence', 'transitions']
+
     for i in range(runs):
 
-        size, zeros, simulations, plot_type = configs[i]
-
+        size, zeros = configs[i]
         mc = MarkovChain.random(size, zeros=zeros, seed=seed)
+
+        r = randint(2, maximum_simulations)
+
+        walk = r if random() < 0.5 else mc.walk(r, include_initial=True, output_indices=True)
+        initial_state = None if isinstance(walk, int) or random() < 0.5 else walk[0]
+        plot_type = choice(plot_types)
+
+        configs[i] = (walk, initial_state, plot_type)
+        mcs.append(mc)
+
+    for i in range(runs):
+
+        mc = mcs[i]
+        walk, initial_state, plot_type = configs[i]
 
         # noinspection PyBroadException
         try:
 
-            figure, ax = plot_walk(mc, simulations, plot_type=plot_type)
+            figure, ax = plot_walk(mc, walk, initial_state, plot_type)
             pp.close(figure)
 
             exception = False

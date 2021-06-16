@@ -185,7 +185,7 @@ def validate_distribution(distribution: tany, size: int) -> tdists_flex:
         if distribution_len == 0:
             raise ValueError('The "@arg@" parameter, when specified as a list of vectors, must be non-empty.')
 
-        for i, vector in distribution:
+        for index, vector in enumerate(distribution):
 
             if not isinstance(vector, np.ndarray) or not np.issubdtype(vector.dtype, np.number):
                 raise TypeError('The "@arg@" parameter must contain only numeric vectors.')
@@ -194,7 +194,7 @@ def validate_distribution(distribution: tany, size: int) -> tdists_flex:
                 raise ValueError('The "@arg@" parameter, when specified as a list of vectors, must contain at least 2 elements.')
 
             vector = vector.astype(float)
-            distribution[i] = vector
+            distribution[index] = vector
 
             if (vector.ndim != 1) or (vector.size != size):
                 raise ValueError('The "@arg@" parameter must contain only vectors of size {size:d}.')

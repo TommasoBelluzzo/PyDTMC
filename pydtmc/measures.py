@@ -40,30 +40,16 @@ from .custom_types import *
 
 def absorption_probabilities(mc: tmc) -> oarray:
 
-    if len(mc.transient_states) == 0:
+    if not mc.is_absorbing or len(mc.transient_states) == 0:
         return None
 
     n = mc.fundamental_matrix
 
-    if mc.is_absorbing:
+    absorbing_indices = [mc.states.index(state) for state in mc.absorbing_states]
+    transient_indices = [mc.states.index(state) for state in mc.transient_states]
+    r = mc.p[np.ix_(transient_indices, absorbing_indices)]
 
-        absorbing_indices = [mc.states.index(state) for state in mc.absorbing_states]
-        transient_indices = [mc.states.index(state) for state in mc.transient_states]
-        r = mc.p[np.ix_(transient_indices, absorbing_indices)]
-
-        ap = np.transpose(np.matmul(n, r))
-
-    else:  # pragma: no cover
-
-        recurrent_indices = [[*map(mc.states.index, recurrent_class)] for recurrent_class in mc.recurrent_classes]
-        transient_indices = [mc.states.index(state) for state in mc.transient_states]
-        r = np.zeros((len(transient_indices), len(recurrent_indices)), dtype=float)
-
-        for i, transient_state in enumerate(transient_indices):
-            for j, recurrent_class in enumerate(recurrent_indices):
-                r[i, j] = np.sum(mc.p[transient_state, :][:, recurrent_class])
-
-        ap = np.transpose(np.matmul(n, r))
+    ap = np.transpose(np.matmul(n, r))
 
     return ap
 

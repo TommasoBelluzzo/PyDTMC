@@ -43,7 +43,7 @@ def gth_solve(p: tarray) -> tarray:
 
         scale = np.sum(a[i, i + 1:n])
 
-        if scale <= 0.0:
+        if scale <= 0.0:  # pragma: no cover
             n = i + 1
             break
 
@@ -90,9 +90,6 @@ def slem(m: tarray) -> ofloat:
 
     ev = eigenvalues_sorted(m)
     indices = np.isclose(ev, 1.0)
-
-    if np.all(indices):
-        return None
 
     value = ev[~indices][-1]
 

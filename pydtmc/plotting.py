@@ -260,10 +260,7 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
         if edges_value:
             for edge in g_pydot.get_edges():
                 probability = mc.transition_probability(edge.get_destination(), edge.get_source())
-                if probability.is_integer():
-                    edge.set_label(f' {probability:g}.0 ')
-                else:
-                    edge.set_label(f' {round(probability,2):g} ')
+                edge.set_label(f' {round(probability,2):g} ')
 
         buffer = BytesIO()
         buffer.write(g_pydot.create_png())
@@ -325,11 +322,7 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
 
             for edge in g.edges:
                 probability = mc.transition_probability(edge[1], edge[0])
-                if probability.is_integer():
-                    value = f' {probability:g}.0 '
-                else:
-                    value = f' {round(probability,2):g} '
-                edges_values[(edge[0], edge[1])] = value
+                edges_values[(edge[0], edge[1])] = f' {round(probability,2):g} '
 
             nx.draw_networkx_edge_labels(g, positions, ax=ax, edge_labels=edges_values, label_pos=0.7)
 
@@ -373,10 +366,11 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
 
     if isinstance(distributions, int):
         distributions = mc.redistribute(distributions, initial_status=initial_status, include_initial=True, output_last=False)
-    elif initial_status is not None and not np.array_equal(distributions[0], initial_status):
+
+    if initial_status is not None and not np.array_equal(distributions[0], initial_status):  # pragma: no cover
         raise ValueError('The "initial_status" parameter, if specified when the "distributions" parameter represents a sequence of redistributions, must match the first element.')
 
-    distribution_len = len(distributions)
+    distributions_len = len(distributions)
     distributions = np.array(distributions)
 
     figure, ax = pp.subplots(dpi=dpi)
@@ -387,10 +381,10 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
         ax_is = ax.imshow(np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         ax.set_xlabel('Steps', fontsize=13.0)
-        ax.set_xticks(np.arange(0.0, distribution_len + 1.0, 1.0 if distribution_len <= 11 else 10.0), minor=False)
-        ax.set_xticks(np.arange(-0.5, distribution_len, 1.0), minor=True)
-        ax.set_xticklabels(np.arange(0, distribution_len + 1, 1 if distribution_len <= 11 else 10))
-        ax.set_xlim(-0.5, distribution_len - 0.5)
+        ax.set_xticks(np.arange(0.0, distributions_len + 1.0, 1.0 if distributions_len <= 11 else 10.0), minor=False)
+        ax.set_xticks(np.arange(-0.5, distributions_len, 1.0), minor=True)
+        ax.set_xticklabels(np.arange(0, distributions_len + 1, 1 if distributions_len <= 11 else 10))
+        ax.set_xlim(-0.5, distributions_len - 0.5)
 
         ax.set_yticks(np.arange(0.0, mc.size, 1.0), minor=False)
         ax.set_yticks(np.arange(-0.5, mc.size, 1.0), minor=True)
@@ -407,24 +401,24 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
 
         ax.set_prop_cycle('color', colors)
 
-        if distribution_len == 2:
+        if distributions_len == 2:
             for i in range(mc.size):
-                ax.plot(np.arange(0.0, distribution_len, 1.0), distributions[:, i], label=mc.states[i], marker='o')
+                ax.plot(np.arange(0.0, distributions_len, 1.0), distributions[:, i], label=mc.states[i], marker='o')
         else:
             for i in range(mc.size):
-                ax.plot(np.arange(0.0, distribution_len, 1.0), distributions[:, i], label=mc.states[i])
+                ax.plot(np.arange(0.0, distributions_len, 1.0), distributions[:, i], label=mc.states[i])
 
-        if np.array_equal(distributions[0, :], np.ones(mc.size, dtype=float) / mc.size):
+        if np.allclose(distributions[0, :], np.ones(mc.size, dtype=float) / mc.size):
             ax.plot(0.0, distributions[0, 0], color=color_black, label="Start", marker='o', markeredgecolor=color_black, markerfacecolor=color_black)
             legend_size = mc.size + 1
         else:
             legend_size = mc.size
 
         ax.set_xlabel('Steps', fontsize=13.0)
-        ax.set_xticks(np.arange(0.0, distribution_len + 1.0, 1.0 if distribution_len <= 11 else 10.0), minor=False)
-        ax.set_xticks(np.arange(-0.5, distribution_len, 1.0), minor=True)
-        ax.set_xticklabels(np.arange(0, distribution_len + 1, 1 if distribution_len <= 11 else 10))
-        ax.set_xlim(-0.5, distribution_len - 0.5)
+        ax.set_xticks(np.arange(0.0, distributions_len + 1.0, 1.0 if distributions_len <= 11 else 10.0), minor=False)
+        ax.set_xticks(np.arange(-0.5, distributions_len, 1.0), minor=True)
+        ax.set_xticklabels(np.arange(0, distributions_len + 1, 1 if distributions_len <= 11 else 10))
+        ax.set_xlim(-0.5, distributions_len - 0.5)
 
         ax.set_ylabel('Frequencies', fontsize=13.0)
         ax.set_yticks(np.linspace(0.0, 1.0, 11))
@@ -462,7 +456,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
 
         mc = validate_markov_chain(mc)
 
-        if isinstance(walk, int):
+        if isinstance(walk, (int, np.integer)):
             if initial_state is None:
                 walk = validate_integer(walk, lower_limit=(2, False))
             else:
@@ -481,7 +475,8 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
 
     if isinstance(walk, int):
         walk = mc.walk(walk, initial_state=initial_state, include_initial=True, output_indices=True)
-    elif initial_state is not None and (walk[0] != initial_state):
+
+    if initial_state is not None and (walk[0] != initial_state):  # pragma: no cover
         raise ValueError('The "initial_state" parameter, if specified when the "walk" parameter represents a sequence of states, must match the first element.')
 
     walk_len = len(walk)

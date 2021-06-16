@@ -1789,7 +1789,7 @@ class MarkovChain(metaclass=BaseClass):
 
         p, states, error_message = sub(self._p, self._states, self.adjacency_matrix, states)
 
-        if error_message is not None:
+        if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
         mc = MarkovChain(p, states)
@@ -2126,10 +2126,10 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        if p.shape[0] != q.shape[0]:
+        if p.shape[0] != q.shape[0]:  # pragma: no cover
             raise ValidationError('The vector of annihilation probabilities and the vector of creation probabilities must have the same size.')
 
-        if not np.all(q + p <= 1.0):
+        if not np.all(q + p <= 1.0):  # pragma: no cover
             raise ValidationError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
 
         p, _ = birth_death(p, q)
@@ -2482,7 +2482,7 @@ class MarkovChain(metaclass=BaseClass):
         states = [key[0] for key in d.keys() if key[0] == key[1]]
         size = len(states)
 
-        if size < 2:
+        if size < 2:  # pragma: no cover
             raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
 
         p = np.zeros((size, size), dtype=float)
@@ -2490,7 +2490,7 @@ class MarkovChain(metaclass=BaseClass):
         for it, ip in d.items():
             p[states.index(it[0]), states.index(it[1])] = ip
 
-        if not np.allclose(np.sum(p, axis=1), np.ones(size, dtype=float)):
+        if not np.allclose(np.sum(p, axis=1), np.ones(size, dtype=float)):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.')
 
         mc = MarkovChain(p, states)
@@ -2624,7 +2624,7 @@ class MarkovChain(metaclass=BaseClass):
 
             if states is None:
                 states = [str(i) for i in range(1, m.shape[0] + 1)]
-            else:
+            else:  # pragma: no cover
                 states = validate_state_names(states, m.shape[0])
 
         except Exception as e:  # pragma: no cover
@@ -2656,7 +2656,7 @@ class MarkovChain(metaclass=BaseClass):
 
             if states is None:
                 states = [str(i) for i in range(1, size + 1)]
-            else:
+            else:  # pragma: no cover
                 states = validate_state_names(states, size)
 
         except Exception as e:  # pragma: no cover
@@ -2685,7 +2685,7 @@ class MarkovChain(metaclass=BaseClass):
 
             if states is None:
                 states = [str(i) for i in range(1, size + 1)]
-            else:
+            else:  # pragma: no cover
                 states = validate_state_names(states, size)
 
         except Exception as e:  # pragma: no cover
@@ -2718,7 +2718,7 @@ class MarkovChain(metaclass=BaseClass):
 
             if states is None:
                 states = [str(i) for i in range(1, size + 1)]
-            else:
+            else:  # pragma: no cover
                 states = validate_state_names(states, size)
 
             zeros = validate_integer(zeros, lower_limit=(0, False))
@@ -2733,7 +2733,7 @@ class MarkovChain(metaclass=BaseClass):
 
         p, error_message = random(rng, size, zeros, mask)
 
-        if error_message is not None:
+        if error_message is not None:  # pragma: no cover
             raise ValidationError(error_message)
 
         mc = MarkovChain(p, states)
