@@ -39,8 +39,9 @@ def test_bounded(p, boundary_condition, value):
 def test_canonical(p, canonical_form):
 
     mc = MarkovChain(p)
+    mc_canonical = mc.to_canonical_form()
 
-    actual = mc.to_canonical_form().p
+    actual = mc_canonical.p
 
     if mc.is_canonical:
         expected = mc.p

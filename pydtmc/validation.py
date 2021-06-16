@@ -353,11 +353,11 @@ def validate_interval(interval: tany) -> tinterval:
     a = float(a)
     b = float(b)
 
-    if not all(np.isfinite(x) and np.isreal(x) for x in [a, b]):
-        raise ValueError('The "@arg@" parameter must contain only real finite float values and integer values.')
+    if not all(np.isfinite(x) and np.isreal(x) and x >= 0.0 for x in [a, b]):
+        raise ValueError('The "@arg@" parameter must contain only finite and real values greater than or equal to 0.0.')
 
     if a >= b:
-        raise ValueError('The "@arg@" parameter must two distinct values, and the first value must be less than the second one.')
+        raise ValueError('The "@arg@" parameter must contain two distinct values, and the first value must be less than the second one.')
 
     return a, b
 
@@ -748,7 +748,7 @@ def validate_transition_function(f: tany) -> ttfunc:
 
     s = signature(f)
 
-    if len(s.parameters) != 2:
+    if len(s.parameters) != 4:
         raise ValueError('The "@arg@" parameter must accept 2 input arguments.')
 
     return f

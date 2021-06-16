@@ -49,7 +49,7 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
     def rouwenhorst_matrix(rm_size: int, rm_z: float) -> tarray:
 
         if rm_size == 2:
-            p = np.array([[rm_z, 1 - rm_z], [1 - rm_z, rm_z]])
+            rm_p = np.array([[rm_z, 1 - rm_z], [1 - rm_z, rm_z]])
         else:
 
             t1 = np.zeros((rm_size, rm_size))
@@ -64,10 +64,10 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
             t3[1:, :-1] = (1.0 - rm_z) * theta_inner
             t4[1:, 1:] = rm_z * theta_inner
 
-            p = t1 + t2 + t3 + t4
-            p[1:rm_size - 1, :] /= 2.0
+            rm_p = t1 + t2 + t3 + t4
+            rm_p[1:rm_size - 1, :] /= 2.0
 
-        return p
+        return rm_p
 
     if approximation_type == 'adda-cooper':
 
@@ -184,6 +184,7 @@ def birth_death(p: tarray, q: tarray) -> tgenres:
 
     p = np.diag(r, k=0) + np.diag(p[0:-1], k=1) + np.diag(q[1:], k=-1)
     p[np.isclose(p, 0.0)] = 0.0
+    p[np.where(~p.any(axis=1)), :] = np.ones(p.shape[0], dtype=float)
     p /= np.sum(p, axis=1, keepdims=True)
 
     return p, None
@@ -373,6 +374,7 @@ def closest_reversible(p: tarray, distribution: tnumeric, weighted: bool) -> tge
     for i in range(m):
         p += solution[i] * basis_vectors[i]
 
+    p[np.where(~p.any(axis=1)), :] = np.ones(size, dtype=float)
     p /= np.sum(p, axis=1, keepdims=True)
 
     return p, None

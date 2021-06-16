@@ -22,6 +22,7 @@ __all__ = [
     'tbcond', 'obcond',
     'tcache', 'ocache',
     'tdists_flex', 'odists_flex',
+    'tfitres', 'ofitres',
     'tgenres', 'ogenres',
     'tgenres_ext', 'ogenres_ext',
     'tgraph', 'ograph',
@@ -31,7 +32,6 @@ __all__ = [
     'tlimit_int', 'olimit_int',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
-    'tmc_fit', 'omc_fit',
     'tnumeric', 'onumeric',
     'tpart', 'opart',
     'tparts', 'oparts',
@@ -149,6 +149,9 @@ ocache = Optional[tcache]
 tdists_flex = Union[int, tlist_array]
 odists_flex = Optional[tdists_flex]
 
+tfitres = Tuple[oarray, ostr]
+ofitres = Optional[tfitres]
+
 tgenres = Tuple[oarray, ostr]
 ogenres = Optional[tgenres]
 
@@ -175,9 +178,6 @@ omc_dict = Optional[tmc_dict]
 
 tmc_dict_flex = Dict[Tuple[str, str], Union[float, int]]
 omc_dict_flex = Optional[tmc_dict_flex]
-
-tmc_fit = Tuple[tmc, tlist_array]
-omc_fit = Optional[tmc_fit]
 
 tnumeric = Union[titerable, tarray, spsp.spmatrix, pd.DataFrame, pd.Series] if pd is not None else Union[titerable, tarray, spsp.spmatrix]
 onumeric = Optional[tnumeric]
@@ -206,7 +206,7 @@ ostates = Optional[tstates]
 tstatus = Union[int, str, tnumeric]
 ostatus = Optional[tstatus]
 
-ttfunc = Callable[[float, float], float]
+ttfunc = Callable[[int, float, int, float], float]
 otfunc = Optional[ttfunc]
 
 ttimes_in = Union[int, tlist_int]

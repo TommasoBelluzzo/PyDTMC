@@ -14,7 +14,6 @@ __all__ = [
 import networkx as nx
 import numpy as np
 import numpy.linalg as npl
-import scipy.stats as sps
 
 # Partial
 
@@ -34,7 +33,6 @@ from itertools import (
 )
 
 from math import (
-    gamma,
     gcd,
     lgamma
 )
@@ -48,6 +46,7 @@ from .custom_types import *
 from .decorators import *
 from .exceptions import *
 from .files_io import *
+from .fitting import *
 from .generators import *
 from .measures import *
 from .utilities import *
@@ -79,11 +78,7 @@ class MarkovChain(metaclass=BaseClass):
             try:
 
                 p = validate_transition_matrix(p)
-
-                if states is None:
-                    states = [str(i) for i in range(1, p.shape[0] + 1)]
-                else:
-                    states = validate_state_names(states, p.shape[0])
+                states = [str(i) for i in range(1, p.shape[0] + 1)] if states is None else validate_state_names(states, p.shape[0])
 
             except Exception as e:  # pragma: no cover
                 raise generate_validation_error(e, trace()) from None
@@ -834,11 +829,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            if distribution is None:
-                distribution = np.ones(self._size, dtype=float) / self._size
-            else:
-                distribution = validate_vector(distribution, 'stochastic', False, size=self._size)
-
+            distribution = np.ones(self._size, dtype=float) / self._size if distribution is None else validate_vector(distribution, 'stochastic', False, size=self._size)
             weighted = validate_boolean(weighted)
 
         except Exception as e:  # pragma: no cover
@@ -960,11 +951,7 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             steps = validate_integer(steps, lower_limit=(0, True))
-
-            if initial_distribution is None:
-                initial_distribution = np.ones(self._size, dtype=float) / self._size
-            else:
-                initial_distribution = validate_vector(initial_distribution, 'stochastic', False, size=self._size)
+            initial_distribution = np.ones(self._size, dtype=float) / self._size if initial_distribution is None else validate_vector(initial_distribution, 'stochastic', False, size=self._size)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -1021,9 +1008,7 @@ class MarkovChain(metaclass=BaseClass):
 
             steps = validate_integer(steps, lower_limit=(0, True))
             initial_state = validate_state(initial_state, self._states)
-
-            if first_passage_states is not None:
-                first_passage_states = validate_states(first_passage_states, self._states, 'regular', True)
+            first_passage_states = None if first_passage_states is None else validate_states(first_passage_states, self._states, 'regular', True)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -1084,10 +1069,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            if targets is None:
-                targets = self._states_indices.copy()
-            else:
-                targets = validate_states(targets, self._states, 'regular', True)
+            targets = self._states_indices.copy() if targets is None else validate_states(targets, self._states, 'regular', True)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -1108,10 +1090,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            if targets is None:
-                targets = self._states_indices.copy()
-            else:
-                targets = validate_states(targets, self._states, 'regular', True)
+            targets = self._states_indices.copy() if targets is None else validate_states(targets, self._states, 'regular', True)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -1314,8 +1293,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            if targets is not None:
-                targets = validate_states(targets, self._states, 'regular', True)
+            targets = None if targets is None else validate_states(targets, self._states, 'regular', True)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -1370,11 +1348,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            if initial_distribution is None:
-                initial_distribution = np.ones(self._size, dtype=float) / self._size
-            else:
-                initial_distribution = validate_vector(initial_distribution, 'stochastic', False, size=self._size)
-
+            initial_distribution = np.ones(self._size, dtype=float) / self._size if initial_distribution is None else validate_vector(initial_distribution, 'stochastic', False, size=self._size)
             jump = validate_integer(jump, lower_limit=(0, True))
             cutoff_type = validate_enumerator(cutoff_type, ['natural', 'traditional'])
 
@@ -1409,14 +1383,8 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             rng = create_rng(seed)
-
             steps = validate_integer(steps, lower_limit=(0, True))
-
-            if initial_state is None:
-                initial_state = rng.randint(0, self._size)
-            else:
-                initial_state = validate_state(initial_state, self._states)
-
+            initial_state = rng.randint(0, self._size) if initial_state is None else validate_state(initial_state, self._states)
             include_initial = validate_boolean(include_initial)
             output_indices = validate_boolean(output_indices)
 
@@ -1431,6 +1399,7 @@ class MarkovChain(metaclass=BaseClass):
         current_state = initial_state
 
         for _ in range(steps):
+
             d = self._p[current_state, :]
             d_max = np.argwhere(d == np.max(d))
 
@@ -1457,10 +1426,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            if hyperparameter is None:
-                hyperparameter = np.ones((self._size, self._size), dtype=float)
-            else:
-                hyperparameter = validate_hyperparameter(hyperparameter, self._size)
+            hyperparameter = np.ones((self._size, self._size), dtype=float) if hyperparameter is None else validate_hyperparameter(hyperparameter, self._size)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -1495,12 +1461,7 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             steps = validate_integer(steps, lower_limit=(0, True))
-
-            if initial_status is None:
-                initial_status = np.ones(self._size, dtype=float) / self._size
-            else:
-                initial_status = validate_status(initial_status, self._states)
-
+            initial_status = np.ones(self._size, dtype=float) / self._size if initial_status is None else validate_status(initial_status, self._states)
             include_initial = validate_boolean(include_initial)
             output_last = validate_boolean(output_last)
 
@@ -1562,10 +1523,7 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             walk1 = validate_states(walk1, self._states, 'walk', False)
-
-            if walk2 is not None:
-                walk2 = validate_states(walk2, self._states, 'walk', False)
-
+            walk2 = None if walk2 is None else validate_states(walk2, self._states, 'walk', False)
             time_points = validate_time_points(time_points)
 
         except Exception as e:  # pragma: no cover
@@ -1590,12 +1548,7 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             walk = validate_states(walk, self._states, 'walk', False)
-
-            if initial_distribution is None:
-                initial_distribution = np.ones(self._size, dtype=float) / self._size
-            else:
-                initial_distribution = validate_vector(initial_distribution, 'stochastic', False, size=self._size)
-
+            initial_distribution = np.ones(self._size, dtype=float) / self._size if initial_distribution is None else validate_vector(initial_distribution, 'stochastic', False, size=self._size)
             time_points = validate_time_points(time_points)
 
         except Exception as e:  # pragma: no cover
@@ -1831,17 +1784,9 @@ class MarkovChain(metaclass=BaseClass):
 
             rng = create_rng(seed)
             steps = validate_integer(steps, lower_limit=(1, False))
-
-            if initial_state is None:
-                initial_state = rng.randint(0, self._size)
-            else:
-                initial_state = validate_state(initial_state, self._states)
-
+            initial_state = rng.randint(0, self._size) if initial_state is None else validate_state(initial_state, self._states)
             include_initial = validate_boolean(include_initial)
-
-            if final_state is not None:
-                final_state = validate_state(final_state, self._states)
-
+            final_state = None if final_state is None else validate_state(final_state, self._states)
             output_indices = validate_boolean(output_indices)
 
         except Exception as e:  # pragma: no cover
@@ -1860,7 +1805,7 @@ class MarkovChain(metaclass=BaseClass):
             current_state = rng.choice(self._size, size=1, p=w).item()
             walk.append(current_state)
 
-            if current_state == final_state:
+            if final_state is not None and current_state == final_state:
                 break
 
         if not output_indices:
@@ -1931,16 +1876,9 @@ class MarkovChain(metaclass=BaseClass):
             rho = validate_float(rho, lower_limit=(-1.0, False), upper_limit=(1.0, False))
 
             if approximation_type == 'tauchen':
-                if k is None:
-                    k = 3.0
-                else:
-                    k = validate_float(k, lower_limit=(1.0, False))
+                k = 3.0 if k is None else validate_float(k, lower_limit=(1.0, False))
             elif approximation_type == 'tauchen-hussey':
-                if k is None:
-                    w = 0.5 + (rho / 4.0)
-                    k = (w * sigma) + ((1 - w) * (sigma / np.sqrt(1.0 - rho ** 2.0)))
-                else:
-                    k = validate_float(k, lower_limit=(0.0, True))
+                k = ((0.5 + (rho / 4.0)) * sigma) + ((1 - (0.5 + (rho / 4.0))) * (sigma / np.sqrt(1.0 - rho**2.0))) if k is None else validate_float(k, lower_limit=(0.0, True))
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -1971,11 +1909,7 @@ class MarkovChain(metaclass=BaseClass):
 
             p = validate_vector(p, 'creation', False)
             q = validate_vector(q, 'annihilation', False)
-
-            if states is None:
-                states = [str(i) for i in range(1, {p.shape[0], q.shape[0]}.pop() + 1)]
-            else:
-                states = validate_state_names(states, {p.shape[0], q.shape[0]}.pop())
+            states = [str(i) for i in range(1, {p.shape[0], q.shape[0]}.pop() + 1)] if states is None else validate_state_names(states, {p.shape[0], q.shape[0]}.pop())
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -2017,121 +1951,25 @@ class MarkovChain(metaclass=BaseClass):
             possible_states = validate_state_names(possible_states)
             f = validate_transition_function(f)
             quadrature_type = validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'niederreiter', 'newton-cotes', 'simpson-rule', 'trapezoid-rule'])
-
-            if quadrature_interval is None:
-                quadrature_interval = (0.0, 1.0)
-            else:
-                quadrature_interval = validate_interval(quadrature_interval)
+            quadrature_interval = (0.0, 1.0) if quadrature_interval is None else validate_interval(quadrature_interval)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        size = len(possible_states)
+        if quadrature_type == 'simpson-rule' and (len(possible_states) % 2) == 0:
+            raise ValidationError('The quadrature based on the Simpson rule requires an odd number of possible states.')
 
-        a = quadrature_interval[0]
-        b = quadrature_interval[1]
+        p, error_message = fit_function(possible_states, f, quadrature_type, quadrature_interval)
 
-        if quadrature_type == 'gauss-chebyshev':
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
 
-            t1 = np.arange(size) + 0.5
-            t2 = np.arange(0.0, size, 2.0)
-            t3 = np.concatenate((np.array([1.0]), -2.0 / (np.arange(1.0, size - 1.0, 2) * np.arange(3.0, size + 1.0, 2))))
+        mc = MarkovChain(p, possible_states)
 
-            nodes = ((b + a) / 2.0) - ((b - a) / 2.0) * np.cos((np.pi / size) * t1)
-            weights = ((b - a) / size) * np.cos((np.pi / size) * np.outer(t1, t2)) @ t3
-
-        elif quadrature_type == 'gauss-legendre':
-
-            nodes = np.zeros(size, dtype=float)
-            weights = np.zeros(size, dtype=float)
-
-            iterations = 0
-            i = np.arange(int(np.fix((size + 1.0) / 2.0)))
-            pp = 0.0
-            z = np.cos(np.pi * ((i + 1.0) - 0.25) / (size + 0.5))
-
-            while iterations < 100:
-
-                iterations += 1
-
-                p1 = np.ones_like(z, dtype=float)
-                p2 = np.zeros_like(z, dtype=float)
-
-                for j in range(1, size + 1):
-                    p3 = p2
-                    p2 = p1
-                    p1 = ((((2.0 * j) - 1.0) * z * p2) - ((j - 1) * p3)) / j
-
-                pp = size * (((z * p1) - p2) / (z**2.0 - 1.0))
-
-                z1 = np.copy(z)
-                z = z1 - (p1 / pp)
-
-                if np.allclose(abs(z - z1), 0.0):
-                    break
-
-            if iterations == 100:
-                raise ValueError('The Gauss-Legendre quadrature failed to converge.')
-
-            xl = 0.5 * (b - a)
-            xm = 0.5 * (b + a)
-
-            nodes[i] = xm - (xl * z)
-            nodes[-i - 1] = xm + (xl * z)
-
-            weights[i] = (2.0 * xl) / ((1.0 - z**2.0) * pp**2.0)
-            weights[-i - 1] = weights[i]
-
-        elif quadrature_type == 'niederreiter':
-
-            r = b - a
-
-            nodes = np.arange(1.0, size + 1.0) * 2.0**0.5
-            nodes -= np.fix(nodes)
-            nodes = a + (nodes * r)
-
-            weights = (r / size) * np.ones(size, dtype=float)
-
-        elif quadrature_type == 'simpson-rule':
-
-            if (size % 2) == 0:
-                raise ValidationError('The Simpson quadrature requires an odd number of possible states.')
-
-            nodes = np.linspace(a, b, size)
-
-            weights = np.kron(np.ones((size + 1) // 2, dtype=float), np.array([2.0, 4.0]))
-            weights = weights[:size]
-            weights[0] = weights[-1] = 1
-            weights = ((nodes[1] - nodes[0]) / 3.0) * weights
-
-        elif quadrature_type == 'trapezoid-rule':
-
-            nodes = np.linspace(a, b, size)
-
-            weights = (nodes[1] - nodes[0]) * np.ones(size)
-            weights[0] *= 0.5
-            weights[-1] *= 0.5
-
-        else:
-
-            bandwidth = (b - a) / size
-
-            nodes = (np.arange(size) + 0.5) * bandwidth
-            weights = np.repeat(bandwidth, size)
-
-        p = np.zeros((size, size), dtype=float)
-
-        for i in range(size):
-            for j in range(size):
-                p[i, j] = f(nodes[i], nodes[j]) * weights[j]
-
-        for i in range(p.shape[0]):
-            p[i, :] /= np.sum(p[i, :])
-
-        return MarkovChain(p, possible_states)
+        return mc
 
     @staticmethod
-    def fit_walk(fitting_type: str, possible_states: tlist_str, walk: twalk, k: tany = None, confidence_level: float = 0.95) -> tmc_fit:
+    def fit_walk(fitting_type: str, possible_states: tlist_str, walk: twalk, k: tany = None) -> tmc:
 
         """
         The method fits a Markov chain from an observed sequence of states using the specified approach and computes the multinomial confidence intervals of the fitting.
@@ -2146,72 +1984,9 @@ class MarkovChain(metaclass=BaseClass):
         :param k:
          - in the maximum a posteriori approach, the matrix for the a priori distribution (if omitted, a default value of 1 is assigned to each parameter);
          - in the maximum likelihood approach, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (if omitted, the value is set to False).
-        :param confidence_level: the confidence level used for the computation of the multinomial confidence intervals (by default, 0.95).
-        :return: a tuple whose first element is a Markov chain and whose second element represents the multinomial confidence intervals of the fitting (0: lower, 1: upper).
+        :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
-
-        def compute_moments(cm_c: int, cm_xi: int) -> tarray:
-
-            cm_a = cm_xi + cm_c
-            cm_b = max(0, cm_xi - cm_c)
-
-            if cm_b > 0:
-                d = sps.poisson.cdf(cm_a, cm_xi) - sps.poisson.cdf(cm_b - 1, cm_xi)
-            else:
-                d = sps.poisson.cdf(cm_a, cm_xi)
-
-            cm_mu = np.zeros(4, dtype=float)
-
-            for cm_i in range(1, 5):
-
-                if (cm_a - cm_i) >= 0:
-                    pa = sps.poisson.cdf(cm_a, cm_xi) - sps.poisson.cdf(cm_a - cm_i, cm_xi)
-                else:
-                    pa = sps.poisson.cdf(cm_a, cm_xi)
-
-                if (cm_b - cm_i - 1) >= 0:
-                    pb = sps.poisson.cdf(cm_b - 1, cm_xi) - sps.poisson.cdf(cm_b - cm_i - 1, cm_xi)
-                else:
-                    if (cm_b - 1) >= 0:
-                        pb = sps.poisson.cdf(cm_b - 1, cm_xi)
-                    else:
-                        pb = 0
-
-                cm_mu[cm_i - 1] = cm_xi**cm_i * (1.0 - ((pa - pb) / d))
-
-            cm_mom = np.zeros(5, dtype=float)
-            cm_mom[0] = cm_mu[0]
-            cm_mom[1] = cm_mu[1] + cm_mu[0] - cm_mu[0]**2.0
-            cm_mom[2] = cm_mu[2] + (cm_mu[1] * (3.0 - (3.0 * cm_mu[0]))) + (cm_mu[0] - (3.0 * cm_mu[0]**2.0) + (2.0 * cm_mu[0]**3.0))
-            cm_mom[3] = cm_mu[3] + (cm_mu[2] * (6.0 - (4.0 * cm_mu[0]))) + (cm_mu[1] * (7.0 - (12.0 * cm_mu[0]) + (6.0 * cm_mu[0]**2.0))) + cm_mu[0] - (4.0 * cm_mu[0]**2.0) + (6.0 * cm_mu[0]**3.0) - (3.0 * cm_mu[0]**4.0)
-            cm_mom[4] = d
-
-            return cm_mom
-
-        def truncated_poisson(tp_c: int, tp_x: tarray, tp_n: int, tp_k: int) -> float:
-
-            tp_m = np.zeros((tp_k, 5), dtype=float)
-
-            for tp_i in range(tp_k):
-                tp_m[tp_i, :] = compute_moments(tp_c, tp_x[tp_i])
-
-            tp_m[:, 3] -= 3.0 * tp_m[:, 1]**2.0
-
-            tp_s = np.sum(tp_m, axis=0)
-            tp_z = (tp_n - tp_s[0]) / np.sqrt(tp_s[1])
-            tp_g1 = tp_s[2] / tp_s[1]**1.5
-            tp_g2 = tp_s[3] / tp_s[1]**2.0
-
-            tp_e1 = tp_g1 * ((tp_z**3.0 - (3.0 * tp_z)) / 6.0)
-            tp_e2 = tp_g2 * ((tp_z**4.0 - (6.0 * tp_z**2.0) + 3.0) / 24.0)
-            tp_e3 = tp_g1**2.0 * ((tp_z**6.0 - (15.0 * tp_z**4.0) + (45.0 * tp_z**2.0) - 15.0) / 72.0)
-            tp_poly = 1.0 + tp_e1 + tp_e2 + tp_e3
-
-            tp_f = tp_poly * (np.exp(-tp_z**2.0 / 2.0) / (np.sqrt(2.0) * gamma(0.5)))
-            tp_value = (1.0 / (sps.poisson.cdf(tp_n, tp_n) - sps.poisson.cdf(tp_n - 1, tp_n))) * np.prod(tp_m[:, 4]) * (tp_f / np.sqrt(tp_s[1]))
-
-            return tp_value
 
         try:
 
@@ -2220,99 +1995,17 @@ class MarkovChain(metaclass=BaseClass):
             walk = validate_states(walk, possible_states, 'walk', False)
 
             if fitting_type == 'map':
-                if k is None:
-                    k = np.ones((len(possible_states), len(possible_states)), dtype=float)
-                else:
-                    k = validate_hyperparameter(k, len(possible_states))
+                k = np.ones((len(possible_states), len(possible_states)), dtype=float) if k is None else validate_hyperparameter(k, len(possible_states))
             else:
-                if k is None:
-                    k = False
-                else:
-                    k = validate_boolean(k)
-
-            confidence_level = validate_float(confidence_level, lower_limit=(0.0, False), upper_limit=(1.0, False))
+                k = False if k is None else validate_boolean(k)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        size = len(possible_states)
-        p = np.zeros((size, size), dtype=float)
+        p, _ = fit_walk(fitting_type, possible_states, walk, k)
+        mc = MarkovChain(p, possible_states)
 
-        f = np.zeros((size, size), dtype=int)
-
-        for (i, j) in zip(walk[:-1], walk[1:]):
-            f[i, j] += 1
-
-        if fitting_type == 'map':
-
-            for i in range(size):
-                rt = np.sum(f[i, :]) + np.sum(k[i, :])
-
-                for j in range(size):
-                    ct = f[i, j] + k[i, j]
-
-                    if rt == size:
-                        p[i, j] = 1.0 / size
-                    else:
-                        p[i, j] = (ct - 1.0) / (rt - size)
-
-        else:
-
-            for (i, j) in zip(walk[:-1], walk[1:]):
-                p[i, j] += 1.0
-
-            if k:
-                p += 0.001
-            else:
-                p[np.where(~p.any(axis=1)), :] = np.ones(size, dtype=float)
-
-            p /= np.sum(p, axis=1, keepdims=True)
-
-        ci_lower = np.zeros((size, size), dtype=float)
-        ci_upper = np.zeros((size, size), dtype=float)
-
-        for i in range(size):
-
-            fi = f[i, :]
-            n = np.sum(fi).item()
-
-            c = -1
-            tp = tp_previous = 0.0
-
-            for c_current in range(1, n + 1):
-
-                tp = truncated_poisson(c_current, fi, n, size)
-
-                if (tp > confidence_level) and (tp_previous < confidence_level):
-                    c = c_current - 1
-                    break
-
-                tp_previous = tp
-
-            delta = (confidence_level - tp_previous) / (tp - tp_previous)
-            cdn = c / n
-
-            buffer = np.zeros((size, 5), dtype=float)
-            result = np.zeros((size, 2), dtype=float)
-
-            for j in range(size):
-
-                obs = fi[j] / n
-                buffer[j, 0] = obs
-                buffer[j, 1] = max(0.0, obs - cdn)
-                buffer[j, 2] = min(1.0, obs + cdn + (2.0 * (delta / n)))
-                buffer[j, 3] = obs - cdn - (1.0 / n)
-                buffer[j, 4] = obs + cdn + (1.0 / n)
-
-                result[j, 0] = buffer[j, 1]
-                result[j, 1] = buffer[j, 2]
-
-            for j in range(size):
-
-                ci_lower[i, j] = result[j, 0]
-                ci_upper[i, j] = result[j, 1]
-
-        return MarkovChain(p, possible_states), [ci_lower, ci_upper]
+        return mc
 
     @staticmethod
     def from_dictionary(d: tmc_dict_flex) -> tmc:
@@ -2375,7 +2068,9 @@ class MarkovChain(metaclass=BaseClass):
         p = np.zeros((size, size), dtype=float)
 
         for state_from, weights in graph.adjacency():
+
             i = states.index(state_from)
+
             for state_to, data in weights.items():
                 j = states.index(state_to)
                 w = data['weight']
@@ -2475,20 +2170,19 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             m = validate_matrix(m)
-
-            if states is None:
-                states = [str(i) for i in range(1, m.shape[0] + 1)]
-            else:  # pragma: no cover
-                states = validate_state_names(states, m.shape[0])
+            states = [str(i) for i in range(1, m.shape[0] + 1)] if states is None else validate_state_names(states, m.shape[0])
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        m = np.interp(m, (np.min(m), np.max(m)), (0.0, 1.0))
-        m /= np.sum(m, axis=1, keepdims=True)
-        m = np.nan_to_num(m, 1.0 / m.shape[0])
+        p = np.copy(m)
+        p = np.interp(p, (np.min(p), np.max(p)), (0.0, 1.0))
+        p[np.where(~p.any(axis=1)), :] = np.ones(p.shape[0], dtype=float)
+        p /= np.sum(p, axis=1, keepdims=True)
 
-        return MarkovChain(m, states)
+        mc = MarkovChain(p, states)
+
+        return mc
 
     @staticmethod
     def gamblers_ruin(size: int, w: float, states: olist_str = None) -> tmc:
@@ -2507,11 +2201,7 @@ class MarkovChain(metaclass=BaseClass):
 
             size = validate_integer(size, lower_limit=(3, False))
             w = validate_float(w, lower_limit=(0.0, True), upper_limit=(1.0, True))
-
-            if states is None:
-                states = [str(i) for i in range(1, size + 1)]
-            else:  # pragma: no cover
-                states = validate_state_names(states, size)
+            states = [str(i) for i in range(1, size + 1)] if states is None else validate_state_names(states, size)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -2536,11 +2226,7 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             size = validate_integer(size, lower_limit=(2, False))
-
-            if states is None:
-                states = [str(i) for i in range(1, size + 1)]
-            else:  # pragma: no cover
-                states = validate_state_names(states, size)
+            states = [str(i) for i in range(1, size + 1)] if states is None else validate_state_names(states, size)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -2569,18 +2255,9 @@ class MarkovChain(metaclass=BaseClass):
 
             rng = create_rng(seed)
             size = validate_integer(size, lower_limit=(2, False))
-
-            if states is None:
-                states = [str(i) for i in range(1, size + 1)]
-            else:  # pragma: no cover
-                states = validate_state_names(states, size)
-
+            states = [str(i) for i in range(1, size + 1)] if states is None else validate_state_names(states, size)
             zeros = validate_integer(zeros, lower_limit=(0, False))
-
-            if mask is None:
-                mask = np.full((size, size), np.nan, dtype=float)
-            else:
-                mask = validate_mask(mask, size)
+            mask = np.full((size, size), np.nan, dtype=float) if mask is None else validate_mask(mask, size)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
