@@ -21,6 +21,16 @@ from pydtmc import (
 # TESTS #
 #########
 
+def test_approximation(size, approximation_type, alpha, sigma, rho, k, value):
+
+    mc = MarkovChain.approximation(size, approximation_type, alpha, sigma, rho, k)
+
+    actual = mc.p
+    expected = np.asarray(value)
+
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_birth_death(p, q, value):
 
     mc = MarkovChain.birth_death(p, q)

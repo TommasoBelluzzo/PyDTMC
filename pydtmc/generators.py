@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'approximation',
     'birth_death',
     'bounded',
+    'canonical',
     'closest_reversible',
     'gamblers_ruin',
     'lazy',
@@ -21,7 +23,9 @@ __all__ = [
 
 import numpy as np
 import numpy.linalg as npl
+import scipy.integrate as spi
 import scipy.optimize as spo
+import scipy.stats as sps
 
 # Internal
 
@@ -31,6 +35,148 @@ from .custom_types import *
 #############
 # FUNCTIONS #
 #############
+
+def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: ofloat) -> tgenres_ext:
+
+    def adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
+
+        t1 = np.exp((-1.0 * (aci_x - aci_alpha) ** 2.0) / (2.0 * aci_sigma_z ** 2.0))
+        t2 = sps.norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
+        t3 = sps.norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
+
+        return t1 * (t2 - t3)
+
+    def rouwenhorst_matrix(rm_size: int, rm_z: float) -> tarray:
+
+        if rm_size == 2:
+            p = np.array([[rm_z, 1 - rm_z], [1 - rm_z, rm_z]])
+        else:
+
+            t1 = np.zeros((rm_size, rm_size))
+            t2 = np.zeros((rm_size, rm_size))
+            t3 = np.zeros((rm_size, rm_size))
+            t4 = np.zeros((rm_size, rm_size))
+
+            theta_inner = rouwenhorst_matrix(rm_size - 1, rm_z)
+
+            t1[:rm_size - 1, :rm_size - 1] = rm_z * theta_inner
+            t2[:rm_size - 1, 1:] = (1.0 - rm_z) * theta_inner
+            t3[1:, :-1] = (1.0 - rm_z) * theta_inner
+            t4[1:, 1:] = rm_z * theta_inner
+
+            p = t1 + t2 + t3 + t4
+            p[1:rm_size - 1, :] /= 2.0
+
+        return p
+
+    if approximation_type == 'adda-cooper':
+
+        z_sigma = sigma / (1.0 - rho ** 2.00) ** 0.5
+        z = (z_sigma * sps.norm.ppf(np.arange(size + 1) / size)) + alpha
+
+        p = np.zeros((size, size), dtype=float)
+
+        for i in range(size):
+            for j in range(size):
+                iq = spi.quad(adda_cooper_integrand, z[i], z[i + 1], args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
+                p[i, j] = (size / np.sqrt(2.0 * np.pi * z_sigma ** 2.0)) * iq[0]
+
+    elif approximation_type == 'rouwenhorst':
+
+        z = (1.0 + rho) / 2.0
+        p = rouwenhorst_matrix(size, z)
+
+    elif approximation_type == 'tauchen-hussey':
+
+        nodes = np.zeros(size, dtype=float)
+        weights = np.zeros(size, dtype=float)
+
+        pp = 0.0
+        z = 0.0
+
+        for i in range(int(np.fix((size + 1) / 2))):
+
+            if i == 0:
+                z = np.sqrt((2.0 * size) + 1.0) - (1.85575 * ((2.0 * size) + 1.0) ** -0.16393)
+            elif i == 1:
+                z = z - ((1.14 * size ** 0.426) / z)
+            elif i == 2:
+                z = (1.86 * z) + (0.86 * nodes[0])
+            elif i == 3:
+                z = (1.91 * z) + (0.91 * nodes[1])
+            else:
+                z = (2.0 * z) + nodes[i - 2]
+
+            iterations = 0
+
+            while iterations < 100:
+
+                iterations += 1
+
+                p1 = 1.0 / np.pi ** 0.25
+                p2 = 0.0
+
+                for j in range(1, size + 1):
+                    p3 = p2
+                    p2 = p1
+                    p1 = (z * np.sqrt(2.0 / j) * p2) - (np.sqrt((j - 1.0) / j) * p3)
+
+                pp = np.sqrt(2.0 * size) * p2
+
+                z1 = z
+                z = z1 - p1 / pp
+
+                if np.abs(z - z1) < 1e-14:
+                    break
+
+            if iterations == 100:
+                return None, None, 'The gaussian quadrature failed to converge.'
+
+            nodes[i] = -z
+            nodes[size - i - 1] = z
+
+            weights[i] = 2.0 / pp ** 2.0
+            weights[size - i - 1] = weights[i]
+
+        nodes = (nodes * np.sqrt(2.0) * np.sqrt(2.0 * k ** 2.0)) + alpha
+        weights = weights / np.sqrt(np.pi) ** 2.0
+
+        p = np.zeros((size, size), dtype=float)
+
+        for i in range(size):
+            for j in range(size):
+                prime = ((1.0 - rho) * alpha) + (rho * nodes[i])
+                p[i, j] = (weights[j] * sps.norm.pdf(nodes[j], prime, sigma) / sps.norm.pdf(nodes[j], alpha, k))
+
+        for i in range(size):
+            p[i, :] /= np.sum(p[i, :])
+
+    else:
+
+        if np.array_equal(rho, 1.0):
+            rho = 0.999999999999999
+
+        y_std = np.sqrt(sigma ** 2.0 / (1.0 - rho**2.0))
+
+        x_max = y_std * k
+        x_min = -x_max
+        x = np.linspace(x_min, x_max, size)
+
+        step = 0.5 * ((x_max - x_min) / (size - 1))
+        p = np.zeros((size, size), dtype=float)
+
+        for i in range(size):
+            p[i, 0] = sps.norm.cdf((x[0] - (rho * x[i]) + step) / sigma)
+            p[i, size - 1] = 1.0 - sps.norm.cdf((x[size - 1] - (rho * x[i]) - step) / sigma)
+
+            for j in range(1, size - 1):
+                z = x[j] - (rho * x[i])
+                p[i, j] = sps.norm.cdf((z + step) / sigma) - sps.norm.cdf((z - step) / sigma)
+
+    states = ['A' + str(i) for i in range(1, p.shape[0] + 1)]
+
+    return p, states, None
+
 
 def birth_death(p: tarray, q: tarray) -> tgenres:
 
@@ -71,6 +217,25 @@ def bounded(p: tarray, boundary_condition: tbcond) -> tgenres:
     p_adjusted[-1] = last
 
     return p_adjusted, None
+
+
+def canonical(p: tarray, recurrent_indices: tlist_int, transient_indices: tlist_int) -> tgenres:
+
+    p = np.copy(p)
+
+    if len(recurrent_indices) == 0 or len(transient_indices) == 0:
+        return p, None
+
+    is_canonical = max(transient_indices) < min(recurrent_indices)
+
+    if is_canonical:
+        return p, None
+
+    indices = transient_indices + recurrent_indices
+
+    p = p[np.ix_(indices, indices)]
+
+    return p, None
 
 
 def closest_reversible(p: tarray, distribution: tnumeric, weighted: bool) -> tgenres:

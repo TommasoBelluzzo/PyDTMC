@@ -14,7 +14,6 @@ __all__ = [
 import networkx as nx
 import numpy as np
 import numpy.linalg as npl
-import scipy.integrate as spi
 import scipy.stats as sps
 
 # Partial
@@ -1644,17 +1643,11 @@ class MarkovChain(metaclass=BaseClass):
         :return: a Markov chain.
         """
 
-        if self.is_canonical:
-            return MarkovChain(self._p, self._states)
+        p, _ = canonical(self._p, self._recurrent_states_indices, self._transient_states_indices)
+        states = [*map(self._states.__getitem__, self._transient_states_indices + self._recurrent_states_indices)]
+        mc = MarkovChain(p, states)
 
-        indices = self._transient_states_indices + self._recurrent_states_indices
-
-        p = np.copy(self._p)
-        p = p[np.ix_(indices, indices)]
-
-        states = [*map(self._states.__getitem__, indices)]
-
-        return MarkovChain(p, states)
+        return mc
 
     def to_dictionary(self) -> tmc_dict:
 
@@ -1904,7 +1897,7 @@ class MarkovChain(metaclass=BaseClass):
         return np.exp(p)
 
     @staticmethod
-    def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: ofloat = None) -> tmc_approx:
+    def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: ofloat = None) -> tmc:
 
         """
         The method approximates the Markov chain associated with the discretized version of the following first-order autoregressive process:
@@ -1924,41 +1917,10 @@ class MarkovChain(metaclass=BaseClass):
         :param k:
          - in the Tauchen approximation, the number of standard deviations to approximate out to (if omitted, the value is set to 3);
          - in the Tauchen-Hussey approximation, the standard deviation used for the gaussian quadrature (if omitted, the value is set to an optimal default).
-        :return: a tuple whose first element is a Markov chain and whose second element is a vector of nodes.
+        :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the gaussian quadrature fails to converge in the Tauchen-Hussey approach.
         """
-
-        def adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
-
-            t1 = np.exp((-1.0 * (aci_x - aci_alpha)**2.0) / (2.0 * aci_sigma_z**2.0))
-            t2 = sps.norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
-            t3 = sps.norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
-
-            return t1 * (t2 - t3)
-
-        def rouwenhorst_matrix(rm_size: int, rm_p: float, rm_q: float) -> tarray:
-
-            if rm_size == 2:
-                theta = np.array([[rm_p, 1 - rm_p], [1 - rm_q, rm_q]])
-            else:
-
-                t1 = np.zeros((rm_size, rm_size))
-                t2 = np.zeros((rm_size, rm_size))
-                t3 = np.zeros((rm_size, rm_size))
-                t4 = np.zeros((rm_size, rm_size))
-
-                theta_inner = rouwenhorst_matrix(rm_size - 1, rm_p, rm_q)
-
-                t1[:rm_size - 1, :rm_size - 1] = rm_p * theta_inner
-                t2[:rm_size - 1, 1:] = (1.0 - rm_p) * theta_inner
-                t3[1:, :-1] = (1.0 - rm_q) * theta_inner
-                t4[1:, 1:] = rm_q * theta_inner
-
-                theta = t1 + t2 + t3 + t4
-                theta[1:rm_size - 1, :] /= 2.0
-
-            return theta
 
         try:
 
@@ -1976,129 +1938,21 @@ class MarkovChain(metaclass=BaseClass):
             elif approximation_type == 'tauchen-hussey':
                 if k is None:
                     w = 0.5 + (rho / 4.0)
-                    k = (w * sigma) + ((1 - w) * (sigma / np.sqrt(1.0 - rho**2.0)))
+                    k = (w * sigma) + ((1 - w) * (sigma / np.sqrt(1.0 - rho ** 2.0)))
                 else:
                     k = validate_float(k, lower_limit=(0.0, True))
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        if approximation_type == 'adda-cooper':
+        p, states, error_message = approximation(size, approximation_type, alpha, sigma, rho, k)
 
-            if k is not None:
-                raise ValidationError('The k parameter must be left undefined when the Adda-Cooper approximation is selected.')
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
 
-            z_sigma = sigma / (1.0 - rho**2.00)**0.5
-            z = (z_sigma * sps.norm.ppf(np.arange(size + 1) / size)) + alpha
+        mc = MarkovChain(p, states)
 
-            p = np.zeros((size, size), dtype=float)
-
-            for i in range(size):
-                for j in range(size):
-                    iq = spi.quad(adda_cooper_integrand, z[i], z[i + 1], args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
-                    p[i, j] = (size / np.sqrt(2.0 * np.pi * z_sigma**2.0)) * iq[0]
-
-            nodes = (size * z_sigma * (sps.norm.pdf((z[:-1] - alpha) / z_sigma) - sps.norm.pdf((z[1:] - alpha) / z_sigma))) + alpha
-
-        elif approximation_type == 'rouwenhorst':
-
-            if k is not None:
-                raise ValidationError('The k parameter must be left undefined when the Rouwenhorst approximation is selected.')
-
-            p = (1.0 + rho) / 2.0
-            q = p
-            p = rouwenhorst_matrix(size, p, q)
-
-            y_std = np.sqrt(sigma**2.0 / (1.0 - rho**2.0))
-            psi = y_std * np.sqrt(size - 1)
-            nodes = np.linspace(-psi, psi, size) + (alpha / (1.0 - rho))
-
-        elif approximation_type == 'tauchen-hussey':
-
-            nodes = np.zeros(size, dtype=float)
-            weights = np.zeros(size, dtype=float)
-
-            pp = 0.0
-            z = 0.0
-
-            for i in range(int(np.fix((size + 1) / 2))):
-
-                if i == 0:
-                    z = np.sqrt((2.0 * size) + 1.0) - (1.85575 * ((2.0 * size) + 1.0)**-0.16393)
-                elif i == 1:
-                    z = z - ((1.14 * size**0.426) / z)
-                elif i == 2:
-                    z = (1.86 * z) + (0.86 * nodes[0])
-                elif i == 3:
-                    z = (1.91 * z) + (0.91 * nodes[1])
-                else:
-                    z = (2.0 * z) + nodes[i - 2]
-
-                iterations = 0
-
-                while iterations < 100:
-                    iterations += 1
-
-                    p1 = 1.0 / np.pi**0.25
-                    p2 = 0.0
-
-                    for j in range(1, size + 1):
-                        p3 = p2
-                        p2 = p1
-                        p1 = (z * np.sqrt(2.0 / j) * p2) - (np.sqrt((j - 1.0) / j) * p3)
-
-                    pp = np.sqrt(2.0 * size) * p2
-
-                    z1 = z
-                    z = z1 - p1 / pp
-
-                    if np.abs(z - z1) < 1e-14:
-                        break
-
-                if iterations == 100:
-                    raise ValueError('The gaussian quadrature failed to converge.')
-
-                nodes[i] = -z
-                nodes[size - i - 1] = z
-
-                weights[i] = 2.0 / pp**2.0
-                weights[size - i - 1] = weights[i]
-
-            nodes = (nodes * np.sqrt(2.0) * np.sqrt(2.0 * k**2.0)) + alpha
-            weights = weights / np.sqrt(np.pi)**2.0
-
-            p = np.zeros((size, size), dtype=float)
-
-            for i in range(size):
-                for j in range(size):
-                    prime = ((1.0 - rho) * alpha) + (rho * nodes[i])
-                    p[i, j] = (weights[j] * sps.norm.pdf(nodes[j], prime, sigma) / sps.norm.pdf(nodes[j], alpha, k))
-
-            for i in range(size):
-                p[i, :] /= np.sum(p[i, :])
-
-        else:
-
-            y_std = np.sqrt(sigma**2.0 / (1.0 - rho**2.0))
-
-            x_max = y_std * k
-            x_min = -x_max
-            x = np.linspace(x_min, x_max, size)
-
-            step = 0.5 * ((x_max - x_min) / (size - 1))
-            p = np.zeros((size, size), dtype=float)
-
-            for i in range(size):
-                p[i, 0] = sps.norm.cdf((x[0] - (rho * x[i]) + step) / sigma)
-                p[i, size - 1] = 1.0 - sps.norm.cdf((x[size - 1] - (rho * x[i]) - step) / sigma)
-
-                for j in range(1, size - 1):
-                    z = x[j] - (rho * x[i])
-                    p[i, j] = sps.norm.cdf((z + step) / sigma) - sps.norm.cdf((z - step) / sigma)
-
-            nodes = x + (alpha / (1.0 - rho))
-
-        return MarkovChain(p), nodes
+        return mc
 
     @staticmethod
     def birth_death(p: tarray, q: tarray, states: olist_str = None) -> tmc:

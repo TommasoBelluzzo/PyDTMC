@@ -36,6 +36,20 @@ def test_bounded(p, boundary_condition, value):
     npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_canonical(p, canonical_form):
+
+    mc = MarkovChain(p)
+
+    actual = mc.to_canonical_form().p
+
+    if mc.is_canonical:
+        expected = mc.p
+    else:
+        expected = np.asarray(canonical_form)
+
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_lazy(p, inertial_weights, value):
 
     mc = MarkovChain(p)

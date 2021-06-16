@@ -29,7 +29,6 @@ __all__ = [
     'tinterval', 'ointerval',
     'tlimit_float', 'olimit_float',
     'tlimit_int', 'olimit_int',
-    'tmc_approx', 'omc_approx',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
     'tmc_fit', 'omc_fit',
@@ -170,9 +169,6 @@ olimit_float = Optional[tlimit_float]
 
 tlimit_int = Tuple[int, bool]
 olimit_int = Optional[tlimit_int]
-
-tmc_approx = Tuple[tmc, tarray]
-omc_approx = Optional[tmc_approx]
 
 tmc_dict = Dict[Tuple[str, str], float]
 omc_dict = Optional[tmc_dict]
