@@ -40,7 +40,7 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
 
     def adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
 
-        t1 = np.exp((-1.0 * (aci_x - aci_alpha) ** 2.0) / (2.0 * aci_sigma_z ** 2.0))
+        t1 = np.exp((-1.0 * (aci_x - aci_alpha)**2.0) / (2.0 * aci_sigma_z**2.0))
         t2 = sps.norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
         t3 = sps.norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
 
@@ -71,7 +71,7 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
 
     if approximation_type == 'adda-cooper':
 
-        z_sigma = sigma / (1.0 - rho ** 2.00) ** 0.5
+        z_sigma = sigma / (1.0 - rho**2.0)**0.5
         z = (z_sigma * sps.norm.ppf(np.arange(size + 1) / size)) + alpha
 
         p = np.zeros((size, size), dtype=float)
@@ -79,7 +79,7 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
         for i in range(size):
             for j in range(size):
                 iq = spi.quad(adda_cooper_integrand, z[i], z[i + 1], args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
-                p[i, j] = (size / np.sqrt(2.0 * np.pi * z_sigma ** 2.0)) * iq[0]
+                p[i, j] = (size / np.sqrt(2.0 * np.pi * z_sigma**2.0)) * iq[0]
 
     elif approximation_type == 'rouwenhorst':
 
@@ -97,9 +97,9 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
         for i in range(int(np.fix((size + 1) / 2))):
 
             if i == 0:
-                z = np.sqrt((2.0 * size) + 1.0) - (1.85575 * ((2.0 * size) + 1.0) ** -0.16393)
+                z = np.sqrt((2.0 * size) + 1.0) - (1.85575 * ((2.0 * size) + 1.0)**-0.16393)
             elif i == 1:
-                z = z - ((1.14 * size ** 0.426) / z)
+                z = z - ((1.14 * size**0.426) / z)
             elif i == 2:
                 z = (1.86 * z) + (0.86 * nodes[0])
             elif i == 3:
@@ -113,7 +113,7 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
 
                 iterations += 1
 
-                p1 = 1.0 / np.pi ** 0.25
+                p1 = 1.0 / np.pi**0.25
                 p2 = 0.0
 
                 for j in range(1, size + 1):
@@ -129,17 +129,17 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
                 if np.abs(z - z1) < 1e-14:
                     break
 
-            if iterations == 100:
+            if iterations == 100:  # pragma: no cover
                 return None, None, 'The gaussian quadrature failed to converge.'
 
             nodes[i] = -z
             nodes[size - i - 1] = z
 
-            weights[i] = 2.0 / pp ** 2.0
+            weights[i] = 2.0 / pp**2.0
             weights[size - i - 1] = weights[i]
 
-        nodes = (nodes * np.sqrt(2.0) * np.sqrt(2.0 * k ** 2.0)) + alpha
-        weights = weights / np.sqrt(np.pi) ** 2.0
+        nodes = (nodes * np.sqrt(2.0) * np.sqrt(2.0 * k**2.0)) + alpha
+        weights = weights / np.sqrt(np.pi)**2.0
 
         p = np.zeros((size, size), dtype=float)
 
@@ -153,10 +153,10 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
 
     else:
 
-        if np.array_equal(rho, 1.0):
-            rho = 0.999999999999999
+        if np.isclose(rho, 1.0):
+            rho = 1.0 - 1e-8
 
-        y_std = np.sqrt(sigma ** 2.0 / (1.0 - rho**2.0))
+        y_std = np.sqrt(sigma**2.0 / (1.0 - rho**2.0))
 
         x_max = y_std * k
         x_min = -x_max
@@ -531,9 +531,9 @@ def urn_model(n: int, model: str) -> tgenres_ext:
             elif i == dn:
                 r[-2] = 1.0
             else:
-                r[i - 1] = (i / dn) ** 2.0
+                r[i - 1] = (i / dn)**2.0
                 r[i] = 2.0 * (i / dn) * (1.0 - (i / dn))
-                r[i + 1] = (1.0 - (i / dn)) ** 2.0
+                r[i + 1] = (1.0 - (i / dn))**2.0
 
             p[i, :] = r
 

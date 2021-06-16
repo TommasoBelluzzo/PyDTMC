@@ -923,21 +923,17 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            rewards = validate_rewards(rewards, self._size)
             steps = validate_integer(steps, lower_limit=(0, True))
+            rewards = validate_rewards(rewards, self._size)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        original_rewards = np.copy(rewards)
-        value = np.copy(rewards)
-
-        for _ in range(steps):
-            value = original_rewards + np.dot(value, self._p)
+        value = expected_rewards(self._p, steps, rewards)
 
         return value
 
-    def expected_transitions(self, steps: int, initial_distribution: onumeric = None) -> oarray:
+    def expected_transitions(self, steps: int, initial_distribution: onumeric = None) -> tarray:
 
         """
         The method computes the expected number of transitions performed by the Markov chain after *N* steps, given the initial distribution of the states.
@@ -956,38 +952,9 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        if steps <= self._size:
+        value = expected_transitions(self._p, self._rdl_decomposition, steps, initial_distribution)
 
-            pi = initial_distribution
-            p_sum = initial_distribution
-
-            for _ in range(steps - 1):
-                pi = np.dot(pi, self._p)
-                p_sum += pi
-
-            et = p_sum[:, np.newaxis] * self._p
-
-        else:
-
-            r, d, l = self._rdl_decomposition(self._p)
-            q = np.asarray(np.diagonal(d))
-
-            if q.size == 1:
-                q = q.item()
-                gs = steps if np.isclose(q, 1.0) else (1.0 - q**steps) / (1.0 - q)
-            else:
-                gs = np.zeros(np.shape(q), dtype=q.dtype)
-                indices = (q == 1.0)
-                gs[indices] = steps
-                gs[~indices] = (1.0 - q[~indices]**steps) / (1.0 - q[~indices])
-
-            ds = np.diag(gs)
-            ts = np.dot(np.dot(r, ds), np.conjugate(l))
-            ps = np.dot(initial_distribution, ts)
-
-            et = np.real(ps[:, np.newaxis] * self._p)
-
-        return et
+        return value
 
     @alias('fpp')
     def first_passage_probabilities(self, steps: int, initial_state: tstate, first_passage_states: ostates = None) -> tarray:
@@ -1956,7 +1923,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        if quadrature_type == 'simpson-rule' and (len(possible_states) % 2) == 0:
+        if quadrature_type == 'simpson-rule' and (len(possible_states) % 2) == 0:  # pragma: no cover
             raise ValidationError('The quadrature based on the Simpson rule requires an odd number of possible states.')
 
         p, error_message = fit_function(possible_states, f, quadrature_type, quadrature_interval)

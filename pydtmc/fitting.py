@@ -69,7 +69,7 @@ def fit_function(possible_states: tlist_str, f: ttfunc, quadrature_type: str, qu
             if np.allclose(abs(z - z1), 0.0):
                 break
 
-        if iterations == 100:
+        if iterations == 100:  # pragma: no cover
             return None, 'The Gauss-Legendre quadrature failed to converge.'
 
         xl = 0.5 * (b - a)

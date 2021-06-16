@@ -354,10 +354,7 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
 
         mc = validate_markov_chain(mc)
         distributions = validate_distribution(distributions, mc.size)
-
-        if initial_status is not None:
-            initial_status = validate_status(initial_status, mc.states)
-
+        initial_status = None if initial_status is None else validate_status(initial_status, mc.states)
         plot_type = validate_enumerator(plot_type, ['heatmap', 'projection'])
         dpi = validate_dpi(dpi)
 
@@ -411,7 +408,7 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
         if np.allclose(distributions[0, :], np.ones(mc.size, dtype=float) / mc.size):
             ax.plot(0.0, distributions[0, 0], color=color_black, label="Start", marker='o', markeredgecolor=color_black, markerfacecolor=color_black)
             legend_size = mc.size + 1
-        else:
+        else:  # pragma: no cover
             legend_size = mc.size
 
         ax.set_xlabel('Steps', fontsize=13.0)
@@ -457,10 +454,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
         mc = validate_markov_chain(mc)
 
         if isinstance(walk, (int, np.integer)):
-            if initial_state is None:
-                walk = validate_integer(walk, lower_limit=(2, False))
-            else:
-                walk = validate_integer(walk, lower_limit=(1, False))
+            walk = validate_integer(walk, lower_limit=(2, False)) if initial_state is None else validate_integer(walk, lower_limit=(1, False))
         else:
             walk = validate_states(walk, mc.states, 'walk', False)
 

@@ -62,6 +62,26 @@ def test_committor_probabilities(p, states1, states2, value_backward, value_forw
         assert actual == expected
 
 
+def test_expected_rewards(p, steps, rewards, value):
+
+    mc = MarkovChain(p)
+
+    actual = mc.expected_rewards(steps, rewards)
+    expected = np.asarray(value)
+
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_expected_transitions(p, steps, initial_distribution, value):
+
+    mc = MarkovChain(p)
+
+    actual = mc.expected_transitions(steps, initial_distribution)
+    expected = np.asarray(value)
+
+    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_first_passage_probabilities(p, steps, initial_state, first_passage_states, value):
 
     mc = MarkovChain(p)
@@ -231,9 +251,6 @@ def test_time_correlations(p, walk1, walk2, time_points, value):
 
     actual = np.asarray(mc.time_correlations(walk1, walk2, time_points))
     expected = value
-
-    x = mc.walk(25)
-    y = mc.walk(25)
 
     if actual is not None and expected is not None:
         expected = np.asarray(expected)

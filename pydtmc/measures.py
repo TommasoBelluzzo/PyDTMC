@@ -3,6 +3,8 @@
 __all__ = [
     'absorption_probabilities',
     'committor_probabilities',
+    'expected_rewards',
+    'expected_transitions',
     'first_passage_probabilities',
     'first_passage_reward',
     'hitting_probabilities',
@@ -80,6 +82,54 @@ def committor_probabilities(mc: tmc, committor_type: str, states1: tlist_int, st
     cp[np.isclose(cp, 0.0)] = 0.0
 
     return cp
+
+
+def expected_rewards(p: tarray, steps: int, rewards: tarray) -> tany:
+
+    original_rewards = np.copy(rewards)
+
+    er = np.copy(rewards)
+
+    for _ in range(steps):
+        er = original_rewards + np.dot(er, p)
+
+    return er
+
+
+def expected_transitions(p: tarray, rdl: trdl, steps: int, initial_distribution: tarray) -> tarray:
+
+    if steps <= p.shape[0]:
+
+        idist = initial_distribution
+        idist_sum = initial_distribution
+
+        for _ in range(steps - 1):
+            pi = np.dot(idist, p)
+            idist_sum += pi
+
+        et = idist_sum[:, np.newaxis] * p
+
+    else:
+
+        r, d, l = rdl
+        q = np.asarray(np.diagonal(d))
+
+        if q.size == 1:
+            q = q.item()
+            gs = steps if np.isclose(q, 1.0) else (1.0 - q ** steps) / (1.0 - q)
+        else:
+            gs = np.zeros(np.shape(q), dtype=float)
+            indices = (q == 1.0)
+            gs[indices] = steps
+            gs[~indices] = (1.0 - q[~indices] ** steps) / (1.0 - q[~indices])
+
+        ds = np.diag(gs)
+        ts = np.dot(np.dot(r, ds), np.conjugate(l))
+        ps = np.dot(initial_distribution, ts)
+
+        et = np.real(ps[:, np.newaxis] * p)
+
+    return et
 
 
 def first_passage_probabilities(mc: tmc, steps: int, initial_state: int, first_passage_states: olist_int) -> tarray:
