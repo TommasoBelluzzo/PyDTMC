@@ -23,6 +23,8 @@ from pydtmc import (
 
 def test_approximation(size, approximation_type, alpha, sigma, rho, k, value):
 
+    print(size)
+
     mc = MarkovChain.approximation(size, approximation_type, alpha, sigma, rho, k)
 
     actual = mc.p

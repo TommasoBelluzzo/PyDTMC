@@ -12,6 +12,7 @@ from datetime import (
 )
 
 from os.path import (
+    abspath,
     dirname,
     join
 )
@@ -41,7 +42,10 @@ path.append(join(dirname(__name__), '..'))
 # INFORMATION #
 ###############
 
-with open('../pydtmc/__init__.py', 'r') as file:
+base_directory = abspath(dirname(__file__))
+init_file = join(base_directory, )
+
+with open(init_file, 'r') as file:
     file_content = file.read()
     matches = search(r'^\s*__version__\s*=\s*[\'"]([^\'"]*)[\'"]\s*$', file_content, MULTILINE)
     current_version = matches.group(1)
