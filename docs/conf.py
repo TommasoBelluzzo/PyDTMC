@@ -43,7 +43,7 @@ path.append(join(dirname(__name__), '..'))
 ###############
 
 base_directory = abspath(dirname(__file__))
-init_file = join(base_directory, )
+init_file = join(base_directory, '../pydtmc/__init__.py')
 
 with open(init_file, 'r') as file:
     file_content = file.read()
