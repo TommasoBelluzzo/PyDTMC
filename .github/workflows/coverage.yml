@@ -44,8 +44,6 @@ jobs:
       run: |
         pytest --cov=pydtmc tests/
     - name: Codecov Push
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
         pip install codecov
         codecov
