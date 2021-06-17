@@ -30,7 +30,7 @@ jobs:
         pip install wheel
     - name: Linting
       run: |
-        flake8 . --count --statistics
+        flake8 . --count --statistics --ignore=E501,F403,F405
     - name: Building Documents
       run: |
         make -C docs/ html
