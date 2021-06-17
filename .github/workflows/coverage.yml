@@ -26,6 +26,7 @@ jobs:
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt update
           sudo apt-get -q update
           sudo apt-get -y install graphviz
         elif [ "$RUNNER_OS" == "Windows" ]; then
