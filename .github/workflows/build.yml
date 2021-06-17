@@ -36,7 +36,6 @@ jobs:
     - name: Building Documents
       run: |
         make -C docs/ html
-        touch docs/_build/html/.nojekyll
     - name: Building Package
       run: |
         python setup.py sdist bdist_wheel
