@@ -33,8 +33,7 @@ from itertools import (
 )
 
 from math import (
-    gcd,
-    lgamma
+    gcd
 )
 
 # Internal
@@ -618,6 +617,8 @@ class MarkovChain(metaclass=BaseClass):
 
         if self.is_irreducible:
             return set(self.periods).pop()
+
+        # pragma: no cover
 
         period = 1
 
@@ -1381,37 +1382,6 @@ class MarkovChain(metaclass=BaseClass):
 
         return prediction
 
-    def prior_probabilities(self, hyperparameter: onumeric = None) -> tarray:
-
-        """
-        The method computes the prior probabilities, in logarithmic form, of the Markov chain.
-
-        :param hyperparameter: the matrix for the a priori distribution (if omitted, a default value of 1 is assigned to each parameter).
-        :return: a Markov chain.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            hyperparameter = np.ones((self._size, self._size), dtype=float) if hyperparameter is None else validate_hyperparameter(hyperparameter, self._size)
-
-        except Exception as e:  # pragma: no cover
-            raise generate_validation_error(e, trace()) from None
-
-        lps = np.zeros(self._size, dtype=float)
-
-        for i in range(self._size):
-
-            lp = 0.0
-
-            for j in range(self._size):
-                hij = hyperparameter[i, j]
-                lp += (hij - 1.0) * np.log(self._p[i, j]) - lgamma(hij)
-
-            lps[i] = (lp + lgamma(np.sum(hyperparameter[i, :])))
-
-        return lps
-
     def redistribute(self, steps: int, initial_status: ostatus = None, include_initial: bool = False, output_last: bool = True) -> tlist_array:
 
         """
@@ -1673,9 +1643,9 @@ class MarkovChain(metaclass=BaseClass):
     def to_matrix(self) -> tarray:
 
         """
-        The method returns a transition matrix representing the Markov chain.
+        The method returns the transition matrix of the Markov chain.
 
-        :return: a transition matrix.
+        :return: the transition matrix of the Markov chain.
         """
 
         m = np.copy(self._p)
@@ -1800,13 +1770,16 @@ class MarkovChain(metaclass=BaseClass):
         p = 0.0
 
         for (i, j) in zip(walk[:-1], walk[1:]):
+
             if self._p[i, j] > 0.0:
                 p += np.log(self._p[i, j])
             else:
                 p = -np.inf
                 break
 
-        return np.exp(p)
+        wp = np.exp(p)
+
+        return wp
 
     @staticmethod
     def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: ofloat = None) -> tmc:

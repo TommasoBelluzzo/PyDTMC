@@ -112,16 +112,13 @@ def expected_transitions(p: tarray, rdl: trdl, steps: int, initial_distribution:
     else:
 
         r, d, l = rdl  # noqa
-        q = np.asarray(np.diagonal(d))
 
-        if q.size == 1:
-            q = q.item()
-            gs = steps if np.isclose(q, 1.0) else (1.0 - q ** steps) / (1.0 - q)
-        else:
-            gs = np.zeros(np.shape(q), dtype=float)
-            indices = (q == 1.0)
-            gs[indices] = steps
-            gs[~indices] = (1.0 - q[~indices] ** steps) / (1.0 - q[~indices])
+        q = np.asarray(np.diagonal(d))
+        q_indices = (q == 1.0)
+
+        gs = np.zeros(np.shape(q), dtype=float)
+        gs[q_indices] = steps
+        gs[~q_indices] = (1.0 - q[~q_indices]**steps) / (1.0 - q[~q_indices])
 
         ds = np.diag(gs)
         ts = np.dot(np.dot(r, ds), np.conjugate(l))
@@ -461,7 +458,7 @@ def time_correlations(mc: tmc, rdl: trdl, walk1: twalk, walk2: owalk, time_point
         for i in range(time_points_length):
 
             t = np.zeros(d.shape, dtype=float)
-            t[np.diag_indices_from(d)] = np.diag(d) ** time_points[i]
+            t[np.diag_indices_from(d)] = np.diag(d)**time_points[i]
 
             p_times = np.dot(np.dot(r, t), l)
 
@@ -540,7 +537,7 @@ def time_relaxations(mc: tmc, rdl: trdl, walk: twalk, initial_distribution: tarr
         for i in range(time_points_length):
 
             t = np.zeros(d.shape, dtype=float)
-            t[np.diag_indices_from(d)] = np.diag(d) ** time_points[i]
+            t[np.diag_indices_from(d)] = np.diag(d)**time_points[i]
 
             p_times = np.dot(np.dot(r, t), l)
 
