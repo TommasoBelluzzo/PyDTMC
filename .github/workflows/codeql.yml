@@ -1,4 +1,4 @@
-name: "CodeQL"
+name: "Code Analysis"
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ master ]
   schedule:
-    - cron: '00 19 * * *'
+    - cron: '00 19 * * 5'
 
 jobs:
   analyze:
@@ -23,9 +23,9 @@ jobs:
     steps:
     - name: Repository Checkout
       uses: actions/checkout@v2
-    - name: Initialization
+    - name: Analysis Initialization
       uses: github/codeql-action/init@v1
       with:
         languages: ${{ matrix.language }}
-    - name: Code Analysis
+    - name: Analysis Execution
       uses: github/codeql-action/analyze@v1
