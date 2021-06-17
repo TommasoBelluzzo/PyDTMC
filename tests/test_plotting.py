@@ -8,7 +8,6 @@
 # Full
 
 import matplotlib.pyplot as pp
-import numpy.random as npr
 
 # Partial
 
@@ -150,7 +149,7 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
 
             exception = False
 
-        except Exception as ex:
+        except Exception:
             exception = True
             pass
 

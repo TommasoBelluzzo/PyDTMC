@@ -190,7 +190,7 @@ class MarkovChain(metaclass=BaseClass):
     @cachedproperty
     def _rdl_decomposition(self) -> trdl:
 
-        r, d, l = rdl_decomposition(self._p)
+        r, d, l = rdl_decomposition(self._p)  # noqa
 
         return r, d, l
 

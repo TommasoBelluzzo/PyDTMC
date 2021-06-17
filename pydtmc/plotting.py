@@ -221,7 +221,7 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
             pass
 
         try:
-            import pydot as pyd
+            import pydot as pyd  # noqa
         except ImportError:  # pragma: no cover
             extended_graph = False
             pass

@@ -111,7 +111,7 @@ def expected_transitions(p: tarray, rdl: trdl, steps: int, initial_distribution:
 
     else:
 
-        r, d, l = rdl
+        r, d, l = rdl  # noqa
         q = np.asarray(np.diagonal(d))
 
         if q.size == 1:
@@ -456,7 +456,7 @@ def time_correlations(mc: tmc, rdl: trdl, walk1: twalk, walk2: owalk, time_point
 
     if time_points[-1] > mc.size:
 
-        r, d, l = rdl
+        r, d, l = rdl  # noqa
 
         for i in range(time_points_length):
 
@@ -535,7 +535,7 @@ def time_relaxations(mc: tmc, rdl: trdl, walk: twalk, initial_distribution: tarr
 
     if time_points[-1] > mc.size:
 
-        r, d, l = rdl
+        r, d, l = rdl  # noqa
 
         for i in range(time_points_length):
 
