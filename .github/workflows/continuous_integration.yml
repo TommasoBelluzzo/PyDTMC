@@ -1,0 +1,126 @@
+name: "Continuous Integration"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  linting:
+    name: Linting
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        language: [ python ]
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v2
+    - name: Python Setup
+      uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+          architecture: x64
+    - name: Dependencies Installation
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt --use-feature=in-tree-build
+        pip install flake8
+    - name: Action
+      run: flake8 . --count --statistics --ignore=E501,F403,F405
+  documentation:
+    name: Documentation
+    needs: linting
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ 3.6, 3.7, 3.8, 3.9 ]
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v2
+    - name: Python Setup
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Dependencies Installation
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt --use-feature=in-tree-build
+        pip install sphinx
+        pip install sphinx-autodoc-typehints
+    - name: Action
+      run: make -C docs/ html
+  build:
+    name: Build
+    needs: documentation
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        python-version: [ 3.6, 3.7, 3.8, 3.9 ]
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v2
+    - name: Python Setup
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Dependencies Installation
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt --use-feature=in-tree-build
+        pip install wheel
+    - name: Action
+      run: python setup.py sdist bdist_wheel
+  testing:
+    name: Testing & Coverage
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        python-version: [ 3.6, 3.7, 3.8, 3.9 ]
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v2
+    - name: Python Setup
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Libraries Installation
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt update
+          sudo apt-get -q update
+          sudo apt-get -y install graphviz
+        elif [ "$RUNNER_OS" == "Windows" ]; then
+          choco install graphviz
+        else
+          brew install graphviz
+        fi
+    - name: Dependencies Installation
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt --use-feature=in-tree-build
+        pip install pydot
+        pip install coverage
+        pip install pytest-cov
+    - name: Testing
+      run: pytest --cov=pydtmc tests/
+    - name: Codecov Coverage
+      run: |
+        pip install codecov
+        codecov
+    - name: Coveralls Coverage
+      env:
+        COVERALLS_SERVICE_NAME: github-actions
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+      run: |
+        pip install coveralls
+        coveralls
