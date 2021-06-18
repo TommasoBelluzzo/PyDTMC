@@ -19,9 +19,9 @@ jobs:
       uses: actions/checkout@v2
     - name: Python Setup
       uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-          architecture: 'x64'
+      with:
+        python-version: 3.x
+        architecture: x64
     - name: Dependencies Installation
       run: |
         pip install --upgrade pip
@@ -31,7 +31,7 @@ jobs:
       run: flake8 . --count --statistics --ignore=E501,F403,F405
   documentation:
     name: Documentation
-    needs: linting
+	needs: linting
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -55,7 +55,7 @@ jobs:
       run: make -C docs/ html
   build:
     name: Build
-    needs: documentation
+	needs: documentation
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -78,7 +78,7 @@ jobs:
       run: python setup.py sdist bdist_wheel
   testing:
     name: Testing & Coverage
-    needs: build
+	needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
