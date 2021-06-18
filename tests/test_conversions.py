@@ -117,13 +117,7 @@ def test_matrix(seed, maximum_size, runs):
         m = npr.randint(101, size=(size, size))
         mc1 = MarkovChain.from_matrix(m)
 
-        print(m)
-        print(mc1.p)
-
         m = mc1.to_matrix()
         mc2 = MarkovChain.from_matrix(m)
-
-        print(m)
-        print(mc2.p)
 
         npt.assert_allclose(mc1.p, mc2.p, rtol=1e-5, atol=1e-8)

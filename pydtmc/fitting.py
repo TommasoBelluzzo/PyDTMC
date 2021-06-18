@@ -61,7 +61,7 @@ def fit_function(possible_states: tlist_str, f: ttfunc, quadrature_type: str, qu
                 p2 = p1
                 p1 = ((((2.0 * j) - 1.0) * z * p2) - ((j - 1) * p3)) / j
 
-            pp = size * (((z * p1) - p2) / (z ** 2.0 - 1.0))
+            pp = size * (((z * p1) - p2) / (z**2.0 - 1.0))
 
             z1 = np.copy(z)
             z = z1 - (p1 / pp)
@@ -78,14 +78,14 @@ def fit_function(possible_states: tlist_str, f: ttfunc, quadrature_type: str, qu
         nodes[i] = xm - (xl * z)
         nodes[-i - 1] = xm + (xl * z)
 
-        weights[i] = (2.0 * xl) / ((1.0 - z ** 2.0) * pp ** 2.0)
+        weights[i] = (2.0 * xl) / ((1.0 - z**2.0) * pp**2.0)
         weights[-i - 1] = weights[i]
 
     elif quadrature_type == 'niederreiter':
 
         r = b - a
 
-        nodes = np.arange(1.0, size + 1.0) * 2.0 ** 0.5
+        nodes = np.arange(1.0, size + 1.0) * 2.0**0.5
         nodes -= np.fix(nodes)
         nodes = a + (nodes * r)
 

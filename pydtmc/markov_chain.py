@@ -2116,9 +2116,15 @@ class MarkovChain(metaclass=BaseClass):
             raise generate_validation_error(e, trace()) from None
 
         p = np.copy(m)
-        p = np.interp(p, (np.min(p), np.max(p)), (0.0, 1.0))
-        p[np.where(~p.any(axis=1)), :] = np.ones(p.shape[0], dtype=float)
-        p /= np.sum(p, axis=1, keepdims=True)
+        p_size = p.shape[0]
+        p_sums = np.sum(p, axis=1)
+
+        for i in range(p_size):
+
+            if np.isclose(p_sums[i], 0.0):
+                p[i, :] = np.ones(p.shape[0], dtype=float) / p_size
+            else:
+                p[i, :] /= p_sums[i]
 
         mc = MarkovChain(p, states)
 
