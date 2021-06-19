@@ -183,7 +183,7 @@ def test_plot_walk(seed, maximum_size, maximum_simulations, runs):
 
         r = randint(2, maximum_simulations)
 
-        walk = r if random() < 0.5 else mc.walk(r, include_initial=True, output_indices=True)
+        walk = r if random() < 0.5 else mc.walk(r, output_indices=True)
         initial_state = None if isinstance(walk, int) or random() < 0.5 else walk[0]
         plot_type = choice(plot_types)
 

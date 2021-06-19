@@ -48,6 +48,7 @@ from .files_io import *
 from .fitting import *
 from .generators import *
 from .measures import *
+from .simulations import *
 from .utilities import *
 from .validation import *
 
@@ -613,17 +614,15 @@ class MarkovChain(metaclass=BaseClass):
         """
 
         if self.is_aperiodic:
-            return 1
+            period = 1
+        elif self.is_irreducible:
+            period = set(self.periods).pop()
+        else:  # pragma: no cover
 
-        if self.is_irreducible:
-            return set(self.periods).pop()
+            period = 1
 
-        # pragma: no cover
-
-        period = 1
-
-        for p in [self.periods[self.communicating_classes.index(recurrent_class)] for recurrent_class in self.recurrent_classes]:
-            period = (period * p) // gcd(period, p)
+            for p in [self.periods[self.communicating_classes.index(recurrent_class)] for recurrent_class in self.recurrent_classes]:
+                period = (period * p) // gcd(period, p)
 
         return period
 
@@ -1332,19 +1331,18 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
-    def predict(self, steps: int, initial_state: ostate = None, include_initial: bool = False, output_indices: bool = False, seed: oint = None) -> twalk:
+    def predict(self, steps: int, initial_state: ostate = None, output_indices: bool = False, seed: oint = None) -> owalk:
 
         """
-        The method simulates the most probable outcome in a random walk of *N* steps.
+        The method computes the most probable sequence of states produced by a random walk of *N* steps.
 
         | **Notes:** in case of probability tie, the subsequent state is chosen uniformly at random among all the equiprobable states.
 
         :param steps: the number of steps.
-        :param initial_state: the initial state of the prediction (if omitted, it is chosen uniformly at random).
-        :param include_initial: a boolean indicating whether to include the initial state in the output sequence (by default, False).
+        :param initial_state: the initial state of the prediction.
         :param output_indices: a boolean indicating whether to the output the state indices (by default, False).
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
-        :return: the sequence of states produced by the simulation.
+        :return: the most probable sequence of states produced by the random walk in absence of probability ties, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1353,34 +1351,17 @@ class MarkovChain(metaclass=BaseClass):
             rng = create_rng(seed)
             steps = validate_integer(steps, lower_limit=(0, True))
             initial_state = rng.randint(0, self._size) if initial_state is None else validate_state(initial_state, self._states)
-            include_initial = validate_boolean(include_initial)
             output_indices = validate_boolean(output_indices)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        prediction = list()
+        value = predict(self, steps, initial_state)
 
-        if include_initial:
-            prediction.append(initial_state)
+        if value is not None and not output_indices:
+            value = [*map(self._states.__getitem__, value)]
 
-        current_state = initial_state
-
-        for _ in range(steps):
-
-            d = self._p[current_state, :]
-            d_max = np.argwhere(d == np.max(d))
-
-            w = np.zeros(self._size, dtype=float)
-            w[d_max] = 1.0 / d_max.size
-
-            current_state = rng.choice(self._size, size=1, p=w).item()
-            prediction.append(current_state)
-
-        if not output_indices:
-            prediction = [*map(self._states.__getitem__, prediction)]
-
-        return prediction
+        return value
 
     def redistribute(self, steps: int, initial_status: ostatus = None, include_initial: bool = False, output_last: bool = True) -> tlist_array:
 
@@ -1702,7 +1683,7 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
-    def walk(self, steps: int, initial_state: ostate = None, final_state: ostate = None, include_initial: bool = False, output_indices: bool = False, seed: oint = None) -> twalk:
+    def walk(self, steps: int, initial_state: ostate = None, final_state: ostate = None, output_indices: bool = False, seed: oint = None) -> twalk:
 
         """
         The method simulates a random walk of *N* steps.
@@ -1710,7 +1691,6 @@ class MarkovChain(metaclass=BaseClass):
         :param steps: the number of steps.
         :param initial_state: the initial state of the walk (if omitted, it is chosen uniformly at random).
         :param final_state: the final state of the walk (if specified, the simulation stops as soon as it is reached even if not all the steps have been performed).
-        :param include_initial: a boolean indicating whether to include the initial state in the output sequence (by default, False).
         :param output_indices: a boolean indicating whether to the output the state indices (by default, False).
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :return: the sequence of states produced by the simulation.
@@ -1722,33 +1702,18 @@ class MarkovChain(metaclass=BaseClass):
             rng = create_rng(seed)
             steps = validate_integer(steps, lower_limit=(1, False))
             initial_state = rng.randint(0, self._size) if initial_state is None else validate_state(initial_state, self._states)
-            include_initial = validate_boolean(include_initial)
             final_state = None if final_state is None else validate_state(final_state, self._states)
             output_indices = validate_boolean(output_indices)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        walk = list()
-
-        if include_initial:
-            walk.append(initial_state)
-
-        current_state = initial_state
-
-        for _ in range(steps):
-
-            w = self._p[current_state, :]
-            current_state = rng.choice(self._size, size=1, p=w).item()
-            walk.append(current_state)
-
-            if final_state is not None and current_state == final_state:
-                break
+        value = simulate(self, steps, initial_state, final_state, rng)
 
         if not output_indices:
-            walk = [*map(self._states.__getitem__, walk)]
+            value = [*map(self._states.__getitem__, value)]
 
-        return walk
+        return value
 
     def walk_probability(self, walk: twalk) -> float:
 
@@ -1767,19 +1732,9 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        p = 0.0
+        value = walk_probability(self, walk)
 
-        for (i, j) in zip(walk[:-1], walk[1:]):
-
-            if self._p[i, j] > 0.0:
-                p += np.log(self._p[i, j])
-            else:
-                p = -np.inf
-                break
-
-        wp = np.exp(p)
-
-        return wp
+        return value
 
     @staticmethod
     def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: ofloat = None) -> tmc:

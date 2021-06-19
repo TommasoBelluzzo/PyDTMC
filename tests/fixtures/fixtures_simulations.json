@@ -1,0 +1,622 @@
+[
+  {
+    "id": "#1",
+    "p": [[1.0, 0.0], [0.0, 1.0]],
+    "seed": 7331,
+    "predict_data": [
+      {
+        "steps": 8,
+        "initial_state": null,
+        "output_indices": false,
+        "value": ["1", "1", "1", "1", "1", "1", "1", "1", "1"]
+      },
+      {
+        "steps": 11,
+        "initial_state": 0,
+        "output_indices": true,
+        "value": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "steps": 11,
+        "initial_state": 1,
+        "output_indices": true,
+        "value": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+      }
+    ],
+    "walk_data": [
+      {
+        "steps": 17,
+        "initial_state": null,
+        "final_state": "2",
+        "output_indices": false,
+        "value": ["1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1"]
+      },
+      {
+        "steps": 24,
+        "initial_state": 0,
+        "final_state": null,
+        "output_indices": true,
+        "value": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "steps": 24,
+        "initial_state": 0,
+        "final_state": null,
+        "output_indices": true,
+        "value": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    ],
+    "walk_probability_data": [
+      {
+        "walk": ["1", "1", "1", "1", "1", "1", "1", "1", "1", "1"],
+        "value": 1.0
+      },
+      {
+        "walk": [0, 1, 0, 1, 0, 1, 1],
+        "value": 0.0
+      },
+      {
+        "walk": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        "value": 1.0
+      }
+    ]
+  },
+  {
+    "id": "#2",
+    "p": [[0.15, 0.85], [0.45, 0.55]],
+    "seed": 7331,
+    "predict_data": [
+      {
+        "steps": 22,
+        "initial_state": null,
+        "output_indices": false,
+        "value": ["1", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2"]
+      },
+      {
+        "steps": 19,
+        "initial_state": 0,
+        "output_indices": true,
+        "value": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+      },
+      {
+        "steps": 19,
+        "initial_state": 1,
+        "output_indices": true,
+        "value": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+      }
+    ],
+    "walk_data": [
+      {
+        "steps": 9,
+        "initial_state": null,
+        "final_state": "2",
+        "output_indices": false,
+        "value": ["1", "2"]
+      },
+      {
+        "steps": 15,
+        "initial_state": 0,
+        "final_state": null,
+        "output_indices": true,
+        "value": [0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0]
+      },
+      {
+        "steps": 15,
+        "initial_state": 1,
+        "final_state": null,
+        "output_indices": true,
+        "value": [1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0]
+      }
+    ],
+    "walk_probability_data": [
+      {
+        "walk": ["1", "2", "1", "1", "1", "2"],
+        "value": 0.007315312499999999
+      },
+      {
+        "walk": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        "value": 0.004605366583984372
+      },
+      {
+        "walk": [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+        "value": 0.00000001249889721679684
+      }
+    ]
+  },
+  {
+    "id": "#3",
+    "p": [[0.2, 0.05, 0.75], [0.0, 1.0, 0.0], [0.75, 0.05, 0.2]],
+    "seed": 7331,
+    "predict_data": [
+      {
+        "steps": 6,
+        "initial_state": null,
+        "output_indices": false,
+        "value": ["3", "1", "3", "1", "3", "1", "3"]
+      },
+      {
+        "steps": 23,
+        "initial_state": 1,
+        "output_indices": true,
+        "value": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+      },
+      {
+        "steps": 23,
+        "initial_state": 2,
+        "output_indices": true,
+        "value": [2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0]
+      }
+    ],
+    "walk_data": [
+      {
+        "steps": 35,
+        "initial_state": null,
+        "final_state": "2",
+        "output_indices": false,
+        "value": ["3", "2"]
+      },
+      {
+        "steps": 13,
+        "initial_state": 0,
+        "final_state": null,
+        "output_indices": true,
+        "value": [0, 2, 0, 2, 0, 2, 2, 2, 0, 0, 2, 0, 2, 0]
+      },
+      {
+        "steps": 13,
+        "initial_state": 2,
+        "final_state": null,
+        "output_indices": true,
+        "value": [2, 0, 2, 0, 2, 0, 2, 2, 0, 0, 2, 0, 2, 0]
+      }
+    ],
+    "walk_probability_data": [
+      {
+        "walk": ["1", "1", "1"],
+        "value": 0.04000000000000001
+      },
+      {
+        "walk": [0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+        "value": 0.07508468627929693
+      },
+      {
+        "walk": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        "value": 1.0
+      }
+    ]
+  },
+  {
+    "id": "#4",
+    "p": [[0.5, 0.5, 0.0], [0.333333333, 0.333333333, 0.333333333], [0.0, 0.5, 0.5]],
+    "seed": 7331,
+    "predict_data": [
+      {
+        "steps": 15,
+        "initial_state": null,
+        "output_indices": false,
+        "value": null
+      },
+      {
+        "steps": 24,
+        "initial_state": 1,
+        "output_indices": true,
+        "value": null
+      },
+      {
+        "steps": 24,
+        "initial_state": 2,
+        "output_indices": true,
+        "value": null
+      }
+    ],
+    "walk_data": [
+      {
+        "steps": 6,
+        "initial_state": null,
+        "final_state": "1",
+        "output_indices": false,
+        "value": ["3", "3", "2", "1"]
+      },
+      {
+        "steps": 8,
+        "initial_state": 0,
+        "final_state": null,
+        "output_indices": true,
+        "value": [0, 0, 1, 1, 1, 0, 1, 2, 2]
+      },
+      {
+        "steps": 8,
+        "initial_state": 1,
+        "final_state": null,
+        "output_indices": true,
+        "value": [1, 1, 1, 1, 1, 0, 1, 2, 2]
+      }
+    ],
+    "walk_probability_data": [
+      {
+        "walk": ["2", "2"],
+        "value": 0.333333333
+      },
+      {
+        "walk": [2, 0, 2, 0, 2, 0, 2, 0, 2, 0],
+        "value": 0.0
+      },
+      {
+        "walk": [0, 1, 2, 2, 2, 0, 1, 1, 1, 0, 2, 0, 1, 1, 1, 1, 0, 1, 2, 1, 2, 2, 1, 0],
+        "value": 0.0
+      }
+    ]
+  },
+  {
+    "id": "#5",
+    "p": [[0.3, 0.7, 0.0], [0.3, 0.1, 0.6], [0.2, 0.5, 0.3]],
+    "seed": 7331,
+    "predict_data": [
+      {
+        "steps": 14,
+        "initial_state": null,
+        "output_indices": false,
+        "value": ["3", "2", "3", "2", "3", "2", "3", "2", "3", "2", "3", "2", "3", "2", "3"]
+      },
+      {
+        "steps": 11,
+        "initial_state": 0,
+        "output_indices": true,
+        "value": [0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1]
+      },
+      {
+        "steps": 11,
+        "initial_state": 2,
+        "output_indices": true,
+        "value": [2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1]
+      }
+    ],
+    "walk_data": [
+      {
+        "steps": 12,
+        "initial_state": null,
+        "final_state": "1",
+        "output_indices": false,
+        "value": ["3", "3", "1"]
+      },
+      {
+        "steps": 25,
+        "initial_state": 1,
+        "final_state": null,
+        "output_indices": true,
+        "value": [1, 2, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 2, 1, 2, 1, 2, 0, 0, 1, 1, 2, 2, 2, 0, 1]
+      },
+      {
+        "steps": 25,
+        "initial_state": 1,
+        "final_state": null,
+        "output_indices": true,
+        "value": [1, 2, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 2, 1, 2, 1, 2, 0, 0, 1, 1, 2, 2, 2, 0, 1]
+      }
+    ],
+    "walk_probability_data": [
+      {
+        "walk": ["1", "2", "3", "2", "3", "2", "3", "3", "3", "2", "1", "2"],
+        "value": 0.00035721000000000017
+      },
+      {
+        "walk": [0, 2, 0, 2, 0],
+        "value": 0.0
+      },
+      {
+        "walk": [1, 2, 1, 2, 1],
+        "value": 0.09000000000000001
+      }
+    ]
+  },
+  {
+    "id": "#6",
+    "p": [[0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+    "seed": 7331,
+    "predict_data": [
+      {
+        "steps": 14,
+        "initial_state": null,
+        "output_indices": false,
+        "value": ["3", "2", "1", "3", "2", "1", "3", "2", "1", "3", "2", "1", "3", "2", "1"]
+      },
+      {
+        "steps": 11,
+        "initial_state": 0,
+        "output_indices": true,
+        "value": [0, 2, 1, 0, 2, 1, 0, 2, 1, 0, 2, 1]
+      },
+      {
+        "steps": 11,
+        "initial_state": 2,
+        "output_indices": true,
+        "value": [2, 1, 0, 2, 1, 0, 2, 1, 0, 2, 1, 0]
+      }
+    ],
+    "walk_data": [
+      {
+        "steps": 18,
+        "initial_state": null,
+        "final_state": "1",
+        "output_indices": false,
+        "value": ["3", "2", "1"]
+      },
+      {
+        "steps": 5,
+        "initial_state": 1,
+        "final_state": null,
+        "output_indices": true,
+        "value": [1, 0, 2, 1, 0, 2]
+      },
+      {
+        "steps": 5,
+        "initial_state": 2,
+        "final_state": null,
+        "output_indices": true,
+        "value": [2, 1, 0, 2, 1, 0]
+      }
+    ],
+    "walk_probability_data": [
+      {
+        "walk": ["1", "3", "2", "1", "3", "2"],
+        "value": 1.0
+      },
+      {
+        "walk": [0, 1],
+        "value": 0.0
+      },
+      {
+        "walk": [0, 2],
+        "value": 1.0
+      }
+    ]
+  },
+  {
+    "id": "#7",
+    "p": [[0.3, 0.7, 0.0, 0.0], [0.1, 0.0, 0.9, 0.0], [0.9, 0.0, 0.0, 0.1], [0.5, 0.0, 0.0, 0.5]],
+    "seed": 7331,
+    "predict_data": [
+      {
+        "steps": 28,
+        "initial_state": null,
+        "output_indices": false,
+        "value": ["3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1"]
+      },
+      {
+        "steps": 17,
+        "initial_state": 2,
+        "output_indices": true,
+        "value": [2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1]
+      },
+      {
+        "steps": 17,
+        "initial_state": 3,
+        "output_indices": true,
+        "value": null
+      }
+    ],
+    "walk_data": [
+      {
+        "steps": 4,
+        "initial_state": null,
+        "final_state": "4",
+        "output_indices": false,
+        "value": ["3", "1", "1", "1", "2"]
+      },
+      {
+        "steps": 16,
+        "initial_state": 1,
+        "final_state": null,
+        "output_indices": true,
+        "value": [1, 2, 0, 1, 2, 0, 1, 2, 0, 0, 1, 2, 0, 1, 2, 0, 1]
+      },
+      {
+        "steps": 16,
+        "initial_state": 3,
+        "final_state": null,
+        "output_indices": true,
+        "value": [3, 0, 1, 2, 0, 0, 1, 2, 0, 0, 1, 2, 0, 1, 2, 0, 1]
+      }
+    ],
+    "walk_probability_data": [
+      {
+        "walk": ["3", "1", "2", "3", "1", "2"],
+        "value": 0.35720999999999997
+      },
+      {
+        "walk": [0, 1, 2, 2, 2, 1, 0, 1, 1, 0],
+        "value": 0.0
+      },
+      {
+        "walk": [2, 0, 2, 0, 1, 1, 1, 1, 2, 0],
+        "value": 0.0
+      }
+    ]
+  },
+  {
+    "id": "#8",
+    "p": [[0.0, 1.0, 0.0, 0.0, 0.0], [0.25, 0.0, 0.75, 0.0, 0.0], [0.0, 0.5, 0.0, 0.5, 0.0], [0.0, 0.0, 0.75, 0.0, 0.25], [0.0, 0.0, 0.0, 1.0, 0.0]],
+    "seed": 7331,
+    "predict_data": [
+      {
+        "steps": 14,
+        "initial_state": null,
+        "output_indices": false,
+        "value": null
+      },
+      {
+        "steps": 31,
+        "initial_state": 1,
+        "output_indices": true,
+        "value": null
+      },
+      {
+        "steps": 31,
+        "initial_state": 4,
+        "output_indices": true,
+        "value": null
+      }
+    ],
+    "walk_data": [
+      {
+        "steps": 14,
+        "initial_state": null,
+        "final_state": "3",
+        "output_indices": false,
+        "value": ["3", "4", "3"]
+      },
+      {
+        "steps": 12,
+        "initial_state": 3,
+        "final_state": null,
+        "output_indices": true,
+        "value": [3, 2, 3, 2, 1, 2, 3, 4, 3, 2, 1, 2, 3]
+      },
+      {
+        "steps": 12,
+        "initial_state": 4,
+        "final_state": null,
+        "output_indices": true,
+        "value": [4, 3, 2, 1, 2, 1, 2, 3, 2, 1, 2, 1, 2]
+      }
+    ],
+    "walk_probability_data": [
+      {
+        "walk": ["3", "4", "3", "2", "1", "2"],
+        "value": 0.04687499999999999
+      },
+      {
+        "walk": [2, 1, 2, 1],
+        "value": 0.1875
+      },
+      {
+        "walk": [3, 4, 3, 2],
+        "value": 0.1875
+      }
+    ]
+  },
+  {
+    "id": "#9",
+    "p": [[1.0, 0.0, 0.0, 0.0, 0.0], [0.65, 0.0, 0.35, 0.0, 0.0], [0.0, 0.65, 0.0, 0.35, 0.0], [0.0, 0.0, 0.65, 0.0, 0.35], [0.0, 0.0, 0.0, 0.0, 1.0]],
+    "seed": 7331,
+    "predict_data": [
+      {
+        "steps": 14,
+        "initial_state": null,
+        "output_indices": false,
+        "value": ["3", "2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1"]
+      },
+      {
+        "steps": 27,
+        "initial_state": 1,
+        "output_indices": true,
+        "value": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "steps": 27,
+        "initial_state": 4,
+        "output_indices": true,
+        "value": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+      }
+    ],
+    "walk_data": [
+      {
+        "steps": 10,
+        "initial_state": null,
+        "final_state": "2",
+        "output_indices": false,
+        "value": ["3", "4", "3", "2"]
+      },
+      {
+        "steps": 30,
+        "initial_state": 1,
+        "final_state": null,
+        "output_indices": true,
+        "value": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "steps": 30,
+        "initial_state": 3,
+        "final_state": null,
+        "output_indices": true,
+        "value": [3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    ],
+    "walk_probability_data": [
+      {
+        "walk": ["1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1"],
+        "value": 1.0
+      },
+      {
+        "walk": [1, 2],
+        "value": 0.3499999999999999
+      },
+      {
+        "walk": [2, 1, 2, 1, 2, 1, 2, 1],
+        "value": 0.007653455468750001
+      }
+    ]
+  },
+  {
+    "id": "#10",
+    "p": [[0.0, 0.25, 0.35, 0.2, 0.0, 0.2], [0.1, 0.1, 0.1, 0.1, 0.1, 0.5], [0.0, 0.6, 0.4, 0.0, 0.0, 0.0], [0.0, 0.3, 0.0, 0.7, 0.0, 0.0], [0.0, 0.35, 0.2, 0.1, 0.3, 0.05], [0.0, 0.0, 0.0, 0.0, 1.0, 0.0]],
+    "seed": 7331,
+    "predict_data": [
+      {
+        "steps": 42,
+        "initial_state": null,
+        "output_indices": false,
+        "value": ["3", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5"]
+      },
+      {
+        "steps": 36,
+        "initial_state": 0,
+        "output_indices": true,
+        "value": [0, 2, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5]
+      },
+      {
+        "steps": 36,
+        "initial_state": 3,
+        "output_indices": true,
+        "value": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+      }
+    ],
+    "walk_data": [
+      {
+        "steps": 3,
+        "initial_state": null,
+        "final_state": "1",
+        "output_indices": false,
+        "value": ["3", "3", "2", "3"]
+      },
+      {
+        "steps": 26,
+        "initial_state": 0,
+        "final_state": null,
+        "output_indices": true,
+        "value": [0, 2, 2, 1, 4, 1, 5, 4, 4, 1, 3, 3, 3, 3, 3, 3, 3, 1, 2, 1, 3, 3, 3, 3, 1, 5, 4]
+      },
+      {
+        "steps": 26,
+        "initial_state": 5,
+        "final_state": null,
+        "output_indices": true,
+        "value": [5, 4, 3, 3, 3, 1, 5, 4, 4, 1, 3, 3, 3, 3, 3, 3, 3, 1, 2, 1, 3, 3, 3, 3, 1, 5, 4]
+      }
+    ],
+    "walk_probability_data": [
+      {
+        "walk": ["2", "3", "2"],
+        "value": 0.06
+      },
+      {
+        "walk": [5, 4, 3],
+        "value": 0.10000000000000002
+      },
+      {
+        "walk": [1, 5, 4, 4, 1],
+        "value": 0.05249999999999999
+      }
+    ]
+  }
+]

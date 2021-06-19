@@ -468,7 +468,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
         raise generate_validation_error(e, trace()) from None
 
     if isinstance(walk, int):
-        walk = mc.walk(walk, initial_state=initial_state, include_initial=True, output_indices=True)
+        walk = mc.walk(walk, initial_state=initial_state, output_indices=True)
 
     if initial_state is not None and (walk[0] != initial_state):  # pragma: no cover
         raise ValueError('The "initial_state" parameter, if specified when the "walk" parameter represents a sequence of states, must match the first element.')
