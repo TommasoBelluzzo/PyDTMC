@@ -129,7 +129,7 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
 
         r = randint(1, maximum_distributions)
 
-        distributions = r if random() < 0.5 else mc.redistribute(r, include_initial=True, output_last=False)
+        distributions = r if random() < 0.5 else mc.redistribute(r, output_last=False)
         initial_status = None if isinstance(distributions, int) or random() < 0.5 else distributions[0]
         plot_type = choice(plot_types)
 

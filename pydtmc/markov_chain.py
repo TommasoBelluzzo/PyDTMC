@@ -139,23 +139,23 @@ class MarkovChain(metaclass=BaseClass):
         return value
 
     @cachedproperty
-    def _absorbing_states_indices(self) -> tlist_int:
+    def __absorbing_states_indices(self) -> tlist_int:
 
         indices = [index for index in range(self._size) if np.isclose(self._p[index, index], 1.0)]
 
         return indices
 
     @cachedproperty
-    def _classes_indices(self) -> tlists_int:
+    def __classes_indices(self) -> tlists_int:
 
         indices = [sorted([self._states.index(c) for c in scc]) for scc in nx.strongly_connected_components(self._digraph)]
 
         return indices
 
     @cachedproperty
-    def _communicating_classes_indices(self) -> tlists_int:
+    def __communicating_classes_indices(self) -> tlists_int:
 
-        indices = sorted(self._classes_indices, key=lambda x: (-len(x), x[0]))
+        indices = sorted(self.__classes_indices, key=lambda x: (-len(x), x[0]))
 
         return indices
 
@@ -166,7 +166,7 @@ class MarkovChain(metaclass=BaseClass):
             return list()
 
         if self.is_aperiodic:
-            return self._communicating_classes_indices.copy()
+            return self.__communicating_classes_indices.copy()
 
         indices = find_cyclic_classes(self._p)
         indices = sorted(indices, key=lambda x: (-len(x), x[0]))
@@ -174,43 +174,43 @@ class MarkovChain(metaclass=BaseClass):
         return indices
 
     @cachedproperty
-    def _cyclic_states_indices(self) -> tlist_int:
+    def __cyclic_states_indices(self) -> tlist_int:
 
         indices = sorted(list(chain.from_iterable(self._cyclic_classes_indices)))
 
         return indices
 
     @cachedproperty
-    def _eigenvalues_sorted(self) -> tarray:
+    def __eigenvalues_sorted(self) -> tarray:
 
         ev = eigenvalues_sorted(self._p)
 
         return ev
 
     @cachedproperty
-    def _rdl_decomposition(self) -> trdl:
+    def __rdl_decomposition(self) -> trdl:
 
         r, d, l = rdl_decomposition(self._p)  # noqa
 
         return r, d, l
 
     @cachedproperty
-    def _recurrent_classes_indices(self) -> tlists_int:
+    def __recurrent_classes_indices(self) -> tlists_int:
 
-        indices = [index for index in self._classes_indices if index not in self._transient_classes_indices]
+        indices = [index for index in self.__classes_indices if index not in self.__transient_classes_indices]
         indices = sorted(indices, key=lambda x: (-len(x), x[0]))
 
         return indices
 
     @cachedproperty
-    def _recurrent_states_indices(self) -> tlist_int:
+    def __recurrent_states_indices(self) -> tlist_int:
 
-        indices = sorted(list(chain.from_iterable(self._recurrent_classes_indices)))
+        indices = sorted(list(chain.from_iterable(self.__recurrent_classes_indices)))
 
         return indices
 
     @cachedproperty
-    def _slem(self) -> ofloat:
+    def __slem(self) -> ofloat:
 
         if not self.is_ergodic:
             value = None
@@ -220,26 +220,26 @@ class MarkovChain(metaclass=BaseClass):
         return value
 
     @cachedproperty
-    def _states_indices(self) -> tlist_int:
+    def __states_indices(self) -> tlist_int:
 
         indices = list(range(self._size))
 
         return indices
 
     @cachedproperty
-    def _transient_classes_indices(self) -> tlists_int:
+    def __transient_classes_indices(self) -> tlists_int:
 
         edges = set([edge1 for (edge1, edge2) in nx.condensation(self._digraph).edges])
 
-        indices = [self._classes_indices[edge] for edge in edges]
+        indices = [self.__classes_indices[edge] for edge in edges]
         indices = sorted(indices, key=lambda x: (-len(x), x[0]))
 
         return indices
 
     @cachedproperty
-    def _transient_states_indices(self) -> tlist_int:
+    def __transient_states_indices(self) -> tlist_int:
 
-        indices = sorted(list(chain.from_iterable(self._transient_classes_indices)))
+        indices = sorted(list(chain.from_iterable(self.__transient_classes_indices)))
 
         return indices
 
@@ -250,7 +250,7 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the absorbing states of the Markov chain.
         """
 
-        states = [*map(self._states.__getitem__, self._absorbing_states_indices)]
+        states = [*map(self._states.__getitem__, self.__absorbing_states_indices)]
 
         return states
 
@@ -287,7 +287,7 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the communicating classes of the Markov chain.
         """
 
-        classes = [[*map(self._states.__getitem__, i)] for i in self._communicating_classes_indices]
+        classes = [[*map(self._states.__getitem__, i)] for i in self.__communicating_classes_indices]
 
         return classes
 
@@ -300,7 +300,7 @@ class MarkovChain(metaclass=BaseClass):
 
         cm = np.zeros((self._size, self._size), dtype=int)
 
-        for index in self._communicating_classes_indices:
+        for index in self.__communicating_classes_indices:
             cm[np.ix_(index, index)] = 1
 
         return cm
@@ -323,7 +323,7 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the cyclic states of the Markov chain.
         """
 
-        states = [*map(self._states.__getitem__, self._cyclic_states_indices)]
+        states = [*map(self._states.__getitem__, self.__cyclic_states_indices)]
 
         return states
 
@@ -392,7 +392,7 @@ class MarkovChain(metaclass=BaseClass):
         if not self.is_absorbing or len(self.transient_states) == 0:
             return None
 
-        indices = self._transient_states_indices
+        indices = self.__transient_states_indices
 
         q = self._p[np.ix_(indices, indices)]
         i = np.eye(len(indices), dtype=float)
@@ -411,7 +411,7 @@ class MarkovChain(metaclass=BaseClass):
         if not self.is_ergodic:
             return None
 
-        ev = self._eigenvalues_sorted[::-1]
+        ev = self.__eigenvalues_sorted[::-1]
         it = np.append(np.inf, -1.0 / np.log(ev[1:]))
 
         return it
@@ -426,8 +426,8 @@ class MarkovChain(metaclass=BaseClass):
         if len(self.absorbing_states) == 0:
             return False
 
-        indices = set(self._states_indices)
-        absorbing_indices = set(self._absorbing_states_indices)
+        indices = set(self.__states_indices)
+        absorbing_indices = set(self.__absorbing_states_indices)
         transient_indices = set()
 
         progress = True
@@ -474,8 +474,8 @@ class MarkovChain(metaclass=BaseClass):
         A property indicating whether the Markov chain has a canonical form.
         """
 
-        recurrent_indices = self._recurrent_states_indices
-        transient_indices = self._transient_states_indices
+        recurrent_indices = self.__recurrent_states_indices
+        transient_indices = self.__transient_states_indices
 
         if len(recurrent_indices) == 0 or len(transient_indices) == 0:
             return True
@@ -590,10 +590,10 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the mixing rate of the Markov chain. If the *SLEM* (second largest eigenvalue modulus) cannot be computed, then None is returned.
         """
 
-        if self._slem is None:
+        if self.__slem is None:
             mr = None
         else:
-            mr = -1.0 / np.log(self._slem)
+            mr = -1.0 / np.log(self.__slem)
 
         return mr
 
@@ -653,7 +653,7 @@ class MarkovChain(metaclass=BaseClass):
 
             s = np.zeros((len(self.recurrent_classes), self._size), dtype=float)
 
-            for i, indices in enumerate(self._recurrent_classes_indices):
+            for i, indices in enumerate(self.__recurrent_classes_indices):
                 pr = self._p[np.ix_(indices, indices)]
                 s[i, indices] = gth_solve(pr)
 
@@ -682,7 +682,7 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the recurrent classes defined by the Markov chain.
         """
 
-        classes = [[*map(self._states.__getitem__, i)] for i in self._recurrent_classes_indices]
+        classes = [[*map(self._states.__getitem__, i)] for i in self.__recurrent_classes_indices]
 
         return classes
 
@@ -693,7 +693,7 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the recurrent states of the Markov chain.
         """
 
-        states = [*map(self._states.__getitem__, self._recurrent_states_indices)]
+        states = [*map(self._states.__getitem__, self.__recurrent_states_indices)]
 
         return states
 
@@ -704,10 +704,10 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the relaxation rate of the Markov chain. If the *SLEM* (second largest eigenvalue modulus) cannot be computed, then None is returned.
         """
 
-        if self._slem is None:
+        if self.__slem is None:
             return None
 
-        rr = 1.0 / (1.0 - self._slem)
+        rr = 1.0 / (1.0 - self.__slem)
 
         return rr
 
@@ -727,10 +727,10 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the spectral gap of the Markov chain. If the Markov chain is not *ergodic*, then None is returned.
         """
 
-        if not self.is_ergodic or self._slem is None:
+        if not self.is_ergodic or self.__slem is None:
             sg = None
         else:
-            sg = 1.0 - self._slem
+            sg = 1.0 - self.__slem
 
         return sg
 
@@ -762,7 +762,7 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the transient classes defined by the Markov chain.
         """
 
-        classes = [[*map(self._states.__getitem__, i)] for i in self._transient_classes_indices]
+        classes = [[*map(self._states.__getitem__, i)] for i in self.__transient_classes_indices]
 
         return classes
 
@@ -773,7 +773,7 @@ class MarkovChain(metaclass=BaseClass):
         A property representing the transient states of the Markov chain.
         """
 
-        states = [*map(self._states.__getitem__, self._transient_states_indices)]
+        states = [*map(self._states.__getitem__, self.__transient_states_indices)]
 
         return states
 
@@ -952,7 +952,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        value = expected_transitions(self._p, self._rdl_decomposition, steps, initial_distribution)
+        value = expected_transitions(self._p, self.__rdl_decomposition, steps, initial_distribution)
 
         return value
 
@@ -1036,7 +1036,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            targets = self._states_indices.copy() if targets is None else validate_states(targets, self._states, 'regular', True)
+            targets = self.__states_indices.copy() if targets is None else validate_states(targets, self._states, 'regular', True)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -1057,7 +1057,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            targets = self._states_indices.copy() if targets is None else validate_states(targets, self._states, 'regular', True)
+            targets = self.__states_indices.copy() if targets is None else validate_states(targets, self._states, 'regular', True)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -1083,7 +1083,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        result = state in self._absorbing_states_indices
+        result = state in self.__absorbing_states_indices
 
         return result
 
@@ -1127,7 +1127,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        result = state in self._cyclic_states_indices
+        result = state in self.__cyclic_states_indices
 
         return result
 
@@ -1148,7 +1148,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        result = state in self._recurrent_states_indices
+        result = state in self.__recurrent_states_indices
 
         return result
 
@@ -1169,7 +1169,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        result = state in self._transient_states_indices
+        result = state in self.__transient_states_indices
 
         return result
 
@@ -1363,14 +1363,13 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
-    def redistribute(self, steps: int, initial_status: ostatus = None, include_initial: bool = False, output_last: bool = True) -> tlist_array:
+    def redistribute(self, steps: int, initial_status: ostatus = None, output_last: bool = True) -> tredists:
 
         """
         The method simulates a redistribution of states of *N* steps.
 
         :param steps: the number of steps.
         :param initial_status: the initial state or the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
-        :param include_initial: a boolean indicating whether to include the initial distribution in the output sequence (by default, False).
         :param output_last: a boolean indicating whether to the output only the last distributions (by default, True).
         :return: the sequence of redistributions produced by the simulation.
         :raises ValidationError: if any input argument is not compliant.
@@ -1378,32 +1377,16 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            steps = validate_integer(steps, lower_limit=(0, True))
+            steps = validate_integer(steps, lower_limit=(1, False))
             initial_status = np.ones(self._size, dtype=float) / self._size if initial_status is None else validate_status(initial_status, self._states)
-            include_initial = validate_boolean(include_initial)
             output_last = validate_boolean(output_last)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        distributions = np.zeros((steps, self._size), dtype=float)
+        value = redistribute(self, steps, initial_status, output_last)
 
-        for i in range(steps):
-
-            if i == 0:
-                distributions[i, :] = initial_status.dot(self._p)
-            else:
-                distributions[i, :] = distributions[i - 1, :].dot(self._p)
-
-            distributions[i, :] /= np.sum(distributions[i, :])
-
-        if output_last:
-            distributions = distributions[-1:, :]
-
-        if include_initial:
-            distributions = np.vstack((initial_status, distributions))
-
-        return [np.ravel(x) for x in np.split(distributions, distributions.shape[0])]
+        return value
 
     def sensitivity(self, state: tstate) -> oarray:
 
@@ -1447,7 +1430,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        value = time_correlations(self, self._rdl_decomposition, walk1, walk2, time_points)
+        value = time_correlations(self, self.__rdl_decomposition, walk1, walk2, time_points)
 
         return value
 
@@ -1472,7 +1455,7 @@ class MarkovChain(metaclass=BaseClass):
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
 
-        value = time_relaxations(self, self._rdl_decomposition, walk, initial_distribution, time_points)
+        value = time_relaxations(self, self.__rdl_decomposition, walk, initial_distribution, time_points)
 
         return value
 
@@ -1514,8 +1497,8 @@ class MarkovChain(metaclass=BaseClass):
         :return: a Markov chain.
         """
 
-        p, _ = canonical(self._p, self._recurrent_states_indices, self._transient_states_indices)
-        states = [*map(self._states.__getitem__, self._transient_states_indices + self._recurrent_states_indices)]
+        p, _ = canonical(self._p, self.__recurrent_states_indices, self.__transient_states_indices)
+        states = [*map(self._states.__getitem__, self.__transient_states_indices + self.__recurrent_states_indices)]
         mc = MarkovChain(p, states)
 
         return mc

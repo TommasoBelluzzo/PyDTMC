@@ -155,7 +155,7 @@ texinfo_documents = [(master_doc, project, project_title, author, project, 'A fr
 # FUNCTIONS #
 #############
 
-def process_intersphinx_aliases(app):
+def _process_intersphinx_aliases(app):
 
     inventories = InventoryAdapter(app.builder.env)
 
@@ -184,4 +184,4 @@ def process_intersphinx_aliases(app):
 def setup(app):
 
     app.add_config_value('intersphinx_aliases', {}, 'env')
-    app.connect('builder-inited', process_intersphinx_aliases)
+    app.connect('builder-inited', _process_intersphinx_aliases)

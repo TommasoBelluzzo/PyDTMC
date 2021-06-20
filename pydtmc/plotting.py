@@ -48,10 +48,10 @@ from .validation import *
 # CONSTANTS #
 #############
 
-color_black = '#000000'
-color_gray = '#E0E0E0'
-color_white = '#FFFFFF'
-colors = ['#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#FB8072', '#FCCDE5']
+_color_black = '#000000'
+_color_gray = '#E0E0E0'
+_color_white = '#FFFFFF'
+_colors = ['#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#FB8072', '#FCCDE5']
 
 
 #############
@@ -177,14 +177,14 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
 
     def node_colors(count: int) -> tlist_str:
 
-        colors_limit = len(colors) - 1
+        colors_limit = len(_colors) - 1
         offset = 0
 
         clist = list()
 
         while count > 0:
 
-            clist.append(colors[offset])
+            clist.append(_colors[offset])
             offset += 1
 
             if offset > colors_limit:  # pragma: no cover
@@ -250,7 +250,7 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
                     node.set_shape('ellipse')
 
         if edges_color:
-            c = edge_colors(color_gray, color_black, 20)
+            c = edge_colors(_color_gray, _color_black, 20)
             for edge in g_pydot.get_edges():
                 probability = mc.transition_probability(edge.get_destination(), edge.get_source())
                 x = int(round(probability * 20.0)) - 1
@@ -362,19 +362,19 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
         raise generate_validation_error(e, trace()) from None
 
     if isinstance(distributions, int):
-        distributions = mc.redistribute(distributions, initial_status=initial_status, include_initial=True, output_last=False)
+        distributions = mc.redistribute(distributions, initial_status=initial_status, output_last=False)
 
     if initial_status is not None and not np.array_equal(distributions[0], initial_status):  # pragma: no cover
         raise ValueError('The "initial_status" parameter, if specified when the "distributions" parameter represents a sequence of redistributions, must match the first element.')
 
-    distributions_len = len(distributions)
-    distributions = np.array(distributions)
+    distributions_len = 1 if isinstance(distributions, np.ndarray) else len(distributions)
+    distributions = np.array([distributions]) if isinstance(distributions, np.ndarray) else np.array(distributions)
 
     figure, ax = pp.subplots(dpi=dpi)
 
     if plot_type == 'heatmap':
 
-        color_map = mplc.LinearSegmentedColormap.from_list('ColorMap', [color_white, colors[0]], 20)
+        color_map = mplc.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
         ax_is = ax.imshow(np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         ax.set_xlabel('Steps', fontsize=13.0)
@@ -396,7 +396,7 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
 
     else:
 
-        ax.set_prop_cycle('color', colors)
+        ax.set_prop_cycle('color', _colors)
 
         if distributions_len == 2:
             for i in range(mc.size):
@@ -406,7 +406,7 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
                 ax.plot(np.arange(0.0, distributions_len, 1.0), distributions[:, i], label=mc.states[i])
 
         if np.allclose(distributions[0, :], np.ones(mc.size, dtype=float) / mc.size):
-            ax.plot(0.0, distributions[0, 0], color=color_black, label="Start", marker='o', markeredgecolor=color_black, markerfacecolor=color_black)
+            ax.plot(0.0, distributions[0, 0], color=_color_black, label="Start", marker='o', markeredgecolor=_color_black, markerfacecolor=_color_black)
             legend_size = mc.size + 1
         else:  # pragma: no cover
             legend_size = mc.size
@@ -454,7 +454,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
         mc = validate_markov_chain(mc)
 
         if isinstance(walk, (int, np.integer)):
-            walk = validate_integer(walk, lower_limit=(2, False)) if initial_state is None else validate_integer(walk, lower_limit=(1, False))
+            walk = validate_integer(walk, lower_limit=(1, False))
         else:
             walk = validate_states(walk, mc.states, 'walk', False)
 
@@ -486,7 +486,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
 
         walk_histogram = np.sum(walk_histogram, axis=1) / np.sum(walk_histogram)
 
-        ax.bar(np.arange(0.0, mc.size, 1.0), walk_histogram, edgecolor=color_black, facecolor=colors[0])
+        ax.bar(np.arange(0.0, mc.size, 1.0), walk_histogram, edgecolor=_color_black, facecolor=_colors[0])
 
         ax.set_xlabel('States', fontsize=13.0)
         ax.set_xticks(np.arange(0.0, mc.size, 1.0))
@@ -505,7 +505,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
         for i, s in enumerate(walk):
             walk_sequence[s, i] = 1.0
 
-        color_map = mplc.LinearSegmentedColormap.from_list('ColorMap', [color_white, colors[0]], 2)
+        color_map = mplc.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 2)
         ax.imshow(walk_sequence, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         ax.set_xlabel('Steps', fontsize=13.0)
@@ -532,7 +532,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
 
         walk_transitions /= np.sum(walk_transitions)
 
-        color_map = mplc.LinearSegmentedColormap.from_list('ColorMap', [color_white, colors[0]], 20)
+        color_map = mplc.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
         ax_is = ax.imshow(walk_transitions, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         ax.set_xticks(np.arange(0.0, mc.size, 1.0), minor=False)

@@ -23,6 +23,26 @@
         "value": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
       }
     ],
+    "redistribute_data": [
+      {
+        "steps": 8,
+        "initial_status": null,
+        "output_last": true,
+        "value": [[0.5, 0.5]]
+      },
+      {
+        "steps": 3,
+        "initial_status": 0,
+        "output_last": false,
+        "value": [[1.0, 0.0], [1.0, 0.0], [1.0, 0.0], [1.0, 0.0]]
+      },
+      {
+        "steps": 3,
+        "initial_status": [0.25, 0.75],
+        "output_last": false,
+        "value": [[0.25, 0.75], [0.25, 0.75], [0.25, 0.75], [0.25, 0.75]]
+      }
+    ],
     "walk_data": [
       {
         "steps": 17,
@@ -83,6 +103,26 @@
         "initial_state": 1,
         "output_indices": true,
         "value": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+      }
+    ],
+    "redistribute_data": [
+      {
+        "steps": 4,
+        "initial_status": null,
+        "output_last": true,
+        "value": [[0.3474, 0.6526]]
+      },
+      {
+        "steps": 2,
+        "initial_status": 0,
+        "output_last": false,
+        "value": [[1.0, 0.0], [0.15, 0.85], [0.405, 0.595]]
+      },
+      {
+        "steps": 2,
+        "initial_status": [0.6, 0.4],
+        "output_last": false,
+        "value": [[0.6, 0.4], [0.27, 0.73], [0.369, 0.631]]
       }
     ],
     "walk_data": [
@@ -147,6 +187,26 @@
         "value": [2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0]
       }
     ],
+    "redistribute_data": [
+      {
+        "steps": 17,
+        "initial_status": null,
+        "output_last": true,
+        "value": [[0.13937345, 0.72125311, 0.13937345]]
+      },
+      {
+        "steps": 4,
+        "initial_status": 0,
+        "output_last": false,
+        "value": [[1.0, 0.0, 0.0], [0.2, 0.05, 0.75], [0.6025, 0.0975, 0.3], [0.3455, 0.142625, 0.511875], [0.45300625, 0.18549375, 0.3615]]
+      },
+      {
+        "steps": 4,
+        "initial_status": [0.3, 0.3, 0.4],
+        "output_last": false,
+        "value": [[0.3, 0.3, 0.4], [0.36, 0.335, 0.305], [0.30075, 0.36825, 0.331], [0.3084, 0.3998375, 0.2917625], [0.28050188, 0.42984563, 0.2896525]]
+      }
+    ],
     "walk_data": [
       {
         "steps": 35,
@@ -207,6 +267,26 @@
         "initial_state": 2,
         "output_indices": true,
         "value": null
+      }
+    ],
+    "redistribute_data": [
+      {
+        "steps": 13,
+        "initial_status": null,
+        "output_last": true,
+        "value": [[0.28571429, 0.42857143, 0.28571429]]
+      },
+      {
+        "steps": 2,
+        "initial_status": 0,
+        "output_last": false,
+        "value": [[1.0, 0.0, 0.0], [0.5, 0.5, 0.0], [0.41666667, 0.41666667, 0.16666667]]
+      },
+      {
+        "steps": 2,
+        "initial_status": [0.1, 0.8, 0.1],
+        "output_last": false,
+        "value": [[0.1, 0.8, 0.1], [0.31666667, 0.36666667, 0.31666667], [0.28055556, 0.43888889, 0.28055556]]
       }
     ],
     "walk_data": [
@@ -271,6 +351,26 @@
         "value": [2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1]
       }
     ],
+    "redistribute_data": [
+      {
+        "steps": 23,
+        "initial_status": null,
+        "output_last": true,
+        "value": [[0.26612903, 0.39516129, 0.33870968]]
+      },
+      {
+        "steps": 3,
+        "initial_status": 1,
+        "output_last": false,
+        "value": [[0.0, 1.0, 0.0], [0.3, 0.1, 0.6], [0.24, 0.52, 0.24], [0.276, 0.34, 0.384]]
+      },
+      {
+        "steps": 3,
+        "initial_status": [0.5, 0.2, 0.3],
+        "output_last": false,
+        "value": [[0.5, 0.2, 0.3], [0.27, 0.52, 0.21], [0.279, 0.346, 0.375], [0.2625, 0.4174, 0.3201]]
+      }
+    ],
     "walk_data": [
       {
         "steps": 12,
@@ -331,6 +431,26 @@
         "initial_state": 2,
         "output_indices": true,
         "value": [2, 1, 0, 2, 1, 0, 2, 1, 0, 2, 1, 0]
+      }
+    ],
+    "redistribute_data": [
+      {
+        "steps": 49,
+        "initial_status": null,
+        "output_last": true,
+        "value": [[0.33333333, 0.33333333, 0.33333333]]
+      },
+      {
+        "steps": 3,
+        "initial_status": 0,
+        "output_last": false,
+        "value": [[1.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0]]
+      },
+      {
+        "steps": 3,
+        "initial_status": [0.2, 0.55, 0.25],
+        "output_last": false,
+        "value": [[0.2, 0.55, 0.25], [0.55, 0.25, 0.2], [0.25, 0.2, 0.55], [0.2, 0.55, 0.25]]
       }
     ],
     "walk_data": [
@@ -395,6 +515,26 @@
         "value": null
       }
     ],
+    "redistribute_data": [
+      {
+        "steps": 35,
+        "initial_status": null,
+        "output_last": true,
+        "value": [[0.40716626, 0.2850112, 0.25651971, 0.05130283]]
+      },
+      {
+        "steps": 1,
+        "initial_status": 1,
+        "output_last": false,
+        "value": [[0.0, 1.0, 0.0, 0.0], [0.1, 0.0, 0.9, 0.0]]
+      },
+      {
+        "steps": 1,
+        "initial_status": [0.3, 0.1, 0.1, 0.5],
+        "output_last": false,
+        "value": [[0.3, 0.1, 0.1, 0.5], [0.44, 0.21, 0.09, 0.26]]
+      }
+    ],
     "walk_data": [
       {
         "steps": 4,
@@ -439,7 +579,7 @@
     "seed": 7331,
     "predict_data": [
       {
-        "steps": 14,
+        "steps": 9,
         "initial_state": null,
         "output_indices": false,
         "value": null
@@ -455,6 +595,26 @@
         "initial_state": 4,
         "output_indices": true,
         "value": null
+      }
+    ],
+    "redistribute_data": [
+      {
+        "steps": 14,
+        "initial_status": null,
+        "output_last": true,
+        "value": [[0.075, 0.2, 0.45, 0.2, 0.075]]
+      },
+      {
+        "steps": 3,
+        "initial_status": 2,
+        "output_last": false,
+        "value": [[0.0, 0.0, 1.0, 0.0, 0.0], [0.0, 0.5, 0.0, 0.5, 0.0], [0.125, 0.0, 0.75, 0.0, 0.125], [0.0, 0.5, 0.0, 0.5, 0.0]]
+      },
+      {
+        "steps": 3,
+        "initial_status": [0.0, 0.0, 1.0, 0.0, 0.0],
+        "output_last": false,
+        "value": [[0.0, 0.0, 1.0, 0.0, 0.0], [0.0, 0.5, 0.0, 0.5, 0.0], [0.125, 0.0, 0.75, 0.0, 0.125], [0.0, 0.5, 0.0, 0.5, 0.0]]
       }
     ],
     "walk_data": [
@@ -519,6 +679,26 @@
         "value": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
       }
     ],
+    "redistribute_data": [
+      {
+        "steps": 3,
+        "initial_status": null,
+        "output_last": true,
+        "value": [[0.499, 0.05915, 0.091, 0.03185, 0.319]]
+      },
+      {
+        "steps": 3,
+        "initial_status": 3,
+        "output_last": false,
+        "value": [[0.0, 0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.65, 0.0, 0.35], [0.0, 0.4225, 0.0, 0.2275, 0.35], [0.274625, 0.0, 0.29575, 0.0, 0.429625]]
+      },
+      {
+        "steps": 3,
+        "initial_status": [0.2, 0.2, 0.2, 0.2, 0.2],
+        "output_last": false,
+        "value": [[0.2, 0.2, 0.2, 0.2, 0.2], [0.33, 0.13, 0.2, 0.07, 0.27], [0.4145, 0.13, 0.091, 0.07, 0.2945], [0.499, 0.05915, 0.091, 0.03185, 0.319]]
+      }
+    ],
     "walk_data": [
       {
         "steps": 10,
@@ -579,6 +759,26 @@
         "initial_state": 3,
         "output_indices": true,
         "value": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+      }
+    ],
+    "redistribute_data": [
+      {
+        "steps": 26,
+        "initial_status": null,
+        "output_last": true,
+        "value": [[0.02575703, 0.25757027, 0.13984749, 0.18492209, 0.24568245, 0.14622067]]
+      },
+      {
+        "steps": 4,
+        "initial_status": 3,
+        "output_last": false,
+        "value": [[0.0, 0.0, 0.0, 1.0, 0.0, 0.0], [0.0, 0.3, 0.0, 0.7, 0.0, 0.0], [0.03, 0.24, 0.03, 0.52, 0.03, 0.15], [0.024, 0.216, 0.0525, 0.397, 0.183, 0.1275], [0.0216, 0.24225, 0.0876, 0.3226, 0.204, 0.12195]]
+      },
+      {
+        "steps": 4,
+        "initial_status": [0.2, 0.1, 0.15, 0.2, 0.05, 0.3],
+        "output_last": false,
+        "value": [[0.2, 0.1, 0.15, 0.2, 0.05, 0.3], [0.01, 0.2275, 0.15, 0.195, 0.325, 0.0925], [0.02275, 0.2875, 0.15125, 0.19375, 0.21275, 0.132], [0.02875, 0.257775, 0.1397625, 0.1902, 0.224575, 0.1589375], [0.0257775, 0.25248375, 0.13666, 0.187125, 0.2520875, 0.14586625]]
       }
     ],
     "walk_data": [

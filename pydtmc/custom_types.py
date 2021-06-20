@@ -38,6 +38,7 @@ __all__ = [
     'tplot', 'oplot',
     'trand', 'orand',
     'trdl', 'ordl',
+    'tredists', 'oredists',
     'tstate', 'ostate',
     'tstates', 'ostates',
     'tstatus', 'ostatus',
@@ -196,6 +197,9 @@ orand = Optional[trand]
 
 trdl = Tuple[tarray, tarray, tarray]
 ordl = Optional[trdl]
+
+tredists = Union[tarray, tlist_array]
+oredists = Optional[tredists]
 
 tstate = Union[int, str]
 ostate = Optional[tstate]

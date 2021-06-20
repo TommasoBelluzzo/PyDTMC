@@ -11,21 +11,21 @@ PyDTMC supports only `Python 3` and the minimum required version is `3.6`. In ad
 * [Numpy](https://www.numpy.org/)
 * [SciPy](https://www.scipy.org/)
 
-For a better user experience, it's recommended to install [Graphviz](https://www.graphviz.org/) and [PyDot](https://pypi.org/project/pydot/) before using the `plot_graph` function.
+For a better user experience, it's recommended to install [Graphviz](https://www.graphviz.org/) and [pydot](https://pypi.org/project/pydot/) before using the `plot_graph` function.
 In order to build the project documentation, it's necessary to install [Sphinx](https://www.sphinx-doc.org/).
-In order to perform unit tests, it's necessary to install [PyTest](https://pytest.org/).
+In order to perform unit tests, it's necessary to install [pytest](https://pytest.org/).
 
 
 ## Installation & Upgrade
 
-Via PyPI:
+[PyPI](https://pypi.org/):
 
 ```sh
 $ pip install PyDTMC
 $ pip install --upgrade PyDTMC
 ```
 
-Via GitHub:
+[GitHub](https://github.com/):
 
 ```sh
 $ pip install git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=PyDTMC

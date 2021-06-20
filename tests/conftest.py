@@ -23,7 +23,7 @@ from json import (
 # CONSTANTS #
 #############
 
-replacements = [
+_replacements = [
     ('NaN', float('nan')),
     ('-Infinity', float('-inf')),
     ('Infinity', float('inf'))
@@ -34,20 +34,20 @@ replacements = [
 # CACHING #
 ###########
 
-fixtures = {}
+_fixtures = {}
 
 
 #############
 # FUNCTIONS #
 #############
 
-def sanitize_fixture_recursive(element, replacements):
+def _sanitize_fixture_recursive(element, replacements):
 
     if isinstance(element, dict):
-        return {key: sanitize_fixture_recursive(value, replacements) for key, value in element.items()}
+        return {key: _sanitize_fixture_recursive(value, replacements) for key, value in element.items()}
 
     if isinstance(element, list):
-        return [sanitize_fixture_recursive(item, replacements) for item in element]
+        return [_sanitize_fixture_recursive(item, replacements) for item in element]
 
     for replacement in replacements:
         if element == replacement[0]:
@@ -56,7 +56,7 @@ def sanitize_fixture_recursive(element, replacements):
     return element
 
 
-def parse_fixture_dictionary(fixture, fixture_names, subtest_name):
+def _parse_fixture_dictionary(fixture, fixture_names, subtest_name):
 
     values = []
     ids = []
@@ -90,7 +90,7 @@ def parse_fixture_dictionary(fixture, fixture_names, subtest_name):
     return values, ids
 
 
-def parse_fixture_list(fixture, fixture_names, subtest_name):
+def _parse_fixture_list(fixture, fixture_names, subtest_name):
 
     values = []
     ids = []
@@ -152,21 +152,21 @@ def pytest_generate_tests(metafunc):
     test_index = module.find('_') + 1
     test_name = module[test_index:]
 
-    if test_name not in fixtures:
+    if test_name not in _fixtures:
 
         base_directory = abspath(dirname(__file__))
         fixtures_file = join(base_directory, f'fixtures/fixtures_{test_name}.json')
 
         if not isfile(fixtures_file):
-            fixtures[test_name] = None
+            _fixtures[test_name] = None
         else:
 
             with open(fixtures_file, 'r') as file:
                 fixture = load(file)
-                fixture = sanitize_fixture_recursive(fixture, replacements)
-                fixtures[test_name] = fixture
+                fixture = _sanitize_fixture_recursive(fixture, _replacements)
+                _fixtures[test_name] = fixture
 
-    fixture = fixtures[test_name]
+    fixture = _fixtures[test_name]
 
     values = []
     ids = []
@@ -174,8 +174,8 @@ def pytest_generate_tests(metafunc):
     if len(names) > 0 and mark is None and fixture is not None and len(fixture) > 0:
 
         if isinstance(fixture, dict):
-            values, ids = parse_fixture_dictionary(fixture, names, func)
+            values, ids = _parse_fixture_dictionary(fixture, names, func)
         elif isinstance(fixture, list):
-            values, ids = parse_fixture_list(fixture, names, func)
+            values, ids = _parse_fixture_list(fixture, names, func)
 
     metafunc.parametrize(names, values, False, ids)

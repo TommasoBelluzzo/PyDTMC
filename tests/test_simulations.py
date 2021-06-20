@@ -5,6 +5,11 @@
 # IMPORTS #
 ###########
 
+# Full
+
+import numpy as np
+import numpy.testing as npt
+
 # Partial
 
 from pydtmc import (
@@ -24,6 +29,30 @@ def test_predict(p, seed, steps, initial_state, output_indices, value):
     expected = value
 
     assert actual == expected
+
+
+def test_redistribute(p, steps, initial_status, output_last, value):
+
+    mc = MarkovChain(p)
+
+    r = mc.redistribute(steps, initial_status, output_last)
+    r = r if isinstance(r, list) else [r]
+
+    actual = np.vstack(r)
+    expected = np.asarray(value)
+
+    npt.assert_allclose(actual, expected)
+
+    if initial_status is not None:
+
+        actual = r[0]
+
+        if isinstance(initial_status, int):
+            expected = np.eye(mc.size, dtype=float)[initial_status]
+        else:
+            expected = initial_status
+
+        npt.assert_allclose(actual, expected)
 
 
 def test_walk(p, seed, steps, initial_state, final_state, output_indices, value):

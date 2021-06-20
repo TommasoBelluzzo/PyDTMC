@@ -2,6 +2,7 @@
 
 __all__ = [
     'predict',
+    'redistribute',
     'simulate',
     'walk_probability'
 ]
@@ -39,6 +40,28 @@ def predict(mc: tmc, steps: int, initial_state: int) -> olist_int:
 
         current_state = d_max.item()
         value.append(current_state)
+
+    return value
+
+
+def redistribute(mc: tmc, steps: int, initial_status: tarray, output_last: bool) -> tredists:
+
+    value = np.zeros((steps + 1, mc.size), dtype=float)
+    value[0, :] = initial_status
+
+    for i in range(1, steps + 1):
+
+        if i == 0:
+            value[i, :] = initial_status.dot(mc.p)
+        else:
+            value[i, :] = value[i - 1, :].dot(mc.p)
+
+        value[i, :] /= np.sum(value[i, :])
+
+    if output_last:
+        return value[-1]
+
+    value = [np.ravel(distribution) for distribution in np.split(value, value.shape[0])]
 
     return value
 

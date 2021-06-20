@@ -193,9 +193,9 @@ def find_lumping_partitions(p: tarray) -> tparts:
 
         r = np.zeros((size, len(partition)), dtype=float)
 
-        for i, lumping in enumerate(partition):
+        for index, lumping in enumerate(partition):
             for state in lumping:
-                r[state, i] = 1.0
+                r[state, index] = 1.0
 
         # noinspection PyBroadException
         try:
