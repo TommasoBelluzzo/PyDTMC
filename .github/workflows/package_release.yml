@@ -34,14 +34,6 @@ jobs:
     - name: Build
       run: python setup.py sdist bdist_wheel
     - name: Version Change
-      run: |
-        VERSION="${{ github.event.inputs.version }}"
-        VERSION_FILE="pydtmc/__init__.py"
-        VERSION_REGEX="__version__[[:space:]]=[[:space:]]'[[:digit:]]\.[[:digit:]]\.[[:digit:]]'"
-        grep $VERSION_REGEX $VERSION_FILE
-        sed -i "s/$VERSION_REGEX/__version__ = '$VERSION'/g" $VERSION_FILE
-        grep $VERSION_REGEX $VERSION_FILE
-    - name: Version Change
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -52,6 +44,6 @@ jobs:
         sed -i "s/$VERSION_REGEX/__version__ = '$VERSION'/g" $VERSION_FILE
         grep $VERSION_REGEX $VERSION_FILE
         git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}
-        git add pydtmc/__init__.py
+        git add $VERSION_FILE
         git commit -m "Release"
         git push
