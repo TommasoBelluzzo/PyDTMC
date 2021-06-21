@@ -49,3 +49,9 @@ jobs:
         git commit -m "Release"
         git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}
         git push
+    - name: PyPI Publish
+      env:
+        TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: twine upload dist/*
