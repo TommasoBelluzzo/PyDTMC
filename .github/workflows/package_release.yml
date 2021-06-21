@@ -31,8 +31,6 @@ jobs:
         pip install setuptools
         pip install wheel
         pip install twine
-    - name: Build
-      run: python setup.py sdist bdist_wheel
     - name: Version Change
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -49,6 +47,8 @@ jobs:
         git commit -m "Release"
         git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}
         git push
+    - name: Build
+      run: python setup.py sdist bdist_wheel
     - name: PyPI Publish
       env:
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
