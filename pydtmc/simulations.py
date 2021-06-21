@@ -50,12 +50,7 @@ def redistribute(mc: tmc, steps: int, initial_status: tarray, output_last: bool)
     value[0, :] = initial_status
 
     for i in range(1, steps + 1):
-
-        if i == 0:
-            value[i, :] = initial_status.dot(mc.p)
-        else:
-            value[i, :] = value[i - 1, :].dot(mc.p)
-
+        value[i, :] = value[i - 1, :].dot(mc.p)
         value[i, :] /= np.sum(value[i, :])
 
     if output_last:

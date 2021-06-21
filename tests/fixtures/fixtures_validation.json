@@ -1,0 +1,180 @@
+{
+  "validate_boolean_data": [
+    {
+      "value": false,
+      "is_valid": true
+    },
+    {
+      "value": true,
+      "is_valid": true
+    },
+    {
+      "value": null,
+      "is_valid": false
+    },
+    {
+      "value": 0.0,
+      "is_valid": false
+    },
+    {
+      "value": 1.0,
+      "is_valid": false
+    },
+    {
+      "value": 0,
+      "is_valid": false
+    },
+    {
+      "value": 1,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "is_valid": false
+    },
+    {
+      "value": {},
+      "is_valid": false
+    },
+    {
+      "value": "true",
+      "is_valid": false
+    }
+  ],
+  "validate_boundary_condition_data": [
+    {
+      "value": 0.0,
+      "is_valid": true
+    },
+    {
+      "value": 0.47,
+      "is_valid": true
+    },
+    {
+      "value": 1.0,
+      "is_valid": true
+    },
+    {
+      "value": 0,
+      "is_valid": true
+    },
+    {
+      "value": 1,
+      "is_valid": true
+    },
+    {
+      "value": "absorbing",
+      "is_valid": true
+    },
+    {
+      "value": null,
+      "is_valid": false
+    },
+    {
+      "value": 4.73,
+      "is_valid": false
+    },
+    {
+      "value": "boundary",
+      "is_valid": false
+    },
+    {
+      "value": [0.6],
+      "is_valid": false
+    }
+  ],
+  "validate_dpi_data": [
+    {
+      "value": 75,
+      "is_valid": true
+    },
+    {
+      "value": 150,
+      "is_valid": true
+    },
+    {
+      "value": 200,
+      "is_valid": true
+    },
+    {
+      "value": 0,
+      "is_valid": false
+    },
+    {
+      "value": 75.0,
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "is_valid": false
+    },
+    {
+      "value": "200",
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "is_valid": false
+    },
+    {
+      "value": [150],
+      "is_valid": false
+    },
+    {
+      "value": [150.0],
+      "is_valid": false
+    }
+  ],
+  "validate_enumerator_data": [
+    {
+      "value": "a",
+      "possible_values": ["a", "b", "c"],
+      "is_valid": true
+    },
+    {
+      "value": "C",
+      "possible_values": ["A", "B", "C"],
+      "is_valid": true
+    },
+    {
+      "value": "A",
+      "possible_values": ["a", "b", "c"],
+      "is_valid": false
+    },
+    {
+      "value": "V1",
+      "possible_values": ["V1", "V2", null, "V3", -3.8],
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "possible_values": ["a", "b", "c"],
+      "is_valid": false
+    },
+    {
+      "value": 6.166667,
+      "possible_values": ["a", "b", "c"],
+      "is_valid": false
+    },
+    {
+      "value": 17,
+      "possible_values": ["a", "b", "c"],
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "possible_values": ["a", "b", "c"],
+      "is_valid": false
+    },
+    {
+      "value": [""],
+      "possible_values": ["a", "b", "c"],
+      "is_valid": false
+    },
+    {
+      "value": ["a"],
+      "possible_values": ["a", "b", "c"],
+      "is_valid": false
+    }
+  ]
+}

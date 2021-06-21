@@ -141,7 +141,7 @@ olists_str = Optional[tlists_str]
 
 # Specific
 
-tbcond = Union[float, str]
+tbcond = Union[float, int, str]
 obcond = Optional[tbcond]
 
 tcache = Dict[str, tany]

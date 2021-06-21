@@ -1468,7 +1468,7 @@ class MarkovChain(metaclass=BaseClass):
         | **Aliases:** to_bounded
 
         :param boundary_condition:
-         - a float representing the first probability of the semi-reflecting condition;
+         - a number representing the first probability of the semi-reflecting condition;
          - a string representing the boundary condition type (either absorbing or reflecting).
         :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
@@ -2059,7 +2059,7 @@ class MarkovChain(metaclass=BaseClass):
 
         for i in range(p_size):
 
-            if np.isclose(p_sums[i], 0.0):
+            if np.isclose(p_sums[i], 0.0):  # pragma: no cover
                 p[i, :] = np.ones(p.shape[0], dtype=float) / p_size
             else:
                 p[i, :] /= p_sums[i]

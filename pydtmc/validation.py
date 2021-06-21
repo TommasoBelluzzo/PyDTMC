@@ -111,25 +111,25 @@ def validate_boolean(value: tany) -> bool:
     raise TypeError('The "@arg@" parameter must be a boolean value.')
 
 
-def validate_boundary_condition(boundary_condition: tany) -> tbcond:
+def validate_boundary_condition(value: tany) -> tbcond:
 
-    if isinstance(boundary_condition, (float, np.floating)):
+    if isinstance(value, (float, int, np.floating, np.integer)):
 
-        boundary_condition = float(boundary_condition)
+        value = float(value)
 
-        if (boundary_condition < 0.0) or (boundary_condition > 1.0):
-            raise ValueError('The "@arg@" parameter, when specified as a float, must have a value between 0 and 1.')
+        if (value < 0.0) or (value > 1.0):
+            raise ValueError('The "@arg@" parameter, when specified as a number, must have a value between 0 and 1.')
 
-        return boundary_condition
+        return value
 
-    if isinstance(boundary_condition, str):
+    if isinstance(value, str):
 
         possible_values = ['absorbing', 'reflecting']
 
-        if boundary_condition not in possible_values:
+        if value not in possible_values:
             raise ValueError(f'The "@arg@" parameter, when specified as a string, must have one of the following values: {", ".join(possible_values)}.')
 
-        return boundary_condition
+        return value
 
     raise TypeError('The "@arg@" parameter must be either a float representing the first probability of the semi-reflecting condition or a string representing the boundary condition type.')
 
@@ -215,13 +215,19 @@ def validate_dpi(value: tany) -> int:
 
     value = int(value)
 
-    if value not in [75, 100, 150, 200, 300]:
-        raise ValueError('The "@arg@" parameter must have one of the following values: 75, 100, 150, 200, 300.')
+    possible_values = [75, 100, 150, 200, 300]
+
+    if value not in possible_values:
+        possible_values = [str(possible_value) for possible_value in possible_values]
+        raise ValueError(f'The "@arg@" parameter must have one of the following values: {", ".join(possible_values)}.')
 
     return value
 
 
 def validate_enumerator(value: tany, possible_values: tlist_str) -> str:
+
+    if not all(isinstance(possible_value, str) and len(possible_value) > 0 for possible_value in possible_values):
+        raise ValueError('The list of possible enumerator values must contain only non-empty strings.')
 
     if not isinstance(value, str):
         raise TypeError('The "@arg@" parameter must be a string value.')
