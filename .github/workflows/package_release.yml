@@ -43,8 +43,8 @@ jobs:
         grep $VERSION_REGEX $VERSION_FILE
         sed -i "s/$VERSION_REGEX/__version__ = '$VERSION'/g" $VERSION_FILE
         grep $VERSION_REGEX $VERSION_FILE
-        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
+        git config --local user.name "${{ secrets.BOT_USERNAME }}"
+        git config --local user.email ${{ secrets.BOT_EMAIL }}
         git add $VERSION_FILE
         git commit -m "Release"
         git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}
