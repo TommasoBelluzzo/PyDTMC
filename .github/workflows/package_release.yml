@@ -28,7 +28,7 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install -r requirements.txt --use-feature=in-tree-build
-        pip install setuptool
+        pip install setuptools
         pip install wheel
         pip install twine
     - name: Build
