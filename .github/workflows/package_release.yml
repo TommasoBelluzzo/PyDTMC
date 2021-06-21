@@ -36,7 +36,7 @@ jobs:
       run: |
         VERSION="${{ github.event.inputs.version }}"
         VERSION_FILE="pydtmc/__init__.py"
-        VERSION_PLACEHOLDER="__version__ = \'\d\.\d.\d'"
+        VERSION_PLACEHOLDER="__version__ = '\d\.\d.\d'"
         grep "$VERSION_PLACEHOLDER" "$VERSION_FILE"
         sed -i "s/$VERSION_PLACEHOLDER/__version__ = '\"${VERSION}\"'/g" "$VERSION_FILE"
   
