@@ -36,8 +36,8 @@ jobs:
       run: |
         echo pwd
         VERSION="${{ github.event.inputs.version }}"
-        VERSION_FILE="__init__.py"
-        VERSION_PLACEHOLDER="__version__ = '\d\.\d.\d'"
-        grep -- "$VERSION_PLACEHOLDER" "$VERSION_FILE"
-        sed -i "s/$VERSION_PLACEHOLDER/__version__ = '\"${VERSION}\"'/g" "$VERSION_FILE"
+        VERSION_FILE="pydtmc/__init__.py"
+        VERSION_REGEX="__version__[[:space:]]=[[:space:]]'[[:digit:]]\.[[:digit:]]\.[[:digit:]]'"
+        grep $VERSION_REGEX $VERSION_FILE
+        sed -i "s/$VERSION_REGEX/__version__ = $VERSION/g" $VERSION_FILE
   
