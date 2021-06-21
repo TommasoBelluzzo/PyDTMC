@@ -74,6 +74,7 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install -r requirements.txt --use-feature=in-tree-build
+        pip install setuptools
         pip install wheel
     - name: Action
       run: python setup.py sdist bdist_wheel
