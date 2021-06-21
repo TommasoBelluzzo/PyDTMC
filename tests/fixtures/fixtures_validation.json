@@ -176,5 +176,171 @@
       "possible_values": ["a", "b", "c"],
       "is_valid": false
     }
+  ],
+  "validate_float_data": [
+    {
+      "value": 0.0,
+      "lower_limit": [0.0, false],
+      "upper_limit": [1.0, false],
+      "is_valid": true
+    },
+    {
+      "value": 0.5,
+      "lower_limit": [0.0, false],
+      "upper_limit": [1.0, false],
+      "is_valid": true
+    },
+    {
+      "value": 1.0,
+      "lower_limit": [0.0, false],
+      "upper_limit": [1.0, false],
+      "is_valid": true
+    },
+    {
+      "value": 0.0,
+      "lower_limit": [0.0, true],
+      "upper_limit": [1.0, true],
+      "is_valid": false
+    },
+    {
+      "value": 0.5,
+      "lower_limit": [0.0, true],
+      "upper_limit": [1.0, true],
+      "is_valid": true
+    },
+    {
+      "value": 1.0,
+      "lower_limit": [0.0, true],
+      "upper_limit": [1.0, true],
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "lower_limit": null,
+      "upper_limit": null,
+      "is_valid": false
+    },
+    {
+      "value": 50,
+      "lower_limit": null,
+      "upper_limit": null,
+      "is_valid": false
+    },
+    {
+      "value": "10.0",
+      "lower_limit": null,
+      "upper_limit": null,
+      "is_valid": false
+    },
+    {
+      "value": true,
+      "lower_limit": null,
+      "upper_limit": null,
+      "is_valid": false
+    }
+  ],
+  "validate_integer_data": [
+    {
+      "value": 0,
+      "lower_limit": [0, false],
+      "upper_limit": [1, false],
+      "is_valid": true
+    },
+    {
+      "value": 1,
+      "lower_limit": [0, false],
+      "upper_limit": [1, false],
+      "is_valid": true
+    },
+    {
+      "value": 0,
+      "lower_limit": [0, true],
+      "upper_limit": [1, true],
+      "is_valid": false
+    },
+    {
+      "value": 1,
+      "lower_limit": [0, true],
+      "upper_limit": [1, true],
+      "is_valid": false
+    },
+    {
+      "value": 5,
+      "lower_limit": [0, false],
+      "upper_limit": null,
+      "is_valid": true
+    },
+    {
+      "value": -5,
+      "lower_limit": [0, false],
+      "upper_limit": null,
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "lower_limit": null,
+      "upper_limit": null,
+      "is_valid": false
+    },
+    {
+      "value": 25.0,
+      "lower_limit": null,
+      "upper_limit": null,
+      "is_valid": false
+    },
+    {
+      "value": "75",
+      "lower_limit": null,
+      "upper_limit": null,
+      "is_valid": false
+    },
+    {
+      "value": true,
+      "lower_limit": null,
+      "upper_limit": null,
+      "is_valid": false
+    }
+  ],
+  "validate_interval_data": [
+    {
+      "value": [0, 10],
+      "is_valid": true
+    },
+    {
+      "value": [5.0, 50.0],
+      "is_valid": true
+    },
+    {
+      "value": [2, 6.5],
+      "is_valid": true
+    },
+    {
+      "value": [-5, 5],
+      "is_valid": false
+    },
+    {
+      "value": [false, true],
+      "is_valid": false
+    },
+    {
+      "value": [0.0, "Infinity"],
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "is_valid": false
+    },
+    {
+      "value": [10, 20, 30],
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "is_valid": false
+    },
+    {
+      "value": 60,
+      "is_valid": false
+    }
   ]
 }

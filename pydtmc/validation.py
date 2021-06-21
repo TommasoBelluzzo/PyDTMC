@@ -315,7 +315,7 @@ def validate_hyperparameter(hyperparameter: tany, size: int) -> tarray:
 
 def validate_integer(value: tany, lower_limit: olimit_int = None, upper_limit: olimit_int = None) -> int:
 
-    if not isinstance(value, (int, np.integer)):
+    if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
         raise TypeError('The "@arg@" parameter must be an integer value.')
 
     value = int(value)
@@ -350,7 +350,7 @@ def validate_interval(interval: tany) -> tinterval:
     a = interval[0]
     b = interval[1]
 
-    if not isinstance(a, (float, int, np.floating, np.integer)) or not isinstance(b, (float, int, np.floating, np.integer)):
+    if isinstance(a, bool) or not isinstance(a, (float, int, np.floating, np.integer)) or isinstance(b, bool) or not isinstance(b, (float, int, np.floating, np.integer)):
         raise ValueError('The "@arg@" parameter must contain only float and integer values.')
 
     a = float(a)
