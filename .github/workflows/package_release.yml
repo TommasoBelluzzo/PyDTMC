@@ -3,7 +3,7 @@ name: Package Release
 on:
   workflow_dispatch:
     inputs:
-      name:
+      version:
         description: 'Release Version:'
         required: true
 
