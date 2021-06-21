@@ -38,6 +38,6 @@ jobs:
         VERSION_FILE="pydtmc/__init__.py"
         VERSION_REGEX="__version__[[:space:]]=[[:space:]]'[[:digit:]]\.[[:digit:]]\.[[:digit:]]'"
         grep $VERSION_REGEX $VERSION_FILE
-        sed -i "s/$VERSION_REGEX/__version__ = $VERSION/g" $VERSION_FILE
-        cat $VERSION_FILE
+        sed -i "s/$VERSION_REGEX/__version__ = '$VERSION'/g" $VERSION_FILE
+        grep $VERSION_REGEX $VERSION_FILE
   
