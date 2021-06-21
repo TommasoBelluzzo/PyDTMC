@@ -34,7 +34,7 @@ jobs:
       run: python setup.py sdist bdist_wheel
     - name: Version Change
       run: |
-        VERSION=${{ github.event.inputs.version }}
+        VERSION="${{ github.event.inputs.version }}"
         VERSION_FILE="pydtmc/__init__.py"
         VERSION_PLACEHOLDER="__version__ = \'\d\.\d.\d'"
         grep "$VERSION_PLACEHOLDER" "$VERSION_FILE"
