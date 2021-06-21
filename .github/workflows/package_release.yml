@@ -1,0 +1,40 @@
+name: Package Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'The version of the new release.'
+        required: true
+
+jobs:
+  release:
+    name: Release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        language: [ python ]
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v2
+    - name: Python Setup
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+        architecture: x64
+    - name: Dependencies Installation
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt --use-feature=in-tree-build
+        pip install wheel
+        pip install twine
+    - name: Version Change
+      run: |
+        VERSION=${{ github.event.inputs.version }}
+        VERSION_FILE='pydtmc/__init__.py'
+        VERSION_PLACEHOLDER='__version__ = \'\d\.\d.\d\''
+        grep "$VERSION_PLACEHOLDER" "$VERSION_FILE"
+        sed -i "s/$VERSION_PLACEHOLDER/__version__ = \"${VERSION}\"/g" "$VERSION_FILE"
+  
