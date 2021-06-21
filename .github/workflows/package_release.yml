@@ -44,7 +44,7 @@ jobs:
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
         git config --local user.email ${{ secrets.BOT_EMAIL }}
         git add $VERSION_FILE
-        git commit -m "Release"
+        git commit -m "Release ${{ github.event.inputs.version }}"
         git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}
         git push
     - name: Build
