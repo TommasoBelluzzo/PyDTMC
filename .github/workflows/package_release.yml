@@ -28,6 +28,7 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install -r requirements.txt --use-feature=in-tree-build
+        pip install setuptool
         pip install wheel
         pip install twine
     - name: Build
@@ -40,4 +41,17 @@ jobs:
         grep $VERSION_REGEX $VERSION_FILE
         sed -i "s/$VERSION_REGEX/__version__ = '$VERSION'/g" $VERSION_FILE
         grep $VERSION_REGEX $VERSION_FILE
-  
+    - name: Version Change
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        VERSION_FILE="pydtmc/__init__.py"
+        VERSION_REGEX="__version__[[:space:]]=[[:space:]]'[[:digit:]]\.[[:digit:]]\.[[:digit:]]'"
+        grep $VERSION_REGEX $VERSION_FILE
+        sed -i "s/$VERSION_REGEX/__version__ = '$VERSION'/g" $VERSION_FILE
+        grep $VERSION_REGEX $VERSION_FILE
+        git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}
+        git add pydtmc/__init__.py
+        git commit -m "Release"
+        git push
