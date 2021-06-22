@@ -26,7 +26,7 @@ from pytest import (
 # TESTS #
 #########
 
-def test_attributes(p, is_absorbing, is_canonical, is_ergodic, is_reversible, is_symmetric):
+def test_attributes(p, is_absorbing, is_canonical, is_doubly_stochastic, is_ergodic, is_reversible, is_symmetric):
 
     mc = MarkovChain(p)
 
@@ -37,6 +37,11 @@ def test_attributes(p, is_absorbing, is_canonical, is_ergodic, is_reversible, is
 
     actual = mc.is_canonical
     expected = is_canonical
+
+    assert actual == expected
+
+    actual = mc.is_doubly_stochastic
+    expected = is_doubly_stochastic
 
     assert actual == expected
 

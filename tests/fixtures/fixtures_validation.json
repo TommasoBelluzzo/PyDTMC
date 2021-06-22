@@ -29,15 +29,15 @@
       "is_valid": false
     },
     {
-      "value": [],
-      "is_valid": false
-    },
-    {
-      "value": {},
-      "is_valid": false
-    },
-    {
       "value": "true",
+      "is_valid": false
+    },
+    {
+      "value": "Y",
+      "is_valid": false
+    },
+    {
+      "value": [],
       "is_valid": false
     }
   ],
@@ -75,11 +75,11 @@
       "is_valid": false
     },
     {
-      "value": "boundary",
+      "value": true,
       "is_valid": false
     },
     {
-      "value": [0.6],
+      "value": "boundary",
       "is_valid": false
     }
   ],
@@ -101,7 +101,7 @@
       "is_valid": false
     },
     {
-      "value": 75.0,
+      "value": 500,
       "is_valid": false
     },
     {
@@ -109,19 +109,19 @@
       "is_valid": false
     },
     {
+      "value": 75.0,
+      "is_valid": false
+    },
+    {
+      "value": true,
+      "is_valid": false
+    },
+    {
       "value": "200",
       "is_valid": false
     },
     {
-      "value": [],
-      "is_valid": false
-    },
-    {
       "value": [150],
-      "is_valid": false
-    },
-    {
-      "value": [150.0],
       "is_valid": false
     }
   ],
@@ -152,7 +152,7 @@
       "is_valid": false
     },
     {
-      "value": 6.166667,
+      "value": 6.34,
       "possible_values": ["a", "b", "c"],
       "is_valid": false
     },
@@ -162,7 +162,7 @@
       "is_valid": false
     },
     {
-      "value": [],
+      "value": true,
       "possible_values": ["a", "b", "c"],
       "is_valid": false
     },
@@ -197,20 +197,26 @@
       "is_valid": true
     },
     {
-      "value": 0.0,
-      "lower_limit": [0.0, true],
-      "upper_limit": [1.0, true],
-      "is_valid": false
-    },
-    {
       "value": 0.5,
       "lower_limit": [0.0, true],
       "upper_limit": [1.0, true],
       "is_valid": true
     },
     {
-      "value": 1.0,
+      "value": 75.0,
+      "lower_limit": null,
+      "upper_limit": null,
+      "is_valid": true
+    },
+    {
+      "value": 0.0,
       "lower_limit": [0.0, true],
+      "upper_limit": null,
+      "is_valid": false
+    },
+    {
+      "value": 1.0,
+      "lower_limit": null,
       "upper_limit": [1.0, true],
       "is_valid": false
     },
@@ -227,13 +233,7 @@
       "is_valid": false
     },
     {
-      "value": "10.0",
-      "lower_limit": null,
-      "upper_limit": null,
-      "is_valid": false
-    },
-    {
-      "value": true,
+      "value": "Infinity",
       "lower_limit": null,
       "upper_limit": null,
       "is_valid": false
@@ -253,27 +253,33 @@
       "is_valid": true
     },
     {
-      "value": 0,
-      "lower_limit": [0, true],
-      "upper_limit": [1, true],
-      "is_valid": false
-    },
-    {
-      "value": 1,
-      "lower_limit": [0, true],
-      "upper_limit": [1, true],
-      "is_valid": false
-    },
-    {
-      "value": 5,
-      "lower_limit": [0, false],
+      "value": 50,
+      "lower_limit": null,
       "upper_limit": null,
       "is_valid": true
     },
     {
-      "value": -5,
+      "value": 0,
+      "lower_limit": [0, true],
+      "upper_limit": null,
+      "is_valid": false
+    },
+    {
+      "value": 1,
+      "lower_limit": null,
+      "upper_limit": [1, true],
+      "is_valid": false
+    },
+    {
+      "value": -10,
       "lower_limit": [0, false],
       "upper_limit": null,
+      "is_valid": false
+    },
+    {
+      "value": 20,
+      "lower_limit": null,
+      "upper_limit": [10, false],
       "is_valid": false
     },
     {
@@ -284,12 +290,6 @@
     },
     {
       "value": 25.0,
-      "lower_limit": null,
-      "upper_limit": null,
-      "is_valid": false
-    },
-    {
-      "value": "75",
       "lower_limit": null,
       "upper_limit": null,
       "is_valid": false
@@ -315,6 +315,10 @@
       "is_valid": true
     },
     {
+      "value": [8.5, 4.5],
+      "is_valid": false
+    },
+    {
       "value": [-5, 5],
       "is_valid": false
     },
@@ -323,11 +327,7 @@
       "is_valid": false
     },
     {
-      "value": [0.0, "Infinity"],
-      "is_valid": false
-    },
-    {
-      "value": [],
+      "value": [5.0, "Infinity"],
       "is_valid": false
     },
     {
@@ -339,7 +339,101 @@
       "is_valid": false
     },
     {
-      "value": 60,
+      "value": [],
+      "is_valid": false
+    }
+  ],
+  "validate_state_data": [
+    {
+      "value": 0,
+      "current_states": ["1", "2"],
+      "is_valid": true
+    },
+    {
+      "value": 1,
+      "current_states": ["1", "2"],
+      "is_valid": true
+    },
+    {
+      "value": "D",
+      "current_states": ["A", "B", "C", "D", "E"],
+      "is_valid": true
+    },
+    {
+      "value": -1,
+      "current_states": ["1", "2", "3", "4"],
+      "is_valid": false
+    },
+    {
+      "value": 4,
+      "current_states": ["1", "2", "3", "4"],
+      "is_valid": false
+    },
+    {
+      "value": "",
+      "current_states": ["1", "2", "3", "4"],
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "current_states": ["1", "2", "3", "4"],
+      "is_valid": false
+    },
+    {
+      "value": true,
+      "current_states": ["1", "2", "3", "4"],
+      "is_valid": false
+    },
+    {
+      "value": "8",
+      "current_states": ["1", "2", "3", "4"],
+      "is_valid": false
+    },
+    {
+      "value": "b",
+      "current_states": ["A", "B", "C"],
+      "is_valid": false
+    }
+  ],
+  "validate_transition_function_data": [
+    {
+      "value": "def f(x_index, x_value, y_index, y_value): return 0",
+      "is_valid": true
+    },
+    {
+      "value": "def f(x_index: int, x_value: float, y_index: int, y_value: float) -> float: return (x_value * 2) + y_index",
+      "is_valid": true
+    },
+    {
+      "value": "lambda x_index, x_value, y_index, y_value: 3.14",
+      "is_valid": true
+    },
+    {
+      "value": "lambda x_index, x_value, y_index, y_value: x_value + y_value",
+      "is_valid": true
+    },
+    {
+      "value": "def f(a, b, c, d): return a + b + c + d",
+      "is_valid": false
+    },
+    {
+      "value": "def f(x, y): return x * y",
+      "is_valid": false
+    },
+    {
+      "value": "lambda x_index, x_value, y_index, y_value: None",
+      "is_valid": false
+    },
+    {
+      "value": "lambda x_index, x_value, y_index, y_value: float('inf')",
+      "is_valid": false
+    },
+    {
+      "value": "lambda x_index, x_value, y_index, y_value: false",
+      "is_valid": false
+    },
+    {
+      "value": "lambda x_index, x_value, y_index, y_value: 'RESULT'",
       "is_valid": false
     }
   ]

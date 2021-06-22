@@ -63,11 +63,6 @@ def read_csv(file_path: str) -> tmc_dict:
 
         file.seek(0)
 
-        if not file.read(1):  # pragma: no cover
-            raise OSError('The file is empty.')
-        else:
-            file.seek(0)
-
         data = csv_reader(file)
 
         for index, row in enumerate(data):
@@ -117,11 +112,6 @@ def read_json(file_path: str) -> tmc_dict:
 
         file.seek(0)
 
-        if not file.read(1):  # pragma: no cover
-            raise OSError('The file is empty.')
-        else:
-            file.seek(0)
-
         data = json_load(file)
 
         if not isinstance(data, list):  # pragma: no cover
@@ -161,11 +151,6 @@ def read_txt(file_path: str) -> tmc_dict:
 
         file.seek(0)
 
-        if not file.read(1):  # pragma: no cover
-            raise OSError('The file is empty.')
-        else:
-            file.seek(0)
-
         for line in file:
 
             if not line.strip():  # pragma: no cover
@@ -190,15 +175,6 @@ def read_xml(file_path: str) -> tmc_dict:
 
     d = {}
     valid_keys = ['probability', 'state_from', 'state_to']
-
-    with open(file_path, mode='r') as file:
-
-        file.seek(0)
-
-        if not file.read(1):  # pragma: no cover
-            raise OSError('The file is empty.')
-        else:
-            file.seek(0)
 
     try:
         document = xml_tree.parse(file_path)
