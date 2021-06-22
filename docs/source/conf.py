@@ -43,11 +43,11 @@ path.append(join(dirname(__name__), '..'))
 ###############
 
 base_directory = abspath(dirname(__file__))
-init_file = join(base_directory, '../pydtmc/__init__.py')
+init_file = join(base_directory, '../../pydtmc/__init__.py')
 
 with open(init_file, 'r') as file:
     file_content = file.read()
-    matches = search(r'^\s*__version__\s*=\s*[\'"]([^\'"]*)[\'"]\s*$', file_content, MULTILINE)
+    matches = search(r'^__version__ = \'(\d\.\d\.\d)\'$', file_content, MULTILINE)
     current_version = matches.group(1)
 
 project = 'PyDTMC'
