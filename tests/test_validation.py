@@ -12,12 +12,8 @@ from ast import (
 )
 
 from types import (
-    FunctionType,
-CodeType
-)
-
-from zlib import (
-    crc32
+    CodeType,
+    FunctionType
 )
 
 # Internal
