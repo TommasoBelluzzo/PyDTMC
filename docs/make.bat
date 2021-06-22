@@ -20,8 +20,8 @@ IF "%1" == "" (
     %SPHINX_BUILD% --help
 ) ELSE (
     SET SPHINX_TYPE=%1
-    SET SOURCE_DIR=_source
-    SET BUILD_DIR=_build
+    SET SOURCE_DIR=source
+    SET BUILD_DIR=build
     SET SPHINX_OPTS=-nW
 
     DEL /S /Q %BUILD_DIR%\doctest\* >NUL 2>NUL

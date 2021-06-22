@@ -1,6 +1,6 @@
 SPHINX_EXE  = python -m sphinx
-SOURCE_DIR  = _source
-BUILD_DIR   = _build
+SOURCE_DIR  = source
+BUILD_DIR   = build
 SPHINX_OPTS = -nW
 
 help:

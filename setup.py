@@ -66,7 +66,8 @@ package_data_files = list()
 
 for (location, directories, files) in walk('data'):
     for file in files:
-        package_data_files.append(join('..', location, file))
+        if file != '.gitkeep':
+            package_data_files.append(join('..', location, file))
 
 # Setup
 
