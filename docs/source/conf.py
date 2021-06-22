@@ -5,6 +5,11 @@
 # IMPORTS #
 ###########
 
+# Full
+
+# noinspection PyUnresolvedReferences
+import sphinx_rtd_theme
+
 # Partial
 
 from datetime import (
@@ -73,7 +78,8 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
-    'sphinx_autodoc_typehints'
+    'sphinx_autodoc_typehints',
+    'sphinx_rtd_theme'
 ]
 
 
@@ -126,16 +132,14 @@ epub_exclude_files = ['search.html']
 
 # HTML
 
-show_relbars = False
 html_copy_source = False
-html_short_title = project_title
+html_short_title = ''
 html_show_sourcelink = False
 html_show_sphinx = False
 html_static_path = ['_static']
-html_theme = 'traditional'
-html_theme_options = {'nosidebar': True}
+html_theme = 'sphinx_rtd_theme'
+html_theme_options = {}
 html_title = ''
-htmlhelp_basename = project + 'doc'
 
 # LaTeX
 
