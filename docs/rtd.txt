@@ -1,1 +1,1 @@
-sphinx-autodoc-typehints
+-e .[docs]
