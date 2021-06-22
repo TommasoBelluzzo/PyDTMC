@@ -13,7 +13,7 @@ help:
 	@rm -rf "$(BUILD_DIR)/linkcheck/*"
 	@rm -rf "$(BUILD_DIR)/coverage/*"
 	@rm -rf "$(BUILD_DIR)/$@/*"
-	@$(SPHINX_EXE) -b doctest -c . "$(SOURCE_DIR)" "$(BUILD_DIR)/doctest" -W $(O)
-	@$(SPHINX_EXE) -b linkcheck -c . "$(SOURCE_DIR)" "$(BUILD_DIR)/linkcheck" -W $(O)
-	@$(SPHINX_EXE) -b coverage -c . "$(SOURCE_DIR)" "$(BUILD_DIR)/coverage" -W $(O)
-	@$(SPHINX_EXE) -b $@ -c . "$(SOURCE_DIR)" "$(BUILD_DIR)/$@" $(SPHINX_OPTS) $(O)
+	@$(SPHINX_EXE) -b doctest "$(SOURCE_DIR)" "$(BUILD_DIR)/doctest" -W $(O)
+	@$(SPHINX_EXE) -b linkcheck "$(SOURCE_DIR)" "$(BUILD_DIR)/linkcheck" -W $(O)
+	@$(SPHINX_EXE) -b coverage "$(SOURCE_DIR)" "$(BUILD_DIR)/coverage" -W $(O)
+	@$(SPHINX_EXE) -b $@ "$(SOURCE_DIR)" "$(BUILD_DIR)/$@" $(SPHINX_OPTS) $(O)

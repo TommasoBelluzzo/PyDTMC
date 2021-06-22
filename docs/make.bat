@@ -30,13 +30,13 @@ IF "%1" == "" (
     DEL /S /Q %BUILD_DIR%\%SPHINX_TYPE%\* >NUL 2>NUL
 
     ECHO.
-    %SPHINX_BUILD% -b doctest -c . %SOURCE_DIR% %BUILD_DIR%\doctest -W
+    %SPHINX_BUILD% -b doctest %SOURCE_DIR% %BUILD_DIR%\doctest -W
     ECHO.
-    %SPHINX_BUILD% -b linkcheck -c . %SOURCE_DIR% %BUILD_DIR%\linkcheck -W
+    %SPHINX_BUILD% -b linkcheck %SOURCE_DIR% %BUILD_DIR%\linkcheck -W
     ECHO.
-    %SPHINX_BUILD% -b coverage -c . %SOURCE_DIR% %BUILD_DIR%\coverage -W
+    %SPHINX_BUILD% -b coverage %SOURCE_DIR% %BUILD_DIR%\coverage -W
     ECHO.
-    %SPHINX_BUILD% -b %SPHINX_TYPE% -c . %SOURCE_DIR% %BUILD_DIR%\%SPHINX_TYPE% %SPHINX_OPTS%
+    %SPHINX_BUILD% -b %SPHINX_TYPE% %SOURCE_DIR% %BUILD_DIR%\%SPHINX_TYPE% %SPHINX_OPTS%
     ECHO.
 )
 
