@@ -2,19 +2,44 @@
 
 PyDTMC is a full-featured, lightweight library for discrete-time Markov chains analysis. It provides classes and functions for creating, manipulating and simulating markovian stochastic processes.
 
+<table>
+  <tr>
+    <td align="right">Status:</td>
+    <td align="left">
+      <a href="https://github.com/TommasoBelluzzo/PyDTMC/actions/workflows/continuous_integration.yml"><img alt="Build" src="https://img.shields.io/github/workflow/status/TommasoBelluzzo/PyDTMC/Continuous%20Integration?style=flat&label=Build"/></a>
+      <a href="https://pydtmc.readthedocs.io/"><img alt="Docs" src="https://img.shields.io/readthedocs/pydtmc?style=flat&label=Docs"/></a>
+      <a href="https://coveralls.io/github/TommasoBelluzzo/PyDTMC?branch=master"><img alt="Coverage" src="https://img.shields.io/coveralls/github/TommasoBelluzzo/PyDTMC?style=flat&label=Coverage"/></a>
+    </td>
+  </tr>
+  <tr>
+    <td align="right">Info:</td>
+    <td align="left">
+      <a href="#"><img alt="License" src="https://img.shields.io/github/license/TommasoBelluzzo/PyDTMC?style=flat&label=License&color=1081C2"/></a>
+      <a href="#"><img alt="Lines" src="https://img.shields.io/tokei/lines/github/TommasoBelluzzo/PyDTMC?style=flat&label=Lines&color=1081C2"/></a>
+      <a href="#"><img alt="Size" src="https://img.shields.io/github/repo-size/TommasoBelluzzo/PyDTMC?style=flat&label=Size&color=1081C2"/></a>
+    </td>
+  </tr>
+  <tr>
+    <td align="right">PyPI:</td>
+    <td align="left">
+      <a href="https://pypi.org/project/PyDTMC/"><img alt="Version" src="https://img.shields.io/pypi/v/PyDTMC?style=flat&label=Version&color=1081C2"/></a>
+      <a href="https://pypi.org/project/PyDTMC/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/PyDTMC?style=flat&label=Python&color=1081C2"/></a>
+      <a href="https://pypi.org/project/PyDTMC/"><img alt="Wheel" src="https://img.shields.io/pypi/wheel/PyDTMC?style=flat&label=Wheel&color=1081C2"/></a>
+      <a href="https://pypi.org/project/PyDTMC/"><img alt="Downloads" src="https://img.shields.io/pypi/dm/PyDTMC?style=flat&label=Downloads&color=1081C2"/></a>
+    </td>
+  </tr>
+</table>
+
 ## Requirements
 
-PyDTMC supports only `Python 3` and the minimum required version is `3.6`. In addition, the environment must include the following libraries:
+The `Python` environment must include the following packages:
 
 * [Matplotlib](https://matplotlib.org/)
 * [NetworkX](https://networkx.github.io/)
-* [Numpy](https://www.numpy.org/)
+* [NumPy](https://www.numpy.org/)
 * [SciPy](https://www.scipy.org/)
 
-For a better user experience, it's recommended to install [Graphviz](https://www.graphviz.org/) and [pydot](https://pypi.org/project/pydot/) before using the `plot_graph` function.
-In order to build the project documentation, it's necessary to install [Sphinx](https://www.sphinx-doc.org/).
-In order to perform unit tests, it's necessary to install [pytest](https://pytest.org/).
-
+[Sphinx](https://www.sphinx-doc.org/) is required for building the package documentation. [pytest](https://pytest.org/) is required for performing unit tests. For a better user experience, it's recommended to install [Graphviz](https://www.graphviz.org/) and [pydot](https://pypi.org/project/pydot/) before using the `plot_graph` function.
 
 ## Installation & Upgrade
 
@@ -55,7 +80,7 @@ DISCRETE-TIME MARKOV CHAIN
  REVERSIBLE:     NO
 ```
 
-Below a few examples of `MarkovChain` instance properties and static computations:
+Below a few examples of `MarkovChain` properties:
 
 ```console
 >>> print(mc.is_ergodic)
@@ -81,19 +106,19 @@ True
 >>> print(mc.kemeny_constant)
 5.547169811320755
 
+>>> print(mc.entropy_rate)
+0.0
+```
+
+Below a few examples of `MarkovChain` methods:
+
+```console
 >>> print(mc.mean_absorption_times())
 [4.56603774 3.32075472 3.28301887]
 
 >>> print(mc.absorption_probabilities())
 [1.0 1.0 1.0]
 
->>> print(mc.entropy_rate)
-0.0
-```
-
-Dynamic computations on `MarkovChain` instances can be performed through their parametrized methods:
-
-```console
 >>> print(mc.expected_rewards(10, [2, -3, 8, -7]))
 [-2.76071635, -12.01665113, 23.23460025, -8.45723276]
 
@@ -117,7 +142,7 @@ Dynamic computations on `MarkovChain` instances can be performed through their p
 ['B', 'B', 'B', 'D', 'A', 'B', 'B', 'C', 'C', 'C']
 ```
 
-Plotting functions can provide a visual representation of `MarkovChain` instances; in order to display function outputs immediately, the [interactive mode](https://matplotlib.org/stable/users/interactive.html#interactive-mode) of `Matplotlib` must be turned on:
+Plotting functions can provide a visual representation of `MarkovChain` instances; in order to display the output of plots immediately, the [interactive mode](https://matplotlib.org/stable/users/interactive.html#interactive-mode) of `Matplotlib` must be turned on:
 
 ```console
 >>> plot_eigenvalues(mc)
