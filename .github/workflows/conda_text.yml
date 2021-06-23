@@ -1,0 +1,29 @@
+name: Conda Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release Version:'
+        required: true
+
+jobs:
+  release:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        language: [ python ]
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v2
+    - name: Python Setup
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+        architecture: x64
+    - name: Build
+      run: conda build .
+  
