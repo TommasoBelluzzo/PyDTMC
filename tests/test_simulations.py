@@ -89,4 +89,4 @@ def test_walk_probability(p, walk, value):
     actual = mc.walk_probability(walk)
     expected = value
 
-    assert actual == expected
+    assert np.isclose(actual, expected)
