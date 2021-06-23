@@ -6,9 +6,9 @@ PyDTMC is a full-featured, lightweight library for discrete-time Markov chains a
   <tr>
     <td align="right">Status:</td>
     <td align="left">
-      <a href="https://github.com/TommasoBelluzzo/PyDTMC/actions/workflows/continuous_integration.yml"><img alt="Build" src="https://img.shields.io/github/workflow/status/TommasoBelluzzo/PyDTMC/Continuous%20Integration?style=flat&label=Build"/></a>
-      <a href="https://pydtmc.readthedocs.io/"><img alt="Docs" src="https://img.shields.io/readthedocs/pydtmc?style=flat&label=Docs"/></a>
-      <a href="https://coveralls.io/github/TommasoBelluzzo/PyDTMC?branch=master"><img alt="Coverage" src="https://img.shields.io/coveralls/github/TommasoBelluzzo/PyDTMC?style=flat&label=Coverage"/></a>
+      <a href="https://github.com/TommasoBelluzzo/PyDTMC/actions/workflows/continuous_integration.yml"><img alt="Build" src="https://img.shields.io/github/workflow/status/TommasoBelluzzo/PyDTMC/Continuous%20Integration?style=flat&label=Build&color=1081C2"/></a>
+      <a href="https://pydtmc.readthedocs.io/"><img alt="Docs" src="https://img.shields.io/readthedocs/pydtmc?style=flat&label=Docs&color=1081C2"/></a>
+      <a href="https://coveralls.io/github/TommasoBelluzzo/PyDTMC?branch=master"><img alt="Coverage" src="https://img.shields.io/coveralls/github/TommasoBelluzzo/PyDTMC?style=flat&label=Coverage&color=1081C2"/></a>
     </td>
   </tr>
   <tr>
