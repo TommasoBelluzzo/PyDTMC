@@ -52,6 +52,7 @@ jobs:
         pip install -r requirements.txt --use-feature=in-tree-build
         pip install sphinx
         pip install sphinx-autodoc-typehints
+        pip install sphinx-rtd-theme
     - name: Action
       run: make -C docs/ html
   build:
