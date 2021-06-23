@@ -1,11 +1,6 @@
 name: License Update
 
-on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release Version:'
-        required: true
+on: [ workflow_dispatch ]
 
 jobs:
   license:
