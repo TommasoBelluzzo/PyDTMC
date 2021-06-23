@@ -14,4 +14,3 @@ PyDTMC
 
 * :doc:`Package <pydtmc>`
 * :ref:`genindex`
-* :ref:`search`

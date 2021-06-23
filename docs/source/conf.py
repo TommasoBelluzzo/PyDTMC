@@ -8,7 +8,7 @@
 # Full
 
 # noinspection PyUnresolvedReferences
-import sphinx_rtd_theme
+import sphinx_rtd_theme  # noqa
 
 # Partial
 
