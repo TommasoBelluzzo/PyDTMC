@@ -1,6 +1,6 @@
 {% set data = load_setup_py_data() %}
-{% set name = data.get('name') %}
-{% set version = data.get('version') %}
+{% set name = data['name'] %}
+{% set version = data['version'] %}
 
 package:
   name: {{ name.lower() }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: sha256_placeholder
+  sha256: placeholder
 
 build:
   number: 0
@@ -31,7 +31,7 @@ requirements:
 
 test:
   imports:
-    - {{ data['name'] }}
+    - {{ name.lower() }}
   source_files:
     - tests/
   requires:
