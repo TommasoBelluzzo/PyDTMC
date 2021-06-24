@@ -49,7 +49,7 @@ about:
   description: {{ data['long_description'] }}
   dev_url: {{ data['url'] }}
   doc_url: https://{{ name.lower() }}.readthedocs.io/
-  doc_source_url: {{ data['url'] }}/blob/master/{{ data['description_file'] }}
+  doc_source_url: {{ data['url'] }}/blob/master/README.md
 
 extra:
   maintainers:
