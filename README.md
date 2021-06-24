@@ -28,6 +28,15 @@ PyDTMC is a full-featured, lightweight library for discrete-time Markov chains a
       <a href="https://pypi.org/project/PyDTMC/"><img alt="Downloads" src="https://img.shields.io/pypi/dm/PyDTMC?style=flat&label=Downloads&color=1081C2"/></a>
     </td>
   </tr>
+  <tr>
+    <td align="right">Conda:</td>
+    <td align="left">
+      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Version" src="https://img.shields.io/conda/vn/tommasobelluzzo/pydtmc?style=flat&label=Version"/></a>
+      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/PyDTMC?style=flat&label=Python&color=1081C2"/></a>
+      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Platforms" src="https://img.shields.io/conda/pn/tommasobelluzzo/pydtmc?style=flat&label=Platforms&color=1081C2"/></a>
+      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Downloads" src="https://img.shields.io/conda/dn/tommasobelluzzo/pydtmc?style=flat&label=Downloads&color=1081C2"/></a>
+    </td>
+  </tr>
 </table>
 
 ## Requirements
@@ -48,6 +57,13 @@ The package [Sphinx](https://www.sphinx-doc.org/) is required for building the p
 ```sh
 $ pip install PyDTMC
 $ pip install --upgrade PyDTMC
+```
+
+[Conda](https://docs.conda.io/):
+
+```sh
+$ conda install -c tommasobelluzzo pydtmc
+$ conda update -c tommasobelluzzo pydtmc
 ```
 
 [GitHub](https://github.com/):
