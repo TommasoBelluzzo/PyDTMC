@@ -30,6 +30,11 @@ jobs:
         TARGET: ${{ github.event.inputs.target }}
         VERSION_FILE: pydtmc/__init__.py
         VERSION_REGEX: __version__[[:space:]]=[[:space:]]'[[:digit:]]\.[[:digit:]]\.[[:digit:]]'
+        VERSION: none
+        VERSION_MAJOR: 0
+        VERSION_MINOR: 0
+        VERSION_RELEASE: 0
+        VERSION_NEW: none
       run: |
         TARGET=${TARGET^^}
         if [[ $TARGET != 'MAJOR' ]] && [[ $TARGET != 'MINOR' ]] && [[ $TARGET != 'RELEASE' ]]; then
@@ -51,9 +56,10 @@ jobs:
         else
           VERSION_RELEASE=$(($VERSION_RELEASE + 1))
         fi
-        sed -i "s/$VERSION_REGEX/__version__ = '$VERSION'/g" $VERSION_FILE
+        VERSION_NEW=$(printf '%d.%d.%d' $VERSION_MAJOR $VERSION_MINOR $VERSION_RELEASE 2>/dev/null)
+        sed -i "s/$VERSION_REGEX/__version__ = '$VERSION_NEW'/g" $VERSION_FILE
         grep $VERSION_REGEX $VERSION_FILE
-        echo "::set-output name=VERSION::$(printf '%d.%d.%d' $VERSION_MAJOR $VERSION_MINOR $VERSION_RELEASE 2>/dev/null)"
+        echo "::set-output name=VERSION::$VERSION_NEW"
     - name: Dependencies Installation
       run: |
         pip install --upgrade pip
