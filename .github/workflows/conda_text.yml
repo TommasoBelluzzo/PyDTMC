@@ -39,7 +39,7 @@ jobs:
       run: |
         grep $SHA256_REGEX $SHA256_FILE
         sed -i "s/$SHA256_REGEX/$SHA256/g" $SHA256_FILE
-        grep $SHA256_REGEX $SHA256_FILE
+        grep $SHA256 $SHA256_FILE
     - name: Conda Installation
       run: |
         conda update conda
