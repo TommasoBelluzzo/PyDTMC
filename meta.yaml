@@ -1,0 +1,56 @@
+{% set data = load_setup_py_data() %}
+{% set name = data.get('name') %}
+{% set version = data.get('version') %}
+
+package:
+  name: {{ name.lower() }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: sha256_placeholder
+
+build:
+  number: 0
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - python {{ data['python_requires'] }}
+    - pip
+  build:
+    - python {{ data['python_requires'] }}
+    - pip
+    - setuptools
+  run:
+    - python {{ data['python_requires'] }}
+    {% for dep in data['install_requires'] %}
+    - {{ dep.lower() }}
+    {% endfor %}
+
+test:
+  imports:
+    - {{ data['name'] }}
+  source_files:
+    - tests/
+  requires:
+    {% for dep in data['extras_require']['tests'] %}
+    - {{ dep.lower() }}
+    {% endfor %}
+  commands:
+    - pytest tests/
+
+about:
+  home: {{ data['url'] }}
+  license: {{ data['license'] }}
+  license_file: {{ data['license_files'] }}
+  summary: {{ data['description'] }}
+  description: {{ data['long_description'] }}
+  dev_url: {{ data['url'] }}
+  doc_url: https://{{ name.lower() }}.readthedocs.io/
+  doc_source_url: {{ data['url'] }}/blob/master/{{ data['description_file'] }}
+
+extra:
+  maintainers:
+   - TommasoBelluzzo
