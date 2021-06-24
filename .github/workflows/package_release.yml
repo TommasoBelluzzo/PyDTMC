@@ -56,7 +56,7 @@ jobs:
       env:
         VERSION: ${{ github.event.inputs.version }}
       run: |
-        sleep 3m
+        sleep 1m
         wget https://pypi.io/packages/source/P/PyDTMC/PyDTMC-$VERSION.tar.gz -O /tmp/PyDTMC-$VERSION.tar.gz
         echo "::set-output name=SHA256::$(openssl sha256 /tmp/PyDTMC-$VERSION.tar.gz | awk '{print $2}')"
     - name: Conda Publish - Set SHA256
