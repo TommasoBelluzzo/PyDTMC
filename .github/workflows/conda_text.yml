@@ -45,6 +45,16 @@ jobs:
         conda update conda
         conda install conda-build anaconda-client
         conda update conda-build anaconda-client
+    - name: Version Change
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION: ${{ github.event.inputs.version }}
+        VERSION_FILE: pydtmc/__init__.py
+        VERSION_REGEX: __version__[[:space:]]=[[:space:]]'[[:digit:]]\.[[:digit:]]\.[[:digit:]]'
+      run: |
+        grep $VERSION_REGEX $VERSION_FILE
+        sed -i "s/$VERSION_REGEX/__version__ = '$VERSION'/g" $VERSION_FILE
+        grep $VERSION_REGEX $VERSION_FILE
     - name: Build
       run: |
         conda config --set anaconda_upload no
