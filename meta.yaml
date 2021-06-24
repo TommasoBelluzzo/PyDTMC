@@ -1,4 +1,4 @@
-{% set data = load_setup_py_data() %}
+{% set data = load_setup_py_data(from_recipe_dir=True) %}
 {% set name = data['name'] %}
 {% set version = data['version'] %}
 
