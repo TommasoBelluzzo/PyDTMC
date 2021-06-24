@@ -24,16 +24,8 @@ jobs:
       with:
         python-version: 3.x
         architecture: x64
-    - name: Dependencies Installation
-      run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt --use-feature=in-tree-build
-        pip install setuptools
-        pip install wheel
-        pip install twine
     - name: Version Change
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VERSION: ${{ github.event.inputs.version }}
         VERSION_FILE: pydtmc/__init__.py
         VERSION_REGEX: __version__[[:space:]]=[[:space:]]'[[:digit:]]\.[[:digit:]]\.[[:digit:]]'
@@ -41,17 +33,56 @@ jobs:
         grep $VERSION_REGEX $VERSION_FILE
         sed -i "s/$VERSION_REGEX/__version__ = '$VERSION'/g" $VERSION_FILE
         grep $VERSION_REGEX $VERSION_FILE
-        git config --local user.name "${{ secrets.BOT_USERNAME }}"
-        git config --local user.email ${{ secrets.BOT_EMAIL }}
-        git add $VERSION_FILE
-        git commit -m "Release $VERSION"
-        git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}
-        git push
-    - name: Build
+    - name: Dependencies Installation
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt --use-feature=in-tree-build
+        pip install setuptools
+        pip install wheel
+        pip install twine
+        conda update conda
+        conda install conda-build anaconda-client
+        conda update conda-build anaconda-client
+    - name: PyPI Publish - Build
       run: python setup.py sdist bdist_wheel
-    - name: PyPI Publish
+    - name: PyPI Publish - Upload
       env:
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: twine upload dist/*
+    - name: Conda Publish - Get SHA256
+      id: sha256
+      env:
+        VERSION: ${{ github.event.inputs.version }}
+      run: |
+        sleep 3m
+        wget https://pypi.io/packages/source/P/PyDTMC/PyDTMC-$VERSION.tar.gz -O /tmp/PyDTMC-$VERSION.tar.gz
+        echo "::set-output name=SHA256::$(openssl sha256 /tmp/PyDTMC-$VERSION.tar.gz | awk '{print $2}')"
+    - name: Conda Publish - Set SHA256
+      env:
+        SHA256: ${{ steps.sha256.outputs.SHA256 }}
+        SHA256_FILE: meta.yaml
+        SHA256_REGEX: sha256_placeholder
+      run: |
+        grep $SHA256_REGEX $SHA256_FILE
+        sed -i "s/$SHA256_REGEX/$SHA256/g" $SHA256_FILE
+        grep $SHA256 $SHA256_FILE
+    - name: Conda Publish - Build & Upload
+      env:
+        ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+      run: |
+        conda config --set anaconda_upload yes
+        conda build . --output-folder /tmp/conda-build
+    - name: Version Commit
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION: ${{ github.event.inputs.version }}
+        VERSION_FILE: pydtmc/__init__.py
+      run: |
+        git config --local user.name "${{ secrets.BOT_USERNAME }}"
+        git config --local user.email "${{ secrets.BOT_EMAIL }}"
+        git add $VERSION_FILE
+        git commit -m "Release $VERSION"
+        git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}
+        git push
