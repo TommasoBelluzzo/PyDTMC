@@ -58,7 +58,7 @@ base_directory = abspath(dirname(__file__))
 
 with open(join(base_directory, 'README.md'), encoding='utf-8') as file:
     long_description_text = file.read()
-    long_description_text = long_description_text[long_description_text.index('\n'):long_description_text.index('<table>')].strip()
+    long_description_text = long_description_text[long_description_text.index('\n') + 1:].strip()
 
 # Package Files
 

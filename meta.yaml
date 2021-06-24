@@ -1,6 +1,8 @@
 {% set data = load_setup_py_data(from_recipe_dir=True) %}
 {% set name = data['name'] %}
 {% set version = data['version'] %}
+{% set summary = data['description'] %}
+{% set description = data['long_description'][:data['long_description'].index('<table>')].strip() %}
 
 package:
   name: {{ name.lower() }}
@@ -35,9 +37,7 @@ test:
   source_files:
     - tests/
   requires:
-    {% for dep in data['extras_require']['tests'] %}
-    - {{ dep.lower() }}
-    {% endfor %}
+    - pytest
   commands:
     - pytest tests/
 
@@ -45,8 +45,8 @@ about:
   home: {{ data['url'] }}
   license: {{ data['license'] }}
   license_file: {{ data['license_files'] }}
-  summary: {{ data['description'] }}
-  description: {{ data['long_description'] }}
+  summary: {{ summary }}
+  description: {{ description }}
   dev_url: {{ data['url'] }}
   doc_url: https://{{ name.lower() }}.readthedocs.io/
   doc_source_url: {{ data['url'] }}/blob/master/README.md
