@@ -29,7 +29,6 @@ jobs:
       env:
         VERSION: ${{ github.event.inputs.version }}
       run: |
-        sleep 1m
         wget https://pypi.io/packages/source/P/PyDTMC/PyDTMC-$VERSION.tar.gz -O /tmp/PyDTMC-$VERSION.tar.gz
         echo "::set-output name=SHA256::$(openssl sha256 /tmp/PyDTMC-$VERSION.tar.gz | awk '{print $2}')"
     - name: Set SHA256
@@ -39,7 +38,7 @@ jobs:
         SHA256_REGEX: 'sha256: placeholder'
       run: |
         grep $SHA256_REGEX $SHA256_FILE
-        sed -i "s/$SHA256_REGEX/sha256: /g" $VERSION_FILE
+        sed -i "s/$SHA256_REGEX/sha256: $SHA256/g" $SHA256_FILE
         grep $SHA256_REGEX $SHA256_FILE
     - name: Conda Installation
       run: |
