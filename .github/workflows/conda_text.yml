@@ -24,9 +24,11 @@ jobs:
       with:
         python-version: 3.x
         architecture: x64
-    - name: Build
+    - name: Dependencies Installation
       run: |
-        conda update conda
         conda install conda-build
-        conda build .
+        conda update conda
+        conda update conda-build
+    - name: Build
+      run: conda build .
   
