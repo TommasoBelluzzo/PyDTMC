@@ -6,6 +6,14 @@ on:
       target:
         description: 'Target:'
         required: true
+      pypi:
+        description: 'PyPI:'
+        required: false
+        default: 'YES'
+      conda:
+        description: 'Conda:'
+        required: false
+        default: 'YES'
 
 jobs:
   publishing:
@@ -28,6 +36,8 @@ jobs:
       id: bump
       env:
         TARGET: ${{ github.event.inputs.target }}
+        PYPI: ${{ github.event.inputs.pypi }}
+        CONDA: ${{ github.event.inputs.conda }}
         VERSION_FILE: pydtmc/__init__.py
         VERSION_REGEX: __version__[[:space:]]=[[:space:]]'[[:digit:]]\.[[:digit:]]\.[[:digit:]]'
         VERSION: none
@@ -38,7 +48,21 @@ jobs:
       run: |
         TARGET=${TARGET^^}
         if [[ $TARGET != 'MAJOR' ]] && [[ $TARGET != 'MINOR' ]] && [[ $TARGET != 'RELEASE' ]]; then
-          echo 'INVALID INPUT'
+          echo 'INVALID INPUT (TARGET)'
+          exit 1
+        fi
+        PYPI=${PYPI^^}
+        if [[ $PYPI != 'YES' ]] && [[ $PYPI != 'NO' ]]; then
+          echo 'INVALID INPUT (PYPI)'
+          exit 1
+        fi
+        CONDA=${CONDA^^}
+        if [[ $CONDA != 'YES' ]] && [[ $CONDA != 'NO' ]]; then
+          echo 'INVALID INPUT (CONDA)'
+          exit 1
+        fi
+        if [[ $PYPI == 'NO' ]] && [[ $CONDA == 'NO' ]]; then
+          echo 'INVALID INPUT (PYPI=NO && CONDA=NO)'
           exit 1
         fi
         grep $VERSION_REGEX $VERSION_FILE
@@ -59,7 +83,11 @@ jobs:
         VERSION_NEW=$(printf '%d.%d.%d' $VERSION_MAJOR $VERSION_MINOR $VERSION_RELEASE 2>/dev/null)
         sed -i "s/$VERSION_REGEX/__version__ = '$VERSION_NEW'/g" $VERSION_FILE
         grep $VERSION_REGEX $VERSION_FILE
-        echo "::set-output name=VERSION::$VERSION_NEW"
+        echo "::set-output name=pypi::$PYPI"
+        echo "::set-output name=conda::$CONDA"
+        echo "::set-output name=version::$VERSION_NEW"
+        echo "::set-output name=version_file::$VERSION_FILE"
+        echo "::set-output name=version_regex::$VERSION_REGEX"
     - name: Dependencies Installation
       run: |
         pip install --upgrade pip
@@ -71,37 +99,63 @@ jobs:
         conda install conda-build anaconda-client
         conda update conda-build anaconda-client
     - name: PyPI Publishing - Build
-      run: python setup.py sdist bdist_wheel
+      env:
+        PYPI: ${{ steps.bump.outputs.pypi }}
+      run: |
+        if [[ $PYPI == 'YES' ]]; then
+          python setup.py sdist bdist_wheel
+        else
+          echo 'PYPI SKIPPED'
+        fi
     - name: PyPI Publishing - Upload
       env:
+        PYPI: ${{ steps.bump.outputs.pypi }}
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: twine upload dist/*
+      run: |
+        if [[ $PYPI == 'YES' ]]; then
+          twine upload dist/*
+        else
+          echo 'PYPI SKIPPED'
+        fi
     - name: Conda Publishing - SHA256
       env:
-        VERSION: ${{ steps.bump.outputs.VERSION }}
+        PYPI: ${{ steps.bump.outputs.pypi }}
+        CONDA: ${{ steps.bump.outputs.conda }}
+        VERSION: ${{ steps.bump.outputs.version }}
         SHA256: none
         SHA256_FILE: meta.yaml
         SHA256_REGEX: sha256_placeholder
       run: |
-        sleep 1m
-        wget https://pypi.io/packages/source/P/PyDTMC/PyDTMC-$VERSION.tar.gz -O /tmp/PyDTMC-$VERSION.tar.gz
-        SHA256=$(openssl sha256 /tmp/PyDTMC-$VERSION.tar.gz | awk '{print $2}')
-        grep $SHA256_REGEX $SHA256_FILE
-        sed -i "s/$SHA256_REGEX/$SHA256/g" $SHA256_FILE
-        grep $SHA256 $SHA256_FILE
+        if [[ $CONDA == 'YES' ]]; then
+          if [[ $PYPI == 'YES' ]]; then
+            sleep 5m
+          fi
+          wget https://pypi.io/packages/source/P/PyDTMC/PyDTMC-$VERSION.tar.gz -O /tmp/PyDTMC-$VERSION.tar.gz
+          SHA256=$(openssl sha256 /tmp/PyDTMC-$VERSION.tar.gz | awk '{print $2}')
+          grep $SHA256_REGEX $SHA256_FILE
+          sed -i "s/$SHA256_REGEX/$SHA256/g" $SHA256_FILE
+          grep $SHA256 $SHA256_FILE
+        else
+          echo 'CONDA SKIPPED'
+        fi
     - name: Conda Publishing - Build & Upload
       env:
+        CONDA: ${{ steps.bump.outputs.conda }}
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
       run: |
-        conda config --set anaconda_upload yes
-        conda build . --output-folder /tmp/conda-build
+        if [[ $CONDA == 'YES' ]]; then
+          conda config --set anaconda_upload yes
+          conda build . --output-folder /tmp/conda-build
+        else
+          echo 'CONDA SKIPPED'
+        fi
     - name: Version Commit
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        VERSION: ${{ steps.bump.outputs.VERSION }}
-        VERSION_FILE: pydtmc/__init__.py
+        VERSION: ${{ steps.bump.outputs.version }}
+        VERSION_FILE: ${{ steps.bump.outputs.version_file }}
       run: |
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
         git config --local user.email "${{ secrets.BOT_EMAIL }}"
