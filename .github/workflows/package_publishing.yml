@@ -8,11 +8,11 @@ on:
         required: true
       pypi:
         description: 'PyPI:'
-        required: false
+        required: true
         default: 'YES'
       conda:
         description: 'Conda:'
-        required: false
+        required: true
         default: 'YES'
 
 jobs:
