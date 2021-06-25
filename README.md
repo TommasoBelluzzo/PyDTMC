@@ -66,13 +66,6 @@ $ conda install -c tommasobelluzzo pydtmc
 $ conda update -c tommasobelluzzo pydtmc
 ```
 
-[GitHub](https://github.com/):
-
-```sh
-$ pip install git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=PyDTMC
-$ pip install --upgrade git+https://github.com/TommasoBelluzzo/PyDTMC.git@master#egg=PyDTMC
-```
-
 ## Usage
 
 The core element of the library is the `MarkovChain` class, which can be instantiated as follows:

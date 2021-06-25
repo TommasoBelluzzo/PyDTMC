@@ -55,6 +55,10 @@ from inspect import (
     signature
 )
 
+from itertools import (
+    product
+)
+
 from os.path import (
     isfile,
 )
@@ -154,37 +158,44 @@ def validate_boundary_condition(value: tany) -> tbcond:
     raise TypeError('The "@arg@" parameter must be either a float representing the first probability of the semi-reflecting condition or a string representing the boundary condition type.')
 
 
-def validate_dictionary(d: tany) -> tmc_dict:
+def validate_dictionary(value: tany) -> tmc_dict:
 
-    if not isinstance(d, dict):
+    if not isinstance(value, dict):
         raise ValueError('The "@arg@" parameter must be a dictionary.')
 
-    keys = d.keys()
+    d_keys = value.keys()
 
-    if not all(isinstance(key, tuple) and len(key) == 2 and isinstance(key[0], str) and isinstance(key[1], str) for key in keys):
-        raise ValueError('The "@arg@" parameter keys must be tuples containing 2 string values.')
+    if not all(isinstance(d_key, tuple) and len(d_key) == 2 and isinstance(d_key[0], str) and len(d_key[0]) > 0 and isinstance(d_key[1], str) and len(d_key[1]) > 0 for d_key in d_keys):
+        raise ValueError('The "@arg@" parameter keys must be tuples containing two valid string values.')
 
-    keys = [key[0] for key in keys if key[0] == key[1]]
+    states = set()
 
-    if not all(key is not None and len(key) > 0 for key in keys):
-        raise TypeError('The "@arg@" parameter keys must contain only valid string values.')
+    for d_key in d_keys:
+        states.add(d_key[0])
+        states.add(d_key[1])
 
-    values = d.values()
+    combinations = list(product(states, repeat=2))
 
-    if not all(_is_number(value) for value in values):
+    if len(value) != len(combinations) or not all(combination in value for combination in combinations):
+        raise ValueError('The "@arg@" parameter keys must contain all the possible combinations of states.')
+
+    d_values = value.values()
+
+    if not all(_is_number(d_value) for d_value in d_values):
         raise ValueError('The "@arg@" parameter values must be float or integer numbers.')
 
-    values = [float(value) for value in values]
+    result = {}
 
-    if not all(0.0 <= value <= 1.0 for value in values):
-        raise ValueError('The "@arg@" parameter values can contain only numbers between 0 and 1.')
+    for d_key, d_value in value.items():
 
-    dictionary = {}
+        d_value = float(d_value)
 
-    for key, value in d.items():
-        dictionary[key] = float(value)
+        if 0.0 <= d_value <= 1.0:
+            result[d_key] = d_value
+        else:
+            raise ValueError('The "@arg@" parameter values can contain only numbers between 0 and 1.')
 
-    return dictionary
+    return result
 
 
 def validate_distribution(value: tany, size: int) -> tdists_flex:
@@ -216,8 +227,8 @@ def validate_distribution(value: tany, size: int) -> tdists_flex:
             if vector.ndim != 1 or vector.size != size:
                 raise ValueError('The "@arg@" parameter must contain only vectors of size {size:d}.')
 
-            if not all(np.isfinite(x) and 0.0 <= x <= 1.0 for x in np.nditer(vector)):
-                raise ValueError('The "@arg@" parameter must contain only vectors consisting of values between 0 and 1.')
+            if not all(np.isfinite(x) and np.isreal(x) and 0.0 <= x <= 1.0 for x in np.nditer(vector)):
+                raise ValueError('The "@arg@" parameter must contain only vectors consisting of finite real values between 0 and 1.')
 
             if not np.isclose(np.sum(vector), 1.0):
                 raise ValueError('The "@arg@" parameter must contain only vectors consisting of values whose sum is 1.')
@@ -309,7 +320,7 @@ def validate_float(value: tany, lower_limit: olimit_float = None, upper_limit: o
     value = float(value)
 
     if not np.isfinite(value) or not np.isreal(value):
-        raise ValueError('The "@arg@" parameter be a real finite float value.')
+        raise ValueError('The "@arg@" parameter be a finite real value.')
 
     if lower_limit is not None:
         if lower_limit[1]:
@@ -330,26 +341,35 @@ def validate_float(value: tany, lower_limit: olimit_float = None, upper_limit: o
     return value
 
 
-def validate_graph(graph: tany) -> tgraphs:
+def validate_graph(value: tany) -> tgraphs:
 
-    if graph is None:
+    if value is None:
         raise ValueError('The "@arg@" parameter must be a directed graph.')
 
-    non_multi = isinstance(graph, nx.DiGraph)
-    multi = isinstance(graph, nx.MultiDiGraph)
+    non_multi = isinstance(value, nx.DiGraph)
+    multi = isinstance(value, nx.MultiDiGraph)
 
     if not non_multi and not multi:
         raise ValueError('The "@arg@" parameter must be a directed graph.')
 
     if multi:
-        graph = nx.DiGraph(graph)
+        value = nx.DiGraph(value)
 
-    size = len(list(graph.nodes))
+    nodes = list(value.nodes)
+    nodes_length = len(nodes)
 
-    if size < 2:
+    if nodes_length < 2:
         raise ValueError('The "@arg@" parameter must contain a number of nodes greater than or equal to 2.')
 
-    return graph
+    if not all(isinstance(node, str) and len(node) > 0 for node in nodes):
+        raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
+
+    edges = list(value.edges(data='weight', default=0.0))
+
+    if not all(_is_number(edge[2]) and float(edge[2]) > 0.0 for edge in edges):
+        raise ValueError('The "@arg@" parameter must define edge wright as non-negative numbers.')
+
+    return value
 
 
 def validate_hyperparameter(hyperparameter: tany, size: int) -> tarray:
@@ -359,16 +379,10 @@ def validate_hyperparameter(hyperparameter: tany, size: int) -> tarray:
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
-    if not np.issubdtype(hyperparameter.dtype, np.number):
-        raise TypeError('The "@arg@" parameter must contain only integer values.')
-
     hyperparameter = hyperparameter.astype(float)
 
-    if hyperparameter.ndim != 2 or hyperparameter.shape[0] != hyperparameter.shape[1]:
-        raise ValueError('The "@arg@" parameter must be a 2d square matrix.')
-
-    if hyperparameter.shape[0] != size:
-        raise ValueError(f'The "@arg@" parameter size must be equal to {size:d}.')
+    if hyperparameter.ndim != 2 or hyperparameter.shape[0] != hyperparameter.shape[1] or hyperparameter.shape[0] != size:
+        raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
 
     if not all(np.isfinite(x) and np.isreal(x) and np.equal(np.mod(x, 1.0), 0.0) and x >= 1.0 for x in np.nditer(hyperparameter)):
         raise ValueError('The "@arg@" parameter must contain only integer values greater than or equal to 1.')
@@ -420,7 +434,7 @@ def validate_interval(value: tany) -> tinterval:
     b = float(b)
 
     if not all(np.isfinite(x) and np.isreal(x) and x >= 0.0 for x in [a, b]):
-        raise ValueError('The "@arg@" parameter must contain only finite and real values greater than or equal to 0.0.')
+        raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')
 
     if a >= b:
         raise ValueError('The "@arg@" parameter must contain two distinct values, and the first value must be less than the second one.')
@@ -442,9 +456,6 @@ def validate_mask(mask: tany, size: int) -> tarray:
         mask = _extract_as_numeric(mask)
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
-
-    if not np.issubdtype(mask.dtype, np.number):
-        raise TypeError('The "@arg@" parameter must contain only numeric values.')
 
     mask = mask.astype(float)
 
@@ -470,16 +481,13 @@ def validate_matrix(m: tany) -> tarray:
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
-    if not np.issubdtype(m.dtype, np.number):
-        raise TypeError('The "@arg@" parameter must contain only numeric values.')
-
     m = m.astype(float)
 
     if m.ndim != 2 or m.shape[0] < 2 or m.shape[0] != m.shape[1]:
         raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
 
-    if not all(np.isfinite(x) for x in np.nditer(m)):
-        raise ValueError('The "@arg@" parameter must contain only finite values.')
+    if not all(np.isfinite(x) and np.isreal(x) for x in np.nditer(m)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values.')
 
     return m
 
@@ -515,7 +523,7 @@ def validate_partitions(partitions: tany, current_states: tlist_str) -> tlists_i
         if any(state < 0 or state >= current_states_length for state in partitions_flat):
             raise ValueError(f'The "@arg@" parameter subelements, when specified as integers, must be values between 0 and the number of existing states minus one ({current_states_length - 1:d}).')
 
-    elif all(isinstance(s, str) for s in partitions_flat):
+    elif all(isinstance(partition_flat, str) for partition_flat in partitions_flat):
 
         partitions_flat = [current_states.index(s) if s in current_states else -1 for s in partitions_flat]
 
@@ -554,9 +562,6 @@ def validate_rewards(rewards: tany, size: int) -> tarray:
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
-    if not np.issubdtype(rewards.dtype, np.number):
-        raise TypeError('The "@arg@" parameter must contain only numeric values.')
-
     rewards = rewards.astype(float)
 
     if (rewards.ndim < 1) or ((rewards.ndim == 2) and (rewards.shape[0] != 1)) or (rewards.ndim > 2):
@@ -568,7 +573,7 @@ def validate_rewards(rewards: tany, size: int) -> tarray:
         raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
 
     if not all(np.isfinite(x) and np.isreal(x) for x in np.nditer(rewards)):
-        raise ValueError('The "@arg@" parameter must contain only real finite values.')
+        raise ValueError('The "@arg@" parameter must contain only finite real values.')
 
     return rewards
 
@@ -629,9 +634,6 @@ def validate_status(status: tany, current_states: tlist_str) -> tarray:
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
-    if not np.issubdtype(status.dtype, np.number):
-        raise TypeError('The "@arg@" parameter must contain only numeric values.')
-
     status = status.astype(float)
 
     if status.ndim < 1 or (status.ndim == 2 and status.shape[0] != 1 and status.shape[1] != 1) or status.ndim > 2:
@@ -642,8 +644,8 @@ def validate_status(status: tany, current_states: tlist_str) -> tarray:
     if status.size != size:
         raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
 
-    if not all(np.isfinite(x) and 0.0 <= x <= 1.0 for x in np.nditer(status)):
-        raise ValueError('The "@arg@" parameter must contain only values between 0 and 1.')
+    if not all(np.isfinite(x) and np.isreal(x) and 0.0 <= x <= 1.0 for x in np.nditer(status)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
 
     if not np.isclose(np.sum(status), 1.0):
         raise ValueError('The "@arg@" parameter values must sum to 1.')
@@ -658,7 +660,7 @@ def validate_state_names(states: tany, size: oint = None) -> tlist_str:
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
-    if not all(isinstance(s, str) for s in states):
+    if not all(isinstance(state, str) for state in states):
         raise TypeError('The "@arg@" parameter must contain only string values.')
 
     if not all(s is not None and (len(s) > 0) for s in states):
@@ -711,7 +713,7 @@ def validate_states(states: tany, current_states: tlist_str, state_type: str, fl
         if any(state < 0 or state >= current_states_length for state in states):
             raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and the number of existing states minus one ({current_states_length - 1:d}).')
 
-    elif all(isinstance(s, str) for s in states):
+    elif all(isinstance(state, str) for state in states):
 
         states = [current_states.index(s) if s in current_states else -1 for s in states]
 
@@ -796,7 +798,7 @@ def validate_time_points(time_points: tany) -> ttimes_in:
 
 def validate_transition_function(f: tany) -> ttfunc:
 
-    if isclass(f) or not callable(f):
+    if f is None or isclass(f) or not callable(f):
         raise TypeError('The "@arg@" parameter must be a callable function or method.')
 
     s = signature(f)
@@ -833,9 +835,6 @@ def validate_transition_matrix(p: tany) -> tarray:
     except Exception:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
-    if not np.issubdtype(p.dtype, np.number):
-        raise TypeError('The "@arg@" parameter must contain only numeric values.')
-
     p = p.astype(float)
 
     if p.ndim != 2 or p.shape[0] != p.shape[1]:
@@ -846,8 +845,8 @@ def validate_transition_matrix(p: tany) -> tarray:
     if size < 2:
         raise ValueError('The "@arg@" parameter size must be greater than or equal to 2.')
 
-    if not all(np.isfinite(x) and 0.0 <= x <= 1.0 for x in np.nditer(p)):
-        raise ValueError('The "@arg@" parameter must contain only values between 0 and 1.')
+    if not all(np.isfinite(x) and np.isreal(x) and 0.0 <= x <= 1.0 for x in np.nditer(p)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
 
     if not np.allclose(np.sum(p, axis=1), np.ones(size, dtype=float)):
         raise ValueError('The "@arg@" parameter rows must sum to 1.')
@@ -873,13 +872,11 @@ def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = Non
     if flex and size is not None and _is_number(vector):
         vector = np.repeat(float(vector), size)
     else:
+
         try:
             vector = _extract_as_numeric(vector)
         except Exception:
             raise TypeError('The "@arg@" parameter is null or wrongly typed.')
-
-    if not np.issubdtype(vector.dtype, np.number):
-        raise TypeError('The "@arg@" parameter must contain only numeric values.')
 
     vector = vector.astype(float)
 
@@ -892,7 +889,7 @@ def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = Non
         raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
 
     if not all(np.isfinite(x) and np.isreal(x) and (x >= 0.0) and (x <= 1.0) for x in np.nditer(vector)):
-        raise ValueError('The "@arg@" parameter must contain only values between 0 and 1.')
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
 
     if vector_type == 'annihilation':
         if not np.isclose(vector[0], 0.0):

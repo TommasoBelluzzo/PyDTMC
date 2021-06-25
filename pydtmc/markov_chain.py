@@ -1959,15 +1959,21 @@ class MarkovChain(metaclass=BaseClass):
         size = len(states)
 
         p = np.zeros((size, size), dtype=float)
+        edges = list(graph.edges(data='weight', default=0.0))
 
-        for state_from, weights in graph.adjacency():
+        for edge in edges:
+            i = states.index(edge[0])
+            j = states.index(edge[1])
+            p[i, j] = float(edge[2])
 
-            i = states.index(state_from)
+        p_sums = np.sum(p, axis=1)
 
-            for state_to, data in weights.items():
-                j = states.index(state_to)
-                w = data['weight']
-                p[i, j] = w
+        for i in range(size):
+
+            if np.isclose(p_sums[i], 0.0):  # pragma: no cover
+                p[i, :] = np.ones(p.shape[0], dtype=float) / size
+            else:
+                p[i, :] /= p_sums[i]
 
         mc = MarkovChain(p, states)
 
@@ -2069,13 +2075,14 @@ class MarkovChain(metaclass=BaseClass):
             raise generate_validation_error(e, trace()) from None
 
         p = np.copy(m)
-        p_size = p.shape[0]
         p_sums = np.sum(p, axis=1)
 
-        for i in range(p_size):
+        size = p.shape[0]
+
+        for i in range(size):
 
             if np.isclose(p_sums[i], 0.0):  # pragma: no cover
-                p[i, :] = np.ones(p.shape[0], dtype=float) / p_size
+                p[i, :] = np.ones(p.shape[0], dtype=float) / size
             else:
                 p[i, :] /= p_sums[i]
 

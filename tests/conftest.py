@@ -80,7 +80,7 @@ def _parse_fixture_dictionary(fixture, fixture_names, subtest_name):
 
             for index, case in enumerate(fixture_data):
 
-                case_id = f'_#{case["id"]}' if 'id' in case else f' #{str(index + 1)}'
+                case_id = f'_{case["id"]}' if 'id' in case else f' #{str(index + 1)}'
                 values_current = tuple([case[fixture_name] for fixture_name in fixture_names if fixture_name in case])
 
                 if len(values_current) == expected_args:
