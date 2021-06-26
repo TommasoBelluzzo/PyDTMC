@@ -17,8 +17,9 @@ from os.path import (
     join
 )
 
+# noinspection PyPep8Naming
 from re import (
-    MULTILINE,
+    MULTILINE as flag_multiline,
     search
 )
 
@@ -49,7 +50,7 @@ if version_info < (3, 6):
 
 with open('pydtmc/__init__.py', 'r') as file:
     file_content = file.read()
-    matches = search(r'^\s*__version__\s*=\s*[\'"]([^\'"]*)[\'"]\s*$', file_content, MULTILINE)
+    matches = search(r'^__version__ = \'(\d\.\d\.\d)\'$', file_content, flags=flag_multiline)
     current_version = matches.group(1)
 
 # Description

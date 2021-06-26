@@ -16,6 +16,16 @@ from ast import (
     parse
 )
 
+from pydtmc import (
+    MarkovChain
+)
+
+# noinspection PyPep8Naming
+from re import (
+    IGNORECASE as flag_ignorecase,
+    search
+)
+
 from types import (
     CodeType,
     FunctionType
@@ -23,6 +33,8 @@ from types import (
 
 # Internal
 
+# noinspection PyUnresolvedReferences
+from pydtmc.base_class import *
 from pydtmc.validation import *
 
 
@@ -120,13 +132,17 @@ def test_validate_dpi(value, is_valid):
 
 def test_validate_dictionary(dictionary_elements, key_tuple, is_valid):
 
-    d = {}
+    if dictionary_elements is None:
+        d = None
+    else:
 
-    for dictionary_element in dictionary_elements:
-        if key_tuple:
-            d[tuple(dictionary_element[:-1])] = dictionary_element[-1]
-        else:
-            d[dictionary_element[0]] = dictionary_element[1]
+        d = {}
+
+        for dictionary_element in dictionary_elements:
+            if key_tuple:
+                d[tuple(dictionary_element[:-1])] = dictionary_element[-1]
+            else:
+                d[dictionary_element[0]] = dictionary_element[1]
 
     # noinspection PyBroadException
     try:
@@ -203,7 +219,9 @@ def test_validate_float(value, lower_limit, upper_limit, is_valid):
 
 def test_validate_graph(graph_data, is_valid):
 
-    if isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
+    if graph_data is None:
+        g = None
+    elif isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
         g = nx.from_numpy_matrix(np.array(graph_data), create_using=nx.DiGraph()) if len(graph_data) > 0 else nx.DiGraph()
         g = nx.relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
     else:
@@ -234,7 +252,9 @@ def test_validate_graph(graph_data, is_valid):
 
         assert actual == expected
 
-    if isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
+    if graph_data is None:
+        g = None
+    elif isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
         g = nx.from_numpy_matrix(np.array(graph_data), create_using=nx.DiGraph()) if len(
             graph_data) > 0 else nx.DiGraph()
         g = nx.relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
@@ -339,6 +359,85 @@ def test_validate_interval(value, is_valid):
     if result is not None:
 
         actual = all(isinstance(v, float) for v in result)
+        expected = True
+
+        assert actual == expected
+
+
+def test_validate_markov_chain(value, is_valid):
+
+    if value is not None and isinstance(value, str) and search(r'^[A-Z]+\([^)]*\)$', value, flags=flag_ignorecase):
+        value = eval(value)
+
+    # noinspection PyBroadException
+    try:
+        result = validate_markov_chain(value)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+        pass
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, MarkovChain)
+        expected = True
+
+        assert actual == expected
+
+
+def test_validate_mask(value, size, is_valid):
+
+    value = np.asarray(value)
+
+    # noinspection PyBroadException
+    try:
+        result = validate_mask(value, size)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+        pass
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, np.ndarray)
+        expected = True
+
+        assert actual == expected
+
+
+def test_validate_matrix(value, is_valid):
+
+    value = np.asarray(value)
+
+    # noinspection PyBroadException
+    try:
+        result = validate_matrix(value)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+        pass
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, np.ndarray)
         expected = True
 
         assert actual == expected

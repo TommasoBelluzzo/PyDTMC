@@ -177,16 +177,6 @@
     {
       "dictionary_elements": [
         ["A", "A", 1],
-        ["A", "B", null],
-        ["B", "A", 0],
-        ["B", "B", 1]
-      ],
-      "key_tuple": true,
-      "is_valid": false
-    },
-    {
-      "dictionary_elements": [
-        ["A", "A", 1],
         ["A", "B", "0"],
         ["B", "A", 0],
         ["B", "B", 1]
@@ -221,6 +211,11 @@
         ["D", "D", 1.0]
       ],
       "key_tuple": true,
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": null,
+      "key_tuple": false,
       "is_valid": false
     }
   ],
@@ -296,12 +291,6 @@
       "is_valid": true
     },
     {
-      "value": 0.5,
-      "lower_limit": [0.0, true],
-      "upper_limit": [1.0, true],
-      "is_valid": true
-    },
-    {
       "value": 75.0,
       "lower_limit": null,
       "upper_limit": null,
@@ -320,9 +309,15 @@
       "is_valid": false
     },
     {
-      "value": null,
-      "lower_limit": null,
+      "value": -5.0,
+      "lower_limit": [0.0, false],
       "upper_limit": null,
+      "is_valid": false
+    },
+    {
+      "value": 5.0,
+      "lower_limit": null,
+      "upper_limit": [1.0, false],
       "is_valid": false
     },
     {
@@ -376,7 +371,7 @@
       "is_valid": false
     },
     {
-      "graph_data": [false, true],
+      "graph_data": null,
       "is_valid": false
     }
   ],
@@ -533,6 +528,142 @@
     },
     {
       "value": [],
+      "is_valid": false
+    }
+  ],
+  "validate_markov_chain_data": [
+    {
+      "value": "MarkovChain([[0.33, 0.67], [0.61, 0.39]])",
+      "is_valid": true
+    },
+    {
+      "value": null,
+      "is_valid": false
+    },
+    {
+      "value": false,
+      "is_valid": false
+    },
+    {
+      "value": 10,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "is_valid": false
+    },
+    {
+      "value": {},
+      "is_valid": false
+    },
+    {
+      "value": "range(10)",
+      "is_valid": false
+    },
+    {
+      "value": "BaseClass('Test', (), [])",
+      "is_valid": false
+    },
+    {
+      "value": "TypeError()",
+      "is_valid": false
+    },
+    {
+      "value": "nx.DiGraph()",
+      "is_valid": false
+    }
+  ],
+  "validate_mask_data": [
+    {
+      "value": [["NaN", "NaN", "NaN"], ["NaN", "NaN", "NaN"], ["NaN", "NaN", "NaN"]],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": [[0, 1, 0], [0, 0, 1], [1, 0, 0]],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": [["NaN", 0.5, "NaN"], [1.0, 0.0, 0.0], [0.3, "NaN", 0.2]],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": [["Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity"], ["Infinity", "Infinity", "Infinity"]],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [["NaN", "NaN", "NaN"], [0.0, 0.45, 0.55], [1.0, "NaN", 0.2]],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [[0.0, "NaN", 0.7, 0.3], [0.8, "NaN", 0.2, "NaN"], ["NaN", "NaN", "NaN", "NaN"], ["NaN", "NaN", "NaN", "NaN"]],
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": [[0.2, 0.5, 0.1, "NaN"], [0.1, 0.5, 0.2, 0.2], [0.8, "NaN", "NaN", "NaN"]],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "size": 0,
+      "is_valid": false
+    },
+    {
+      "value": true,
+      "size": 0,
+      "is_valid": false
+    },
+    {
+      "value": [[], []],
+      "size": 0,
+      "is_valid": false
+    }
+  ],
+  "validate_matrix_data": [
+    {
+      "value": [[1.0, 0.0], [0.5, 0.5]],
+      "is_valid": true
+    },
+    {
+      "value": [[2, 7, 3], [11, 3, 0], [0, 7, 7]],
+      "is_valid": true
+    },
+    {
+      "value": [[-4.4, 9.2], [6.3, 3.6]],
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "is_valid": false
+    },
+    {
+      "value": [[], []],
+      "is_valid": false
+    },
+    {
+      "value": [5],
+      "is_valid": false
+    },
+    {
+      "value": [0, 0, 0, 0, 1],
+      "is_valid": false
+    },
+    {
+      "value": [[12, 8, 0], [0, 0, 1], [9, 4, 2], [9, 4, 2]],
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "is_valid": false
+    },
+    {
+      "value": "matrix",
       "is_valid": false
     }
   ],

@@ -22,8 +22,9 @@ from os.path import (
     join
 )
 
+# noinspection PyPep8Naming
 from re import (
-    MULTILINE,
+    MULTILINE as flag_multiline,
     search
 )
 
@@ -52,7 +53,7 @@ init_file = join(base_directory, '../../pydtmc/__init__.py')
 
 with open(init_file, 'r') as file:
     file_content = file.read()
-    matches = search(r'^__version__ = \'(\d\.\d\.\d)\'$', file_content, MULTILINE)
+    matches = search(r'^__version__ = \'(\d\.\d\.\d)\'$', file_content, flags=flag_multiline)
     current_version = matches.group(1)
 
 project = 'PyDTMC'

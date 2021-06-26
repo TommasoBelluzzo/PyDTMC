@@ -114,12 +114,12 @@ def _extract_as_numeric(data: tany) -> tarray:
 
 def _is_float(value: tany) -> bool:
 
-    return isinstance(value, (float, np.floating))
+    return value is not None and isinstance(value, (float, np.floating))
 
 
 def _is_integer(value: tany) -> bool:
 
-    return isinstance(value, (int, np.integer)) and not isinstance(value, bool)
+    return value is not None and isinstance(value, (int, np.integer)) and not isinstance(value, bool)
 
 
 def _is_number(value: tany) -> bool:
@@ -160,7 +160,7 @@ def validate_boundary_condition(value: tany) -> tbcond:
 
 def validate_dictionary(value: tany) -> tmc_dict:
 
-    if not isinstance(value, dict):
+    if value is None or not isinstance(value, dict):
         raise ValueError('The "@arg@" parameter must be a dictionary.')
 
     d_keys = value.keys()
@@ -190,10 +190,10 @@ def validate_dictionary(value: tany) -> tmc_dict:
 
         d_value = float(d_value)
 
-        if 0.0 <= d_value <= 1.0:
+        if np.isfinite(d_value) and np.isreal(d_value) and 0.0 <= d_value <= 1.0:
             result[d_key] = d_value
         else:
-            raise ValueError('The "@arg@" parameter values can contain only numbers between 0 and 1.')
+            raise ValueError('The "@arg@" parameter values can contain only finite real numbers between 0 and 1.')
 
     return result
 
@@ -314,7 +314,7 @@ def validate_file_path(value: tany, write_permission: bool) -> str:  # pragma: n
 
 def validate_float(value: tany, lower_limit: olimit_float = None, upper_limit: olimit_float = None) -> float:
 
-    if not isinstance(value, (float, np.floating)):
+    if value is None or not isinstance(value, (float, np.floating)):
         raise TypeError('The "@arg@" parameter must be a float value.')
 
     value = float(value)
@@ -343,11 +343,8 @@ def validate_float(value: tany, lower_limit: olimit_float = None, upper_limit: o
 
 def validate_graph(value: tany) -> tgraphs:
 
-    if value is None:
-        raise ValueError('The "@arg@" parameter must be a directed graph.')
-
-    non_multi = isinstance(value, nx.DiGraph)
-    multi = isinstance(value, nx.MultiDiGraph)
+    non_multi = value is not None and isinstance(value, nx.DiGraph)
+    multi = value is not None and isinstance(value, nx.MultiDiGraph)
 
     if not non_multi and not multi:
         raise ValueError('The "@arg@" parameter must be a directed graph.')
@@ -392,7 +389,7 @@ def validate_hyperparameter(hyperparameter: tany, size: int) -> tarray:
 
 def validate_integer(value: tany, lower_limit: olimit_int = None, upper_limit: olimit_int = None) -> int:
 
-    if not _is_integer(value):
+    if value is None or not _is_integer(value):
         raise TypeError('The "@arg@" parameter must be an integer value.')
 
     value = int(value)
@@ -444,7 +441,7 @@ def validate_interval(value: tany) -> tinterval:
 
 def validate_markov_chain(mc: tany) -> tmc:
 
-    if mc is None or (type(mc).__name__ != 'MarkovChain'):
+    if mc is None or (f'{mc.__module__}.{mc.__class__.__name__}' != 'pydtmc.markov_chain.MarkovChain'):
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
     return mc
@@ -459,14 +456,11 @@ def validate_mask(mask: tany, size: int) -> tarray:
 
     mask = mask.astype(float)
 
-    if mask.ndim != 2 or mask.shape[0] != mask.shape[1]:
-        raise ValueError('The "@arg@" parameter must be a 2d square matrix.')
+    if mask.ndim != 2 or mask.shape[0] != mask.shape[1] or mask.shape[0] != size:
+        raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
 
-    if mask.shape[0] != size:
-        raise ValueError(f'The "@arg@" parameter size must be equal to {size:d}.')
-
-    if not all(np.isnan(x) or 0.0 <= x <= 1.0 for x in np.nditer(mask)):
-        raise ValueError('The "@arg@" parameter can contain only NaNs and values between 0 and 1.')
+    if not all(np.isnan(x) or (np.isfinite(x) and np.isreal(x) and 0.0 <= x <= 1.0) for x in np.nditer(mask)):
+        raise ValueError('The "@arg@" parameter can contain only NaNs and finite real values between 0 and 1.')
 
     if np.any(np.nansum(mask, axis=1, dtype=float) > 1.0):
         raise ValueError('The "@arg@" parameter row sums must not exceed 1.')
@@ -486,8 +480,8 @@ def validate_matrix(m: tany) -> tarray:
     if m.ndim != 2 or m.shape[0] < 2 or m.shape[0] != m.shape[1]:
         raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
 
-    if not all(np.isfinite(x) and np.isreal(x) for x in np.nditer(m)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values.')
+    if not all(np.isfinite(x) and np.isreal(x) and x >= 0.0 for x in np.nditer(m)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')
 
     return m
 
@@ -663,7 +657,7 @@ def validate_state_names(states: tany, size: oint = None) -> tlist_str:
     if not all(isinstance(state, str) for state in states):
         raise TypeError('The "@arg@" parameter must contain only string values.')
 
-    if not all(s is not None and (len(s) > 0) for s in states):
+    if not all(state is not None and (len(state) > 0) for state in states):
         raise TypeError('The "@arg@" parameter must contain only valid string values.')
 
     states_length = len(states)
@@ -814,7 +808,7 @@ def validate_transition_function(f: tany) -> ttfunc:
     # noinspection PyBroadException
     try:
         result = f(1, 1.0, 1, 1.0)
-    except Exception:
+    except Exception:  # pragma: no cover
         raise ValueError('The "@arg@" parameter behavior is not compliant.')
 
     if not _is_number(result):
@@ -852,19 +846,6 @@ def validate_transition_matrix(p: tany) -> tarray:
         raise ValueError('The "@arg@" parameter rows must sum to 1.')
 
     return p
-
-
-def validate_transition_matrix_size(size: tany) -> int:
-
-    if not _is_integer(size):
-        raise TypeError('The "@arg@" parameter must be an integer value.')
-
-    size = int(size)
-
-    if size < 2:
-        raise ValueError('The "@arg@" parameter must be greater than or equal to 2.')
-
-    return size
 
 
 def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = None) -> tarray:
