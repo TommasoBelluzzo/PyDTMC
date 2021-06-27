@@ -27,7 +27,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-${{ echo -n env.pythonLocation | openssl sha256 }}-${{ hashFiles('setup.cfg') }}
+        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
