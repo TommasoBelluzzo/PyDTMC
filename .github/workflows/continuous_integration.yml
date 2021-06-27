@@ -27,24 +27,17 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements.txt') }}
+        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         pip install --upgrade pip
         pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
-        pip install --upgrade --upgrade-strategy eager flake8
-        pip install --upgrade --upgrade-strategy eager pylint
-        pip install --upgrade --upgrade-strategy eager sphinx
-        pip install --upgrade --upgrade-strategy eager sphinx-autodoc-typehints
-        pip install --upgrade --upgrade-strategy eager sphinx-rtd-theme
-        pip install --upgrade --upgrade-strategy eager setuptools
-        pip install --upgrade --upgrade-strategy eager wheel
-        pip install --upgrade --upgrade-strategy eager pydot
-        pip install --upgrade --upgrade-strategy eager coverage
-        pip install --upgrade --upgrade-strategy eager pytest-cov
-        pip install --upgrade --upgrade-strategy eager codecov
-        pip install --upgrade --upgrade-strategy eager coveralls
+        pip install --upgrade --upgrade-strategy eager -e .[lint]
+        pip install --upgrade --upgrade-strategy eager -e .[docs]
+        pip install --upgrade --upgrade-strategy eager -e .[setup]
+        pip install --upgrade --upgrade-strategy eager -e .[package]
+        pip install --upgrade --upgrade-strategy eager -e .[tests]
   linting:
     name: Linting
     needs: initialization
@@ -66,15 +59,14 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements.txt') }}
+        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         pip install --upgrade pip
         pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
-        pip install --upgrade --upgrade-strategy eager flake8
-        pip install --upgrade --upgrade-strategy eager pylint
-    - name: Action
+        pip install --upgrade --upgrade-strategy eager -e .[lint]
+    - name: Linting
       run: |
         flake8 . --count --statistics --ignore=E501,F403,F405
         pylint pydtmc --disable=C0103,C0114,C0116,C0301,C0302,C0415,E1101,I1101,R0801,R0903,R0904,R0912,R0913,R0914,R0915,R1702,W0212,W0611,W0613,W0632,W0703
@@ -100,16 +92,14 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements.txt') }}
+        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         pip install --upgrade pip
         pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
-        pip install --upgrade --upgrade-strategy eager sphinx
-        pip install --upgrade --upgrade-strategy eager sphinx-autodoc-typehints
-        pip install --upgrade --upgrade-strategy eager sphinx-rtd-theme
-    - name: Action
+        pip install --upgrade --upgrade-strategy eager -e .[docs]
+    - name: Documentation
       run: make -C docs/ html
   build:
     name: Build
@@ -132,17 +122,16 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements.txt') }}
+        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         pip install --upgrade pip
         pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
-        pip install --upgrade --upgrade-strategy eager setuptools
-        pip install --upgrade --upgrade-strategy eager wheel
-    - name: Action
+        pip install --upgrade --upgrade-strategy eager -e .[setup]
+    - name: Build
       run: python setup.py sdist bdist_wheel
-  testing:
+  testing_coverage:
     name: Testing & Coverage
     needs: build
     runs-on: ${{ matrix.os }}
@@ -154,10 +143,6 @@ jobs:
     steps:
     - name: Repository Checkout
       uses: actions/checkout@v2
-    - name: Python Setup
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
     - name: Libraries Installation
       shell: bash
       run: |
@@ -170,28 +155,28 @@ jobs:
         else
           brew install graphviz
         fi
+    - name: Python Setup
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
     - name: Python Cache
       id: cache
       uses: actions/cache@v2
       with:
         path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements.txt') }}
+        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         pip install --upgrade pip
         pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
-        pip install --upgrade --upgrade-strategy eager pydot
-        pip install --upgrade --upgrade-strategy eager coverage
-        pip install --upgrade --upgrade-strategy eager pytest-cov
-    - name: Testing
-      run: pytest --cov=pydtmc tests/
-    - name: Coverage Reports
+        pip install --upgrade --upgrade-strategy eager -e .[package]
+        pip install --upgrade --upgrade-strategy eager -e .[tests]
+    - name: Testing & Coverage
       env:
         COVERALLS_SERVICE_NAME: github-actions
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
       run: |
-        pip install codecov
-        pip install coveralls
+        pytest --cov=pydtmc tests/
         codecov
         coveralls
