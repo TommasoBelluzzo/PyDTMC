@@ -10,4 +10,7 @@ __all__ = [
 ###########
 
 class ValidationError(Exception):
-    pass
+
+    """
+    Defines an exception thrown when inappropriate argument values are provided.
+    """

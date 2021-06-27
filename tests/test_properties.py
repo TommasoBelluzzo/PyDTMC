@@ -5,20 +5,20 @@
 # IMPORTS #
 ###########
 
-# Full
+# Libraries
 
 import numpy as np
 import numpy.linalg as npl
 import numpy.testing as npt
 
-# Partial
+from pytest import (
+    skip
+)
+
+# Internal
 
 from pydtmc import (
     MarkovChain
-)
-
-from pytest import (
-    skip
 )
 
 
@@ -75,10 +75,12 @@ def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communicatio
 
             actual = mc.is_accessible(j, i)
             expected = mc.accessibility_matrix[i, j] != 0
+
             assert actual == expected
 
             actual = mc.are_communicating(i, j)
             expected = mc.accessibility_matrix[i, j] != 0 and mc.accessibility_matrix[j, i] != 0
+
             assert actual == expected
 
     actual = mc.adjacency_matrix
@@ -230,29 +232,28 @@ def test_stationary_distributions(p, stationary_distributions):
     mc = MarkovChain(p)
     stationary_distributions = [np.array(stationary_distribution) for stationary_distribution in stationary_distributions]
 
-    actual = len(mc.stationary_distributions)
+    actual = len(mc.pi)
     expected = len(stationary_distributions)
 
     assert actual == expected
 
-    actual = len(mc.stationary_distributions)
+    actual = len(mc.pi)
     expected = len(mc.recurrent_classes)
 
     assert actual == expected
 
-    ss_matrix = np.vstack(mc.stationary_distributions)
+    ss_matrix = np.vstack(mc.pi)
     actual = npl.matrix_rank(ss_matrix)
     expected = min(ss_matrix.shape)
 
     assert actual == expected
 
-    for i in range(len(stationary_distributions)):
+    for i, stationary_distribution in enumerate(stationary_distributions):
 
-        assert np.isclose(np.sum(mc.steady_states[i]), 1.0)
-        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        assert np.isclose(np.sum(mc.pi[i]), 1.0)
 
-        actual = mc.steady_states[i]
-        expected = stationary_distributions[i]
+        actual = mc.pi[i]
+        expected = stationary_distribution
 
         npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 

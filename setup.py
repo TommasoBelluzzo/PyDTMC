@@ -5,7 +5,7 @@
 # IMPORTS #
 ###########
 
-# Partial
+# Standard
 
 from os import (
     walk
@@ -23,14 +23,16 @@ from re import (
     search
 )
 
+from sys import (
+    exit as sys_exit,
+    version_info
+)
+
+# Libraries
+
 from setuptools import (
     find_packages,
     setup
-)
-
-from sys import (
-    exit,
-    version_info
 )
 
 
@@ -39,7 +41,7 @@ from sys import (
 ################
 
 if version_info < (3, 6):
-    exit('Python 3.6 or greater is required.')
+    sys_exit('Python 3.6 or greater is required.')
 
 
 #################
@@ -63,9 +65,9 @@ with open(join(base_directory, 'README.md'), encoding='utf-8') as file:
 
 # Package Files
 
-package_data_files = list()
+package_data_files = []
 
-for (location, directories, files) in walk('data'):
+for (location, _, files) in walk('data'):
     for file in files:
         if file != '.gitkeep':
             package_data_files.append(join('..', location, file))

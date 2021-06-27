@@ -55,20 +55,7 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Full
-
-import matplotlib.pyplot as pp
-import networkx as nx
-import numpy as np
-import numpy.random as npr
-import scipy.sparse as spsp
-
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
-
-# Partial
+# Standard
 
 from typing import (
     Any,
@@ -82,6 +69,19 @@ from typing import (
     TypeVar,
     Union,
 )
+
+# Libraries
+
+import matplotlib.pyplot as mplp
+import networkx as nx
+import numpy as np
+import numpy.random as npr
+import scipy.sparse as spsp
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 
 #########
@@ -189,7 +189,7 @@ opart = Optional[tpart]
 tparts = List[tpart]
 oparts = Optional[tparts]
 
-tplot = Tuple[pp.Figure, pp.Axes]
+tplot = Tuple[mplp.Figure, mplp.Axes]
 oplot = Optional[tplot]
 
 trand = npr.RandomState

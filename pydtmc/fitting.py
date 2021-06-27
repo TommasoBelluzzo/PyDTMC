@@ -10,13 +10,20 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Full
+# Libraries
 
 import numpy as np
 
 # Internal
 
-from .custom_types import *
+from .custom_types import (
+    tany,
+    tfitres,
+    tinterval,
+    tlist_int,
+    tlist_str,
+    ttfunc
+)
 
 
 #############

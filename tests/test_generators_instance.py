@@ -5,19 +5,19 @@
 # IMPORTS #
 ###########
 
-# Full
+# Libraries
 
 import numpy as np
 import numpy.testing as npt
 
-# Partial
+from pytest import (
+    skip
+)
+
+# Internal
 
 from pydtmc import (
     MarkovChain
-)
-
-from pytest import (
-    skip
 )
 
 
@@ -94,8 +94,6 @@ def test_sub(p, states, value):
 
             mc_sub = None
             exception = True
-
-            pass
 
         assert exception is False
 

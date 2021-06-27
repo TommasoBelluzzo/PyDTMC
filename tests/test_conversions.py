@@ -5,24 +5,11 @@
 # IMPORTS #
 ###########
 
-# Full
-
-import numpy.random as npr
-import numpy.testing as npt
-
-# Partial
+# Standard
 
 from os import (
     close,
     remove
-)
-
-from pydtmc import (
-    MarkovChain
-)
-
-from pytest import (
-    mark
 )
 
 from random import (
@@ -31,6 +18,21 @@ from random import (
 
 from tempfile import (
     mkstemp
+)
+
+# Libraries
+
+import numpy.random as npr
+import numpy.testing as npt
+
+from pytest import (
+    mark
+)
+
+# Internal
+
+from pydtmc import (
+    MarkovChain
 )
 
 
@@ -96,8 +98,6 @@ def test_file(seed, maximum_size, runs, file_extension):
 
             mc_from = None
             exception = True
-
-            pass
 
         remove(file_path)
 

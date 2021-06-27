@@ -33,18 +33,7 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Full
-
-import networkx as nx
-import numpy as np
-import scipy.sparse as spsp
-
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
-
-# Partial
+# Standard
 
 from copy import (
     deepcopy
@@ -60,12 +49,42 @@ from itertools import (
 )
 
 from os.path import (
-    isfile,
+    isfile
 )
+
+# Libraries
+
+import networkx as nx
+import numpy as np
+import scipy.sparse as spsp
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 # Internal
 
-from .custom_types import *
+from .custom_types import (
+    oint,
+    olimit_float,
+    olimit_int,
+    tany,
+    tarray,
+    tbcond,
+    tdists_flex,
+    tgraphs,
+    tinterval,
+    titerable,
+    tlist_any,
+    tlist_int,
+    tlist_str,
+    tlists_int,
+    tmc,
+    tmc_dict,
+    ttfunc,
+    ttimes_in
+)
 
 
 #############
@@ -209,7 +228,7 @@ def validate_distribution(value: tany, size: int) -> tdists_flex:
 
         return value
 
-    elif isinstance(value, list):
+    if isinstance(value, list):
 
         value_len = len(value)
 
@@ -235,8 +254,7 @@ def validate_distribution(value: tany, size: int) -> tdists_flex:
 
         return value
 
-    else:
-        raise TypeError('The "@arg@" parameter must be either an integer representing the number of redistributions to perform or a list of valid distributions.')
+    raise TypeError('The "@arg@" parameter must be either an integer representing the number of redistributions to perform or a list of valid distributions.')
 
 
 def validate_dpi(value: tany) -> int:
@@ -284,8 +302,8 @@ def validate_file_path(value: tany, write_permission: bool) -> str:  # pragma: n
             with open(value, mode='w'):
                 pass
 
-        except Exception:
-            raise ValueError('The "@arg@" parameter defines the path to an inaccessible file.')
+        except Exception as e:
+            raise ValueError('The "@arg@" parameter defines the path to an inaccessible file.') from e
 
     else:
 
@@ -303,8 +321,8 @@ def validate_file_path(value: tany, write_permission: bool) -> str:  # pragma: n
                 if not file.read(1):
                     file_empty = True
 
-        except Exception:
-            raise ValueError('The "@arg@" parameter defines the path to an inaccessible file.')
+        except Exception as e:
+            raise ValueError('The "@arg@" parameter defines the path to an inaccessible file.') from e
 
         if file_empty:
             raise ValueError('The "@arg@" parameter defines the path to an empty file.')
@@ -373,8 +391,8 @@ def validate_hyperparameter(hyperparameter: tany, size: int) -> tarray:
 
     try:
         hyperparameter = _extract_as_numeric(hyperparameter)
-    except Exception:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
     hyperparameter = hyperparameter.astype(float)
 
@@ -451,8 +469,8 @@ def validate_mask(mask: tany, size: int) -> tarray:
 
     try:
         mask = _extract_as_numeric(mask)
-    except Exception:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
     mask = mask.astype(float)
 
@@ -472,8 +490,8 @@ def validate_matrix(m: tany) -> tarray:
 
     try:
         m = _extract_as_numeric(m)
-    except Exception:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
     m = m.astype(float)
 
@@ -553,8 +571,8 @@ def validate_rewards(rewards: tany, size: int) -> tarray:
 
     try:
         rewards = _extract_as_numeric(rewards)
-    except Exception:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
     rewards = rewards.astype(float)
 
@@ -625,8 +643,8 @@ def validate_status(status: tany, current_states: tlist_str) -> tarray:
 
     try:
         status = _extract_as_numeric(status)
-    except Exception:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
     status = status.astype(float)
 
@@ -651,8 +669,8 @@ def validate_state_names(states: tany, size: oint = None) -> tlist_str:
 
     try:
         states = _extract(states)
-    except Exception:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
     if not all(isinstance(state, str) for state in states):
         raise TypeError('The "@arg@" parameter must contain only string values.')
@@ -695,8 +713,8 @@ def validate_states(states: tany, current_states: tlist_str, state_type: str, fl
 
     try:
         states = _extract(states)
-    except Exception:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
     current_states_length = len(current_states)
 
@@ -716,13 +734,13 @@ def validate_states(states: tany, current_states: tlist_str, state_type: str, fl
 
     else:
 
-        if flex:
-            if state_type == 'walk':
-                raise TypeError('The "@arg@" parameter must be either an integer, an array_like object of integers or an array_like object of strings.')
-            else:
-                raise TypeError('The "@arg@" parameter must be either an integer, a string, an array_like object of integers or an array_like object of strings.')
-        else:
+        if not flex:
             raise TypeError('The "@arg@" parameter must be either an array_like object of integers or an array_like object of strings.')
+
+        if state_type == 'walk':
+            raise TypeError('The "@arg@" parameter must be either an integer, an array_like object of integers or an array_like object of strings.')
+
+        raise TypeError('The "@arg@" parameter must be either an integer, a string, an array_like object of integers or an array_like object of strings.')
 
     states_length = len(states)
 
@@ -764,8 +782,8 @@ def validate_time_points(time_points: tany) -> ttimes_in:
 
     try:
         time_points = _extract(time_points)
-    except Exception:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
     if all(_is_integer(time_point) for time_point in time_points):
 
@@ -808,8 +826,8 @@ def validate_transition_function(f: tany) -> ttfunc:
     # noinspection PyBroadException
     try:
         result = f(1, 1.0, 1, 1.0)
-    except Exception:  # pragma: no cover
-        raise ValueError('The "@arg@" parameter behavior is not compliant.')
+    except Exception as e:  # pragma: no cover
+        raise ValueError('The "@arg@" parameter behavior is not compliant.') from e
 
     if not _is_number(result):
         raise ValueError('The "@arg@" parameter behavior is not compliant.')
@@ -826,8 +844,8 @@ def validate_transition_matrix(p: tany) -> tarray:
 
     try:
         p = _extract_as_numeric(p)
-    except Exception:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
     p = p.astype(float)
 
@@ -856,8 +874,8 @@ def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = Non
 
         try:
             vector = _extract_as_numeric(vector)
-        except Exception:
-            raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+        except Exception as e:
+            raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
     vector = vector.astype(float)
 
@@ -869,7 +887,7 @@ def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = Non
     if size is not None and (vector.size != size):
         raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
 
-    if not all(np.isfinite(x) and np.isreal(x) and (x >= 0.0) and (x <= 1.0) for x in np.nditer(vector)):
+    if not all(np.isfinite(x) and np.isreal(x) and 0.0 <= x <= 1.0 for x in np.nditer(vector)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
 
     if vector_type == 'annihilation':

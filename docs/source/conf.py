@@ -5,12 +5,7 @@
 # IMPORTS #
 ###########
 
-# Full
-
-# noinspection PyUnresolvedReferences
-import sphinx_rtd_theme  # noqa
-
-# Partial
+# Standard
 
 from datetime import (
     datetime
@@ -28,12 +23,17 @@ from re import (
     search
 )
 
-from sphinx.ext.intersphinx import (
-    InventoryAdapter
-)
-
 from sys import (
     path
+)
+
+# Libraries
+
+# noinspection PyUnresolvedReferences
+import sphinx_rtd_theme  # noqa
+
+from sphinx.ext.intersphinx import (
+    InventoryAdapter
 )
 
 
@@ -58,10 +58,10 @@ with open(init_file, 'r') as file:
 
 project = 'PyDTMC'
 project_title = project + ' Documentation'
+project_copyright = f'2019-{datetime.now().strftime("%Y")}, Tommaso Belluzzo'
 release = current_version
 version = current_version
 author = 'Tommaso Belluzzo'
-copyright = f'2019-{datetime.now().strftime("%Y")}, Tommaso Belluzzo'
 
 
 ##############
@@ -173,7 +173,6 @@ def _process_intersphinx_aliases(app):
             found = inventories.main_inventory[target_domain][target_name]
         except KeyError:
             found = None
-            pass
 
         if found is not None:
             try:

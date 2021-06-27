@@ -9,13 +9,7 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Full
-
-import networkx as nx
-import numpy as np
-import numpy.linalg as npl
-
-# Partial
+# Standard
 
 from copy import (
     deepcopy
@@ -36,21 +30,130 @@ from math import (
     gcd
 )
 
+# Libraries
+
+import networkx as nx
+import numpy as np
+import numpy.linalg as npl
+
 # Internal
 
-from .algorithms import *
-from .base_class import *
-from .computations import *
+from .algorithms import (
+    calculate_periods,
+    find_cyclic_classes,
+    find_lumping_partitions
+)
+
+from .base_class import (
+    BaseClass
+)
+
+from .computations import (
+    eigenvalues_sorted,
+    gth_solve,
+    rdl_decomposition,
+    slem
+)
+
 from .custom_types import *
-from .decorators import *
-from .exceptions import *
-from .files_io import *
-from .fitting import *
-from .generators import *
-from .measures import *
-from .simulations import *
-from .utilities import *
-from .validation import *
+
+from .decorators import (
+    alias,
+    cachedproperty,
+    aliased
+)
+
+from .exceptions import (
+    ValidationError
+)
+
+from .files_io import (
+    read_csv,
+    read_json,
+    read_txt,
+    read_xml,
+    write_csv,
+    write_json,
+    write_txt,
+    write_xml
+)
+
+from .fitting import (
+    fit_function,
+    fit_walk
+)
+
+from .generators import (
+    approximation,
+    birth_death,
+    bounded,
+    canonical,
+    closest_reversible,
+    gamblers_ruin,
+    lazy,
+    lump,
+    random,
+    sub,
+    urn_model
+)
+
+from .measures import (
+    absorption_probabilities,
+    committor_probabilities,
+    expected_rewards,
+    expected_transitions,
+    first_passage_reward,
+    first_passage_probabilities,
+    hitting_probabilities,
+    hitting_times,
+    mean_absorption_times,
+    mean_first_passage_times_between,
+    mean_first_passage_times_to,
+    mean_number_visits,
+    mean_recurrence_times,
+    mixing_time,
+    sensitivity,
+    time_correlations,
+    time_relaxations
+)
+
+from .simulations import (
+    predict,
+    redistribute,
+    simulate,
+    walk_probability
+)
+
+from .utilities import (
+    create_rng,
+    generate_validation_error,
+    get_file_extension
+)
+
+from .validation import (
+    validate_boolean,
+    validate_boundary_condition,
+    validate_dictionary,
+    validate_enumerator,
+    validate_file_path,
+    validate_float,
+    validate_graph,
+    validate_hyperparameter,
+    validate_integer,
+    validate_interval,
+    validate_mask,
+    validate_matrix,
+    validate_partitions,
+    validate_rewards,
+    validate_state,
+    validate_state_names,
+    validate_states,
+    validate_status,
+    validate_time_points,
+    validate_transition_function,
+    validate_transition_matrix,
+    validate_vector
+)
 
 
 ###########
@@ -88,20 +191,20 @@ class MarkovChain(metaclass=BaseClass):
         graph = nx.DiGraph(p)
         graph = nx.relabel_nodes(graph, dict(zip(range(size), states)))
 
-        self.__cache: tcache = dict()
+        self.__cache: tcache = {}
         self.__digraph: tgraph = graph
         self.__p: tarray = p
         self.__size: int = size
         self.__states: tlist_str = states
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
 
         if isinstance(other, MarkovChain):
             return np.array_equal(self.p, other.p) and self.states == other.states
 
-        return NotImplemented
+        return False
 
-    def __hash__(self):
+    def __hash__(self) -> int:
 
         return hash((self.p.tobytes(), tuple(self.states)))
 
@@ -112,26 +215,20 @@ class MarkovChain(metaclass=BaseClass):
     # noinspection PyListCreation
     def __str__(self) -> str:
 
-        lines = []
-        lines.append('')
-
+        lines = ['']
         lines.append('DISCRETE-TIME MARKOV CHAIN')
         lines.append(f' SIZE:           {self.size:d}')
         lines.append(f' RANK:           {self.rank:d}')
-
         lines.append(f' CLASSES:        {len(self.communicating_classes):d}')
         lines.append(f'  > RECURRENT:   {len(self.recurrent_classes):d}')
         lines.append(f'  > TRANSIENT:   {len(self.transient_classes):d}')
-
         lines.append(f' ERGODIC:        {("YES" if self.is_ergodic else "NO")}')
         lines.append(f'  > APERIODIC:   {("YES" if self.is_aperiodic else "NO (" + str(self.period) + ")")}')
         lines.append(f'  > IRREDUCIBLE: {("YES" if self.is_irreducible else "NO")}')
-
         lines.append(f' ABSORBING:      {("YES" if self.is_absorbing else "NO")}')
         lines.append(f' REGULAR:        {("YES" if self.is_regular else "NO")}')
         lines.append(f' REVERSIBLE:     {("YES" if self.is_reversible else "NO")}')
         lines.append(f' SYMMETRIC:      {("YES" if self.is_symmetric else "NO")}')
-
         lines.append('')
 
         value = '\n'.join(lines)
@@ -163,7 +260,7 @@ class MarkovChain(metaclass=BaseClass):
     def _cyclic_classes_indices(self) -> tlists_int:
 
         if not self.is_irreducible:
-            return list()
+            return []
 
         if self.is_aperiodic:
             return self.__communicating_classes_indices.copy()
@@ -176,7 +273,7 @@ class MarkovChain(metaclass=BaseClass):
     @cachedproperty
     def __cyclic_states_indices(self) -> tlist_int:
 
-        indices = sorted(list(chain.from_iterable(self._cyclic_classes_indices)))
+        indices = sorted(chain.from_iterable(self._cyclic_classes_indices))
 
         return indices
 
@@ -205,7 +302,7 @@ class MarkovChain(metaclass=BaseClass):
     @cachedproperty
     def __recurrent_states_indices(self) -> tlist_int:
 
-        indices = sorted(list(chain.from_iterable(self.__recurrent_classes_indices)))
+        indices = sorted(chain.from_iterable(self.__recurrent_classes_indices))
 
         return indices
 
@@ -229,7 +326,7 @@ class MarkovChain(metaclass=BaseClass):
     @cachedproperty
     def __transient_classes_indices(self) -> tlists_int:
 
-        edges = set([edge1 for (edge1, edge2) in nx.condensation(self.__digraph).edges])
+        edges = {edge1 for (edge1, edge2) in nx.condensation(self.__digraph).edges}
 
         indices = [self.__classes_indices[edge] for edge in edges]
         indices = sorted(indices, key=lambda x: (-len(x), x[0]))
@@ -239,7 +336,7 @@ class MarkovChain(metaclass=BaseClass):
     @cachedproperty
     def __transient_states_indices(self) -> tlist_int:
 
-        indices = sorted(list(chain.from_iterable(self.__transient_classes_indices)))
+        indices = sorted(chain.from_iterable(self.__transient_classes_indices))
 
         return indices
 
@@ -668,7 +765,7 @@ class MarkovChain(metaclass=BaseClass):
                 pr = self.__p[np.ix_(indices, indices)]
                 s[i, indices] = gth_solve(pr)
 
-        pi = list()
+        pi = []
 
         for i in range(s.shape[0]):
             pi.append(s[i, :])
@@ -1733,7 +1830,7 @@ class MarkovChain(metaclass=BaseClass):
     @staticmethod
     def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: ofloat = None) -> tmc:
 
-        """
+        r"""
         The method approximates the Markov chain associated with the discretized version of the following first-order autoregressive process:
 
         | :math:`y_t = (1 - \\rho) \\alpha + \\rho y_{t-1} + \\varepsilon_t`
@@ -2036,7 +2133,7 @@ class MarkovChain(metaclass=BaseClass):
         else:
             d = read_xml(file_path)
 
-        states = [key[0] for key in d.keys() if key[0] == key[1]]
+        states = [key[0] for key in d if key[0] == key[1]]
         size = len(states)
 
         if size < 2:  # pragma: no cover

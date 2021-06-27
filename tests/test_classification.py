@@ -5,12 +5,12 @@
 # IMPORTS #
 ###########
 
-# Full
+# Libraries
 
 import numpy as np
 import numpy.testing as npt
 
-# Partial
+# Internal
 
 from pydtmc import (
     MarkovChain
@@ -52,7 +52,7 @@ def test_classes_recurrent(p, recurrent_classes):
     assert actual == expected
 
     actual = sum([len(i) for i in mc.recurrent_classes])
-    expected = len(set([state for recurrent_class in recurrent_classes for state in recurrent_class]))
+    expected = len({state for recurrent_class in recurrent_classes for state in recurrent_class})
 
     assert actual == expected
 
@@ -67,7 +67,7 @@ def test_classes_transient(p, transient_classes):
     assert actual == expected
 
     actual = sum([len(i) for i in mc.transient_classes])
-    expected = len(set([state for transient_class in transient_classes for state in transient_class]))
+    expected = len({state for transient_class in transient_classes for state in transient_class})
 
     assert actual == expected
 

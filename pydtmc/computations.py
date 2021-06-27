@@ -12,14 +12,18 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Full
+# Libraries
 
 import numpy as np
 import numpy.linalg as npl
 
 # Internal
 
-from .custom_types import *
+from .custom_types import (
+    ofloat,
+    tarray,
+    trdl
+)
 
 
 #############

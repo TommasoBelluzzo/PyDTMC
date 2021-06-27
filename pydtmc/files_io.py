@@ -16,11 +16,7 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Full
-
-import numpy as np
-
-# Partial
+# Standard
 
 # noinspection PyPep8Naming
 from csv import (
@@ -43,9 +39,20 @@ from xml.etree import (
     cElementTree as xml_tree
 )
 
+try:
+    from defusedxml.ElementTree import parse as xml_parse
+except ImportError:
+    from xml.etree.cElementTree import parse as xml_parse
+
+# Libraries
+
+import numpy as np
+
 # Internal
 
-from .custom_types import *
+from .custom_types import (
+    tmc_dict
+)
 
 
 #############
@@ -57,7 +64,7 @@ def read_csv(file_path: str) -> tmc_dict:
     d = {}
 
     size = 0
-    states = None
+    states = []
 
     with open(file_path, mode='r', newline='') as file:
 
@@ -71,7 +78,7 @@ def read_csv(file_path: str) -> tmc_dict:
 
                 states = row
 
-                if not all(isinstance(s, str) for s in states) or not all(s is not None and len(s) > 0 for s in states):  # pragma: no cover
+                if not all(isinstance(state, str) for state in states) or not all(state is not None and len(state) > 0 for state in states):  # pragma: no cover
                     raise ValueError('The file header is invalid.')
 
                 size = len(states)
@@ -95,8 +102,8 @@ def read_csv(file_path: str) -> tmc_dict:
 
                     try:
                         probability = float(probabilities[i])
-                    except Exception:  # pragma: no cover
-                        raise ValueError('The file contains invalid rows.')
+                    except Exception as e:  # pragma: no cover
+                        raise ValueError('The file contains invalid rows.') from e
 
                     d[(state_from, state_to)] = probability
 
@@ -122,7 +129,7 @@ def read_json(file_path: str) -> tmc_dict:
             if not isinstance(obj, dict):  # pragma: no cover
                 raise ValueError('The file format is not compliant.')
 
-            if sorted(list(obj.keys())) != valid_keys:  # pragma: no cover
+            if sorted(obj.keys()) != valid_keys:  # pragma: no cover
                 raise ValueError('The file contains invalid elements.')
 
             state_from = obj['state_from']
@@ -163,8 +170,8 @@ def read_txt(file_path: str) -> tmc_dict:
 
             try:
                 ls2 = float(ls[2])
-            except Exception:  # pragma: no cover
-                raise ValueError('The file contains invalid lines.')
+            except Exception as e:  # pragma: no cover
+                raise ValueError('The file contains invalid lines.') from e
 
             d[(ls[0], ls[1])] = ls2
 
@@ -177,9 +184,9 @@ def read_xml(file_path: str) -> tmc_dict:
     valid_keys = ['probability', 'state_from', 'state_to']
 
     try:
-        document = xml_tree.parse(file_path)
-    except Exception:  # pragma: no cover
-        raise ValueError('The file format is not compliant.')
+        document = xml_parse(file_path)
+    except Exception as e:  # pragma: no cover
+        raise ValueError('The file format is not compliant.') from e
 
     root = document.getroot()
 
@@ -206,7 +213,7 @@ def read_xml(file_path: str) -> tmc_dict:
 
         values = [attribute[1].strip() for attribute in attributes]
 
-        if any([len(value) == 0 for value in values]):  # pragma: no cover
+        if any(len(value) == 0 for value in values):  # pragma: no cover
             raise ValueError('The file contains invalid subelements.')
 
         index = keys.index('state_from')
@@ -220,8 +227,8 @@ def read_xml(file_path: str) -> tmc_dict:
 
         try:
             probability = float(probability)
-        except Exception:  # pragma: no cover
-            raise ValueError('The file contains invalid subelements.')
+        except Exception as e:  # pragma: no cover
+            raise ValueError('The file contains invalid subelements.') from e
 
         d[(state_from, state_to)] = probability
 

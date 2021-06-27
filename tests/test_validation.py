@@ -5,19 +5,10 @@
 # IMPORTS #
 ###########
 
-# Full
-
-import networkx as nx
-import numpy as np
-
-# Partial
+# Standard
 
 from ast import (
     parse
-)
-
-from pydtmc import (
-    MarkovChain
 )
 
 # noinspection PyPep8Naming
@@ -31,11 +22,39 @@ from types import (
     FunctionType
 )
 
+# Libraries
+
+import networkx as nx
+import numpy as np
+
 # Internal
 
+from pydtmc import (
+    MarkovChain
+)
+
 # noinspection PyUnresolvedReferences
-from pydtmc.base_class import *
-from pydtmc.validation import *
+from pydtmc.base_class import (
+    BaseClass
+)
+
+from pydtmc.validation import (
+    validate_boolean,
+    validate_boundary_condition,
+    validate_dictionary,
+    validate_dpi,
+    validate_enumerator,
+    validate_float,
+    validate_graph,
+    validate_integer,
+    validate_hyperparameter,
+    validate_interval,
+    validate_markov_chain,
+    validate_mask,
+    validate_matrix,
+    validate_state,
+    validate_transition_function
+)
 
 
 #############
@@ -67,7 +86,6 @@ def test_validate_boolean(value, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -91,7 +109,6 @@ def test_validate_boundary_condition(value, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -100,31 +117,7 @@ def test_validate_boundary_condition(value, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, float) or isinstance(result, int) or isinstance(result, str)
-        expected = True
-
-        assert actual == expected
-
-
-def test_validate_dpi(value, is_valid):
-
-    # noinspection PyBroadException
-    try:
-        result = validate_dpi(value)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-        pass
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result is not None:
-
-        actual = isinstance(result, int)
+        actual = isinstance(result, (float, int, str))
         expected = True
 
         assert actual == expected
@@ -151,7 +144,6 @@ def test_validate_dictionary(dictionary_elements, key_tuple, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -166,6 +158,29 @@ def test_validate_dictionary(dictionary_elements, key_tuple, is_valid):
         assert actual == expected
 
 
+def test_validate_dpi(value, is_valid):
+
+    # noinspection PyBroadException
+    try:
+        result = validate_dpi(value)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, int)
+        expected = True
+
+        assert actual == expected
+
+
 def test_validate_enumerator(value, possible_values, is_valid):
 
     # noinspection PyBroadException
@@ -175,7 +190,6 @@ def test_validate_enumerator(value, possible_values, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -202,7 +216,6 @@ def test_validate_float(value, lower_limit, upper_limit, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -238,7 +251,6 @@ def test_validate_graph(graph_data, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -272,7 +284,6 @@ def test_validate_graph(graph_data, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -299,7 +310,6 @@ def test_validate_integer(value, lower_limit, upper_limit, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -323,7 +333,6 @@ def test_validate_hyperparameter(value, size, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -349,7 +358,6 @@ def test_validate_interval(value, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -376,7 +384,6 @@ def test_validate_markov_chain(value, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -402,7 +409,6 @@ def test_validate_mask(value, size, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -428,7 +434,6 @@ def test_validate_matrix(value, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -452,7 +457,6 @@ def test_validate_state(value, current_states, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid
@@ -487,7 +491,6 @@ def test_validate_transition_function(value, is_valid):
     except Exception:
         result = None
         result_is_valid = False
-        pass
 
     actual = result_is_valid
     expected = is_valid

@@ -5,12 +5,12 @@
 # IMPORTS #
 ###########
 
-# Full
+# Libraries
 
 import numpy as np
 import numpy.testing as npt
 
-# Partial
+# Internal
 
 from pydtmc import (
     MarkovChain

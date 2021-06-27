@@ -19,7 +19,7 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Full
+# Libraries
 
 import numpy as np
 import numpy.linalg as npl
@@ -29,7 +29,18 @@ import scipy.stats as sps
 
 # Internal
 
-from .custom_types import *
+from .custom_types import (
+    ofloat,
+    tarray,
+    tbcond,
+    tgenres,
+    tgenres_ext,
+    tlist_int,
+    tlist_str,
+    tlists_int,
+    tnumeric,
+    trand
+)
 
 
 #############

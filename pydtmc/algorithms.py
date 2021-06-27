@@ -11,12 +11,7 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Full
-
-import networkx as nx
-import numpy as np
-
-# Partial
+# Standard
 
 from itertools import (
     chain
@@ -26,16 +21,26 @@ from math import (
     gcd
 )
 
+# Libraries
+
+import networkx as nx
+import numpy as np
+
 # Internal
 
-from .custom_types import *
+from .custom_types import (
+    tarray,
+    tgraph,
+    tlist_int,
+    tparts
+)
 
 
 #############
 # FUNCTIONS #
 #############
 
-def calculate_period(graph: tgraph) -> int:
+def _calculate_period(graph: tgraph) -> int:
 
     g = 0
 
@@ -43,8 +48,8 @@ def calculate_period(graph: tgraph) -> int:
 
         scc = list(scc)
 
-        levels = dict((scc, None) for scc in scc)
-        vertices = levels
+        levels = {scc: None for scc in scc}
+        vertices = levels.copy()
 
         x = scc[0]
         levels[x] = 0
@@ -86,7 +91,7 @@ def calculate_periods(graph: tgraph) -> tlist_int:
 
     sccs = list(nx.strongly_connected_components(graph))
 
-    classes = [sorted([c for c in scc]) for scc in sccs]
+    classes = [sorted(scc) for scc in sccs]
     indices = sorted(classes, key=lambda x: (-len(x), x[0]))
 
     periods = [0] * len(indices)
@@ -99,10 +104,10 @@ def calculate_periods(graph: tgraph) -> tlist_int:
             spl = nx.shortest_path_length(graph, c).keys()
             scc_reachable = scc_reachable.union(spl)
 
-        index = indices.index(sorted(list(scc)))
+        index = indices.index(sorted(scc))
 
         if (scc_reachable - scc) == set():
-            periods[index] = calculate_period(graph.subgraph(scc))
+            periods[index] = _calculate_period(graph.subgraph(scc))
         else:
             periods[index] = 1
 
@@ -149,7 +154,7 @@ def find_cyclic_classes(p: tarray) -> tarray:
 
     v = np.remainder(v, d)
 
-    indices = list()
+    indices = []
 
     for u in np.unique(v):
         indices.append(list(chain.from_iterable(np.argwhere(v == u))))

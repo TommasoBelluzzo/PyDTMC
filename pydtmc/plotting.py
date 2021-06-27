@@ -12,17 +12,7 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Full
-
-import matplotlib.colors as mplc
-import matplotlib.image as mpli
-import matplotlib.pyplot as pp
-import matplotlib.ticker as mplt
-import networkx as nx
-import numpy as np
-import numpy.linalg as npl
-
-# Partial
+# Standard
 
 from inspect import (
     trace
@@ -32,16 +22,49 @@ from io import (
     BytesIO
 )
 
+# noinspection PyPep8Naming
 from subprocess import (
     call,
-    PIPE
+    PIPE as pipe
 )
+
+# Libraries
+
+import matplotlib.colors as mplc
+import matplotlib.image as mpli
+import matplotlib.pyplot as mplp
+import matplotlib.ticker as mplt
+import networkx as nx
+import numpy as np
+import numpy.linalg as npl
 
 # Internal
 
-from .custom_types import *
-from .utilities import *
-from .validation import *
+from .custom_types import (
+    oplot,
+    ostate,
+    ostatus,
+    tdists_flex,
+    tlist_str,
+    tmc,
+    twalk_flex
+)
+
+from .utilities import (
+    generate_validation_error
+)
+
+from .validation import (
+    validate_boolean,
+    validate_distribution,
+    validate_dpi,
+    validate_enumerator,
+    validate_integer,
+    validate_markov_chain,
+    validate_state,
+    validate_states,
+    validate_status
+)
 
 
 #############
@@ -77,10 +100,10 @@ def plot_eigenvalues(mc: tmc, dpi: int = 100) -> oplot:
     except Exception as e:  # pragma: no cover
         raise generate_validation_error(e, trace()) from None
 
-    figure, ax = pp.subplots(dpi=dpi)
+    figure, ax = mplp.subplots(dpi=dpi)
 
-    handles = list()
-    labels = list()
+    handles = []
+    labels = []
 
     theta = np.linspace(0.0, 2.0 * np.pi, 200)
 
@@ -109,7 +132,7 @@ def plot_eigenvalues(mc: tmc, dpi: int = 100) -> oplot:
                 z_spectral_gap = x_spectral_gap**2.0 + y_spectral_gap**2.0
 
                 h = ax.contourf(x_spectral_gap, y_spectral_gap, z_spectral_gap, alpha=0.2, colors='r', levels=[mu**2.0, 1.0])
-                handles.append(pp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.collections[0].get_facecolor()[0]))
+                handles.append(mplp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.collections[0].get_facecolor()[0]))
                 labels.append('Spectral Gap')
 
                 ax.plot(x_slem_circle, y_slem_circle, color='red', linestyle='--', linewidth=1.5)
@@ -134,10 +157,10 @@ def plot_eigenvalues(mc: tmc, dpi: int = 100) -> oplot:
     ax.legend(handles[::-1], labels[::-1], bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=len(handles))
     ax.set_title('Eigenplot', fontsize=15.0, fontweight='bold')
 
-    pp.subplots_adjust(bottom=0.2)
+    mplp.subplots_adjust(bottom=0.2)
 
-    if pp.isinteractive():  # pragma: no cover
-        pp.show(block=False)
+    if mplp.isinteractive():  # pragma: no cover
+        mplp.show(block=False)
         return None
 
     return figure, ax
@@ -180,7 +203,7 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
         colors_limit = len(_colors) - 1
         offset = 0
 
-        clist = list()
+        clist = []
 
         while count > 0:
 
@@ -215,16 +238,14 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
 
         # noinspection PyBroadException
         try:
-            call(['dot', '-V'], stdout=PIPE, stderr=PIPE)
+            call(['dot', '-V'], stdout=pipe, stderr=pipe)
         except Exception:  # pragma: no cover
             extended_graph = False
-            pass
 
         try:
-            import pydot as pyd  # noqa
+            import pydot  # noqa
         except ImportError:  # pragma: no cover
             extended_graph = False
-            pass
 
     g = mc.to_graph()
 
@@ -270,17 +291,17 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
         img_x = img.shape[0] / dpi
         img_y = img.shape[1] / dpi
 
-        figure = pp.figure(figsize=(img_y + 1.1, img_x + 1.1), dpi=dpi)
+        figure = mplp.figure(figsize=(img_y + 1.1, img_x + 1.1), dpi=dpi)
         figure.figimage(img)
         ax = figure.gca()
         ax.axis('off')
 
     else:
 
-        mpi = pp.isinteractive()
-        pp.interactive(False)
+        mpi = mplp.isinteractive()
+        mplp.interactive(False)
 
-        figure, ax = pp.subplots(dpi=dpi)
+        figure, ax = mplp.subplots(dpi=dpi)
 
         positions = nx.spring_layout(g)
         node_colors_all = node_colors(len(mc.communicating_classes))
@@ -318,7 +339,7 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
 
         if edges_value:
 
-            edges_values = dict()
+            edges_values = {}
 
             for edge in g.edges:
                 probability = mc.transition_probability(edge[1], edge[0])
@@ -326,10 +347,10 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
 
             nx.draw_networkx_edge_labels(g, positions, ax=ax, edge_labels=edges_values, label_pos=0.7)
 
-        pp.interactive(mpi)
+        mplp.interactive(mpi)
 
-    if pp.isinteractive():  # pragma: no cover
-        pp.show(block=False)
+    if mplp.isinteractive():  # pragma: no cover
+        mplp.show(block=False)
         return None
 
     return figure, ax
@@ -370,7 +391,7 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
     distributions_len = 1 if isinstance(distributions, np.ndarray) else len(distributions)
     distributions = np.array([distributions]) if isinstance(distributions, np.ndarray) else np.array(distributions)
 
-    figure, ax = pp.subplots(dpi=dpi)
+    figure, ax = mplp.subplots(dpi=dpi)
 
     if plot_type == 'heatmap':
 
@@ -425,10 +446,10 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
         ax.legend(bbox_to_anchor=(0.5, -0.15), loc='upper center', ncol=legend_size)
         ax.set_title('Redistplot (Projection)', fontsize=15.0, fontweight='bold')
 
-        pp.subplots_adjust(bottom=0.2)
+        mplp.subplots_adjust(bottom=0.2)
 
-    if pp.isinteractive():  # pragma: no cover
-        pp.show(block=False)
+    if mplp.isinteractive():  # pragma: no cover
+        mplp.show(block=False)
         return None
 
     return figure, ax
@@ -475,7 +496,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
 
     walk_len = len(walk)
 
-    figure, ax = pp.subplots(dpi=dpi)
+    figure, ax = mplp.subplots(dpi=dpi)
 
     if plot_type == 'histogram':
 
@@ -550,8 +571,8 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
 
         ax.set_title('Walkplot (Transitions)', fontsize=15.0, fontweight='bold')
 
-    if pp.isinteractive():  # pragma: no cover
-        pp.show(block=False)
+    if mplp.isinteractive():  # pragma: no cover
+        mplp.show(block=False)
         return None
 
     return figure, ax

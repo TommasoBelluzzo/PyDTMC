@@ -11,10 +11,15 @@ __all__ = [
 
 class BaseClass(type):
 
-    def __new__(mcs, name, bases, classes):
+    """
+    Defines an abstract base class used for the package classes.
+    """
+
+    # noinspection PyMethodParameters
+    def __new__(cls, name, bases, classes):
 
         for b in bases:
             if isinstance(b, BaseClass):
                 raise TypeError(f"Type '{b.__name__}' is not an acceptable base type.")
 
-        return type.__new__(mcs, name, bases, dict(classes))
+        return type.__new__(cls, name, bases, dict(classes))

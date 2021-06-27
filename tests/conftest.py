@@ -5,7 +5,7 @@
 # IMPORTS #
 ###########
 
-# Partial
+# Standard
 
 from os.path import (
     abspath,
@@ -70,7 +70,7 @@ def _parse_fixture_dictionary(fixture, fixture_names, subtest_name):
 
         if isinstance(fixture_data, dict):
 
-            values_current = tuple([fixture_data[fixture_name] for fixture_name in fixture_names if fixture_name in fixture_data])
+            values_current = tuple(fixture_data[fixture_name] for fixture_name in fixture_names if fixture_name in fixture_data)
 
             if len(values_current) == expected_args:
                 values.append(values_current)
@@ -81,7 +81,7 @@ def _parse_fixture_dictionary(fixture, fixture_names, subtest_name):
             for index, case in enumerate(fixture_data):
 
                 case_id = f'_{case["id"]}' if 'id' in case else f' #{str(index + 1)}'
-                values_current = tuple([case[fixture_name] for fixture_name in fixture_names if fixture_name in case])
+                values_current = tuple(case[fixture_name] for fixture_name in fixture_names if fixture_name in case)
 
                 if len(values_current) == expected_args:
                     values.append(values_current)
@@ -98,18 +98,18 @@ def _parse_fixture_list(fixture, fixture_names, subtest_name):
     expected_args = len(fixture_names)
     subtest_reference = f'{subtest_name.replace("test_", "")}_data'
 
-    if any([subtest_reference in case for case in fixture]):
+    if any(subtest_reference in case for case in fixture):
 
         for index_case, case in enumerate(fixture):
 
             if subtest_reference in case:
 
                 case_id = case['id'] if 'id' in case else f' #{str(index_case + 1)}'
-                case_values = tuple([case[fixture_name] for fixture_name in fixture_names if fixture_name in case])
+                case_values = tuple(case[fixture_name] for fixture_name in fixture_names if fixture_name in case)
 
                 for index_subcase, subcase in enumerate(case[subtest_reference]):
 
-                    values_current = case_values + tuple([subcase[fixture_name] for fixture_name in fixture_names if fixture_name in subcase])
+                    values_current = case_values + tuple(subcase[fixture_name] for fixture_name in fixture_names if fixture_name in subcase)
 
                     if len(values_current) == expected_args:
                         values.append(values_current)
@@ -120,7 +120,7 @@ def _parse_fixture_list(fixture, fixture_names, subtest_name):
         for index, case in enumerate(fixture):
 
             case_id = case['id'] if 'id' in case else f' #{str(index + 1)}'
-            values_current = tuple([case[fixture_name] for fixture_name in fixture_names if fixture_name in case])
+            values_current = tuple(case[fixture_name] for fixture_name in fixture_names if fixture_name in case)
 
             if len(values_current) == expected_args:
                 values.append(values_current)

@@ -5,23 +5,7 @@
 # IMPORTS #
 ###########
 
-# Full
-
-import matplotlib.pyplot as pp
-
-# Partial
-
-from pydtmc import (
-    MarkovChain,
-    plot_eigenvalues,
-    plot_graph,
-    plot_redistributions,
-    plot_walk
-)
-
-from pytest import (
-    mark
-)
+# Standard
 
 from random import (
     choice,
@@ -30,6 +14,24 @@ from random import (
     random,
     seed as setseed,
     setstate
+)
+
+# Libraries
+
+import matplotlib.pyplot as mplp
+
+from pytest import (
+    mark
+)
+
+# Internal
+
+from pydtmc import (
+    MarkovChain,
+    plot_eigenvalues,
+    plot_graph,
+    plot_redistributions,
+    plot_walk
 )
 
 
@@ -49,14 +51,13 @@ def test_plot_eigenvalues(seed, maximum_size, runs):
         # noinspection PyBroadException
         try:
 
-            figure, ax = plot_eigenvalues(mc)
-            pp.close(figure)
+            figure, _ = plot_eigenvalues(mc)
+            mplp.close(figure)
 
             exception = False
 
         except Exception:
             exception = True
-            pass
 
         assert exception is False
 
@@ -74,7 +75,7 @@ def test_plot_graph(seed, maximum_size, runs):
         size = randint(2, maximum_size)
         zeros = randint(0, size)
 
-        configs.append((size, zeros) + tuple([random() < 0.5 for _ in range(4)]))
+        configs.append((size, zeros) + tuple(random() < 0.5 for _ in range(4)))
 
     setstate(rs)
 
@@ -87,17 +88,16 @@ def test_plot_graph(seed, maximum_size, runs):
         # noinspection PyBroadException
         try:
 
-            figure, ax = plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=True)
-            pp.close(figure)
+            figure, _ = plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=True)
+            mplp.close(figure)
 
-            figure, ax = plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=False)
-            pp.close(figure)
+            figure, _ = plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=False)
+            mplp.close(figure)
 
             exception = False
 
         except Exception:
             exception = True
-            pass
 
         assert exception is False
 
@@ -144,14 +144,13 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
         # noinspection PyBroadException
         try:
 
-            figure, ax = plot_redistributions(mc, distributions, initial_status, plot_type)
-            pp.close(figure)
+            figure, _ = plot_redistributions(mc, distributions, initial_status, plot_type)
+            mplp.close(figure)
 
             exception = False
 
         except Exception:
             exception = True
-            pass
 
         assert exception is False
 
@@ -198,13 +197,12 @@ def test_plot_walk(seed, maximum_size, maximum_simulations, runs):
         # noinspection PyBroadException
         try:
 
-            figure, ax = plot_walk(mc, walk, initial_state, plot_type)
-            pp.close(figure)
+            figure, _ = plot_walk(mc, walk, initial_state, plot_type)
+            mplp.close(figure)
 
             exception = False
 
         except Exception:
             exception = True
-            pass
 
         assert exception is False

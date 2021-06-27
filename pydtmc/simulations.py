@@ -12,13 +12,21 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Full
+# Libraries
 
 import numpy as np
 
 # Internal
 
-from .custom_types import *
+from .custom_types import (
+    oint,
+    olist_int,
+    tarray,
+    tlist_int,
+    tmc,
+    trand,
+    tredists
+)
 
 
 #############

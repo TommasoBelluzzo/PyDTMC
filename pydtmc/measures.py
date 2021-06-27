@@ -25,7 +25,7 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Full
+# Libraries
 
 import numpy as np
 import numpy.linalg as npl
@@ -33,7 +33,20 @@ import scipy.optimize as spo
 
 # Internal
 
-from .custom_types import *
+from .custom_types import (
+    oarray,
+    oint,
+    olist_int,
+    otimes_out,
+    owalk,
+    tany,
+    tarray,
+    tmc,
+    tlist_int,
+    trdl,
+    ttimes_in,
+    twalk
+)
 
 
 #############
@@ -157,7 +170,7 @@ def first_passage_probabilities(mc: tmc, steps: int, initial_state: int, first_p
 
 def first_passage_reward(mc: tmc, steps: int, initial_state: int, first_passage_states: tlist_int, rewards: tarray) -> float:
 
-    other_states = sorted(list(set(range(mc.size)) - set(first_passage_states)))
+    other_states = sorted(set(range(mc.size)) - set(first_passage_states))
 
     m = mc.p[np.ix_(other_states, other_states)]
     mt = np.copy(m)
@@ -469,7 +482,7 @@ def time_correlations(mc: tmc, rdl: trdl, walk1: twalk, walk2: owalk, time_point
 
     else:
 
-        start_values = None
+        start_values = (None, None)
 
         m = np.multiply(observations1, pi)
 
@@ -477,13 +490,13 @@ def time_correlations(mc: tmc, rdl: trdl, walk1: twalk, walk2: owalk, time_point
 
             time_point = time_points[i]
 
-            if start_values is not None:
+            if start_values[0] is not None:
 
                 pk_i = start_values[1]
                 time_prev = start_values[0]
                 t_diff = time_point - time_prev
 
-                for k in range(t_diff):
+                for _ in range(t_diff):
                     pk_i = np.dot(mc.p, pk_i)
 
             else:
@@ -492,7 +505,7 @@ def time_correlations(mc: tmc, rdl: trdl, walk1: twalk, walk2: owalk, time_point
 
                     pk_i = np.dot(mc.p, np.dot(mc.p, observations2))
 
-                    for k in range(time_point - 2):
+                    for _ in range(time_point - 2):
                         pk_i = np.dot(mc.p, pk_i)
 
                 elif time_point == 1:
@@ -545,19 +558,19 @@ def time_relaxations(mc: tmc, rdl: trdl, walk: twalk, initial_distribution: tarr
 
     else:
 
-        start_values = None
+        start_values = (None, None)
 
         for i in range(time_points_length):
 
             time_point = time_points[i]
 
-            if start_values is not None:
+            if start_values[0] is not None:
 
                 pk_i = start_values[1]
                 time_prev = start_values[0]
                 t_diff = time_point - time_prev
 
-                for k in range(t_diff):
+                for _ in range(t_diff):
                     pk_i = np.dot(pk_i, mc.p)
 
             else:
@@ -566,7 +579,7 @@ def time_relaxations(mc: tmc, rdl: trdl, walk: twalk, initial_distribution: tarr
 
                     pk_i = np.dot(np.dot(initial_distribution, mc.p), mc.p)
 
-                    for k in range(time_point - 2):
+                    for _ in range(time_point - 2):
                         pk_i = np.dot(pk_i, mc.p)
 
                 elif time_point == 1:

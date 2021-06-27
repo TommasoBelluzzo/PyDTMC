@@ -11,7 +11,7 @@ __all__ = [
 # IMPORTS #
 ###########
 
-# Partial
+# Standard
 
 from functools import (
     update_wrapper,
@@ -28,7 +28,7 @@ from threading import (
 ###########
 
 # noinspection PyPep8Naming
-class alias(object):
+class alias:
 
     """
     A decorator for implementing method aliases.
@@ -60,7 +60,7 @@ class cachedproperty(property):
     def __init__(self, fget=None, fset=None, fdel=None, doc=None):
 
         doc = doc or fget.__doc__
-        super(cachedproperty, self).__init__(fget, None, None, doc)
+        super().__init__(fget, None, None, doc)
 
         self._func = fget
         self._func_name = None
