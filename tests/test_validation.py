@@ -34,7 +34,7 @@ from pydtmc import (
 )
 
 # noinspection PyUnresolvedReferences
-from pydtmc.base_class import (
+from pydtmc.base_class import (  # noqa
     BaseClass
 )
 
