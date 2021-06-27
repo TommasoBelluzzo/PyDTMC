@@ -88,38 +88,21 @@ jobs:
         echo "::set-output name=version::$VERSION_NEW"
         echo "::set-output name=version_file::$VERSION_FILE"
         echo "::set-output name=version_regex::$VERSION_REGEX"
-    - name: Dependencies Installation
-      run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt --use-feature=in-tree-build
-        pip install setuptools
-        pip install wheel
-        pip install twine
-        conda update conda
-        conda install conda-build anaconda-client
-        conda update conda-build anaconda-client
-    - name: PyPI Publishing - Build
-      env:
-        PYPI: ${{ steps.bump.outputs.pypi }}
-      run: |
-        if [[ $PYPI == 'YES' ]]; then
-          python setup.py sdist bdist_wheel
-        else
-          echo 'PYPI SKIPPED'
-        fi
-    - name: PyPI Publishing - Upload
+    - name: PyPI Publishing
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      if: env.PYPI == 'YES'
       run: |
-        if [[ $PYPI == 'YES' ]]; then
-          twine upload dist/*
-        else
-          echo 'PYPI SKIPPED'
-        fi
-    - name: Conda Publishing - SHA256
+        pip install --upgrade pip
+        pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
+        pip install --upgrade --upgrade-strategy eager -e .[setup]
+        pip install --upgrade --upgrade-strategy eager -e .[publish]
+        python setup.py sdist bdist_wheel
+        twine upload dist/*
+    - name: Conda Publishing
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
         CONDA: ${{ steps.bump.outputs.conda }}
@@ -127,30 +110,22 @@ jobs:
         SHA256: none
         SHA256_FILE: meta.yaml
         SHA256_REGEX: sha256_placeholder
-      run: |
-        if [[ $CONDA == 'YES' ]]; then
-          if [[ $PYPI == 'YES' ]]; then
-            sleep 5m
-          fi
-          wget https://pypi.io/packages/source/P/PyDTMC/PyDTMC-$VERSION.tar.gz -O /tmp/PyDTMC-$VERSION.tar.gz
-          SHA256=$(openssl sha256 /tmp/PyDTMC-$VERSION.tar.gz | awk '{print $2}')
-          grep $SHA256_REGEX $SHA256_FILE
-          sed -i "s/$SHA256_REGEX/$SHA256/g" $SHA256_FILE
-          grep $SHA256 $SHA256_FILE
-        else
-          echo 'CONDA SKIPPED'
-        fi
-    - name: Conda Publishing - Build & Upload
-      env:
-        CONDA: ${{ steps.bump.outputs.conda }}
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+      if: env.CONDA == 'YES'
       run: |
-        if [[ $CONDA == 'YES' ]]; then
-          conda config --set anaconda_upload yes
-          conda build . --output-folder /tmp/conda-build
-        else
-          echo 'CONDA SKIPPED'
+        conda update conda
+        conda install conda-build anaconda-client
+        conda update conda-build anaconda-client
+        if [[ $PYPI == 'YES' ]]; then
+          sleep 5m
         fi
+        wget https://pypi.io/packages/source/P/PyDTMC/PyDTMC-$VERSION.tar.gz -O /tmp/PyDTMC-$VERSION.tar.gz
+        SHA256=$(openssl sha256 /tmp/PyDTMC-$VERSION.tar.gz | awk '{print $2}')
+        grep $SHA256_REGEX $SHA256_FILE
+        sed -i "s/$SHA256_REGEX/$SHA256/g" $SHA256_FILE
+        grep $SHA256 $SHA256_FILE
+        conda config --set anaconda_upload yes
+        conda build . --output-folder /tmp/conda-build
     - name: Version Commit
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
