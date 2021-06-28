@@ -504,12 +504,12 @@ def validate_matrix(m: tany) -> tarray:
     return m
 
 
-def validate_partitions(partitions: tany, current_states: tlist_str) -> tlists_int:
+def validate_partitions(value: tany, current_states: tlist_str) -> tlists_int:
 
-    if not isinstance(partitions, list):
+    if value is None or not isinstance(value, list):
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
-    partitions_length = len(partitions)
+    partitions_length = len(value)
     current_states_length = len(current_states)
 
     if partitions_length < 2 or partitions_length >= current_states_length:
@@ -518,7 +518,7 @@ def validate_partitions(partitions: tany, current_states: tlist_str) -> tlists_i
     partitions_flat = []
     partitions_groups = []
 
-    for partition in partitions:
+    for partition in value:
 
         if not isinstance(partition, titerable):
             raise TypeError('The "@arg@" parameter must contain only array_like objects.')
@@ -547,24 +547,18 @@ def validate_partitions(partitions: tany, current_states: tlist_str) -> tlists_i
 
     partitions_flat_length = len(partitions_flat)
 
-    if len(set(partitions_flat)) < partitions_flat_length:
-        raise ValueError('The "@arg@" parameter subelements must be unique.')
+    if len(set(partitions_flat)) < partitions_flat_length or partitions_flat_length != current_states_length or partitions_flat != list(range(current_states_length)):
+        raise ValueError('The "@arg@" parameter subelements must be unique, include all the existing states and follow a sequential order.')
 
-    if partitions_flat_length != current_states_length:
-        raise ValueError('The "@arg@" parameter subelements must include all the existing states.')
-
-    if partitions_flat != list(range(current_states_length)):
-        raise ValueError('The "@arg@" parameter subelements must follow a sequential order.')
-
-    partitions = []
-    partitions_offset = 0
+    result = []
+    offset = 0
 
     for partitions_group in partitions_groups:
-        partitions_extension = partitions_offset + partitions_group
-        partitions.append(partitions_flat[partitions_offset:partitions_extension])
-        partitions_offset += partitions_group
+        extension = offset + partitions_group
+        result.append(partitions_flat[offset:extension])
+        offset += partitions_group
 
-    return partitions
+    return result
 
 
 def validate_rewards(rewards: tany, size: int) -> tarray:
@@ -849,18 +843,13 @@ def validate_transition_matrix(p: tany) -> tarray:
 
     p = p.astype(float)
 
-    if p.ndim != 2 or p.shape[0] != p.shape[1]:
-        raise ValueError('The "@arg@" parameter must be a 2d square matrix.')
-
-    size = p.shape[0]
-
-    if size < 2:
-        raise ValueError('The "@arg@" parameter size must be greater than or equal to 2.')
+    if p.ndim != 2 or p.shape[0] != p.shape[1] or p.shape[0] < 2:
+        raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
 
     if not all(np.isfinite(x) and np.isreal(x) and 0.0 <= x <= 1.0 for x in np.nditer(p)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
 
-    if not np.allclose(np.sum(p, axis=1), np.ones(size, dtype=float)):
+    if not np.allclose(np.sum(p, axis=1), np.ones(p.shape[0], dtype=float)):
         raise ValueError('The "@arg@" parameter rows must sum to 1.')
 
     return p
@@ -879,7 +868,7 @@ def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = Non
 
     vector = vector.astype(float)
 
-    if (vector.ndim < 1) or ((vector.ndim == 2) and (vector.shape[0] != 1) and (vector.shape[1] != 1)) or (vector.ndim > 2):
+    if vector.ndim < 1 or vector.ndim > 2 or ((vector.ndim == 2) and (vector.shape[0] != 1) and (vector.shape[1] != 1)):
         raise ValueError('The "@arg@" parameter must be a valid vector.')
 
     vector = np.ravel(vector)
@@ -890,14 +879,13 @@ def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = Non
     if not all(np.isfinite(x) and np.isreal(x) and 0.0 <= x <= 1.0 for x in np.nditer(vector)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
 
-    if vector_type == 'annihilation':
-        if not np.isclose(vector[0], 0.0):
-            raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the first index.')
-    elif vector_type == 'creation':
-        if not np.isclose(vector[-1], 0.0):
-            raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the last index.')
-    elif vector_type == 'stochastic':
-        if not np.isclose(np.sum(vector), 1.0):
-            raise ValueError('The "@arg@" parameter values must sum to 1.')
+    if vector_type == 'annihilation' and not np.isclose(vector[0], 0.0):
+        raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the first index.')
+
+    if vector_type == 'creation' and not np.isclose(vector[-1], 0.0):
+        raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the last index.')
+
+    if vector_type == 'stochastic' and not np.isclose(np.sum(vector), 1.0):
+        raise ValueError('The "@arg@" parameter values must sum to 1.')
 
     return vector

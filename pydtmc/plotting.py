@@ -257,10 +257,10 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
             c = node_colors(len(mc.communicating_classes))
             for node in g_pydot.get_nodes():
                 state = node.get_name()
-                for x, cc in enumerate(mc.communicating_classes):
+                for index, cc in enumerate(mc.communicating_classes):
                     if state in cc:
                         node.set_style('filled')
-                        node.set_fillcolor(c[x])
+                        node.set_fillcolor(c[index])
                         break
 
         if nodes_type:
@@ -311,9 +311,9 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
             node_color = None
 
             if nodes_color:
-                for x, cc in enumerate(mc.communicating_classes):
+                for index, cc in enumerate(mc.communicating_classes):
                     if node in cc:
-                        node_color = node_colors_all[x]
+                        node_color = node_colors_all[index]
                         break
 
             if nodes_type:
@@ -502,8 +502,8 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
 
         walk_histogram = np.zeros((mc.size, walk_len), dtype=float)
 
-        for i, s in enumerate(walk):
-            walk_histogram[s, i] = 1.0
+        for index, state in enumerate(walk):
+            walk_histogram[state, index] = 1.0
 
         walk_histogram = np.sum(walk_histogram, axis=1) / np.sum(walk_histogram)
 
@@ -523,8 +523,8 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
 
         walk_sequence = np.zeros((mc.size, walk_len), dtype=float)
 
-        for i, s in enumerate(walk):
-            walk_sequence[s, i] = 1.0
+        for index, state in enumerate(walk):
+            walk_sequence[state, index] = 1.0
 
         color_map = mplc.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 2)
         ax.imshow(walk_sequence, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)

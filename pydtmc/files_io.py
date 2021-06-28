@@ -41,7 +41,7 @@ from xml.etree import (
 
 try:
     from defusedxml.ElementTree import parse as xml_parse
-except ImportError:
+except ImportError:  # pragma: no cover
     from xml.etree.cElementTree import parse as xml_parse
 
 # Libraries

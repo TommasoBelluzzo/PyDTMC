@@ -42,6 +42,7 @@ from pydtmc.validation import (
     validate_boolean,
     validate_boundary_condition,
     validate_dictionary,
+    validate_distribution,
     validate_dpi,
     validate_enumerator,
     validate_float,
@@ -52,8 +53,10 @@ from pydtmc.validation import (
     validate_markov_chain,
     validate_mask,
     validate_matrix,
+    validate_partitions,
     validate_state,
-    validate_transition_function
+    validate_transition_function,
+    validate_transition_matrix
 )
 
 
@@ -153,6 +156,33 @@ def test_validate_dictionary(dictionary_elements, key_tuple, is_valid):
     if result is not None:
 
         actual = isinstance(result, dict)
+        expected = True
+
+        assert actual == expected
+
+
+def test_validate_distribution(value, size, is_valid):
+
+    if isinstance(value, list):
+        for index, v in enumerate(value):
+            value[index] = np.asarray(v)
+
+    # noinspection PyBroadException
+    try:
+        result = validate_distribution(value, size)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, np.ndarray) for v in result))
         expected = True
 
         assert actual == expected
@@ -448,6 +478,29 @@ def test_validate_matrix(value, is_valid):
         assert actual == expected
 
 
+def test_validate_partitions(value, current_states, is_valid):
+
+    # noinspection PyBroadException
+    try:
+        result = validate_partitions(value, current_states)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, list) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
+        expected = True
+
+        assert actual == expected
+
+
 def test_validate_state(value, current_states, is_valid):
 
     # noinspection PyBroadException
@@ -500,6 +553,29 @@ def test_validate_transition_function(value, is_valid):
     if result is not None:
 
         actual = callable(result)
+        expected = True
+
+        assert actual == expected
+
+
+def test_validate_transition_matrix(value, is_valid):
+
+    # noinspection PyBroadException
+    try:
+        result = validate_transition_matrix(value)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, np.ndarray)
         expected = True
 
         assert actual == expected

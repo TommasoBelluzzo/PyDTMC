@@ -248,11 +248,11 @@ def test_stationary_distributions(p, stationary_distributions):
 
     assert actual == expected
 
-    for i, stationary_distribution in enumerate(stationary_distributions):
+    for index, stationary_distribution in enumerate(stationary_distributions):
 
-        assert np.isclose(np.sum(mc.pi[i]), 1.0)
+        assert np.isclose(np.sum(mc.pi[index]), 1.0)
 
-        actual = mc.pi[i]
+        actual = mc.pi[index]
         expected = stationary_distribution
 
         npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

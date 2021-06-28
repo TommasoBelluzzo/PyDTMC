@@ -798,9 +798,9 @@ class MarkovChain(metaclass=BaseClass):
 
             s = np.zeros((len(self.recurrent_classes), self.__size), dtype=float)
 
-            for i, indices in enumerate(self.__recurrent_classes_indices):
+            for index, indices in enumerate(self.__recurrent_classes_indices):
                 pr = self.__p[np.ix_(indices, indices)]
-                s[i, indices] = gth_solve(pr)
+                s[index, indices] = gth_solve(pr)
 
         pi = []
 
