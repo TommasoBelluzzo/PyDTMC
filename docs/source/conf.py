@@ -114,14 +114,15 @@ nitpick_ignore = []
 
 # noinspection PyUnresolvedReferences
 if tags.has('html_prolog'):
-
-    with open('prolog_html.inc', mode='r') as prolog_file:
-        rst_prolog = prolog_file.read()
-
+    prolog_file = join(base_directory, 'prolog_html.inc')
 elif tags.has('latex_prolog'):
+    prolog_file = join(base_directory, 'prolog_latex.inc')
+else:
+    prolog_file = None
 
-    with open('prolog_latex.inc', mode='r') as prolog_file:
-        rst_prolog = prolog_file.read()
+if prolog_file is not None:
+    with open(prolog_file, mode='r') as file:
+        rst_prolog = file.read()
 
 # InterSphinx
 
