@@ -11,11 +11,11 @@ help:
 
 %: Makefile
 	@if [[ "$@" == "html" ]]; then\
-		SPHINX_OPTS:='-nW -t html_prolog';\
+		SPHINX_OPTS:"-nW -t html_prolog";\
 	elif [[ "$@" == "latex" ]]; then\
-		SPHINX_OPTS:='-nW -t latex_prolog';\
+		SPHINX_OPTS:="-nW -t latex_prolog";\
 	else\
-		SPHINX_OPTS:='-nW';\
+		SPHINX_OPTS:="-nW";\
 	fi
 	@echo is $@
 	@echo opts $(SPHINX_OPTS)
