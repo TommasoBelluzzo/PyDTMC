@@ -68,7 +68,7 @@ jobs:
         pip install --upgrade --upgrade-strategy eager -e .[lint]
     - name: Linting
       run: |
-        flake8 . --count --statistics --ignore=E501,F403,F405,F821,W605
+        flake8 . --count --statistics --ignore=E501,F403,F405,W605
         pylint pydtmc --disable=C0103,C0114,C0116,C0301,C0302,C0415,E1101,I1101,R0801,R0903,R0904,R0912,R0913,R0914,R0915,R1702,W0212,W0611,W0613,W0632,W0703,W1401
         pylint tests --disable=C0103,C0301,C0114,C0116,R0801,R0913,R0914,W0123,W0611,W0703
   documentation:
