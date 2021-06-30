@@ -11,13 +11,13 @@ help:
 
 %: Makefile
 	@if [[ "$@" == "html" ]]; then\
-		SPHINX_OPTS='-nW -t html_prolog';\
+		echo "SPHINX_OPTS:=-nW -t html_prolog";\
 		echo $(SPHINX_OPTS);\
 	elif [[ "$@" = "latex" ]]; then\
-		SPHINX_OPTS='-nW -t latex_prolog';\
+		echo "SPHINX_OPTS:=-nW -t latex_prolog";\
 		echo $(SPHINX_OPTS);\
 	else\
-		SPHINX_OPTS='-nW';\
+		echo "SPHINX_OPTS:=-nW";\
 		echo $(SPHINX_OPTS);\
 	fi
 	@rm -rf $(BUILD_DIR)/doctest/*
