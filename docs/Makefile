@@ -19,7 +19,7 @@ help:
 		SPHINX_OPTS_FINAL=$(SPHINX_OPTS); \
 	fi
 	@echo is $@
-	@echo opts $(SPHINX_OPTS)
+	@echo opts $(SPHINX_OPTS_FINAL)
 	@rm -rf $(BUILD_DIR)/doctest/*
 	@rm -rf $(BUILD_DIR)/linkcheck/*
 	@rm -rf $(BUILD_DIR)/coverage/*

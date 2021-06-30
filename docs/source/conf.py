@@ -120,9 +120,13 @@ elif tags.has('latex_prolog'):
 else:
     prolog_file = None
 
-if prolog_file is not None:
+if prolog_file is None:
+    rst_prolog = ''
+else:
     with open(prolog_file, mode='r') as file:
         rst_prolog = file.read()
+
+print(rst_prolog)
 
 # InterSphinx
 
