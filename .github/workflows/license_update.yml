@@ -1,0 +1,32 @@
+name: License Update
+
+on:
+  schedule:
+    - cron: '05 00 1 1 *'
+
+jobs:
+  license:
+    name: License
+    runs-on: ubuntu-latest
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v2
+    - name: Get Current Year
+      id: year
+      run: echo "::set-output name=YEAR::$(date +'%Y')"
+    - name: Set Current Year
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CURRENT_YEAR: ${{ steps.year.outputs.YEAR }}
+        LICENSE_FILE: LICENSE.md
+        LICENSE_REGEX: 2019-[[:digit:]][[:digit:]][[:digit:]][[:digit:]]
+      run: |
+        grep $LICENSE_REGEX $LICENSE_FILE
+        sed -i "s/$LICENSE_REGEX/2019-$CURRENT_YEAR/g" $LICENSE_FILE
+        grep $LICENSE_REGEX $LICENSE_FILE
+        git config --local user.name "${{ secrets.BOT_USERNAME }}"
+        git config --local user.email ${{ secrets.BOT_EMAIL }}
+        git add $LICENSE_FILE
+        git commit -m "License $CURRENT_YEAR"
+        git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}
+        git push
