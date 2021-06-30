@@ -1,7 +1,7 @@
-SPHINX_EXE='python -m sphinx'
-SOURCE_DIR='source'
-BUILD_DIR='build'
-SPHINX_OPTS='-nW'
+SPHINX_EXE=python -m sphinx
+SOURCE_DIR=source
+BUILD_DIR=build
+SPHINX_OPTS=-nW
 
 help:
 	@$(SPHINX_EXE) --help
