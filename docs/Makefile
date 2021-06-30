@@ -3,6 +3,7 @@ SHELL:=/bin/bash
 SPHINX_EXE:=python -m sphinx
 SOURCE_DIR:=source
 BUILD_DIR:=build
+SPHINX_OPTS:=-nW
 
 help:
 	@$(SPHINX_EXE) --help
@@ -11,11 +12,9 @@ help:
 
 %: Makefile
 	@if [[ "$@" == "html" ]]; then\
-		SPHINX_OPTS:"-nW -t html_prolog";\
+		SPHINX_OPTS:="$(SPHINX_OPTS) -t html_prolog";\
 	elif [[ "$@" == "latex" ]]; then\
-		SPHINX_OPTS:="-nW -t latex_prolog";\
-	else\
-		SPHINX_OPTS:="-nW";\
+		SPHINX_OPTS:="$(SPHINX_OPTS) -t latex_prolog";\
 	fi
 	@echo is $@
 	@echo opts $(SPHINX_OPTS)
