@@ -217,12 +217,8 @@ class SphinxPostTransformConstructor(SphinxPostTransform):
                 if isinstance(node_child, addnodes.desc_parameterlist):
                     nodes_to_remove.append((node_desc_signature, node_child))
 
-            for index, node_child in enumerate(node_desc_content):
-                if isinstance(node_child, nodes.paragraph):
-                    node_paragraph = nodes.paragraph(text=' ')
-                    node_paragraph.update_basic_atts({'classes': ['fake_header']})
-                    node_desc_content[index] = node_paragraph
-                elif isinstance(node_child, nodes.field_list):
+            for node_child in node_desc_content:
+                if isinstance(node_child, nodes.field_list):
                     nodes_to_remove.append((node_desc_content, node_child))
 
             for parent, child in nodes_to_remove:
