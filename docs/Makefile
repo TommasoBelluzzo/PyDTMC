@@ -10,12 +10,15 @@ help:
 .PHONY: help Makefile
 
 %: Makefile
-	@if [[ $@ == 'html' ]]; then\
+	@if [[ "$@" == "html" ]]; then\
 		SPHINX_OPTS='-nW -t html_prolog';\
-	elif [[ $@ = 'latex' ]]; then\
+		echo $(SPHINX_OPTS);\
+	elif [[ "$@" = "latex" ]]; then\
 		SPHINX_OPTS='-nW -t latex_prolog';\
+		echo $(SPHINX_OPTS);\
 	else\
 		SPHINX_OPTS='-nW';\
+		echo $(SPHINX_OPTS);\
 	fi
 	@rm -rf $(BUILD_DIR)/doctest/*
 	@rm -rf $(BUILD_DIR)/linkcheck/*
