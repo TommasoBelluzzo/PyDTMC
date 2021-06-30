@@ -86,9 +86,12 @@ def plot_eigenvalues(mc: tmc, dpi: int = 100) -> oplot:
     """
     The function plots the eigenvalues of the Markov chain on the complex plane.
 
+    | **Notes:**
+
+    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+
     :param mc: the target Markov chain.
-    :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
-    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, otherwise the handles of the plot.
+    :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -171,16 +174,18 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
     """
     The function plots the directed graph of the Markov chain.
 
-    | **Notes:** Graphviz and Pydot are not required, but they provide access to extended graphs with additional features.
+    | **Notes:**
+
+    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    * `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are not required, but they provide access to extended graphs with additional features.
 
     :param mc: the target Markov chain.
-    :param nodes_color: a boolean indicating whether to display colored nodes based on communicating classes (by default, True).
-    :param nodes_type: a boolean indicating whether to use a different shape for every node type (by default, True).
-    :param edges_color: a boolean indicating whether to display edges using a gradient based on transition probabilities, valid only for extended graphs (by default, True).
-    :param edges_value: a boolean indicating whether to display the transition probability of every edge (by default, True).
-    :param force_standard: a boolean indicating whether to use a standard graph even if Graphviz and Pydot are installed (by default, False).
-    :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
-    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, otherwise the handles of the plot.
+    :param nodes_color: a boolean indicating whether to display colored nodes based on communicating classes.
+    :param nodes_type: a boolean indicating whether to use a different shape for every node type.
+    :param edges_color: a boolean indicating whether to display edges using a gradient based on transition probabilities, valid only for extended graphs.
+    :param edges_value: a boolean indicating whether to display the transition probability of every edge.
+    :param force_standard: a boolean indicating whether to use a standard graph even if extended graphs are available.
+    :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -361,12 +366,17 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
     """
     The function plots a redistribution of states on the given Markov chain.
 
+    | **Notes:**
+
+    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+
     :param mc: the target Markov chain.
     :param distributions: a sequence of redistributions or the number of redistributions to perform.
-    :param initial_status: the initial state or the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
-    :param plot_type: the type of plot to display (either heatmap or projection; projection by default).
-    :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
-    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, otherwise the handles of the plot.
+    :param initial_status: the initial state or the initial distribution of the states. |br| *If omitted, the states are assumed to be uniformly distributed.*
+    :param plot_type:
+     - **heatmap** for displaying an heatmap plot;
+     - **projection** for displaying a projection plot.
+    :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValueError: if the "distributions" parameter represents a sequence of redistributions and the "initial_status" parameter does not match its first element.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -460,12 +470,18 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
     """
     The function plots a random walk on the given Markov chain.
 
+    | **Notes:**
+
+    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+
     :param mc: the target Markov chain.
     :param walk: a sequence of states or the number of simulations to perform.
-    :param initial_state: the initial state of the walk (if omitted, it is chosen uniformly at random).
-    :param plot_type: the type of plot to display (one of histogram, sequence and transitions; histogram by default).
-    :param dpi: the resolution of the plot expressed in dots per inch (by default, 100).
-    :return: None if Matplotlib is in interactive mode as the plot is immediately displayed, otherwise the handles of the plot.
+    :param initial_state: the initial state of the walk. |br| *If omitted, it is chosen uniformly at random.*
+    :param plot_type:
+     - **histogram** for displaying an histogram plot;
+     - **sequence** for displaying a sequence plot;
+     - **transitions** for displaying a transitions plot.
+    :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValueError: if the "walk" parameter represents a sequence of states and the "initial_state" parameter does not match its first element.
     :raises ValidationError: if any input argument is not compliant.
     """

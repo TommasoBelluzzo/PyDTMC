@@ -19,6 +19,7 @@ from os.path import (
 
 # noinspection PyPep8Naming
 from re import (
+    IGNORECASE as flag_ignorecase,
     MULTILINE as flag_multiline,
     search
 )
@@ -28,6 +29,18 @@ from sys import (
 )
 
 # Libraries
+
+from docutils import (
+    nodes
+)
+
+from sphinx import (
+    addnodes
+)
+
+from sphinx.transforms.post_transforms import (
+    SphinxPostTransform
+)
 
 # noinspection PyUnresolvedReferences
 import sphinx_rtd_theme  # noqa
@@ -40,6 +53,7 @@ from sphinx.ext.intersphinx import (
 #############
 # REFERENCE #
 #############
+
 
 path.append(join(dirname(__name__), '..'))
 
@@ -92,10 +106,22 @@ extensions = [
 
 master_doc = 'index'
 source_suffix = '.rst'
+source_encoding = 'utf-8'
 exclude_patterns = ['_build']
 templates_path = ['_templates']
 pygments_style = 'sphinx'
 nitpick_ignore = []
+
+# noinspection PyUnresolvedReferences
+if tags.has('html_prolog'):
+
+    with open('prolog_html.inc', mode='r') as prolog_file:
+        rst_prolog = prolog_file.read()
+
+elif tags.has('latex_prolog'):
+
+    with open('prolog_latex.inc', mode='r') as prolog_file:
+        rst_prolog = prolog_file.read()
 
 # InterSphinx
 
@@ -116,6 +142,15 @@ intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None)
 }
 
+# Autodoc
+
+autodoc_default_options = {
+    'inherited-members': False,
+    'no-undoc-members': True,
+    'member-order': 'bysource'
+}
+autoclass_content = 'both'
+
 # Autodoc Typehints
 
 set_type_checking_flag = True
@@ -134,12 +169,15 @@ epub_exclude_files = ['search.html']
 # HTML
 
 html_copy_source = False
+html_domain_indices = False
+html_last_updated_fmt = '%b %d, %Y'
 html_short_title = ''
 html_show_sourcelink = False
 html_show_sphinx = False
 html_static_path = ['_static']
+html_style = 'css/style.css'
 html_theme = 'sphinx_rtd_theme'
-html_theme_options = {}
+html_theme_options = {'display_version': False}
 html_title = ''
 
 # LaTeX
@@ -154,6 +192,90 @@ man_pages = [(master_doc, 'pydtmc', project_title, [author], 1)]
 # Texinfo
 
 texinfo_documents = [(master_doc, project, project_title, author, project, 'A framework for discrete-time Markov chains analysis.', 'Miscellaneous')]
+
+
+###########
+# CLASSES #
+###########
+
+class SphinxPostTransformConstructor(SphinxPostTransform):
+
+    default_priority = 799
+
+    def run(self, **kwargs):
+
+        if not search(r'markov_chain_[A-Z_]+\.rst$', self.document['source'], flags=flag_ignorecase):
+            return
+
+        for node in self.document.traverse(addnodes.desc):
+
+            if not node.hasattr('objtype') or node['objtype'] != 'class':
+                continue
+
+            node_desc_signature = node[0]
+
+            if not isinstance(node_desc_signature, addnodes.desc_signature):
+                continue
+
+            node_desc_content = node[1]
+
+            if not isinstance(node_desc_content, addnodes.desc_content):
+                continue
+
+            nodes_to_remove = []
+
+            for node_child in node_desc_signature:
+                if isinstance(node_child, addnodes.desc_parameterlist):
+                    nodes_to_remove.append((node_desc_signature, node_child))
+
+            for index, node_child in enumerate(node_desc_content):
+                if isinstance(node_child, nodes.paragraph):
+                    node_paragraph = nodes.paragraph(text=' ')
+                    node_paragraph.update_basic_atts({'classes': ['fake_header']})
+                    node_desc_content[index] = node_paragraph
+                elif isinstance(node_child, nodes.field_list):
+                    nodes_to_remove.append((node_desc_content, node_child))
+
+            for parent, child in nodes_to_remove:
+                parent.remove(child)
+
+
+class SphinxPostTransformProperties(SphinxPostTransform):
+
+    default_priority = 799
+
+    def run(self, **kwargs):
+
+        for node in self.document.traverse(addnodes.desc_signature):
+
+            parent = node.parent
+
+            if parent is None or not isinstance(parent, addnodes.desc):
+                continue
+
+            if not parent.hasattr('objtype'):
+                continue
+
+            parent_objtype = parent['objtype']
+
+            if parent_objtype not in ['method', 'property']:
+                continue
+
+            nodes_to_remove = []
+
+            for node_child in node:
+
+                if isinstance(node_child, addnodes.desc_annotation):
+
+                    node_child_text = node_child.astext().strip()
+
+                    if parent_objtype == 'method' and node_child_text == 'static':
+                        nodes_to_remove.append(node_child)
+                    elif parent_objtype == 'property' and (node_child_text.startswith(':') or node_child_text == 'property'):
+                        nodes_to_remove.append(node_child)
+
+            for node_child in nodes_to_remove:
+                node.remove(node_child)
 
 
 #############
@@ -186,6 +308,9 @@ def _process_intersphinx_aliases(app):
 #########
 
 def setup(app):
+
+    app.add_post_transform(SphinxPostTransformConstructor)
+    app.add_post_transform(SphinxPostTransformProperties)
 
     app.add_config_value('intersphinx_aliases', {}, 'env')
     app.connect('builder-inited', _process_intersphinx_aliases)

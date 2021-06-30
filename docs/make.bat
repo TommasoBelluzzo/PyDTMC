@@ -24,17 +24,25 @@ IF "%1" == "" (
     SET BUILD_DIR=build
     SET SPHINX_OPTS=-nW
 
+    IF "%SPHINX_TYPE%" == "html" (
+        SET SPHINX_OPTS=%SPHINX_OPTS% -t html_prolog
+    )
+
+    IF "%SPHINX_TYPE%" == "latex" (
+        SET SPHINX_OPTS=%SPHINX_OPTS% -t latex_prolog
+    )
+
     DEL /S /Q %BUILD_DIR%\doctest\* >NUL 2>NUL
     DEL /S /Q %BUILD_DIR%\linkcheck\* >NUL 2>NUL
     DEL /S /Q %BUILD_DIR%\coverage\* >NUL 2>NUL
     DEL /S /Q %BUILD_DIR%\%SPHINX_TYPE%\* >NUL 2>NUL
 
     ECHO.
-    %SPHINX_BUILD% -b doctest %SOURCE_DIR% %BUILD_DIR%\doctest -W
+    %SPHINX_BUILD% -b doctest %SOURCE_DIR% %BUILD_DIR%\doctest %SPHINX_OPTS% %O%
     ECHO.
-    %SPHINX_BUILD% -b linkcheck %SOURCE_DIR% %BUILD_DIR%\linkcheck -W
+    %SPHINX_BUILD% -b linkcheck %SOURCE_DIR% %BUILD_DIR%\linkcheck %SPHINX_OPTS% %O%
     ECHO.
-    %SPHINX_BUILD% -b coverage %SOURCE_DIR% %BUILD_DIR%\coverage -W
+    %SPHINX_BUILD% -b coverage %SOURCE_DIR% %BUILD_DIR%\coverage %SPHINX_OPTS% %O%
     ECHO.
     %SPHINX_BUILD% -b %SPHINX_TYPE% %SOURCE_DIR% %BUILD_DIR%\%SPHINX_TYPE% %SPHINX_OPTS% %O%
     ECHO.

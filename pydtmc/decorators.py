@@ -54,7 +54,7 @@ class alias:
 class cachedproperty(property):
 
     """
-    A decorator for implementing lazy-evaluated read-only properties.
+    A decorator for implementing cached read-only properties.
     """
 
     def __init__(self, fget=None, fset=None, fdel=None, doc=None):
@@ -74,7 +74,7 @@ class cachedproperty(property):
         if self._func_name is None:
             self._func_name = name
         elif name != self._func_name:
-            raise AttributeError(f'Cannot assign the same cached property to two different names: {self._func_name} and {name}.')
+            raise AttributeError(f'Cannot assign the same cached property to two different members: {self._func_name} and {name}.')
 
     def __get__(self, instance, owner=None):
 

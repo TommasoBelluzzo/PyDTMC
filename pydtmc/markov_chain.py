@@ -476,7 +476,8 @@ class MarkovChain(metaclass=BaseClass):
     def entropy_rate(self) -> ofloat:
 
         """
-        A property representing the entropy rate of the Markov chain. If the Markov chain has multiple stationary distributions, then None is returned.
+        A property representing the entropy rate of the Markov chain. |br|
+        *If the Markov chain has multiple stationary distributions, then* :py:class:`None` *is returned.*
         """
 
         if len(self.pi) > 1:
@@ -499,7 +500,8 @@ class MarkovChain(metaclass=BaseClass):
     def entropy_rate_normalized(self) -> ofloat:
 
         """
-        A property representing the entropy rate, normalized between 0 and 1, of the Markov chain. If the Markov chain is not *ergodic*, then None is returned.
+        A property representing the entropy rate, normalized between 0 and 1, of the Markov chain. |br|
+        *If the Markov chain has multiple stationary distributions, then* :py:class:`None` *is returned.*
         """
 
         h = self.entropy_rate
@@ -520,7 +522,8 @@ class MarkovChain(metaclass=BaseClass):
     def fundamental_matrix(self) -> oarray:
 
         """
-        A property representing the fundamental matrix of the Markov chain. If the Markov chain is not *absorbing* or has no transient states, then None is returned.
+        A property representing the fundamental matrix of the Markov chain. |br|
+        *If the Markov chain is not* **absorbing** *or has no transient states, then* :py:class:`None` *is returned.*
         """
 
         if not self.is_absorbing or len(self.transient_states) == 0:
@@ -539,7 +542,8 @@ class MarkovChain(metaclass=BaseClass):
     def implied_timescales(self) -> oarray:
 
         """
-        A property representing the implied timescales of the Markov chain. If the Markov chain is not *ergodic*, then None is returned.
+        A property representing the implied timescales of the Markov chain. |br|
+        *If the Markov chain is not* **ergodic**\ *, then* :py:class:`None` *is returned.*
         """
 
         if not self.is_ergodic:
@@ -702,7 +706,8 @@ class MarkovChain(metaclass=BaseClass):
     def kemeny_constant(self) -> ofloat:
 
         """
-        A property representing the Kemeny's constant of the fundamental matrix of the Markov chain. If the Markov chain is not *absorbing* or has no transient states, then None is returned.
+        A property representing the Kemeny's constant of the fundamental matrix of the Markov chain. |br|
+        *If the Markov chain is not* **absorbing** *or has no transient states, then* :py:class:`None` *is returned.*
         """
 
         fm = self.fundamental_matrix
@@ -732,7 +737,8 @@ class MarkovChain(metaclass=BaseClass):
     def mixing_rate(self) -> ofloat:
 
         """
-        A property representing the mixing rate of the Markov chain. If the *SLEM* (second largest eigenvalue modulus) cannot be computed, then None is returned.
+        A property representing the mixing rate of the Markov chain. |br|
+        *If the* **SLEM** *(second largest eigenvalue modulus) cannot be computed, then* :py:class:`None` *is returned.*
         """
 
         if self.__slem is None:
@@ -846,7 +852,8 @@ class MarkovChain(metaclass=BaseClass):
     def relaxation_rate(self) -> ofloat:
 
         """
-        A property representing the relaxation rate of the Markov chain. If the *SLEM* (second largest eigenvalue modulus) cannot be computed, then None is returned.
+        A property representing the relaxation rate of the Markov chain. |br|
+        *If the* **SLEM** *(second largest eigenvalue modulus) cannot be computed, then* :py:class:`None` *is returned.*
         """
 
         if self.__slem is None:
@@ -869,7 +876,8 @@ class MarkovChain(metaclass=BaseClass):
     def spectral_gap(self) -> ofloat:
 
         """
-        A property representing the spectral gap of the Markov chain. If the Markov chain is not *ergodic*, then None is returned.
+        A property representing the spectral gap of the Markov chain. |br|
+        *If the Markov chain is not* **ergodic**\ *, then* :py:class:`None` *is returned.*
         """
 
         if not self.is_ergodic or self.__slem is None:
@@ -925,7 +933,8 @@ class MarkovChain(metaclass=BaseClass):
     def absorption_probabilities(self) -> oarray:
 
         """
-        A property representing the absorption probabilities of the Markov chain. If the Markov chain has no transient states, then None is returned.
+        The method computes the absorption probabilities of the Markov chain. |br|
+        *If the Markov chain has no transient states, then* :py:class:`None` *is returned.*
         """
 
         if 'ap' not in self.__cache:
@@ -940,7 +949,6 @@ class MarkovChain(metaclass=BaseClass):
 
         :param state1: the first state.
         :param state2: the second state.
-        :return: True if the given states are communicating, False otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -961,13 +969,12 @@ class MarkovChain(metaclass=BaseClass):
     def closest_reversible(self, distribution: onumeric = None, weighted: bool = False) -> tmc:
 
         """
-        The method computes the closest reversible of the Markov chain.
+        The method computes the closest reversible of the Markov chain. |br| |brp|
+        **Notes:** |br|
+        - The algorithm is described in `Computing the nearest reversible Markov chain (Nielsen & Weber, 2015) <http://doi.org/10.1002/nla.1967>`_.
 
-        | **Notes:** the algorithm is described in `Computing the nearest reversible Markov chain (Nielsen & Weber, 2015) <http://doi.org/10.1002/nla.1967>`_.
-
-        :param distribution: the distribution of the states (if omitted, the states are assumed to be uniformly distributed).
-        :param weighted: a boolean indicating whether to use the weighted Frobenius norm (by default, False).
-        :return: a Markov chain representing the closest reversible.
+        :param distribution: the distribution of the states. |br| *If omitted, the states are assumed to be uniformly distributed.*
+        :param weighted: a boolean indicating whether to use the weighted Frobenius norm.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the closest reversible could not be computed.
         """
@@ -1001,15 +1008,19 @@ class MarkovChain(metaclass=BaseClass):
 
         return mc
 
+    @alias('cp')
     def committor_probabilities(self, committor_type: str, states1: tstates, states2: tstates) -> oarray:
 
         """
-        The method computes the committor probabilities between the given subsets of the state space defined by the Markov chain.
+        The method computes the committor probabilities between the given subsets of the state space defined by the Markov chain. |br| |brp|
+        **Notes:** |br|
+        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
 
-        :param committor_type: the type of committor whose probabilities must be computed (either backward or forward).
+        :param committor_type:
+         - **backward** for the backward committor; |br|
+         - **forward** for the forward committor.
         :param states1: the first subset of the state space.
         :param states2: the second subset of the state space.
-        :return: the committor probabilities if the Markov chain is *ergodic*, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1040,7 +1051,6 @@ class MarkovChain(metaclass=BaseClass):
         | **Aliases:** conditional_distribution
 
         :param state: the current state.
-        :return: the conditional probabilities of the Markov chain states.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1058,11 +1068,10 @@ class MarkovChain(metaclass=BaseClass):
     def expected_rewards(self, steps: int, rewards: tnumeric) -> tarray:
 
         """
-        The method computes the expected rewards of the Markov chain after *N* steps, given the reward value of each state.
+        The method computes the expected rewards of the Markov chain after **N** steps, given the reward value of each state.
 
         :param steps: the number of steps.
         :param rewards: the reward values.
-        :return: the expected rewards of each state of the Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1085,7 +1094,6 @@ class MarkovChain(metaclass=BaseClass):
 
         :param steps: the number of steps.
         :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
-        :return: the expected number of transitions on each state of the Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1112,7 +1120,6 @@ class MarkovChain(metaclass=BaseClass):
         :param steps: the number of steps.
         :param initial_state: the initial state.
         :param first_passage_states: the first passage states.
-        :return: the first passage probabilities of the Markov chain for the given configuration.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1141,7 +1148,6 @@ class MarkovChain(metaclass=BaseClass):
         :param initial_state: the initial state.
         :param first_passage_states: the first passage states.
         :param rewards: the reward values.
-        :return: the first passage reward of the Markov chain for the given configuration.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Markov chain defines only two states.
         """
@@ -1867,7 +1873,7 @@ class MarkovChain(metaclass=BaseClass):
     @staticmethod
     def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: ofloat = None) -> tmc:
 
-        r"""
+        """
         The method approximates the Markov chain associated with the discretized version of the following first-order autoregressive process:
 
         | :math:`y_t = (1 - \\rho) \\alpha + \\rho y_{t-1} + \\varepsilon_t`
@@ -1875,19 +1881,18 @@ class MarkovChain(metaclass=BaseClass):
 
         :param size: the size of the Markov chain.
         :param approximation_type:
-         - *adda-cooper* for the Adda-Cooper approximation;
-         - *rouwenhorst* for the Rouwenhorst approximation;
-         - *tauchen* for the Tauchen approximation;
-         - *tauchen-hussey* for the Tauchen-Hussey approximation.
+         - **adda-cooper** for the Adda-Cooper approximation;
+         - **rouwenhorst** for the Rouwenhorst approximation;
+         - **tauchen** for the Tauchen approximation;
+         - **tauchen-hussey** for the Tauchen-Hussey approximation.
         :param alpha: the constant term :math:`\\alpha`, representing the unconditional mean of the process.
         :param sigma: the standard deviation of the innovation term :math:`\\varepsilon`.
         :param rho: the autocorrelation coefficient :math:`\\rho`, representing the persistence of the process across periods.
         :param k:
-         - in the Tauchen approximation, the number of standard deviations to approximate out to (if omitted, the value is set to 3);
-         - in the Tauchen-Hussey approximation, the standard deviation used for the gaussian quadrature (if omitted, the value is set to an optimal default).
-        :return: a Markov chain.
+         - In the Tauchen approximation, the number of standard deviations to approximate out to. |br| *If omitted, the value is set to* **3**\ *.*
+         - In the Tauchen-Hussey approximation, the standard deviation used for the gaussian quadrature. |br| *If omitted, the value is set to an* **optimal default**\ *.*
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the gaussian quadrature fails to converge in the Tauchen-Hussey approach.
+        :raises ValueError: if the gaussian quadrature fails to converge in the Tauchen-Hussey approximation.
         """
 
         try:
@@ -1923,8 +1928,7 @@ class MarkovChain(metaclass=BaseClass):
 
         :param q: the creation probabilities.
         :param p: the annihilation probabilities.
-        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
-        :return: a Markov chain.
+        :param states: the name of each state. |br| *If omitted, an increasing sequence of integers starting at* **1**\ *.*
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1955,20 +1959,19 @@ class MarkovChain(metaclass=BaseClass):
         The method fits a Markov chain using the given transition function and the given quadrature type for the computation of nodes and weights.
 
         :param possible_states: the possible states of the process.
-        :param f: the transition function of the process, which takes the four input arguments below and returns a numeric value:
-         - *x_index* an integer value representing the index of the i-th quadrature node;
-         - *x_value* a float value representing the value of the i-th quadrature node;
-         - *y_index* an integer value representing the index of the j-th quadrature node;
-         - *y_value* a float value representing the value of the j-th quadrature node.
+        :param f: the transition function of the process, which takes the four input arguments below and returns a numeric value: |br|
+         - **x_index** an integer value representing the index of the i-th quadrature node; |br|
+         - **x_value** a float value representing the value of the i-th quadrature node; |br|
+         - **y_index** an integer value representing the index of the j-th quadrature node; |br|
+         - **y_value** a float value representing the value of the j-th quadrature node.
         :param quadrature_type:
-         - *gauss-chebyshev* for the Gauss-Chebyshev quadrature;
-         - *gauss-legendre* for the Gauss-Legendre quadrature;
-         - *niederreiter* for the Niederreiter equidistributed sequence;
-         - *newton-cotes* for the Newton-Cotes quadrature;
-         - *simpson-rule* for the Simpson rule;
-         - *trapezoid-rule* for the Trapezoid rule.
-        :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (by default, the interval [0, 1]).
-        :return: a Markov chain.
+         - **gauss-chebyshev** for the Gauss-Chebyshev quadrature;
+         - **gauss-legendre** for the Gauss-Legendre quadrature;
+         - **niederreiter** for the Niederreiter equidistributed sequence;
+         - **newton-cotes** for the Newton-Cotes quadrature;
+         - **simpson-rule** for the Simpson rule;
+         - **trapezoid-rule** for the Trapezoid rule.
+        :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights. |br| *If omitted, the interval* **[0, 1]** *is used.*
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Gauss-Legendre quadrature fails to converge.
         """
@@ -1999,19 +2002,16 @@ class MarkovChain(metaclass=BaseClass):
     def fit_walk(fitting_type: str, possible_states: tlist_str, walk: twalk, k: tany = None) -> tmc:
 
         """
-        The method fits a Markov chain from an observed sequence of states using the specified approach and computes the multinomial confidence intervals of the fitting.
-
-        | **Notes:** the algorithm for the computation of multinomial confidence intervals is described in `Constructing two-sided simultaneous confidence intervals for multinomial proportions (May & Johnson, 2000) <http://dx.doi.org/10.18637/jss.v005.i06>`_.
+        The method fits a Markov chain from an observed sequence of states using the specified fitting approach.
 
         :param fitting_type:
-         - *map* for the maximum a posteriori approach;
-         - *mle* for the maximum likelihood approach.
+         - **map** for the maximum a posteriori fitting;
+         - **mle** for the maximum likelihood fitting.
         :param possible_states: the possible states of the process.
         :param walk: the observed sequence of states.
         :param k:
-         - in the maximum a posteriori approach, the matrix for the a priori distribution (if omitted, a default value of 1 is assigned to each parameter);
-         - in the maximum likelihood approach, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (if omitted, the value is set to False).
-        :return: a Markov chain.
+         - In the maximum a posteriori fitting, the matrix for the a priori distribution. |br| *If omitted, a default value of* **1** *is assigned to each parameter.*
+         - In the maximum likelihood fitting, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations. |br| *If omitted, the value is set to* **True**\ *.*
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2041,7 +2041,6 @@ class MarkovChain(metaclass=BaseClass):
         The method generates a Markov chain from the given dictionary, whose keys represent state pairs and whose values represent transition probabilities.
 
         :param d: the dictionary to transform into the transition matrix.
-        :return: a Markov chain.
         :raises ValueError: if the transition matrix defined by the dictionary is not valid.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -2075,10 +2074,8 @@ class MarkovChain(metaclass=BaseClass):
     def from_graph(graph: tgraphs) -> tmc:
 
         """
-        The method generates a Markov chain from the given directed graph.
+        The method generates a Markov chain from the given directed graph, whose transition matrix is obtained through the normalization of the graph weights.
 
-        :return: a Markov chain.
-        :raises ValueError: if the transition matrix defined by the directed graph is not valid.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2117,32 +2114,28 @@ class MarkovChain(metaclass=BaseClass):
     def from_file(file_path: str) -> tmc:
 
         """
-        The method reads a Markov chain from the given file.
-
-        | Only csv, json, xml and plain text files are supported; data format is inferred from the file extension.
-        |
-        | In *csv* files, the header must contain the state names and every row must represent a row of the transition matrix.
-        | The following format settings are required:
-        | delimiter: *,*
-        | quoting: *minimal*
-        | quote character: *"*
-        |
-        | In *json* files, data must be structured as an array of objects with the following properties:
-        | *state_from* (string)
-        | *state_to* (string)
-        | *probability* (float or int)
-        |
-        | In *text* files, every line of the file must have the following format:
-        | *<state_from> <state_to> <probability>*
-        |
-        | In *xml* files, the root element must be called *MarkovChain* and child elements must be called *Transition*.
-        | Every child element must have the following attributes:
-        | *state_from* (string)
-        | *state_to* (string)
-        | *probability* (float or int)
+        The method reads a Markov chain from the given file. |br| |brp|
+        Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension. |br| |brp|
+        In **csv** files, the header must contain the state names and the following rows must contain the probabilities. |br|
+        The following format settings are required: |br|
+        - *Delimiter: '*\ **,**\\ *'* |br|
+        - *Quoting: '*\ **minimal**\ *'* |br|
+        - *Quote Character: '*\ **"**\ *'* |br| |brp|
+        In **json** files, data must be structured as an array of objects with the following properties: |br|
+        - **state_from** *(string)* |br|
+        - **state_to** *(string)* |br|
+        - **probability** *(float or int)* |br| |brp|
+        In **txt** files, every line of the file must have the following format: |br|
+        **<state_from> <state_to> <probability>** |br| |brp|
+        In **xml** files, the structure must be defined as follows: |br|
+        - *Root Element: '*\ **MarkovChain**\ *'* |br|
+        - *Child Elements: '*\ **Transition**\ *'* |br|
+        Every child element must have the following attributes: |br|
+        - **state_from** *(string)* |br|
+        - **state_to** *(string)* |br|
+        - **probability** *(float or int)*
 
         :param file_path: the location of the file that defines the Markov chain.
-        :return: a Markov chain.
         :raises FileNotFoundError: if the file does not exist.
         :raises OSError: if the file cannot be read or is empty.
         :raises ValidationError: if any input argument is not compliant.
@@ -2195,8 +2188,7 @@ class MarkovChain(metaclass=BaseClass):
         The method generates a Markov chain with the given state names, whose transition matrix is obtained through the normalization of the given matrix.
 
         :param m: the matrix to transform into the transition matrix.
-        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
-        :return: a Markov chain.
+        :param states: the name of each state. |br| *If omitted, an increasing sequence of integers starting at* **1**\ *.*
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2232,8 +2224,7 @@ class MarkovChain(metaclass=BaseClass):
 
         :param size: the size of the Markov chain.
         :param w: the win probability.
-        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
-        :return: a Markov chain.
+        :param states: the name of each state. |br| *If omitted, an increasing sequence of integers starting at* **1**\ *.*
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2258,8 +2249,7 @@ class MarkovChain(metaclass=BaseClass):
         The method generates a Markov chain of given size based on an identity transition matrix.
 
         :param size: the size of the Markov chain.
-        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
-        :return: a Markov chain.
+        :param states: the name of each state. |br| *If omitted, an increasing sequence of integers starting at* **1**\ *.*
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2283,11 +2273,10 @@ class MarkovChain(metaclass=BaseClass):
         The method generates a Markov chain of given size with random transition probabilities.
 
         :param size: the size of the Markov chain.
-        :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
-        :param zeros: the number of zero-valued transition probabilities (by default, 0).
-        :param mask: a matrix representing the locations and values of fixed transition probabilities (random transition probabilities are represented by NaN values).
+        :param states: the name of each state. |br| *If omitted, an increasing sequence of integers starting at* **1**\ *.*
+        :param zeros: the number of zero-valued transition probabilities.
+        :param mask: a matrix representing locations and values of fixed transition probabilities. |br| *Random transition probabilities are represented by* **NaN** *values.*
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
-        :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2315,13 +2304,12 @@ class MarkovChain(metaclass=BaseClass):
     def urn_model(n: int, model: str) -> tmc:
 
         """
-        The method generates a Markov chain of size *2n + 1* based on the specified urn model.
+        The method generates a Markov chain of size **2N + 1** based on the specified urn model.
 
         :param n: the number of elements in each urn.
         :param model:
-         - *bernoulli-laplace* for the Bernoulli-Laplace urn model;
-         - *ehrenfest* for the Ehrenfest urn model.
-        :return: a Markov chain.
+         - **bernoulli-laplace** for the Bernoulli-Laplace urn model;
+         - **ehrenfest** for the Ehrenfest urn model.
         :raises ValidationError: if any input argument is not compliant.
         """
 

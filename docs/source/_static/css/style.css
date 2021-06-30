@@ -1,0 +1,52 @@
+@import url('theme.css');
+
+/* Overrides */
+
+.wy-nav-content
+{
+	max-width: 1200px !important;
+}
+
+.rst-content dl .py
+{
+    width: 100% !important;
+}
+
+.rst-content dl .viewcode-link
+{
+	padding-left: 0 !important;
+    padding-right: 24px !important;
+    float: right !important;
+}
+
+.rst-content .section ol li > p,
+.rst-content .section ol li > p:last-child,
+.rst-content .section ul li > p,
+.rst-content .section ul li > p:last-child
+{
+    margin-bottom: 0 !important;
+}
+
+/* Customs */
+
+.fake_header
+{
+    display: inline-block !important;
+}
+
+.rst-content .section:not([id='static-methods']) .line-block
+{
+    margin-bottom: 4px !important;
+}
+
+.rst-content .section[id='static-methods'] .line-block
+{
+    margin-bottom: 24px !important;
+}
+
+#instance-methods dl.method,
+#properties dl.property,
+#static-methods dl.method
+{
+    margin-bottom: 0 !important;
+}
