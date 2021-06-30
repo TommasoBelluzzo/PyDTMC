@@ -112,22 +112,6 @@ templates_path = ['_templates']
 pygments_style = 'sphinx'
 nitpick_ignore = []
 
-# noinspection PyUnresolvedReferences
-if tags.has('html_prolog'):
-    prolog_file = join(base_directory, 'prolog_html.inc')
-elif tags.has('latex_prolog'):
-    prolog_file = join(base_directory, 'prolog_latex.inc')
-else:
-    prolog_file = None
-
-if prolog_file is None:
-    rst_prolog = ''
-else:
-    with open(prolog_file, mode='r') as file:
-        rst_prolog = file.read()
-
-print(rst_prolog)
-
 # InterSphinx
 
 intersphinx_aliases = {

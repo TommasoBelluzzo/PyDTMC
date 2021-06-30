@@ -12,6 +12,10 @@
     width: 100% !important;
 }
 
+.rst-content dl .property {
+    padding-right: 0 !important;
+}
+
 .rst-content dl .viewcode-link
 {
 	padding-left: 0 !important;
@@ -29,11 +33,6 @@
 
 /* Customs */
 
-.fake_header
-{
-    display: inline-block !important;
-}
-
 .rst-content .section:not([id='static-methods']) .line-block
 {
     margin-bottom: 4px !important;
@@ -49,4 +48,11 @@
 #static-methods dl.method
 {
     margin-bottom: 0 !important;
+}
+
+#instance-methods dl.class > dt.sig,
+#properties dl.class > dt.sig,
+#static-methods dl.class > dt.sig
+{
+    margin-bottom: 24px !important;
 }

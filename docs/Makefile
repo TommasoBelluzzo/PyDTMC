@@ -11,20 +11,11 @@ help:
 .PHONY: help Makefile
 
 %: Makefile
-	@if [[ "$@" == "html" ]]; then \
-		SPHINX_OPTS_FINAL="$(SPHINX_OPTS) -t html_prolog"; \
-	elif [[ "$@" == "latex" ]]; then \
-		SPHINX_OPTS_FINAL="$(SPHINX_OPTS) -t latex_prolog"; \
-	else \
-		SPHINX_OPTS_FINAL=$(SPHINX_OPTS); \
-	fi
-	@echo is $@
-	@echo opts $(SPHINX_OPTS_FINAL)
 	@rm -rf $(BUILD_DIR)/doctest/*
 	@rm -rf $(BUILD_DIR)/linkcheck/*
 	@rm -rf $(BUILD_DIR)/coverage/*
 	@rm -rf $(BUILD_DIR)/$@/*
-	@$(SPHINX_EXE) -b doctest $(SOURCE_DIR) $(BUILD_DIR)/doctest $(SPHINX_OPTS_FINAL) $(O)
-	@$(SPHINX_EXE) -b linkcheck $(SOURCE_DIR) $(BUILD_DIR)/linkcheck $(SPHINX_OPTS_FINAL) $(O)
-	@$(SPHINX_EXE) -b coverage $(SOURCE_DIR) $(BUILD_DIR)/coverage $(SPHINX_OPTS_FINAL) $(O)
-	@$(SPHINX_EXE) -b $@ $(SOURCE_DIR) $(BUILD_DIR)/$@ $(SPHINX_OPTS_FINAL) $(O)
+	@$(SPHINX_EXE) -b doctest $(SOURCE_DIR) $(BUILD_DIR)/doctest $(SPHINX_OPTS) $(O)
+	@$(SPHINX_EXE) -b linkcheck $(SOURCE_DIR) $(BUILD_DIR)/linkcheck $(SPHINX_OPTS) $(O)
+	@$(SPHINX_EXE) -b coverage $(SOURCE_DIR) $(BUILD_DIR)/coverage $(SPHINX_OPTS) $(O)
+	@$(SPHINX_EXE) -b $@ $(SOURCE_DIR) $(BUILD_DIR)/$@ $(SPHINX_OPTS) $(O)

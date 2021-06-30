@@ -24,14 +24,6 @@ IF "%1" == "" (
     SET BUILD_DIR=build
     SET SPHINX_OPTS=-nW
 
-    IF "%SPHINX_TYPE%" == "html" (
-        SET SPHINX_OPTS=%SPHINX_OPTS% -t html_prolog
-    )
-
-    IF "%SPHINX_TYPE%" == "latex" (
-        SET SPHINX_OPTS=%SPHINX_OPTS% -t latex_prolog
-    )
-
     DEL /S /Q %BUILD_DIR%\doctest\* >NUL 2>NUL
     DEL /S /Q %BUILD_DIR%\linkcheck\* >NUL 2>NUL
     DEL /S /Q %BUILD_DIR%\coverage\* >NUL 2>NUL
