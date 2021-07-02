@@ -196,8 +196,6 @@ class SphinxPostTransformConstructor(SphinxPostTransform):
         if not search(r'markov_chain_[A-Z_]+\.rst$', self.document['source'], flags=flag_ignorecase):
             return
 
-        print(self.document)
-
         for node in self.document.traverse(addnodes.desc):
 
             if not node.hasattr('objtype') or node['objtype'] != 'class':
@@ -220,7 +218,7 @@ class SphinxPostTransformConstructor(SphinxPostTransform):
                     nodes_to_remove.append((node_desc_signature, node_child))
 
             for node_child in node_desc_content:
-                if isinstance(node_child, nodes.field_list):
+                if isinstance(node_child, nodes.paragraph) or isinstance(node_child, nodes.field_list):
                     nodes_to_remove.append((node_desc_content, node_child))
 
             for parent, child in nodes_to_remove:

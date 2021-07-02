@@ -2,24 +2,19 @@
 
 /* Overrides */
 
-.wy-nav-content
-{
-	max-width: 1200px !important;
-}
-
 .rst-content dl .py
 {
     width: 100% !important;
 }
 
-.rst-content dl .property {
+.rst-content dl.property {
     padding-right: 0 !important;
 }
 
 .rst-content dl .viewcode-link
 {
 	padding-left: 0 !important;
-    padding-right: 24px !important;
+    padding-right: 8px !important;
     float: right !important;
 }
 
@@ -31,13 +26,24 @@
     margin-bottom: 0 !important;
 }
 
+.rst-content .toctree-wrapper > p.caption, h1, h2, h3, h4, h5, h6, legend
+{
+    margin-top: 24px !important;
+}
+
+.wy-nav-content
+{
+	max-width: 1200px !important;
+}
+
 /* Customs */
 
-.rst-content .section:not([id='static-methods']) .line-block
+.rst-content .section:not([id='pydtmc']):not([id='static-methods']) .line-block
 {
     margin-bottom: 4px !important;
 }
 
+.rst-content .section[id='pydtmc'] .line-block,
 .rst-content .section[id='static-methods'] .line-block
 {
     margin-bottom: 24px !important;

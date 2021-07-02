@@ -22,7 +22,7 @@ IF "%1" == "" (
     SET SPHINX_TYPE=%1
     SET SOURCE_DIR=source
     SET BUILD_DIR=build
-    SET SPHINX_OPTS=-n
+    SET SPHINX_OPTS=-an
 
     DEL /S /Q %BUILD_DIR%\doctest\* >NUL 2>NUL
     DEL /S /Q %BUILD_DIR%\linkcheck\* >NUL 2>NUL

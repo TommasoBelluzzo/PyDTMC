@@ -204,7 +204,7 @@ class MarkovChain(metaclass=BaseClass):
     Defines a Markov chain with given transition matrix and state names.
 
     :param p: the transition matrix.
-    :param states: the name of each state (if omitted, an increasing sequence of integers starting at 1).
+    :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -477,7 +477,7 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         | A property representing the entropy rate of the Markov chain.
-        | *If the Markov chain has multiple stationary distributions, then* :py:class:`None` *is returned.*
+        | If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
         """
 
         if len(self.pi) > 1:
@@ -501,7 +501,7 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         | A property representing the entropy rate, normalized between 0 and 1, of the Markov chain.
-        | *If the Markov chain has multiple stationary distributions, then* :py:class:`None` *is returned.*
+        | If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
         """
 
         h = self.entropy_rate
@@ -523,7 +523,7 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         | A property representing the fundamental matrix of the Markov chain.
-        | *If the Markov chain is not* **absorbing** *or has no transient states, then* :py:class:`None` *is returned.*
+        | If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
         """
 
         if not self.is_absorbing or len(self.transient_states) == 0:
@@ -543,7 +543,7 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         | A property representing the implied timescales of the Markov chain.
-        | *If the Markov chain is not* **ergodic**\ *, then* :py:class:`None` *is returned.*
+        | If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
         """
 
         if not self.is_ergodic:
@@ -707,7 +707,7 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         | A property representing the Kemeny's constant of the fundamental matrix of the Markov chain.
-        | *If the Markov chain is not* **absorbing** *or has no transient states, then* :py:class:`None` *is returned.*
+        | If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
         """
 
         fm = self.fundamental_matrix
@@ -738,7 +738,7 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         | A property representing the mixing rate of the Markov chain.
-        | *If the* **SLEM** *(second largest eigenvalue modulus) cannot be computed, then* :py:class:`None` *is returned.*
+        | If the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
         if self.__slem is None:
@@ -793,8 +793,7 @@ class MarkovChain(metaclass=BaseClass):
     def pi(self) -> tlist_array:
 
         """
-        A property representing the stationary distributions of the Markov chain.
-
+        | A property representing the stationary distributions of the Markov chain.
         | **Aliases:** stationary_distributions, steady_states
         """
 
@@ -853,7 +852,7 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         | A property representing the relaxation rate of the Markov chain.
-        | *If the* **SLEM** *(second largest eigenvalue modulus) cannot be computed, then* :py:class:`None` *is returned.*
+        | If the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
         if self.__slem is None:
@@ -877,7 +876,7 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         | A property representing the spectral gap of the Markov chain.
-        | *If the Markov chain is not* **ergodic**\ *, then* :py:class:`None` *is returned.*
+        | If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
         """
 
         if not self.is_ergodic or self.__slem is None:
@@ -933,8 +932,11 @@ class MarkovChain(metaclass=BaseClass):
     def absorption_probabilities(self) -> oarray:
 
         """
-        | The method computes the absorption probabilities of the Markov chain.
-        | *If the Markov chain has no transient states, then* :py:class:`None` *is returned.*
+        The method computes the absorption probabilities of the Markov chain.
+
+        | **Notes:**
+
+        - If the Markov chain has no transient states, then :py:class:`None` is returned.
         """
 
         if 'ap' not in self.__cache:
@@ -969,14 +971,13 @@ class MarkovChain(metaclass=BaseClass):
     def closest_reversible(self, distribution: onumeric = None, weighted: bool = False) -> tmc:
 
         """
-        | The method computes the closest reversible of the Markov chain.
-        |
-        | **Notes:**
-        | - The algorithm is described in `Computing the nearest reversible Markov chain (Nielsen & Weber, 2015) <http://doi.org/10.1002/nla.1967>`_.
+        The method computes the closest reversible of the Markov chain.
 
-        :param distribution:
-         | the distribution of the states.
-         | *If omitted, the states are assumed to be uniformly distributed.*
+        | **Notes:**
+
+        - The algorithm is described in `Computing the nearest reversible Markov chain (Nielsen & Weber, 2015) <http://doi.org/10.1002/nla.1967>`_.
+
+        :param distribution: the distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param weighted: a boolean indicating whether to use the weighted Frobenius norm.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the closest reversible could not be computed.
@@ -1020,6 +1021,7 @@ class MarkovChain(metaclass=BaseClass):
         | **Notes:**
 
         - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **cp**.
 
         :param committor_type:
          - **backward** for the backward committor;
@@ -1053,7 +1055,9 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the probabilities, for all the states of the Markov chain, conditioned on the process being at a given state.
 
-        | **Aliases:** conditional_distribution
+        | **Notes:**
+
+        - The method can be accessed through the following aliases: **conditional_distribution**.
 
         :param state: the current state.
         :raises ValidationError: if any input argument is not compliant.
@@ -1098,7 +1102,7 @@ class MarkovChain(metaclass=BaseClass):
         The method computes the expected number of transitions performed by the Markov chain after *N* steps, given the initial distribution of the states.
 
         :param steps: the number of steps.
-        :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
+        :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1120,7 +1124,9 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the first passage probabilities of the Markov chain after *N* steps, given an initial state and, optionally, the first passage states.
 
-        | **Aliases:** fpp
+        | **Notes:**
+
+        - The method can be accessed through the following aliases: **fpp**.
 
         :param steps: the number of steps.
         :param initial_state: the initial state.
@@ -1147,7 +1153,9 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the first passage reward of the Markov chain after *N* steps, given the reward value of each state, the initial state and the first passage states.
 
-        | **Aliases:** fpt
+        | **Notes:**
+
+        - The method can be accessed through the following aliases: **fpt**.
 
         :param steps: the number of steps.
         :param initial_state: the initial state.
@@ -1185,8 +1193,7 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the hitting probability, for the states of the Markov chain, to the given set of states.
 
-        :param targets: the target states (if omitted, all the states are targeted).
-        :return: the hitting probability of each state of the Markov chain.
+        :param targets: the target states (*if omitted, all the states are targeted*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1206,8 +1213,7 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the hitting times, for all the states of the Markov chain, to the given set of states.
 
-        :param targets: the target states (if omitted, all the states are targeted).
-        :return: the hitting probability of each state of the Markov chain.
+        :param targets: the target states (*if omitted, all the states are targeted*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1228,7 +1234,6 @@ class MarkovChain(metaclass=BaseClass):
         The method verifies whether the given state of the Markov chain is absorbing.
 
         :param state: the target state.
-        :return: True if the state is absorbing, False otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1250,7 +1255,6 @@ class MarkovChain(metaclass=BaseClass):
 
         :param state_target: the target state.
         :param state_origin: the origin state.
-        :return: True if the target state is reachable from the origin state, False otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1272,7 +1276,6 @@ class MarkovChain(metaclass=BaseClass):
         The method verifies whether the given state is cyclic.
 
         :param state: the target state.
-        :return: True if the state is cyclic, False otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1293,7 +1296,6 @@ class MarkovChain(metaclass=BaseClass):
         The method verifies whether the given state is recurrent.
 
         :param state: the target state.
-        :return: True if the state is recurrent, False otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1314,7 +1316,6 @@ class MarkovChain(metaclass=BaseClass):
         The method verifies whether the given state is transient.
 
         :param state: the target state.
-        :return: True if the state is transient, False otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1335,7 +1336,6 @@ class MarkovChain(metaclass=BaseClass):
         The method attempts to reduce the state space of the Markov chain with respect to the given partitions following the ordinary lumpability criterion.
 
         :param partitions: the partitions of the state space.
-        :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Markov chain defines only two states or is not strongly lumpable with respect to the given partitions.
         """
@@ -1365,9 +1365,10 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the mean absorption times of the Markov chain.
 
-        | **Aliases:** mat
+        | **Notes:**
 
-        :return: the mean absorption times if the Markov chain is *absorbing* or has transient states, None otherwise.
+        - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **mat**.
         """
 
         if 'mat' not in self.__cache:
@@ -1381,11 +1382,13 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the mean first passage times between the given subsets of the state space.
 
-        | **Aliases:** mfpt_between, mfptb
+        | **Notes:**
+
+        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **mfpt_between**, **mfpt_between**.
 
         :param origins: the origin states.
         :param targets: the target states.
-        :return: the mean first passage times between the given subsets of the state space if the Markov chain is *ergodic*, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1407,10 +1410,12 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the mean first passage times, for all the states, to the given set of states.
 
-        | **Aliases:** mfpt_to, mfptt
+        | **Notes:**
 
-        :param targets: the target states (if omitted, all the states are targeted).
-        :return: the mean first passage times to targeted states if the Markov chain is *ergodic*, None otherwise.
+        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **mfpt_to**, **mfptt**.
+
+        :param targets: the target states (*if omitted, all the states are targeted*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1431,9 +1436,9 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the mean number of visits of the Markov chain.
 
-        | **Aliases:** mnv
+        | **Notes:**
 
-        :return: the mean number of visits.
+        - The method can be accessed through the following aliases: **mnv**.
         """
 
         if 'mnv' not in self.__cache:
@@ -1447,9 +1452,10 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the mean recurrence times of the Markov chain.
 
-        | **Aliases:** mrt
+        | **Notes:**
 
-        :return: the mean recurrence times if the Markov chain is *ergodic*, None otherwise.
+        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **mrt**.
         """
 
         if 'mrt' not in self.__cache:
@@ -1462,10 +1468,15 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the mixing time of the Markov chain, given the initial distribution of the states.
 
-        :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
-        :param jump: the number of steps in each iteration (by default, 1).
-        :param cutoff_type: the type of cutoff to use (either natural or traditional; by default, natural).
-        :return: the mixing time if the Markov chain is *ergodic*, None otherwise.
+        | **Notes:**
+
+        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+
+        :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+        :param jump: the number of steps in each iteration.
+        :param cutoff_type:
+         - **natural** for the natural cutoff;
+         - **traditional** for the traditional cutoff.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1492,13 +1503,14 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the most probable sequence of states produced by a random walk of *N* steps.
 
-        | **Notes:** in case of probability tie, the subsequent state is chosen uniformly at random among all the equiprobable states.
+        | **Notes:**
+
+        - In presence of probability ties :py:class:`None` is returned.
 
         :param steps: the number of steps.
         :param initial_state: the initial state of the prediction.
-        :param output_indices: a boolean indicating whether to the output the state indices (by default, False).
+        :param output_indices: a boolean indicating whether to the output the state indices.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
-        :return: the most probable sequence of states produced by the random walk in absence of probability ties, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1525,9 +1537,8 @@ class MarkovChain(metaclass=BaseClass):
         The method simulates a redistribution of states of *N* steps.
 
         :param steps: the number of steps.
-        :param initial_status: the initial state or the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
-        :param output_last: a boolean indicating whether to the output only the last distributions (by default, True).
-        :return: the sequence of redistributions produced by the simulation.
+        :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+        :param output_last: a boolean indicating whether to the output only the last distributions.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1549,8 +1560,11 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the sensitivity matrix of the stationary distribution with respect to a given state.
 
+        | **Notes:**
+
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+
         :param state: the target state.
-        :return: the sensitivity matrix of the stationary distribution if the Markov chain is *irreducible*, None otherwise.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1570,10 +1584,14 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the time autocorrelations of a single observed sequence of states or the time cross-correlations of two observed sequences of states.
 
+        | **Notes:**
+
+        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
+        - If a single time point is provided, then a :py:class:`float` is returned.
+
         :param walk1: the first observed sequence of states.
         :param walk2: the second observed sequence of states.
-        :param time_points: the time point or a list of time points at which the computation is performed (by default, 1).
-        :return: None if the Markov chain has multiple stationary distributions, a float value if *time_points* is provided as an integer, a list of float values otherwise.
+        :param time_points: the time point or a list of time points at which the computation is performed.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1595,10 +1613,14 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method computes the time relaxations of an observed sequence of states with respect to the given initial distribution of the states.
 
+        | **Notes:**
+
+        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
+        - If a single time point is provided, then a :py:class:`float` is returned.
+
         :param walk: the observed sequence of states.
-        :param initial_distribution: the initial distribution of the states (if omitted, the states are assumed to be uniformly distributed).
-        :param time_points: the time point or a list of time points at which the computation is performed (by default, 1).
-        :return: None if the Markov chain has multiple stationary distributions, a float value if *time_points* is provided as an integer, a list of float values otherwise.
+        :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+        :param time_points: the time point or a list of time points at which the computation is performed.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1621,12 +1643,13 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method returns a bounded Markov chain by adjusting the transition matrix of the original process using the specified boundary condition.
 
-        | **Aliases:** to_bounded
+        | **Notes:**
+
+        - The method can be accessed through the following aliases: **to_bounded**.
 
         :param boundary_condition:
          - a number representing the first probability of the semi-reflecting condition;
          - a string representing the boundary condition type (either absorbing or reflecting).
-        :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1648,9 +1671,9 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method returns the canonical form of the Markov chain.
 
-        | **Aliases:** to_canonical
+        | **Notes:**
 
-        :return: a Markov chain.
+        - The method can be accessed through the following aliases: **to_canonical**.
         """
 
         p, _ = canonical(self.__p, self.__recurrent_states_indices, self.__transient_states_indices)
@@ -1663,8 +1686,6 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         The method returns a dictionary representing the Markov chain transitions.
-
-        :return: a dictionary.
         """
 
         d = {}
@@ -1680,8 +1701,7 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method returns a directed graph representing the Markov chain.
 
-        :param multi: a boolean indicating whether the graph is allowed to define multiple edges between two nodes (by default, False).
-        :return: a directed graph.
+        :param multi: a boolean indicating whether the graph is allowed to define multiple edges between two nodes.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1705,7 +1725,8 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method writes a Markov chain to the given file.
 
-        | Only csv, json, xml and plain text files are supported; data format is inferred from the file extension.
+        | Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension.
+        |
 
         :param file_path: the location of the file in which the Markov chain must be written.
         :raises OSError: if the file cannot be written.
@@ -1741,10 +1762,11 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method returns a lazy Markov chain by adjusting the state inertia of the original process.
 
-        | **Aliases:** to_lazy
+        | **Notes:**
 
-        :param inertial_weights: the inertial weights to apply for the transformation (by default, 0.5).
-        :return: a Markov chain.
+        - The method can be accessed through the following aliases: **to_lazy**.
+
+        :param inertial_weights: the inertial weights to apply for the transformation.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1764,8 +1786,6 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         The method returns the transition matrix of the Markov chain.
-
-        :return: the transition matrix of the Markov chain.
         """
 
         m = np.copy(self.__p)
@@ -1778,7 +1798,6 @@ class MarkovChain(metaclass=BaseClass):
         The method returns a subchain containing all the given states plus all the states reachable from them.
 
         :param states: the states to include in the subchain.
-        :return: a Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the subchain is not a valid Markov chain.
         """
@@ -1806,7 +1825,6 @@ class MarkovChain(metaclass=BaseClass):
 
         :param state_target: the target state.
         :param state_origin: the origin state.
-        :return: the transition probability of the target state.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1828,11 +1846,10 @@ class MarkovChain(metaclass=BaseClass):
         The method simulates a random walk of *N* steps.
 
         :param steps: the number of steps.
-        :param initial_state: the initial state of the walk (if omitted, it is chosen uniformly at random).
-        :param final_state: the final state of the walk (if specified, the simulation stops as soon as it is reached even if not all the steps have been performed).
-        :param output_indices: a boolean indicating whether to the output the state indices (by default, False).
+        :param initial_state: the initial state of the walk (*if omitted, it is chosen uniformly at random*).
+        :param final_state: the final state of the walk (*if specified, the simulation stops as soon as it is reached even if not all the steps have been performed*).
+        :param output_indices: a boolean indicating whether to the output the state indices.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
-        :return: the sequence of states produced by the simulation.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1860,7 +1877,6 @@ class MarkovChain(metaclass=BaseClass):
         The method computes the probability of a given sequence of states.
 
         :param walk: the observed sequence of states.
-        :return: the probability of the sequence of states.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1894,10 +1910,8 @@ class MarkovChain(metaclass=BaseClass):
         :param sigma: the standard deviation of the innovation term :math:`\\varepsilon`.
         :param rho: the autocorrelation coefficient :math:`\\rho`, representing the persistence of the process across periods.
         :param k:
-         | - In the Tauchen approximation, the number of standard deviations to approximate out to.
-         |   *If omitted, the value is set to* **3**\ *.*
-         | - In the Tauchen-Hussey approximation, the standard deviation used for the gaussian quadrature.
-         |   *If omitted, the value is set to an* **optimal default**\ *.*
+         - In the Tauchen approximation, the number of standard deviations to approximate out to (*if omitted, the value is set to 3*).
+         - In the Tauchen-Hussey approximation, the standard deviation used for the gaussian quadrature (*if omitted, the value is set to an optimal default*).
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the gaussian quadrature fails to converge in the Tauchen-Hussey approximation.
         """
@@ -1935,9 +1949,7 @@ class MarkovChain(metaclass=BaseClass):
 
         :param q: the creation probabilities.
         :param p: the annihilation probabilities.
-        :param states:
-         | the name of each state.
-         | *If omitted, an increasing sequence of integers starting at* **1**\ *.*
+        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1967,12 +1979,17 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method fits a Markov chain using the given transition function and the given quadrature type for the computation of nodes and weights.
 
+        | **Notes:**
+
+        - The transition function takes the four input arguments below and returns a numeric value:
+
+          - **x_index** an integer value representing the index of the i-th quadrature node;
+          - **x_value** a float value representing the value of the i-th quadrature node;
+          - **y_index** an integer value representing the index of the j-th quadrature node;
+          - **y_value** a float value representing the value of the j-th quadrature node.
+
         :param possible_states: the possible states of the process.
-        :param f: the transition function of the process, which takes the four input arguments below and returns a numeric value:
-         - **x_index** an integer value representing the index of the i-th quadrature node;
-         - **x_value** a float value representing the value of the i-th quadrature node;
-         - **y_index** an integer value representing the index of the j-th quadrature node;
-         - **y_value** a float value representing the value of the j-th quadrature node.
+        :param f: the transition function of the process.
         :param quadrature_type:
          - **gauss-chebyshev** for the Gauss-Chebyshev quadrature;
          - **gauss-legendre** for the Gauss-Legendre quadrature;
@@ -1980,9 +1997,7 @@ class MarkovChain(metaclass=BaseClass):
          - **newton-cotes** for the Newton-Cotes quadrature;
          - **simpson-rule** for the Simpson rule;
          - **trapezoid-rule** for the Trapezoid rule.
-        :param quadrature_interval:
-         | the quadrature interval to use for the computation of nodes and weights.
-         | *If omitted, the interval* **[0, 1]** *is used.*
+        :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (*if omitted, the interval [0, 1] is used*).
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Gauss-Legendre quadrature fails to converge.
         """
@@ -2021,10 +2036,8 @@ class MarkovChain(metaclass=BaseClass):
         :param possible_states: the possible states of the process.
         :param walk: the observed sequence of states.
         :param k:
-         | - In the maximum a posteriori fitting, the matrix for the a priori distribution.
-             *If omitted, a default value of* **1** *is assigned to each matrix element.*
-         | - In the maximum likelihood fitting, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations.
-             *If omitted, the value is set to* **True**\ *.*
+         | - In the maximum a posteriori fitting, the matrix for the a priori distribution (*if omitted, a default value of 1 is assigned to each matrix element*).
+         | - In the maximum likelihood fitting, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (*if omitted, the value is set to True*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2208,9 +2221,7 @@ class MarkovChain(metaclass=BaseClass):
         The method generates a Markov chain with the given state names, whose transition matrix is obtained through the normalization of the given matrix.
 
         :param m: the matrix to transform into the transition matrix.
-        :param states:
-         | the name of each state.
-         | *If omitted, an increasing sequence of integers starting at* **1**\ *.*
+        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2246,9 +2257,7 @@ class MarkovChain(metaclass=BaseClass):
 
         :param size: the size of the Markov chain.
         :param w: the win probability.
-        :param states:
-         | the name of each state.
-         | *If omitted, an increasing sequence of integers starting at* **1**\ *.*
+        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2273,9 +2282,7 @@ class MarkovChain(metaclass=BaseClass):
         The method generates a Markov chain of given size based on an identity transition matrix.
 
         :param size: the size of the Markov chain.
-        :param states:
-         | the name of each state.
-         | *If omitted, an increasing sequence of integers starting at* **1**\ *.*
+        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2298,14 +2305,14 @@ class MarkovChain(metaclass=BaseClass):
         """
         The method generates a Markov chain of given size with random transition probabilities.
 
+        | **Notes:**
+
+        - In the mask parameter, undefined transition probabilities are represented by **NaN** values.
+
         :param size: the size of the Markov chain.
-        :param states:
-         | the name of each state.
-         | *If omitted, an increasing sequence of integers starting at* **1**\ *.*
+        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
         :param zeros: the number of zero-valued transition probabilities.
-        :param mask:
-         | a matrix representing locations and values of fixed transition probabilities.
-         | *Random transition probabilities are represented by* **NaN** *values.*
+        :param mask: a matrix representing locations and values of fixed transition probabilities.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """

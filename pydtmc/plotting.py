@@ -372,9 +372,7 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
 
     :param mc: the target Markov chain.
     :param distributions: a sequence of redistributions or the number of redistributions to perform.
-    :param initial_status:
-     | the initial state or the initial distribution of the states.
-     | *If omitted, the states are assumed to be uniformly distributed.*
+    :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
     :param plot_type:
      - **heatmap** for displaying an heatmap plot;
      - **projection** for displaying a projection plot.
@@ -478,9 +476,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
 
     :param mc: the target Markov chain.
     :param walk: a sequence of states or the number of simulations to perform.
-    :param initial_state:
-     | the initial state of the walk.
-     | *If omitted, it is chosen uniformly at random.*
+    :param initial_state: the initial state of the walk (*if omitted, it is chosen uniformly at random*).
     :param plot_type:
      - **histogram** for displaying an histogram plot;
      - **sequence** for displaying a sequence plot;

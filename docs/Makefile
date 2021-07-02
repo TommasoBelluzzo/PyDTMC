@@ -3,7 +3,7 @@ SHELL:=/bin/bash
 SPHINX_EXE:=python -m sphinx
 SOURCE_DIR:=source
 BUILD_DIR:=build
-SPHINX_OPTS:=-n
+SPHINX_OPTS:=-an
 
 help:
 	@$(SPHINX_EXE) --help
