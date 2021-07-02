@@ -194,11 +194,6 @@
       "is_valid": true
     },
     {
-      "value": -1,
-      "size": null,
-      "is_valid": false
-    },
-    {
       "value": [[0.3, 0.0, 0.0, 0.7], [0.0, 0.0, 1.0, 0.0], [0.5, 0.3, 0.1, 0.1], [0.2, 0.4, 0.2, 0.2]],
       "size": 6,
       "is_valid": false
@@ -220,6 +215,11 @@
     },
     {
       "value": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": -1,
       "size": null,
       "is_valid": false
     },
@@ -470,12 +470,12 @@
     },
     {
       "value": null,
-      "size": [],
+      "size": null,
       "is_valid": false
     },
     {
       "value": [],
-      "size": [],
+      "size": 0,
       "is_valid": false
     }
   ],
@@ -663,17 +663,17 @@
     },
     {
       "value": null,
-      "size": 0,
+      "size": null,
       "is_valid": false
     },
     {
       "value": true,
-      "size": 0,
+      "size": null,
       "is_valid": false
     },
     {
       "value": [[], []],
-      "size": 0,
+      "size": 2,
       "is_valid": false
     }
   ],
@@ -722,52 +722,104 @@
   "validate_partitions_data": [
     {
       "value": [["A", "B"], ["C"]],
-      "current_states":  ["A", "B", "C"],
+      "current_states": ["A", "B", "C"],
       "is_valid": true
     },
     {
       "value": [["A", "B"], ["C", "D"]],
-      "current_states":  ["A", "B", "C", "D"],
+      "current_states": ["A", "B", "C", "D"],
       "is_valid": true
     },
     {
       "value": [[0], [1, 2]],
-      "current_states":  ["A", "B", "C"],
+      "current_states": ["A", "B", "C"],
       "is_valid": true
     },
     {
       "value": [["A", "B", "C", "D"]],
-      "current_states":  ["A", "B", "C", "D"],
+      "current_states": ["A", "B", "C", "D"],
       "is_valid": false
     },
     {
       "value": [[1, 2], [3]],
-      "current_states":  ["A", "B", "C"],
+      "current_states": ["A", "B", "C"],
       "is_valid": false
     },
     {
       "value": [true, [0, 1, 2]],
-      "current_states":  ["A", "B", "C", "D"],
+      "current_states": ["A", "B", "C", "D"],
       "is_valid": false
     },
     {
       "value": [["A"], ["B", "D"]],
-      "current_states":  ["A", "B", "C"],
+      "current_states": ["A", "B", "C"],
       "is_valid": false
     },
     {
       "value": [[0], [true, 2], [3]],
-      "current_states":  ["A", "B", "C", "D"],
+      "current_states": ["A", "B", "C", "D"],
       "is_valid": false
     },
     {
       "value": [["A"], ["C", "D"], ["E"]],
-      "current_states":  ["A", "B", "C", "D", "E"],
+      "current_states": ["A", "B", "C", "D", "E"],
       "is_valid": false
     },
     {
       "value": null,
       "current_states": [],
+      "is_valid": false
+    }
+  ],
+  "validate_rewards_data": [
+    {
+      "value": [-2, 0, 2],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": [0.5, 8.6, -2.5, 0.0, 0.0, 6.3],
+      "size": 6,
+      "is_valid": true
+    },
+    {
+      "value": [0.0, 11.4],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": ["Infinity", 2.3, -0.9, "Infinity"],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": [[0.3, 0.8, 0.1], [0.2, 0.0, -0.6], [-0.25, 0.4, -0.3]],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [[3.5], [-4.4], [9.4]],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": 3,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "size": 0,
+      "is_valid": false
+    },
+    {
+      "value": [[], []],
+      "size": 0,
       "is_valid": false
     }
   ],
@@ -820,6 +872,100 @@
     {
       "value": "",
       "current_states": ["1", "2", "3", "4"],
+      "is_valid": false
+    }
+  ],
+  "validate_state_names_data": [
+    {
+      "value": ["1", "2", "3"],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": ["A", "B", "C"],
+      "size": null,
+      "is_valid": true
+    },
+    {
+      "value": ["S4", "S1", "S9", "S6", "S5"],
+      "size": null,
+      "is_valid": true
+    },
+    {
+      "value": ["S4", "S1", "S9", "S6", "S5"],
+      "size": 7,
+      "is_valid": false
+    },
+    {
+      "value": ["1", "2", "2", "3"],
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": ["1", "", "2"],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [false, true, 2],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": "A",
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "size": 0,
+      "is_valid": false
+    }
+  ],
+  "validate_time_points_data": [
+    {
+      "value": 5,
+      "is_valid": true
+    },
+    {
+      "value": [100, 1000],
+      "is_valid": true
+    },
+    {
+      "value": [0, 2, 4, 6, 8, 10],
+      "is_valid": true
+    },
+    {
+      "value": -3,
+      "is_valid": false
+    },
+    {
+      "value": [-1, 0, 1],
+      "is_valid": false
+    },
+    {
+      "value": [3, 6, 6, 6, 9],
+      "is_valid": false
+    },
+    {
+      "value": [1.4, 3.3, 4.7],
+      "is_valid": false
+    },
+    {
+      "value": ["10", "20"],
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "is_valid": false
+    },
+    {
+      "value": [],
       "is_valid": false
     }
   ],

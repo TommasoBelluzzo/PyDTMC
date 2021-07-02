@@ -12,6 +12,6 @@ PyDTMC
 	genindex
 
 | PyDTMC is a full-featured, lightweight library for discrete-time Markov chains analysis.
-| It provides classes and functions for creating, manipulating and simulating markovian stochastic processes.
+| It provides classes and functions for creating, manipulating, simulating and visualizing markovian stochastic processes.
 
 | Current Version: |version|

@@ -570,8 +570,8 @@ def validate_rewards(rewards: tany, size: int) -> tarray:
 
     rewards = rewards.astype(float)
 
-    if (rewards.ndim < 1) or ((rewards.ndim == 2) and (rewards.shape[0] != 1)) or (rewards.ndim > 2):
-        raise ValueError('The "@arg@" parameter must be a vector.')
+    if (rewards.ndim > 2) or (rewards.ndim == 2 and rewards.shape[0] != 1):
+        raise ValueError('The "@arg@" parameter must be a valid vector.')
 
     rewards = np.ravel(rewards)
 
@@ -642,7 +642,7 @@ def validate_status(status: tany, current_states: tlist_str) -> tarray:
 
     status = status.astype(float)
 
-    if status.ndim < 1 or (status.ndim == 2 and status.shape[0] != 1 and status.shape[1] != 1) or status.ndim > 2:
+    if status.ndim > 2 or (status.ndim == 2 and status.shape[0] != 1):
         raise ValueError('The "@arg@" parameter must be a valid vector.')
 
     status = np.ravel(status)
@@ -666,13 +666,14 @@ def validate_state_names(states: tany, size: oint = None) -> tlist_str:
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
-    if not all(isinstance(state, str) for state in states):
-        raise TypeError('The "@arg@" parameter must contain only string values.')
-
-    if not all(state is not None and (len(state) > 0) for state in states):
+    if not all(state is not None and isinstance(state, str) and (len(state) > 0) for state in states):
         raise TypeError('The "@arg@" parameter must contain only valid string values.')
 
     states_length = len(states)
+
+    if states_length < 2:
+        raise ValueError('The "@arg@" parameter must contain at least two elements.')
+
     states_unique = len(set(states))
 
     if states_unique < states_length:
@@ -794,7 +795,9 @@ def validate_time_points(time_points: tany) -> ttimes_in:
     if time_points_length < 1:
         raise ValueError('The "@arg@" parameter must contain at least one element.')
 
-    if len(set(time_points)) < time_points_length:
+    time_points_unique = len(set(time_points))
+
+    if time_points_unique < time_points_length:
         raise ValueError('The "@arg@" parameter must contain only unique values.')
 
     time_points = sorted(time_points)
@@ -868,7 +871,7 @@ def validate_vector(vector: tany, vector_type: str, flex: bool, size: oint = Non
 
     vector = vector.astype(float)
 
-    if vector.ndim < 1 or vector.ndim > 2 or ((vector.ndim == 2) and (vector.shape[0] != 1) and (vector.shape[1] != 1)):
+    if vector.ndim > 2 or (vector.ndim == 2 and vector.shape[0] != 1):
         raise ValueError('The "@arg@" parameter must be a valid vector.')
 
     vector = np.ravel(vector)

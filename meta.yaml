@@ -47,9 +47,9 @@ about:
   license_file: {{ data['url'] }}/blob/master/LICENSE.md
   summary: {{ summary }}
   description: {{ description }}
-  dev_url: {{ data['url'] }}
   doc_url: https://{{ name.lower() }}.readthedocs.io/
-  doc_source_url: {{ data['url'] }}/blob/master/README.md
+  doc_source_url: {{ data['url'] }}/blob/master/docs/source/index.rst
+  dev_url: {{ data['url'] }}
 
 extra:
   maintainers:

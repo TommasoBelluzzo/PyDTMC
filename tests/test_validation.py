@@ -54,7 +54,10 @@ from pydtmc.validation import (
     validate_mask,
     validate_matrix,
     validate_partitions,
+    validate_rewards,
     validate_state,
+    validate_state_names,
+    validate_time_points,
     validate_transition_function,
     validate_transition_matrix
 )
@@ -501,6 +504,29 @@ def test_validate_partitions(value, current_states, is_valid):
         assert actual == expected
 
 
+def test_validate_rewards(value, size, is_valid):
+
+    # noinspection PyBroadException
+    try:
+        result = validate_rewards(value, size)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, np.ndarray)
+        expected = True
+
+        assert actual == expected
+
+
 def test_validate_state(value, current_states, is_valid):
 
     # noinspection PyBroadException
@@ -525,6 +551,52 @@ def test_validate_state(value, current_states, is_valid):
 
         actual = result
         expected = current_states.index(value) if isinstance(value, str) else current_states.index(current_states[value])
+
+        assert actual == expected
+
+
+def test_validate_state_names(value, size, is_valid):
+
+    # noinspection PyBroadException
+    try:
+        result = validate_state_names(value, size)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, list) and all(isinstance(v, str) for v in result)
+        expected = True
+
+        assert actual == expected
+
+
+def test_validate_time_points(value, is_valid):
+
+    # noinspection PyBroadException
+    try:
+        result = validate_time_points(value)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, int) for v in result))
+        expected = True
 
         assert actual == expected
 

@@ -196,6 +196,8 @@ class SphinxPostTransformConstructor(SphinxPostTransform):
         if not search(r'markov_chain_[A-Z_]+\.rst$', self.document['source'], flags=flag_ignorecase):
             return
 
+        print(self.document)
+
         for node in self.document.traverse(addnodes.desc):
 
             if not node.hasattr('objtype') or node['objtype'] != 'class':
