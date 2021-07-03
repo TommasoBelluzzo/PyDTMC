@@ -44,7 +44,7 @@ test:
 about:
   home: {{ data['url'] }}
   license: {{ data['license'] }}
-  license_file: {{ data['url'] }}/blob/master/LICENSE.md
+  license_file: {{ data['license_files'][0] }}
   summary: {{ summary }}
   description: {{ description }}
   doc_url: https://{{ name.lower() }}.readthedocs.io/
