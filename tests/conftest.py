@@ -87,6 +87,10 @@ def _parse_fixture_dictionary(fixture, fixture_names, subtest_name):
                     values.append(values_current)
                     ids.append(f'{subtest_name}{case_id}')
 
+            if len(values) != len(fixture_data):
+                values = []
+                ids = []
+
     return values, ids
 
 
@@ -100,6 +104,8 @@ def _parse_fixture_list(fixture, fixture_names, subtest_name):
 
     if any(subtest_reference in case for case in fixture):
 
+        flags = [False] * len(fixture)
+
         for index_case, case in enumerate(fixture):
 
             if subtest_reference in case:
@@ -112,8 +118,15 @@ def _parse_fixture_list(fixture, fixture_names, subtest_name):
                     values_current = case_values + tuple(subcase[fixture_name] for fixture_name in fixture_names if fixture_name in subcase)
 
                     if len(values_current) == expected_args:
+
                         values.append(values_current)
                         ids.append(f'{subtest_name} {case_id}-{str(index_subcase + 1)}')
+
+                        flags[index_case] = True
+
+        if not all(flags):
+            values = []
+            ids = []
 
     else:
 
@@ -125,6 +138,10 @@ def _parse_fixture_list(fixture, fixture_names, subtest_name):
             if len(values_current) == expected_args:
                 values.append(values_current)
                 ids.append(f'{subtest_name} {case_id}')
+
+        if len(values) != len(fixture):
+            values = []
+            ids = []
 
     return values, ids
 

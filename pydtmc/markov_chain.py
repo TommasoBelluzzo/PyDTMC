@@ -985,7 +985,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            distribution = np.ones(self.__size, dtype=float) / self.__size if distribution is None else validate_vector(distribution, 'stochastic', False, size=self.__size)
+            distribution = np.ones(self.__size, dtype=float) / self.__size if distribution is None else validate_vector(distribution, 'stochastic', False, self.__size)
             weighted = validate_boolean(weighted)
 
         except Exception as e:  # pragma: no cover
@@ -1109,7 +1109,7 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             steps = validate_integer(steps, lower_limit=(0, True))
-            initial_distribution = np.ones(self.__size, dtype=float) / self.__size if initial_distribution is None else validate_vector(initial_distribution, 'stochastic', False, size=self.__size)
+            initial_distribution = np.ones(self.__size, dtype=float) / self.__size if initial_distribution is None else validate_vector(initial_distribution, 'stochastic', False, self.__size)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None
@@ -1482,7 +1482,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            initial_distribution = np.ones(self.__size, dtype=float) / self.__size if initial_distribution is None else validate_vector(initial_distribution, 'stochastic', False, size=self.__size)
+            initial_distribution = np.ones(self.__size, dtype=float) / self.__size if initial_distribution is None else validate_vector(initial_distribution, 'stochastic', False, self.__size)
             jump = validate_integer(jump, lower_limit=(0, True))
             cutoff_type = validate_enumerator(cutoff_type, ['natural', 'traditional'])
 
@@ -1627,7 +1627,7 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             walk = validate_states(walk, self.__states, 'walk', False)
-            initial_distribution = np.ones(self.__size, dtype=float) / self.__size if initial_distribution is None else validate_vector(initial_distribution, 'stochastic', False, size=self.__size)
+            initial_distribution = np.ones(self.__size, dtype=float) / self.__size if initial_distribution is None else validate_vector(initial_distribution, 'stochastic', False, self.__size)
             time_points = validate_time_points(time_points)
 
         except Exception as e:  # pragma: no cover
@@ -1772,7 +1772,7 @@ class MarkovChain(metaclass=BaseClass):
 
         try:
 
-            inertial_weights = validate_vector(inertial_weights, 'unconstrained', True, size=self.__size)
+            inertial_weights = validate_vector(inertial_weights, 'unconstrained', True, self.__size)
 
         except Exception as e:  # pragma: no cover
             raise generate_validation_error(e, trace()) from None

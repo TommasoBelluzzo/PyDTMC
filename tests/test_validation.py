@@ -26,6 +26,17 @@ from types import (
 
 import networkx as nx
 import numpy as np
+# noinspection PyUnresolvedReferences
+import scipy.sparse as spsp
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+
+from pytest import (
+    skip
+)
 
 # Internal
 
@@ -38,7 +49,10 @@ from pydtmc.base_class import (  # noqa
     BaseClass
 )
 
+# noinspection PyProtectedMember
 from pydtmc.validation import (
+    _extract,
+    _extract_as_numeric,
     validate_boolean,
     validate_boundary_condition,
     validate_dictionary,
@@ -57,9 +71,12 @@ from pydtmc.validation import (
     validate_rewards,
     validate_state,
     validate_state_names,
+    validate_states,
+    validate_status,
     validate_time_points,
     validate_transition_function,
-    validate_transition_matrix
+    validate_transition_matrix,
+    validate_vector
 )
 
 
@@ -82,6 +99,68 @@ def _string_to_function(source):
 #########
 # TESTS #
 #########
+
+def test_validate_extract(value, evaluate, is_valid):
+
+    if value is not None and isinstance(value, str) and evaluate:
+        value = eval(value)
+
+    # noinspection PyBroadException
+    try:
+        result = _extract(value)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, list)
+        expected = True
+
+        assert actual == expected
+
+
+def test_validate_extract_as_numeric(value, evaluate, is_valid):
+
+    should_skip = False
+
+    if value is not None and isinstance(value, str) and evaluate:
+
+        if value.startswith('pd.') and pd is None:
+            should_skip = True
+        else:
+            value = eval(value)
+
+    if should_skip:
+        skip('The test could not be performed because Pandas library could not be imported.')
+    else:
+
+        # noinspection PyBroadException
+        try:
+            result = _extract_as_numeric(value)
+            result_is_valid = True
+        except Exception:
+            result = None
+            result_is_valid = False
+
+        actual = result_is_valid
+        expected = is_valid
+
+        assert actual == expected
+
+        if result is not None:
+
+            actual = isinstance(result, np.ndarray)
+            expected = True
+
+            assert actual == expected
+
 
 def test_validate_boolean(value, is_valid):
 
@@ -578,6 +657,52 @@ def test_validate_state_names(value, size, is_valid):
         assert actual == expected
 
 
+def test_validate_states(value, current_states, states_type, flex, is_valid):
+
+    # noinspection PyBroadException
+    try:
+        result = validate_states(value, current_states, states_type, flex)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, list) and all(isinstance(v, int) for v in result)
+        expected = True
+
+        assert actual == expected
+
+
+def test_validate_status(value, current_states, is_valid):
+
+    # noinspection PyBroadException
+    try:
+        result = validate_status(value, current_states)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, np.ndarray)
+        expected = True
+
+        assert actual == expected
+
+
 def test_validate_time_points(value, is_valid):
 
     # noinspection PyBroadException
@@ -603,7 +728,7 @@ def test_validate_time_points(value, is_valid):
 
 def test_validate_transition_function(value, is_valid):
 
-    if isinstance(value, str):
+    if value is not None and isinstance(value, str):
         if value.startswith('def'):
             value = _string_to_function(value)
         elif value.startswith('lambda'):
@@ -635,6 +760,29 @@ def test_validate_transition_matrix(value, is_valid):
     # noinspection PyBroadException
     try:
         result = validate_transition_matrix(value)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, np.ndarray)
+        expected = True
+
+        assert actual == expected
+
+
+def test_validate_vector(value, vector_type, flex, size, is_valid):
+
+    # noinspection PyBroadException
+    try:
+        result = validate_vector(value, vector_type, flex, size)
         result_is_valid = True
     except Exception:
         result = None

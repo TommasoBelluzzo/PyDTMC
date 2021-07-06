@@ -18,13 +18,13 @@ build:
   script: {{ PYTHON }} -m pip install . -vv
 
 requirements:
-  host:
-    - python {{ data['python_requires'] }}
-    - pip
   build:
     - python {{ data['python_requires'] }}
     - pip
     - setuptools
+  host:
+    - python {{ data['python_requires'] }}
+    - pip
   run:
     - python {{ data['python_requires'] }}
     {% for dep in data['install_requires'] %}
