@@ -144,7 +144,7 @@ def _is_number(value: tany) -> bool:
 
 def _is_pandas(value: tany) -> bool:
 
-    if pd is None:
+    if pd is None:  # pragma: no cover
         return False
 
     return value is not None and isinstance(value, (pd.DataFrame, pd.Series))
