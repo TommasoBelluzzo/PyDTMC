@@ -27,7 +27,7 @@ from types import (
 import networkx as nx
 import numpy as np
 # noinspection PyUnresolvedReferences
-import scipy.sparse as spsp
+import scipy.sparse as spsp  # noqa
 
 try:
     import pandas as pd
