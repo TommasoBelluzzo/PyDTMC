@@ -62,6 +62,9 @@ $ pip install --upgrade PyDTMC
 [Conda](https://docs.conda.io/):
 
 ```sh
+$ conda install -c conda-forge pydtmc
+$ conda update -c conda-forge pydtmc
+
 $ conda install -c tommasobelluzzo pydtmc
 $ conda update -c tommasobelluzzo pydtmc
 ```
@@ -160,10 +163,10 @@ Below a few examples of `MarkovChain` methods:
 >>> print(mc.mean_number_visits())
 [[0.50943396, 2.64150943, inf, 0.41509434]
  [0.18867925, 1.83018868, inf, 0.30188679]
- [0.0, 0.0, inf, 0.0]
- [0.75471698 1.32075472, inf, 0.20754717]]
+ [0.0,        0.0,        inf, 0.0       ]
+ [0.75471698, 1.32075472, inf, 0.20754717]]
  
->>> print(mc.walk(10))
+>>> print(mc.walk(10, seed=32))
 ['D', 'A', 'B', 'B', 'C', 'C', 'C', 'C', 'C', 'C', 'C']
 
 >>> walk = ["A"]
