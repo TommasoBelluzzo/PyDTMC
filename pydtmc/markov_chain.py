@@ -229,6 +229,7 @@ class MarkovChain(metaclass=BaseClass):
         graph = nx.relabel_nodes(graph, dict(zip(range(size), states)))
 
         self.__cache: tcache = {}
+        self.__current_state: oint = None
         self.__digraph: tgraph = graph
         self.__p: tarray = p
         self.__size: int = size
@@ -1498,6 +1499,37 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
+    def next_state(self, initial_state: ostate = None, output_index: bool = False, seed: oint = None) -> tstate:
+
+        """
+        The method computes the most probable sequence of states produced by a random walk of *N* steps.
+
+        | **Notes:**
+
+        - In presence of probability ties :py:class:`None` is returned.
+
+        :param initial_state: the initial state.
+        :param output_index: a boolean indicating whether to output the state index.
+        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            rng = create_rng(seed)
+            initial_state = rng.randint(0, self.__size) if initial_state is None else validate_state(initial_state, self.__states)
+            output_index = validate_boolean(output_index)
+
+        except Exception as e:  # pragma: no cover
+            raise generate_validation_error(e, trace()) from None
+
+        value = simulate(self, 1, initial_state, None, rng)[-1]
+
+        if not output_index:
+            value = self.__states[value]
+
+        return value
+
     def predict(self, steps: int, initial_state: ostate = None, output_indices: bool = False, seed: oint = None) -> owalk:
 
         """
@@ -1509,7 +1541,7 @@ class MarkovChain(metaclass=BaseClass):
 
         :param steps: the number of steps.
         :param initial_state: the initial state of the prediction.
-        :param output_indices: a boolean indicating whether to the output the state indices.
+        :param output_indices: a boolean indicating whether to output the state indices.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -1538,7 +1570,7 @@ class MarkovChain(metaclass=BaseClass):
 
         :param steps: the number of steps.
         :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
-        :param output_last: a boolean indicating whether to the output only the last distributions.
+        :param output_last: a boolean indicating whether to output only the last distributions.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1848,7 +1880,7 @@ class MarkovChain(metaclass=BaseClass):
         :param steps: the number of steps.
         :param initial_state: the initial state of the walk (*if omitted, it is chosen uniformly at random*).
         :param final_state: the final state of the walk (*if specified, the simulation stops as soon as it is reached even if not all the steps have been performed*).
-        :param output_indices: a boolean indicating whether to the output the state indices.
+        :param output_indices: a boolean indicating whether to output the state indices.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """

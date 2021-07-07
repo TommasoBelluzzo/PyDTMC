@@ -31,6 +31,16 @@ def test_predict(p, seed, steps, initial_state, output_indices, value):
     assert actual == expected
 
 
+def test_next_state(p, seed, initial_state, output_index, value):
+
+    mc = MarkovChain(p)
+
+    actual = mc.next_state(initial_state, output_index, seed)
+    expected = value
+
+    assert actual == expected
+
+
 def test_redistribute(p, steps, initial_status, output_last, value):
 
     mc = MarkovChain(p)

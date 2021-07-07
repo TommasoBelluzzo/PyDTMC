@@ -18,18 +18,19 @@ build:
   script: {{ PYTHON }} -m pip install . -vv
 
 requirements:
-  build:
-    - python {{ data['python_requires'] }}
-    - pip
-    - setuptools
   host:
     - python {{ data['python_requires'] }}
     - pip
+    - setuptools
   run:
     - python {{ data['python_requires'] }}
-    {% for dep in data['install_requires'] %}
+{% for dep in data['install_requires'] %}
+  {% if dep.lower() == 'matplotlib' %}
+    - matplotlib-base
+  {% else %}
     - {{ dep.lower() }}
-    {% endfor %}
+  {% endif %}
+{% endfor %}
 
 test:
   imports:

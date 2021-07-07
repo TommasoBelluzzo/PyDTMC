@@ -64,7 +64,7 @@ import scipy.sparse as spsp
 
 try:
     import pandas as pd
-except ImportError:
+except ImportError:  # pragma: no cover
     pd = None
 
 # Internal
