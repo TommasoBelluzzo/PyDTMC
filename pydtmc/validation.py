@@ -183,6 +183,7 @@ def _extract(data: tany) -> tlist_any:
 
 
 def _extract_as_numeric(data: tany) -> tarray:
+
     if _is_list(data):
         result = np.array(data)
     elif _is_dictionary(data):

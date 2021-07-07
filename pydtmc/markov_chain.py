@@ -1021,7 +1021,7 @@ class MarkovChain(metaclass=BaseClass):
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **cp**.
 
         :param committor_type:
@@ -1385,7 +1385,7 @@ class MarkovChain(metaclass=BaseClass):
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **mfpt_between**, **mfpt_between**.
 
         :param origins: the origin states.
@@ -1413,7 +1413,7 @@ class MarkovChain(metaclass=BaseClass):
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **mfpt_to**, **mfptt**.
 
         :param targets: the target states (*if omitted, all the states are targeted*).
@@ -1455,7 +1455,7 @@ class MarkovChain(metaclass=BaseClass):
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **mrt**.
         """
 
@@ -1471,7 +1471,7 @@ class MarkovChain(metaclass=BaseClass):
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
 
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param jump: the number of steps in each iteration.

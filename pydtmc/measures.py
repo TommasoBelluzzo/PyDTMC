@@ -71,11 +71,13 @@ def absorption_probabilities(mc: tmc) -> oarray:
 
 def committor_probabilities(mc: tmc, committor_type: str, states1: tlist_int, states2: tlist_int) -> oarray:
 
-    if not mc.is_ergodic:
+    if len(mc.pi) > 1:
         return None
 
+    pi = mc.pi[0]
+
     if committor_type == 'backward':
-        a = np.transpose(mc.pi[0][:, np.newaxis] * (mc.p - np.eye(mc.size, dtype=float)))
+        a = np.transpose(pi[:, np.newaxis] * (mc.p - np.eye(mc.size, dtype=float)))
     else:
         a = mc.p - np.eye(mc.size, dtype=float)
 
@@ -260,12 +262,14 @@ def mean_absorption_times(mc: tmc) -> oarray:
 
 def mean_first_passage_times_between(mc: tmc, origins: tlist_int, targets: tlist_int) -> oarray:
 
-    if not mc.is_ergodic:
+    if len(mc.pi) > 1:
         return None
+
+    pi = mc.pi[0]
 
     mfptt = mean_first_passage_times_to(mc, targets)
 
-    pi_origins = mc.pi[0][origins]
+    pi_origins = pi[origins]
     mu = pi_origins / np.sum(pi_origins)
 
     mfptb = np.dot(mu, mfptt[origins])
@@ -275,12 +279,14 @@ def mean_first_passage_times_between(mc: tmc, origins: tlist_int, targets: tlist
 
 def mean_first_passage_times_to(mc: tmc, targets: olist_int) -> oarray:
 
-    if not mc.is_ergodic:
+    if len(mc.pi) > 1:
         return None
+
+    pi = mc.pi[0]
 
     if targets is None:
 
-        a = np.tile(mc.pi[0], (mc.size, 1))
+        a = np.tile(pi, (mc.size, 1))
         i = np.eye(mc.size, dtype=float)
         z = npl.inv(i - mc.p + a)
 
@@ -382,31 +388,41 @@ def mean_number_visits(mc: tmc) -> oarray:
 
 def mean_recurrence_times(mc: tmc) -> oarray:
 
-    if not mc.is_ergodic:
+    if len(mc.pi) > 1:
         return None
 
-    mrt = np.array([0.0 if np.isclose(v, 0.0) else 1.0 / v for v in mc.pi[0]])
+    pi = mc.pi[0]
+
+    mrt = np.array([0.0 if np.isclose(v, 0.0) else 1.0 / v for v in pi])
 
     return mrt
 
 
 def mixing_time(mc: tmc, initial_distribution: tarray, jump: int, cutoff: float) -> oint:
 
-    if not mc.is_ergodic:
+    if len(mc.pi) > 1:
         return None
 
     p = mc.p
     pi = mc.pi[0]
 
-    d = initial_distribution.dot(p)
+    iterations = 0
     tvd = 1.0
+    d = initial_distribution.dot(p)
 
     mt = 0
 
-    while tvd > cutoff:
+    while iterations < 100 and tvd > cutoff:
+
+        iterations += 1
+
         tvd = np.sum(np.abs(d - pi))
-        mt += jump
         d = d.dot(p)
+
+        mt += jump
+
+    if iterations == 100:
+        return None
 
     return mt
 

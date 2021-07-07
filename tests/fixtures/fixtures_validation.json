@@ -198,7 +198,7 @@
       "is_valid": false
     },
     {
-      "value": [true, [false, false], true],
+      "value": [true, false, false, true],
       "evaluate": false,
       "is_valid": false
     },
