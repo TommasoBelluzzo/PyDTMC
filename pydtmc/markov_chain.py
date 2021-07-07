@@ -229,7 +229,6 @@ class MarkovChain(metaclass=BaseClass):
         graph = nx.relabel_nodes(graph, dict(zip(range(size), states)))
 
         self.__cache: tcache = {}
-        self.__current_state: oint = None
         self.__digraph: tgraph = graph
         self.__p: tarray = p
         self.__size: int = size
