@@ -60,17 +60,12 @@ jobs:
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
-    - name: Dependencies Installation
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        pip install --upgrade pip
-        pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
-        pip install --upgrade --upgrade-strategy eager -e .[lint]
     - name: Linting
       run: |
         flake8 .
-        pylint pydtmc
-        pylint tests
+        pylint docs/
+        pylint pydtmc/
+        pylint tests/
   documentation:
     name: Documentation
     needs: linting
@@ -93,12 +88,6 @@ jobs:
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
-    - name: Dependencies Installation
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        pip install --upgrade pip
-        pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
-        pip install --upgrade --upgrade-strategy eager -e .[docs]
     - name: Documentation
       run: make -C docs/ html
   build:
@@ -123,12 +112,6 @@ jobs:
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
-    - name: Dependencies Installation
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        pip install --upgrade pip
-        pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
-        pip install --upgrade --upgrade-strategy eager -e .[setup]
     - name: Build
       run: python setup.py sdist bdist_wheel
   testing_coverage:
@@ -165,13 +148,6 @@ jobs:
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
-    - name: Dependencies Installation
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        pip install --upgrade pip
-        pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
-        pip install --upgrade --upgrade-strategy eager -e .[package]
-        pip install --upgrade --upgrade-strategy eager -e .[tests]
     - name: Testing & Coverage
       env:
         COVERALLS_SERVICE_NAME: github-actions
