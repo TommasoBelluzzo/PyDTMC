@@ -3,6 +3,7 @@
 __all__ = [
     'alias',
     'cachedproperty',
+    'random_output',
     'aliased'
 ]
 
@@ -18,6 +19,10 @@ from functools import (
     wraps
 )
 
+from re import (
+    search
+)
+
 from threading import (
     RLock
 )
@@ -31,14 +36,13 @@ from threading import (
 class alias:
 
     """
-    A decorator for implementing method aliases.
-
+    | A class decorator used for implementing property and method aliases.
     | It can be used only inside @aliased-decorated classes.
     """
 
     def __init__(self, *aliases):
 
-        self.aliases = set(aliases)
+        self.aliases = aliases
 
     def __call__(self, obj):
 
@@ -50,64 +54,89 @@ class alias:
         return obj
 
 
-# noinspection PyPep8Naming, PyUnusedLocal
+# noinspection PyPep8Naming
 class cachedproperty(property):
 
     """
-    A decorator for implementing cached read-only properties.
+    A class decorator used for implementing cached properties.
     """
 
     def __init__(self, fget=None, fset=None, fdel=None, doc=None):
 
-        doc = doc or fget.__doc__
-        super().__init__(fget, None, None, doc)
+        if fset is not None or fdel is not None:
+            raise AttributeError('Cached properties cannot implement set and delete methods.')
+
+        if doc is None and fget is not None:
+            doc = fget.__doc__
+
+        super().__init__(fget, fset, fdel, doc)
 
         self._func = fget
         self._func_name = None
+        self._lock = RLock()
 
         update_wrapper(self, fget)
-
-        self._lock = RLock()
 
     def __set_name__(self, owner, name):
 
         if self._func_name is None:
             self._func_name = name
         elif name != self._func_name:
-            raise AttributeError(f'Cannot assign the same cached property to two different members: {self._func_name} and {name}.')
+            raise AttributeError('Cached properties cannot be shared among different class members.')
 
     def __get__(self, instance, owner=None):
 
         if instance is None:
             return self
 
-        if self._func_name is None:
-            raise AttributeError('Cannot use a cached property without calling "__set_name__" on it.')
+        instance_dict = instance.__dict__
 
         with self._lock:
             try:
-                return instance.__dict__[self._func_name]
+                return instance_dict[self._func_name]
             except KeyError:
-                return instance.__dict__.setdefault(self._func_name, self._func(instance))
+                return instance_dict.setdefault(self._func_name, self._func(instance))
 
-    def __set__(self, obj, value):
+    def __set__(self, instance, value):
 
-        if obj is None:
-            raise AttributeError('The parameter "obj" is null.')
+        raise AttributeError('Cached properties cannot be altered.')
 
-        raise AttributeError('This property cannot be set.')
+    def __delete__(self, instance):
 
-    def deleter(self, fdel):
-
-        raise AttributeError('This property cannot implement a deleter.')
+        raise AttributeError('Cached properties cannot be altered.')
 
     def getter(self, fget):
 
-        return type(self)(fget, None, None, None)
+        raise AttributeError('Cached properties cannot be altered.')
 
     def setter(self, fset):
 
-        raise AttributeError('This property cannot implement a setter.')
+        raise AttributeError('Cached properties cannot be altered.')
+
+    def deleter(self, fdel):
+
+        raise AttributeError('Cached properties cannot be altered.')
+
+
+# noinspection PyPep8Naming
+class random_output:
+
+    """
+    A class decorator used for marking random output methods.
+    """
+
+    def __init__(self):
+
+        pass
+
+    def __call__(self, obj):
+
+        if isinstance(obj, property):
+            obj.fget._random_output = True
+        else:
+            obj._random_output = True
+
+        return obj
 
 
 #############
@@ -118,42 +147,56 @@ class cachedproperty(property):
 def aliased(aliased_class):
 
     """
-    A decorator for enabling aliases.
+    A function decorator used for enabling aliases.
     """
 
     def wrapper(func):
 
         @wraps(func)
         def inner(self, *args, **kwargs):
-
             return func(self, *args, **kwargs)
 
         return inner
 
-    aliased_class_dict = aliased_class.__dict__.copy()
-    aliased_class_set = set(aliased_class_dict)
+    member_names = []
+    aliases = {}
 
-    for name, method in aliased_class_dict.items():
+    for member_name, member in aliased_class.__dict__.items():
 
-        if isinstance(method, property) and hasattr(method.fget, '_aliases'):
-            aliases = method.fget._aliases
-        elif hasattr(method, '_aliases'):
-            aliases = method._aliases
+        member_names.append(member_name)
+
+        if isinstance(member, property) and hasattr(member.fget, '_aliases'):
+            member_aliases = member.fget._aliases
+        elif hasattr(member, '_aliases'):
+            member_aliases = member._aliases
         else:
-            aliases = None
+            member_aliases = None
 
-        if aliases is not None:
-            for a in aliases - aliased_class_set:
+        if member_aliases is not None:
+            aliases[member] = member_aliases
 
-                doc = method.__doc__
-                doc_alias = doc[:len(doc) - len(doc.lstrip())] + 'Alias of **' + name + '**.'
+    if len(aliases) > 0:
 
-                if isinstance(method, property):
-                    wrapped_method = property(method.fget, method.fset, method.fdel, doc_alias)
+        aliases_flat = [a for member_aliases in aliases.values() for a in member_aliases]
+
+        if len(set(aliases_flat)) < len(aliases_flat):
+            raise AttributeError('Aliases must be unique and cannot be shared among different class members.')
+
+        if any(not search(r'^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$', a) for a in aliases_flat):
+            raise ValueError('Aliases cannot start with an underscore character and must be compliant with PEP8 naming conventions.')
+
+        if any(a in member_names for a in aliases_flat):
+            raise ValueError('Aliases cannot be equal to existing class members.')
+
+        for member, member_aliases in aliases.items():
+            for a in member_aliases:
+
+                if isinstance(member, property):
+                    member_wrapped = property(member.fget, member.fset, member.fdel, member.__doc__)
                 else:
-                    wrapped_method = wrapper(method)
-                    wrapped_method.__doc__ = doc_alias
+                    member_wrapped = wrapper(member)
+                    member_wrapped.__doc__ = member.__doc__
 
-                setattr(aliased_class, a, wrapped_method)
+                setattr(aliased_class, a, member_wrapped)
 
     return aliased_class

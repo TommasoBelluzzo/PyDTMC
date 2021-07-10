@@ -29,6 +29,7 @@ Instance Methods
 		mean_number_visits,
 		mean_recurrence_times,
 		mixing_time,
+		next_state,
 		predict,
 		redistribute,
 		sensitivity,
@@ -41,7 +42,7 @@ Instance Methods
 		to_file,
 		to_lazy_chain,
 		to_matrix,
-		to_subchain,
+		to_sub_chain,
 		transition_probability,
 		walk,
 		walk_probability

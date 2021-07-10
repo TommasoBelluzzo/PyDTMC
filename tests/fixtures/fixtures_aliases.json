@@ -1,0 +1,90 @@
+{
+  "aliased_methods_data": [
+    {
+      "p": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+      "params": {
+        "committor_probabilities": ["backward", 0, 1],
+        "conditional_probabilities": [1],
+        "expected_rewards": [4, [-2.0, -0.7, -8.0]],
+        "expected_transitions": [6, null],
+        "first_passage_probabilities": [3, 1, null],
+        "first_passage_reward": [21, 1, 0, [-4.4, 7.5, 4.8]],
+        "hitting_probabilities": [null],
+        "hitting_times": [null],
+        "mean_absorption_times": null,
+        "mean_first_passage_times_between": [0, 2],
+        "mean_first_passage_times_to": null,
+        "mean_number_visits": null,
+        "mean_recurrence_times": null,
+        "mixing_time": [null, 3, "natural"],
+        "time_correlations": [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], null, [1, 10, 100]],
+        "time_relaxations": [[0, 1, 1, 1, 1, 0], null, [1, 10, 100]],
+        "to_bounded_chain": ["absorbing"],
+        "to_canonical_form": null,
+        "to_lazy_chain": [0.6],
+        "to_sub_chain": [[1, 2]]
+      }
+    },
+    {
+      "p": [[0.7, 0.15, 0.15], [0.15, 0.7, 0.15], [0.15, 0.15, 0.7]],
+      "params": {
+        "committor_probabilities": ["backward", 0, 2],
+        "conditional_probabilities": [0],
+        "expected_rewards": [12, [1.4, 0.0, -6.1]],
+        "expected_transitions": [32, [0.1, 0.45, 0.45]],
+        "first_passage_probabilities": [7, 0, [1, 2]],
+        "first_passage_reward": [18, 1, 2, [-1.9, 8.9, 0.0]],
+        "hitting_probabilities": [null],
+        "hitting_times": [null],
+        "mean_absorption_times": null,
+        "mean_first_passage_times_between": [0, 1],
+        "mean_first_passage_times_to": null,
+        "mean_number_visits": null,
+        "mean_recurrence_times": null,
+        "mixing_time": [null, 12, "traditional"],
+        "time_correlations": [[0, 0, 0, 1, 2, 2, 2, 2, 2], null, 50],
+        "time_relaxations": [[0, 1, 1, 1, 1, 0], null, 50],
+        "to_bounded_chain": ["reflecting"],
+        "to_canonical_form": null,
+        "to_lazy_chain": [[0.1, 0.2, 0.1]],
+        "to_sub_chain": [[0, 2]]
+      }
+    }    ,
+    {
+      "p": [[0.0, 1.0, 0.0, 0.0, 0.0, 0.0], [0.1, 0.8, 0.0, 0.1, 0.0, 0.0], [0.3, 0.0, 0.3, 0.2, 0.2, 0.0], [0.5, 0.0, 0.0, 0.0, 0.0, 0.5], [0.2, 0.2, 0.2, 0.0, 0.2, 0.2], [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]],
+      "params": {
+        "committor_probabilities": ["forward", 3, 5],
+        "conditional_probabilities": [4],
+        "expected_rewards": [1, [-0.4, 0.0, -3.9, 2.1, 3.6, 0.0]],
+        "expected_transitions": [9, null],
+        "first_passage_probabilities": [3, 0, [1, 2, 5]],
+        "first_passage_reward": [12, 0, [1, 4], [2.3, 3.2, 0.0, 2.1, 5.5, -9.2]],
+        "hitting_probabilities": [[2, 3]],
+        "hitting_times": [[0, 1, 2]],
+        "mean_absorption_times": null,
+        "mean_first_passage_times_between": [[0, 2], [1, 3]],
+        "mean_first_passage_times_to": [[0, 3, 4]],
+        "mean_number_visits": null,
+        "mean_recurrence_times": null,
+        "mixing_time": [[0.4, 0.0, 0.2, 0.2, 0.2, 0.0], 5, "natural"],
+        "time_correlations": [[0, 1, 1, 1, 1, 0], [2, 2, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 1, 2, 3, 4, 5]],
+        "time_relaxations": [[0, 1, 1, 1, 1, 0], [0.0, 0.0, 0.8, 0.0, 0.0, 0.2], [0, 1, 2, 3, 4, 5]],
+        "to_bounded_chain": [0.75],
+        "to_canonical_form": null,
+        "to_lazy_chain": [0.1],
+        "to_sub_chain": [[1, 2, 3]]
+      }
+    }
+  ],
+  "aliased_properties_data": [
+    {
+      "p": [[1.0, 0.0], [0.0, 1.0]]
+    },
+    {
+      "p": [[0.0, 0.0, 1.0], [0.15, 0.7, 0.15], [0.0, 0.0, 1.0]]
+    }    ,
+    {
+      "p": [[0.3, 0.4, 0.3], [0.6, 0.2, 0.2], [0.2, 0.7, 0.1]]
+    }
+  ]
+}

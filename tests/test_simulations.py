@@ -21,11 +21,11 @@ from pydtmc import (
 # TESTS #
 #########
 
-def test_predict(p, seed, steps, initial_state, output_indices, value):
+def test_predict(p, steps, initial_state, output_indices, value):
 
     mc = MarkovChain(p)
 
-    actual = mc.predict(steps, initial_state, output_indices, seed)
+    actual = mc.predict(steps, initial_state, output_indices)
     expected = value
 
     assert actual == expected

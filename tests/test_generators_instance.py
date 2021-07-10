@@ -87,7 +87,7 @@ def test_sub(p, states, value):
 
         try:
 
-            mc_sub = mc.to_subchain(states)
+            mc_sub = mc.to_sub_chain(states)
             exception = False
 
         except ValueError:

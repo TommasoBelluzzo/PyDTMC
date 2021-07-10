@@ -97,6 +97,7 @@ from .custom_types import (
 from .decorators import (
     alias,
     cachedproperty,
+    random_output,
     aliased
 )
 
@@ -738,10 +739,10 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         | A property representing the mixing rate of the Markov chain.
-        | If the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
+        | If the Markov chain is not **ergodic** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
-        if self.__slem is None:
+        if not self.is_ergodic or self.__slem is None:
             mr = None
         else:
             mr = -1.0 / np.log(self.__slem)
@@ -852,13 +853,13 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         | A property representing the relaxation rate of the Markov chain.
-        | If the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
+        | If the Markov chain is not **ergodic** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
-        if self.__slem is None:
-            return None
-
-        rr = 1.0 / (1.0 - self.__slem)
+        if not self.is_ergodic or self.__slem is None:
+            rr = None
+        else:
+            rr = 1.0 / self.spectral_gap
 
         return rr
 
@@ -876,7 +877,7 @@ class MarkovChain(metaclass=BaseClass):
 
         """
         | A property representing the spectral gap of the Markov chain.
-        | If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        | If the Markov chain is not **ergodic** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
         if not self.is_ergodic or self.__slem is None:
@@ -1020,7 +1021,7 @@ class MarkovChain(metaclass=BaseClass):
 
         | **Notes:**
 
-        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
+        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **cp**.
 
         :param committor_type:
@@ -1053,7 +1054,7 @@ class MarkovChain(metaclass=BaseClass):
     def conditional_probabilities(self, state: tstate) -> tarray:
 
         """
-        The method computes the probabilities, for all the states of the Markov chain, conditioned on the process being at a given state.
+        The method computes the probabilities, for all the states of the Markov chain, conditioned on the process being at the given state.
 
         | **Notes:**
 
@@ -1074,10 +1075,15 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
+    @alias('er')
     def expected_rewards(self, steps: int, rewards: tnumeric) -> tarray:
 
         """
         The method computes the expected rewards of the Markov chain after **N** steps, given the reward value of each state.
+
+        | **Notes:**
+
+        - The method can be accessed through the following aliases: **er**.
 
         :param steps: the number of steps.
         :param rewards: the reward values.
@@ -1096,10 +1102,15 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
+    @alias('et')
     def expected_transitions(self, steps: int, initial_distribution: onumeric = None) -> tarray:
 
         """
         The method computes the expected number of transitions performed by the Markov chain after *N* steps, given the initial distribution of the states.
+
+        | **Notes:**
+
+        - The method can be accessed through the following aliases: **et**.
 
         :param steps: the number of steps.
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
@@ -1122,7 +1133,7 @@ class MarkovChain(metaclass=BaseClass):
     def first_passage_probabilities(self, steps: int, initial_state: tstate, first_passage_states: ostates = None) -> tarray:
 
         """
-        The method computes the first passage probabilities of the Markov chain after *N* steps, given an initial state and, optionally, the first passage states.
+        The method computes the first passage probabilities of the Markov chain after *N* steps, given the initial state and, optionally, the first passage states.
 
         | **Notes:**
 
@@ -1147,7 +1158,7 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
-    @alias('fpt')
+    @alias('fpr')
     def first_passage_reward(self, steps: int, initial_state: tstate, first_passage_states: tstates, rewards: tnumeric) -> float:
 
         """
@@ -1155,7 +1166,7 @@ class MarkovChain(metaclass=BaseClass):
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **fpt**.
+        - The method can be accessed through the following aliases: **fpr**.
 
         :param steps: the number of steps.
         :param initial_state: the initial state.
@@ -1188,10 +1199,15 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
+    @alias('hp')
     def hitting_probabilities(self, targets: ostates = None) -> tarray:
 
         """
         The method computes the hitting probability, for the states of the Markov chain, to the given set of states.
+
+        | **Notes:**
+
+        - The method can be accessed through the following aliases: **hp**.
 
         :param targets: the target states (*if omitted, all the states are targeted*).
         :raises ValidationError: if any input argument is not compliant.
@@ -1208,10 +1224,15 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
+    @alias('ht')
     def hitting_times(self, targets: ostates = None) -> tarray:
 
         """
         The method computes the hitting times, for all the states of the Markov chain, to the given set of states.
+
+        | **Notes:**
+
+        - The method can be accessed through the following aliases: **ht**.
 
         :param targets: the target states (*if omitted, all the states are targeted*).
         :raises ValidationError: if any input argument is not compliant.
@@ -1337,7 +1358,7 @@ class MarkovChain(metaclass=BaseClass):
 
         :param partitions: the partitions of the state space.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Markov chain defines only two states or is not strongly lumpable with respect to the given partitions.
+        :raises ValueError: if the Markov chain defines only two states or is not lumpable with respect to the given partitions.
         """
 
         try:
@@ -1384,8 +1405,8 @@ class MarkovChain(metaclass=BaseClass):
 
         | **Notes:**
 
-        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **mfpt_between**, **mfpt_between**.
+        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **mfpt_between**, **mfptb**.
 
         :param origins: the origin states.
         :param targets: the target states.
@@ -1412,7 +1433,7 @@ class MarkovChain(metaclass=BaseClass):
 
         | **Notes:**
 
-        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
+        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **mfpt_to**, **mfptt**.
 
         :param targets: the target states (*if omitted, all the states are targeted*).
@@ -1454,7 +1475,7 @@ class MarkovChain(metaclass=BaseClass):
 
         | **Notes:**
 
-        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
+        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **mrt**.
         """
 
@@ -1463,6 +1484,7 @@ class MarkovChain(metaclass=BaseClass):
 
         return self.__cache['mrt']
 
+    @alias('mt')
     def mixing_time(self, initial_distribution: onumeric = None, jump: int = 1, cutoff_type: str = 'natural') -> oint:
 
         """
@@ -1470,7 +1492,8 @@ class MarkovChain(metaclass=BaseClass):
 
         | **Notes:**
 
-        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
+        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **mt**.
 
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param jump: the number of steps in each iteration.
@@ -1498,14 +1521,16 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
-    def next_state(self, initial_state: ostate = None, output_index: bool = False, seed: oint = None) -> tstate:
+    @alias('next')
+    @random_output()
+    def next_state(self, initial_state: tstate, output_index: bool = False, seed: oint = None) -> tstate:
 
         """
-        The method computes the most probable sequence of states produced by a random walk of *N* steps.
+        The method simulates a single random walk step.
 
         | **Notes:**
 
-        - In presence of probability ties :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **next**.
 
         :param initial_state: the initial state.
         :param output_index: a boolean indicating whether to output the state index.
@@ -1516,7 +1541,7 @@ class MarkovChain(metaclass=BaseClass):
         try:
 
             rng = create_rng(seed)
-            initial_state = rng.randint(0, self.__size) if initial_state is None else validate_state(initial_state, self.__states)
+            initial_state = validate_state(initial_state, self.__states)
             output_index = validate_boolean(output_index)
 
         except Exception as e:  # pragma: no cover
@@ -1529,27 +1554,25 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
-    def predict(self, steps: int, initial_state: ostate = None, output_indices: bool = False, seed: oint = None) -> owalk:
+    def predict(self, steps: int, initial_state: tstate, output_indices: bool = False) -> owalk:
 
         """
-        The method computes the most probable sequence of states produced by a random walk of *N* steps.
+        The method computes the most probable sequence of states produced by a random walk of *N* steps, given the initial state.
 
         | **Notes:**
 
         - In presence of probability ties :py:class:`None` is returned.
 
         :param steps: the number of steps.
-        :param initial_state: the initial state of the prediction.
+        :param initial_state: the initial state.
         :param output_indices: a boolean indicating whether to output the state indices.
-        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            rng = create_rng(seed)
             steps = validate_integer(steps, lower_limit=(0, True))
-            initial_state = rng.randint(0, self.__size) if initial_state is None else validate_state(initial_state, self.__states)
+            initial_state = validate_state(initial_state, self.__states)
             output_indices = validate_boolean(output_indices)
 
         except Exception as e:  # pragma: no cover
@@ -1610,6 +1633,7 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
+    @alias('tc')
     def time_correlations(self, walk1: twalk, walk2: owalk = None, time_points: ttimes_in = 1) -> otimes_out:
 
         """
@@ -1619,6 +1643,7 @@ class MarkovChain(metaclass=BaseClass):
 
         - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
         - If a single time point is provided, then a :py:class:`float` is returned.
+        - The method can be accessed through the following aliases: **tc**.
 
         :param walk1: the first observed sequence of states.
         :param walk2: the second observed sequence of states.
@@ -1639,6 +1664,7 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
+    @alias('tr')
     def time_relaxations(self, walk: twalk, initial_distribution: onumeric = None, time_points: ttimes_in = 1) -> otimes_out:
 
         """
@@ -1648,6 +1674,7 @@ class MarkovChain(metaclass=BaseClass):
 
         - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
         - If a single time point is provided, then a :py:class:`float` is returned.
+        - The method can be accessed through the following aliases: **tr**.
 
         :param walk: the observed sequence of states.
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
@@ -1823,10 +1850,15 @@ class MarkovChain(metaclass=BaseClass):
 
         return m
 
-    def to_subchain(self, states: tstates) -> tmc:
+    @alias('to_sub')
+    def to_sub_chain(self, states: tstates) -> tmc:
 
         """
         The method returns a subchain containing all the given states plus all the states reachable from them.
+
+        | **Notes:**
+
+        - The method can be accessed through the following aliases: **to_sub**.
 
         :param states: the states to include in the subchain.
         :raises ValidationError: if any input argument is not compliant.
@@ -1871,13 +1903,14 @@ class MarkovChain(metaclass=BaseClass):
 
         return value
 
+    @random_output()
     def walk(self, steps: int, initial_state: ostate = None, final_state: ostate = None, output_indices: bool = False, seed: oint = None) -> twalk:
 
         """
         The method simulates a random walk of *N* steps.
 
         :param steps: the number of steps.
-        :param initial_state: the initial state of the walk (*if omitted, it is chosen uniformly at random*).
+        :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
         :param final_state: the final state of the walk (*if specified, the simulation stops as soon as it is reached even if not all the steps have been performed*).
         :param output_indices: a boolean indicating whether to output the state indices.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
@@ -2189,12 +2222,14 @@ class MarkovChain(metaclass=BaseClass):
         - **probability** *(float or int)*
 
         | In **txt** files, every line of the file must have the following format:
-        | **<state_from> <state_to> <probability>**
+
+        - **<state_from> <state_to> <probability>**
 
         | In **xml** files, the structure must be defined as follows:
 
-        - *Root Element: '*\ **MarkovChain**\ *'*
-        - *Child Elements: '*\ **Transition**\ *', with attributes:*
+        - *Root Element:* **MarkovChain**
+        - *Child Elements:* **Transition**\ *, with attributes:*
+
           - **state_from** *(string)*
           - **state_to** *(string)*
           - **probability** *(float or int)*

@@ -6,15 +6,9 @@
     "predict_data": [
       {
         "steps": 8,
-        "initial_state": null,
+        "initial_state": 0,
         "output_indices": false,
         "value": ["1", "1", "1", "1", "1", "1", "1", "1", "1"]
-      },
-      {
-        "steps": 11,
-        "initial_state": 0,
-        "output_indices": true,
-        "value": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       },
       {
         "steps": 11,
@@ -25,14 +19,9 @@
     ],
     "next_state_data": [
       {
-        "initial_state": null,
+        "initial_state": 0,
         "output_index": false,
         "value": "1"
-      },
-      {
-        "initial_state": 0,
-        "output_index": true,
-        "value": 0
       },
       {
         "initial_state": 1,
@@ -104,16 +93,10 @@
     "seed": 7331,
     "predict_data": [
       {
-        "steps": 22,
-        "initial_state": null,
-        "output_indices": false,
-        "value": ["1", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2"]
-      },
-      {
-        "steps": 19,
+        "steps": 11,
         "initial_state": 0,
-        "output_indices": true,
-        "value": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        "output_indices": false,
+        "value": ["1", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2"]
       },
       {
         "steps": 19,
@@ -124,14 +107,9 @@
     ],
     "next_state_data": [
       {
-        "initial_state": null,
+        "initial_state": 0,
         "output_index": false,
         "value": "2"
-      },
-      {
-        "initial_state": 0,
-        "output_index": true,
-        "value": 1
       },
       {
         "initial_state": 1,
@@ -204,15 +182,9 @@
     "predict_data": [
       {
         "steps": 6,
-        "initial_state": null,
+        "initial_state": 2,
         "output_indices": false,
         "value": ["3", "1", "3", "1", "3", "1", "3"]
-      },
-      {
-        "steps": 23,
-        "initial_state": 1,
-        "output_indices": true,
-        "value": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
       },
       {
         "steps": 23,
@@ -223,14 +195,9 @@
     ],
     "next_state_data": [
       {
-        "initial_state": null,
-        "output_index": false,
-        "value": "2"
-      },
-      {
         "initial_state": 0,
-        "output_index": true,
-        "value": 2
+        "output_index": false,
+        "value": "3"
       },
       {
         "initial_state": 2,
@@ -303,14 +270,8 @@
     "predict_data": [
       {
         "steps": 15,
-        "initial_state": null,
-        "output_indices": false,
-        "value": null
-      },
-      {
-        "steps": 24,
         "initial_state": 1,
-        "output_indices": true,
+        "output_indices": false,
         "value": null
       },
       {
@@ -322,14 +283,9 @@
     ],
     "next_state_data": [
       {
-        "initial_state": null,
-        "output_index": false,
-        "value": "3"
-      },
-      {
         "initial_state": 1,
-        "output_index": true,
-        "value": 1
+        "output_index": false,
+        "value": "2"
       },
       {
         "initial_state": 2,
@@ -402,15 +358,9 @@
     "predict_data": [
       {
         "steps": 14,
-        "initial_state": null,
-        "output_indices": false,
-        "value": ["3", "2", "3", "2", "3", "2", "3", "2", "3", "2", "3", "2", "3", "2", "3"]
-      },
-      {
-        "steps": 11,
         "initial_state": 0,
-        "output_indices": true,
-        "value": [0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1]
+        "output_indices": false,
+        "value": ["1", "2", "3", "2", "3", "2", "3", "2", "3", "2", "3", "2", "3", "2", "3"]
       },
       {
         "steps": 11,
@@ -421,14 +371,9 @@
     ],
     "next_state_data": [
       {
-        "initial_state": null,
-        "output_index": false,
-        "value": "3"
-      },
-      {
         "initial_state": 0,
-        "output_index": true,
-        "value": 1
+        "output_index": false,
+        "value": "2"
       },
       {
         "initial_state": 1,
@@ -501,15 +446,9 @@
     "predict_data": [
       {
         "steps": 14,
-        "initial_state": null,
+        "initial_state": 2,
         "output_indices": false,
         "value": ["3", "2", "1", "3", "2", "1", "3", "2", "1", "3", "2", "1", "3", "2", "1"]
-      },
-      {
-        "steps": 11,
-        "initial_state": 0,
-        "output_indices": true,
-        "value": [0, 2, 1, 0, 2, 1, 0, 2, 1, 0, 2, 1]
       },
       {
         "steps": 11,
@@ -520,14 +459,9 @@
     ],
     "next_state_data": [
       {
-        "initial_state": null,
+        "initial_state": 1,
         "output_index": false,
-        "value": "2"
-      },
-      {
-        "initial_state": 0,
-        "output_index": true,
-        "value": 2
+        "value": "1"
       },
       {
         "initial_state": 2,
@@ -599,16 +533,10 @@
     "seed": 7331,
     "predict_data": [
       {
-        "steps": 28,
-        "initial_state": null,
-        "output_indices": false,
-        "value": ["3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1"]
-      },
-      {
         "steps": 17,
         "initial_state": 2,
-        "output_indices": true,
-        "value": [2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1]
+        "output_indices": false,
+        "value": ["3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2"]
       },
       {
         "steps": 17,
@@ -619,14 +547,9 @@
     ],
     "next_state_data": [
       {
-        "initial_state": null,
+        "initial_state": 2,
         "output_index": false,
         "value": "1"
-      },
-      {
-        "initial_state": 2,
-        "output_index": true,
-        "value": 0
       },
       {
         "initial_state": 3,
@@ -699,14 +622,8 @@
     "predict_data": [
       {
         "steps": 9,
-        "initial_state": null,
-        "output_indices": false,
-        "value": null
-      },
-      {
-        "steps": 31,
         "initial_state": 1,
-        "output_indices": true,
+        "output_indices": false,
         "value": null
       },
       {
@@ -718,14 +635,9 @@
     ],
     "next_state_data": [
       {
-        "initial_state": null,
-        "output_index": false,
-        "value": "4"
-      },
-      {
         "initial_state": 0,
-        "output_index": true,
-        "value": 1
+        "output_index": false,
+        "value": "2"
       },
       {
         "initial_state": 3,
@@ -798,15 +710,9 @@
     "predict_data": [
       {
         "steps": 14,
-        "initial_state": null,
+        "initial_state": 2,
         "output_indices": false,
         "value": ["3", "2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1"]
-      },
-      {
-        "steps": 27,
-        "initial_state": 1,
-        "output_indices": true,
-        "value": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       },
       {
         "steps": 27,
@@ -817,14 +723,9 @@
     ],
     "next_state_data": [
       {
-        "initial_state": null,
+        "initial_state": 3,
         "output_index": false,
-        "value": "4"
-      },
-      {
-        "initial_state": 0,
-        "output_index": true,
-        "value": 0
+        "value": "3"
       },
       {
         "initial_state": 2,
@@ -897,15 +798,9 @@
     "predict_data": [
       {
         "steps": 42,
-        "initial_state": null,
+        "initial_state": 2,
         "output_indices": false,
         "value": ["3", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5", "2", "6", "5"]
-      },
-      {
-        "steps": 36,
-        "initial_state": 0,
-        "output_indices": true,
-        "value": [0, 2, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5, 4, 1, 5]
       },
       {
         "steps": 36,
@@ -916,14 +811,9 @@
     ],
     "next_state_data": [
       {
-        "initial_state": null,
+        "initial_state": 2,
         "output_index": false,
-        "value": "3"
-      },
-      {
-        "initial_state": 3,
-        "output_index": true,
-        "value": 3
+        "value": "2"
       },
       {
         "initial_state": 5,

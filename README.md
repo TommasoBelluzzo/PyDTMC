@@ -31,10 +31,10 @@ PyDTMC is a full-featured, lightweight library for discrete-time Markov chains a
   <tr>
     <td align="right">Conda:</td>
     <td align="left">
-      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Version" src="https://img.shields.io/conda/vn/tommasobelluzzo/pydtmc?style=flat&label=Version"/></a>
+      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Version" src="https://img.shields.io/conda/vn/conda-forge/pydtmc?style=flat&label=Version"/></a>
       <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/PyDTMC?style=flat&label=Python&color=1081C2"/></a>
-      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Platforms" src="https://img.shields.io/conda/pn/tommasobelluzzo/pydtmc?style=flat&label=Platforms&color=1081C2"/></a>
-      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Downloads" src="https://img.shields.io/conda/dn/tommasobelluzzo/pydtmc?style=flat&label=Downloads&color=1081C2"/></a>
+      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Platforms" src="https://img.shields.io/conda/pn/conda-forge/pydtmc?style=flat&label=Platforms&color=1081C2"/></a>
+      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Downloads" src="https://img.shields.io/conda/dn/conda-forge/pydtmc?style=flat&label=Downloads&color=1081C2"/></a>
     </td>
   </tr>
 </table>
@@ -168,7 +168,9 @@ Below a few examples of `MarkovChain` methods:
  
 >>> print(mc.walk(10, seed=32))
 ['D', 'A', 'B', 'B', 'C', 'C', 'C', 'C', 'C', 'C', 'C']
+```
 
+```console
 >>> walk = ["A"]
 >>> for _ in range(10):
 ...     current_state = walk[-1]

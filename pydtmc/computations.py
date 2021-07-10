@@ -93,9 +93,7 @@ def rdl_decomposition(p: tarray) -> trdl:
 def slem(m: tarray) -> ofloat:
 
     ev = eigenvalues_sorted(m)
-    indices = np.isclose(ev, 1.0)
-
-    value = ev[~indices][-1]
+    value = ev[~np.isclose(ev, 1.0)][-1]
 
     if np.isclose(value, 0.0):
         return None

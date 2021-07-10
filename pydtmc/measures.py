@@ -71,7 +71,7 @@ def absorption_probabilities(mc: tmc) -> oarray:
 
 def committor_probabilities(mc: tmc, committor_type: str, states1: tlist_int, states2: tlist_int) -> oarray:
 
-    if len(mc.pi) > 1:
+    if not mc.is_ergodic:
         return None
 
     pi = mc.pi[0]
@@ -262,7 +262,7 @@ def mean_absorption_times(mc: tmc) -> oarray:
 
 def mean_first_passage_times_between(mc: tmc, origins: tlist_int, targets: tlist_int) -> oarray:
 
-    if len(mc.pi) > 1:
+    if not mc.is_ergodic:
         return None
 
     pi = mc.pi[0]
@@ -279,7 +279,7 @@ def mean_first_passage_times_between(mc: tmc, origins: tlist_int, targets: tlist
 
 def mean_first_passage_times_to(mc: tmc, targets: olist_int) -> oarray:
 
-    if len(mc.pi) > 1:
+    if not mc.is_ergodic:
         return None
 
     pi = mc.pi[0]
@@ -388,7 +388,7 @@ def mean_number_visits(mc: tmc) -> oarray:
 
 def mean_recurrence_times(mc: tmc) -> oarray:
 
-    if len(mc.pi) > 1:
+    if not mc.is_ergodic:
         return None
 
     pi = mc.pi[0]
@@ -400,7 +400,7 @@ def mean_recurrence_times(mc: tmc) -> oarray:
 
 def mixing_time(mc: tmc, initial_distribution: tarray, jump: int, cutoff: float) -> oint:
 
-    if len(mc.pi) > 1:
+    if not mc.is_ergodic:
         return None
 
     p = mc.p

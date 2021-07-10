@@ -429,14 +429,14 @@ def lump(p: tarray, states: tlist_str, partitions: tlists_int) -> tgenres_ext:
     try:
         k = np.dot(np.linalg.inv(np.dot(np.transpose(r), r)), np.transpose(r))
     except Exception:  # pragma: no cover
-        return None, None, 'The Markov chain is not strongly lumpable with respect to the given partitions.'
+        return None, None, 'The Markov chain is not lumpable with respect to the given partitions.'
 
     left = np.dot(np.dot(np.dot(r, k), p), r)
     right = np.dot(p, r)
     is_lumpable = np.array_equal(left, right)
 
     if not is_lumpable:  # pragma: no cover
-        return None, None, 'The Markov chain is not strongly lumpable with respect to the given partitions.'
+        return None, None, 'The Markov chain is not lumpable with respect to the given partitions.'
 
     p_lump = np.dot(np.dot(k, p), r)
 
