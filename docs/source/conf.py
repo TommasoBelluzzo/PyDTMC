@@ -42,18 +42,17 @@ from sphinx.transforms.post_transforms import (
     SphinxPostTransform
 )
 
-# noinspection PyUnresolvedReferences
-import sphinx_rtd_theme  # noqa
-
 from sphinx.ext.intersphinx import (
     InventoryAdapter
 )
+
+# noinspection PyUnresolvedReferences
+import sphinx_rtd_theme  # noqa
 
 
 #############
 # REFERENCE #
 #############
-
 
 path.append(join(dirname(__name__), '..'))
 
@@ -189,6 +188,10 @@ texinfo_documents = [(master_doc, project, project_title, author, project, 'A fr
 
 class SphinxPostTransformConstructor(SphinxPostTransform):
 
+    """
+    A class decorator used for applying constructor post-transforms.
+    """
+
     default_priority = 799
 
     def run(self, **kwargs):
@@ -218,7 +221,7 @@ class SphinxPostTransformConstructor(SphinxPostTransform):
                     nodes_to_remove.append((node_desc_signature, node_child))
 
             for node_child in node_desc_content:
-                if isinstance(node_child, nodes.paragraph) or isinstance(node_child, nodes.field_list):
+                if isinstance(node_child, (nodes.paragraph, nodes.field_list)):
                     nodes_to_remove.append((node_desc_content, node_child))
 
             for parent, child in nodes_to_remove:
@@ -226,6 +229,10 @@ class SphinxPostTransformConstructor(SphinxPostTransform):
 
 
 class SphinxPostTransformProperties(SphinxPostTransform):
+
+    """
+    A class decorator used for applying properties post-transforms.
+    """
 
     default_priority = 799
 
