@@ -130,13 +130,13 @@ jobs:
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
-          sudo apt update -qq -y
-          sudo apt-get install -qq -y graphviz
-          sudo apt-get update -qq -y
+          sudo apt update --quiet --yes
+          sudo apt-get install --quiet --yes graphviz
+          sudo apt-get update --quiet --yes
         elif [ "$RUNNER_OS" == "Windows" ]; then
-          choco upgrade --limitoutput -y chocolatey
-          choco install --limitoutput -y graphviz
-          choco upgrade --limitoutput -y all
+          choco upgrade --limitoutput --yes chocolatey
+          choco install --limitoutput --yes graphviz
+          choco upgrade --limitoutput --yes all
         else
           brew update
           brew install graphviz
