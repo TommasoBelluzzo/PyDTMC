@@ -38,18 +38,15 @@ import numpy.linalg as npl
 
 # Internal
 
-from .algorithms import (
-    calculate_periods,
-    find_cyclic_classes,
-    find_lumping_partitions
-)
-
 from .base_class import (
     BaseClass
 )
 
 from .computations import (
+    calculate_periods,
     eigenvalues_sorted,
+    find_cyclic_classes,
+    find_lumping_partitions,
     gth_solve,
     rdl_decomposition,
     slem

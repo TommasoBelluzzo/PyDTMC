@@ -31,10 +31,10 @@ PyDTMC is a full-featured, lightweight library for discrete-time Markov chains a
   <tr>
     <td align="right">Conda:</td>
     <td align="left">
-      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Version" src="https://img.shields.io/conda/vn/conda-forge/pydtmc?style=flat&label=Version"/></a>
-      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/PyDTMC?style=flat&label=Python&color=1081C2"/></a>
-      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Platforms" src="https://img.shields.io/conda/pn/conda-forge/pydtmc?style=flat&label=Platforms&color=1081C2"/></a>
-      <a href="https://anaconda.org/tommasobelluzzo/pydtmc/"><img alt="Downloads" src="https://img.shields.io/conda/dn/conda-forge/pydtmc?style=flat&label=Downloads&color=1081C2"/></a>
+      <a href="https://anaconda.org/conda-forge/pydtmc/"><img alt="Version" src="https://img.shields.io/conda/vn/conda-forge/pydtmc?style=flat&label=Version"/></a>
+      <a href="https://anaconda.org/conda-forge/pydtmc/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/PyDTMC?style=flat&label=Python&color=1081C2"/></a>
+      <a href="https://anaconda.org/conda-forge/pydtmc/"><img alt="Platforms" src="https://img.shields.io/conda/pn/conda-forge/pydtmc?style=flat&label=Platforms&color=1081C2"/></a>
+      <a href="https://anaconda.org/conda-forge/pydtmc/"><img alt="Downloads" src="https://img.shields.io/conda/dn/conda-forge/pydtmc?style=flat&label=Downloads&color=1081C2"/></a>
     </td>
   </tr>
 </table>
@@ -59,16 +59,6 @@ $ pip install PyDTMC
 $ pip install --upgrade PyDTMC
 ```
 
-[Conda](https://docs.conda.io/):
-
-```sh
-$ conda install -c conda-forge pydtmc
-$ conda update -c conda-forge pydtmc
-
-$ conda install -c tommasobelluzzo pydtmc
-$ conda update -c tommasobelluzzo pydtmc
-```
-
 [Git](https://git-scm.com/):
 
 ```sh
@@ -77,6 +67,16 @@ $ pip install --upgrade https://github.com/TommasoBelluzzo/PyDTMC/tarball/master
 
 $ pip install git+https://github.com/TommasoBelluzzo/PyDTMC.git#egg=PyDTMC
 $ pip install --upgrade git+https://github.com/TommasoBelluzzo/PyDTMC.git#egg=PyDTMC
+```
+
+[Conda](https://docs.conda.io/):
+
+```sh
+$ conda install -c conda-forge pydtmc
+$ conda update -c conda-forge pydtmc
+
+$ conda install -c tommasobelluzzo pydtmc
+$ conda update -c tommasobelluzzo pydtmc
 ```
 
 ## Usage

@@ -325,8 +325,8 @@ def _process_intersphinx_aliases(app):
 def setup(app):
 
     app.add_post_transform(SphinxPostTransformConstructor)
-    app.add_post_transform(SphinxPostTransformLists)
     app.add_post_transform(SphinxPostTransformProperties)
+    app.add_post_transform(SphinxPostTransformLists)
 
     app.add_config_value('intersphinx_aliases', {}, 'env')
     app.connect('builder-inited', _process_intersphinx_aliases)

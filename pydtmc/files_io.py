@@ -20,9 +20,9 @@ __all__ = [
 
 # noinspection PyPep8Naming
 from csv import (
+    QUOTE_MINIMAL as csv_quote_minimal,
     reader as csv_reader,
-    writer as csv_writer,
-    QUOTE_MINIMAL as csv_quote_minimal
+    writer as csv_writer
 )
 
 from io import (
