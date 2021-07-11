@@ -11,7 +11,7 @@ help:
 .PHONY: help Makefile
 
 %: Makefile
-    @if [[ "$(CI)" == '' ]]; then \
+	@if [[ "$(CI)" == "" ]]; then \
 		rm -rf $(BUILD_DIR)/doctest/* \
 		rm -rf $(BUILD_DIR)/linkcheck/* \
 		rm -rf $(BUILD_DIR)/coverage/* \
