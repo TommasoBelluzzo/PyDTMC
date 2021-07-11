@@ -31,13 +31,13 @@ jobs:
     - name: Dependencies Installation
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        pip install --upgrade pip
-        pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
-        pip install --upgrade --upgrade-strategy eager -e .[lint]
-        pip install --upgrade --upgrade-strategy eager -e .[docs]
-        pip install --upgrade --upgrade-strategy eager -e .[setup]
-        pip install --upgrade --upgrade-strategy eager -e .[package]
-        pip install --upgrade --upgrade-strategy eager -e .[tests]
+        pip install --quiet --upgrade pip
+        pip install --quiet --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
+        pip install --quiet --upgrade --upgrade-strategy eager -e .[lint]
+        pip install --quiet --upgrade --upgrade-strategy eager -e .[docs]
+        pip install --quiet --upgrade --upgrade-strategy eager -e .[setup]
+        pip install --quiet --upgrade --upgrade-strategy eager -e .[package]
+        pip install --quiet --upgrade --upgrade-strategy eager -e .[tests]
   linting:
     name: Linting
     needs: initialization
@@ -130,13 +130,17 @@ jobs:
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
-          sudo apt update
-          sudo apt-get -q update
-          sudo apt-get -y install graphviz
+          sudo apt update -y
+          sudo apt-get install -y graphviz
+          sudo apt-get update -y
         elif [ "$RUNNER_OS" == "Windows" ]; then
-          choco install graphviz
+          choco upgrade -y chocolatey
+          choco install -y graphviz
+          choco upgrade -y all
         else
+          brew update
           brew install graphviz
+          brew upgrade
         fi
     - name: Python Setup
       uses: actions/setup-python@v2
