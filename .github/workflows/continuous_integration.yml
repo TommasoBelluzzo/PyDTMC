@@ -89,7 +89,10 @@ jobs:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Documentation
-      run: make -C docs/ html
+      id: bump
+      env:
+        CI: 'YES'
+      run: make -C docs/
   build:
     name: Build
     needs: documentation
