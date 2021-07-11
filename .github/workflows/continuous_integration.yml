@@ -134,9 +134,10 @@ jobs:
           sudo apt-get install --quiet --yes graphviz
           sudo apt-get update --quiet --yes
         elif [ "$RUNNER_OS" == "Windows" ]; then
+          choco list --localonly    
           choco upgrade --limitoutput --yes chocolatey
           choco install --limitoutput --yes graphviz
-          choco upgrade --limitoutput --yes
+          choco upgrade --limitoutput --yes all
         else
           brew update
           brew install graphviz
