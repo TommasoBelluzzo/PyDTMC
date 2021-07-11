@@ -101,10 +101,10 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       if: env.VERSION_BUMP == 'YES'
       run: |
-        pip install --upgrade pip
-        pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
-        pip install --upgrade --upgrade-strategy eager -e .[setup]
-        pip install --upgrade --upgrade-strategy eager -e .[publish]
+        pip install --quiet --upgrade pip
+        pip install --quiet --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
+        pip install --quiet --upgrade --upgrade-strategy eager -e .[setup]
+        pip install --quiet --upgrade --upgrade-strategy eager -e .[publish]
         python setup.py sdist bdist_wheel
         twine upload dist/*
     - name: Conda Publishing
@@ -119,9 +119,9 @@ jobs:
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
       if: env.CONDA == 'YES'
       run: |
-        conda update conda
-        conda install conda-build anaconda-client
-        conda update conda-build anaconda-client
+        conda update --quiet conda
+        conda install --quiet conda-build anaconda-client
+        conda update --quiet conda-build anaconda-client
         if [[ $VERSION_BUMP == 'YES' ]]; then
           sleep 5m
         fi
@@ -130,6 +130,7 @@ jobs:
         grep $SHA256_REGEX $SHA256_FILE
         sed -i "s/$SHA256_REGEX/$SHA256/g" $SHA256_FILE
         grep $SHA256 $SHA256_FILE
+        conda config --set always_yes yes
         conda config --set anaconda_upload yes
         conda build . --output-folder /tmp/conda-build
     - name: Version Commit
