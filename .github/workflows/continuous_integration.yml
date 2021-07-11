@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         python-version: [ 3.6, 3.7, 3.8, 3.9 ]
     steps:
     - name: Repository Checkout
@@ -35,8 +35,8 @@ jobs:
         pip install --quiet --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
         pip install --quiet --upgrade --upgrade-strategy eager -e .[lint]
         pip install --quiet --upgrade --upgrade-strategy eager -e .[docs]
-        pip install --quiet --upgrade --upgrade-strategy eager -e .[setup]
         pip install --quiet --upgrade --upgrade-strategy eager -e .[package]
+        pip install --quiet --upgrade --upgrade-strategy eager -e .[build]
         pip install --quiet --upgrade --upgrade-strategy eager -e .[tests]
   linting:
     name: Linting
@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         python-version: [ 3.6, 3.7, 3.8, 3.9 ]
     steps:
     - name: Repository Checkout
@@ -73,7 +73,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         python-version: [ 3.6, 3.7, 3.8, 3.9 ]
     steps:
     - name: Repository Checkout
@@ -97,7 +97,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         python-version: [ 3.6, 3.7, 3.8, 3.9 ]
     steps:
     - name: Repository Checkout
@@ -121,7 +121,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         python-version: [ 3.6, 3.7, 3.8, 3.9 ]
     steps:
     - name: Repository Checkout
