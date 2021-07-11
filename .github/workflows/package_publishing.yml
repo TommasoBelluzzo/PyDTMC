@@ -95,10 +95,11 @@ jobs:
     - name: PyPI Publishing
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
+        VERSION_BUMP: ${{ steps.bump.outputs.version_bump }}
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      if: env.PYPI == 'YES'
+      if: env.VERSION_BUMP == 'YES'
       run: |
         pip install --upgrade pip
         pip install --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
@@ -121,7 +122,7 @@ jobs:
         conda update conda
         conda install conda-build anaconda-client
         conda update conda-build anaconda-client
-        if [[ $PYPI == 'YES' ]] && [[ $VERSION_BUMP == 'YES' ]]; then
+        if [[ $VERSION_BUMP == 'YES' ]]; then
           sleep 5m
         fi
         wget https://pypi.io/packages/source/P/PyDTMC/PyDTMC-$VERSION.tar.gz -O /tmp/PyDTMC-$VERSION.tar.gz
