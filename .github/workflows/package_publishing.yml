@@ -6,6 +6,7 @@ on:
       target:
         description: 'Target:'
         required: true
+        default: 'MINOR'
       pypi:
         description: 'PyPI:'
         required: true
@@ -40,12 +41,11 @@ jobs:
         CONDA: ${{ github.event.inputs.conda }}
         VERSION_FILE: pydtmc/__init__.py
         VERSION_REGEX: __version__[[:space:]]=[[:space:]]'[[:digit:]]\.[[:digit:]]\.[[:digit:]]'
-        VERSION: none
+        VERSION: ''
         VERSION_MAJOR: 0
         VERSION_MINOR: 0
         VERSION_RELEASE: 0
-        VERSION_BUMP: YES
-        VERSION_NEW: none
+        VERSION_NEW: ''
       run: |
         TARGET=${TARGET^^}
         if [[ $TARGET != 'MAJOR' ]] && [[ $TARGET != 'MINOR' ]] && [[ $TARGET != 'RELEASE' ]] && [[ $TARGET != 'NONE' ]]; then
@@ -60,6 +60,10 @@ jobs:
         CONDA=${CONDA^^}
         if [[ $CONDA != 'YES' ]] && [[ $CONDA != 'NO' ]]; then
           echo 'INVALID INPUT (CONDA)'
+          exit 1
+        fi
+        if [[ $PYPI == 'YES' ]] && [[ $TARGET == 'NONE' ]]; then
+          echo 'INVALID INPUT (PYPI=YES && TARGET=NONE)'
           exit 1
         fi
         if [[ $PYPI == 'NO' ]] && [[ $CONDA == 'NO' ]]; then
@@ -80,49 +84,57 @@ jobs:
           VERSION_RELEASE=0
         elif [[ $TARGET == 'RELEASE' ]]; then
           VERSION_RELEASE=$(($VERSION_RELEASE + 1))
-        else
-          VERSION_BUMP=NO
         fi
         VERSION_NEW=$(printf '%d.%d.%d' $VERSION_MAJOR $VERSION_MINOR $VERSION_RELEASE 2>/dev/null)
         sed -i "s/$VERSION_REGEX/__version__ = '$VERSION_NEW'/g" $VERSION_FILE
         grep $VERSION_REGEX $VERSION_FILE
+        echo "::set-output name=target::$TARGET"
         echo "::set-output name=pypi::$PYPI"
         echo "::set-output name=conda::$CONDA"
         echo "::set-output name=version_file::$VERSION_FILE"
         echo "::set-output name=version_regex::$VERSION_REGEX"
-        echo "::set-output name=version_bump::$VERSION_BUMP"
         echo "::set-output name=version::$VERSION_NEW"
-    - name: PyPI Publishing
+    - name: PyPI Cache
+      id: pypi_cache
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
-        VERSION_BUMP: ${{ steps.bump.outputs.version_bump }}
-        TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      if: env.VERSION_BUMP == 'YES'
+      if: env.PYPI == 'YES'
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.pythonLocation }}
+        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
+    - name: PyPI Dependencies Installation
+      if: env.PYPI == 'YES' && steps.pypi_cache.outputs.cache-hit != 'true'
       run: |
         pip install --quiet --upgrade pip
         pip install --quiet --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
         pip install --quiet --upgrade --upgrade-strategy eager -e .[setup]
         pip install --quiet --upgrade --upgrade-strategy eager -e .[publish]
+    - name: PyPI Publishing
+      env:
+        PYPI: ${{ steps.bump.outputs.pypi }}
+        TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      if: env.PYPI == 'YES'
+      run: |
         python setup.py sdist bdist_wheel
         twine upload dist/*
     - name: Conda Publishing
       env:
-        PYPI: ${{ steps.bump.outputs.pypi }}
+        TARGET: ${{ steps.bump.outputs.target }}
         CONDA: ${{ steps.bump.outputs.conda }}
-        VERSION_BUMP: ${{ steps.bump.outputs.version_bump }}
         VERSION: ${{ steps.bump.outputs.version }}
         SHA256_FILE: meta.yaml
         SHA256_REGEX: sha256_placeholder
-        SHA256: none
+        SHA256: ''
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
       if: env.CONDA == 'YES'
       run: |
         conda update --quiet conda
         conda install --quiet conda-build anaconda-client
-        conda update --quiet conda-build anaconda-client
-        if [[ $VERSION_BUMP == 'YES' ]]; then
+        conda update --quiet --all
+        if [[ $TARGET != 'NONE' ]]; then
           sleep 5m
         fi
         wget https://pypi.io/packages/source/P/PyDTMC/PyDTMC-$VERSION.tar.gz -O /tmp/PyDTMC-$VERSION.tar.gz
@@ -132,14 +144,15 @@ jobs:
         grep $SHA256 $SHA256_FILE
         conda config --set always_yes yes
         conda config --set anaconda_upload yes
+        conda config --set changeps1 no
         conda build . --output-folder /tmp/conda-build
     - name: Version Commit
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TARGET: ${{ steps.bump.outputs.target }}
         VERSION_FILE: ${{ steps.bump.outputs.version_file }}
-        VERSION_BUMP: ${{ steps.bump.outputs.version_bump }}
         VERSION: ${{ steps.bump.outputs.version }}
-      if: env.VERSION_BUMP == 'YES'
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: env.TARGET != 'NONE'
       run: |
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
         git config --local user.email "${{ secrets.BOT_EMAIL }}"
