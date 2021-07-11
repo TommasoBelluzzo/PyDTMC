@@ -44,10 +44,11 @@ jobs:
         VERSION_MAJOR: 0
         VERSION_MINOR: 0
         VERSION_RELEASE: 0
+        VERSION_BUMP: YES
         VERSION_NEW: none
       run: |
         TARGET=${TARGET^^}
-        if [[ $TARGET != 'MAJOR' ]] && [[ $TARGET != 'MINOR' ]] && [[ $TARGET != 'RELEASE' ]]; then
+        if [[ $TARGET != 'MAJOR' ]] && [[ $TARGET != 'MINOR' ]] && [[ $TARGET != 'RELEASE' ]] && [[ $TARGET != 'NONE' ]]; then
           echo 'INVALID INPUT (TARGET)'
           exit 1
         fi
@@ -77,17 +78,20 @@ jobs:
         elif [[ $TARGET == 'MINOR' ]]; then
           VERSION_MINOR=$(($VERSION_MINOR + 1))
           VERSION_RELEASE=0
-        else
+        elif [[ $TARGET == 'RELEASE' ]]; then
           VERSION_RELEASE=$(($VERSION_RELEASE + 1))
+        else
+          VERSION_BUMP=NO
         fi
         VERSION_NEW=$(printf '%d.%d.%d' $VERSION_MAJOR $VERSION_MINOR $VERSION_RELEASE 2>/dev/null)
         sed -i "s/$VERSION_REGEX/__version__ = '$VERSION_NEW'/g" $VERSION_FILE
         grep $VERSION_REGEX $VERSION_FILE
         echo "::set-output name=pypi::$PYPI"
         echo "::set-output name=conda::$CONDA"
-        echo "::set-output name=version::$VERSION_NEW"
         echo "::set-output name=version_file::$VERSION_FILE"
         echo "::set-output name=version_regex::$VERSION_REGEX"
+        echo "::set-output name=version_bump::$VERSION_BUMP"
+        echo "::set-output name=version::$VERSION_NEW"
     - name: PyPI Publishing
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
@@ -106,17 +110,18 @@ jobs:
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
         CONDA: ${{ steps.bump.outputs.conda }}
+        VERSION_BUMP: ${{ steps.bump.outputs.version_bump }}
         VERSION: ${{ steps.bump.outputs.version }}
-        SHA256: none
         SHA256_FILE: meta.yaml
         SHA256_REGEX: sha256_placeholder
+        SHA256: none
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
       if: env.CONDA == 'YES'
       run: |
         conda update conda
         conda install conda-build anaconda-client
         conda update conda-build anaconda-client
-        if [[ $PYPI == 'YES' ]]; then
+        if [[ $PYPI == 'YES' ]] && [[ $VERSION_BUMP == 'YES' ]]; then
           sleep 5m
         fi
         wget https://pypi.io/packages/source/P/PyDTMC/PyDTMC-$VERSION.tar.gz -O /tmp/PyDTMC-$VERSION.tar.gz
@@ -129,8 +134,10 @@ jobs:
     - name: Version Commit
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        VERSION: ${{ steps.bump.outputs.version }}
         VERSION_FILE: ${{ steps.bump.outputs.version_file }}
+        VERSION_BUMP: ${{ steps.bump.outputs.version_bump }}
+        VERSION: ${{ steps.bump.outputs.version }}
+      if: env.VERSION_BUMP == 'YES'
       run: |
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
         git config --local user.email "${{ secrets.BOT_EMAIL }}"
