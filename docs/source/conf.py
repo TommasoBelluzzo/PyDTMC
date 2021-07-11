@@ -50,11 +50,11 @@ from sphinx.ext.intersphinx import (
 import sphinx_rtd_theme  # noqa
 
 
-#############
-# REFERENCE #
-#############
+##################
+# REFERENCE PATH #
+##################
 
-path.append(join(dirname(__name__), '..'))
+path.insert(0, abspath('../..'))
 
 
 ###############
@@ -228,6 +228,29 @@ class SphinxPostTransformConstructor(SphinxPostTransform):
                 parent.remove(child)
 
 
+class SphinxPostTransformLists(SphinxPostTransform):
+
+    """
+    A class decorator used for applying lists post-transforms.
+    """
+
+    default_priority = 799
+
+    def run(self, **kwargs):
+
+        for node in self.document.traverse(nodes.bullet_list):
+
+            target = node.parent
+
+            if target is None or not isinstance(target, nodes.paragraph):
+                continue
+
+            for child in target.children:
+                if isinstance(child, nodes.Text) and child.astext() == ' – ':
+                    target.remove(child)
+                    break
+
+
 class SphinxPostTransformProperties(SphinxPostTransform):
 
     """
@@ -302,6 +325,7 @@ def _process_intersphinx_aliases(app):
 def setup(app):
 
     app.add_post_transform(SphinxPostTransformConstructor)
+    app.add_post_transform(SphinxPostTransformLists)
     app.add_post_transform(SphinxPostTransformProperties)
 
     app.add_config_value('intersphinx_aliases', {}, 'env')

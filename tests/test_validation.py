@@ -379,8 +379,7 @@ def test_validate_graph(graph_data, is_valid):
     if graph_data is None:
         g = None
     elif isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
-        g = nx.from_numpy_matrix(np.array(graph_data), create_using=nx.DiGraph()) if len(
-            graph_data) > 0 else nx.DiGraph()
+        g = nx.from_numpy_matrix(np.array(graph_data), create_using=nx.DiGraph()) if len(graph_data) > 0 else nx.DiGraph()
         g = nx.relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
     else:
 

@@ -673,7 +673,7 @@
       "is_valid": false
     },
     {
-      "graph_data": [null, null],
+      "graph_data": [true, false],
       "is_valid": false
     },
     {

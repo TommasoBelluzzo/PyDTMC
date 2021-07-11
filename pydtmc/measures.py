@@ -421,7 +421,7 @@ def mixing_time(mc: tmc, initial_distribution: tarray, jump: int, cutoff: float)
 
         mt += jump
 
-    if iterations == 100:
+    if iterations == 100:  # pragma: no cover
         return None
 
     return mt

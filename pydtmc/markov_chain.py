@@ -742,7 +742,7 @@ class MarkovChain(metaclass=BaseClass):
         | If the Markov chain is not **ergodic** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
-        if not self.is_ergodic or self.__slem is None:
+        if self.__slem is None:
             mr = None
         else:
             mr = -1.0 / np.log(self.__slem)
@@ -856,7 +856,7 @@ class MarkovChain(metaclass=BaseClass):
         | If the Markov chain is not **ergodic** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
-        if not self.is_ergodic or self.__slem is None:
+        if self.__slem is None:
             rr = None
         else:
             rr = 1.0 / self.spectral_gap
@@ -880,7 +880,7 @@ class MarkovChain(metaclass=BaseClass):
         | If the Markov chain is not **ergodic** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
-        if not self.is_ergodic or self.__slem is None:
+        if self.__slem is None:
             sg = None
         else:
             sg = 1.0 - self.__slem
