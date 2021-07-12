@@ -10,11 +10,11 @@ on:
       pypi:
         description: 'PyPI:'
         required: true
-        default: YES
+        default: 'YES'
       conda:
         description: 'Conda:'
         required: true
-        default: YES
+        default: 'YES'
 
 jobs:
   publishing:
