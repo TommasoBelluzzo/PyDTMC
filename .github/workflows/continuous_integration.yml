@@ -89,10 +89,10 @@ jobs:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Documentation
-      id: bump
-      env:
-        CI: 'YES'
-      run: make -C docs/
+      run: |
+        make -C docs/ doctest SPHINX_OPTS=-an
+        make -C docs/ linkcheck SPHINX_OPTS=-an
+        make -C docs/ coverage SPHINX_OPTS=-an
   build:
     name: Build
     needs: documentation
