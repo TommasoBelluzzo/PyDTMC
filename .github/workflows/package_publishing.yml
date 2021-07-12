@@ -6,25 +6,20 @@ on:
       target:
         description: 'Target:'
         required: true
-        default: 'MINOR'
+        default: MINOR
       pypi:
         description: 'PyPI:'
         required: true
-        default: 'YES'
+        default: YES
       conda:
         description: 'Conda:'
         required: true
-        default: 'YES'
+        default: YES
 
 jobs:
   publishing:
     name: Publishing
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest ]
-        language: [ python ]
+    runs-on: ubuntu-latest
     steps:
     - name: Repository Checkout
       uses: actions/checkout@v2
@@ -40,12 +35,11 @@ jobs:
         PYPI: ${{ github.event.inputs.pypi }}
         CONDA: ${{ github.event.inputs.conda }}
         VERSION_FILE: pydtmc/__init__.py
-        VERSION_REGEX: __version__[[:space:]]=[[:space:]]'[[:digit:]]\.[[:digit:]]\.[[:digit:]]'
-        VERSION: ''
+        VERSION_REGEX: __version__[[:space:]]=[[:space:]]'[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+'
+        VERSION: 0.0.0
         VERSION_MAJOR: 0
         VERSION_MINOR: 0
         VERSION_RELEASE: 0
-        VERSION_NEW: ''
       run: |
         TARGET=${TARGET^^}
         if [[ $TARGET != 'MAJOR' ]] && [[ $TARGET != 'MINOR' ]] && [[ $TARGET != 'RELEASE' ]] && [[ $TARGET != 'NONE' ]]; then
@@ -85,15 +79,15 @@ jobs:
         elif [[ $TARGET == 'RELEASE' ]]; then
           VERSION_RELEASE=$(($VERSION_RELEASE + 1))
         fi
-        VERSION_NEW=$(printf '%d.%d.%d' $VERSION_MAJOR $VERSION_MINOR $VERSION_RELEASE 2>/dev/null)
-        sed -i "s/$VERSION_REGEX/__version__ = '$VERSION_NEW'/g" $VERSION_FILE
+        VERSION=$(printf '%d.%d.%d' $VERSION_MAJOR $VERSION_MINOR $VERSION_RELEASE 2>/dev/null)
+        sed -i "s/$VERSION_REGEX/__version__ = '$VERSION'/g" $VERSION_FILE
         grep $VERSION_REGEX $VERSION_FILE
         echo "::set-output name=target::$TARGET"
         echo "::set-output name=pypi::$PYPI"
         echo "::set-output name=conda::$CONDA"
         echo "::set-output name=version_file::$VERSION_FILE"
         echo "::set-output name=version_regex::$VERSION_REGEX"
-        echo "::set-output name=version::$VERSION_NEW"
+        echo "::set-output name=version::$VERSION"
     - name: PyPI Cache
       id: pypi_cache
       env:
