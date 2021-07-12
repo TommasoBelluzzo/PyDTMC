@@ -36,7 +36,7 @@ jobs:
         CONDA: ${{ github.event.inputs.conda }}
         VERSION_FILE: pydtmc/__init__.py
         VERSION_REGEX: __version__[[:space:]]=[[:space:]]'[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+'
-        VERSION: 0.0.0
+        VERSION: '0.0.0'
         VERSION_MAJOR: 0
         VERSION_MINOR: 0
         VERSION_RELEASE: 0
