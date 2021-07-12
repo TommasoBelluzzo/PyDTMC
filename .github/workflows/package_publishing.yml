@@ -6,7 +6,7 @@ on:
       target:
         description: 'Target:'
         required: true
-        default: MINOR
+        default: 'MINOR'
       pypi:
         description: 'PyPI:'
         required: true
