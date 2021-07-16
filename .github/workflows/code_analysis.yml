@@ -5,23 +5,19 @@ on:
     - cron: '00 19 * * 5'
 
 jobs:
-  analyze:
-    name: Analyze
+  task:
+    name: Task
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
       security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'python' ]
     steps:
     - name: Repository Checkout
       uses: actions/checkout@v2
     - name: Analysis Initialization
       uses: github/codeql-action/init@v1
       with:
-        languages: ${{ matrix.language }}
+        languages: python
     - name: Analysis Execution
       uses: github/codeql-action/analyze@v1
