@@ -34,7 +34,8 @@ jobs:
         TARGET: ${{ github.event.inputs.target }}
         PYPI: ${{ github.event.inputs.pypi }}
         CONDA: ${{ github.event.inputs.conda }}
-        VERSION_REGEX: __version__[[:space:]]=[[:space:]]'[[:digit:]]\.[[:digit:]]\.[[:digit:]]'
+        VERSION_REGEX: __version__ = '\d+\.\d+\.\d+'
+        VERSION_FILE: pydtmc/__init__.py
       run: |
         TARGET="${TARGET^^}"
         if [[ "$TARGET" != "MAJOR" ]] && [[ "$TARGET" != "MINOR" ]] && [[ "$TARGET" != "RELEASE" ]] && [[ "$TARGET" != "NONE" ]]; then
@@ -59,8 +60,8 @@ jobs:
           echo "INVALID INPUT (PYPI=NO && CONDA=NO)"
           exit 1
         fi
-        grep $VERSION_REGEX pydtmc/__init__.py
-        VERSION=$(grep "$VERSION_REGEX" pydtmc/__init__.py | cut -d "'" -f2)
+        grep -P "$VERSION_REGEX" "$VERSION_FILE"
+        VERSION=$(grep -P "$VERSION_REGEX" "$VERSION_FILE" | cut -d "'" -f2)
         VERSION_MAJOR=$(echo "$VERSION" | cut -d "." -f1)
         VERSION_MINOR=$(echo "$VERSION" | cut -d "." -f2)
         VERSION_RELEASE=$(echo "$VERSION" | cut -d "." -f3)
@@ -74,9 +75,10 @@ jobs:
         elif [[ "$TARGET" == "RELEASE" ]]; then
           VERSION_RELEASE=$(($VERSION_RELEASE+1))
         fi
-        VERSION=$(printf '%d.%d.%d' $VERSION_MAJOR $VERSION_MINOR $VERSION_RELEASE 2>/dev/null)
-        sed -i "s/$VERSION_REGEX/__version__ = '$VERSION'/g" pydtmc/__init__.py
-        grep $VERSION_REGEX pydtmc/__init__.py
+        VERSION=$(printf "%d.%d.%d" $VERSION_MAJOR $VERSION_MINOR $VERSION_RELEASE 2>/dev/null)
+        PATTERN=$(grep -Poh "$VERSION_REGEX" "$VERSION_FILE")
+        sed -i "s/$PATTERN/__version__ = '$VERSION'/g" "$VERSION_FILE"
+        grep -P "$VERSION_REGEX" "$VERSION_FILE"
         echo "::set-output name=target::$TARGET"
         echo "::set-output name=pypi::$PYPI"
         echo "::set-output name=conda::$CONDA"
@@ -111,6 +113,7 @@ jobs:
         TARGET: ${{ steps.bump.outputs.target }}
         CONDA: ${{ steps.bump.outputs.conda }}
         VERSION: ${{ steps.bump.outputs.version }}
+        META_FILE: meta.yaml
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
       if: env.CONDA == 'YES'
       run: |
@@ -122,9 +125,9 @@ jobs:
         fi
         wget https://pypi.io/packages/source/P/PyDTMC/PyDTMC-${VERSION}.tar.gz -O /tmp/PyDTMC-${VERSION}.tar.gz
         SHA256=$(openssl sha256 /tmp/PyDTMC-${VERSION}.tar.gz | awk "{print $2}")
-        grep -P sha256_placeholder meta.yaml
-        sed -i "s/sha256_placeholder/$SHA256/g" meta.yaml
-        grep -P "$SHA256" meta.yaml
+        grep -P sha256_placeholder "$META_FILE"
+        sed -i "s/sha256_placeholder/$SHA256/g" "$META_FILE"
+        grep -P "$SHA256" "$META_FILE"
         conda config --set always_yes yes
         conda config --set anaconda_upload yes
         conda config --set changeps1 no
