@@ -127,9 +127,9 @@ False
 True
 
 >>> print(mc.fundamental_matrix)
-[[1.50943396 2.64150943 0.41509434]
- [0.18867925 2.83018868 0.30188679]
- [0.75471698 1.32075472 1.20754717]]
+[[1.50943396, 2.64150943, 0.41509434]
+ [0.18867925, 2.83018868, 0.30188679]
+ [0.75471698, 1.32075472, 1.20754717]]
  
 >>> print(mc.kemeny_constant)
 5.547169811320755
@@ -148,10 +148,10 @@ Below a few examples of `MarkovChain` methods:
 [-2.76071635, -12.01665113, 23.23460025, -8.45723276]
 
 >>> print(mc.expected_transitions(2))
-[[0.085, 0.2975, 0.0,    0.0425]
- [0.0,   0.345,  0.1725, 0.0575]
- [0.0,   0.0,    0.7,    0.0   ]
- [0.15,  0.0,    0.15,   0.0   ]]
+[[0.085, 0.2975, 0.0000, 0.0425]
+ [0.000, 0.3450, 0.1725, 0.0575]
+ [0.000, 0.0000, 0.7000, 0.0000]
+ [0.150, 0.0000, 0.1500, 0.0000]]
 
 >>> print(mc.first_passage_probabilities(5, 3))
 [[0.5, 0.0,    0.5,    0.0   ]
@@ -169,7 +169,7 @@ Below a few examples of `MarkovChain` methods:
 >>> print(mc.mean_number_visits())
 [[0.50943396, 2.64150943, inf, 0.41509434]
  [0.18867925, 1.83018868, inf, 0.30188679]
- [0.0,        0.0,        inf, 0.0       ]
+ [0.00000000, 0.00000000, inf, 0.00000000]
  [0.75471698, 1.32075472, inf, 0.20754717]]
  
 >>> print(mc.walk(10, seed=32))
@@ -178,21 +178,21 @@ Below a few examples of `MarkovChain` methods:
 
 ```console
 >>> walk = ["A"]
->>> for _ in range(10):
+>>> for i in range(1, 11):
 ...     current_state = walk[-1]
 ...     next_state = mc.next_state(current_state, seed=32)
-...     print(f'{current_state} -> {next_state}')
+...     print(f'{i:02} {current_state} -> {next_state}')
 ...     walk.append(next_state)
-A -> B
-B -> C
-C -> C
-C -> C
-C -> C
-C -> C
-C -> C
-C -> C
-C -> C
-C -> C
+ 1) A -> B
+ 2) B -> C
+ 3) C -> C
+ 4) C -> C
+ 5) C -> C
+ 6) C -> C
+ 7) C -> C
+ 8) C -> C
+ 9) C -> C
+10) C -> C
 ```
 
 Plotting functions can provide a visual representation of `MarkovChain` instances; in order to display the output of plots immediately, the [interactive mode](https://matplotlib.org/stable/users/interactive.html#interactive-mode) of [Matplotlib](https://matplotlib.org/) must be turned on:
