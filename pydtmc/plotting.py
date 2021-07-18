@@ -41,6 +41,7 @@ import numpy.linalg as npl
 # Internal
 
 from .custom_types import (
+    oint,
     oplot,
     ostate,
     ostatus,
@@ -294,10 +295,14 @@ def plot_graph(mc: tmc, nodes_color: bool = True, nodes_type: bool = True, edges
 
         img = mpli.imread(buffer)
         img_x = img.shape[0] / dpi
+        img_xi = img_x * 1.1
+        img_xo = ((img_xi - img_x) / 2.0) * dpi
         img_y = img.shape[1] / dpi
+        img_yi = img_y * 1.1
+        img_yo = ((img_yi - img_y) / 2.0) * dpi
 
-        figure = mplp.figure(figsize=(img_y + 1.1, img_x + 1.1), dpi=dpi)
-        figure.figimage(img)
+        figure = mplp.figure(figsize=(img_y * 1.1, img_x * 1.1), dpi=dpi)
+        figure.figimage(img, yo=img_yo, xo=img_xo)
         ax = figure.gca()
         ax.axis('off')
 
@@ -465,7 +470,7 @@ def plot_redistributions(mc: tmc, distributions: tdists_flex, initial_status: os
     return figure, ax
 
 
-def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type: str = 'histogram', dpi: int = 100) -> oplot:
+def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type: str = 'histogram', seed: oint = None, dpi: int = 100) -> oplot:
 
     """
     The function plots a random walk on the given Markov chain.
@@ -481,6 +486,7 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
      - **histogram** for displaying an histogram plot;
      - **sequence** for displaying a sequence plot;
      - **transitions** for displaying a transitions plot.
+    :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValueError: if the "walk" parameter represents a sequence of states and the "initial_state" parameter does not match its first element.
     :raises ValidationError: if any input argument is not compliant.
@@ -499,13 +505,14 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
             initial_state = validate_state(initial_state, mc.states)
 
         plot_type = validate_enumerator(plot_type, ['histogram', 'sequence', 'transitions'])
+        seed = validate_enumerator(plot_type, ['histogram', 'sequence', 'transitions'])
         dpi = validate_dpi(dpi)
 
     except Exception as e:  # pragma: no cover
         raise generate_validation_error(e, trace()) from None
 
     if isinstance(walk, int):
-        walk = mc.walk(walk, initial_state=initial_state, output_indices=True)
+        walk = mc.walk(walk, initial_state=initial_state, output_indices=True, seed=None)
 
     if initial_state is not None and (walk[0] != initial_state):  # pragma: no cover
         raise ValueError('The "initial_state" parameter, if specified when the "walk" parameter represents a sequence of states, must match the first element.')
