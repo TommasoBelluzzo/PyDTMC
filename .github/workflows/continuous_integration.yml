@@ -135,15 +135,12 @@ jobs:
         if [ "$RUNNER_OS" == "Linux" ]; then
           sudo apt update --quiet --yes
           sudo apt-get install --quiet --yes graphviz
-          sudo apt-get update --quiet --yes
         elif [ "$RUNNER_OS" == "Windows" ]; then 
           choco upgrade --limitoutput --yes chocolatey
           choco install --limitoutput --yes graphviz
-          choco upgrade --limitoutput --yes graphviz
         else
           brew update
           brew install graphviz
-          brew upgrade
         fi
     - name: Python Setup
       uses: actions/setup-python@v2

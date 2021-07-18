@@ -1,107 +1,139 @@
-# Byte-compiled / Optimized / DLL Diles
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# C Extensions
+# C extensions
 *.so
 
-# Distribution / Packaging
-.eggs/
+# Distribution / packaging
+.idea/
+.Python
 build/
 develop-eggs/
 dist/
 downloads/
 eggs/
+.eggs/
 lib/
 lib64/
 parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
-*.egg
 .installed.cfg
-.Python
+*.egg
 MANIFEST
 
-# Environments
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-.env
-.venv
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
 
-# Installer Logs
+# Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
 
 # Translations
 *.mo
 *.pot
 
-# Unit Test / Coverage Reports
-.hypothesis/
-.pytest_cache/
-.tox/
-htmlcov/
-.cache
-.coverage
-*.cover
-.coverage.*
-nosetests.xml
-coverage.xml
-
-
-# Celery Beat
-celerybeat-schedule
-
-# Django
+# Django stuff:
 *.log
 local_settings.py
 db.sqlite3
+db.sqlite3-journal
 
-# Flask
+# Flask stuff:
 instance/
 .webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# MkDocs
-/site
+# IPython
+profile_default/
+ipython_config.py
 
-# MyPy
-.mypy_cache/
+# pyenv
+#   For a library or package, you might want to ignore these files since the code is
+#   intended to run in multiple environments; otherwise, check them in:
+# .python-version
 
-# PyBuilder
-target/
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
 
-# PyCharm
-.idea/
-*.idea
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+__pypackages__/
 
-# PyEnv
-.python-version
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Rope
-.ropeproject
-
-# SageMath
+# SageMath parsed files
 *.sage.py
 
-# Scrapy
-.scrapy
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Sphinx
-docs/_build/
-
-# Spyder
+# Spyder project settings
 .spyderproject
 .spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/

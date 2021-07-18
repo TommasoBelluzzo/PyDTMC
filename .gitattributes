@@ -35,18 +35,22 @@
 *.tiff         binary
 
 # Python - Source Files
-*.ipynb        text
 *.pxd          text diff=python
 *.py           text diff=python
 *.py3          text diff=python
+*.pyi          text diff=python
 *.pyw          text diff=python
 *.pyx          text diff=python
+*.pyz          text diff=python
 
 # Python - Binary Files
 *.db           binary
 *.p            binary
 *.pickle       binary
 *.pkl          binary
-*.pyc          binary
+*.pyc          binary export-ignore
 *.pyd          binary
-*.pyo          binary
+*.pyo          binary export-ignore
+
+# Jupyter Notebook
+*.ipynb        text
