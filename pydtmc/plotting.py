@@ -505,14 +505,13 @@ def plot_walk(mc: tmc, walk: twalk_flex, initial_state: ostate = None, plot_type
             initial_state = validate_state(initial_state, mc.states)
 
         plot_type = validate_enumerator(plot_type, ['histogram', 'sequence', 'transitions'])
-        seed = validate_enumerator(plot_type, ['histogram', 'sequence', 'transitions'])
         dpi = validate_dpi(dpi)
 
     except Exception as e:  # pragma: no cover
         raise generate_validation_error(e, trace()) from None
 
     if isinstance(walk, int):
-        walk = mc.walk(walk, initial_state=initial_state, output_indices=True, seed=None)
+        walk = mc.walk(walk, initial_state=initial_state, output_indices=True, seed=seed)
 
     if initial_state is not None and (walk[0] != initial_state):  # pragma: no cover
         raise ValueError('The "initial_state" parameter, if specified when the "walk" parameter represents a sequence of states, must match the first element.')
