@@ -135,11 +135,11 @@ jobs:
       env:
         TARGET: ${{ steps.bump.outputs.target }}
         VERSION: ${{ steps.bump.outputs.version }}
-      if: env.TARGET != "NONE"
+      if: env.TARGET != 'NONE'
       run: |
+        git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
         git config --local user.email "${{ secrets.BOT_EMAIL }}"
         git add --a
         git commit -m "Package Publishing $VERSION"
-        git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
         git push
