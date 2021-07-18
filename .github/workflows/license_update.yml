@@ -1,6 +1,8 @@
 name: License Update
 
-on: workflow_dispatch
+on:
+  schedule:
+    - cron: '05 00 1 1 *'
 
 jobs:
   task:
