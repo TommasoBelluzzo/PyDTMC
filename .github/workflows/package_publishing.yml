@@ -113,6 +113,7 @@ jobs:
         TARGET: ${{ steps.bump.outputs.target }}
         CONDA: ${{ steps.bump.outputs.conda }}
         VERSION: ${{ steps.bump.outputs.version }}
+        META_REGEX: sha256_placeholder
         META_FILE: meta.yaml
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
       if: env.CONDA == 'YES'
@@ -124,8 +125,10 @@ jobs:
         fi
         wget "https://pypi.io/packages/source/P/PyDTMC/PyDTMC-${VERSION}.tar.gz" -O "/tmp/PyDTMC-${VERSION}.tar.gz"
         SHA256=$(openssl sha256 "/tmp/PyDTMC-${VERSION}.tar.gz" | awk "{print $2}")
-        grep -P sha256_placeholder "$META_FILE"
-        sed -i "s/sha256_placeholder/$SHA256/g" "$META_FILE"
+        echo "$SHA256"
+        echo "s/sha256_placeholder/$SHA256/g"
+        grep -P "$META_REGEX" "$META_FILE"
+        sed -i "s/$META_REGEX/$SHA256/g" "$META_FILE"
         grep -P "$SHA256" "$META_FILE"
         conda config --set always_yes yes
         conda config --set anaconda_upload yes
