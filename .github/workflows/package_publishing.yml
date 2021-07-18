@@ -139,5 +139,5 @@ jobs:
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
         git config --local user.email "${{ secrets.BOT_EMAIL }}"
         git add --a
-        git commit -m "Package Publishing $VERSION"
+        git commit -m "Release $VERSION"
         git push
