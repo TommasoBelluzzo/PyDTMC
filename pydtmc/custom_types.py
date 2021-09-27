@@ -3,9 +3,14 @@
 __all__ = [
     # Generic
     'ofloat', 'oint', 'ostr',
-    'tany', 'texception', 'titerable', 'tmapping',
+    'tany', 'texception', 'titerable',
     'tarray', 'oarray',
+    'tgraph', 'ograph',
+    'tgraphs', 'ographs',
     'tmc', 'omc',
+    'tplot', 'oplot',
+    'trand', 'orand',
+    'tnumeric', 'onumeric',
     # Lists
     'tlist_any', 'olist_any',
     'tlist_array', 'olist_array',
@@ -22,21 +27,17 @@ __all__ = [
     'tbcond', 'obcond',
     'tcache', 'ocache',
     'tdists_flex', 'odists_flex',
+    'tfile', 'ofile',
     'tfitres', 'ofitres',
     'tgenres', 'ogenres',
     'tgenres_ext', 'ogenres_ext',
-    'tgraph', 'ograph',
-    'tgraphs', 'ographs',
     'tinterval', 'ointerval',
     'tlimit_float', 'olimit_float',
     'tlimit_int', 'olimit_int',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
-    'tnumeric', 'onumeric',
     'tpart', 'opart',
     'tparts', 'oparts',
-    'tplot', 'oplot',
-    'trand', 'orand',
     'trdl', 'ordl',
     'tredists', 'oredists',
     'tstate', 'ostate',
@@ -58,30 +59,29 @@ __all__ = [
 # Standard
 
 from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    TypeVar,
-    Union,
+    Any as _Any,
+    Callable as _Callable,
+    Dict as _Dict,
+    Iterable as _Iterable,
+    List as _List,
+    Optional as _Optional,
+    Tuple as _Tuple,
+    TypeVar as _TypeVar,
+    Union as _Union
 )
 
 # Libraries
 
-import matplotlib.pyplot as mplp
-import networkx as nx
-import numpy as np
-import numpy.random as npr
-import scipy.sparse as spsp
+import matplotlib.pyplot as _mplp
+import networkx as _nx
+import numpy as _np
+import numpy.random as _npr
+import scipy.sparse as _spsp
 
 try:
-    import pandas as pd
+    import pandas as _pd
 except ImportError:
-    pd = None
+    _pd = None
 
 
 #########
@@ -90,140 +90,142 @@ except ImportError:
 
 # Generic
 
-ofloat = Optional[float]
-oint = Optional[int]
-ostr = Optional[str]
+ofloat = _Optional[float]
+oint = _Optional[int]
+ostr = _Optional[str]
 
-tany = Any
+tany = _Any
 texception = Exception
-tmapping = Mapping
-titerable = Iterable
+titerable = _Iterable
 
-tarray = np.ndarray
-oarray = Optional[tarray]
+tarray = _np.ndarray
+oarray = _Optional[tarray]
 
-tmc = TypeVar('MarkovChain')
-omc = Optional[tmc]
+tgraph = _nx.DiGraph
+ograph = _Optional[tgraph]
 
-# Lists
+tgraphs = _Union[tgraph, _nx.MultiDiGraph]
+ographs = _Optional[tgraphs]
 
-tlist_any = List[tany]
-olist_any = Optional[tlist_any]
+tmc = _TypeVar('MarkovChain')
+omc = _Optional[tmc]
 
-tlist_array = List[tarray]
-olist_array = Optional[tlist_array]
+tplot = _Tuple[_mplp.Figure, _mplp.Axes]
+oplot = _Optional[tplot]
 
-tlist_float = List[float]
-olist_float = Optional[tlist_float]
+tnumeric = _Union[_np.ndarray, _spsp.spmatrix] if _pd is None else _Union[_np.ndarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
+onumeric = _Optional[tnumeric]
 
-tlist_int = List[int]
-olist_int = Optional[tlist_int]
+trand = _npr.RandomState
+orand = _Optional[trand]
 
-tlist_str = List[str]
-olist_str = Optional[tlist_str]
+# _Lists
 
-# Lists of Lists
+tlist_any = _List[tany]
+olist_any = _Optional[tlist_any]
 
-tlists_any = List[tlist_any]
-olists_any = Optional[tlists_any]
+tlist_array = _List[tarray]
+olist_array = _Optional[tlist_array]
 
-tlists_array = List[tlist_array]
-olists_array = Optional[tlists_array]
+tlist_float = _List[float]
+olist_float = _Optional[tlist_float]
 
-tlists_float = List[tlist_float]
-olists_float = Optional[tlists_float]
+tlist_int = _List[int]
+olist_int = _Optional[tlist_int]
 
-tlists_int = List[tlist_int]
-olists_int = Optional[tlists_int]
+tlist_str = _List[str]
+olist_str = _Optional[tlist_str]
 
-tlists_str = List[tlist_str]
-olists_str = Optional[tlists_str]
+# _Lists of _Lists
+
+tlists_any = _List[tlist_any]
+olists_any = _Optional[tlists_any]
+
+tlists_array = _List[tlist_array]
+olists_array = _Optional[tlists_array]
+
+tlists_float = _List[tlist_float]
+olists_float = _Optional[tlists_float]
+
+tlists_int = _List[tlist_int]
+olists_int = _Optional[tlists_int]
+
+tlists_str = _List[tlist_str]
+olists_str = _Optional[tlists_str]
 
 # Specific
 
-tbcond = Union[float, int, str]
-obcond = Optional[tbcond]
+tbcond = _Union[float, int, str]
+obcond = _Optional[tbcond]
 
-tcache = Dict[str, tany]
-ocache = Optional[tcache]
+tcache = _Dict[str, tany]
+ocache = _Optional[tcache]
 
-tdists_flex = Union[int, tlist_array]
-odists_flex = Optional[tdists_flex]
+tdists_flex = _Union[int, tlist_array]
+odists_flex = _Optional[tdists_flex]
 
-tfitres = Tuple[oarray, ostr]
-ofitres = Optional[tfitres]
+tfile = _Tuple[str, str]
+ofile = _Optional[tfile]
 
-tgenres = Tuple[oarray, ostr]
-ogenres = Optional[tgenres]
+tfitres = _Tuple[oarray, ostr]
+ofitres = _Optional[tfitres]
 
-tgenres_ext = Tuple[oarray, olist_str, ostr]
-ogenres_ext = Optional[tgenres_ext]
+tgenres = _Tuple[oarray, ostr]
+ogenres = _Optional[tgenres]
 
-tgraph = nx.DiGraph
-ograph = Optional[tgraph]
+tgenres_ext = _Tuple[oarray, olist_str, ostr]
+ogenres_ext = _Optional[tgenres_ext]
 
-tgraphs = Union[tgraph, nx.MultiDiGraph]
-ographs = Optional[tgraphs]
+tinterval = _Tuple[_Union[float, int], _Union[float, int]]
+ointerval = _Optional[tinterval]
 
-tinterval = Tuple[Union[float, int], Union[float, int]]
-ointerval = Optional[tinterval]
+tlimit_float = _Tuple[float, bool]
+olimit_float = _Optional[tlimit_float]
 
-tlimit_float = Tuple[float, bool]
-olimit_float = Optional[tlimit_float]
+tlimit_int = _Tuple[int, bool]
+olimit_int = _Optional[tlimit_int]
 
-tlimit_int = Tuple[int, bool]
-olimit_int = Optional[tlimit_int]
+tmc_dict = _Dict[_Tuple[str, str], float]
+omc_dict = _Optional[tmc_dict]
 
-tmc_dict = Dict[Tuple[str, str], float]
-omc_dict = Optional[tmc_dict]
+tmc_dict_flex = _Dict[_Tuple[str, str], _Union[float, int]]
+omc_dict_flex = _Optional[tmc_dict_flex]
 
-tmc_dict_flex = Dict[Tuple[str, str], Union[float, int]]
-omc_dict_flex = Optional[tmc_dict_flex]
+tpart = _List[_Union[tlist_int, tlist_str]]
+opart = _Optional[tpart]
 
-tnumeric = Union[titerable, tarray, spsp.spmatrix, pd.DataFrame, pd.Series] if pd is not None else Union[titerable, tarray, spsp.spmatrix]
-onumeric = Optional[tnumeric]
+tparts = _List[tpart]
+oparts = _Optional[tparts]
 
-tpart = List[Union[tlist_int, tlist_str]]
-opart = Optional[tpart]
+trdl = _Tuple[tarray, tarray, tarray]
+ordl = _Optional[trdl]
 
-tparts = List[tpart]
-oparts = Optional[tparts]
+tredists = _Union[tarray, tlist_array]
+oredists = _Optional[tredists]
 
-tplot = Tuple[mplp.Figure, mplp.Axes]
-oplot = Optional[tplot]
+tstate = _Union[int, str]
+ostate = _Optional[tstate]
 
-trand = npr.RandomState
-orand = Optional[trand]
+tstates = _Union[tstate, tlist_int, tlist_str]
+ostates = _Optional[tstates]
 
-trdl = Tuple[tarray, tarray, tarray]
-ordl = Optional[trdl]
+tstatus = _Union[int, str, tnumeric]
+ostatus = _Optional[tstatus]
 
-tredists = Union[tarray, tlist_array]
-oredists = Optional[tredists]
+ttfunc = _Callable[[int, float, int, float], float]
+otfunc = _Optional[ttfunc]
 
-tstate = Union[int, str]
-ostate = Optional[tstate]
+ttimes_in = _Union[int, tlist_int]
+otimes_in = _Optional[ttimes_in]
 
-tstates = Union[tstate, tlist_int, tlist_str]
-ostates = Optional[tstates]
+ttimes_out = _Union[float, tlist_float]
+otimes_out = _Optional[ttimes_out]
 
-tstatus = Union[int, str, tnumeric]
-ostatus = Optional[tstatus]
+twalk = _Union[tlist_int, tlist_str]
+owalk = _Optional[twalk]
 
-ttfunc = Callable[[int, float, int, float], float]
-otfunc = Optional[ttfunc]
+twalk_flex = _Union[int, twalk]
+owalk_flex = _Optional[twalk_flex]
 
-ttimes_in = Union[int, tlist_int]
-otimes_in = Optional[ttimes_in]
-
-ttimes_out = Union[float, tlist_float]
-otimes_out = Optional[ttimes_out]
-
-twalk = Union[tlist_int, tlist_str]
-owalk = Optional[twalk]
-
-twalk_flex = Union[int, twalk]
-owalk_flex = Optional[twalk_flex]
-
-tweights = Union[float, int, tnumeric]
-oweights = Optional[tweights]
+tweights = _Union[float, int, tnumeric]
+oweights = _Optional[tweights]

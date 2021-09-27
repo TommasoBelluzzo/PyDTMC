@@ -20,38 +20,38 @@ __all__ = [
 
 # noinspection PyPep8Naming
 from csv import (
-    QUOTE_MINIMAL as csv_quote_minimal,
-    reader as csv_reader,
-    writer as csv_writer
+    QUOTE_MINIMAL as _csv_quote_minimal,
+    reader as _csv_reader,
+    writer as _csv_writer
 )
 
 from io import (
-    BytesIO
+    BytesIO as _BytesIO
 )
 
 from json import (
-    dump as json_dump,
-    load as json_load
+    dump as _json_dump,
+    load as _json_load
 )
 
 # noinspection PyPep8Naming
 from xml.etree import (
-    cElementTree as xml_tree
+    cElementTree as _xml_tree
 )
 
 try:
-    from defusedxml.ElementTree import parse as xml_parse
+    from defusedxml.ElementTree import parse as _xml_parse
 except ImportError:  # pragma: no cover
-    from xml.etree.cElementTree import parse as xml_parse
+    from xml.etree.cElementTree import parse as _xml_parse
 
 # Libraries
 
-import numpy as np
+import numpy as _np
 
 # Internal
 
 from .custom_types import (
-    tmc_dict
+    tmc_dict as _tmc_dict
 )
 
 
@@ -59,7 +59,7 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
-def read_csv(file_path: str) -> tmc_dict:
+def read_csv(file_path: str) -> _tmc_dict:
 
     d = {}
 
@@ -70,7 +70,7 @@ def read_csv(file_path: str) -> tmc_dict:
 
         file.seek(0)
 
-        data = csv_reader(file)
+        data = _csv_reader(file)
 
         for index, row in enumerate(data):
 
@@ -110,7 +110,7 @@ def read_csv(file_path: str) -> tmc_dict:
     return d
 
 
-def read_json(file_path: str) -> tmc_dict:
+def read_json(file_path: str) -> _tmc_dict:
 
     d = {}
     valid_keys = ['probability', 'state_from', 'state_to']
@@ -119,7 +119,7 @@ def read_json(file_path: str) -> tmc_dict:
 
         file.seek(0)
 
-        data = json_load(file)
+        data = _json_load(file)
 
         if not isinstance(data, list):  # pragma: no cover
             raise ValueError('The file format is not compliant.')
@@ -142,7 +142,7 @@ def read_json(file_path: str) -> tmc_dict:
             if not isinstance(state_to, str) or len(state_to) == 0:  # pragma: no cover
                 raise ValueError('The file contains invalid elements.')
 
-            if not isinstance(probability, (float, int, np.floating, np.integer)):  # pragma: no cover
+            if not isinstance(probability, (float, int, _np.floating, _np.integer)):  # pragma: no cover
                 raise ValueError('The file contains invalid elements.')
 
             d[(state_from, state_to)] = float(probability)
@@ -150,7 +150,7 @@ def read_json(file_path: str) -> tmc_dict:
     return d
 
 
-def read_txt(file_path: str) -> tmc_dict:
+def read_txt(file_path: str) -> _tmc_dict:
 
     d = {}
 
@@ -178,13 +178,13 @@ def read_txt(file_path: str) -> tmc_dict:
     return d
 
 
-def read_xml(file_path: str) -> tmc_dict:
+def read_xml(file_path: str) -> _tmc_dict:
 
     d = {}
     valid_keys = ['probability', 'state_from', 'state_to']
 
     try:
-        document = xml_parse(file_path)
+        document = _xml_parse(file_path)
     except Exception as e:  # pragma: no cover
         raise ValueError('The file format is not compliant.') from e
 
@@ -235,19 +235,19 @@ def read_xml(file_path: str) -> tmc_dict:
     return d
 
 
-def write_csv(d: tmc_dict, file_path: str):
+def write_csv(d: _tmc_dict, file_path: str):
 
     states = [key[0] for key in d.keys() if key[0] == key[1]]
     size = len(states)
 
-    p = np.zeros((size, size), dtype=float)
+    p = _np.zeros((size, size), dtype=float)
 
     for it, ip in d.items():
         p[states.index(it[0]), states.index(it[1])] = ip
 
     with open(file_path, mode='w', newline='') as file:
 
-        writer = csv_writer(file, delimiter=',', quoting=csv_quote_minimal, quotechar='"')
+        writer = _csv_writer(file, delimiter=',', quoting=_csv_quote_minimal, quotechar='"')
 
         writer.writerow(states)
 
@@ -256,7 +256,7 @@ def write_csv(d: tmc_dict, file_path: str):
             writer.writerow(row)
 
 
-def write_json(d: tmc_dict, file_path: str):
+def write_json(d: _tmc_dict, file_path: str):
 
     output = []
 
@@ -264,10 +264,10 @@ def write_json(d: tmc_dict, file_path: str):
         output.append({'state_from': it[0], 'state_to': it[1], 'probability': ip})
 
     with open(file_path, mode='w') as file:
-        json_dump(output, file)
+        _json_dump(output, file)
 
 
-def write_txt(d: tmc_dict, file_path: str):
+def write_txt(d: _tmc_dict, file_path: str):
 
     with open(file_path, mode='w') as file:
 
@@ -275,19 +275,19 @@ def write_txt(d: tmc_dict, file_path: str):
             file.write(f'{it[0]} {it[1]} {ip}\n')
 
 
-def write_xml(d: tmc_dict, file_path: str):
+def write_xml(d: _tmc_dict, file_path: str):
 
-    root = xml_tree.Element('MarkovChain')
+    root = _xml_tree.Element('MarkovChain')
 
     for it, ip in d.items():
-        transition = xml_tree.SubElement(root, 'Transition')
+        transition = _xml_tree.SubElement(root, 'Transition')
         transition.set('state_from', it[0])
         transition.set('state_to', it[1])
         transition.set('probability', str(ip))
 
-    document = xml_tree.ElementTree(root)
+    document = _xml_tree.ElementTree(root)
 
-    with BytesIO() as buffer:
+    with _BytesIO() as buffer:
         document.write(buffer, 'utf-8', True)
         xml_content = str(buffer.getvalue(), 'utf-8')
 

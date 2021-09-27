@@ -12,17 +12,17 @@ __all__ = [
 
 # Libraries
 
-import numpy as np
+import numpy as _np
 
 # Internal
 
 from .custom_types import (
-    tany,
-    tfitres,
-    tinterval,
-    tlist_int,
-    tlist_str,
-    ttfunc
+    tany as _tany,
+    tfitres as _tfitres,
+    tinterval as _tinterval,
+    tlist_int as _tlist_int,
+    tlist_str as _tlist_str,
+    ttfunc as _ttfunc
 )
 
 
@@ -30,7 +30,7 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
-def fit_function(possible_states: tlist_str, f: ttfunc, quadrature_type: str, quadrature_interval: tinterval) -> tfitres:
+def fit_function(possible_states: _tlist_str, f: _ttfunc, quadrature_type: str, quadrature_interval: _tinterval) -> _tfitres:
 
     size = len(possible_states)
 
@@ -39,29 +39,29 @@ def fit_function(possible_states: tlist_str, f: ttfunc, quadrature_type: str, qu
 
     if quadrature_type == 'gauss-chebyshev':
 
-        t1 = np.arange(size) + 0.5
-        t2 = np.arange(0.0, size, 2.0)
-        t3 = np.concatenate((np.array([1.0]), -2.0 / (np.arange(1.0, size - 1.0, 2) * np.arange(3.0, size + 1.0, 2))))
+        t1 = _np.arange(size) + 0.5
+        t2 = _np.arange(0.0, size, 2.0)
+        t3 = _np.concatenate((_np.array([1.0]), -2.0 / (_np.arange(1.0, size - 1.0, 2) * _np.arange(3.0, size + 1.0, 2))))
 
-        nodes = ((b + a) / 2.0) - ((b - a) / 2.0) * np.cos((np.pi / size) * t1)
-        weights = ((b - a) / size) * np.cos((np.pi / size) * np.outer(t1, t2)) @ t3
+        nodes = ((b + a) / 2.0) - ((b - a) / 2.0) * _np.cos((_np.pi / size) * t1)
+        weights = ((b - a) / size) * _np.cos((_np.pi / size) * _np.outer(t1, t2)) @ t3
 
     elif quadrature_type == 'gauss-legendre':
 
-        nodes = np.zeros(size, dtype=float)
-        weights = np.zeros(size, dtype=float)
+        nodes = _np.zeros(size, dtype=float)
+        weights = _np.zeros(size, dtype=float)
 
         iterations = 0
-        i = np.arange(int(np.fix((size + 1.0) / 2.0)))
+        i = _np.arange(int(_np.fix((size + 1.0) / 2.0)))
         pp = 0.0
-        z = np.cos(np.pi * ((i + 1.0) - 0.25) / (size + 0.5))
+        z = _np.cos(_np.pi * ((i + 1.0) - 0.25) / (size + 0.5))
 
         while iterations < 100:
 
             iterations += 1
 
-            p1 = np.ones_like(z, dtype=float)
-            p2 = np.zeros_like(z, dtype=float)
+            p1 = _np.ones_like(z, dtype=float)
+            p2 = _np.zeros_like(z, dtype=float)
 
             for j in range(1, size + 1):
                 p3 = p2
@@ -70,10 +70,10 @@ def fit_function(possible_states: tlist_str, f: ttfunc, quadrature_type: str, qu
 
             pp = size * (((z * p1) - p2) / (z**2.0 - 1.0))
 
-            z1 = np.copy(z)
+            z1 = _np.copy(z)
             z = z1 - (p1 / pp)
 
-            if np.allclose(abs(z - z1), 0.0):
+            if _np.allclose(abs(z - z1), 0.0):
                 break
 
         if iterations == 100:  # pragma: no cover
@@ -92,26 +92,26 @@ def fit_function(possible_states: tlist_str, f: ttfunc, quadrature_type: str, qu
 
         r = b - a
 
-        nodes = np.arange(1.0, size + 1.0) * 2.0**0.5
-        nodes -= np.fix(nodes)
+        nodes = _np.arange(1.0, size + 1.0) * 2.0 ** 0.5
+        nodes -= _np.fix(nodes)
         nodes = a + (nodes * r)
 
-        weights = (r / size) * np.ones(size, dtype=float)
+        weights = (r / size) * _np.ones(size, dtype=float)
 
     elif quadrature_type == 'simpson-rule':
 
-        nodes = np.linspace(a, b, size)
+        nodes = _np.linspace(a, b, size)
 
-        weights = np.kron(np.ones((size + 1) // 2, dtype=float), np.array([2.0, 4.0]))
+        weights = _np.kron(_np.ones((size + 1) // 2, dtype=float), _np.array([2.0, 4.0]))
         weights = weights[:size]
         weights[0] = weights[-1] = 1
         weights = ((nodes[1] - nodes[0]) / 3.0) * weights
 
     elif quadrature_type == 'trapezoid-rule':
 
-        nodes = np.linspace(a, b, size)
+        nodes = _np.linspace(a, b, size)
 
-        weights = (nodes[1] - nodes[0]) * np.ones(size)
+        weights = (nodes[1] - nodes[0]) * _np.ones(size)
         weights[0] *= 0.5
         weights[-1] *= 0.5
 
@@ -119,36 +119,36 @@ def fit_function(possible_states: tlist_str, f: ttfunc, quadrature_type: str, qu
 
         bandwidth = (b - a) / size
 
-        nodes = (np.arange(size) + 0.5) * bandwidth
-        weights = np.repeat(bandwidth, size)
+        nodes = (_np.arange(size) + 0.5) * bandwidth
+        weights = _np.repeat(bandwidth, size)
 
-    p = np.zeros((size, size), dtype=float)
+    p = _np.zeros((size, size), dtype=float)
 
     for i in range(size):
         for j in range(size):
             p[i, j] = f(i, nodes[i], j, nodes[j]) * weights[j]
 
-    p[np.where(~p.any(axis=1)), :] = np.ones(size, dtype=float)
-    p /= np.sum(p, axis=1, keepdims=True)
+    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
+    p /= _np.sum(p, axis=1, keepdims=True)
 
     return p, None
 
 
-def fit_walk(fitting_type: str, possible_states: tlist_str, walk: tlist_int, k: tany) -> tfitres:
+def fit_walk(fitting_type: str, possible_states: _tlist_str, walk: _tlist_int, k: _tany) -> _tfitres:
 
     size = len(possible_states)
-    p = np.zeros((size, size), dtype=float)
+    p = _np.zeros((size, size), dtype=float)
 
     if fitting_type == 'map':
 
-        f = np.zeros((size, size), dtype=int)
+        f = _np.zeros((size, size), dtype=int)
 
         for (i, j) in zip(walk[:-1], walk[1:]):
             f[i, j] += 1
 
         for i in range(size):
 
-            rt = np.sum(f[i, :]) + np.sum(k[i, :])
+            rt = _np.sum(f[i, :]) + _np.sum(k[i, :])
 
             for j in range(size):
 
@@ -167,7 +167,7 @@ def fit_walk(fitting_type: str, possible_states: tlist_str, walk: tlist_int, k: 
         if k:
             p += 0.001
 
-    p[np.where(~p.any(axis=1)), :] = np.ones(size, dtype=float)
-    p /= np.sum(p, axis=1, keepdims=True)
+    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
+    p /= _np.sum(p, axis=1, keepdims=True)
 
     return p, None

@@ -126,6 +126,7 @@ intersphinx_mapping = {
     'matplotlib': ('https://matplotlib.org/stable/', None),
     'networkx': ('https://networkx.org/documentation/stable/', None),
     'numpy': ('https://numpy.org/doc/stable/', None),
+    'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
     'pytest': ('https://docs.pytest.org/en/latest/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None)
 }

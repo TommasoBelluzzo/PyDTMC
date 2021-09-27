@@ -14,3 +14,5 @@ class ValidationError(Exception):
     """
     Defines an exception thrown when inappropriate argument values are provided.
     """
+
+    pass

@@ -2,9 +2,9 @@
 
 __all__ = [
     'alias',
-    'cachedproperty',
-    'random_output',
-    'aliased'
+    'aliased',
+    'cached_property',
+    'random_output'
 ]
 
 
@@ -15,16 +15,16 @@ __all__ = [
 # Standard
 
 from functools import (
-    update_wrapper,
-    wraps
+    update_wrapper as _update_wrapper,
+    wraps as _wraps
 )
 
 from re import (
-    search
+    search as _search
 )
 
 from threading import (
-    RLock
+    RLock as _RLock
 )
 
 
@@ -55,7 +55,7 @@ class alias:
 
 
 # noinspection PyPep8Naming
-class cachedproperty(property):
+class cached_property(property):
 
     """
     A class decorator used for implementing cached properties.
@@ -73,9 +73,9 @@ class cachedproperty(property):
 
         self._func = fget
         self._func_name = None
-        self._lock = RLock()
+        self._lock = _RLock()
 
-        update_wrapper(self, fget)
+        _update_wrapper(self, fget)
 
     def __set_name__(self, owner, name):
 
@@ -152,7 +152,7 @@ def aliased(aliased_class):
 
     def wrapper(func):
 
-        @wraps(func)
+        @_wraps(func)
         def inner(self, *args, **kwargs):
             return func(self, *args, **kwargs)
 
@@ -182,7 +182,7 @@ def aliased(aliased_class):
         if len(set(aliases_flat)) < len(aliases_flat):
             raise AttributeError('Aliases must be unique and cannot be shared among different class members.')
 
-        if any(not search(r'^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$', a) for a in aliases_flat):
+        if any(not _search(r'^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$', a) for a in aliases_flat):
             raise ValueError('Aliases cannot start with an underscore character and must be compliant with PEP8 naming conventions.')
 
         if any(a in member_names for a in aliases_flat):

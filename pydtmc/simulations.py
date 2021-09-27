@@ -14,18 +14,18 @@ __all__ = [
 
 # Libraries
 
-import numpy as np
+import numpy as _np
 
 # Internal
 
 from .custom_types import (
-    oint,
-    olist_int,
-    tarray,
-    tlist_int,
-    tmc,
-    trand,
-    tredists
+    oint as _oint,
+    olist_int as _olist_int,
+    tarray as _tarray,
+    tlist_int as _tlist_int,
+    tmc as _tmc,
+    trand as _trand,
+    tredists as _tredists
 )
 
 
@@ -33,7 +33,7 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
-def predict(mc: tmc, steps: int, initial_state: int) -> olist_int:
+def predict(mc: _tmc, steps: int, initial_state: int) -> _olist_int:
 
     current_state = initial_state
     value = [initial_state]
@@ -41,7 +41,7 @@ def predict(mc: tmc, steps: int, initial_state: int) -> olist_int:
     for _ in range(steps):
 
         d = mc.p[current_state, :]
-        d_max = np.argwhere(d == np.max(d))
+        d_max = _np.argwhere(d == _np.max(d))
 
         if d_max.size > 1:
             return None
@@ -52,24 +52,24 @@ def predict(mc: tmc, steps: int, initial_state: int) -> olist_int:
     return value
 
 
-def redistribute(mc: tmc, steps: int, initial_status: tarray, output_last: bool) -> tredists:
+def redistribute(mc: _tmc, steps: int, initial_status: _tarray, output_last: bool) -> _tredists:
 
-    value = np.zeros((steps + 1, mc.size), dtype=float)
+    value = _np.zeros((steps + 1, mc.size), dtype=float)
     value[0, :] = initial_status
 
     for i in range(1, steps + 1):
         value[i, :] = value[i - 1, :].dot(mc.p)
-        value[i, :] /= np.sum(value[i, :])
+        value[i, :] /= _np.sum(value[i, :])
 
     if output_last:
         return value[-1]
 
-    value = [np.ravel(distribution) for distribution in np.split(value, value.shape[0])]
+    value = [_np.ravel(distribution) for distribution in _np.split(value, value.shape[0])]
 
     return value
 
 
-def simulate(mc: tmc, steps: int, initial_state: int, final_state: oint, rng: trand) -> tlist_int:
+def simulate(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rng: _trand) -> _tlist_int:
 
     current_state = initial_state
     value = [initial_state]
@@ -86,18 +86,18 @@ def simulate(mc: tmc, steps: int, initial_state: int, final_state: oint, rng: tr
     return value
 
 
-def walk_probability(mc: tmc, walk: tlist_int) -> float:
+def walk_probability(mc: _tmc, walk: _tlist_int) -> float:
 
     p = 0.0
 
     for (i, j) in zip(walk[:-1], walk[1:]):
 
         if mc.p[i, j] > 0.0:
-            p += np.log(mc.p[i, j])
+            p += _np.log(mc.p[i, j])
         else:
-            p = -np.inf
+            p = -_np.inf
             break
 
-    value = np.exp(p)
+    value = _np.exp(p)
 
     return value

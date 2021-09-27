@@ -18,28 +18,28 @@ __all__ = [
 # Standard
 
 from itertools import (
-    chain
+    chain as _chain
 )
 
 from math import (
-    gcd
+    gcd as _gcd
 )
 
 # Libraries
 
-import networkx as nx
-import numpy as np
-import numpy.linalg as npl
+import networkx as _nx
+import numpy as _np
+import numpy.linalg as _npl
 
 # Internal
 
 from .custom_types import (
-    ofloat,
-    tarray,
-    tgraph,
-    tlist_int,
-    tparts,
-    trdl
+    ofloat as _ofloat,
+    tarray as _tarray,
+    tgraph as _tgraph,
+    tlist_int as _tlist_int,
+    tparts as _tparts,
+    trdl as _trdl
 )
 
 
@@ -47,11 +47,11 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
-def _calculate_period(graph: tgraph) -> int:
+def _calculate_period(graph: _tgraph) -> int:
 
     g = 0
 
-    for scc in nx.strongly_connected_components(graph):
+    for scc in _nx.strongly_connected_components(graph):
 
         scc = list(scc)
 
@@ -78,7 +78,7 @@ def _calculate_period(graph: tgraph) -> int:
 
                     if level is not None:
 
-                        g = gcd(g, previous_level - level)
+                        g = _gcd(g, previous_level - level)
 
                         if g == 1:
                             return 1
@@ -94,9 +94,9 @@ def _calculate_period(graph: tgraph) -> int:
     return g
 
 
-def calculate_periods(graph: tgraph) -> tlist_int:
+def calculate_periods(graph: _tgraph) -> _tlist_int:
 
-    sccs = list(nx.strongly_connected_components(graph))
+    sccs = list(_nx.strongly_connected_components(graph))
 
     classes = [sorted(scc) for scc in sccs]
     indices = sorted(classes, key=lambda x: (-len(x), x[0]))
@@ -108,7 +108,7 @@ def calculate_periods(graph: tgraph) -> tlist_int:
         scc_reachable = scc.copy()
 
         for c in scc_reachable:
-            spl = nx.shortest_path_length(graph, c).keys()
+            spl = _nx.shortest_path_length(graph, c).keys()
             scc_reachable = scc_reachable.union(spl)
 
         index = indices.index(sorted(scc))
@@ -121,23 +121,23 @@ def calculate_periods(graph: tgraph) -> tlist_int:
     return periods
 
 
-def eigenvalues_sorted(m: tarray) -> tarray:
+def eigenvalues_sorted(m: _tarray) -> _tarray:
 
-    ev = npl.eigvals(m)
-    ev = np.sort(np.abs(ev))
+    ev = _npl.eigvals(m)
+    ev = _np.sort(_np.abs(ev))
 
     return ev
 
 
-def find_cyclic_classes(p: tarray) -> tarray:
+def find_cyclic_classes(p: _tarray) -> _tarray:
 
     size = p.shape[0]
 
-    v = np.zeros(size, dtype=int)
+    v = _np.zeros(size, dtype=int)
     v[0] = 1
 
-    w = np.array([], dtype=int)
-    t = np.array([0], dtype=int)
+    w = _np.array([], dtype=int)
+    t = _np.array([0], dtype=int)
 
     d = 0
     m = 1
@@ -147,37 +147,37 @@ def find_cyclic_classes(p: tarray) -> tarray:
         i = t[0]
         j = 0
 
-        t = np.delete(t, 0)
-        w = np.append(w, i)
+        t = _np.delete(t, 0)
+        w = _np.append(w, i)
 
         while j < size:
 
             if p[i, j] > 0.0:
-                r = np.append(w, t)
-                k = np.sum(r == j)
+                r = _np.append(w, t)
+                k = _np.sum(r == j)
 
                 if k > 0:
                     b = v[i] - v[j] + 1
-                    d = gcd(d, b)
+                    d = _gcd(d, b)
                 else:
-                    t = np.append(t, j)
+                    t = _np.append(t, j)
                     v[j] = v[i] + 1
 
             j += 1
 
         m = t.size
 
-    v = np.remainder(v, d)
+    v = _np.remainder(v, d)
 
     indices = []
 
-    for u in np.unique(v):
-        indices.append(list(chain.from_iterable(np.argwhere(v == u))))
+    for u in _np.unique(v):
+        indices.append(list(_chain.from_iterable(_np.argwhere(v == u))))
 
     return indices
 
 
-def find_lumping_partitions(p: tarray) -> tparts:
+def find_lumping_partitions(p: _tarray) -> _tparts:
 
     size = p.shape[0]
 
@@ -211,7 +211,7 @@ def find_lumping_partitions(p: tarray) -> tparts:
 
     for partition in possible_partitions:
 
-        r = np.zeros((size, len(partition)), dtype=float)
+        r = _np.zeros((size, len(partition)), dtype=float)
 
         for index, lumping in enumerate(partition):
             for state in lumping:
@@ -219,13 +219,13 @@ def find_lumping_partitions(p: tarray) -> tparts:
 
         # noinspection PyBroadException
         try:
-            k = np.dot(np.linalg.inv(np.dot(np.transpose(r), r)), np.transpose(r))
+            k = _np.dot(_np.linalg.inv(_np.dot(_np.transpose(r), r)), _np.transpose(r))
         except Exception:  # pragma: no cover
             continue
 
-        left = np.dot(np.dot(np.dot(r, k), p), r)
-        right = np.dot(p, r)
-        is_lumpable = np.array_equal(left, right)
+        left = _np.dot(_np.dot(_np.dot(r, k), p), r)
+        right = _np.dot(p, r)
+        is_lumpable = _np.array_equal(left, right)
 
         if is_lumpable:
             partitions.append(partition)
@@ -233,64 +233,64 @@ def find_lumping_partitions(p: tarray) -> tparts:
     return partitions
 
 
-def gth_solve(p: tarray) -> tarray:
+def gth_solve(p: _tarray) -> _tarray:
 
-    a = np.copy(p)
+    a = _np.copy(p)
     n = a.shape[0]
 
     for i in range(n - 1):
 
-        scale = np.sum(a[i, i + 1:n])
+        scale = _np.sum(a[i, i + 1:n])
 
         if scale <= 0.0:  # pragma: no cover
             n = i + 1
             break
 
         a[i + 1:n, i] /= scale
-        a[i + 1:n, i + 1:n] += np.dot(a[i + 1:n, i:i + 1], a[i:i + 1, i + 1:n])
+        a[i + 1:n, i + 1:n] += _np.dot(a[i + 1:n, i:i + 1], a[i:i + 1, i + 1:n])
 
-    x = np.zeros(n, dtype=float)
+    x = _np.zeros(n, dtype=float)
     x[n - 1] = 1.0
 
     for i in range(n - 2, -1, -1):
-        x[i] = np.dot(x[i + 1:n], a[i + 1:n, i])
+        x[i] = _np.dot(x[i + 1:n], a[i + 1:n, i])
 
-    x /= np.sum(x)
+    x /= _np.sum(x)
 
     return x
 
 
-def rdl_decomposition(p: tarray) -> trdl:
+def rdl_decomposition(p: _tarray) -> _trdl:
 
-    values, vectors = npl.eig(p)
+    values, vectors = _npl.eig(p)
 
-    indices = np.argsort(np.abs(values))[::-1]
+    indices = _np.argsort(_np.abs(values))[::-1]
     values = values[indices]
     vectors = vectors[:, indices]
 
-    r = np.copy(vectors)
-    d = np.diag(values)
-    l = npl.solve(np.transpose(r), np.eye(p.shape[0], dtype=float))  # noqa
+    r = _np.copy(vectors)
+    d = _np.diag(values)
+    l = _npl.solve(_np.transpose(r), _np.eye(p.shape[0], dtype=float))  # noqa
 
-    k = np.sum(l[:, 0])
+    k = _np.sum(l[:, 0])
 
-    if not np.isclose(k, 0.0):
+    if not _np.isclose(k, 0.0):
         r[:, 0] *= k
         l[:, 0] /= k
 
-    r = np.real(r)
-    d = np.real(d)
-    l = np.transpose(np.real(l))  # noqa
+    r = _np.real(r)
+    d = _np.real(d)
+    l = _np.transpose(_np.real(l))  # noqa
 
     return r, d, l
 
 
-def slem(m: tarray) -> ofloat:
+def slem(m: _tarray) -> _ofloat:
 
     ev = eigenvalues_sorted(m)
-    value = ev[~np.isclose(ev, 1.0)][-1]
+    value = ev[~_np.isclose(ev, 1.0)][-1]
 
-    if np.isclose(value, 0.0):
+    if _np.isclose(value, 0.0):
         return None
 
     return value

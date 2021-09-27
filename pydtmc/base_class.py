@@ -15,11 +15,10 @@ class BaseClass(type):
     Defines an abstract base class used for the package classes.
     """
 
-    # noinspection PyMethodParameters
-    def __new__(cls, name, bases, classes):
+    def __new__(mcs, class_name, class_bases, class_dict):
 
-        for b in bases:
-            if isinstance(b, BaseClass):
-                raise TypeError(f"Type '{b.__name__}' is not an acceptable base type.")
+        for class_base in class_bases:
+            if isinstance(class_base, BaseClass):
+                raise TypeError(f"Type '{class_base.__name__}' is not an acceptable base type.")
 
-        return type.__new__(cls, name, bases, dict(classes))
+        return type.__new__(mcs, class_name, class_bases, class_dict)

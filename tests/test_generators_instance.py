@@ -65,7 +65,7 @@ def test_lazy(p, inertial_weights, value):
 def test_lump(p, partitions, value):
 
     if value is None:
-        skip('Markov chain is not lumpable for the specified partitions.')
+        skip('Markov _chain is not lumpable for the specified partitions.')
     else:
 
         mc = MarkovChain(p)
@@ -80,7 +80,7 @@ def test_lump(p, partitions, value):
 def test_sub(p, states, value):
 
     if value is None:
-        skip('Markov chain cannot generate the specified subchain.')
+        skip('Markov _chain cannot generate the specified subchain.')
     else:
 
         mc = MarkovChain(p)
