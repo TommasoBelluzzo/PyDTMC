@@ -129,12 +129,13 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
 
         if i == 0:
             distributions = mc.redistribute(1, output_last=False)
+            initial_status = None
+            plot_type = 'projection'
         else:
             r = randint(1, maximum_distributions)
             distributions = r if random() < 0.5 else mc.redistribute(r, output_last=False)
-
-        initial_status = None if isinstance(distributions, int) or random() < 0.5 else distributions[0]
-        plot_type = choice(plot_types)
+            initial_status = None if isinstance(distributions, int) or random() < 0.5 else distributions[0]
+            plot_type = choice(plot_types)
 
         configs[i] = (distributions, initial_status, plot_type)
         mcs.append(mc)
