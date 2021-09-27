@@ -132,7 +132,7 @@ def test_validate_extract_as_numeric(value, evaluate, is_valid):
 
     if value is not None and isinstance(value, str) and evaluate:
 
-        if value.startswith('_pd.') and pd is None:
+        if value.startswith('pd.') and pd is None:
             should_skip = True
         else:
             value = eval(value)
