@@ -200,7 +200,7 @@ def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edge
         for s in range(1, steps):
             vector = [int(begin[j] + (float(s) / (steps - 1)) * (end[j] - begin[j])) for j in range(3)]
             rgb = [int(v) for v in vector]
-            clist.append(f'#{"".join(["0{0:x}".format(v) if v < 16 else "{0:x}".format(v) for v in rgb])}')
+            clist.append(f'#{"".join([f"0{v:x}" if v < 16 else f"{v:x}" for v in rgb])}')  # noqa
 
         return clist
 
