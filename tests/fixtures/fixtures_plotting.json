@@ -13,7 +13,7 @@
     "seed": 7331,
     "maximum_size": 6,
     "maximum_distributions": 20,
-    "runs": 25
+    "runs": 50
   },
   "plot_walk_data": {
     "seed": 7331,
