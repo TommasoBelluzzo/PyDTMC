@@ -18,11 +18,11 @@ __all__ = [
 # Standard
 
 from itertools import (
-    chain as _chain
+    chain as _it_chain
 )
 
 from math import (
-    gcd as _gcd
+    gcd as _math_gcd
 )
 
 # Libraries
@@ -78,7 +78,7 @@ def _calculate_period(graph: _tgraph) -> int:
 
                     if level is not None:
 
-                        g = _gcd(g, previous_level - level)
+                        g = _math_gcd(g, previous_level - level)
 
                         if g == 1:
                             return 1
@@ -158,7 +158,7 @@ def find_cyclic_classes(p: _tarray) -> _tarray:
 
                 if k > 0:
                     b = v[i] - v[j] + 1
-                    d = _gcd(d, b)
+                    d = _math_gcd(d, b)
                 else:
                     t = _np.append(t, j)
                     v[j] = v[i] + 1
@@ -172,7 +172,7 @@ def find_cyclic_classes(p: _tarray) -> _tarray:
     indices = []
 
     for u in _np.unique(v):
-        indices.append(list(_chain.from_iterable(_np.argwhere(v == u))))
+        indices.append(list(_it_chain.from_iterable(_np.argwhere(v == u))))
 
     return indices
 

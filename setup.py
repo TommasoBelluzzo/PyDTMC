@@ -8,40 +8,37 @@
 # Standard
 
 from os import (
-    walk
+    walk as _os_walk
 )
 
 from os.path import (
-    abspath,
-    dirname,
-    join
+    abspath as _os_abspath,
+    dirname as _os_dirname,
+    join as _os_join
 )
 
 # noinspection PyPep8Naming
 from re import (
-    MULTILINE as flag_multiline,
-    search
+    MULTILINE as _re_multiline,
+    search as _re_search
 )
 
 from sys import (
-    exit as sys_exit,
-    version_info
+    exit as _sys_exit,
+    version_info as _sys_version_info
 )
 
 # Libraries
 
-from setuptools import (
-    find_packages,
-    setup
-)
+import setuptools as _st
 
 
 ################
 # PYTHON CHECK #
 ################
 
-if version_info < (3, 6):
-    sys_exit('Python 3.6 or greater is required.')
+if _sys_version_info < (3, 6):
+    _sys_exit('Python 3.6 or greater is required.')
 
 
 #################
@@ -50,35 +47,35 @@ if version_info < (3, 6):
 
 # Version
 
-with open('pydtmc/__init__.py', 'r') as file:
-    file_content = file.read()
-    matches = search(r'^__version__ = \'(\d\.\d\.\d)\'$', file_content, flags=flag_multiline)
-    current_version = matches.group(1)
+with open('pydtmc/__init__.py', 'r') as _file:
+    _file_content = _file.read()
+    _matches = _re_search(r'^__version__ = \'(\d\.\d\.\d)\'$', _file_content, flags=_re_multiline)
+    _current_version = _matches.group(1)
 
 # Description
 
-base_directory = abspath(dirname(__file__))
+_base_directory = _os_abspath(_os_dirname(__file__))
 
-with open(join(base_directory, 'README.md'), encoding='utf-8') as file:
-    long_description_text = file.read()
-    long_description_text = long_description_text[long_description_text.index('\n') + 1:].strip()
+with open(_os_join(_base_directory, 'README.md'), encoding='utf-8') as _file:
+    _long_description_text = _file.read()
+    _long_description_text = _long_description_text[_long_description_text.index('\n') + 1:].strip()
 
 # Package Files
 
-package_data_files = []
+_package_data_files = []
 
-for (location, _, files) in walk('data'):
-    for file in files:
-        if file != '.gitkeep':
-            package_data_files.append(join('..', location, file))
+for (_location, _, _files) in _os_walk('data'):
+    for _file in _files:
+        if _file != '.gitkeep':
+            _package_data_files.append(_os_join('..', _location, _file))
 
 # Setup
 
-setup(
-    version=current_version,
-    long_description=long_description_text,
+_st.setup(
+    version=_current_version,
+    long_description=_long_description_text,
     long_description_content_type='text/markdown',
-    packages=find_packages(exclude=['data', 'docs', 'tests']),
-    package_data={'data': package_data_files},
+    packages=_st.find_packages(exclude=['data', 'docs', 'tests']),
+    package_data={'data': _package_data_files},
     include_package_data=True
 )

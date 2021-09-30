@@ -58,6 +58,7 @@ __all__ = [
 
 # Standard
 
+# noinspection PyPep8Naming
 from typing import (
     Any as _Any,
     Callable as _Callable,
@@ -80,7 +81,7 @@ import scipy.sparse as _spsp
 
 try:
     import pandas as _pd
-except ImportError:
+except ImportError:  # noqa
     _pd = None
 
 
@@ -119,7 +120,7 @@ onumeric = _Optional[tnumeric]
 trand = _npr.RandomState
 orand = _Optional[trand]
 
-# _Lists
+# Lists
 
 tlist_any = _List[tany]
 olist_any = _Optional[tlist_any]
@@ -136,7 +137,7 @@ olist_int = _Optional[tlist_int]
 tlist_str = _List[str]
 olist_str = _Optional[tlist_str]
 
-# _Lists of _Lists
+# Lists of Lists
 
 tlists_any = _List[tlist_any]
 olists_any = _Optional[tlists_any]

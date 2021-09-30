@@ -7,13 +7,13 @@
 
 # Libraries
 
-import numpy as np
-import numpy.testing as npt
+import numpy as _np
+import numpy.testing as _npt
 
 # Internal
 
 from pydtmc import (
-    MarkovChain
+    MarkovChain as _MarkovChain
 )
 
 
@@ -25,9 +25,9 @@ def _get_comparison(value):
 
     if value is None:
         comparison = 'standard'
-    elif isinstance(value, np.ndarray):
+    elif isinstance(value, _np.ndarray):
         comparison = 'npt'
-    elif isinstance(value, list) and len(value) > 0 and isinstance(value[0], np.ndarray):
+    elif isinstance(value, list) and len(value) > 0 and isinstance(value[0], _np.ndarray):
         comparison = 'npt_loop'
     else:
         comparison = 'standard'
@@ -39,7 +39,7 @@ def _compare_values_npt(actual, expected):
 
     # noinspection PyBroadException
     try:
-        npt.assert_array_equal(actual, expected)
+        _npt.assert_array_equal(actual, expected)
         return True
     except Exception:
         return False
@@ -57,7 +57,7 @@ def _compare_values_npt_loop(actual, expected):
 
         # noinspection PyBroadException
         try:
-            npt.assert_array_equal(actual, expected)
+            _npt.assert_array_equal(actual, expected)
         except Exception:
             return False
 
@@ -91,9 +91,9 @@ def _compare_values(actual, expected):
 def test_aliased_methods(p, params):
 
     lcl = locals()
-    lcl['mc'] = MarkovChain(p)
+    lcl['mc'] = _MarkovChain(p)
 
-    for member_name, member in MarkovChain.__dict__.items():
+    for member_name, member in _MarkovChain.__dict__.items():
 
         if isinstance(member, property) or not hasattr(member, '_aliases') or hasattr(member, '_random_output') or member.__name__ != member_name:
             continue
@@ -112,9 +112,9 @@ def test_aliased_methods(p, params):
 def test_aliased_properties(p):
 
     lcl = locals()
-    lcl['mc'] = MarkovChain(p)
+    lcl['mc'] = _MarkovChain(p)
 
-    for member_name, member in MarkovChain.__dict__.items():
+    for member_name, member in _MarkovChain.__dict__.items():
 
         if not isinstance(member, property) or not hasattr(member.fget, '_aliases'):
             continue

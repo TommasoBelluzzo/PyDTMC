@@ -843,11 +843,11 @@
       "is_valid": true
     },
     {
-      "value": "range(10)",
+      "value": "BaseClass('Test', (), {})",
       "is_valid": false
     },
     {
-      "value": "BaseClass('Test', (), [])",
+      "value": "range(10)",
       "is_valid": false
     },
     {

@@ -15,7 +15,7 @@ __all__ = [
 # Standard
 
 from inspect import (
-    trace as _trace
+    trace as _ins_trace
 )
 
 from io import (
@@ -24,8 +24,8 @@ from io import (
 
 # noinspection PyPep8Naming
 from subprocess import (
-    call as _call,
-    PIPE as _pipe
+    call as _sp_call,
+    PIPE as _sp_pipe
 )
 
 # Libraries
@@ -102,7 +102,7 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
         dpi = _validate_dpi(dpi)
 
     except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _trace()) from None
+        raise _generate_validation_error(e, _ins_trace()) from None
 
     figure, ax = _mplp.subplots(dpi=dpi)
 
@@ -234,7 +234,7 @@ def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edge
         dpi = _validate_dpi(dpi)
 
     except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _trace()) from None
+        raise _generate_validation_error(e, _ins_trace()) from None
 
     if force_standard:
         extended_graph = False
@@ -244,7 +244,7 @@ def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edge
 
         # noinspection PyBroadException
         try:
-            _call(['dot', '-V'], stdout=_pipe, stderr=_pipe)
+            _sp_call(['dot', '-V'], stdout=_sp_pipe, stderr=_sp_pipe)
         except Exception:  # pragma: no cover
             extended_graph = False
 
@@ -395,7 +395,7 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
         dpi = _validate_dpi(dpi)
 
     except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _trace()) from None
+        raise _generate_validation_error(e, _ins_trace()) from None
 
     if isinstance(distributions, int):
         distributions = mc.redistribute(distributions, initial_status=initial_status, output_last=False)
@@ -508,7 +508,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         dpi = _validate_dpi(dpi)
 
     except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _trace()) from None
+        raise _generate_validation_error(e, _ins_trace()) from None
 
     if isinstance(walk, int):
         walk = mc.walk(walk, initial_state=initial_state, output_indices=True, seed=seed)

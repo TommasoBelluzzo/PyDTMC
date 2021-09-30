@@ -8,43 +8,32 @@
 # Standard
 
 from datetime import (
-    datetime
+    datetime as _dt_datetime
 )
 
 from os.path import (
-    abspath,
-    dirname,
-    join
+    abspath as _os_abspath,
+    dirname as _os_dirname,
+    join as _os_join
 )
 
 # noinspection PyPep8Naming
 from re import (
-    IGNORECASE as flag_ignorecase,
-    MULTILINE as flag_multiline,
-    search
+    IGNORECASE as _re_ignorecase,
+    MULTILINE as _re_multiline,
+    search as _re_search
 )
 
 from sys import (
-    path
+    path as _sys_path
 )
 
 # Libraries
 
-from docutils import (
-    nodes
-)
-
-from sphinx import (
-    addnodes
-)
-
-from sphinx.transforms.post_transforms import (
-    SphinxPostTransform
-)
-
-from sphinx.ext.intersphinx import (
-    InventoryAdapter
-)
+import docutils.nodes as _dun
+import sphinx.addnodes as _span
+import sphinx.transforms.post_transforms as _sppt
+import sphinx.ext.intersphinx as _spei
 
 # noinspection PyUnresolvedReferences
 import sphinx_rtd_theme  # noqa
@@ -54,26 +43,26 @@ import sphinx_rtd_theme  # noqa
 # REFERENCE PATH #
 ##################
 
-path.insert(0, abspath('../..'))
+_sys_path.insert(0, _os_abspath('../..'))
 
 
 ###############
 # INFORMATION #
 ###############
 
-base_directory = abspath(dirname(__file__))
-init_file = join(base_directory, '../../pydtmc/__init__.py')
+_base_directory = _os_abspath(_os_dirname(__file__))
+_init_file = _os_join(_base_directory, '../../pydtmc/__init__.py')
 
-with open(init_file, 'r') as file:
-    file_content = file.read()
-    matches = search(r'^__version__ = \'(\d\.\d\.\d)\'$', file_content, flags=flag_multiline)
-    current_version = matches.group(1)
+with open(_init_file, 'r') as _file:
+    _file_content = _file.read()
+    _matches = _re_search(r'^__version__ = \'(\d\.\d\.\d)\'$', _file_content, flags=_re_multiline)
+    _current_version = _matches.group(1)
 
 project = 'PyDTMC'
 project_title = project + ' Documentation'
-project_copyright = f'2019-{datetime.now().strftime("%Y")}, Tommaso Belluzzo'
-release = current_version
-version = current_version
+project_copyright = f'2019-{_dt_datetime.now().strftime("%Y")}, Tommaso Belluzzo'
+release = _current_version
+version = _current_version
 author = 'Tommaso Belluzzo'
 
 
@@ -187,7 +176,7 @@ texinfo_documents = [(master_doc, project, project_title, author, project, 'A fr
 # CLASSES #
 ###########
 
-class SphinxPostTransformConstructor(SphinxPostTransform):
+class _SphinxPostTransformConstructor(_sppt.SphinxPostTransform):
 
     """
     A class decorator used for applying constructor post-transforms.
@@ -197,39 +186,39 @@ class SphinxPostTransformConstructor(SphinxPostTransform):
 
     def run(self, **kwargs):
 
-        if not search(r'markov_chain_[A-Z_]+\.rst$', self.document['source'], flags=flag_ignorecase):
+        if not _re_search(r'markov_chain_[A-Z_]+\.rst$', self.document['source'], flags=_re_ignorecase):
             return
 
-        for node in self.document.traverse(addnodes.desc):
+        for node in self.document.traverse(_span.desc):
 
             if not node.hasattr('objtype') or node['objtype'] != 'class':
                 continue
 
             node_desc_signature = node[0]
 
-            if not isinstance(node_desc_signature, addnodes.desc_signature):
+            if not isinstance(node_desc_signature, _span.desc_signature):
                 continue
 
             node_desc_content = node[1]
 
-            if not isinstance(node_desc_content, addnodes.desc_content):
+            if not isinstance(node_desc_content, _span.desc_content):
                 continue
 
             nodes_to_remove = []
 
             for node_child in node_desc_signature:
-                if isinstance(node_child, addnodes.desc_parameterlist):
+                if isinstance(node_child, _span.desc_parameterlist):
                     nodes_to_remove.append((node_desc_signature, node_child))
 
             for node_child in node_desc_content:
-                if isinstance(node_child, (nodes.paragraph, nodes.field_list)):
+                if isinstance(node_child, (_dun.paragraph, _dun.field_list)):
                     nodes_to_remove.append((node_desc_content, node_child))
 
             for parent, child in nodes_to_remove:
                 parent.remove(child)
 
 
-class SphinxPostTransformLists(SphinxPostTransform):
+class _SphinxPostTransformLists(_sppt.SphinxPostTransform):
 
     """
     A class decorator used for applying lists post-transforms.
@@ -239,20 +228,20 @@ class SphinxPostTransformLists(SphinxPostTransform):
 
     def run(self, **kwargs):
 
-        for node in self.document.traverse(nodes.bullet_list):
+        for node in self.document.traverse(_dun.bullet_list):
 
             target = node.parent
 
-            if target is None or not isinstance(target, nodes.paragraph):
+            if target is None or not isinstance(target, _dun.paragraph):
                 continue
 
             for child in target.children:
-                if isinstance(child, nodes.Text) and child.astext() == ' – ':
+                if isinstance(child, _dun.Text) and child.astext() == ' – ':
                     target.remove(child)
                     break
 
 
-class SphinxPostTransformProperties(SphinxPostTransform):
+class _SphinxPostTransformProperties(_sppt.SphinxPostTransform):
 
     """
     A class decorator used for applying properties post-transforms.
@@ -262,11 +251,11 @@ class SphinxPostTransformProperties(SphinxPostTransform):
 
     def run(self, **kwargs):
 
-        for node in self.document.traverse(addnodes.desc_signature):
+        for node in self.document.traverse(_span.desc_signature):
 
             parent = node.parent
 
-            if parent is None or not isinstance(parent, addnodes.desc):
+            if parent is None or not isinstance(parent, _span.desc):
                 continue
 
             if not parent.hasattr('objtype'):
@@ -281,7 +270,7 @@ class SphinxPostTransformProperties(SphinxPostTransform):
 
             for node_child in node:
 
-                if isinstance(node_child, addnodes.desc_annotation):
+                if isinstance(node_child, _span.desc_annotation):
 
                     node_child_text = node_child.astext().strip()
 
@@ -300,7 +289,7 @@ class SphinxPostTransformProperties(SphinxPostTransform):
 
 def _process_intersphinx_aliases(app):
 
-    inventories = InventoryAdapter(app.builder.env)
+    inventories = _spei.InventoryAdapter(app.builder.env)
 
     for alias, target in app.config.intersphinx_aliases.items():
 
@@ -325,9 +314,9 @@ def _process_intersphinx_aliases(app):
 
 def setup(app):
 
-    app.add_post_transform(SphinxPostTransformConstructor)
-    app.add_post_transform(SphinxPostTransformProperties)
-    app.add_post_transform(SphinxPostTransformLists)
+    app.add_post_transform(_SphinxPostTransformConstructor)
+    app.add_post_transform(_SphinxPostTransformProperties)
+    app.add_post_transform(_SphinxPostTransformLists)
 
     app.add_config_value('intersphinx_aliases', {}, 'env')
     app.connect('builder-inited', _process_intersphinx_aliases)

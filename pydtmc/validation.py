@@ -40,16 +40,16 @@ from copy import (
 )
 
 from inspect import (
-    isclass as _isclass,
-    signature as _signature
+    isclass as _ins_isclass,
+    signature as _ins_signature
 )
 
 from itertools import (
-    product as _product
+    product as _it_product
 )
 
 from os.path import (
-    isfile as _isfile
+    isfile as _os_isfile
 )
 
 from typing import (
@@ -257,7 +257,7 @@ def validate_dictionary(value: _tany) -> _tmc_dict:
         states.add(d_key[0])
         states.add(d_key[1])
 
-    combinations = list(_product(states, repeat=2))
+    combinations = list(_it_product(states, repeat=2))
 
     if len(value) != len(combinations) or not all(combination in value for combination in combinations):
         raise ValueError('The "@arg@" parameter keys must contain all the possible combinations of states.')
@@ -361,7 +361,7 @@ def validate_file_path(value: _tany, file_extensions: _tlist_str, write_permissi
 
     file_path = value
 
-    if not _isfile(file_path):
+    if not _os_isfile(file_path):
         raise ValueError('The "@arg@" parameter defines an invalid file path.')
 
     try:
@@ -890,10 +890,10 @@ def validate_time_points(value: _tany) -> _ttimes_in:
 
 def validate_transition_function(value: _tany) -> _ttfunc:
 
-    if value is None or _isclass(value) or not callable(value):
+    if value is None or _ins_isclass(value) or not callable(value):
         raise TypeError('The "@arg@" parameter must be a callable function or method.')
 
-    sig = _signature(value)
+    sig = _ins_signature(value)
 
     if len(sig.parameters) != 4:
         raise ValueError('The "@arg@" parameter must accept 4 input arguments.')

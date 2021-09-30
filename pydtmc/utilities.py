@@ -13,7 +13,9 @@ __all__ = [
 
 # Standard
 
-import pathlib as _pl
+from pathlib import (
+    Path as _Path
+)
 
 # Libraries
 
@@ -61,4 +63,4 @@ def generate_validation_error(e: _texception, trace: _tany) -> _ValidationError:
 
 def get_file_extension(file_path: str) -> str:
 
-    return ''.join(_pl.Path(file_path).suffixes).lower()
+    return ''.join(_Path(file_path).suffixes).lower()

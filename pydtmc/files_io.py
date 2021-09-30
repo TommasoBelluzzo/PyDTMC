@@ -34,9 +34,8 @@ from json import (
     load as _json_load
 )
 
-# noinspection PyPep8Naming
 from xml.etree import (
-    cElementTree as _xml_tree
+    cElementTree as _ElementTree
 )
 
 try:
@@ -277,15 +276,15 @@ def write_txt(d: _tmc_dict, file_path: str):
 
 def write_xml(d: _tmc_dict, file_path: str):
 
-    root = _xml_tree.Element('MarkovChain')
+    root = _ElementTree.Element('MarkovChain')
 
     for it, ip in d.items():
-        transition = _xml_tree.SubElement(root, 'Transition')
+        transition = _ElementTree.SubElement(root, 'Transition')
         transition.set('state_from', it[0])
         transition.set('state_to', it[1])
         transition.set('probability', str(ip))
 
-    document = _xml_tree.ElementTree(root)
+    document = _ElementTree.ElementTree(root)
 
     with _BytesIO() as buffer:
         document.write(buffer, 'utf-8', True)

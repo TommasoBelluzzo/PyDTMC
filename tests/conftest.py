@@ -8,14 +8,14 @@
 # Standard
 
 from os.path import (
-    abspath,
-    dirname,
-    isfile,
-    join
+    abspath as _os_abspath,
+    dirname as _os_dirname,
+    isfile as _os_isfile,
+    join as _os_join
 )
 
 from json import (
-    load
+    load as _json_load
 )
 
 
@@ -171,15 +171,15 @@ def pytest_generate_tests(metafunc):
 
     if test_name not in _fixtures:
 
-        base_directory = abspath(dirname(__file__))
-        fixtures_file = join(base_directory, f'fixtures/fixtures_{test_name}.json')
+        base_directory = _os_abspath(_os_dirname(__file__))
+        fixtures_file = _os_join(base_directory, f'fixtures/fixtures_{test_name}.json')
 
-        if not isfile(fixtures_file):
+        if not _os_isfile(fixtures_file):
             _fixtures[test_name] = None
         else:
 
             with open(fixtures_file, 'r') as file:
-                fixture = load(file)
+                fixture = _json_load(file)
                 fixture = _sanitize_fixture_recursive(fixture, _replacements)
                 _fixtures[test_name] = fixture
 

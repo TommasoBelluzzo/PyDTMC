@@ -8,75 +8,71 @@
 # Standard
 
 from ast import (
-    parse
+    parse as _ast_parse
 )
 
-# noinspection PyPep8Naming
 from re import (
-    IGNORECASE as flag_ignorecase,
-    search
+    search as _re_search
 )
 
 from types import (
-    CodeType,
-    FunctionType
+    CodeType as _CodeType,
+    FunctionType as _FunctionType
 )
 
 # Libraries
 
-import networkx as nx
-import numpy as np
+import networkx as _nx
+import numpy as _np
+import pytest as _pt
+
 # noinspection PyUnresolvedReferences
-import scipy.sparse as spsp  # noqa
+import scipy.sparse as _spsp  # noqa
 
 try:
-    import pandas as pd
-except ImportError:
-    pd = None
-
-from pytest import (
-    skip
-)
+    import pandas as _pd
+except ImportError:  # noqa
+    _pd = None
 
 # Internal
 
 from pydtmc import (
-    MarkovChain
+    MarkovChain as _MarkovChain
 )
 
 # noinspection PyUnresolvedReferences
 from pydtmc.base_class import (  # noqa
-    BaseClass
+    BaseClass as _BaseClass
 )
 
 # noinspection PyProtectedMember
 from pydtmc.validation import (
     _extract,
     _extract_as_numeric,
-    validate_boolean,
-    validate_boundary_condition,
-    validate_dictionary,
-    validate_distribution,
-    validate_dpi,
-    validate_enumerator,
-    validate_float,
-    validate_graph,
-    validate_integer,
-    validate_hyperparameter,
-    validate_interval,
-    validate_markov_chain,
-    validate_mask,
-    validate_matrix,
-    validate_partitions,
-    validate_rewards,
-    validate_state,
-    validate_state_names,
-    validate_states,
-    validate_status,
-    validate_time_points,
-    validate_transition_function,
-    validate_transition_matrix,
-    validate_vector
+    validate_boolean as _validate_boolean,
+    validate_boundary_condition as _validate_boundary_condition,
+    validate_dictionary as _validate_dictionary,
+    validate_distribution as _validate_distribution,
+    validate_dpi as _validate_dpi,
+    validate_enumerator as _validate_enumerator,
+    validate_float as _validate_float,
+    validate_graph as _validate_graph,
+    validate_integer as _validate_integer,
+    validate_hyperparameter as _validate_hyperparameter,
+    validate_interval as _validate_interval,
+    validate_markov_chain as _validate_markov_chain,
+    validate_mask as _validate_mask,
+    validate_matrix as _validate_matrix,
+    validate_partitions as _validate_partitions,
+    validate_rewards as _validate_rewards,
+    validate_state as _validate_state,
+    validate_state_names as _validate_state_names,
+    validate_states as _validate_states,
+    validate_status as _validate_status,
+    validate_time_points as _validate_time_points,
+    validate_transition_function as _validate_transition_function,
+    validate_transition_matrix as _validate_transition_matrix,
+    validate_vector as _validate_vector
 )
 
 
@@ -86,12 +82,12 @@ from pydtmc.validation import (
 
 def _string_to_function(source):
 
-    ast_tree = parse(source)
+    ast_tree = _ast_parse(source)
     module_object = compile(ast_tree, '<ast>', 'exec')
-    code_object = [c for c in module_object.co_consts if isinstance(c, CodeType)][0]
+    code_object = [c for c in module_object.co_consts if isinstance(c, _CodeType)][0]
 
     # noinspection PyArgumentList
-    f = FunctionType(code_object, {})
+    f = _FunctionType(code_object, {})
 
     return f
 
@@ -132,13 +128,17 @@ def test_validate_extract_as_numeric(value, evaluate, is_valid):
 
     if value is not None and isinstance(value, str) and evaluate:
 
-        if value.startswith('pd.') and pd is None:
+        if 'pd.' in value and _pd is None:
             should_skip = True
         else:
+            value = value.replace('np.', '_np.')
+            value = value.replace('nx.', '_nx.')
+            value = value.replace('pd.', '_pd.')
+            value = value.replace('spsp.', '_spsp.')
             value = eval(value)
 
     if should_skip:
-        skip('The test could not be performed because Pandas library could not be imported.')
+        _pt.skip('The test could not be performed because Pandas library could not be imported.')
     else:
 
         # noinspection PyBroadException
@@ -156,7 +156,7 @@ def test_validate_extract_as_numeric(value, evaluate, is_valid):
 
         if result is not None:
 
-            actual = isinstance(result, np.ndarray)
+            actual = isinstance(result, _np.ndarray)
             expected = True
 
             assert actual == expected
@@ -166,7 +166,7 @@ def test_validate_boolean(value, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_boolean(value)
+        result = _validate_boolean(value)
         result_is_valid = True
     except Exception:
         result = None
@@ -189,7 +189,7 @@ def test_validate_boundary_condition(value, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_boundary_condition(value)
+        result = _validate_boundary_condition(value)
         result_is_valid = True
     except Exception:
         result = None
@@ -224,7 +224,7 @@ def test_validate_dictionary(dictionary_elements, key_tuple, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_dictionary(d)
+        result = _validate_dictionary(d)
         result_is_valid = True
     except Exception:
         result = None
@@ -247,11 +247,11 @@ def test_validate_distribution(value, size, is_valid):
 
     if isinstance(value, list):
         for index, v in enumerate(value):
-            value[index] = np.asarray(v)
+            value[index] = _np.asarray(v)
 
     # noinspection PyBroadException
     try:
-        result = validate_distribution(value, size)
+        result = _validate_distribution(value, size)
         result_is_valid = True
     except Exception:
         result = None
@@ -264,7 +264,7 @@ def test_validate_distribution(value, size, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, np.ndarray) for v in result))
+        actual = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, _np.ndarray) for v in result))
         expected = True
 
         assert actual == expected
@@ -274,7 +274,7 @@ def test_validate_dpi(value, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_dpi(value)
+        result = _validate_dpi(value)
         result_is_valid = True
     except Exception:
         result = None
@@ -297,7 +297,7 @@ def test_validate_enumerator(value, possible_values, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_enumerator(value, possible_values)
+        result = _validate_enumerator(value, possible_values)
         result_is_valid = True
     except Exception:
         result = None
@@ -323,7 +323,7 @@ def test_validate_float(value, lower_limit, upper_limit, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_float(value, lower_limit, upper_limit)
+        result = _validate_float(value, lower_limit, upper_limit)
         result_is_valid = True
     except Exception:
         result = None
@@ -347,18 +347,18 @@ def test_validate_graph(graph_data, is_valid):
     if graph_data is None:
         g = None
     elif isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
-        g = nx.from_numpy_matrix(np.array(graph_data), create_using=nx.DiGraph()) if len(graph_data) > 0 else nx.DiGraph()
-        g = nx.relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
+        g = _nx.from_numpy_matrix(_np.array(graph_data), create_using=_nx.DiGraph()) if len(graph_data) > 0 else _nx.DiGraph()
+        g = _nx.relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
     else:
 
-        g = nx.DiGraph()
+        g = _nx.DiGraph()
 
         for x in graph_data:
             g.add_node(x)
 
     # noinspection PyBroadException
     try:
-        result = validate_graph(g)
+        result = _validate_graph(g)
         result_is_valid = True
     except Exception:
         result = None
@@ -371,7 +371,7 @@ def test_validate_graph(graph_data, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, nx.DiGraph)
+        actual = isinstance(result, _nx.DiGraph)
         expected = True
 
         assert actual == expected
@@ -379,18 +379,18 @@ def test_validate_graph(graph_data, is_valid):
     if graph_data is None:
         g = None
     elif isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
-        g = nx.from_numpy_matrix(np.array(graph_data), create_using=nx.DiGraph()) if len(graph_data) > 0 else nx.DiGraph()
-        g = nx.relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
+        g = _nx.from_numpy_matrix(_np.array(graph_data), create_using=_nx.DiGraph()) if len(graph_data) > 0 else _nx.DiGraph()
+        g = _nx.relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
     else:
 
-        g = nx.DiGraph()
+        g = _nx.DiGraph()
 
         for x in graph_data:
             g.add_node(x)
 
     # noinspection PyBroadException
     try:
-        result = validate_graph(g)
+        result = _validate_graph(g)
         result_is_valid = True
     except Exception:
         result = None
@@ -403,7 +403,7 @@ def test_validate_graph(graph_data, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, nx.DiGraph)
+        actual = isinstance(result, _nx.DiGraph)
         expected = True
 
         assert actual == expected
@@ -416,7 +416,7 @@ def test_validate_integer(value, lower_limit, upper_limit, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_integer(value, lower_limit, upper_limit)
+        result = _validate_integer(value, lower_limit, upper_limit)
         result_is_valid = True
     except Exception:
         result = None
@@ -439,7 +439,7 @@ def test_validate_hyperparameter(value, size, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_hyperparameter(value, size)
+        result = _validate_hyperparameter(value, size)
         result_is_valid = True
     except Exception:
         result = None
@@ -452,7 +452,7 @@ def test_validate_hyperparameter(value, size, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, np.ndarray)
+        actual = isinstance(result, _np.ndarray)
         expected = True
 
         assert actual == expected
@@ -464,7 +464,7 @@ def test_validate_interval(value, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_interval(value)
+        result = _validate_interval(value)
         result_is_valid = True
     except Exception:
         result = None
@@ -485,37 +485,55 @@ def test_validate_interval(value, is_valid):
 
 def test_validate_markov_chain(value, is_valid):
 
-    if value is not None and isinstance(value, str) and search(r'^[A-Z]+\([^)]*\)$', value, flags=flag_ignorecase):
-        value = eval(value)
+    should_skip = False
 
-    # noinspection PyBroadException
-    try:
-        result = validate_markov_chain(value)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
+    if value is not None and isinstance(value, str):
 
-    actual = result_is_valid
-    expected = is_valid
+        if 'pd.' in value and _pd is None:
+            should_skip = True
+        else:
 
-    assert actual == expected
+            value = value.replace('np.', '_np.')
+            value = value.replace('nx.', '_nx.')
+            value = value.replace('pd.', '_pd.')
+            value = value.replace('spsp.', '_spsp.')
 
-    if result is not None:
+            if _re_search(r'^(?:BaseClass|MarkovChain)\(', value):
+                value = '_' + value
 
-        actual = isinstance(result, MarkovChain)
-        expected = True
+            value = eval(value)
+
+    if should_skip:
+        _pt.skip('The test could not be performed because Pandas library could not be imported.')
+    else:
+
+        # noinspection PyBroadException
+        try:
+            result = _validate_markov_chain(value)
+            result_is_valid = True
+        except Exception:
+            result = None
+            result_is_valid = False
+
+        actual = result_is_valid
+        expected = is_valid
 
         assert actual == expected
+
+        if result is not None:
+            actual = isinstance(result, _MarkovChain)
+            expected = True
+
+            assert actual == expected
 
 
 def test_validate_mask(value, size, is_valid):
 
-    value = np.asarray(value)
+    value = _np.asarray(value)
 
     # noinspection PyBroadException
     try:
-        result = validate_mask(value, size)
+        result = _validate_mask(value, size)
         result_is_valid = True
     except Exception:
         result = None
@@ -528,7 +546,7 @@ def test_validate_mask(value, size, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, np.ndarray)
+        actual = isinstance(result, _np.ndarray)
         expected = True
 
         assert actual == expected
@@ -536,11 +554,11 @@ def test_validate_mask(value, size, is_valid):
 
 def test_validate_matrix(value, is_valid):
 
-    value = np.asarray(value)
+    value = _np.asarray(value)
 
     # noinspection PyBroadException
     try:
-        result = validate_matrix(value)
+        result = _validate_matrix(value)
         result_is_valid = True
     except Exception:
         result = None
@@ -553,7 +571,7 @@ def test_validate_matrix(value, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, np.ndarray)
+        actual = isinstance(result, _np.ndarray)
         expected = True
 
         assert actual == expected
@@ -563,7 +581,7 @@ def test_validate_partitions(value, current_states, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_partitions(value, current_states)
+        result = _validate_partitions(value, current_states)
         result_is_valid = True
     except Exception:
         result = None
@@ -586,7 +604,7 @@ def test_validate_rewards(value, size, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_rewards(value, size)
+        result = _validate_rewards(value, size)
         result_is_valid = True
     except Exception:
         result = None
@@ -599,7 +617,7 @@ def test_validate_rewards(value, size, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, np.ndarray)
+        actual = isinstance(result, _np.ndarray)
         expected = True
 
         assert actual == expected
@@ -609,7 +627,7 @@ def test_validate_state(value, current_states, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_state(value, current_states)
+        result = _validate_state(value, current_states)
         result_is_valid = True
     except Exception:
         result = None
@@ -637,7 +655,7 @@ def test_validate_state_names(value, size, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_state_names(value, size)
+        result = _validate_state_names(value, size)
         result_is_valid = True
     except Exception:
         result = None
@@ -660,7 +678,7 @@ def test_validate_states(value, current_states, states_type, flex, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_states(value, current_states, states_type, flex)
+        result = _validate_states(value, current_states, states_type, flex)
         result_is_valid = True
     except Exception:
         result = None
@@ -683,7 +701,7 @@ def test_validate_status(value, current_states, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_status(value, current_states)
+        result = _validate_status(value, current_states)
         result_is_valid = True
     except Exception:
         result = None
@@ -696,7 +714,7 @@ def test_validate_status(value, current_states, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, np.ndarray)
+        actual = isinstance(result, _np.ndarray)
         expected = True
 
         assert actual == expected
@@ -706,7 +724,7 @@ def test_validate_time_points(value, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_time_points(value)
+        result = _validate_time_points(value)
         result_is_valid = True
     except Exception:
         result = None
@@ -735,7 +753,7 @@ def test_validate_transition_function(value, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_transition_function(value)
+        result = _validate_transition_function(value)
         result_is_valid = True
     except Exception:
         result = None
@@ -758,7 +776,7 @@ def test_validate_transition_matrix(value, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_transition_matrix(value)
+        result = _validate_transition_matrix(value)
         result_is_valid = True
     except Exception:
         result = None
@@ -771,7 +789,7 @@ def test_validate_transition_matrix(value, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, np.ndarray)
+        actual = isinstance(result, _np.ndarray)
         expected = True
 
         assert actual == expected
@@ -781,7 +799,7 @@ def test_validate_vector(value, vector_type, flex, size, is_valid):
 
     # noinspection PyBroadException
     try:
-        result = validate_vector(value, vector_type, flex, size)
+        result = _validate_vector(value, vector_type, flex, size)
         result_is_valid = True
     except Exception:
         result = None
@@ -794,7 +812,7 @@ def test_validate_vector(value, vector_type, flex, size, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, np.ndarray)
+        actual = isinstance(result, _np.ndarray)
         expected = True
 
         assert actual == expected

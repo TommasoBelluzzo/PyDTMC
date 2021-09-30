@@ -8,31 +8,28 @@
 # Standard
 
 from os import (
-    close,
-    remove
+    close as _os_close,
+    remove as _os_remove
 )
 
 from random import (
-    randint
+    randint as _rd_randint
 )
 
 from tempfile import (
-    mkstemp
+    mkstemp as _tf_mkstemp
 )
 
 # Libraries
 
-import numpy.random as npr
-import numpy.testing as npt
-
-from pytest import (
-    mark
-)
+import numpy.random as _npr
+import numpy.testing as _npt
+import pytest as _pt
 
 # Internal
 
 from pydtmc import (
-    MarkovChain
+    MarkovChain as _MarkovChain
 )
 
 
@@ -44,53 +41,53 @@ def test_dictionary(seed, maximum_size, runs):
 
     for _ in range(runs):
 
-        size = randint(2, maximum_size)
-        zeros = randint(0, size)
-        mc_to = MarkovChain.random(size, zeros=zeros, seed=seed)
+        size = _rd_randint(2, maximum_size)
+        zeros = _rd_randint(0, size)
+        mc_to = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
         d = mc_to.to_dictionary()
-        mc_from = MarkovChain.from_dictionary(d)
+        mc_from = _MarkovChain.from_dictionary(d)
 
-        npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
-@mark.slow
+@_pt.mark.slow
 def test_graph(seed, maximum_size, runs):
 
     for _ in range(runs):
 
-        size = randint(2, maximum_size)
-        zeros = randint(0, size)
-        mc_to = MarkovChain.random(size, zeros=zeros, seed=seed)
+        size = _rd_randint(2, maximum_size)
+        zeros = _rd_randint(0, size)
+        mc_to = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
         graph = mc_to.to_graph(False)
-        mc_from = MarkovChain.from_graph(graph)
+        mc_from = _MarkovChain.from_graph(graph)
 
-        npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
         graph = mc_to.to_graph(True)
-        mc_from = MarkovChain.from_graph(graph)
+        mc_from = _MarkovChain.from_graph(graph)
 
-        npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
-@mark.slow
+@_pt.mark.slow
 def test_file(seed, maximum_size, runs, file_extension):
 
     for _ in range(runs):
 
-        size = randint(2, maximum_size)
-        zeros = randint(0, size)
-        mc_to = MarkovChain.random(size, zeros=zeros, seed=seed)
+        size = _rd_randint(2, maximum_size)
+        zeros = _rd_randint(0, size)
+        mc_to = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
-        file_handler, file_path = mkstemp(suffix=file_extension)
-        close(file_handler)
+        file_handler, file_path = _tf_mkstemp(suffix=file_extension)
+        _os_close(file_handler)
 
         # noinspection PyBroadException
         try:
 
             mc_to.to_file(file_path)
-            mc_from = MarkovChain.from_file(file_path)
+            mc_from = _MarkovChain.from_file(file_path)
 
             exception = False
 
@@ -99,25 +96,25 @@ def test_file(seed, maximum_size, runs, file_extension):
             mc_from = None
             exception = True
 
-        remove(file_path)
+        _os_remove(file_path)
 
         assert exception is False
 
-        npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
 def test_matrix(seed, maximum_size, runs):
 
-    npr.seed(seed)
+    _npr.seed(seed)
 
     for _ in range(runs):
 
-        size = randint(2, maximum_size)
+        size = _rd_randint(2, maximum_size)
 
-        m = npr.randint(101, size=(size, size))
-        mc1 = MarkovChain.from_matrix(m)
+        m = _npr.randint(101, size=(size, size))
+        mc1 = _MarkovChain.from_matrix(m)
 
         m = mc1.to_matrix()
-        mc2 = MarkovChain.from_matrix(m)
+        mc2 = _MarkovChain.from_matrix(m)
 
-        npt.assert_allclose(mc1.p, mc2.p, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(mc1.p, mc2.p, rtol=1e-5, atol=1e-8)

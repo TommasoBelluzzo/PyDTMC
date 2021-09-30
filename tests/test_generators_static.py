@@ -7,13 +7,13 @@
 
 # Libraries
 
-import numpy as np
-import numpy.testing as npt
+import numpy as _np
+import numpy.testing as _npt
 
 # Internal
 
 from pydtmc import (
-    MarkovChain
+    MarkovChain as _MarkovChain
 )
 
 
@@ -23,27 +23,27 @@ from pydtmc import (
 
 def test_approximation(size, approximation_type, alpha, sigma, rho, k, value):
 
-    mc = MarkovChain.approximation(size, approximation_type, alpha, sigma, rho, k)
+    mc = _MarkovChain.approximation(size, approximation_type, alpha, sigma, rho, k)
 
     actual = mc.p
-    expected = np.asarray(value)
+    expected = _np.asarray(value)
 
-    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_birth_death(p, q, value):
 
-    mc = MarkovChain.birth_death(p, q)
+    mc = _MarkovChain.birth_death(p, q)
 
     actual = mc.p
-    expected = np.asarray(value)
+    expected = _np.asarray(value)
 
-    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_closest_reversible(p, distribution, weighted, value):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
     cr = mc.closest_reversible(distribution, weighted)
 
     if mc.is_reversible:
@@ -51,62 +51,62 @@ def test_closest_reversible(p, distribution, weighted, value):
         expected = mc.p
     else:
         actual = cr.p
-        expected = np.asarray(value)
+        expected = _np.asarray(value)
 
-    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_gamblers_ruin(size, w, value):
 
-    mc = MarkovChain.gamblers_ruin(size, w)
+    mc = _MarkovChain.gamblers_ruin(size, w)
 
     actual = mc.p
-    expected = np.asarray(value)
+    expected = _np.asarray(value)
 
-    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_identity(size, value):
 
-    mc = MarkovChain.identity(size)
+    mc = _MarkovChain.identity(size)
 
     actual = mc.p
-    expected = np.asarray(value)
+    expected = _np.asarray(value)
 
-    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_random(seed, size, zeros, mask, value):
 
-    mc = MarkovChain.random(size, None, zeros, mask, seed)
+    mc = _MarkovChain.random(size, None, zeros, mask, seed)
 
     actual = mc.p
-    expected = np.asarray(value)
+    expected = _np.asarray(value)
 
-    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     if zeros > 0 and mask is None:
 
-        actual = size**2 - np.count_nonzero(mc.p)
+        actual = size**2 - _np.count_nonzero(mc.p)
         expected = zeros
 
         assert actual == expected
 
     if mask is not None:
 
-        indices = ~np.isnan(np.asarray(mask))
+        indices = ~_np.isnan(_np.asarray(mask))
 
         actual = mc.p[indices]
-        expected = np.asarray(value)[indices]
+        expected = _np.asarray(value)[indices]
 
-        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_urn_model(n, model, value):
 
-    mc = MarkovChain.urn_model(n, model)
+    mc = _MarkovChain.urn_model(n, model)
 
     actual = mc.p
-    expected = np.asarray(value)
+    expected = _np.asarray(value)
 
-    npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

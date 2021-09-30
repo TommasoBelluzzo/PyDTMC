@@ -7,18 +7,15 @@
 
 # Libraries
 
-import numpy as np
-import numpy.linalg as npl
-import numpy.testing as npt
-
-from pytest import (
-    skip
-)
+import numpy as _np
+import numpy.linalg as _npl
+import numpy.testing as _npt
+import pytest as _pt
 
 # Internal
 
 from pydtmc import (
-    MarkovChain
+    MarkovChain as _MarkovChain
 )
 
 
@@ -28,7 +25,7 @@ from pydtmc import (
 
 def test_attributes(p, is_absorbing, is_canonical, is_doubly_stochastic, is_ergodic, is_reversible, is_symmetric):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.is_absorbing
     expected = is_absorbing
@@ -63,12 +60,12 @@ def test_attributes(p, is_absorbing, is_canonical, is_doubly_stochastic, is_ergo
 
 def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communication_matrix):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.accessibility_matrix
-    expected = np.asarray(accessibility_matrix)
+    expected = _np.asarray(accessibility_matrix)
 
-    assert np.array_equal(actual, expected)
+    assert _np.array_equal(actual, expected)
 
     for i in range(mc.size):
         for j in range(mc.size):
@@ -84,25 +81,25 @@ def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communicatio
             assert actual == expected
 
     actual = mc.adjacency_matrix
-    expected = np.asarray(adjacency_matrix)
+    expected = _np.asarray(adjacency_matrix)
 
-    assert np.array_equal(actual, expected)
+    assert _np.array_equal(actual, expected)
 
     actual = mc.communication_matrix
-    expected = np.asarray(communication_matrix)
+    expected = _np.asarray(communication_matrix)
 
-    assert np.array_equal(actual, expected)
+    assert _np.array_equal(actual, expected)
 
 
 def test_entropy(p, entropy_rate, entropy_rate_normalized, topological_entropy):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.entropy_rate
     expected = entropy_rate
 
     if actual is not None and expected is not None:
-        assert np.isclose(actual, expected)
+        assert _np.isclose(actual, expected)
     else:
         assert actual == expected
 
@@ -110,26 +107,26 @@ def test_entropy(p, entropy_rate, entropy_rate_normalized, topological_entropy):
     expected = entropy_rate_normalized
 
     if actual is not None and expected is not None:
-        assert np.isclose(actual, expected)
+        assert _np.isclose(actual, expected)
     else:
         assert actual == expected
 
     actual = mc.topological_entropy
     expected = topological_entropy
 
-    assert np.isclose(actual, expected)
+    assert _np.isclose(actual, expected)
 
 
 def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.fundamental_matrix
     expected = fundamental_matrix
 
     if actual is not None and expected is not None:
-        expected = np.asarray(expected)
-        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        expected = _np.asarray(expected)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -137,17 +134,17 @@ def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
     expected = kemeny_constant
 
     if actual is not None and expected is not None:
-        assert np.isclose(actual, expected)
+        assert _np.isclose(actual, expected)
     else:
         assert actual == expected
 
 
 def test_irreducibility(p):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     if not mc.is_irreducible:
-        skip('Markov _chain is not irreducible.')
+        _pt.skip('Markov _chain is not irreducible.')
     else:
 
         actual = mc.states
@@ -164,12 +161,12 @@ def test_irreducibility(p):
         actual = cf.p
         expected = mc.p
 
-        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_lumping_partitions(p, lumping_partitions):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.lumping_partitions
     expected = lumping_partitions
@@ -179,12 +176,12 @@ def test_lumping_partitions(p, lumping_partitions):
 
 def test_matrix(p, determinant, rank):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.determinant
     expected = determinant
 
-    assert np.isclose(actual, expected)
+    assert _np.isclose(actual, expected)
 
     actual = mc.rank
     expected = rank
@@ -194,7 +191,7 @@ def test_matrix(p, determinant, rank):
 
 def test_periodicity(p, period):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.period
     expected = period
@@ -209,10 +206,10 @@ def test_periodicity(p, period):
 
 def test_regularity(p):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     if not mc.is_regular:
-        skip('Markov _chain is not regular.')
+        _pt.skip('Markov _chain is not regular.')
     else:
 
         actual = mc.is_irreducible
@@ -220,8 +217,8 @@ def test_regularity(p):
 
         assert actual == expected
 
-        values = np.sort(np.abs(npl.eigvals(mc.p)))
-        actual = np.sum(np.logical_or(np.isclose(values, 1.0), values > 1.0))
+        values = _np.sort(_np.abs(_npl.eigvals(mc.p)))
+        actual = _np.sum(_np.logical_or(_np.isclose(values, 1.0), values > 1.0))
         expected = 1
 
         assert actual == expected
@@ -229,8 +226,8 @@ def test_regularity(p):
 
 def test_stationary_distributions(p, stationary_distributions):
 
-    mc = MarkovChain(p)
-    stationary_distributions = [np.array(stationary_distribution) for stationary_distribution in stationary_distributions]
+    mc = _MarkovChain(p)
+    stationary_distributions = [_np.array(stationary_distribution) for stationary_distribution in stationary_distributions]
 
     actual = len(mc.pi)
     expected = len(stationary_distributions)
@@ -242,25 +239,25 @@ def test_stationary_distributions(p, stationary_distributions):
 
     assert actual == expected
 
-    ss_matrix = np.vstack(mc.pi)
-    actual = npl.matrix_rank(ss_matrix)
+    ss_matrix = _np.vstack(mc.pi)
+    actual = _npl.matrix_rank(ss_matrix)
     expected = min(ss_matrix.shape)
 
     assert actual == expected
 
     for index, stationary_distribution in enumerate(stationary_distributions):
 
-        assert np.isclose(np.sum(mc.pi[index]), 1.0)
+        assert _np.isclose(_np.sum(mc.pi[index]), 1.0)
 
         actual = mc.pi[index]
         expected = stationary_distribution
 
-        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_transitions(p):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     transition_matrix = mc.p
     states = mc.states
@@ -270,7 +267,7 @@ def test_transitions(p):
         actual = mc.conditional_probabilities(state)
         expected = transition_matrix[index, :]
 
-        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     for index1, state1 in enumerate(states):
         for index2, state2 in enumerate(states):
@@ -278,18 +275,18 @@ def test_transitions(p):
             actual = mc.transition_probability(state1, state2)
             expected = transition_matrix[index2, index1]
 
-            assert np.isclose(actual, expected)
+            assert _np.isclose(actual, expected)
 
 
 def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.mixing_rate
     expected = mixing_rate
 
     if actual is not None and expected is not None:
-        assert np.isclose(actual, expected)
+        assert _np.isclose(actual, expected)
     else:
         assert actual == expected
 
@@ -297,7 +294,7 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     expected = relaxation_rate
 
     if actual is not None and expected is not None:
-        assert np.isclose(actual, expected)
+        assert _np.isclose(actual, expected)
     else:
         assert actual == expected
 
@@ -305,7 +302,7 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     expected = spectral_gap
 
     if actual is not None and expected is not None:
-        assert np.isclose(actual, expected)
+        assert _np.isclose(actual, expected)
     else:
         assert actual == expected
 
@@ -313,7 +310,7 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     expected = implied_timescales
 
     if actual is not None and expected is not None:
-        expected = np.asarray(expected)
-        npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        expected = _np.asarray(expected)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected

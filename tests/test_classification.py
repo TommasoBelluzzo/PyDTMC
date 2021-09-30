@@ -7,13 +7,13 @@
 
 # Libraries
 
-import numpy as np
-import numpy.testing as npt
+import numpy as _np
+import numpy.testing as _npt
 
 # Internal
 
 from pydtmc import (
-    MarkovChain
+    MarkovChain as _MarkovChain
 )
 
 
@@ -23,7 +23,7 @@ from pydtmc import (
 
 def test_classes_communicating(p, communicating_classes):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.communicating_classes
     expected = communicating_classes
@@ -32,9 +32,9 @@ def test_classes_communicating(p, communicating_classes):
 
     if len(communicating_classes) > 1:
 
-        npt.assert_array_equal(mc.communication_matrix, np.transpose(mc.communication_matrix))
+        _npt.assert_array_equal(mc.communication_matrix, _np.transpose(mc.communication_matrix))
 
-    if np.array_equal(mc.p, np.eye(mc.size, dtype=float)):
+    if _np.array_equal(mc.p, _np.eye(mc.size, dtype=float)):
 
         actual = [state for states in mc.communicating_classes for state in states]
         expected = mc.states
@@ -44,7 +44,7 @@ def test_classes_communicating(p, communicating_classes):
 
 def test_classes_recurrent(p, recurrent_classes):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.recurrent_classes
     expected = recurrent_classes
@@ -59,7 +59,7 @@ def test_classes_recurrent(p, recurrent_classes):
 
 def test_classes_transient(p, transient_classes):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.transient_classes
     expected = transient_classes
@@ -74,14 +74,14 @@ def test_classes_transient(p, transient_classes):
 
 def test_classes_cyclic(p, cyclic_classes):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.cyclic_classes
     expected = cyclic_classes
 
     assert actual == expected
 
-    if np.array_equal(mc.p, np.eye(mc.size, dtype=float)):
+    if _np.array_equal(mc.p, _np.eye(mc.size, dtype=float)):
 
         actual = mc.recurrent_states
         expected = mc.states
@@ -91,7 +91,7 @@ def test_classes_cyclic(p, cyclic_classes):
 
 def test_states_space(p, recurrent_classes, transient_classes):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.recurrent_states
     expected = sorted([state for recurrent_class in recurrent_classes for state in recurrent_class])
@@ -119,7 +119,7 @@ def test_states_space(p, recurrent_classes, transient_classes):
 
 def test_states_absorbing(p, recurrent_classes, absorbing_states):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     actual = mc.absorbing_states
     expected = absorbing_states
@@ -138,7 +138,7 @@ def test_states_absorbing(p, recurrent_classes, absorbing_states):
 
 def test_states_cyclic(p):
 
-    mc = MarkovChain(p)
+    mc = _MarkovChain(p)
 
     if len(mc.cyclic_states) > 0:
         for state in mc.cyclic_states:

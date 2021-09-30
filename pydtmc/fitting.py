@@ -30,6 +30,7 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
+# noinspection PyBroadException
 def fit_function(possible_states: _tlist_str, f: _ttfunc, quadrature_type: str, quadrature_interval: _tinterval) -> _tfitres:
 
     size = len(possible_states)
@@ -126,7 +127,16 @@ def fit_function(possible_states: _tlist_str, f: _ttfunc, quadrature_type: str, 
 
     for i in range(size):
         for j in range(size):
-            p[i, j] = f(i, nodes[i], j, nodes[j]) * weights[j]
+
+            try:
+                f_result = float(f(i, nodes[i], j, nodes[j]))
+            except Exception:
+                return None, 'The transition function returned an invalid result.'
+
+            if not _np.isfinite(f_result) or not _np.isreal(f_result):
+                return None, 'The transition function returned an invalid result.'
+
+            p[i, j] = f_result * weights[j]
 
     p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)
