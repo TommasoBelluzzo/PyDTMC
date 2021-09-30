@@ -130,10 +130,10 @@ def fit_function(possible_states: _tlist_str, f: _ttfunc, quadrature_type: str, 
 
             try:
                 f_result = float(f(i, nodes[i], j, nodes[j]))
-            except Exception:
+            except Exception:  # pragma: no cover
                 return None, 'The transition function returned an invalid result.'
 
-            if not _np.isfinite(f_result) or not _np.isreal(f_result):
+            if not _np.isfinite(f_result) or not _np.isreal(f_result):  # pragma: no cover
                 return None, 'The transition function returned an invalid result.'
 
             p[i, j] = f_result * weights[j]
