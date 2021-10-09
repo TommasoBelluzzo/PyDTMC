@@ -54,16 +54,24 @@ _base_directory = _os_abspath(_os_dirname(__file__))
 _init_file = _os_join(_base_directory, '../../pydtmc/__init__.py')
 
 with open(_init_file, 'r') as _file:
-    _file_content = _file.read()
-    _matches = _re_search(r'^__version__ = \'(\d\.\d\.\d)\'$', _file_content, flags=_re_multiline)
-    _current_version = _matches.group(1)
 
-project = 'PyDTMC'
+    _file_content = _file.read()
+
+    _matches = _re_search(r'^__version__ = \'(\d\.\d\.\d)\'$', _file_content, flags=_re_ignorecase | _re_multiline)
+    _version = _matches.group(1)
+
+    _matches = _re_search(r'^__title__ = \'([A-Z]+)\'$', _file_content, flags=_re_ignorecase | _re_multiline)
+    _title = _matches.group(1)
+
+    _matches = _re_search(r'^__author__ = \'([A-Z ]+)\'$', _file_content, flags=_re_ignorecase | _re_multiline)
+    _author = _matches.group(1)
+
+project = _title
 project_title = project + ' Documentation'
-project_copyright = f'2019-{_dt_datetime.now().strftime("%Y")}, Tommaso Belluzzo'
-release = _current_version
-version = _current_version
-author = 'Tommaso Belluzzo'
+project_copyright = f'2019-{_dt_datetime.now().strftime("%Y")}, {_author}'
+author = _author
+version = _version
+release = _version
 
 
 ##############
@@ -165,7 +173,7 @@ latex_elements = {}
 
 # Manual
 
-man_pages = [(master_doc, 'pydtmc', project_title, [author], 1)]
+man_pages = [(master_doc, _title.lower(), project_title, [author], 1)]
 
 # Texinfo
 

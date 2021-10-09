@@ -183,7 +183,7 @@
       "is_valid": false
     },
     {
-      "value": 12.26668,
+      "value": 12.26668000,
       "evaluate": false,
       "is_valid": false
     },
@@ -340,8 +340,8 @@
   "validate_dictionary_data": [
     {
       "dictionary_elements": [
-        ["A", "A", 0.5],
-        ["A", "B", 0.5],
+        ["A", "A", 0.50],
+        ["A", "B", 0.50],
         ["B", "A", 0.25],
         ["B", "B", 0.75]
       ],
@@ -443,7 +443,7 @@
       "is_valid": true
     },
     {
-      "value": [[0.45, 0.05, 0.5], [1.0, 0.0, 0.0], [0.3, 0.2, 0.5]],
+      "value": [[0.45, 0.05, 0.50], [1.0, 0.0, 0.0], [0.3, 0.2, 0.5]],
       "size": 3,
       "is_valid": true
     },
@@ -458,7 +458,7 @@
       "is_valid": false
     },
     {
-      "value": [[0.4, 0.4, 0.3], [0.3, 0.35, 0.35], [0.4, 0.7, 0.0]],
+      "value": [[0.4, 0.4, 0.3], [0.30, 0.35, 0.35], [0.4, 0.7, 0.0]],
       "size": 3,
       "is_valid": false
     },
@@ -911,7 +911,7 @@
       "is_valid": false
     },
     {
-      "value": [["NaN", "NaN", "NaN"], [0.0, 0.45, 0.55], [1.0, "NaN", 0.2]],
+      "value": [["NaN", "NaN", "NaN"], [0.00, 0.45, 0.55], [1.0, "NaN", 0.2]],
       "size": 3,
       "is_valid": false
     },
@@ -1047,7 +1047,7 @@
       "is_valid": false
     },
     {
-      "value": [[0.3, 0.8, 0.1], [0.2, 0.0, -0.6], [-0.25, 0.4, -0.3]],
+      "value": [[0.3, 0.8, 0.1], [0.2, 0.0, -0.6], [-0.25, 0.40, -0.30]],
       "size": 3,
       "is_valid": false
     },
@@ -1601,7 +1601,7 @@
       "is_valid": false
     },
     {
-      "value": [0.15, 0.45, 0.9, 0.65],
+      "value": [0.15, 0.45, 0.90, 0.65],
       "vector_type": "unconstrained",
       "flex": false,
       "size": 4,
@@ -1629,7 +1629,7 @@
       "is_valid": false
     },
     {
-      "value": [[0.0], [0.45], [0.75]],
+      "value": [[0.00], [0.45], [0.75]],
       "vector_type": "unconstrained",
       "flex": false,
       "size": 3,
@@ -1643,7 +1643,7 @@
       "is_valid": false
     },
     {
-      "value": [1.25, 0.6, 0.2, 0.6, 0.2],
+      "value": [1.25, 0.60, 0.20, 0.60, 0.20],
       "vector_type": "unconstrained",
       "flex": false,
       "size": null,
@@ -1671,14 +1671,14 @@
       "is_valid": false
     },
     {
-      "value": [0.0, 0.25, 0.5, 0.75],
+      "value": [0.00, 0.25, 0.50, 0.75],
       "vector_type": "annihilation",
       "flex": false,
       "size": null,
       "is_valid": true
     },
     {
-      "value": [0.25, 0.5, 0.75, 0.0],
+      "value": [0.25, 0.50, 0.75, 0.00],
       "vector_type": "annihilation",
       "flex": false,
       "size": null,

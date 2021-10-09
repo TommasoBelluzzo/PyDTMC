@@ -1950,8 +1950,8 @@ class MarkovChain(metaclass=_BaseClass):
     def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat = None) -> _tmc:
 
         """
-        | The method approximates the Markov chain associated with the discretized version of the following first-order autoregressive process:
-        |
+        The method approximates the Markov chain associated with the discretized version of the first-order autoregressive process defined below.
+
         | :math:`y_t = (1 - \\rho) \\alpha + \\rho y_{t-1} + \\varepsilon_t`
         | with :math:`\\varepsilon_t \\overset{i.i.d}{\\sim} \\mathcal{N}(0, \\sigma_{\\varepsilon}^{2})`
 

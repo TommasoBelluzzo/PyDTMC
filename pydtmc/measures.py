@@ -128,7 +128,7 @@ def expected_transitions(p: _tarray, rdl: _trdl, steps: int, initial_distributio
 
         r, d, l = rdl  # noqa
 
-        q = _np.asarray(_np.diagonal(d))
+        q = _np.array(_np.diagonal(d))
         q_indices = (q == 1.0)
 
         gs = _np.zeros(_np.shape(q), dtype=float)

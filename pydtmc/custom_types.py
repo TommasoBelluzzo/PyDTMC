@@ -5,8 +5,12 @@ __all__ = [
     'ofloat', 'oint', 'ostr',
     'tany', 'texception', 'titerable',
     'tarray', 'oarray',
+    'tcache', 'ocache',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
+    'tfile', 'ofile',
+    'tlimit_float', 'olimit_float',
+    'tlimit_int', 'olimit_int',
     'tmc', 'omc',
     'tplot', 'oplot',
     'trand', 'orand',
@@ -25,15 +29,11 @@ __all__ = [
     'tlists_str', 'olists_str',
     # Specific
     'tbcond', 'obcond',
-    'tcache', 'ocache',
     'tdists_flex', 'odists_flex',
-    'tfile', 'ofile',
     'tfitres', 'ofitres',
     'tgenres', 'ogenres',
     'tgenres_ext', 'ogenres_ext',
     'tinterval', 'ointerval',
-    'tlimit_float', 'olimit_float',
-    'tlimit_int', 'olimit_int',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
     'tpart', 'opart',
@@ -102,11 +102,23 @@ titerable = _Iterable
 tarray = _np.ndarray
 oarray = _Optional[tarray]
 
+tcache = _Dict[str, tany]
+ocache = _Optional[tcache]
+
+tfile = _Tuple[str, str]
+ofile = _Optional[tfile]
+
 tgraph = _nx.DiGraph
 ograph = _Optional[tgraph]
 
 tgraphs = _Union[tgraph, _nx.MultiDiGraph]
 ographs = _Optional[tgraphs]
+
+tlimit_float = _Tuple[float, bool]
+olimit_float = _Optional[tlimit_float]
+
+tlimit_int = _Tuple[int, bool]
+olimit_int = _Optional[tlimit_int]
 
 tmc = _TypeVar('MarkovChain')
 omc = _Optional[tmc]
@@ -159,14 +171,8 @@ olists_str = _Optional[tlists_str]
 tbcond = _Union[float, int, str]
 obcond = _Optional[tbcond]
 
-tcache = _Dict[str, tany]
-ocache = _Optional[tcache]
-
 tdists_flex = _Union[int, tlist_array]
 odists_flex = _Optional[tdists_flex]
-
-tfile = _Tuple[str, str]
-ofile = _Optional[tfile]
 
 tfitres = _Tuple[oarray, ostr]
 ofitres = _Optional[tfitres]
@@ -179,12 +185,6 @@ ogenres_ext = _Optional[tgenres_ext]
 
 tinterval = _Tuple[_Union[float, int], _Union[float, int]]
 ointerval = _Optional[tinterval]
-
-tlimit_float = _Tuple[float, bool]
-olimit_float = _Optional[tlimit_float]
-
-tlimit_int = _Tuple[int, bool]
-olimit_int = _Optional[tlimit_int]
 
 tmc_dict = _Dict[_Tuple[str, str], float]
 omc_dict = _Optional[tmc_dict]

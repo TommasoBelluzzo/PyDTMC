@@ -80,6 +80,16 @@ from pydtmc.validation import (
 # FUNCTIONS #
 #############
 
+def _eval_replace(value):
+
+    value = value.replace('np.', '_np.')
+    value = value.replace('nx.', '_nx.')
+    value = value.replace('pd.', '_pd.')
+    value = value.replace('spsp.', '_spsp.')
+
+    return value
+
+
 def _string_to_function(source):
 
     ast_tree = _ast_parse(source)
@@ -131,10 +141,7 @@ def test_validate_extract_as_numeric(value, evaluate, is_valid):
         if 'pd.' in value and _pd is None:
             should_skip = True
         else:
-            value = value.replace('np.', '_np.')
-            value = value.replace('nx.', '_nx.')
-            value = value.replace('pd.', '_pd.')
-            value = value.replace('spsp.', '_spsp.')
+            value = _eval_replace(value)
             value = eval(value)
 
     if should_skip:
@@ -493,10 +500,7 @@ def test_validate_markov_chain(value, is_valid):
             should_skip = True
         else:
 
-            value = value.replace('np.', '_np.')
-            value = value.replace('nx.', '_nx.')
-            value = value.replace('pd.', '_pd.')
-            value = value.replace('spsp.', '_spsp.')
+            value = _eval_replace(value)
 
             if _re_search(r'^(?:BaseClass|MarkovChain)\(', value):
                 value = '_' + value

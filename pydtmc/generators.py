@@ -49,18 +49,19 @@ from .custom_types import (
 
 def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tgenres_ext:
 
-    def adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
+    def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
 
         t1 = _np.exp((-1.0 * (aci_x - aci_alpha) ** 2.0) / (2.0 * aci_sigma_z ** 2.0))
         t2 = _sps.norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
         t3 = _sps.norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
+        output = t1 * (t2 - t3)
 
-        return t1 * (t2 - t3)
+        return output
 
-    def rouwenhorst_matrix(rm_size: int, rm_z: float) -> _tarray:
+    def _rouwenhorst_matrix(rm_size, rm_z):
 
         if rm_size == 2:
-            rm_p = _np.array([[rm_z, 1 - rm_z], [1 - rm_z, rm_z]])
+            output = _np.array([[rm_z, 1 - rm_z], [1 - rm_z, rm_z]])
         else:
 
             t1 = _np.zeros((rm_size, rm_size))
@@ -68,17 +69,17 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
             t3 = _np.zeros((rm_size, rm_size))
             t4 = _np.zeros((rm_size, rm_size))
 
-            theta_inner = rouwenhorst_matrix(rm_size - 1, rm_z)
+            theta_inner = _rouwenhorst_matrix(rm_size - 1, rm_z)
 
             t1[:rm_size - 1, :rm_size - 1] = rm_z * theta_inner
             t2[:rm_size - 1, 1:] = (1.0 - rm_z) * theta_inner
             t3[1:, :-1] = (1.0 - rm_z) * theta_inner
             t4[1:, 1:] = rm_z * theta_inner
 
-            rm_p = t1 + t2 + t3 + t4
-            rm_p[1:rm_size - 1, :] /= 2.0
+            output = t1 + t2 + t3 + t4
+            output[1:rm_size - 1, :] /= 2.0
 
-        return rm_p
+        return output
 
     if approximation_type == 'adda-cooper':
 
@@ -89,13 +90,13 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
 
         for i in range(size):
             for j in range(size):
-                iq = _spi.quad(adda_cooper_integrand, z[i], z[i + 1], args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
+                iq = _spi.quad(_adda_cooper_integrand, z[i], z[i + 1], args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
                 p[i, j] = (size / _np.sqrt(2.0 * _np.pi * z_sigma ** 2.0)) * iq[0]
 
     elif approximation_type == 'rouwenhorst':
 
         z = (1.0 + rho) / 2.0
-        p = rouwenhorst_matrix(size, z)
+        p = _rouwenhorst_matrix(size, z)
 
     elif approximation_type == 'tauchen-hussey':
 
@@ -252,11 +253,17 @@ def canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tli
 
 def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _tgenres:
 
-    def jacobian(xj: _tarray, hj: _tarray, fj: _tarray):
-        return _np.dot(_np.transpose(xj), hj) + fj
+    def _jacobian(xj, hj, fj):
 
-    def objective(xo: _tarray, ho: _tarray, fo: _tarray):
-        return (0.5 * _npl.multi_dot([_np.transpose(xo), ho, xo])) + _np.dot(_np.transpose(fo), xo)
+        output = _np.dot(_np.transpose(xj), hj) + fj
+
+        return output
+
+    def _objective(xo, ho, fo):
+
+        output = (0.5 * _npl.multi_dot([_np.transpose(xo), ho, xo])) + _np.dot(_np.transpose(fo), xo)
+
+        return output
 
     size = p.shape[0]
 
@@ -374,7 +381,7 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
     )
 
     # noinspection PyTypeChecker
-    solution = _spo.minimize(objective, x0, jac=jacobian, args=(h, f), constraints=constraints, method='SLSQP', options={'disp': False})
+    solution = _spo.minimize(_objective, x0, jac=_jacobian, args=(h, f), constraints=constraints, method='SLSQP', options={'disp': False})
 
     if not solution['success']:  # pragma: no cover
         return None, 'The closest reversible could not be computed.'
