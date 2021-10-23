@@ -15,6 +15,7 @@ class BaseClass(type):
     Defines an abstract base class used for the package classes.
     """
 
+    # noinspection PyMethodParameters
     def __new__(cls, class_name, class_bases, class_dict):
 
         for class_base in class_bases:
