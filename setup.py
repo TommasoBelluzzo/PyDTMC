@@ -49,7 +49,7 @@ if _sys_version_info < (3, 6):
 
 with open('pydtmc/__init__.py', 'r') as _file:
     _file_content = _file.read()
-    _matches = _re_search(r'^__version__ = \'(\d\.\d\.\d)\'$', _file_content, flags=_re_multiline)
+    _matches = _re_search(r'^__version__ = \'(\d+\.\d+\.\d+)\'$', _file_content, flags=_re_multiline)
     _current_version = _matches.group(1)
 
 # Description
