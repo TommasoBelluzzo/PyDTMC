@@ -120,7 +120,7 @@ jobs:
       if: env.CONDA == 'YES'
       run: |
         if [[ "$PYPI" == "YES" ]]; then
-          sleep 180
+          sleep 300
         fi
         conda update --quiet conda
         conda install --quiet conda-build anaconda-client
