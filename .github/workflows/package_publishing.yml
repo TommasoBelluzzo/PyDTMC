@@ -111,6 +111,7 @@ jobs:
     - name: Conda Publishing
       env:
         TARGET: ${{ steps.bump.outputs.target }}
+        PYPI: ${{ steps.bump.outputs.pypi }}
         CONDA: ${{ steps.bump.outputs.conda }}
         VERSION: ${{ steps.bump.outputs.version }}
         META_REGEX: sha256_placeholder
@@ -118,6 +119,9 @@ jobs:
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
       if: env.CONDA == 'YES'
       run: |
+        if [[ "$PYPI" == "YES" ]]; then
+          sleep 180
+        fi
         conda update --quiet conda
         conda install --quiet conda-build anaconda-client
         wget "https://pypi.io/packages/source/P/PyDTMC/PyDTMC-${VERSION}.tar.gz" -O "/tmp/PyDTMC-${VERSION}.tar.gz"
