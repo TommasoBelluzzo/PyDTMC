@@ -57,7 +57,7 @@ with open(_init_file, 'r') as _file:
 
     _file_content = _file.read()
 
-    _matches = _re_search(r'^__version__ = \'(\d\.\d\.\d)\'$', _file_content, flags=_re_ignorecase | _re_multiline)
+    _matches = _re_search(r'^__version__ = \'(\d+\.\d+\.\d+)\'$', _file_content, flags=_re_multiline)
     _version = _matches.group(1)
 
     _matches = _re_search(r'^__title__ = \'([A-Z]+)\'$', _file_content, flags=_re_ignorecase | _re_multiline)
