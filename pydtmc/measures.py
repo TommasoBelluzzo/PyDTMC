@@ -139,6 +139,15 @@ def expected_transitions(p: _tarray, rdl: _trdl, steps: int, initial_distributio
         ts = _np.dot(_np.dot(r, ds), _np.conjugate(l))
         ps = _np.dot(initial_distribution, ts)
 
+        print(p)
+        print(r)
+        print(d)
+        print(l)
+        print(gs)
+        print(ds)
+        print(ts)
+        print(ps)
+
         et = _np.real(ps[:, _np.newaxis] * p)
 
     return et
