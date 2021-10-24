@@ -65,15 +65,17 @@ jobs:
         VERSION_MAJOR=$(echo "$VERSION" | cut -d "." -f1)
         VERSION_MINOR=$(echo "$VERSION" | cut -d "." -f2)
         VERSION_RELEASE=$(echo "$VERSION" | cut -d "." -f3)
-        if [[ "$TARGET" == "MAJOR" ]]; then
-          VERSION_MAJOR=$(($VERSION_MAJOR+1))
-          VERSION_MINOR=0
-          VERSION_RELEASE=0
-        elif [[ "$TARGET" == "MINOR" ]]; then
-          VERSION_MINOR=$(($VERSION_MINOR+1))
-          VERSION_RELEASE=0
-        elif [[ "$TARGET" == "RELEASE" ]]; then
-          VERSION_RELEASE=$(($VERSION_RELEASE+1))
+        if [[ "$PYPI" == "YES" ]]; then
+          if [[ "$TARGET" == "MAJOR" ]]; then
+            VERSION_MAJOR=$(($VERSION_MAJOR+1))
+            VERSION_MINOR=0
+            VERSION_RELEASE=0
+          elif [[ "$TARGET" == "MINOR" ]]; then
+            VERSION_MINOR=$(($VERSION_MINOR+1))
+            VERSION_RELEASE=0
+          elif [[ "$TARGET" == "RELEASE" ]]; then
+            VERSION_RELEASE=$(($VERSION_RELEASE+1))
+          fi
         fi
         VERSION=$(printf "%d.%d.%d" $VERSION_MAJOR $VERSION_MINOR $VERSION_RELEASE 2>/dev/null)
         PATTERN=$(grep -Poh "$VERSION_REGEX" "$VERSION_FILE")
@@ -83,7 +85,7 @@ jobs:
         echo "::set-output name=pypi::$PYPI"
         echo "::set-output name=conda::$CONDA"
         echo "::set-output name=version::$VERSION"
-    - name: PyPI Cache
+    - name: Cache
       id: pypi_cache
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
@@ -92,7 +94,7 @@ jobs:
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
-    - name: PyPI Dependencies Installation
+    - name: Dependencies Installation
       if: env.PYPI == 'YES' && steps.pypi_cache.outputs.cache-hit != 'true'
       run: |
         pip install --quiet --upgrade pip
