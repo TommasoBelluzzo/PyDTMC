@@ -124,6 +124,7 @@ jobs:
         if [[ "$PYPI" == "YES" ]]; then
           sleep 300
         fi
+        conda clean --all
         conda update --quiet conda
         conda install --quiet conda-build anaconda-client
         wget "https://pypi.io/packages/source/P/PyDTMC/PyDTMC-${VERSION}.tar.gz" -O "/tmp/PyDTMC-${VERSION}.tar.gz"
