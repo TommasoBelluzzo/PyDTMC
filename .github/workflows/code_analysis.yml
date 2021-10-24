@@ -2,7 +2,7 @@ name: "Code Analysis"
 
 on:
   schedule:
-    - cron: '00 19 * * 5'
+    - cron: '00 19 1 * *'
 
 jobs:
   task:
