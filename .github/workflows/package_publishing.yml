@@ -126,6 +126,10 @@ jobs:
         conda install --quiet conda-build anaconda-client
         wget "https://pypi.io/packages/source/P/PyDTMC/PyDTMC-${VERSION}.tar.gz" -O "/tmp/PyDTMC-${VERSION}.tar.gz"
         SHA256=$(openssl sha256 "/tmp/PyDTMC-${VERSION}.tar.gz" | awk '{print $2}')
+        echo "print out"
+        echo $SHA256
+        echo $META_REGEX
+        exit 1
         grep -P "$META_REGEX" "$META_FILE"
         PATTERN=$(grep -Poh "$META_REGEX" "$META_FILE")
         sed -i "s/$PATTERN/sha256: $SHA256/g" "$META_FILE"
