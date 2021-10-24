@@ -40,7 +40,7 @@ test:
   requires:
     - pytest
   commands:
-    - pytest -s tests/
+    - pytest tests/
 
 about:
   home: {{ data['url'] }}
