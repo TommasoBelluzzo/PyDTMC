@@ -52,12 +52,16 @@ jobs:
           echo "INVALID INPUT (CONDA)"
           exit 1
         fi
+        if [[ "$PYPI" == "NO" ]] && [[ "$CONDA" == "NO" ]]; then
+          echo "INVALID INPUT (PYPI=NO && CONDA=NO)"
+          exit 1
+        fi
         if [[ "$PYPI" == "YES" ]] && [[ "$TARGET" == "NONE" ]]; then
           echo "INVALID INPUT (PYPI=YES && TARGET=NONE)"
           exit 1
         fi
-        if [[ "$PYPI" == "NO" ]] && [[ "$CONDA" == "NO" ]]; then
-          echo "INVALID INPUT (PYPI=NO && CONDA=NO)"
+        if [[ "$PYPI" == "NO" ]] && [[ "$CONDA" == "YES" ]] && [[ "$TARGET" != "NONE" ]]; then
+          echo "INVALID INPUT (PYPI=NO && CONDA=YES && TARGET!=NONE)"
           exit 1
         fi
         grep -P "$VERSION_REGEX" "$VERSION_FILE"
@@ -134,7 +138,7 @@ jobs:
         sed -i "s/$PATTERN/sha256: $SHA256/g" "$META_FILE"
         grep -P "$SHA256" "$META_FILE"
         conda config --set always_yes yes
-        conda config --set anaconda_upload no
+        conda config --set anaconda_upload yes
         conda config --set changeps1 no
         conda build . --output-folder /tmp/conda-build
     - name: Version Commit
@@ -142,7 +146,7 @@ jobs:
         TARGET: ${{ steps.bump.outputs.target }}
         PYPI: ${{ steps.bump.outputs.pypi }}
         VERSION: ${{ steps.bump.outputs.version }}
-      if: env.TARGET != 'NONE' && env.PYPI == 'YES'
+      if: env.TARGET != 'NONE'
       run: |
         git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
