@@ -200,11 +200,11 @@ Plotting functions can provide a visual representation of `MarkovChain` instance
 ```console
 >>> plot_eigenvalues(mc)
 >>> plot_graph(mc)
->>> plot_redistributions(mc, 10, plot_type='heatmap', dpi=300)
->>> plot_redistributions(mc, 10, plot_type='projection', dpi=300)
 >>> plot_walk(mc, 10, plot_type='histogram', dpi=300)
 >>> plot_walk(mc, 10, plot_type='sequence', dpi=300)
 >>> plot_walk(mc, 10, plot_type='transitions', dpi=300)
+>>> plot_redistributions(mc, 10, plot_type='heatmap', dpi=300)
+>>> plot_redistributions(mc, 10, plot_type='projection', dpi=300)
 ```
 
 ![Screenshots](https://i.imgur.com/pRGO0Hc.gif)
