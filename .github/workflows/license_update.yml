@@ -1,12 +1,12 @@
-name: License Update
+name: "License Update"
 
 on:
   schedule:
     - cron: '05 00 1 1 *'
 
 jobs:
-  task:
-    name: Task
+  license_update:
+    name: License Update
     runs-on: ubuntu-latest
     steps:
     - name: Repository Checkout
