@@ -32,7 +32,7 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         pip install --quiet --upgrade pip
-        pip install --quiet --upgrade --upgrade-strategy eager -r requirements.txt --use-feature=in-tree-build
+        pip install --quiet --upgrade --upgrade-strategy eager -r requirements.txt
         pip install --quiet --upgrade --upgrade-strategy eager -e .[lint]
         pip install --quiet --upgrade --upgrade-strategy eager -e .[docs]
         pip install --quiet --upgrade --upgrade-strategy eager -e .[package]
