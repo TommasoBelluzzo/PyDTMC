@@ -35,13 +35,13 @@ from json import (
 )
 
 from xml.etree import (
-    cElementTree as _ElementTree
+    ElementTree as _ElementTree
 )
 
 try:
     from defusedxml.ElementTree import parse as _xml_parse
 except ImportError:  # pragma: no cover
-    from xml.etree.cElementTree import parse as _xml_parse
+    from xml.etree.ElementTree import parse as _xml_parse
 
 # Libraries
 
