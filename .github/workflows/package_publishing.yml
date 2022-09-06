@@ -102,8 +102,8 @@ jobs:
       if: env.PYPI == 'YES' && steps.pypi_cache.outputs.cache-hit != 'true'
       run: |
         pip install --quiet --upgrade pip
-        pip install --quiet --upgrade --upgrade-strategy eager -r requirements.txt
-        pip install --quiet --upgrade --upgrade-strategy eager -e .[build]
+        pip install --quiet --upgrade -r requirements.txt
+        pip install --quiet --upgrade -e .[build]
     - name: PyPI Publishing
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
@@ -126,7 +126,7 @@ jobs:
       if: env.CONDA == 'YES'
       run: |
         if [[ "$PYPI" == "YES" ]]; then
-          sleep 300
+          sleep 1000
         fi
         conda clean --all
         conda update --quiet conda
