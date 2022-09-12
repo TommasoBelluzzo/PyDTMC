@@ -126,7 +126,7 @@ jobs:
       if: env.CONDA == 'YES'
       run: |
         if [[ "$PYPI" == "YES" ]]; then
-          sleep 1000
+          sleep 900
         fi
         conda clean --all
         conda update --quiet conda
