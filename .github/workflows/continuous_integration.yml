@@ -17,14 +17,14 @@ jobs:
         python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
     steps:
     - name: Repository Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Python Setup
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Python Cache
       id: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
@@ -49,14 +49,14 @@ jobs:
         python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
     steps:
     - name: Repository Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Python Setup
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Python Cache
       id: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
@@ -77,14 +77,14 @@ jobs:
         python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
     steps:
     - name: Repository Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Python Setup
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Python Cache
       id: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
@@ -104,14 +104,14 @@ jobs:
         python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
     steps:
     - name: Repository Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Python Setup
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Python Cache
       id: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
@@ -128,7 +128,7 @@ jobs:
         python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
     steps:
     - name: Repository Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Libraries Installation
       shell: bash
       run: |
@@ -143,12 +143,12 @@ jobs:
           brew install graphviz
         fi
     - name: Python Setup
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Python Cache
       id: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
