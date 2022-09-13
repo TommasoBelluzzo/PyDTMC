@@ -22,7 +22,14 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Python Cache
+      id: cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.pythonLocation }}
+        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
+      if: steps.cache.outputs.cache-hit != 'true'
       run: |
         pip install --quiet --upgrade pip
         pip install --quiet --upgrade -r requirements.txt

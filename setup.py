@@ -40,7 +40,6 @@ import setuptools as _st
 if _sys_version_info < (3, 6):
     _sys_exit('Python 3.6 or greater is required.')
 
-
 #################
 # DYNAMIC SETUP #
 #################
