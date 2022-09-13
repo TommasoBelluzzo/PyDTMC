@@ -7,8 +7,8 @@ on:
     branches: [ master ]
 
 jobs:
-  initialization:
-    name: Initialization
+  continuous_integration:
+    name: Continuous Integration
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -38,97 +38,6 @@ jobs:
         pip install --quiet --upgrade -e .[package]
         pip install --quiet --upgrade -e .[build]
         pip install --quiet --upgrade -e .[tests]
-  linting:
-    name: Linting
-    needs: initialization
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
-        python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
-    steps:
-    - name: Repository Checkout
-      uses: actions/checkout@v3
-    - name: Python Setup
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Python Cache
-      id: cache
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
-    - name: Linting
-      run: |
-        flake8 .
-        pylint docs/
-        pylint pydtmc/
-        pylint tests/
-  documentation:
-    name: Documentation
-    needs: linting
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
-        python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
-    steps:
-    - name: Repository Checkout
-      uses: actions/checkout@v3
-    - name: Python Setup
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Python Cache
-      id: cache
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
-    - name: Documentation
-      run: |
-        make -C docs/ doctest SPHINX_OPTS=-an
-        make -C docs/ linkcheck SPHINX_OPTS=-an
-        make -C docs/ coverage SPHINX_OPTS=-an
-  build:
-    name: Build
-    needs: documentation
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
-        python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
-    steps:
-    - name: Repository Checkout
-      uses: actions/checkout@v3
-    - name: Python Setup
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Python Cache
-      id: cache
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
-    - name: Build
-      run: python setup.py sdist bdist_wheel
-  testing_coverage:
-    name: Testing & Coverage
-    needs: build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
-        python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
-    steps:
-    - name: Repository Checkout
-      uses: actions/checkout@v3
     - name: Libraries Installation
       shell: bash
       run: |
@@ -142,16 +51,20 @@ jobs:
           brew update
           brew install graphviz
         fi
-    - name: Python Setup
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Python Cache
-      id: cache
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
+    - name: Linting
+      run: |
+        flake8 .
+        pylint docs/
+        pylint pydtmc/
+        pylint tests/
+    - name: Documentation
+      run: |
+        make -C docs/ doctest SPHINX_OPTS=-an
+        make -C docs/ linkcheck SPHINX_OPTS=-an
+        make -C docs/ coverage SPHINX_OPTS=-an
+    - name: Build
+      run: |
+        python setup.py sdist bdist_wheel
     - name: Testing & Coverage
       env:
         COVERALLS_SERVICE_NAME: github-actions
