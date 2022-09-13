@@ -93,13 +93,13 @@ jobs:
       id: pypi_cache
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
-      if: env.PYPI == 'YES'
+      if: ${{ env.PYPI == 'YES' }}
       uses: actions/cache@v3
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-PP-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
-      if: ${{ (env.PYPI == 'YES') && (steps.pypi_cache.outputs.cache-hit != 'true') }}
+      if: ${{ env.PYPI == 'YES' }} && steps.pypi_cache.outputs.cache-hit != 'true'
       run: |
         pip install --quiet --upgrade pip
         pip install --quiet --upgrade -r requirements.txt
@@ -110,7 +110,7 @@ jobs:
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      if: env.PYPI == 'YES'
+      if: ${{ env.PYPI == 'YES' }}
       run: |
         python setup.py sdist bdist_wheel
         twine upload dist/*
@@ -123,7 +123,7 @@ jobs:
         META_REGEX: 'sha256: [A-Fa-f0-9]{64}'
         META_FILE: meta.yaml
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
-      if: env.CONDA == 'YES'
+      if: ${{ env.CONDA == 'YES' }}
       run: |
         if [[ "$PYPI" == "YES" ]]; then
           sleep 900
@@ -146,7 +146,7 @@ jobs:
         TARGET: ${{ steps.bump.outputs.target }}
         PYPI: ${{ steps.bump.outputs.pypi }}
         VERSION: ${{ steps.bump.outputs.version }}
-      if: env.TARGET != 'NONE'
+      if: ${{ env.TARGET == 'NONE' }}
       run: |
         git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
