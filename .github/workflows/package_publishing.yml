@@ -146,7 +146,7 @@ jobs:
         TARGET: ${{ steps.bump.outputs.target }}
         PYPI: ${{ steps.bump.outputs.pypi }}
         VERSION: ${{ steps.bump.outputs.version }}
-      if: ${{ env.TARGET == 'NONE' }}
+      if: ${{ env.TARGET != 'NONE' }}
       run: |
         git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
