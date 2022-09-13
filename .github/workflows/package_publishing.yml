@@ -99,7 +99,7 @@ jobs:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-PP-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
-      if: env.PYPI == 'YES' && steps.pypi_cache.outputs.cache-hit != 'true'
+      if: ${{ (env.PYPI == 'YES') && (steps.pypi_cache.outputs.cache-hit != 'true') }}
       run: |
         pip install --quiet --upgrade pip
         pip install --quiet --upgrade -r requirements.txt
