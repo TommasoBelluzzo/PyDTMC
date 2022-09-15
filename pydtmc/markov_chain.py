@@ -1841,6 +1841,27 @@ class MarkovChain(metaclass=_BaseClass):
 
         return m
 
+    def to_nth_order(self, order: int = 2) -> _tmc:
+
+        """
+        The method returns an nth order transformation of the Markov chain.
+
+        :param order: the inertial weights to apply for the transformation.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            order = _validate_integer(order, lower_limit=(2, False))
+
+        except Exception as e:  # pragma: no cover
+            raise _generate_validation_error(e, _ins_trace()) from None
+
+        p = _npl.matrix_power(self.__p, order)
+        mc = MarkovChain(p, self.__states)
+
+        return mc
+
     @_alias('to_sub')
     def to_sub_chain(self, states: _tstates) -> _tmc:
 

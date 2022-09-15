@@ -74,6 +74,17 @@ def test_lump(p, partitions, value):
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_nth_order(p, order, value):
+
+    mc = _MarkovChain(p)
+    mc_lazy = mc.to_nth_order(order)
+
+    actual = mc_lazy.p
+    expected = _np.asarray(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_sub(p, states, value):
 
     if value is None:
