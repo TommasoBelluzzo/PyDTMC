@@ -124,6 +124,7 @@ from .generators import (
     bounded as _bounded,
     canonical as _canonical,
     closest_reversible as _closest_reversible,
+    dirichlet_process as _dirichlet_process,
     gamblers_ruin as _gamblers_ruin,
     lazy as _lazy,
     lump as _lump,
@@ -659,7 +660,7 @@ class MarkovChain(metaclass=_BaseClass):
         A property indicating whether the Markov chain is regular.
         """
 
-        d = _np.diagonal(self.__p)
+        d = _np.diag(self.__p)
         nz = _np.count_nonzero(d)
 
         if nz > 0:
@@ -2318,6 +2319,38 @@ class MarkovChain(metaclass=_BaseClass):
             else:
                 p[i, :] /= p_sums[i]
 
+        mc = MarkovChain(p, states)
+
+        return mc
+
+    @staticmethod
+    def dirichlet_process(size: int, diffusion_factor: int, states: _olist_str = None, diagonal_bias_factor: _ofloat = None, shift_concentration: bool = False, seed: _oint = None) -> _tmc:
+
+        """
+        The method generates a Markov chain of given size using a parametrized Dirichlet process.
+
+        :param size: the size of the Markov chain.
+        :param diffusion_factor: the diffusion factor of the Dirichlet process.
+        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param diagonal_bias_factor: the bias factor applied to the diagonal of the transition matrix (*if omitted, no inside-state stability is enforced*).
+        :param shift_concentration: a boolean indicating whether to shift the concentration of the Dirichlet process to the rightmost states.
+        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            rng = _create_rng(seed)
+            size = _validate_integer(size, lower_limit=(2, False))
+            diffusion_factor = _validate_integer(diffusion_factor, lower_limit=(1, False), upper_limit=(size, False))
+            diagonal_bias_factor = None if diagonal_bias_factor is None else _validate_float(diagonal_bias_factor, lower_limit=(0.0, False))
+            shift_concentration = _validate_boolean(shift_concentration)
+            states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
+
+        except Exception as e:  # pragma: no cover
+            raise _generate_validation_error(e, _ins_trace()) from None
+
+        p, _ = _dirichlet_process(rng, size, diffusion_factor, diagonal_bias_factor, shift_concentration)
         mc = MarkovChain(p, states)
 
         return mc

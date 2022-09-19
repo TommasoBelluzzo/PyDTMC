@@ -58,8 +58,8 @@ def redistribute(mc: _tmc, steps: int, initial_status: _tarray, output_last: boo
     value[0, :] = initial_status
 
     for i in range(1, steps + 1):
-        value[i, :] = value[i - 1, :].dot(mc.p)
-        value[i, :] /= _np.sum(value[i, :])
+        value_i = value[i - 1, :].dot(mc.p)
+        value[i, :] = value_i / _np.sum(value_i)
 
     if output_last:
         return value[-1]

@@ -197,6 +197,64 @@
       "value": [[0.70001732, 0.09999423, 0.09999423, 0.09999423], [0.85005628, 0.04992467, 0.05000953, 0.05000953], [0.09999423, 0.09999423, 0.70001732, 0.09999423], [0.0, 0.0, 0.0, 1.0]]
     }
   ],
+  "dirichlet_process_data": [
+    {
+      "seed": 7331,
+      "size": 2,
+      "diffusion_factor": 1,
+      "diagonal_bias_factor": null,
+      "shift_concentration": false,
+      "value": [[0.818127, 0.181873], [0.803157, 0.196843]]
+    },
+    {
+      "seed": 7331,
+      "size": 2,
+      "diffusion_factor": 1,
+      "diagonal_bias_factor": null,
+      "shift_concentration": true,
+      "value": [[0.181873, 0.818127], [0.196843, 0.803157]]
+    },
+    {
+      "seed": 7331,
+      "size": 2,
+      "diffusion_factor": 2,
+      "diagonal_bias_factor": null,
+      "shift_concentration": false,
+      "value": [[0.905757, 0.094243], [0.935160, 0.064840]]
+    },
+    {
+      "seed": 7331,
+      "size": 2,
+      "diffusion_factor": 2,
+      "diagonal_bias_factor": null,
+      "shift_concentration": true,
+      "value": [[0.094243, 0.905757], [0.064840, 0.935160]]
+    },
+    {
+      "seed": 7331,
+      "size": 4,
+      "diffusion_factor": 2,
+      "diagonal_bias_factor": null,
+      "shift_concentration": false,
+      "value": [[0.35930673, 0.03738550, 0.56418913, 0.03911864], [0.41656751, 0.01760474, 0.09700350, 0.46882425], [0.57523360, 0.01460542, 0.09271177, 0.31744920], [0.63093953, 0.25833847, 0.05676458, 0.05395743]]
+    },
+    {
+      "seed": 7331,
+      "size": 4,
+      "diffusion_factor": 2,
+      "diagonal_bias_factor": 12.5,
+      "shift_concentration": false,
+      "value": [[0.67546142, 0.01893736, 0.28578596, 0.01981526], [0.22512186, 0.46909291, 0.05242273, 0.25336250], [0.30035226, 0.00762607, 0.52626886, 0.16575281], [0.32106704, 0.13146104, 0.02888587, 0.51858605]]
+    },
+    {
+      "seed": 7331,
+      "size": 4,
+      "diffusion_factor": 2,
+      "diagonal_bias_factor": 50.0,
+      "shift_concentration": false,
+      "value": [[0.67866583, 0.01875038, 0.28296418, 0.01961961], [0.21245250, 0.49897117, 0.04947250, 0.23910383], [0.29089524, 0.00738595, 0.54118497, 0.16053384], [0.31710811, 0.12984005, 0.02852969, 0.52452215]]
+    }
+  ],
   "gamblers_ruin_data": [
     {
       "size": 3,

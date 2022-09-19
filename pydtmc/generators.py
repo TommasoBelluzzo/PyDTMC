@@ -6,6 +6,7 @@ __all__ = [
     'bounded',
     'canonical',
     'closest_reversible',
+    'dirichlet_process',
     'gamblers_ruin',
     'lazy',
     'lump',
@@ -23,6 +24,7 @@ __all__ = [
 
 import numpy as _np
 import numpy.linalg as _npl
+import numpy.random as _npr
 import scipy.integrate as _spi
 import scipy.optimize as _spo
 import scipy.stats as _sps
@@ -160,8 +162,7 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
                 prime = ((1.0 - rho) * alpha) + (rho * nodes[i])
                 p[i, j] = (weights[j] * _sps.norm.pdf(nodes[j], prime, sigma) / _sps.norm.pdf(nodes[j], alpha, k))
 
-        for i in range(size):
-            p[i, :] /= _np.sum(p[i, :])
+        p /= _np.sum(p, axis=1, keepdims=True)
 
     else:
 
@@ -394,6 +395,37 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
 
     p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)
+
+    return p, None
+
+
+def dirichlet_process(rng: _trand, size: int, diffusion_factor: int, diagonal_bias_factor: _ofloat, shift_concentration: bool):
+
+    def _gem_allocation(ga_draws):
+
+        allocated_probability = 0.0
+        weights = []
+
+        for i in range(len(ga_draws)):
+            weight = (1.0 - allocated_probability) * ga_draws[i]
+            allocated_probability += weight
+            weights.append(weight)
+
+        weights = _np.stack(weights)
+        weights /= _np.sum(weights)
+
+        return weights
+
+    draws = rng.beta(1.0, float(diffusion_factor), (size, size))
+    p = _np.apply_along_axis(_gem_allocation, axis=1, arr=draws)
+
+    if shift_concentration:
+        p = _np.fliplr(p)
+
+    if diagonal_bias_factor is not None:
+        diagonal = rng.beta(diagonal_bias_factor, 1.0, size)
+        p += + _np.diagflat(diagonal)
+        p /= _np.sum(p, axis=1, keepdims=True)
 
     return p, None
 

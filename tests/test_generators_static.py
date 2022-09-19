@@ -56,6 +56,16 @@ def test_closest_reversible(p, distribution, weighted, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_dirichlet_process(seed, size, diffusion_factor, diagonal_bias_factor, shift_concentration, value):
+
+    mc = _MarkovChain.dirichlet_process(size, diffusion_factor, None, diagonal_bias_factor, shift_concentration, seed)
+
+    actual = mc.p
+    expected = _np.asarray(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_gamblers_ruin(size, w, value):
 
     mc = _MarkovChain.gamblers_ruin(size, w)
