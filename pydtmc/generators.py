@@ -24,7 +24,6 @@ __all__ = [
 
 import numpy as _np
 import numpy.linalg as _npl
-import numpy.random as _npr
 import scipy.integrate as _spi
 import scipy.optimize as _spo
 import scipy.stats as _sps
