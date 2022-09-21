@@ -24,7 +24,6 @@ __all__ = [
 
 import numpy as _np
 import numpy.linalg as _npl
-import numpy.random as _npr
 import scipy.integrate as _spi
 import scipy.optimize as _spo
 import scipy.stats as _sps
@@ -399,7 +398,7 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
     return p, None
 
 
-def dirichlet_process(rng: _trand, size: int, diffusion_factor: int, diagonal_bias_factor: _ofloat, shift_concentration: bool):
+def dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool):
 
     def _gem_allocation(ga_draws):
 
@@ -416,7 +415,7 @@ def dirichlet_process(rng: _trand, size: int, diffusion_factor: int, diagonal_bi
 
         return weights
 
-    draws = rng.beta(1.0, float(diffusion_factor), (size, size))
+    draws = rng.beta(1.0, diffusion_factor, (size, size))
     p = _np.apply_along_axis(_gem_allocation, axis=1, arr=draws)
 
     if shift_concentration:

@@ -18,6 +18,10 @@ from json import (
     load as _json_load
 )
 
+# Libraries
+
+import numpy as _np
+
 
 #############
 # CONSTANTS #
@@ -35,6 +39,7 @@ _replacements = [
 ###########
 
 _fixtures = {}
+_numpy_formatting_options = _np.get_printoptions()
 
 
 #############
@@ -158,6 +163,8 @@ def pytest_configure(config):
 
     config.addinivalue_line('markers', 'slow: mark tests as slow (exclude them with \'-m "not slow"\').')
 
+    _np.set_printoptions(floatmode='fixed', precision=8)
+
 
 def pytest_generate_tests(metafunc):
 
@@ -196,3 +203,12 @@ def pytest_generate_tests(metafunc):
             values, ids = _parse_fixture_list(fixture, names, func)
 
     metafunc.parametrize(names, values, False, ids)
+
+
+def pytest_unconfigure(config):
+
+    if 'floatmode' in _numpy_formatting_options:
+        _np.set_printoptions(floatmode=_numpy_formatting_options['floatmode'])
+
+    if 'precision' in _numpy_formatting_options:
+        _np.set_printoptions(precision=_numpy_formatting_options['precision'])

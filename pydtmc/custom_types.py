@@ -14,6 +14,8 @@ __all__ = [
     'tmc', 'omc',
     'tplot', 'oplot',
     'trand', 'orand',
+    'trandfunc', 'orandfunc',
+    'trandfunc_flex', 'orandfunc_flex',
     'tnumeric', 'onumeric',
     # Lists
     'tlist_any', 'olist_any',
@@ -131,6 +133,12 @@ onumeric = _Optional[tnumeric]
 
 trand = _npr.RandomState
 orand = _Optional[trand]
+
+trandfunc = _Callable
+orandfunc = _Optional[trandfunc]
+
+trandfunc_flex = _Union[_Callable, str]
+orandfunc_flex = _Optional[trandfunc_flex]
 
 # Lists
 

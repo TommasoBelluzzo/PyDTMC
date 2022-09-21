@@ -81,6 +81,7 @@ from .custom_types import (
     tnumeric as _tnumeric,
     tpart as _tpart,
     tparts as _tparts,
+    trandfunc_flex as _trandfunc_flex,
     trdl as _trdl,
     tredists as _tredists,
     tstate as _tstate,
@@ -162,7 +163,8 @@ from .simulations import (
 
 from .utilities import (
     create_rng as _create_rng,
-    generate_validation_error as _generate_validation_error
+    generate_validation_error as _generate_validation_error,
+    get_numpy_random_distributions as _get_numpy_random_distributions
 )
 
 from .validation import (
@@ -179,6 +181,7 @@ from .validation import (
     validate_mask as _validate_mask,
     validate_matrix as _validate_matrix,
     validate_partitions as _validate_partitions,
+    validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
     validate_state as _validate_state,
     validate_state_names as _validate_state_names,
@@ -205,6 +208,8 @@ class MarkovChain(metaclass=_BaseClass):
     :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
     :raises ValidationError: if any input argument is not compliant.
     """
+
+    _random_distributions: _olist_str = None
 
     def __init__(self, p: _tnumeric, states: _olist_str = None):
 
@@ -2051,6 +2056,38 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    def dirichlet_process(size: int, diffusion_factor: int, states: _olist_str = None, diagonal_bias_factor: _ofloat = None, shift_concentration: bool = False, seed: _oint = None) -> _tmc:
+
+        """
+        The method generates a Markov chain of given size using a parametrized Dirichlet process.
+
+        :param size: the size of the Markov chain.
+        :param diffusion_factor: the diffusion factor of the Dirichlet process.
+        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param diagonal_bias_factor: the bias factor applied to the diagonal of the transition matrix (*if omitted, no inside-state stability is enforced*).
+        :param shift_concentration: a boolean indicating whether to shift the concentration of the Dirichlet process to the rightmost states.
+        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            rng = _create_rng(seed)
+            size = _validate_integer(size, lower_limit=(2, False))
+            diffusion_factor = _validate_integer(diffusion_factor, lower_limit=(1, False), upper_limit=(size, False))
+            diagonal_bias_factor = None if diagonal_bias_factor is None else _validate_float(diagonal_bias_factor, lower_limit=(0.0, True))
+            shift_concentration = _validate_boolean(shift_concentration)
+            states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
+
+        except Exception as e:  # pragma: no cover
+            raise _generate_validation_error(e, _ins_trace()) from None
+
+        p, _ = _dirichlet_process(rng, size, float(diffusion_factor), diagonal_bias_factor, shift_concentration)
+        mc = MarkovChain(p, states)
+
+        return mc
+
+    @staticmethod
     def fit_function(possible_states: _tlist_str, f: _ttfunc, quadrature_type: str, quadrature_interval: _ointerval = None) -> _tmc:
 
         """
@@ -2324,38 +2361,6 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    def dirichlet_process(size: int, diffusion_factor: int, states: _olist_str = None, diagonal_bias_factor: _ofloat = None, shift_concentration: bool = False, seed: _oint = None) -> _tmc:
-
-        """
-        The method generates a Markov chain of given size using a parametrized Dirichlet process.
-
-        :param size: the size of the Markov chain.
-        :param diffusion_factor: the diffusion factor of the Dirichlet process.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
-        :param diagonal_bias_factor: the bias factor applied to the diagonal of the transition matrix (*if omitted, no inside-state stability is enforced*).
-        :param shift_concentration: a boolean indicating whether to shift the concentration of the Dirichlet process to the rightmost states.
-        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            rng = _create_rng(seed)
-            size = _validate_integer(size, lower_limit=(2, False))
-            diffusion_factor = _validate_integer(diffusion_factor, lower_limit=(1, False), upper_limit=(size, False))
-            diagonal_bias_factor = None if diagonal_bias_factor is None else _validate_float(diagonal_bias_factor, lower_limit=(0.0, False))
-            shift_concentration = _validate_boolean(shift_concentration)
-            states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
-
-        except Exception as e:  # pragma: no cover
-            raise _generate_validation_error(e, _ins_trace()) from None
-
-        p, _ = _dirichlet_process(rng, size, diffusion_factor, diagonal_bias_factor, shift_concentration)
-        mc = MarkovChain(p, states)
-
-        return mc
-
-    @staticmethod
     def gamblers_ruin(size: int, w: float, states: _olist_str = None) -> _tmc:
 
         """
@@ -2413,7 +2418,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         | **Notes:**
 
-        - In the mask parameter, undefined transition probabilities are represented by **NaN** values.
+        - In the mask parameter, undefined transition probabilities are represented by *NaN* values.
 
         :param size: the size of the Markov chain.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
@@ -2438,6 +2443,49 @@ class MarkovChain(metaclass=_BaseClass):
 
         if error_message is not None:  # pragma: no cover
             raise _ValidationError(error_message)
+
+        mc = MarkovChain(p, states)
+
+        return mc
+
+    @staticmethod
+    def random_distribution(size: int, f: _trandfunc_flex, states: _olist_str = None, seed: _oint = None, **kwargs) -> _tmc:
+
+        """
+        The method generates a Markov chain of given size using draws from a `Numpy <https://numpy.org/>`_ random distribution function.
+
+        | **Notes:**
+
+        - *NaN* values are replaced with zeros
+        - Infinite values are replaced with finite numbers.
+        - Negative values are clipped to zero.
+        - In transition matrix rows with no positive values the states are assumed to be uniformly distributed.
+
+        :param size: the size of the Markov chain.
+        :param f: the Numpy random distribution function or the name of the Numpy random distribution function.
+        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+        :param \**kwargs: additional arguments passed to the random distribution function.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        if MarkovChain._random_distributions is None:
+            MarkovChain._random_distributions = _get_numpy_random_distributions()
+
+        try:
+
+            rng = _create_rng(seed)
+            size = _validate_integer(size, lower_limit=(2, False))
+            f = _validate_random_distribution(f, rng, MarkovChain._random_distributions)
+            states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
+
+        except Exception as e:  # pragma: no cover
+            raise _generate_validation_error(e, _ins_trace()) from None
+
+        p = f(size=(size, size), **kwargs).astype(_np.float64)
+        p = _np.clip(_np.nan_to_num(p, copy=False), 0.0, None)
+        p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[0], dtype=float)
+        p /= _np.sum(p, axis=1, keepdims=True)
 
         mc = MarkovChain(p, states)
 

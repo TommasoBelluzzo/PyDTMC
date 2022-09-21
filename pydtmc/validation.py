@@ -17,6 +17,7 @@ __all__ = [
     'validate_mask',
     'validate_matrix',
     'validate_partitions',
+    'validate_random_distribution',
     'validate_rewards',
     'validate_state',
     'validate_state_names',
@@ -86,6 +87,8 @@ from .custom_types import (
     tlists_int as _tlists_int,
     tmc as _tmc,
     tmc_dict as _tmc_dict,
+    trand as _trand,
+    trandfunc as _trandfunc,
     ttfunc as _ttfunc,
     ttimes_in as _ttimes_in
 )
@@ -310,7 +313,7 @@ def validate_distribution(value: _tany, size: int) -> _tdists_flex:
             if vector.ndim != 1 or vector.size != size:
                 raise ValueError('The "@arg@" parameter must contain only vectors of size {size:d}.')
 
-            if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for x in _np.nditer(vector)):
+            if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for _, x in _np.ndenumerate(vector)):
                 raise ValueError('The "@arg@" parameter must contain only vectors consisting of finite real values between 0 and 1.')
 
             if not _np.isclose(_np.sum(vector), 1.0):
@@ -475,7 +478,7 @@ def validate_hyperparameter(value: _tany, size: int) -> _tarray:
     if value.ndim != 2 or value.shape[0] != value.shape[1] or value.shape[0] != size:
         raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and _np.equal(_np.mod(x, 1.0), 0.0) and x >= 1.0 for x in _np.nditer(value)):
+    if not all(_np.isfinite(x) and _np.isreal(x) and _np.equal(_np.mod(x, 1.0), 0.0) and x >= 1.0 for _, x in _np.ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only integers greater than or equal to 1.')
 
     return value
@@ -553,7 +556,7 @@ def validate_mask(value: _tany, size: int) -> _tarray:
     if value.ndim != 2 or value.shape[0] != value.shape[1] or value.shape[0] != size:
         raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
 
-    if not all(_np.isnan(x) or (_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0) for x in _np.nditer(value)):
+    if not all(_np.isnan(x) or (_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0) for _, x in _np.ndenumerate(value)):
         raise ValueError('The "@arg@" parameter can contain only NaNs and finite real values between 0 and 1.')
 
     if _np.any(_np.nansum(value, axis=1, dtype=float) > 1.0):
@@ -574,7 +577,7 @@ def validate_matrix(value: _tany) -> _tarray:
     if value.ndim != 2 or value.shape[0] < 2 or value.shape[0] != value.shape[1]:
         raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and x >= 0.0 for x in _np.nditer(value)):
+    if not all(_np.isfinite(x) and _np.isreal(x) and x >= 0.0 for _, x in _np.ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')
 
     return value
@@ -635,6 +638,40 @@ def validate_partitions(value: _tany, current_states: _tlist_str) -> _tlists_int
         offset += partitions_group
 
     return result
+
+
+def validate_random_distribution(value: _tany, rng: _trand, possible_values: _tlist_str) -> _trandfunc:
+
+    if callable(value):
+
+        if 'of numpy.random' not in value.__repr__():
+            raise ValueError('The "@arg@" parameter, when specified as a callable function, must belong to the "numpy.random" module.')
+
+        value = value.__name__
+
+        if value not in dir(rng):
+            raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference a valid "numpy.random" module object.')
+
+        if value not in possible_values:
+            raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference one of the following "numpy.random" module objects: {", ".join(possible_values)}.')
+
+        value = getattr(rng, value)
+
+        return value
+
+    if _is_string(value):
+
+        if value not in dir(rng):
+            raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference a valid "numpy.random" module object.')
+
+        if value not in possible_values:
+            raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference one of the following "numpy.random" module objects: {", ".join(possible_values)}.')
+
+        value = getattr(rng, value)
+
+        return value
+
+    raise TypeError('The "@arg@" parameter must be either a callable function or the name of a callable function.')
 
 
 def validate_rewards(value: _tany, size: int) -> _tarray:
@@ -838,7 +875,7 @@ def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
     if value.size != size:
         raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for x in _np.nditer(value)):
+    if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for _, x in _np.ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
 
     if not _np.isclose(_np.sum(value), 1.0):
@@ -932,7 +969,7 @@ def validate_transition_matrix(value: _tany) -> _tarray:
     if value.ndim != 2 or value.shape[0] != value.shape[1] or value.shape[0] < 2:
         raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for x in _np.nditer(value)):
+    if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for _, x in _np.ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
 
     if not _np.allclose(_np.sum(value, axis=1), _np.ones(value.shape[0], dtype=float)):
@@ -970,7 +1007,7 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
         if size is not None and (value.size != size):
             raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for x in _np.nditer(value)):
+    if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for _, x in _np.ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
 
     if vector_type == 'annihilation' and not _np.isclose(value[0], 0.0):

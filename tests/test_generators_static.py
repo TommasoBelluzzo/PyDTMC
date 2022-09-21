@@ -112,6 +112,18 @@ def test_random(seed, size, zeros, mask, value):
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_random_distribution(seed, size, f, args, value):
+
+    mc = _MarkovChain.random_distribution(size, f, None, seed, **args)
+
+    actual = mc.p
+    expected = _np.asarray(value)
+
+    print(actual.__str__().replace(']\n [', '], [').replace(' 0.', ', 0.'))
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_urn_model(n, model, value):
 
     mc = _MarkovChain.urn_model(n, model)
