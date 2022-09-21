@@ -644,7 +644,7 @@ def validate_random_distribution(value: _tany, rng: _trand, possible_values: _tl
 
     if callable(value):
 
-        if 'of numpy.random' not in value.__repr__():
+        if 'of numpy.random' not in repr(value):
             raise ValueError('The "@arg@" parameter, when specified as a callable function, must belong to the "numpy.random" module.')
 
         value = value.__name__
