@@ -206,7 +206,7 @@ def pytest_generate_tests(metafunc):
 
 
 # noinspection PyUnusedLocal
-def pytest_unconfigure(config):  # noqa: W0613
+def pytest_unconfigure(config):  # noqa
 
     if 'floatmode' in _numpy_formatting_options:
         _np.set_printoptions(floatmode=_numpy_formatting_options['floatmode'])
