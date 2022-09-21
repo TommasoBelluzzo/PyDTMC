@@ -405,8 +405,8 @@ def dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_
         allocated_probability = 0.0
         weights = []
 
-        for i in range(len(ga_draws)):
-            weight = (1.0 - allocated_probability) * ga_draws[i]
+        for _, ga_draw in enumerate(ga_draws):
+            weight = (1.0 - allocated_probability) * ga_draw
             allocated_probability += weight
             weights.append(weight)
 
