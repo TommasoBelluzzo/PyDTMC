@@ -650,7 +650,7 @@ def validate_random_distribution(value: _tany, rng: _trand, possible_values: _tl
         value = value.__name__
 
         if value not in dir(rng):
-            raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference a valid "numpy.random" module object.')
+            raise ValueError('The "@arg@" parameter, when specified as a callable function, must reference a valid "numpy.random" module object.')
 
         if value not in possible_values:
             raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference one of the following "numpy.random" module objects: {", ".join(possible_values)}.')
@@ -662,7 +662,7 @@ def validate_random_distribution(value: _tany, rng: _trand, possible_values: _tl
     if _is_string(value):
 
         if value not in dir(rng):
-            raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference a valid "numpy.random" module object.')
+            raise ValueError('The "@arg@" parameter, when specified as a callable function, must reference a valid "numpy.random" module object.')
 
         if value not in possible_values:
             raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference one of the following "numpy.random" module objects: {", ".join(possible_values)}.')
