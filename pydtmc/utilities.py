@@ -80,8 +80,8 @@ def get_numpy_random_distributions() -> _tlist_str:
 
     from numpy.random import RandomState
 
-    excluded_funcs = ['dirichlet', 'multinomial', 'multivariate_normal']
-    valid_summaries = ['DRAW RANDOM SAMPLES', 'DRAW SAMPLES', 'DRAWS SAMPLES']
+    excluded_funcs = ('dirichlet', 'multinomial', 'multivariate_normal')
+    valid_summaries = ('DRAW RANDOM SAMPLES', 'DRAW SAMPLES', 'DRAWS SAMPLES')
 
     result = []
 

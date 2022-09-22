@@ -24,7 +24,7 @@ from re import (
 )
 
 from threading import (
-    RLock as _RLock
+    RLock as _th_RLock
 )
 
 
@@ -73,7 +73,7 @@ class cached_property(property):
 
         self._func = fget
         self._func_name = None
-        self._lock = _RLock()
+        self._lock = _th_RLock()
 
         _ft_update_wrapper(self, fget)
 
@@ -189,14 +189,14 @@ def aliased(aliased_class):
             raise ValueError('Aliases cannot be equal to existing class members.')
 
         for member, member_aliases in aliases.items():
-            for a in member_aliases:
 
-                if isinstance(member, property):
-                    member_wrapped = property(member.fget, member.fset, member.fdel, member.__doc__)
-                else:
-                    member_wrapped = wrapper(member)
-                    member_wrapped.__doc__ = member.__doc__
+            if isinstance(member, property):
+                member_wrapped = property(member.fget, member.fset, member.fdel, member.__doc__)
+            else:
+                member_wrapped = wrapper(member)
+                member_wrapped.__doc__ = member.__doc__
 
-                setattr(aliased_class, a, member_wrapped)
+            for member_alias in member_aliases:
+                setattr(aliased_class, member_alias, member_wrapped)
 
     return aliased_class

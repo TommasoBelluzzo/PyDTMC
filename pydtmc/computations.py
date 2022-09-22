@@ -27,9 +27,39 @@ from math import (
 
 # Libraries
 
-import networkx as _nx
-import numpy as _np
-import numpy.linalg as _npl
+from numpy import (
+    abs as _np_abs,
+    append as _np_append,
+    argsort as _np_argsort,
+    argwhere as _np_argwhere,
+    array as _np_array,
+    array_equal as _np_array_equal,
+    copy as _np_copy,
+    delete as _np_delete,
+    diag as _np_diag,
+    dot as _np_dot,
+    eye as _np_eye,
+    isclose as _np_isclose,
+    real as _np_real,
+    remainder as _np_remainder,
+    sort as _np_sort,
+    sum as _np_sum,
+    transpose as _np_transpose,
+    unique as _np_unique,
+    zeros as _np_zeros
+)
+
+from numpy.linalg import (
+    eig as _npl_eig,
+    eigvals as _npl_eigvals,
+    inv as _npl_inv,
+    solve as _npl_solve
+)
+
+from networkx import (
+    shortest_path_length as _nx_shortest_path_length,
+    strongly_connected_components as _nx_strongly_connected_components
+)
 
 # Internal
 
@@ -38,6 +68,7 @@ from .custom_types import (
     tarray as _tarray,
     tgraph as _tgraph,
     tlist_int as _tlist_int,
+    tlists_int as _tlists_int,
     tparts as _tparts,
     trdl as _trdl
 )
@@ -49,9 +80,11 @@ from .custom_types import (
 
 def _calculate_period(graph: _tgraph) -> int:
 
+    sccs = list(_nx_strongly_connected_components(graph))
+
     g = 0
 
-    for scc in _nx.strongly_connected_components(graph):
+    for scc in sccs:
 
         scc = list(scc)
 
@@ -61,7 +94,7 @@ def _calculate_period(graph: _tgraph) -> int:
         x = scc[0]
         levels[x] = 0
 
-        current_level = [x]
+        current_level = (x,)
         previous_level = 1
 
         while current_level:
@@ -88,7 +121,7 @@ def _calculate_period(graph: _tgraph) -> int:
                         next_level.append(v)
                         levels[v] = previous_level
 
-            current_level = next_level
+            current_level = tuple(next_level)
             previous_level += 1
 
     return g
@@ -96,7 +129,7 @@ def _calculate_period(graph: _tgraph) -> int:
 
 def calculate_periods(graph: _tgraph) -> _tlist_int:
 
-    sccs = list(_nx.strongly_connected_components(graph))
+    sccs = list(_nx_strongly_connected_components(graph))
 
     classes = [sorted(scc) for scc in sccs]
     indices = sorted(classes, key=lambda x: (-len(x), x[0]))
@@ -108,7 +141,7 @@ def calculate_periods(graph: _tgraph) -> _tlist_int:
         scc_reachable = scc.copy()
 
         for c in scc_reachable:
-            spl = _nx.shortest_path_length(graph, c).keys()
+            spl = _nx_shortest_path_length(graph, c).keys()
             scc_reachable = scc_reachable.union(spl)
 
         index = indices.index(sorted(scc))
@@ -123,21 +156,21 @@ def calculate_periods(graph: _tgraph) -> _tlist_int:
 
 def eigenvalues_sorted(m: _tarray) -> _tarray:
 
-    ev = _npl.eigvals(m)
-    ev = _np.sort(_np.abs(ev))
+    ev = _npl_eigvals(m)
+    ev = _np_sort(_np_abs(ev))
 
     return ev
 
 
-def find_cyclic_classes(p: _tarray) -> _tarray:
+def find_cyclic_classes(p: _tarray) -> _tlists_int:
 
     size = p.shape[0]
 
-    v = _np.zeros(size, dtype=int)
+    v = _np_zeros(size, dtype=int)
     v[0] = 1
 
-    w = _np.array([], dtype=int)
-    t = _np.array([0], dtype=int)
+    w = _np_array([], dtype=int)
+    t = _np_array([0], dtype=int)
 
     d = 0
     m = 1
@@ -147,32 +180,31 @@ def find_cyclic_classes(p: _tarray) -> _tarray:
         i = t[0]
         j = 0
 
-        t = _np.delete(t, 0)
-        w = _np.append(w, i)
+        t = _np_delete(t, 0)
+        w = _np_append(w, i)
+        v_ip = v[i] + 1
 
         while j < size:
 
             if p[i, j] > 0.0:
-                r = _np.append(w, t)
-                k = _np.sum(r == j)
+
+                r = _np_append(w, t)
+                k = _np_sum(r == j)
 
                 if k > 0:
-                    b = v[i] - v[j] + 1
+                    b = v_ip - v[j]
                     d = _math_gcd(d, b)
                 else:
-                    t = _np.append(t, j)
-                    v[j] = v[i] + 1
+                    t = _np_append(t, j)
+                    v[j] = v_ip
 
             j += 1
 
         m = t.size
 
-    v = _np.remainder(v, d)
+    v = _np_remainder(v, d)
 
-    indices = []
-
-    for u in _np.unique(v):
-        indices.append(list(_it_chain.from_iterable(_np.argwhere(v == u))))
+    indices = [list(_it_chain.from_iterable(_np_argwhere(v == u))) for u in _np_unique(v)]
 
     return indices
 
@@ -211,7 +243,7 @@ def find_lumping_partitions(p: _tarray) -> _tparts:
 
     for partition in possible_partitions:
 
-        r = _np.zeros((size, len(partition)), dtype=float)
+        r = _np_zeros((size, len(partition)), dtype=float)
 
         for index, lumping in enumerate(partition):
             for state in lumping:
@@ -219,13 +251,13 @@ def find_lumping_partitions(p: _tarray) -> _tparts:
 
         # noinspection PyBroadException
         try:
-            k = _np.dot(_np.linalg.inv(_np.dot(_np.transpose(r), r)), _np.transpose(r))
+            k = _np_dot(_npl_inv(_np_dot(_np_transpose(r), r)), _np_transpose(r))
         except Exception:  # pragma: no cover
             continue
 
-        left = _np.dot(_np.dot(_np.dot(r, k), p), r)
-        right = _np.dot(p, r)
-        is_lumpable = _np.array_equal(left, right)
+        left = _np_dot(_np_dot(_np_dot(r, k), p), r)
+        right = _np_dot(p, r)
+        is_lumpable = _np_array_equal(left, right)
 
         if is_lumpable:
             partitions.append(partition)
@@ -235,52 +267,52 @@ def find_lumping_partitions(p: _tarray) -> _tparts:
 
 def gth_solve(p: _tarray) -> _tarray:
 
-    a = _np.copy(p)
+    a = _np_copy(p)
     n = a.shape[0]
 
     for i in range(n - 1):
 
-        scale = _np.sum(a[i, i + 1:n])
+        scale = _np_sum(a[i, i + 1:n])
 
         if scale <= 0.0:  # pragma: no cover
             n = i + 1
             break
 
         a[i + 1:n, i] /= scale
-        a[i + 1:n, i + 1:n] += _np.dot(a[i + 1:n, i:i + 1], a[i:i + 1, i + 1:n])
+        a[i + 1:n, i + 1:n] += _np_dot(a[i + 1:n, i:i + 1], a[i:i + 1, i + 1:n])
 
-    x = _np.zeros(n, dtype=float)
+    x = _np_zeros(n, dtype=float)
     x[n - 1] = 1.0
 
     for i in range(n - 2, -1, -1):
-        x[i] = _np.dot(x[i + 1:n], a[i + 1:n, i])
+        x[i] = _np_dot(x[i + 1:n], a[i + 1:n, i])
 
-    x /= _np.sum(x)
+    x /= _np_sum(x)
 
     return x
 
 
 def rdl_decomposition(p: _tarray) -> _trdl:
 
-    values, vectors = _npl.eig(p)
+    values, vectors = _npl_eig(p)
 
-    indices = _np.argsort(_np.abs(values))[::-1]
+    indices = _np_argsort(_np_abs(values))[::-1]
     values = values[indices]
     vectors = vectors[:, indices]
 
-    r = _np.copy(vectors)
-    d = _np.diag(values)
-    l = _npl.solve(_np.transpose(r), _np.eye(p.shape[0], dtype=float))  # noqa
+    r = _np_copy(vectors)
+    d = _np_diag(values)
+    l = _npl_solve(_np_transpose(r), _np_eye(p.shape[0], dtype=float))  # noqa
 
-    k = _np.sum(l[:, 0])
+    k = _np_sum(l[:, 0])
 
-    if not _np.isclose(k, 0.0):
+    if not _np_isclose(k, 0.0):
         r[:, 0] *= k
         l[:, 0] /= k
 
-    r = _np.real(r)
-    d = _np.real(d)
-    l = _np.transpose(_np.real(l))  # noqa
+    r = _np_real(r)
+    d = _np_real(d)
+    l = _np_transpose(_np_real(l))  # noqa
 
     return r, d, l
 
@@ -288,9 +320,9 @@ def rdl_decomposition(p: _tarray) -> _trdl:
 def slem(m: _tarray) -> _ofloat:
 
     ev = eigenvalues_sorted(m)
-    value = ev[~_np.isclose(ev, 1.0)][-1]
+    value = ev[~_np_isclose(ev, 1.0)][-1]
 
-    if _np.isclose(value, 0.0):
+    if _np_isclose(value, 0.0):
         return None
 
     return value

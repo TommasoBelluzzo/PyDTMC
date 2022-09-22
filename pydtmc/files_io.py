@@ -26,7 +26,7 @@ from csv import (
 )
 
 from io import (
-    BytesIO as _BytesIO
+    BytesIO as _io_BytesIO
 )
 
 from json import (
@@ -35,7 +35,12 @@ from json import (
 )
 
 from xml.etree import (
-    ElementTree as _ElementTree
+    ElementTree as _xml_ElementTree
+)
+
+from xml.etree.ElementTree import (
+    Element as _xml_Element,
+    SubElement as _xml_SubElement
 )
 
 try:
@@ -45,7 +50,11 @@ except ImportError:  # pragma: no cover
 
 # Libraries
 
-import numpy as _np
+from numpy import (
+    floating as _np_floating,
+    integer as _np_integer,
+    zeros as _np_zeros
+)
 
 # Internal
 
@@ -75,24 +84,22 @@ def read_csv(file_path: str) -> _tmc_dict:
 
             if index == 0:
 
-                states = row
-
-                if not all(isinstance(state, str) for state in states) or not all(state is not None and len(state) > 0 for state in states):  # pragma: no cover
+                if not all(isinstance(state, str) for state in row) or not all(state is not None and len(state) > 0 for state in row):  # pragma: no cover
                     raise ValueError('The file header is invalid.')
 
-                size = len(states)
+                states = row
                 states_unique = len(set(states))
+                size = len(states)
 
                 if states_unique < size:  # pragma: no cover
                     raise ValueError('The file header is invalid.')
 
             else:
 
-                probabilities = row
-
-                if len(probabilities) != size or not all(isinstance(p, str) for p in probabilities) or not all(p is not None and len(p) > 0 for p in probabilities):  # pragma: no cover
+                if len(row) != size or not all(isinstance(p, str) for p in row) or not all(p is not None and len(p) > 0 for p in row):  # pragma: no cover
                     raise ValueError('The file contains invalid rows.')
 
+                probabilities = row
                 state_from = states[index - 1]
 
                 for i in range(size):
@@ -111,8 +118,9 @@ def read_csv(file_path: str) -> _tmc_dict:
 
 def read_json(file_path: str) -> _tmc_dict:
 
+    valid_keys = ('probability', 'state_from', 'state_to')
+
     d = {}
-    valid_keys = ['probability', 'state_from', 'state_to']
 
     with open(file_path, mode='r') as file:
 
@@ -128,7 +136,7 @@ def read_json(file_path: str) -> _tmc_dict:
             if not isinstance(obj, dict):  # pragma: no cover
                 raise ValueError('The file format is not compliant.')
 
-            if sorted(obj.keys()) != valid_keys:  # pragma: no cover
+            if tuple(sorted(obj.keys())) != valid_keys:  # pragma: no cover
                 raise ValueError('The file contains invalid elements.')
 
             state_from = obj['state_from']
@@ -141,7 +149,7 @@ def read_json(file_path: str) -> _tmc_dict:
             if not isinstance(state_to, str) or len(state_to) == 0:  # pragma: no cover
                 raise ValueError('The file contains invalid elements.')
 
-            if not isinstance(probability, (float, int, _np.floating, _np.integer)):  # pragma: no cover
+            if not isinstance(probability, (float, int, _np_floating, _np_integer)):  # pragma: no cover
                 raise ValueError('The file contains invalid elements.')
 
             d[(state_from, state_to)] = float(probability)
@@ -179,8 +187,9 @@ def read_txt(file_path: str) -> _tmc_dict:
 
 def read_xml(file_path: str) -> _tmc_dict:
 
+    valid_keys = ('probability', 'state_from', 'state_to')
+
     d = {}
-    valid_keys = ['probability', 'state_from', 'state_to']
 
     try:
         document = _xml_parse(file_path)
@@ -207,7 +216,7 @@ def read_xml(file_path: str) -> _tmc_dict:
 
         keys = [attribute[0] for attribute in attributes]
 
-        if sorted(keys) != valid_keys:  # pragma: no cover
+        if tuple(sorted(keys)) != valid_keys:  # pragma: no cover
             raise ValueError('The file contains invalid subelements.')
 
         values = [attribute[1].strip() for attribute in attributes]
@@ -239,7 +248,7 @@ def write_csv(d: _tmc_dict, file_path: str):
     states = [key[0] for key in d.keys() if key[0] == key[1]]
     size = len(states)
 
-    p = _np.zeros((size, size), dtype=float)
+    p = _np_zeros((size, size), dtype=float)
 
     for it, ip in d.items():
         p[states.index(it[0]), states.index(it[1])] = ip
@@ -257,10 +266,7 @@ def write_csv(d: _tmc_dict, file_path: str):
 
 def write_json(d: _tmc_dict, file_path: str):
 
-    output = []
-
-    for it, ip in d.items():
-        output.append({'state_from': it[0], 'state_to': it[1], 'probability': ip})
+    output = [{'state_from': it[0], 'state_to': it[1], 'probability': ip} for it, ip in d.items()]
 
     with open(file_path, mode='w') as file:
         _json_dump(output, file)
@@ -276,17 +282,17 @@ def write_txt(d: _tmc_dict, file_path: str):
 
 def write_xml(d: _tmc_dict, file_path: str):
 
-    root = _ElementTree.Element('MarkovChain')
+    root = _xml_Element('MarkovChain')
 
     for it, ip in d.items():
-        transition = _ElementTree.SubElement(root, 'Transition')
+        transition = _xml_SubElement(root, 'Transition')
         transition.set('state_from', it[0])
         transition.set('state_to', it[1])
         transition.set('probability', str(ip))
 
-    document = _ElementTree.ElementTree(root)
+    document = _xml_ElementTree.ElementTree(root)
 
-    with _BytesIO() as buffer:
+    with _io_BytesIO() as buffer:
         document.write(buffer, 'utf-8', True)
         xml_content = str(buffer.getvalue(), 'utf-8')
 

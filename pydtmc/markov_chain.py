@@ -2460,6 +2460,7 @@ class MarkovChain(metaclass=_BaseClass):
         - Infinite values are replaced with finite numbers.
         - Negative values are clipped to zero.
         - In transition matrix rows with no positive values the states are assumed to be uniformly distributed.
+        - In light of the above points, random distribution functions must be carefully parametrized.
 
         :param size: the size of the Markov chain.
         :param f: the Numpy random distribution function or the name of the Numpy random distribution function.
