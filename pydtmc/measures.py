@@ -177,7 +177,7 @@ def expected_transitions(p: _tarray, rdl: _trdl, steps: int, initial_distributio
         ts = _np_dot(_np_dot(r, ds), _np_conjugate(l))
         ps = _np_dot(initial_distribution, ts)
 
-        et = _np_real(ps[:, _np_newaxis] * p)
+        et = _np_real(ps[:, _np_newaxis] * p)  # pylint: disable=invalid-sequence-index
 
     return et
 
@@ -196,7 +196,7 @@ def first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, first_
 
         for i in range(1, steps):
             g = _np_dot(p, g * e)
-            z[i, :] = g[initial_state, :]
+            z[i, :] = g[initial_state, :]  # pylint: disable=invalid-sequence-index
 
     else:
 
@@ -205,7 +205,7 @@ def first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, first_
 
         for i in range(1, steps):
             g = _np_dot(p, g * e)
-            z[i] = _np_sum(g[initial_state, first_passage_states])
+            z[i] = _np_sum(g[initial_state, first_passage_states])  # pylint: disable=invalid-sequence-index
 
     return z
 
@@ -543,7 +543,7 @@ def time_correlations(mc: _tmc, rdl: _trdl, walk1: _twalk, walk2: _owalk, time_p
             m1 = _np_multiply(observations1, pi)
             m2 = _np_dot(p_times, observations2)
 
-            tcs.append(_np_dot(m1, m2).item())
+            tcs.append(_np_dot(m1, m2).item())  # pylint: disable=no-member
 
     else:
 
@@ -580,7 +580,7 @@ def time_correlations(mc: _tmc, rdl: _trdl, walk1: _twalk, walk2: _owalk, time_p
 
             start_values = (time_point, pk_i)
 
-            tcs.append(_np_dot(m, pk_i).item())
+            tcs.append(_np_dot(m, pk_i).item())  # pylint: disable=no-member
 
     if time_points_integer:
         return tcs[0]
@@ -621,7 +621,7 @@ def time_relaxations(mc: _tmc, rdl: _trdl, walk: _twalk, initial_distribution: _
 
             p_times = _np_dot(_np_dot(r, t), l)
 
-            trs.append(_np_dot(_np_dot(initial_distribution, p_times), observations).item())
+            trs.append(_np_dot(_np_dot(initial_distribution, p_times), observations).item())  # pylint: disable=no-member
 
     else:
 
@@ -656,7 +656,7 @@ def time_relaxations(mc: _tmc, rdl: _trdl, walk: _twalk, initial_distribution: _
 
             start_values = (time_point, pk_i)
 
-            trs.append(_np_dot(pk_i, observations).item())
+            trs.append(_np_dot(pk_i, observations).item())  # pylint: disable=no-member
 
     if time_points_integer:
         return trs[0]

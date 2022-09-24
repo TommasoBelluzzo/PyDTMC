@@ -86,16 +86,14 @@ def get_numpy_random_distributions() -> _tlist_str:
     except ImportError:  # pragma: no cover
         return []
 
-    from numpy.random import RandomState
-
     excluded_funcs = ('dirichlet', 'multinomial', 'multivariate_normal')
     valid_summaries = ('DRAW RANDOM SAMPLES', 'DRAW SAMPLES', 'DRAWS SAMPLES')
 
     result = []
 
-    for func_name in dir(RandomState):
+    for func_name in dir(_npr_RandomState):
 
-        func = getattr(RandomState, func_name)
+        func = getattr(_npr_RandomState, func_name)
 
         if not callable(func) or func_name.startswith('_') or func_name.startswith('standard_') or func_name in excluded_funcs:
             continue
