@@ -260,7 +260,7 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
         for i in range(size):
             rx = rho * x[i]
 
-            p[i, 0] = _sps_norm.cdf((x[0] - rx + step) / sigma)
+            p[i, 0] = _sps_norm.cdf((x_0 - rx + step) / sigma)
             p[i, size_m1] = 1.0 - _sps_norm.cdf((x_sm1 - rx - step) / sigma)
 
             for j in range(1, size_m1):

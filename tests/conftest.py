@@ -78,7 +78,7 @@ def _parse_fixtures_benchmark(fixtures, func):
     try:
         module_name = func.split('_')[2]
         module = _il_import_module(f'pydtmc.{module_name}')
-    except:
+    except Exception:
         return values, ids
 
     if module_name not in fixtures:
