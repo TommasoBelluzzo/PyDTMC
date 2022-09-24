@@ -27,9 +27,48 @@ __all__ = [
 
 # Libraries
 
-import numpy as _np
-import numpy.linalg as _npl
-import scipy.optimize as _spo
+from numpy import (
+    abs as _np_abs,
+    arange as _np_arange,
+    array as _np_array,
+    concatenate as _np_concatenate,
+    conjugate as _np_conjugate,
+    copy as _np_copy,
+    delete as _np_delete,
+    diag as _np_diag,
+    diag_indices_from as _np_diag_indices_from,
+    dot as _np_dot,
+    eye as _np_eye,
+    fill_diagonal as _np_fill_diagonal,
+    flatnonzero as _np_flatnonzero,
+    inf as _np_inf,
+    isclose as _np_isclose,
+    ix_ as _np_ix,
+    matmul as _np_matmul,
+    multiply as _np_multiply,
+    nan as _np_nan,
+    newaxis as _np_newaxis,
+    ones as _np_ones,
+    outer as _np_outer,
+    real as _np_real,
+    setdiff1d as _np_setdiff1d,
+    shape as _np_shape,
+    sum as _np_sum,
+    tile as _np_tile,
+    transpose as _np_transpose,
+    union1d as _np_union1d,
+    zeros as _np_zeros
+)
+
+from numpy.linalg import (
+    inv as _npl_inv,
+    lstsq as _npl_lstsq,
+    solve as _npl_solve
+)
+
+from scipy.optimize import (
+    nnls as _spo_nnls
+)
 
 # Internal
 
@@ -58,13 +97,13 @@ def absorption_probabilities(mc: _tmc) -> _oarray:
     if not mc.is_absorbing or len(mc.transient_states) == 0:
         return None
 
-    n = mc.fundamental_matrix
+    p, states, n = mc.p, mc.states, mc.fundamental_matrix
 
-    absorbing_indices = [mc.states.index(state) for state in mc.absorbing_states]
-    transient_indices = [mc.states.index(state) for state in mc.transient_states]
-    r = mc.p[_np.ix_(transient_indices, absorbing_indices)]
+    absorbing_indices = [states.index(state) for state in mc.absorbing_states]
+    transient_indices = [states.index(state) for state in mc.transient_states]
+    r = p[_np_ix(transient_indices, absorbing_indices)]
 
-    ap = _np.transpose(_np.matmul(n, r))
+    ap = _np_transpose(_np_matmul(n, r))
 
     return ap
 
@@ -74,39 +113,38 @@ def committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_int, 
     if not mc.is_ergodic:
         return None
 
-    pi = mc.pi[0]
+    p, size, pi = mc.p, mc.size, mc.pi[0]
 
     if committor_type == 'backward':
-        a = _np.transpose(pi[:, _np.newaxis] * (mc.p - _np.eye(mc.size, dtype=float)))
+        a = _np_transpose(pi[:, _np_newaxis] * (p - _np_eye(size, dtype=float)))
     else:
-        a = mc.p - _np.eye(mc.size, dtype=float)
+        a = p - _np_eye(size, dtype=float)
 
     a[states1, :] = 0.0
     a[states1, states1] = 1.0
     a[states2, :] = 0.0
     a[states2, states2] = 1.0
 
-    b = _np.zeros(mc.size, dtype=float)
+    b = _np_zeros(size, dtype=float)
 
     if committor_type == 'backward':
         b[states1] = 1.0
     else:
         b[states2] = 1.0
 
-    cp = _npl.solve(a, b)
-    cp[_np.isclose(cp, 0.0)] = 0.0
+    cp = _npl_solve(a, b)
+    cp[_np_isclose(cp, 0.0)] = 0.0
 
     return cp
 
 
 def expected_rewards(p: _tarray, steps: int, rewards: _tarray) -> _tany:
 
-    original_rewards = _np.copy(rewards)
-
-    er = _np.copy(rewards)
+    original_rewards = _np_copy(rewards)
+    er = _np_copy(rewards)
 
     for _ in range(steps):
-        er = original_rewards + _np.dot(er, p)
+        er = original_rewards + _np_dot(er, p)
 
     return er
 
@@ -119,69 +157,73 @@ def expected_transitions(p: _tarray, rdl: _trdl, steps: int, initial_distributio
         idist_sum = initial_distribution
 
         for _ in range(steps - 1):
-            pi = _np.dot(idist, p)
+            pi = _np_dot(idist, p)
             idist_sum += pi
 
-        et = idist_sum[:, _np.newaxis] * p
+        et = idist_sum[:, _np_newaxis] * p
 
     else:
 
         r, d, l = rdl  # noqa
 
-        q = _np.array(_np.diag(d))
+        q = _np_array(_np_diag(d))
         q_indices = (q == 1.0)
 
-        gs = _np.zeros(_np.shape(q), dtype=float)
+        gs = _np_zeros(_np_shape(q), dtype=float)
         gs[q_indices] = steps
         gs[~q_indices] = (1.0 - q[~q_indices]**steps) / (1.0 - q[~q_indices])
 
-        ds = _np.diag(gs)
-        ts = _np.dot(_np.dot(r, ds), _np.conjugate(l))
-        ps = _np.dot(initial_distribution, ts)
+        ds = _np_diag(gs)
+        ts = _np_dot(_np_dot(r, ds), _np_conjugate(l))
+        ps = _np_dot(initial_distribution, ts)
 
-        et = _np.real(ps[:, _np.newaxis] * p)
+        et = _np_real(ps[:, _np_newaxis] * p)
 
     return et
 
 
 def first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, first_passage_states: _olist_int) -> _tarray:
 
-    e = _np.ones((mc.size, mc.size), dtype=float) - _np.eye(mc.size, dtype=float)
-    g = _np.copy(mc.p)
+    p, size = mc.p, mc.size
+
+    e = _np_ones((size, size), dtype=float) - _np_eye(size, dtype=float)
+    g = _np_copy(p)
 
     if first_passage_states is None:
 
-        z = _np.zeros((steps, mc.size), dtype=float)
-        z[0, :] = mc.p[initial_state, :]
+        z = _np_zeros((steps, size), dtype=float)
+        z[0, :] = p[initial_state, :]
 
         for i in range(1, steps):
-            g = _np.dot(mc.p, g * e)
+            g = _np_dot(p, g * e)
             z[i, :] = g[initial_state, :]
 
     else:
 
-        z = _np.zeros(steps, dtype=float)
-        z[0] = _np.sum(mc.p[initial_state, first_passage_states])
+        z = _np_zeros(steps, dtype=float)
+        z[0] = _np_sum(p[initial_state, first_passage_states])
 
         for i in range(1, steps):
-            g = _np.dot(mc.p, g * e)
-            z[i] = _np.sum(g[initial_state, first_passage_states])
+            g = _np_dot(p, g * e)
+            z[i] = _np_sum(g[initial_state, first_passage_states])
 
     return z
 
 
 def first_passage_reward(mc: _tmc, steps: int, initial_state: int, first_passage_states: _tlist_int, rewards: _tarray) -> float:
 
-    other_states = sorted(set(range(mc.size)) - set(first_passage_states))
+    p, size = mc.p, mc.size
 
-    m = mc.p[_np.ix_(other_states, other_states)]
-    mt = _np.copy(m)
+    other_states = sorted(set(range(size)) - set(first_passage_states))
+
+    m = p[_np_ix(other_states, other_states)]
+    mt = _np_copy(m)
     mr = rewards[other_states]
 
     k = 1
     offset = 0
 
-    for j in range(mc.size):
+    for j in range(size):
 
         if j not in first_passage_states:
 
@@ -191,29 +233,31 @@ def first_passage_reward(mc: _tmc, steps: int, initial_state: int, first_passage
 
             k += 1
 
-    i = _np.zeros(len(other_states))
+    i = _np_zeros(len(other_states))
     i[offset - 1] = 1.0
 
     reward = 0.0
 
     for _ in range(steps):
-        reward += _np.dot(i, _np.dot(mt, mr))
-        mt = _np.dot(mt, m)
+        reward += _np_dot(i, _np_dot(mt, mr))
+        mt = _np_dot(mt, m)
 
     return reward
 
 
 def hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
 
-    target = _np.array(targets)
-    non_target = _np.setdiff1d(_np.arange(mc.size, dtype=int), target)
+    p, size = mc.p, mc.size
 
-    hp = _np.ones(mc.size, dtype=float)
+    target = _np_array(targets)
+    non_target = _np_setdiff1d(_np_arange(size, dtype=int), target)
+
+    hp = _np_ones(size, dtype=float)
 
     if non_target.size > 0:
-        a = mc.p[non_target, :][:, non_target] - _np.eye(non_target.size, dtype=float)
-        b = _np.sum(-mc.p[non_target, :][:, target], axis=1)
-        x = _spo.nnls(a, b)[0]
+        a = p[non_target, :][:, non_target] - _np_eye(non_target.size, dtype=float)
+        b = _np_sum(-p[non_target, :][:, target], axis=1)
+        x = _spo_nnls(a, b)[0]
         hp[non_target] = x
 
     return hp
@@ -221,29 +265,31 @@ def hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
 
 def hitting_times(mc: _tmc, targets: _tlist_int) -> _tarray:
 
-    target = _np.array(targets)
+    p, size = mc.p, mc.size
+
+    target = _np_array(targets)
 
     hp = hitting_probabilities(mc, targets)
-    ht = _np.zeros(mc.size, dtype=float)
+    ht = _np_zeros(size, dtype=float)
 
-    infinity = _np.flatnonzero(_np.isclose(hp, 0.0))
+    infinity = _np_flatnonzero(_np_isclose(hp, 0.0))
     current_size = infinity.size
     new_size = 0
 
     while current_size != new_size:
-        x = _np.flatnonzero(_np.sum(mc.p[:, infinity], axis=1))
-        infinity = _np.setdiff1d(_np.union1d(infinity, x), target)
+        x = _np_flatnonzero(_np_sum(p[:, infinity], axis=1))
+        infinity = _np_setdiff1d(_np_union1d(infinity, x), target)
         new_size = current_size
         current_size = infinity.size
 
-    ht[infinity] = _np.Inf
+    ht[infinity] = _np_inf
 
-    solve = _np.setdiff1d(list(range(mc.size)), _np.union1d(target, infinity))
+    solve = _np_setdiff1d(list(range(size)), _np_union1d(target, infinity))
 
     if solve.size > 0:
-        a = mc.p[solve, :][:, solve] - _np.eye(solve.size, dtype=float)
-        b = -_np.ones(solve.size, dtype=float)
-        x = _spo.nnls(a, b)[0]
+        a = p[solve, :][:, solve] - _np_eye(solve.size, dtype=float)
+        b = -_np_ones(solve.size, dtype=float)
+        x = _spo_nnls(a, b)[0]
         ht[solve] = x
 
     return ht
@@ -255,7 +301,7 @@ def mean_absorption_times(mc: _tmc) -> _oarray:
         return None
 
     n = mc.fundamental_matrix
-    mat = _np.transpose(_np.dot(n, _np.ones(n.shape[0], dtype=float)))
+    mat = _np_transpose(_np_dot(n, _np_ones(n.shape[0], dtype=float)))
 
     return mat
 
@@ -270,9 +316,9 @@ def mean_first_passage_times_between(mc: _tmc, origins: _tlist_int, targets: _tl
     mfptt = mean_first_passage_times_to(mc, targets)
 
     pi_origins = pi[origins]
-    mu = pi_origins / _np.sum(pi_origins)
+    mu = pi_origins / _np_sum(pi_origins)
 
-    mfptb = _np.dot(mu, mfptt[origins])
+    mfptb = _np_dot(mu, mfptt[origins])
 
     return mfptb
 
@@ -282,75 +328,75 @@ def mean_first_passage_times_to(mc: _tmc, targets: _olist_int) -> _oarray:
     if not mc.is_ergodic:
         return None
 
-    pi = mc.pi[0]
+    p, size, pi = mc.p, mc.size, mc.pi[0]
 
     if targets is None:
 
-        a = _np.tile(pi, (mc.size, 1))
-        i = _np.eye(mc.size, dtype=float)
-        z = _npl.inv(i - mc.p + a)
+        a = _np_tile(pi, (size, 1))
+        i = _np_eye(size, dtype=float)
+        z = _npl_inv(i - p + a)
 
-        e = _np.ones((mc.size, mc.size), dtype=float)
-        k = _np.dot(e, _np.diag(_np.diag(z)))
+        e = _np_ones((size, size), dtype=float)
+        k = _np_dot(e, _np_diag(_np_diag(z)))
 
-        mfptt = _np.dot(i - z + k, _np.diag(1.0 / _np.diag(a)))
-        _np.fill_diagonal(mfptt, 0.0)
+        mfptt = _np_dot(i - z + k, _np_diag(1.0 / _np_diag(a)))
+        _np_fill_diagonal(mfptt, 0.0)
 
     else:
 
-        a = _np.eye(mc.size, dtype=float) - mc.p
+        a = _np_eye(size, dtype=float) - p
         a[targets, :] = 0.0
         a[targets, targets] = 1.0
 
-        b = _np.ones(mc.size, dtype=float)
+        b = _np_ones(size, dtype=float)
         b[targets] = 0.0
 
-        mfptt = _npl.solve(a, b)
+        mfptt = _npl_solve(a, b)
 
     return mfptt
 
 
 def mean_number_visits(mc: _tmc) -> _oarray:
 
-    ccis = [[*map(mc.states.index, communicating_class)] for communicating_class in mc.communicating_classes]
-    cm = mc.communication_matrix
+    p, size, states, cm = mc.p, mc.size, mc.states, mc.communication_matrix
 
-    closed_states = [True] * mc.size
+    ccis = [[*map(states.index, communicating_class)] for communicating_class in mc.communicating_classes]
+    closed_states = [True] * size
 
     for cci in ccis:
 
         closed = True
 
         for i in cci:
-            for j in range(mc.size):
+            for j in range(size):
 
                 if j in cci:
                     continue
 
-                if mc.p[i, j] > 0.0:
+                if p[i, j] > 0.0:
                     closed = False
                     break
 
         for i in cci:
             closed_states[i] = closed
 
-    hp = _np.zeros((mc.size, mc.size), dtype=float)
+    hp = _np_zeros((size, size), dtype=float)
 
-    for j in range(mc.size):
+    for j in range(size):
 
-        a = _np.copy(mc.p)
+        a = _np_copy(p)
         b = -a[:, j]
 
-        for i in range(mc.size):
+        for i in range(size):
             a[i, j] = 0.0
             a[i, i] -= 1.0
 
-        for i in range(mc.size):
+        for i in range(size):
 
             if not closed_states[i]:
                 continue
 
-            for k in range(mc.size):
+            for k in range(size):
                 if k == i:
                     a[i, i] = 1.0
                 else:
@@ -361,25 +407,25 @@ def mean_number_visits(mc: _tmc) -> _oarray:
             else:
                 b[i] = 0.0
 
-        hp[:, j] = _npl.solve(a, b)
+        hp[:, j] = _npl_solve(a, b)
 
-    mnv = _np.zeros((mc.size, mc.size), dtype=float)
+    mnv = _np_zeros((size, size), dtype=float)
 
-    for j in range(mc.size):
+    for j in range(size):
 
-        ct1 = _np.isclose(hp[j, j], 1.0)
+        ct1 = _np_isclose(hp[j, j], 1.0)
 
         if ct1:
-            z = _np.nan
+            z = _np_nan
         else:
             z = 1.0 / (1.0 - hp[j, j])
 
-        for i in range(mc.size):
+        for i in range(size):
 
-            if _np.isclose(hp[i, j], 0.0):
+            if _np_isclose(hp[i, j], 0.0):
                 mnv[i, j] = 0.0
             elif ct1:
-                mnv[i, j] = _np.inf
+                mnv[i, j] = _np_inf
             else:
                 mnv[i, j] = hp[i, j] * z
 
@@ -393,7 +439,7 @@ def mean_recurrence_times(mc: _tmc) -> _oarray:
 
     pi = mc.pi[0]
 
-    mrt = _np.array([0.0 if _np.isclose(v, 0.0) else 1.0 / v for v in pi])
+    mrt = _np_array([0.0 if _np_isclose(v, 0.0) else 1.0 / v for v in pi])
 
     return mrt
 
@@ -403,8 +449,7 @@ def mixing_time(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: floa
     if not mc.is_ergodic:
         return None
 
-    p = mc.p
-    pi = mc.pi[0]
+    p, pi = mc.p, mc.pi[0]
 
     iterations = 0
     tvd = 1.0
@@ -416,7 +461,7 @@ def mixing_time(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: floa
 
         iterations += 1
 
-        tvd = _np.sum(_np.abs(d - pi))
+        tvd = _np_sum(_np_abs(d - pi))
         d = d.dot(p)
 
         mt += jump
@@ -432,40 +477,44 @@ def sensitivity(mc: _tmc, state: int) -> _oarray:
     if not mc.is_irreducible:
         return None
 
-    lev = _np.ones(mc.size, dtype=float)
-    rev = mc.pi[0]
+    p, size, pi = mc.p, mc.size, mc.pi[0]
 
-    a = _np.transpose(mc.p) - _np.eye(mc.size, dtype=float)
-    a = _np.transpose(_np.concatenate((a, [lev])))
+    lev = _np_ones(size, dtype=float)
+    rev = pi
 
-    b = _np.zeros(mc.size, dtype=float)
+    a = _np_transpose(p) - _np_eye(size, dtype=float)
+    a = _np_transpose(_np_concatenate((a, [lev])))
+
+    b = _np_zeros(size, dtype=float)
     b[state] = 1.0
 
-    phi = _npl.lstsq(a, b, rcond=-1)
-    phi = _np.delete(phi[0], -1)
+    phi = _npl_lstsq(a, b, rcond=-1)
+    phi = _np_delete(phi[0], -1)
 
-    s = -_np.outer(rev, phi) + (_np.dot(phi, rev) * _np.outer(rev, lev))
+    s = -_np_outer(rev, phi) + (_np_dot(phi, rev) * _np_outer(rev, lev))
 
     return s
 
 
 def time_correlations(mc: _tmc, rdl: _trdl, walk1: _twalk, walk2: _owalk, time_points: _ttimes_in) -> _otimes_out:
 
-    if len(mc.pi) > 1:
+    p, size, pi = mc.p, mc.size, mc.pi
+
+    if len(pi) > 1:
         return None
 
-    pi = mc.pi[0]
+    pi = pi[0]
 
-    observations1 = _np.zeros(mc.size, dtype=float)
+    observations1 = _np_zeros(size, dtype=float)
 
     for state in walk1:
         observations1[state] += 1.0
 
     if walk2 is None:
-        observations2 = _np.copy(observations1)
+        observations2 = _np_copy(observations1)
     else:
 
-        observations2 = _np.zeros(mc.size, dtype=int)
+        observations2 = _np_zeros(size, dtype=int)
 
         for state in walk2:
             observations2[state] += 1.0
@@ -480,27 +529,27 @@ def time_correlations(mc: _tmc, rdl: _trdl, walk1: _twalk, walk2: _owalk, time_p
 
     tcs = []
 
-    if time_points[-1] > mc.size:
+    if time_points[-1] > size:
 
         r, d, l = rdl  # noqa
 
         for i in range(time_points_length):
 
-            t = _np.zeros(d.shape, dtype=float)
-            t[_np.diag_indices_from(d)] = _np.diag(d) ** time_points[i]
+            t = _np_zeros(d.shape, dtype=float)
+            t[_np_diag_indices_from(d)] = _np_diag(d)**time_points[i]
 
-            p_times = _np.dot(_np.dot(r, t), l)
+            p_times = _np_dot(_np_dot(r, t), l)
 
-            m1 = _np.multiply(observations1, pi)
-            m2 = _np.dot(p_times, observations2)
+            m1 = _np_multiply(observations1, pi)
+            m2 = _np_dot(p_times, observations2)
 
-            tcs.append(_np.dot(m1, m2).item())
+            tcs.append(_np_dot(m1, m2).item())
 
     else:
 
         start_values = (None, None)
 
-        m = _np.multiply(observations1, pi)
+        m = _np_multiply(observations1, pi)
 
         for i in range(time_points_length):
 
@@ -513,25 +562,25 @@ def time_correlations(mc: _tmc, rdl: _trdl, walk1: _twalk, walk2: _owalk, time_p
                 t_diff = time_point - time_prev
 
                 for _ in range(t_diff):
-                    pk_i = _np.dot(mc.p, pk_i)
+                    pk_i = _np_dot(p, pk_i)
 
             else:
 
                 if time_point >= 2:
 
-                    pk_i = _np.dot(mc.p, _np.dot(mc.p, observations2))
+                    pk_i = _np_dot(p, _np_dot(p, observations2))
 
                     for _ in range(time_point - 2):
-                        pk_i = _np.dot(mc.p, pk_i)
+                        pk_i = _np_dot(p, pk_i)
 
                 elif time_point == 1:
-                    pk_i = _np.dot(mc.p, observations2)
+                    pk_i = _np_dot(p, observations2)
                 else:
                     pk_i = observations2
 
             start_values = (time_point, pk_i)
 
-            tcs.append(_np.dot(m, pk_i).item())
+            tcs.append(_np_dot(m, pk_i).item())
 
     if time_points_integer:
         return tcs[0]
@@ -541,10 +590,12 @@ def time_correlations(mc: _tmc, rdl: _trdl, walk1: _twalk, walk2: _owalk, time_p
 
 def time_relaxations(mc: _tmc, rdl: _trdl, walk: _twalk, initial_distribution: _tarray, time_points: _ttimes_in) -> _otimes_out:
 
-    if len(mc.pi) > 1:
+    p, size, pi = mc.p, mc.size, mc.pi
+
+    if len(pi) > 1:
         return None
 
-    observations = _np.zeros(mc.size, dtype=float)
+    observations = _np_zeros(size, dtype=float)
 
     for state in walk:
         observations[state] += 1.0
@@ -559,18 +610,18 @@ def time_relaxations(mc: _tmc, rdl: _trdl, walk: _twalk, initial_distribution: _
 
     trs = []
 
-    if time_points[-1] > mc.size:
+    if time_points[-1] > size:
 
         r, d, l = rdl  # noqa
 
         for i in range(time_points_length):
 
-            t = _np.zeros(d.shape, dtype=float)
-            t[_np.diag_indices_from(d)] = _np.diag(d) ** time_points[i]
+            t = _np_zeros(d.shape, dtype=float)
+            t[_np_diag_indices_from(d)] = _np_diag(d)**time_points[i]
 
-            p_times = _np.dot(_np.dot(r, t), l)
+            p_times = _np_dot(_np_dot(r, t), l)
 
-            trs.append(_np.dot(_np.dot(initial_distribution, p_times), observations).item())
+            trs.append(_np_dot(_np_dot(initial_distribution, p_times), observations).item())
 
     else:
 
@@ -587,25 +638,25 @@ def time_relaxations(mc: _tmc, rdl: _trdl, walk: _twalk, initial_distribution: _
                 t_diff = time_point - time_prev
 
                 for _ in range(t_diff):
-                    pk_i = _np.dot(pk_i, mc.p)
+                    pk_i = _np_dot(pk_i, p)
 
             else:
 
                 if time_point >= 2:
 
-                    pk_i = _np.dot(_np.dot(initial_distribution, mc.p), mc.p)
+                    pk_i = _np_dot(_np_dot(initial_distribution, p), p)
 
                     for _ in range(time_point - 2):
-                        pk_i = _np.dot(pk_i, mc.p)
+                        pk_i = _np_dot(pk_i, p)
 
                 elif time_point == 1:
-                    pk_i = _np.dot(initial_distribution, mc.p)
+                    pk_i = _np_dot(initial_distribution, p)
                 else:
                     pk_i = initial_distribution
 
             start_values = (time_point, pk_i)
 
-            trs.append(_np.dot(pk_i, observations).item())
+            trs.append(_np_dot(pk_i, observations).item())
 
     if time_points_integer:
         return trs[0]

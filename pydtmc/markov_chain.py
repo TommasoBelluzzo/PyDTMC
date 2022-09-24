@@ -12,7 +12,7 @@ __all__ = [
 # Standard
 
 from copy import (
-    deepcopy as _deepcopy
+    deepcopy as _cp_deepcopy
 )
 
 from inspect import (
@@ -32,9 +32,51 @@ from math import (
 
 # Libraries
 
-import networkx as _nx
-import numpy as _np
-import numpy.linalg as _npl
+from networkx import (
+    condensation as _nx_condensation,
+    DiGraph as _nx_DiGraph,
+    is_aperiodic as _nx_is_aperiodic,
+    MultiDiGraph as _nx_MultiDiGraph,
+    relabel_nodes as _nx_relabel_nodes,
+    strongly_connected_components as _nx_strongly_connected_components
+)
+
+from numpy import (
+    all as _np_all,
+    allclose as _np_allclose,
+    append as _np_append,
+    array_equal as _np_array_equal,
+    clip as _np_clip,
+    copy as _np_copy,
+    count_nonzero as _np_count_nonzero,
+    diag as _np_diag,
+    exp as _np_exp,
+    eye as _np_eye,
+    full as _np_full,
+    inf as _np_inf,
+    intersect1d as _np_intersect1d,
+    isclose as _np_isclose,
+    ix_ as _np_ix_,
+    log as _np_log,
+    nan as _np_nan,
+    nan_to_num as _np_nan_to_num,
+    newaxis as _np_newaxis,
+    ones as _np_ones,
+    reshape as _np_reshape,
+    sqrt as _np_sqrt,
+    sum as _np_sum,
+    trace as _np_trace,
+    transpose as _np_transpose,
+    where as _np_where,
+    zeros as _np_zeros
+)
+
+from numpy.linalg import (
+    det as _npl_det,
+    inv as _npl_inv,
+    matrix_power as _npl_matrix_power,
+    matrix_rank as _npl_matrix_rank
+)
 
 # Internal
 
@@ -228,8 +270,8 @@ class MarkovChain(metaclass=_BaseClass):
 
         size = p.shape[0]
 
-        graph = _nx.DiGraph(p)
-        graph = _nx.relabel_nodes(graph, dict(zip(range(size), states)))
+        graph = _nx_DiGraph(p)
+        graph = _nx_relabel_nodes(graph, dict(zip(range(size), states)))
 
         self.__cache: _tcache = {}
         self.__digraph: _tgraph = graph
@@ -240,7 +282,7 @@ class MarkovChain(metaclass=_BaseClass):
     def __eq__(self, other) -> bool:
 
         if isinstance(other, MarkovChain):
-            return _np.array_equal(self.p, other.p) and self.states == other.states
+            return _np_array_equal(self.p, other.p) and self.states == other.states
 
         return False
 
@@ -278,14 +320,14 @@ class MarkovChain(metaclass=_BaseClass):
     @_cached_property
     def __absorbing_states_indices(self) -> _tlist_int:
 
-        indices = [index for index in range(self.__size) if _np.isclose(self.__p[index, index], 1.0)]
+        indices = [index for index in range(self.__size) if _np_isclose(self.__p[index, index], 1.0)]
 
         return indices
 
     @_cached_property
     def __classes_indices(self) -> _tlists_int:
 
-        indices = [sorted([self.__states.index(c) for c in scc]) for scc in _nx.strongly_connected_components(self.__digraph)]
+        indices = [sorted([self.__states.index(c) for c in scc]) for scc in _nx_strongly_connected_components(self.__digraph)]
 
         return indices
 
@@ -366,7 +408,7 @@ class MarkovChain(metaclass=_BaseClass):
     @_cached_property
     def __transient_classes_indices(self) -> _tlists_int:
 
-        edges = {edge1 for (edge1, edge2) in _nx.condensation(self.__digraph).edges}
+        edges = {edge1 for (edge1, edge2) in _nx_condensation(self.__digraph).edges}
 
         indices = [self.__classes_indices[edge] for edge in edges]
         indices = sorted(indices, key=lambda x: (-len(x), x[0]))
@@ -399,7 +441,7 @@ class MarkovChain(metaclass=_BaseClass):
         """
 
         a = self.adjacency_matrix
-        i = _np.eye(self.__size, dtype=int)
+        i = _np_eye(self.__size, dtype=int)
 
         am = (i + a)**(self.__size - 1)
         am = (am > 0).astype(int)
@@ -435,10 +477,10 @@ class MarkovChain(metaclass=_BaseClass):
         A property representing the communication matrix of the Markov chain.
         """
 
-        cm = _np.zeros((self.__size, self.__size), dtype=int)
+        cm = _np_zeros((self.__size, self.__size), dtype=int)
 
         for index in self.__communicating_classes_indices:
-            cm[_np.ix_(index, index)] = 1
+            cm[_np_ix_(index, index)] = 1
 
         return cm
 
@@ -471,7 +513,7 @@ class MarkovChain(metaclass=_BaseClass):
         A property representing the determinant of the transition matrix of the Markov chain.
         """
 
-        d = _npl.det(self.__p)
+        d = _npl_det(self.__p)
 
         return d
 
@@ -490,11 +532,12 @@ class MarkovChain(metaclass=_BaseClass):
         h = 0.0
 
         for i in range(self.__size):
+            pi_i = pi[i]
             for j in range(self.__size):
                 if self.__p[i, j] > 0.0:
-                    h += pi[i] * self.__p[i, j] * _np.log(self.__p[i, j])
+                    h += pi_i * self.__p[i, j] * _np_log(self.__p[i, j])
 
-        if _np.isclose(h, 0.0):
+        if _np_isclose(h, 0.0):
             return h
 
         return -h
@@ -512,11 +555,11 @@ class MarkovChain(metaclass=_BaseClass):
         if h is None:
             return None
 
-        if _np.isclose(h, 0.0):
+        if _np_isclose(h, 0.0):
             hn = 0.0
         else:
             ev = _eigenvalues_sorted(self.adjacency_matrix)
-            hn = h / _np.log(ev[-1])
+            hn = h / _np_log(ev[-1])
             hn = min(1.0, max(0.0, hn))
 
         return hn
@@ -534,10 +577,10 @@ class MarkovChain(metaclass=_BaseClass):
 
         indices = self.__transient_states_indices
 
-        q = self.__p[_np.ix_(indices, indices)]
-        i = _np.eye(len(indices), dtype=float)
+        q = self.__p[_np_ix_(indices, indices)]
+        i = _np_eye(len(indices), dtype=float)
 
-        fm = _npl.inv(i - q)
+        fm = _npl_inv(i - q)
 
         return fm
 
@@ -553,7 +596,7 @@ class MarkovChain(metaclass=_BaseClass):
             return None
 
         ev = self.__eigenvalues_sorted[::-1]
-        it = _np.append(_np.inf, -1.0 / _np.log(ev[1:]))
+        it = _np_append(_np_inf, -1.0 / _np_log(ev[1:]))
 
         return it
 
@@ -604,7 +647,7 @@ class MarkovChain(metaclass=_BaseClass):
         elif all(period == 1 for period in self.periods):
             result = True
         else:  # pragma: no cover
-            result = _nx.is_aperiodic(self.__digraph)
+            result = _nx_is_aperiodic(self.__digraph)
 
         return result
 
@@ -632,7 +675,7 @@ class MarkovChain(metaclass=_BaseClass):
         A property indicating whether the Markov chain is doubly stochastic.
         """
 
-        result = _np.allclose(_np.sum(self.__p, axis=0), 1.0)
+        result = _np_allclose(_np_sum(self.__p, axis=0), 1.0)
 
         return result
 
@@ -665,15 +708,15 @@ class MarkovChain(metaclass=_BaseClass):
         A property indicating whether the Markov chain is regular.
         """
 
-        d = _np.diag(self.__p)
-        nz = _np.count_nonzero(d)
+        d = _np_diag(self.__p)
+        nz = _np_count_nonzero(d)
 
         if nz > 0:
             k = (2 * self.__size) - nz - 1
         else:
-            k = self.__size ** self.__size - (2 * self.__size) + 2
+            k = self.__size**self.__size - (2 * self.__size) + 2
 
-        result = _np.all(self.__p ** k > 0.0)
+        result = _np_all(self.__p**k > 0.0)
 
         return result
 
@@ -688,9 +731,9 @@ class MarkovChain(metaclass=_BaseClass):
             return False
 
         pi = self.pi[0]
-        x = pi[:, _np.newaxis] * self.__p
+        x = pi[:, _np_newaxis] * self.__p
 
-        result = _np.allclose(x, _np.transpose(x))
+        result = _np_allclose(x, _np_transpose(x))
 
         return result
 
@@ -701,7 +744,7 @@ class MarkovChain(metaclass=_BaseClass):
         A property indicating whether the Markov chain is symmetric.
         """
 
-        result = _np.allclose(self.__p, _np.transpose(self.__p))
+        result = _np_allclose(self.__p, _np_transpose(self.__p))
 
         return result
 
@@ -721,7 +764,7 @@ class MarkovChain(metaclass=_BaseClass):
         if fm.size == 1:
             kc = fm[0].item()
         else:
-            kc = _np.trace(fm).item()
+            kc = _np_trace(fm).item()
 
         return kc
 
@@ -747,7 +790,7 @@ class MarkovChain(metaclass=_BaseClass):
         if self.__slem is None:
             mr = None
         else:
-            mr = -1.0 / _np.log(self.__slem)
+            mr = -1.0 / _np_log(self.__slem)
 
         return mr
 
@@ -801,19 +844,16 @@ class MarkovChain(metaclass=_BaseClass):
         """
 
         if self.is_irreducible:
-            s = _np.reshape(_gth_solve(self.__p), (1, self.__size))
+            s = _np_reshape(_gth_solve(self.__p), (1, self.__size))
         else:
 
-            s = _np.zeros((len(self.recurrent_classes), self.__size), dtype=float)
+            s = _np_zeros((len(self.recurrent_classes), self.__size), dtype=float)
 
             for index, indices in enumerate(self.__recurrent_classes_indices):
-                pr = self.__p[_np.ix_(indices, indices)]
+                pr = self.__p[_np_ix_(indices, indices)]
                 s[index, indices] = _gth_solve(pr)
 
-        pi = []
-
-        for i in range(s.shape[0]):
-            pi.append(s[i, :])
+        pi = [s[i, :] for i in range(s.shape[0])]
 
         return pi
 
@@ -824,7 +864,7 @@ class MarkovChain(metaclass=_BaseClass):
         A property representing the rank of the transition matrix of the Markov chain.
         """
 
-        r = _npl.matrix_rank(self.__p)
+        r = _npl_matrix_rank(self.__p)
 
         return r
 
@@ -906,7 +946,7 @@ class MarkovChain(metaclass=_BaseClass):
         """
 
         ev = _eigenvalues_sorted(self.adjacency_matrix)
-        te = _np.log(ev[-1])
+        te = _np_log(ev[-1])
 
         return te
 
@@ -988,19 +1028,19 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            distribution = _np.ones(self.__size, dtype=float) / self.__size if distribution is None else _validate_vector(distribution, 'stochastic', False, self.__size)
+            distribution = _np_ones(self.__size, dtype=float) / self.__size if distribution is None else _validate_vector(distribution, 'stochastic', False, self.__size)
             weighted = _validate_boolean(weighted)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
 
-        zeros = len(distribution) - _np.count_nonzero(distribution)
+        zeros = len(distribution) - _np_count_nonzero(distribution)
 
         if weighted and zeros > 0:  # pragma: no cover
             raise _ValidationError('If the weighted Frobenius norm is used, the distribution must not contain zero-valued probabilities.')
 
         if self.is_reversible:
-            p = _np.copy(self.__p)
+            p = _np_copy(self.__p)
         else:
 
             p, error_message = _closest_reversible(self.__p, distribution, weighted)
@@ -1043,7 +1083,7 @@ class MarkovChain(metaclass=_BaseClass):
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
 
-        intersection = _np.intersect1d(states1, states2)
+        intersection = _np_intersect1d(states1, states2)
 
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
@@ -1122,7 +1162,7 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             steps = _validate_integer(steps, lower_limit=(0, True))
-            initial_distribution = _np.ones(self.__size, dtype=float) / self.__size if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
+            initial_distribution = _np_ones(self.__size, dtype=float) / self.__size if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1507,7 +1547,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            initial_distribution = _np.ones(self.__size, dtype=float) / self.__size if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
+            initial_distribution = _np_ones(self.__size, dtype=float) / self.__size if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
             jump = _validate_integer(jump, lower_limit=(0, True))
             cutoff_type = _validate_enumerator(cutoff_type, ['natural', 'traditional'])
 
@@ -1517,7 +1557,7 @@ class MarkovChain(metaclass=_BaseClass):
         if cutoff_type == 'traditional':
             cutoff = 0.25
         else:
-            cutoff = 1.0 / (2.0 * _np.exp(1.0))
+            cutoff = 1.0 / (2.0 * _np_exp(1.0))
 
         value = _mixing_time(self, initial_distribution, jump, cutoff)
 
@@ -1601,7 +1641,7 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             steps = _validate_integer(steps, lower_limit=(1, False))
-            initial_status = _np.ones(self.__size, dtype=float) / self.__size if initial_status is None else _validate_status(initial_status, self.__states)
+            initial_status = _np_ones(self.__size, dtype=float) / self.__size if initial_status is None else _validate_status(initial_status, self.__states)
             output_last = _validate_boolean(output_last)
 
         except Exception as e:  # pragma: no cover
@@ -1687,7 +1727,7 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             walk = _validate_states(walk, self.__states, 'walk', False)
-            initial_distribution = _np.ones(self.__size, dtype=float) / self.__size if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
+            initial_distribution = _np_ones(self.__size, dtype=float) / self.__size if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
             time_points = _validate_time_points(time_points)
 
         except Exception as e:  # pragma: no cover
@@ -1748,11 +1788,7 @@ class MarkovChain(metaclass=_BaseClass):
         The method returns a dictionary representing the Markov chain transitions.
         """
 
-        d = {}
-
-        for i in range(self.__size):
-            for j in range(self.__size):
-                d[(self.__states[i], self.__states[j])] = self.__p[i, j]
+        d = {(self.__states[i], self.__states[j]): self.__p[i, j] for i in range(self.__size) for j in range(self.__size)}
 
         return d
 
@@ -1773,10 +1809,10 @@ class MarkovChain(metaclass=_BaseClass):
             raise _generate_validation_error(e, _ins_trace()) from None
 
         if multi:
-            graph = _nx.MultiDiGraph(self.__p)
-            graph = _nx.relabel_nodes(graph, dict(zip(range(self.__size), self.__states)))
+            graph = _nx_MultiDiGraph(self.__p)
+            graph = _nx_relabel_nodes(graph, dict(zip(range(self.__size), self.__states)))
         else:
-            graph = _deepcopy(self.__digraph)
+            graph = _cp_deepcopy(self.__digraph)
 
         return graph
 
@@ -1843,7 +1879,7 @@ class MarkovChain(metaclass=_BaseClass):
         The method returns the transition matrix of the Markov chain.
         """
 
-        m = _np.copy(self.__p)
+        m = _np_copy(self.__p)
 
         return m
 
@@ -1863,7 +1899,7 @@ class MarkovChain(metaclass=_BaseClass):
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
 
-        p = _npl.matrix_power(self.__p, order)
+        p = _npl_matrix_power(self.__p, order)
         mc = MarkovChain(p, self.__states)
 
         return mc
@@ -2009,7 +2045,7 @@ class MarkovChain(metaclass=_BaseClass):
             if approximation_type == 'tauchen':
                 k = 3.0 if k is None else _validate_float(k, lower_limit=(1.0, False))
             elif approximation_type == 'tauchen-hussey':
-                k = ((0.5 + (rho / 4.0)) * sigma) + ((1 - (0.5 + (rho / 4.0))) * (sigma / _np.sqrt(1.0 - rho ** 2.0))) if k is None else _validate_float(k, lower_limit=(0.0, True))
+                k = ((0.5 + (rho / 4.0)) * sigma) + ((1 - (0.5 + (rho / 4.0))) * (sigma / _np_sqrt(1.0 - rho**2.0))) if k is None else _validate_float(k, lower_limit=(0.0, True))
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -2039,7 +2075,9 @@ class MarkovChain(metaclass=_BaseClass):
 
             p = _validate_vector(p, 'creation', False)
             q = _validate_vector(q, 'annihilation', False)
-            states = [str(i) for i in range(1, {p.shape[0], q.shape[0]}.pop() + 1)] if states is None else _validate_state_names(states, {p.shape[0], q.shape[0]}.pop())
+
+            p_size, q_size = p.shape[0], q.shape[0]
+            states = [str(i) for i in range(1, {p_size, q_size}.pop() + 1)] if states is None else _validate_state_names(states, {p_size, q_size}.pop())
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -2047,7 +2085,7 @@ class MarkovChain(metaclass=_BaseClass):
         if p.shape[0] != q.shape[0]:  # pragma: no cover
             raise _ValidationError('The vector of annihilation probabilities and the vector of creation probabilities must have the same size.')
 
-        if not _np.all(q + p <= 1.0):  # pragma: no cover
+        if not _np_all(q + p <= 1.0):  # pragma: no cover
             raise _ValidationError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
 
         p, _ = _birth_death(p, q)
@@ -2162,7 +2200,7 @@ class MarkovChain(metaclass=_BaseClass):
             walk = _validate_states(walk, possible_states, 'walk', False)
 
             if fitting_type == 'map':
-                k = _np.ones((len(possible_states), len(possible_states)), dtype=float) if k is None else _validate_hyperparameter(k, len(possible_states))
+                k = _np_ones((len(possible_states), len(possible_states)), dtype=float) if k is None else _validate_hyperparameter(k, len(possible_states))
             else:
                 k = False if k is None else _validate_boolean(k)
 
@@ -2198,12 +2236,12 @@ class MarkovChain(metaclass=_BaseClass):
         if size < 2:  # pragma: no cover
             raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
 
-        p = _np.zeros((size, size), dtype=float)
+        p = _np_zeros((size, size), dtype=float)
 
         for it, ip in d.items():
             p[states.index(it[0]), states.index(it[1])] = ip
 
-        if not _np.allclose(_np.sum(p, axis=1), _np.ones(size, dtype=float)):  # pragma: no cover
+        if not _np_allclose(_np_sum(p, axis=1), _np_ones(size, dtype=float)):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.')
 
         mc = MarkovChain(p, states)
@@ -2229,7 +2267,7 @@ class MarkovChain(metaclass=_BaseClass):
         states = list(graph.nodes)
         size = len(states)
 
-        p = _np.zeros((size, size), dtype=float)
+        p = _np_zeros((size, size), dtype=float)
         edges = list(graph.edges(data='weight', default=0.0))
 
         for edge in edges:
@@ -2237,12 +2275,12 @@ class MarkovChain(metaclass=_BaseClass):
             j = states.index(edge[1])
             p[i, j] = float(edge[2])
 
-        p_sums = _np.sum(p, axis=1)
+        p_sums = _np_sum(p, axis=1)
 
         for i in range(size):
 
-            if _np.isclose(p_sums[i], 0.0):  # pragma: no cover
-                p[i, :] = _np.ones(p.shape[0], dtype=float) / size
+            if _np_isclose(p_sums[i], 0.0):  # pragma: no cover
+                p[i, :] = _np_ones(size, dtype=float) / size
             else:
                 p[i, :] /= p_sums[i]
 
@@ -2313,12 +2351,12 @@ class MarkovChain(metaclass=_BaseClass):
         if size < 2:  # pragma: no cover
             raise ValueError('The size of the transition matrix defined by the file must be greater than or equal to 2.')
 
-        p = _np.zeros((size, size), dtype=float)
+        p = _np_zeros((size, size), dtype=float)
 
         for it, ip in d.items():
             p[states.index(it[0]), states.index(it[1])] = ip
 
-        if not _np.allclose(_np.sum(p, axis=1), _np.ones(size, dtype=float)):  # pragma: no cover
+        if not _np_allclose(_np_sum(p, axis=1), _np_ones(size, dtype=float)):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the file must sum to 1.')
 
         mc = MarkovChain(p, states)
@@ -2344,15 +2382,15 @@ class MarkovChain(metaclass=_BaseClass):
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
 
-        p = _np.copy(m)
-        p_sums = _np.sum(p, axis=1)
+        p = _np_copy(m)
+        p_sums = _np_sum(p, axis=1)
 
         size = p.shape[0]
 
         for i in range(size):
 
-            if _np.isclose(p_sums[i], 0.0):  # pragma: no cover
-                p[i, :] = _np.ones(p.shape[0], dtype=float) / size
+            if _np_isclose(p_sums[i], 0.0):  # pragma: no cover
+                p[i, :] = _np_ones(size, dtype=float) / size
             else:
                 p[i, :] /= p_sums[i]
 
@@ -2405,7 +2443,7 @@ class MarkovChain(metaclass=_BaseClass):
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
 
-        p = _np.eye(size, dtype=float)
+        p = _np_eye(size, dtype=float)
         mc = MarkovChain(p, states)
 
         return mc
@@ -2434,7 +2472,7 @@ class MarkovChain(metaclass=_BaseClass):
             size = _validate_integer(size, lower_limit=(2, False))
             states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
             zeros = _validate_integer(zeros, lower_limit=(0, False))
-            mask = _np.full((size, size), _np.nan, dtype=float) if mask is None else _validate_mask(mask, size)
+            mask = _np_full((size, size), _np_nan, dtype=float) if mask is None else _validate_mask(mask, size)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -2483,10 +2521,10 @@ class MarkovChain(metaclass=_BaseClass):
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
 
-        p = f(size=(size, size), **kwargs).astype(_np.float64)
-        p = _np.clip(_np.nan_to_num(p, copy=False), 0.0, None)
-        p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[0], dtype=float)
-        p /= _np.sum(p, axis=1, keepdims=True)
+        p = f(size=(size, size), **kwargs).astype(float)
+        p = _np_clip(_np_nan_to_num(p, copy=False), 0.0, None)
+        p[_np_where(~p.any(axis=1)), :] = _np_ones(p.shape[0], dtype=float)
+        p /= _np_sum(p, axis=1, keepdims=True)
 
         mc = MarkovChain(p, states)
 

@@ -15,14 +15,23 @@ __all__ = [
 # Standard
 
 from pathlib import (
-    Path as _Path
+    Path as _pl_Path
 )
 
 # Libraries
 
-import numpy as _np
-import numpy.random as _npr
-import numpy.random.mtrand as _nprm
+from numpy import (
+    integer as _np_integer
+)
+
+from numpy.random import (
+    RandomState as _npr_RandomState
+)
+
+# noinspection PyProtectedMember
+from numpy.random.mtrand import (
+    _rand as _nprm_rand
+)
 
 # Internal
 
@@ -43,14 +52,13 @@ from .exceptions import (
 # FUNCTIONS #
 #############
 
-# noinspection PyProtectedMember
 def create_rng(seed: _oint) -> _trand:
 
     if seed is None:
-        return _nprm._rand
+        return _nprm_rand
 
-    if isinstance(seed, (int, _np.integer)):
-        return _npr.RandomState(int(seed))
+    if isinstance(seed, (int, _np_integer)):
+        return _npr_RandomState(int(seed))
 
     raise TypeError('The specified seed is not a valid RNG initializer.')
 
@@ -66,7 +74,7 @@ def generate_validation_error(e: _texception, trace: _tany) -> _ValidationError:
 
 def get_file_extension(file_path: str) -> str:
 
-    result = ''.join(_Path(file_path).suffixes).lower()
+    result = ''.join(_pl_Path(file_path).suffixes).lower()
 
     return result
 

@@ -62,30 +62,49 @@ __all__ = [
 
 # noinspection PyPep8Naming
 from typing import (
-    Any as _Any,
-    Callable as _Callable,
-    Dict as _Dict,
-    Iterable as _Iterable,
-    List as _List,
-    Optional as _Optional,
-    Tuple as _Tuple,
-    TypeVar as _TypeVar,
-    Union as _Union
+    Any as _tp_Any,
+    Callable as _tp_Callable,
+    Dict as _tp_Dict,
+    Iterable as _tp_Iterable,
+    List as _tp_List,
+    Optional as _tp_Optional,
+    Tuple as _tp_Tuple,
+    TypeVar as _tp_TypeVar,
+    Union as _tp_Union
 )
 
 # Libraries
 
-import matplotlib.pyplot as _mplp
-import networkx as _nx
-import numpy as _np
-import numpy.random as _npr
-import scipy.sparse as _spsp
+from matplotlib.pyplot import (
+    Axes as _mplp_Axes,
+    Figure as _mplp_Figure
+)
+
+from networkx import (
+    DiGraph as _nx_DiGraph,
+    MultiDiGraph as _nx_MultiDiGraph
+)
+
+from numpy import (
+    ndarray as _np_ndarray
+)
+
+from numpy.random import (
+    RandomState as _npr_RandomState
+)
+
+from scipy.sparse import (
+    spmatrix as _spsp_matrix
+)
 
 try:
-    import pandas as _pd
+    from pandas import (
+        DataFrame as _pd_DataFrame,
+        Series as _pd_Series
+    )
 except ImportError:  # noqa
-    _pd = None
-
+    _pd_DataFrame = None
+    _pd_Series = None
 
 #########
 # TYPES #
@@ -93,148 +112,148 @@ except ImportError:  # noqa
 
 # Generic
 
-ofloat = _Optional[float]
-oint = _Optional[int]
-ostr = _Optional[str]
+ofloat = _tp_Optional[float]
+oint = _tp_Optional[int]
+ostr = _tp_Optional[str]
 
-tany = _Any
+tany = _tp_Any
 texception = Exception
-titerable = _Iterable
+titerable = _tp_Iterable
 
-tarray = _np.ndarray
-oarray = _Optional[tarray]
+tarray = _np_ndarray
+oarray = _tp_Optional[tarray]
 
-tcache = _Dict[str, tany]
-ocache = _Optional[tcache]
+tcache = _tp_Dict[str, tany]
+ocache = _tp_Optional[tcache]
 
-tfile = _Tuple[str, str]
-ofile = _Optional[tfile]
+tfile = _tp_Tuple[str, str]
+ofile = _tp_Optional[tfile]
 
-tgraph = _nx.DiGraph
-ograph = _Optional[tgraph]
+tgraph = _nx_DiGraph
+ograph = _tp_Optional[tgraph]
 
-tgraphs = _Union[tgraph, _nx.MultiDiGraph]
-ographs = _Optional[tgraphs]
+tgraphs = _tp_Union[tgraph, _nx_MultiDiGraph]
+ographs = _tp_Optional[tgraphs]
 
-tlimit_float = _Tuple[float, bool]
-olimit_float = _Optional[tlimit_float]
+tlimit_float = _tp_Tuple[float, bool]
+olimit_float = _tp_Optional[tlimit_float]
 
-tlimit_int = _Tuple[int, bool]
-olimit_int = _Optional[tlimit_int]
+tlimit_int = _tp_Tuple[int, bool]
+olimit_int = _tp_Optional[tlimit_int]
 
-tmc = _TypeVar('MarkovChain')
-omc = _Optional[tmc]
+tmc = _tp_TypeVar('MarkovChain')
+omc = _tp_Optional[tmc]
 
-tplot = _Tuple[_mplp.Figure, _mplp.Axes]
-oplot = _Optional[tplot]
+tplot = _tp_Tuple[_mplp_Figure, _mplp_Axes]
+oplot = _tp_Optional[tplot]
 
-tnumeric = _Union[_np.ndarray, _spsp.spmatrix] if _pd is None else _Union[_np.ndarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
-onumeric = _Optional[tnumeric]
+tnumeric = _tp_Union[_np_ndarray, _spsp_matrix] if _pd_DataFrame is None or _pd_Series is None else _tp_Union[_np_ndarray, _spsp_matrix, _pd_DataFrame, _pd_Series]
+onumeric = _tp_Optional[tnumeric]
 
-trand = _npr.RandomState
-orand = _Optional[trand]
+trand = _npr_RandomState
+orand = _tp_Optional[trand]
 
-trandfunc = _Callable
-orandfunc = _Optional[trandfunc]
+trandfunc = _tp_Callable
+orandfunc = _tp_Optional[trandfunc]
 
-trandfunc_flex = _Union[_Callable, str]
-orandfunc_flex = _Optional[trandfunc_flex]
+trandfunc_flex = _tp_Union[_tp_Callable, str]
+orandfunc_flex = _tp_Optional[trandfunc_flex]
 
 # Lists
 
-tlist_any = _List[tany]
-olist_any = _Optional[tlist_any]
+tlist_any = _tp_List[tany]
+olist_any = _tp_Optional[tlist_any]
 
-tlist_array = _List[tarray]
-olist_array = _Optional[tlist_array]
+tlist_array = _tp_List[tarray]
+olist_array = _tp_Optional[tlist_array]
 
-tlist_float = _List[float]
-olist_float = _Optional[tlist_float]
+tlist_float = _tp_List[float]
+olist_float = _tp_Optional[tlist_float]
 
-tlist_int = _List[int]
-olist_int = _Optional[tlist_int]
+tlist_int = _tp_List[int]
+olist_int = _tp_Optional[tlist_int]
 
-tlist_str = _List[str]
-olist_str = _Optional[tlist_str]
+tlist_str = _tp_List[str]
+olist_str = _tp_Optional[tlist_str]
 
 # Lists of Lists
 
-tlists_any = _List[tlist_any]
-olists_any = _Optional[tlists_any]
+tlists_any = _tp_List[tlist_any]
+olists_any = _tp_Optional[tlists_any]
 
-tlists_array = _List[tlist_array]
-olists_array = _Optional[tlists_array]
+tlists_array = _tp_List[tlist_array]
+olists_array = _tp_Optional[tlists_array]
 
-tlists_float = _List[tlist_float]
-olists_float = _Optional[tlists_float]
+tlists_float = _tp_List[tlist_float]
+olists_float = _tp_Optional[tlists_float]
 
-tlists_int = _List[tlist_int]
-olists_int = _Optional[tlists_int]
+tlists_int = _tp_List[tlist_int]
+olists_int = _tp_Optional[tlists_int]
 
-tlists_str = _List[tlist_str]
-olists_str = _Optional[tlists_str]
+tlists_str = _tp_List[tlist_str]
+olists_str = _tp_Optional[tlists_str]
 
 # Specific
 
-tbcond = _Union[float, int, str]
-obcond = _Optional[tbcond]
+tbcond = _tp_Union[float, int, str]
+obcond = _tp_Optional[tbcond]
 
-tdists_flex = _Union[int, tlist_array]
-odists_flex = _Optional[tdists_flex]
+tdists_flex = _tp_Union[int, tlist_array]
+odists_flex = _tp_Optional[tdists_flex]
 
-tfitres = _Tuple[oarray, ostr]
-ofitres = _Optional[tfitres]
+tfitres = _tp_Tuple[oarray, ostr]
+ofitres = _tp_Optional[tfitres]
 
-tgenres = _Tuple[oarray, ostr]
-ogenres = _Optional[tgenres]
+tgenres = _tp_Tuple[oarray, ostr]
+ogenres = _tp_Optional[tgenres]
 
-tgenres_ext = _Tuple[oarray, olist_str, ostr]
-ogenres_ext = _Optional[tgenres_ext]
+tgenres_ext = _tp_Tuple[oarray, olist_str, ostr]
+ogenres_ext = _tp_Optional[tgenres_ext]
 
-tinterval = _Tuple[_Union[float, int], _Union[float, int]]
-ointerval = _Optional[tinterval]
+tinterval = _tp_Tuple[_tp_Union[float, int], _tp_Union[float, int]]
+ointerval = _tp_Optional[tinterval]
 
-tmc_dict = _Dict[_Tuple[str, str], float]
-omc_dict = _Optional[tmc_dict]
+tmc_dict = _tp_Dict[_tp_Tuple[str, str], float]
+omc_dict = _tp_Optional[tmc_dict]
 
-tmc_dict_flex = _Dict[_Tuple[str, str], _Union[float, int]]
-omc_dict_flex = _Optional[tmc_dict_flex]
+tmc_dict_flex = _tp_Dict[_tp_Tuple[str, str], _tp_Union[float, int]]
+omc_dict_flex = _tp_Optional[tmc_dict_flex]
 
-tpart = _List[_Union[tlist_int, tlist_str]]
-opart = _Optional[tpart]
+tpart = _tp_List[_tp_Union[tlist_int, tlist_str]]
+opart = _tp_Optional[tpart]
 
-tparts = _List[tpart]
-oparts = _Optional[tparts]
+tparts = _tp_List[tpart]
+oparts = _tp_Optional[tparts]
 
-trdl = _Tuple[tarray, tarray, tarray]
-ordl = _Optional[trdl]
+trdl = _tp_Tuple[tarray, tarray, tarray]
+ordl = _tp_Optional[trdl]
 
-tredists = _Union[tarray, tlist_array]
-oredists = _Optional[tredists]
+tredists = _tp_Union[tarray, tlist_array]
+oredists = _tp_Optional[tredists]
 
-tstate = _Union[int, str]
-ostate = _Optional[tstate]
+tstate = _tp_Union[int, str]
+ostate = _tp_Optional[tstate]
 
-tstates = _Union[tstate, tlist_int, tlist_str]
-ostates = _Optional[tstates]
+tstates = _tp_Union[tstate, tlist_int, tlist_str]
+ostates = _tp_Optional[tstates]
 
-tstatus = _Union[int, str, tnumeric]
-ostatus = _Optional[tstatus]
+tstatus = _tp_Union[int, str, tnumeric]
+ostatus = _tp_Optional[tstatus]
 
-ttfunc = _Callable[[int, float, int, float], float]
-otfunc = _Optional[ttfunc]
+ttfunc = _tp_Callable[[int, float, int, float], float]
+otfunc = _tp_Optional[ttfunc]
 
-ttimes_in = _Union[int, tlist_int]
-otimes_in = _Optional[ttimes_in]
+ttimes_in = _tp_Union[int, tlist_int]
+otimes_in = _tp_Optional[ttimes_in]
 
-ttimes_out = _Union[float, tlist_float]
-otimes_out = _Optional[ttimes_out]
+ttimes_out = _tp_Union[float, tlist_float]
+otimes_out = _tp_Optional[ttimes_out]
 
-twalk = _Union[tlist_int, tlist_str]
-owalk = _Optional[twalk]
+twalk = _tp_Union[tlist_int, tlist_str]
+owalk = _tp_Optional[twalk]
 
-twalk_flex = _Union[int, twalk]
-owalk_flex = _Optional[twalk_flex]
+twalk_flex = _tp_Union[int, twalk]
+owalk_flex = _tp_Optional[twalk_flex]
 
-tweights = _Union[float, int, tnumeric]
-oweights = _Optional[tweights]
+tweights = _tp_Union[float, int, tnumeric]
+oweights = _tp_Optional[tweights]

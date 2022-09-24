@@ -7,6 +7,14 @@
 
 # Standard
 
+from importlib import (
+    import_module as _il_import_module
+)
+
+from json import (
+    load as _json_load
+)
+
 from os.path import (
     abspath as _os_abspath,
     dirname as _os_dirname,
@@ -14,24 +22,26 @@ from os.path import (
     join as _os_join
 )
 
-from json import (
-    load as _json_load
-)
-
 # Libraries
 
-import numpy as _np
+from numpy import (
+    get_printoptions as _np_get_printoptions,
+    set_printoptions as _np_set_printoptions,
+)
 
 
 #############
 # CONSTANTS #
 #############
 
-_replacements = [
+_base_directory = _os_abspath(_os_dirname(__file__))
+_benchmark_exclusions = ('benchmark', 'request')
+_numpy_formatting_options = _np_get_printoptions()
+_json_replacements = (
     ('NaN', float('nan')),
     ('-Infinity', float('-inf')),
     ('Infinity', float('inf'))
-]
+)
 
 
 ###########
@@ -39,95 +49,119 @@ _replacements = [
 ###########
 
 _fixtures = {}
-_numpy_formatting_options = _np.get_printoptions()
 
 
 #############
 # FUNCTIONS #
 #############
 
-def _sanitize_fixture_recursive(element, replacements):
+def _extract_fixtures(fixtures_file):
 
-    if isinstance(element, dict):
-        return {key: _sanitize_fixture_recursive(value, replacements) for key, value in element.items()}
+    fixtures_path = _os_join(_base_directory, f'fixtures/fixtures_{fixtures_file}.json')
 
-    if isinstance(element, list):
-        return [_sanitize_fixture_recursive(item, replacements) for item in element]
+    if not _os_isfile(fixtures_path):
+        return None
 
-    for replacement in replacements:
-        if element == replacement[0]:
-            return replacement[1]
+    with open(fixtures_path, 'r') as file:
+        fixtures = _json_load(file)
 
-    return element
+    fixtures = _sanitize_fixtures_recursive(fixtures)
+
+    return fixtures
 
 
-def _parse_fixture_dictionary(fixture, fixture_names, subtest_name):
+def _parse_fixtures_benchmark(fixtures, func):
 
-    values = []
-    ids = []
+    values, ids = [], []
 
-    expected_args = len(fixture_names)
-    subtest_reference = f'{subtest_name.replace("test_", "")}_data'
+    # noinspection PyBroadException
+    try:
+        module_name = func.split('_')[2]
+        module = _il_import_module(f'pydtmc.{module_name}')
+    except:
+        return values, ids
 
-    if subtest_reference in fixture:
+    if module_name not in fixtures:
+        return values, ids
 
-        fixture_data = fixture[subtest_reference]
+    module_fixtures = fixtures[module_name]
 
-        if isinstance(fixture_data, dict):
+    for func_name in dir(module):
+        if not func_name.startswith('_') and func_name in module_fixtures:
 
-            values_current = tuple(fixture_data[fixture_name] for fixture_name in fixture_names if fixture_name in fixture_data)
+            func = getattr(module, func_name)
+            func_args = module_fixtures[func_name]
 
-            if len(values_current) == expected_args:
-                values.append(values_current)
-                ids.append(f'{subtest_name}')
+            values.append((func_name, func, func_args))
+            ids.append(func_name)
 
-        elif isinstance(fixture_data, list):
+    return values, ids
 
-            for index, case in enumerate(fixture_data):
 
-                case_id = f'_{case["id"]}' if 'id' in case else f' #{str(index + 1)}'
-                values_current = tuple(case[fixture_name] for fixture_name in fixture_names if fixture_name in case)
+def _parse_fixtures_dictionary(fixtures, names, func):
 
-                if len(values_current) == expected_args:
-                    values.append(values_current)
-                    ids.append(f'{subtest_name}{case_id}')
+    values, ids = [], []
 
-            if len(values) != len(fixture_data):
+    expected_args = len(names)
+    target = f'{func.replace("test_", "")}_data'
+
+    if target in fixtures:
+
+        fixture = fixtures[target]
+
+        if isinstance(fixture, dict):
+
+            fixture_values = tuple(fixture[name] for name in names if name in fixture)
+
+            if len(fixture_values) == expected_args:
+                values.append(fixture_values)
+                ids.append(f'{func}')
+
+        elif isinstance(fixture, list):
+
+            for case_index, case in enumerate(fixture):
+
+                case_id = f'_{case["id"]}' if 'id' in case else f' #{str(case_index + 1)}'
+                case_values = tuple(case[name] for name in names if name in case)
+
+                if len(case_values) == expected_args:
+                    values.append(case_values)
+                    ids.append(f'{func}{case_id}')
+
+            if len(values) != len(fixture):
                 values = []
                 ids = []
 
     return values, ids
 
 
-def _parse_fixture_list(fixture, fixture_names, subtest_name):
+def _parse_fixtures_list(fixtures, names, func):
 
-    values = []
-    ids = []
+    values, ids = [], []
 
-    expected_args = len(fixture_names)
-    subtest_reference = f'{subtest_name.replace("test_", "")}_data'
+    expected_args = len(names)
+    target = f'{func.replace("test_", "")}_data'
 
-    if any(subtest_reference in case for case in fixture):
+    if any(target in fixture for fixture in fixtures):
 
-        flags = [False] * len(fixture)
+        flags = [False] * len(fixtures)
 
-        for index_case, case in enumerate(fixture):
+        for fixture_index, fixture in enumerate(fixtures):
 
-            if subtest_reference in case:
+            if target in fixture:
 
-                case_id = case['id'] if 'id' in case else f' #{str(index_case + 1)}'
-                case_values = tuple(case[fixture_name] for fixture_name in fixture_names if fixture_name in case)
+                fixture_id = fixture['id'] if 'id' in fixture else f' #{str(fixture_index + 1)}'
+                fixture_values = tuple(fixture[name] for name in names if name in fixture)
 
-                for index_subcase, subcase in enumerate(case[subtest_reference]):
+                for case_index, case in enumerate(fixture[target]):
 
-                    values_current = case_values + tuple(subcase[fixture_name] for fixture_name in fixture_names if fixture_name in subcase)
+                    case_id = f'{str(case_index + 1)}'
+                    case_values = fixture_values + tuple(case[name] for name in names if name in case)
 
-                    if len(values_current) == expected_args:
-
-                        values.append(values_current)
-                        ids.append(f'{subtest_name} {case_id}-{str(index_subcase + 1)}')
-
-                        flags[index_case] = True
+                    if len(case_values) == expected_args:
+                        values.append(case_values)
+                        ids.append(f'{func} {fixture_id}-{case_id}')
+                        flags[fixture_index] = True
 
         if not all(flags):
             values = []
@@ -135,24 +169,39 @@ def _parse_fixture_list(fixture, fixture_names, subtest_name):
 
     else:
 
-        for index, case in enumerate(fixture):
+        for fixture_index, fixture in enumerate(fixtures):
 
-            case_id = case['id'] if 'id' in case else f' #{str(index + 1)}'
-            values_current = tuple(case[fixture_name] for fixture_name in fixture_names if fixture_name in case)
+            fixture_id = fixture['id'] if 'id' in fixture else f' #{str(fixture_index + 1)}'
+            fixture_values = tuple(fixture[name] for name in names if name in fixture)
 
-            if len(values_current) == expected_args:
-                values.append(values_current)
-                ids.append(f'{subtest_name} {case_id}')
+            if len(fixture_values) == expected_args:
+                values.append(fixture_values)
+                ids.append(f'{func} {fixture_id}')
 
-        if len(values) != len(fixture):
+        if len(values) != len(fixtures):
             values = []
             ids = []
 
     return values, ids
 
 
+def _sanitize_fixtures_recursive(element):
+
+    if isinstance(element, dict):
+        return {key: _sanitize_fixtures_recursive(value) for key, value in element.items()}
+
+    if isinstance(element, list):
+        return [_sanitize_fixtures_recursive(item) for item in element]
+
+    for replacement in _json_replacements:
+        if element == replacement[0]:
+            return replacement[1]
+
+    return element
+
+
 #########
-# SETUP #
+# HOOKS #
 #########
 
 def pytest_configure(config):
@@ -161,46 +210,44 @@ def pytest_configure(config):
     config.addinivalue_line('filterwarnings', 'ignore::PendingDeprecationWarning')
     config.addinivalue_line('filterwarnings', 'ignore::matplotlib.cbook.mplDeprecation')
 
+    config.addinivalue_line('markers', 'benchmark: mark tests as benchmarks (exclude them with \'-m "not benchmark"\').')
     config.addinivalue_line('markers', 'slow: mark tests as slow (exclude them with \'-m "not slow"\').')
 
-    _np.set_printoptions(floatmode='fixed', precision=8)
+    _np_set_printoptions(floatmode='fixed', precision=8)
 
 
 def pytest_generate_tests(metafunc):
 
-    module = metafunc.module.__name__
-    func = metafunc.definition.name
-    mark = metafunc.definition.get_closest_marker('parametrize')
     names = metafunc.fixturenames
 
-    test_index = module.find('_') + 1
-    test_name = module[test_index:]
+    if len(names) == 0:
+        return
 
-    if test_name not in _fixtures:
+    mark = metafunc.definition.get_closest_marker('parametrize')
 
-        base_directory = _os_abspath(_os_dirname(__file__))
-        fixtures_file = _os_join(base_directory, f'fixtures/fixtures_{test_name}.json')
+    if mark is not None:
+        return
 
-        if not _os_isfile(fixtures_file):
-            _fixtures[test_name] = None
-        else:
+    module = metafunc.module.__name__
+    func = metafunc.definition.name
 
-            with open(fixtures_file, 'r') as file:
-                fixture = _json_load(file)
-                fixture = _sanitize_fixture_recursive(fixture, _replacements)
-                _fixtures[test_name] = fixture
+    reference = module.split('.')[1]
 
-    fixture = _fixtures[test_name]
+    if reference not in _fixtures:
+        fixtures_file = 'benchmarks' if reference == 'benchmarks' else reference[(reference.find('_') + 1):]
+        _fixtures[reference] = _extract_fixtures(fixtures_file)
 
-    values = []
-    ids = []
+    fixtures = _fixtures[reference]
+    values, ids = [], []
 
-    if len(names) > 0 and mark is None and fixture is not None and len(fixture) > 0:
-
-        if isinstance(fixture, dict):
-            values, ids = _parse_fixture_dictionary(fixture, names, func)
-        elif isinstance(fixture, list):
-            values, ids = _parse_fixture_list(fixture, names, func)
+    if fixtures is not None and len(fixtures) > 0:
+        if reference == 'benchmarks':
+            names = [name for name in names if name not in _benchmark_exclusions]
+            values, ids = _parse_fixtures_benchmark(fixtures, func)
+        elif isinstance(fixtures, dict):
+            values, ids = _parse_fixtures_dictionary(fixtures, names, func)
+        elif isinstance(fixtures, list):
+            values, ids = _parse_fixtures_list(fixtures, names, func)
 
     metafunc.parametrize(names, values, False, ids)
 
@@ -208,7 +255,7 @@ def pytest_generate_tests(metafunc):
 def pytest_unconfigure():
 
     if 'floatmode' in _numpy_formatting_options:
-        _np.set_printoptions(floatmode=_numpy_formatting_options['floatmode'])
+        _np_set_printoptions(floatmode=_numpy_formatting_options['floatmode'])
 
     if 'precision' in _numpy_formatting_options:
-        _np.set_printoptions(precision=_numpy_formatting_options['precision'])
+        _np_set_printoptions(precision=_numpy_formatting_options['precision'])

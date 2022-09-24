@@ -114,7 +114,7 @@ def fit_function(possible_states: _tlist_str, f: _ttfunc, quadrature_type: str, 
 
         r = b - a
 
-        nodes = _np_arange(1.0, size + 1.0) * 2.0 ** 0.5
+        nodes = _np_arange(1.0, size + 1.0) * 2.0**0.5
         nodes -= _np_fix(nodes)
         nodes = a + (nodes * r)
 

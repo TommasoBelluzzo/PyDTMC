@@ -37,7 +37,7 @@ __all__ = [
 # Standard
 
 from copy import (
-    deepcopy as _deepcopy
+    deepcopy as _cp_deepcopy
 )
 
 from inspect import (
@@ -94,9 +94,13 @@ from scipy.sparse import (
 )
 
 try:
-    import pandas as _pd
+    from pandas import (
+        DataFrame as _pd_DataFrame,
+        Series as _pd_Series
+    )
 except ImportError:  # pragma: no cover
-    _pd = None
+    _pd_DataFrame = None
+    _pd_Series = None
 
 # Internal
 
@@ -182,10 +186,10 @@ def _is_number(value: _tany) -> bool:
 
 def _is_pandas(value: _tany) -> bool:
 
-    if _pd is None:  # pragma: no cover
+    if _pd_DataFrame is None or _pd_Series is None:  # pragma: no cover
         return False
 
-    return value is not None and isinstance(value, (_pd.DataFrame, _pd.Series))
+    return value is not None and isinstance(value, (_pd_DataFrame, _pd_Series))
 
 
 def _is_spmatrix(value: _tany) -> bool:
@@ -206,7 +210,7 @@ def _is_tuple(value: _tany) -> bool:
 def _extract(data: _tany) -> _tlist_any:
 
     if _is_list(data):
-        result = _deepcopy(data)
+        result = _cp_deepcopy(data)
     elif _is_dictionary(data):
         result = list(data.values())
     elif _is_iterable(data):
@@ -670,7 +674,7 @@ def validate_partitions(value: _tany, current_states: _tlist_str) -> _tlists_int
     return result
 
 
-def validate_random_distribution(value: _tany, rng: _trand, possible_values: _tlist_str) -> _trandfunc:
+def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tlist_str) -> _trandfunc:
 
     if callable(value):
 
@@ -682,8 +686,8 @@ def validate_random_distribution(value: _tany, rng: _trand, possible_values: _tl
         if value not in dir(rng):
             raise ValueError('The "@arg@" parameter, when specified as a callable function, must reference a valid "numpy.random" module object.')
 
-        if value not in possible_values:
-            raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference one of the following "numpy.random" module objects: {", ".join(possible_values)}.')
+        if len(accepted_values) > 0 and value not in accepted_values:
+            raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference one of the following "numpy.random" module objects: {", ".join(accepted_values)}.')
 
         value = getattr(rng, value)
 
@@ -694,8 +698,8 @@ def validate_random_distribution(value: _tany, rng: _trand, possible_values: _tl
         if value not in dir(rng):
             raise ValueError('The "@arg@" parameter, when specified as a callable function, must reference a valid "numpy.random" module object.')
 
-        if value not in possible_values:
-            raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference one of the following "numpy.random" module objects: {", ".join(possible_values)}.')
+        if len(accepted_values) > 0 and value not in accepted_values:
+            raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference one of the following "numpy.random" module objects: {", ".join(accepted_values)}.')
 
         value = getattr(rng, value)
 

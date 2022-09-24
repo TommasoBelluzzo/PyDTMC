@@ -24,7 +24,10 @@ from tempfile import (
 
 import numpy.random as _npr
 import numpy.testing as _npt
-import pytest as _pt
+
+from pytest import (
+    mark as _pt_mark
+)
 
 # Internal
 
@@ -51,7 +54,7 @@ def test_dictionary(seed, maximum_size, runs):
         _npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
-@_pt.mark.slow
+@_pt_mark.slow
 def test_graph(seed, maximum_size, runs):
 
     for _ in range(runs):
@@ -71,7 +74,7 @@ def test_graph(seed, maximum_size, runs):
         _npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
-@_pt.mark.slow
+@_pt_mark.slow
 def test_file(seed, maximum_size, runs, file_extension):
 
     for _ in range(runs):

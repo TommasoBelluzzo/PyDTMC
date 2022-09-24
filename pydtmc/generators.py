@@ -22,11 +22,62 @@ __all__ = [
 
 # Libraries
 
-import numpy as _np
-import numpy.linalg as _npl
-import scipy.integrate as _spi
-import scipy.optimize as _spo
-import scipy.stats as _sps
+from numpy import (
+    abs as _np_abs,
+    apply_along_axis as _np_apply_along_axis,
+    arange as _np_arange,
+    array as _np_array,
+    array_equal as _np_array_equal,
+    copy as _np_copy,
+    count_nonzero as _np_count_nonzero,
+    diag as _np_diag,
+    diagflat as _np_diagflat,
+    dot as _np_dot,
+    exp as _np_exp,
+    eye as _np_eye,
+    fill_diagonal as _np_fill_diagonal,
+    fix as _np_fix,
+    flatnonzero as _np_flatnonzero,
+    fliplr as _np_fliplr,
+    inf as _np_inf,
+    isclose as _np_isclose,
+    isinf as _np_isinf,
+    isnan as _np_isnan,
+    ix_ as _np_ix,
+    linspace as _np_linspace,
+    nan as _np_nan,
+    nansum as _np_nansum,
+    newaxis as _np_newaxis,
+    ones as _np_ones,
+    pi as _np_pi,
+    ravel as _np_ravel,
+    repeat as _np_repeat,
+    sqrt as _np_sqrt,
+    stack as _np_stack,
+    sum as _np_sum,
+    trace as _np_trace,
+    transpose as _np_transpose,
+    unravel_index as _np_unravel_index,
+    where as _np_where,
+    zeros as _np_zeros
+)
+
+from numpy.linalg import (
+    inv as _npl_inv,
+    multi_dot as _npl_multi_dot
+)
+
+from scipy.integrate import (
+    quad as _spi_quad
+)
+
+from scipy.optimize import (
+    minimize as _spo_minimize
+)
+
+from scipy.stats import (
+    norm as _sps_norm
+)
 
 # Internal
 
@@ -52,9 +103,9 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
 
     def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
 
-        t1 = _np.exp((-1.0 * (aci_x - aci_alpha) ** 2.0) / (2.0 * aci_sigma_z ** 2.0))
-        t2 = _sps.norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
-        t3 = _sps.norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
+        t1 = _np_exp((-1.0 * (aci_x - aci_alpha)**2.0) / (2.0 * aci_sigma_z**2.0))
+        t2 = _sps_norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
+        t3 = _sps_norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
         output = t1 * (t2 - t3)
 
         return output
@@ -62,13 +113,13 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
     def _rouwenhorst_matrix(rm_size, rm_z):
 
         if rm_size == 2:
-            output = _np.array([[rm_z, 1 - rm_z], [1 - rm_z, rm_z]])
+            output = _np_array([[rm_z, 1 - rm_z], [1 - rm_z, rm_z]])
         else:
 
-            t1 = _np.zeros((rm_size, rm_size))
-            t2 = _np.zeros((rm_size, rm_size))
-            t3 = _np.zeros((rm_size, rm_size))
-            t4 = _np.zeros((rm_size, rm_size))
+            t1 = _np_zeros((rm_size, rm_size))
+            t2 = _np_zeros((rm_size, rm_size))
+            t3 = _np_zeros((rm_size, rm_size))
+            t4 = _np_zeros((rm_size, rm_size))
 
             theta_inner = _rouwenhorst_matrix(rm_size - 1, rm_z)
 
@@ -85,14 +136,20 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
     if approximation_type == 'adda-cooper':
 
         z_sigma = sigma / (1.0 - rho**2.0)**0.5
-        z = (z_sigma * _sps.norm.ppf(_np.arange(size + 1) / size)) + alpha
+        z_sigma_factor = size / _np_sqrt(2.0 * _np_pi * z_sigma**2.0)
 
-        p = _np.zeros((size, size), dtype=float)
+        z = (z_sigma * _sps_norm.ppf(_np_arange(size + 1) / size)) + alpha
+
+        p = _np_zeros((size, size), dtype=float)
 
         for i in range(size):
+
+            z_i = z[i]
+            z_ip = z[i + 1]
+
             for j in range(size):
-                iq = _spi.quad(_adda_cooper_integrand, z[i], z[i + 1], args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
-                p[i, j] = (size / _np.sqrt(2.0 * _np.pi * z_sigma ** 2.0)) * iq[0]
+                iq = _spi_quad(_adda_cooper_integrand, z_i, z_ip, args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
+                p[i, j] = z_sigma_factor * iq[0]
 
     elif approximation_type == 'rouwenhorst':
 
@@ -101,16 +158,29 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
 
     elif approximation_type == 'tauchen-hussey':
 
-        nodes = _np.zeros(size, dtype=float)
-        weights = _np.zeros(size, dtype=float)
+        size_m1 = size - 1
+        size_p1 = size + 1
+
+        n = int(_np_fix(size_p1 / 2))
+
+        p1_const = 1.0 / _np_pi**0.25
+        p2_const = 0.0
+        pp_base = _np_sqrt(2.0 * size)
+
+        k_factor = _np_sqrt(2.0) * _np_sqrt(2.0 * k**2.0)
+        w_factor = _np_sqrt(_np_pi)**2.0
+
+        nodes = _np_zeros(size, dtype=float)
+        weights = _np_zeros(size, dtype=float)
 
         pp = 0.0
         z = 0.0
 
-        for i in range(int(_np.fix((size + 1) / 2))):
+        for i in range(n):
 
             if i == 0:
-                z = _np.sqrt((2.0 * size) + 1.0) - (1.85575 * ((2.0 * size) + 1.0) ** -0.16393)
+                sf = (2.0 * size) + 1.0
+                z = _np_sqrt(sf) - (1.85575 * sf**-0.16393)
             elif i == 1:
                 z = z - ((1.14 * size**0.426) / z)
             elif i == 2:
@@ -126,64 +196,76 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
 
                 iterations += 1
 
-                p1 = 1.0 / _np.pi ** 0.25
-                p2 = 0.0
+                p1 = p1_const
+                p2 = p2_const
 
-                for j in range(1, size + 1):
+                for j in range(1, size_p1):
                     p3 = p2
                     p2 = p1
-                    p1 = (z * _np.sqrt(2.0 / j) * p2) - (_np.sqrt((j - 1.0) / j) * p3)
+                    p1 = (z * _np_sqrt(2.0 / j) * p2) - (_np_sqrt((j - 1.0) / j) * p3)
 
-                pp = _np.sqrt(2.0 * size) * p2
+                pp = pp_base * p2
 
                 z1 = z
                 z = z1 - p1 / pp
 
-                if _np.abs(z - z1) < 1e-14:
+                if _np_abs(z - z1) < 1e-14:
                     break
 
             if iterations == 100:  # pragma: no cover
                 return None, None, 'The gaussian quadrature failed to converge.'
 
+            offset = size_m1 - i
+
             nodes[i] = -z
-            nodes[size - i - 1] = z
+            nodes[offset] = z
 
             weights[i] = 2.0 / pp**2.0
-            weights[size - i - 1] = weights[i]
+            weights[offset] = weights[i]
 
-        nodes = (nodes * _np.sqrt(2.0) * _np.sqrt(2.0 * k ** 2.0)) + alpha
-        weights = weights / _np.sqrt(_np.pi) ** 2.0
+        nodes = (nodes * k_factor) + alpha
+        weights = weights / w_factor
 
-        p = _np.zeros((size, size), dtype=float)
+        prime_left = (1.0 - rho) * alpha
+        p = _np_zeros((size, size), dtype=float)
 
         for i in range(size):
-            for j in range(size):
-                prime = ((1.0 - rho) * alpha) + (rho * nodes[i])
-                p[i, j] = (weights[j] * _sps.norm.pdf(nodes[j], prime, sigma) / _sps.norm.pdf(nodes[j], alpha, k))
+            prime_right = rho * nodes[i]
+            prime = prime_left + prime_right
 
-        p /= _np.sum(p, axis=1, keepdims=True)
+            for j in range(size):
+                p[i, j] = (weights[j] * _sps_norm.pdf(nodes[j], prime, sigma) / _sps_norm.pdf(nodes[j], alpha, k))
+
+        p /= _np_sum(p, axis=1, keepdims=True)
 
     else:
 
-        if _np.isclose(rho, 1.0):
+        size_m1 = size - 1
+
+        if _np_isclose(rho, 1.0):
             rho = 1.0 - 1e-8
 
-        y_std = _np.sqrt(sigma ** 2.0 / (1.0 - rho ** 2.0))
+        y_std = _np_sqrt(sigma**2.0 / (1.0 - rho**2.0))
 
         x_max = y_std * k
         x_min = -x_max
-        x = _np.linspace(x_min, x_max, size)
+        x = _np_linspace(x_min, x_max, size)
 
-        step = 0.5 * ((x_max - x_min) / (size - 1))
-        p = _np.zeros((size, size), dtype=float)
+        x_0 = x[0]
+        x_sm1 = x[size_m1]
+
+        step = 0.5 * ((x_max - x_min) / size_m1)
+        p = _np_zeros((size, size), dtype=float)
 
         for i in range(size):
-            p[i, 0] = _sps.norm.cdf((x[0] - (rho * x[i]) + step) / sigma)
-            p[i, size - 1] = 1.0 - _sps.norm.cdf((x[size - 1] - (rho * x[i]) - step) / sigma)
+            rx = rho * x[i]
 
-            for j in range(1, size - 1):
-                z = x[j] - (rho * x[i])
-                p[i, j] = _sps.norm.cdf((z + step) / sigma) - _sps.norm.cdf((z - step) / sigma)
+            p[i, 0] = _sps_norm.cdf((x[0] - rx + step) / sigma)
+            p[i, size_m1] = 1.0 - _sps_norm.cdf((x_sm1 - rx - step) / sigma)
+
+            for j in range(1, size_m1):
+                z = x[j] - rx
+                p[i, j] = _sps_norm.cdf((z + step) / sigma) - _sps_norm.cdf((z - step) / sigma)
 
     states = ['A' + str(i) for i in range(1, p.shape[0] + 1)]
 
@@ -194,10 +276,10 @@ def birth_death(p: _tarray, q: _tarray) -> _tgenres:
 
     r = 1.0 - q - p
 
-    p = _np.diag(r, k=0) + _np.diag(p[0:-1], k=1) + _np.diag(q[1:], k=-1)
-    p[_np.isclose(p, 0.0)] = 0.0
-    p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[0], dtype=float)
-    p /= _np.sum(p, axis=1, keepdims=True)
+    p = _np_diag(r, k=0) + _np_diag(p[0:-1], k=1) + _np_diag(q[1:], k=-1)
+    p[_np_isclose(p, 0.0)] = 0.0
+    p[_np_where(~p.any(axis=1)), :] = _np_ones(p.shape[0], dtype=float)
+    p /= _np_sum(p, axis=1, keepdims=True)
 
     return p, None
 
@@ -206,8 +288,8 @@ def bounded(p: _tarray, boundary_condition: _tbcond) -> _tgenres:
 
     size = p.shape[0]
 
-    first = _np.zeros(size, dtype=float)
-    last = _np.zeros(size, dtype=float)
+    first = _np_zeros(size, dtype=float)
+    last = _np_zeros(size, dtype=float)
 
     if isinstance(boundary_condition, float):
 
@@ -225,7 +307,7 @@ def bounded(p: _tarray, boundary_condition: _tbcond) -> _tgenres:
             first[1] = 1.0
             last[-2] = 1.0
 
-    p_adjusted = _np.copy(p)
+    p_adjusted = _np_copy(p)
     p_adjusted[0] = first
     p_adjusted[-1] = last
 
@@ -234,7 +316,7 @@ def bounded(p: _tarray, boundary_condition: _tbcond) -> _tgenres:
 
 def canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tlist_int) -> _tgenres:
 
-    p = _np.copy(p)
+    p = _np_copy(p)
 
     if len(recurrent_indices) == 0 or len(transient_indices) == 0:
         return p, None
@@ -246,7 +328,7 @@ def canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tli
 
     indices = transient_indices + recurrent_indices
 
-    p = p[_np.ix_(indices, indices)]
+    p = p[_np_ix(indices, indices)]
 
     return p, None
 
@@ -255,34 +337,44 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
 
     def _jacobian(xj, hj, fj):
 
-        output = _np.dot(_np.transpose(xj), hj) + fj
+        output = _np_dot(_np_transpose(xj), hj) + fj
 
         return output
 
     def _objective(xo, ho, fo):
 
-        output = (0.5 * _npl.multi_dot([_np.transpose(xo), ho, xo])) + _np.dot(_np.transpose(fo), xo)
+        output = (0.5 * _npl_multi_dot([_np_transpose(xo), ho, xo])) + _np_dot(_np_transpose(fo), xo)
 
         return output
 
     size = p.shape[0]
+    size_m1 = size - 1
 
-    zeros = len(distribution) - _np.count_nonzero(distribution)
-    m = int((((size - 1) * size) / 2) + (((zeros - 1) * zeros) / 2) + 1)
+    zeros = len(distribution) - _np_count_nonzero(distribution)
+
+    m = int(((size_m1 * size) / 2) + (((zeros - 1) * zeros) / 2) + 1)
+    mm1 = m - 1
 
     basis_vectors = []
 
-    for r in range(size - 1):
+    for r in range(size_m1):
+        dr = distribution[r]
+        drc = 1.0 - dr
+        dr_zero = dr == 0.0
+
         for s in range(r + 1, size):
+            ds = distribution[s]
+            dsc = 1.0 - ds
+            ds_zero = ds == 0.0
 
-            if distribution[r] == 0.0 and distribution[s] == 0.0:
+            if dr_zero and ds_zero:
 
-                bv = _np.eye(size, dtype=float)
+                bv = _np_eye(size, dtype=float)
                 bv[r, r] = 0.0
                 bv[r, s] = 1.0
                 basis_vectors.append(bv)
 
-                bv = _np.eye(size, dtype=float)
+                bv = _np_eye(size, dtype=float)
                 bv[r, r] = 1.0
                 bv[r, s] = 0.0
                 bv[s, s] = 0.0
@@ -291,34 +383,34 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
 
             else:
 
-                bv = _np.eye(size, dtype=float)
-                bv[r, r] = 1.0 - distribution[s]
-                bv[r, s] = distribution[s]
-                bv[s, s] = 1.0 - distribution[r]
-                bv[s, r] = distribution[r]
+                bv = _np_eye(size, dtype=float)
+                bv[r, r] = dsc
+                bv[r, s] = ds
+                bv[s, s] = drc
+                bv[s, r] = dr
                 basis_vectors.append(bv)
 
-    basis_vectors.append(_np.eye(size, dtype=float))
+    basis_vectors.append(_np_eye(size, dtype=float))
 
-    h = _np.zeros((m, m), dtype=float)
-    f = _np.zeros(m, dtype=float)
+    h = _np_zeros((m, m), dtype=float)
+    f = _np_zeros(m, dtype=float)
 
     if weighted:
 
-        d = _np.diag(distribution)
-        di = _npl.inv(d)
+        d = _np_diag(distribution)
+        di = _npl_inv(d)
 
         for i in range(m):
 
             bv_i = basis_vectors[i]
-            z = _npl.multi_dot([d, bv_i, di])
+            z = _npl_multi_dot([d, bv_i, di])
 
-            f[i] = -2.0 * _np.trace(_np.dot(z, _np.transpose(p)))
+            f[i] = -2.0 * _np_trace(_np_dot(z, _np_transpose(p)))
 
             for j in range(m):
                 bv_j = basis_vectors[j]
 
-                tau = 2.0 * _np.trace(_np.dot(_np.transpose(z), bv_j))
+                tau = 2.0 * _np_trace(_np_dot(_np_transpose(z), bv_j))
                 h[i, j] = tau
                 h[j, i] = tau
 
@@ -327,73 +419,83 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
         for i in range(m):
 
             bv_i = basis_vectors[i]
-            f[i] = -2.0 * _np.trace(_np.dot(_np.transpose(bv_i), p))
+            f[i] = -2.0 * _np_trace(_np_dot(_np_transpose(bv_i), p))
 
             for j in range(m):
                 bv_j = basis_vectors[j]
 
-                tau = 2.0 * _np.trace(_np.dot(_np.transpose(bv_i), bv_j))
+                tau = 2.0 * _np_trace(_np_dot(_np_transpose(bv_i), bv_j))
                 h[i, j] = tau
                 h[j, i] = tau
 
-    a = _np.zeros((m + size - 1, m), dtype=float)
-    _np.fill_diagonal(a, -1.0)
-    a[m - 1, m - 1] = 0.0
+    a = _np_zeros((m + size_m1, m), dtype=float)
+    _np_fill_diagonal(a, -1.0)
+    a[mm1, mm1] = 0.0
 
     for i in range(size):
 
+        mim1 = m + i - 1
         k = 0
 
-        for r in range(size - 1):
+        for r in range(size_m1):
+            r_eq_i = r == i
+            dr = distribution[r]
+            drc = -1.0 + dr
+            dr_zero = dr == 0.0
+
             for s in range(r + 1, size):
+                s_eq_i = s == i
+                ds = distribution[s]
+                dsc = -1.0 + ds
+                ds_zero = ds == 0.0
 
-                if distribution[s] == 0.0 and distribution[r] == 0.0:
+                if dr_zero and ds_zero:
 
-                    if r != i:
-                        a[m + i - 1, k] = -1.0
+                    if not r_eq_i:
+                        a[mim1, k] = -1.0
                     else:
-                        a[m + i - 1, k] = 0.0
+                        a[mim1, k] = 0.0
 
                     k += 1
 
-                    if s != i:
-                        a[m + i - 1, k] = -1.0
+                    if not s_eq_i:
+                        a[mim1, k] = -1.0
                     else:
-                        a[m + i - 1, k] = 0.0
+                        a[mim1, k] = 0.0
 
-                elif s == i:
-                    a[m + i - 1, k] = -1.0 + distribution[r]
-                elif r == i:
-                    a[m + i - 1, k] = -1.0 + distribution[s]
+                elif s_eq_i:
+                    a[mim1, k] = drc
+                elif r_eq_i:
+                    a[mim1, k] = dsc
                 else:
-                    a[m + i - 1, k] = -1.0
+                    a[mim1, k] = -1.0
 
                 k += 1
 
-        a[m + i - 1, m - 1] = -1.0
+        a[m + i - 1, mm1] = -1.0
 
-    b = _np.zeros(m + size - 1, dtype=float)
-    x0 = _np.zeros(m, dtype=float)
+    b = _np_zeros(m + size_m1, dtype=float)
+    x0 = _np_zeros(m, dtype=float)
 
     constraints = (
-        {'type': 'eq', 'fun': lambda x: _np.sum(x) - 1.0},
-        {'type': 'ineq', 'fun': lambda x: b - _np.dot(a, x), 'jac': lambda x: -a}
+        {'type': 'eq', 'fun': lambda x: _np_sum(x) - 1.0},
+        {'type': 'ineq', 'fun': lambda x: b - _np_dot(a, x), 'jac': lambda x: -a}
     )
 
     # noinspection PyTypeChecker
-    solution = _spo.minimize(_objective, x0, jac=_jacobian, args=(h, f), constraints=constraints, method='SLSQP', options={'disp': False})
+    solution = _spo_minimize(_objective, x0, jac=_jacobian, args=(h, f), constraints=constraints, method='SLSQP', options={'disp': False})
 
     if not solution['success']:  # pragma: no cover
         return None, 'The closest reversible could not be computed.'
 
-    p = _np.zeros((size, size), dtype=float)
+    p = _np_zeros((size, size), dtype=float)
     solution = solution['x']
 
     for i in range(m):
         p += solution[i] * basis_vectors[i]
 
-    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
-    p /= _np.sum(p, axis=1, keepdims=True)
+    p[_np_where(~p.any(axis=1)), :] = _np_ones(size, dtype=float)
+    p /= _np_sum(p, axis=1, keepdims=True)
 
     return p, None
 
@@ -410,33 +512,35 @@ def dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_
             allocated_probability += weight
             weights.append(weight)
 
-        weights = _np.stack(weights)
-        weights /= _np.sum(weights)
+        weights = _np_stack(weights)
+        weights /= _np_sum(weights)
 
         return weights
 
     draws = rng.beta(1.0, diffusion_factor, (size, size))
-    p = _np.apply_along_axis(_gem_allocation, axis=1, arr=draws)
+    p = _np_apply_along_axis(_gem_allocation, axis=1, arr=draws)
 
     if shift_concentration:
-        p = _np.fliplr(p)
+        p = _np_fliplr(p)
 
     if diagonal_bias_factor is not None:
         diagonal = rng.beta(diagonal_bias_factor, 1.0, size)
-        p += + _np.diagflat(diagonal)
-        p /= _np.sum(p, axis=1, keepdims=True)
+        p += + _np_diagflat(diagonal)
+        p /= _np_sum(p, axis=1, keepdims=True)
 
     return p, None
 
 
 def gamblers_ruin(size: int, w: float) -> _tgenres:
 
-    p = _np.zeros((size, size), dtype=float)
+    wc = 1.0 - w
+
+    p = _np_zeros((size, size), dtype=float)
     p[0, 0] = 1.0
     p[-1, -1] = 1.0
 
     for i in range(1, size - 1):
-        p[i, i - 1] = 1.0 - w
+        p[i, i - 1] = wc
         p[i, i + 1] = w
 
     return p, None
@@ -446,8 +550,8 @@ def lazy(p: _tarray, inertial_weights: _tarray) -> _tgenres:
 
     size = p.shape[0]
 
-    p1 = (1.0 - inertial_weights)[:, _np.newaxis] * p
-    p2 = _np.eye(size, dtype=float) * inertial_weights
+    p1 = (1.0 - inertial_weights)[:, _np_newaxis] * p
+    p2 = _np_eye(size, dtype=float) * inertial_weights
     p = p1 + p2
 
     return p, None
@@ -457,7 +561,7 @@ def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tgenres_ex
 
     size = p.shape[0]
 
-    r = _np.zeros((size, len(partitions)), dtype=float)
+    r = _np_zeros((size, len(partitions)), dtype=float)
 
     for index, partition in enumerate(partitions):
         for state in partition:
@@ -465,18 +569,18 @@ def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tgenres_ex
 
     # noinspection PyBroadException
     try:
-        k = _np.dot(_np.linalg.inv(_np.dot(_np.transpose(r), r)), _np.transpose(r))
+        k = _np_dot(_npl_inv(_np_dot(_np_transpose(r), r)), _np_transpose(r))
     except Exception:  # pragma: no cover
         return None, None, 'The Markov _chain is not lumpable with respect to the given partitions.'
 
-    left = _np.dot(_np.dot(_np.dot(r, k), p), r)
-    right = _np.dot(p, r)
-    is_lumpable = _np.array_equal(left, right)
+    left = _np_dot(_np_dot(_np_dot(r, k), p), r)
+    right = _np_dot(p, r)
+    is_lumpable = _np_array_equal(left, right)
 
     if not is_lumpable:  # pragma: no cover
         return None, None, 'The Markov _chain is not lumpable with respect to the given partitions.'
 
-    p_lump = _np.dot(_np.dot(k, p), r)
+    p_lump = _np_dot(_np_dot(k, p), r)
 
     # noinspection PyTypeChecker
     state_names = [','.join(list(map(states.__getitem__, partition))) for partition in partitions]
@@ -486,47 +590,47 @@ def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tgenres_ex
 
 def random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tgenres:
 
-    full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0)
+    full_rows = _np_isclose(_np_nansum(mask, axis=1, dtype=float), 1.0)
 
-    mask_full = _np.transpose(_np.array([full_rows, ] * size))
-    mask[_np.isnan(mask) & mask_full] = 0.0
+    mask_full = _np_transpose(_np_array([full_rows, ] * size))
+    mask[_np_isnan(mask) & mask_full] = 0.0
 
-    mask_unassigned = _np.isnan(mask)
-    zeros_required = (_np.sum(mask_unassigned) - _np.sum(~full_rows)).item()
+    mask_unassigned = _np_isnan(mask)
+    zeros_required = (_np_sum(mask_unassigned) - _np_sum(~full_rows)).item()
 
     if zeros > zeros_required:  # pragma: no cover
         return None, f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.'
 
-    n = _np.arange(size)
+    n = _np_arange(size)
 
     for i in n:
         if not full_rows[i]:
             row = mask_unassigned[i, :]
-            columns = _np.flatnonzero(row)
-            j = columns[rng.randint(0, _np.sum(row).item())]
-            mask[i, j] = _np.inf
+            columns = _np_flatnonzero(row)
+            j = columns[rng.randint(0, _np_sum(row).item())]
+            mask[i, j] = _np_inf
 
-    mask_unassigned = _np.isnan(mask)
-    indices_unassigned = _np.flatnonzero(mask_unassigned)
+    mask_unassigned = _np_isnan(mask)
+    indices_unassigned = _np_flatnonzero(mask_unassigned)
 
     r = rng.permutation(zeros_required)
     indices_zero = indices_unassigned[r[0:zeros]]
-    indices_rows, indices_columns = _np.unravel_index(indices_zero, (size, size))
+    indices_rows, indices_columns = _np_unravel_index(indices_zero, (size, size))
 
     mask[indices_rows, indices_columns] = 0.0
-    mask[_np.isinf(mask)] = _np.nan
+    mask[_np_isinf(mask)] = _np_nan
 
-    p = _np.copy(mask)
-    p_unassigned = _np.isnan(mask)
-    p[p_unassigned] = _np.ravel(rng.rand(1, _np.sum(p_unassigned, dtype=int).item()))
+    p = _np_copy(mask)
+    p_unassigned = _np_isnan(mask)
+    p[p_unassigned] = _np_ravel(rng.rand(1, _np_sum(p_unassigned, dtype=int).item()))
 
     for i in n:
 
-        assigned_columns = _np.isnan(mask[i, :])
-        s = _np.sum(p[i, assigned_columns])
+        assigned_columns = _np_isnan(mask[i, :])
+        s = _np_sum(p[i, assigned_columns])
 
         if s > 0.0:
-            si = _np.sum(p[i, ~assigned_columns])
+            si = _np_sum(p[i, ~assigned_columns])
             p[i, assigned_columns] = p[i, assigned_columns] * ((1.0 - si) / s)
 
     return p, None
@@ -536,25 +640,29 @@ def sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _
 
     size = p.shape[0]
 
-    closure = _np.copy(adjacency_matrix)
+    closure = _np_copy(adjacency_matrix)
 
     for i in range(size):
         for j in range(size):
+            closure_ji = closure[j, i]
             for x in range(size):
-                closure[j, x] = closure[j, x] or (closure[j, i] and closure[i, x])
+                closure_ix = closure[i, x]
+                closure_jx = closure[j, x]
+                closure[j, x] = closure_jx or (closure_ji and closure_ix)
 
     for state in sub_states:
-        for sc in _np.ravel([_np.where(closure[state, :] == 1.0)]):
-            if sc not in sub_states:
-                sub_states.append(sc)
+        state_closures = _np_ravel([_np_where(closure[state, :] == 1.0)])
+        for state_closure in state_closures:
+            if state_closure not in sub_states:
+                sub_states.append(state_closure)
 
     sub_states = sorted(sub_states)
 
-    p = _np.copy(p)
-    p = p[_np.ix_(sub_states, sub_states)]
+    p = _np_copy(p)
+    p = p[_np_ix(sub_states, sub_states)]
 
     if p.size == 1:  # pragma: no cover
-        return None, None, 'The subchain is not a valid Markov _chain.'
+        return None, None, 'The subchain is not a valid Markov chain.'
 
     state_names = [*map(states.__getitem__, sub_states)]
 
@@ -566,14 +674,14 @@ def urn_model(n: int, model: str) -> _tgenres_ext:
     dn = n * 2
     size = dn + 1
 
-    p = _np.zeros((size, size), dtype=float)
-    p_row = _np.repeat(0.0, size)
+    p = _np_zeros((size, size), dtype=float)
+    p_row = _np_repeat(0.0, size)
 
     if model == 'bernoulli-laplace':
 
         for i in range(size):
 
-            r = _np.copy(p_row)
+            r = _np_copy(p_row)
 
             if i == 0:
                 r[1] = 1.0
@@ -590,7 +698,7 @@ def urn_model(n: int, model: str) -> _tgenres_ext:
 
         for i in range(size):
 
-            r = _np.copy(p_row)
+            r = _np_copy(p_row)
 
             if i == 0:
                 r[1] = 1.0
