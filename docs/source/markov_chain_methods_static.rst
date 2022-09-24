@@ -8,6 +8,7 @@ Static Methods
 	:members:
 		approximation,
 		birth_death,
+		dirichlet_process
 		fit_function,
 		fit_walk,
 		from_dictionary,
@@ -17,4 +18,5 @@ Static Methods
 		gamblers_ruin,
 		identity,
 		random,
+		random_distribution,
 		urn_model
