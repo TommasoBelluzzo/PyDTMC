@@ -19,7 +19,10 @@ from random import (
 # Libraries
 
 import matplotlib.pyplot as _mplp
-import pytest as _pt
+
+from pytest import (
+    mark as _pt_mark,
+)
 
 # Internal
 
@@ -36,7 +39,7 @@ from pydtmc import (
 # TESTS #
 #########
 
-@_pt.mark.slow
+@_pt_mark.slow
 def test_plot_eigenvalues(seed, maximum_size, runs):
 
     for _ in range(runs):
@@ -59,7 +62,7 @@ def test_plot_eigenvalues(seed, maximum_size, runs):
         assert exception is False
 
 
-@_pt.mark.slow
+@_pt_mark.slow
 def test_plot_graph(seed, maximum_size, runs):
 
     rs = _rd_getstate()
@@ -99,7 +102,7 @@ def test_plot_graph(seed, maximum_size, runs):
         assert exception is False
 
 
-@_pt.mark.slow
+@_pt_mark.slow
 def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
 
     rs = _rd_getstate()
@@ -156,7 +159,7 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
         assert exception is False
 
 
-@_pt.mark.slow
+@_pt_mark.slow
 def test_plot_walk(seed, maximum_size, maximum_simulations, runs):
 
     rs = _rd_getstate()

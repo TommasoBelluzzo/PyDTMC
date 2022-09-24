@@ -577,6 +577,152 @@
       "is_valid": false
     }
   ],
+  "validate_file_path_data": [
+    {
+      "value": null,
+      "accepted_extensions": null,
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": 0,
+      "accepted_extensions": null,
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "accepted_extensions": null,
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": " ",
+      "accepted_extensions": null,
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_noextension",
+      "accepted_extensions": null,
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_noextension",
+      "accepted_extensions": [".csv", ".xlsx"],
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_noextension",
+      "accepted_extensions": [""],
+      "write_permission": true,
+      "is_valid": true
+    },
+    {
+      "value": "file_invalid.txt",
+      "accepted_extensions": null,
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_empty.txt",
+      "accepted_extensions": null,
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_empty.txt",
+      "accepted_extensions": [],
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_empty.txt",
+      "accepted_extensions": [".csv", ".xml"],
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_empty.txt",
+      "accepted_extensions": [".txt", ".xml"],
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_empty.txt",
+      "accepted_extensions": null,
+      "write_permission": true,
+      "is_valid": true
+    },
+    {
+      "value": "file_empty.txt",
+      "accepted_extensions": [],
+      "write_permission": true,
+      "is_valid": true
+    },
+    {
+      "value": "file_empty.txt",
+      "accepted_extensions": [".csv", ".xml"],
+      "write_permission": true,
+      "is_valid": false
+    },
+    {
+      "value": "file_empty.txt",
+      "accepted_extensions": [".txt", ".xml"],
+      "write_permission": true,
+      "is_valid": true
+    },
+    {
+      "value": "file_filled.txt",
+      "accepted_extensions": null,
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_filled.txt",
+      "accepted_extensions": [],
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_filled.txt",
+      "accepted_extensions": [".csv", ".xml"],
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_filled.txt",
+      "accepted_extensions": [".txt", ".xml"],
+      "write_permission": false,
+      "is_valid": false
+    },
+    {
+      "value": "file_filled.txt",
+      "accepted_extensions": null,
+      "write_permission": true,
+      "is_valid": true
+    },
+    {
+      "value": "file_filled.txt",
+      "accepted_extensions": [],
+      "write_permission": true,
+      "is_valid": true
+    },
+    {
+      "value": "file_filled.txt",
+      "accepted_extensions": [".csv", ".xml"],
+      "write_permission": true,
+      "is_valid": false
+    },
+    {
+      "value": "file_filled.txt",
+      "accepted_extensions": [".txt", ".xml"],
+      "write_permission": true,
+      "is_valid": true
+    }
+  ],
   "validate_float_data": [
     {
       "value": 0.0,
@@ -1022,6 +1168,43 @@
     {
       "value": null,
       "current_states": [],
+      "is_valid": false
+    }
+  ],
+  "validate_random_distribution_data": [
+    {
+      "value": "beta",
+      "accepted_values": [],
+      "is_valid": true
+    },
+    {
+      "value": "beta",
+      "accepted_values": ["chisquare", "laplace"],
+      "is_valid": false
+    },
+    {
+      "value": "gamma",
+      "accepted_values": ["gamma", "exponential", "f"],
+      "is_valid": true
+    },
+    {
+      "value": "gamma",
+      "accepted_values": ["lognormal", "normal", "weibull"],
+      "is_valid": false
+    },
+    {
+      "value": "undefined",
+      "accepted_values": [],
+      "is_valid": false
+    },
+    {
+      "value": "undefined",
+      "accepted_values": ["noncentral_chisquare", "noncentral_f"],
+      "is_valid": false
+    },
+    {
+      "value": "undefined",
+      "accepted_values": ["beta", "gamma", "undefined"],
       "is_valid": false
     }
   ],

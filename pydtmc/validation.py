@@ -50,11 +50,11 @@ from itertools import (
 )
 
 from os.path import (
-    isfile as _os_isfile
+    isfile as _osp_isfile
 )
 
 from typing import (
-    Iterable as _Iterable
+    Iterable as _tp_Iterable
 )
 
 # Libraries
@@ -108,6 +108,7 @@ from .custom_types import (
     oint as _oint,
     olimit_float as _olimit_float,
     olimit_int as _olimit_int,
+    olist_str as _olist_str,
     tany as _tany,
     tarray as _tarray,
     tbcond as _tbcond,
@@ -171,7 +172,7 @@ def _is_integer(value: _tany) -> bool:
 
 def _is_iterable(value: _tany) -> bool:
 
-    return value is not None and isinstance(value, _Iterable) and not isinstance(value, (bytearray, bytes, str))
+    return value is not None and isinstance(value, _tp_Iterable) and not isinstance(value, (bytearray, bytes, str))
 
 
 def _is_list(value: _tany) -> bool:
@@ -388,7 +389,7 @@ def validate_enumerator(value: _tany, possible_values: _tlist_str) -> str:
     return value
 
 
-def validate_file_path(value: _tany, file_extensions: _tlist_str, write_permission: bool) -> _tfile:  # pragma: no cover
+def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_permission: bool) -> _tfile:  # pragma: no cover
 
     if not _is_string(value):
         raise TypeError('The "@arg@" parameter must be a non-empty string.')
@@ -398,7 +399,7 @@ def validate_file_path(value: _tany, file_extensions: _tlist_str, write_permissi
 
     file_path = value
 
-    if not _os_isfile(file_path):
+    if not _osp_isfile(file_path):
         raise ValueError('The "@arg@" parameter defines an invalid file path.')
 
     try:
@@ -406,8 +407,8 @@ def validate_file_path(value: _tany, file_extensions: _tlist_str, write_permissi
     except Exception as e:
         raise ValueError('The "@arg@" parameter defines an invalid file path.') from e
 
-    if file_extension not in file_extensions:
-        raise ValueError(f'The "@arg@" parameter must have one of the following extensions: {", ".join(sorted(file_extensions)).replace(".", "")}.')
+    if accepted_extensions is not None and len(accepted_extensions) > 0 and file_extension not in accepted_extensions:
+        raise ValueError(f'The "@arg@" parameter must have one of the following extensions: {", ".join(sorted(accepted_extensions)).replace(".", "")}.')
 
     if write_permission:
 
@@ -676,10 +677,10 @@ def validate_partitions(value: _tany, current_states: _tlist_str) -> _tlists_int
 
 def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tlist_str) -> _trandfunc:
 
-    if callable(value):
+    if callable(value):  # pragma: no cover
 
         if 'of numpy.random' not in repr(value):
-            raise ValueError('The "@arg@" parameter, when specified as a callable function, must belong to the "numpy.random" module.')
+            raise ValueError('The "@arg@" parameter, when specified as a callable function, must be defined in the "numpy.random" module.')
 
         value = value.__name__
 
@@ -695,11 +696,11 @@ def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tl
 
     if _is_string(value):
 
-        if value not in dir(rng):
-            raise ValueError('The "@arg@" parameter, when specified as a callable function, must reference a valid "numpy.random" module object.')
+        if value is None or value not in dir(rng):
+            raise ValueError('The "@arg@" parameter, when specified as a string, must reference a valid "numpy.random" module object.')
 
         if len(accepted_values) > 0 and value not in accepted_values:
-            raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference one of the following "numpy.random" module objects: {", ".join(accepted_values)}.')
+            raise ValueError(f'The "@arg@" parameter, when specified as a string, must reference one of the following "numpy.random" module objects: {", ".join(accepted_values)}.')
 
         value = getattr(rng, value)
 

@@ -16,10 +16,10 @@ from json import (
 )
 
 from os.path import (
-    abspath as _os_abspath,
-    dirname as _os_dirname,
-    isfile as _os_isfile,
-    join as _os_join
+    abspath as _osp_abspath,
+    dirname as _osp_dirname,
+    isfile as _osp_isfile,
+    join as _osp_join
 )
 
 # Libraries
@@ -34,7 +34,7 @@ from numpy import (
 # CONSTANTS #
 #############
 
-_base_directory = _os_abspath(_os_dirname(__file__))
+_base_directory = _osp_abspath(_osp_dirname(__file__))
 _benchmark_exclusions = ('benchmark', 'request')
 _numpy_formatting_options = _np_get_printoptions()
 _json_replacements = (
@@ -57,9 +57,9 @@ _fixtures = {}
 
 def _extract_fixtures(fixtures_file):
 
-    fixtures_path = _os_join(_base_directory, f'fixtures/fixtures_{fixtures_file}.json')
+    fixtures_path = _osp_join(_base_directory, f'fixtures/fixtures_{fixtures_file}.json')
 
-    if not _os_isfile(fixtures_path):
+    if not _osp_isfile(fixtures_path):
         return None
 
     with open(fixtures_path, 'r') as file:
@@ -210,7 +210,6 @@ def pytest_configure(config):
     config.addinivalue_line('filterwarnings', 'ignore::PendingDeprecationWarning')
     config.addinivalue_line('filterwarnings', 'ignore::matplotlib.cbook.mplDeprecation')
 
-    config.addinivalue_line('markers', 'benchmark: mark tests as benchmarks (exclude them with \'-m "not benchmark"\').')
     config.addinivalue_line('markers', 'slow: mark tests as slow (exclude them with \'-m "not slow"\').')
 
     _np_set_printoptions(floatmode='fixed', precision=8)

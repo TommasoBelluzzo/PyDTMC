@@ -11,20 +11,34 @@ from ast import (
     parse as _ast_parse
 )
 
+from os.path import (
+    abspath as _osp_abspath,
+    dirname as _osp_dirname,
+    join as _osp_join
+)
+
 from re import (
     search as _re_search
 )
 
 from types import (
-    CodeType as _CodeType,
-    FunctionType as _FunctionType
+    CodeType as _tp_CodeType,
+    FunctionType as _tp_FunctionType
 )
 
 # Libraries
 
 import networkx as _nx
 import numpy as _np
-import pytest as _pt
+
+from numpy.random import (
+    RandomState as _npr_RandomState
+)
+
+from pytest import (
+    mark as _pt_mark,
+    skip as _pt_skip
+)
 
 # noinspection PyUnresolvedReferences
 import scipy.sparse as _spsp  # noqa
@@ -55,6 +69,7 @@ from pydtmc.validation import (
     validate_distribution as _validate_distribution,
     validate_dpi as _validate_dpi,
     validate_enumerator as _validate_enumerator,
+    validate_file_path as _validate_file_path,
     validate_float as _validate_float,
     validate_graph as _validate_graph,
     validate_integer as _validate_integer,
@@ -64,6 +79,7 @@ from pydtmc.validation import (
     validate_mask as _validate_mask,
     validate_matrix as _validate_matrix,
     validate_partitions as _validate_partitions,
+    validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
     validate_state as _validate_state,
     validate_state_names as _validate_state_names,
@@ -72,8 +88,15 @@ from pydtmc.validation import (
     validate_time_points as _validate_time_points,
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
-    validate_vector as _validate_vector
+    validate_vector as _validate_vector,
 )
+
+
+#############
+# CONSTANTS #
+#############
+
+_base_directory = _osp_abspath(_osp_dirname(__file__))
 
 
 #############
@@ -94,10 +117,10 @@ def _string_to_function(source):
 
     ast_tree = _ast_parse(source)
     module_object = compile(ast_tree, '<ast>', 'exec')
-    code_object = [c for c in module_object.co_consts if isinstance(c, _CodeType)][0]
+    code_object = [c for c in module_object.co_consts if isinstance(c, _tp_CodeType)][0]
 
     # noinspection PyArgumentList
-    f = _FunctionType(code_object, {})
+    f = _tp_FunctionType(code_object, {})
 
     return f
 
@@ -145,7 +168,7 @@ def test_validate_extract_as_numeric(value, evaluate, is_valid):
             value = eval(value)
 
     if should_skip:
-        _pt.skip('The test could not be performed because Pandas library could not be imported.')
+        _pt_skip('The test could not be performed because Pandas library could not be imported.')
     else:
 
         # noinspection PyBroadException
@@ -318,6 +341,33 @@ def test_validate_enumerator(value, possible_values, is_valid):
     if result is not None:
 
         actual = isinstance(result, str)
+        expected = True
+
+        assert actual == expected
+
+
+@_pt_mark.slow
+def test_validate_file_path(value, accepted_extensions, write_permission, is_valid):
+
+    if value is not None and isinstance(value, str) and value.startswith('file_'):
+        value = _osp_join(_base_directory, f'files/{value}')
+
+    # noinspection PyBroadException
+    try:
+        result = _validate_file_path(value, accepted_extensions, write_permission)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = result[0] == value
         expected = True
 
         assert actual == expected
@@ -508,7 +558,7 @@ def test_validate_markov_chain(value, is_valid):
             value = eval(value)
 
     if should_skip:
-        _pt.skip('The test could not be performed because Pandas library could not be imported.')
+        _pt_skip('The test could not be performed because Pandas library could not be imported.')
     else:
 
         # noinspection PyBroadException
@@ -525,6 +575,7 @@ def test_validate_markov_chain(value, is_valid):
         assert actual == expected
 
         if result is not None:
+
             actual = isinstance(result, _MarkovChain)
             expected = True
 
@@ -599,6 +650,29 @@ def test_validate_partitions(value, current_states, is_valid):
     if result is not None:
 
         actual = isinstance(result, list) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
+        expected = True
+
+        assert actual == expected
+
+
+def test_validate_random_distribution(value, accepted_values, is_valid):
+
+    # noinspection PyBroadException
+    try:
+        result = _validate_random_distribution(value, _npr_RandomState(0), accepted_values)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = callable(result)
         expected = True
 
         assert actual == expected

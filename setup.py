@@ -12,9 +12,9 @@ from os import (
 )
 
 from os.path import (
-    abspath as _os_abspath,
-    dirname as _os_dirname,
-    join as _os_join
+    abspath as _osp_abspath,
+    dirname as _osp_dirname,
+    join as _osp_join
 )
 
 # noinspection PyPep8Naming
@@ -30,7 +30,10 @@ from sys import (
 
 # Libraries
 
-import setuptools as _st
+from setuptools import (
+    find_packages as _st_find_packages,
+    setup as _st_setup
+)
 
 
 ################
@@ -53,9 +56,9 @@ with open('pydtmc/__init__.py', 'r') as _file:
 
 # Description
 
-_base_directory = _os_abspath(_os_dirname(__file__))
+_base_directory = _osp_abspath(_osp_dirname(__file__))
 
-with open(_os_join(_base_directory, 'README.md'), encoding='utf-8') as _file:
+with open(_osp_join(_base_directory, 'README.md'), encoding='utf-8') as _file:
     _long_description_text = _file.read()
     _long_description_text = _long_description_text[_long_description_text.index('\n') + 1:].strip()
 
@@ -65,16 +68,16 @@ _package_data_files = []
 
 for (_location, _, _files) in _os_walk('data'):
     for _file in _files:
-        if _file != '.gitkeep':
-            _package_data_files.append(_os_join('..', _location, _file))
+        if _file not in ['.gitattributes', '.gitignore', '.gitkeep']:
+            _package_data_files.append(_osp_join('..', _location, _file))
 
 # Setup
 
-_st.setup(
+_st_setup(
     version=_current_version,
     long_description=_long_description_text,
     long_description_content_type='text/markdown',
-    packages=_st.find_packages(exclude=['data', 'docs', 'tests']),
+    packages=_st_find_packages(exclude=['data', 'docs', 'tests']),
+    include_package_data=True,
     package_data={'data': _package_data_files},
-    include_package_data=True
 )
