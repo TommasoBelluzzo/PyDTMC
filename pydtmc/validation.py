@@ -98,7 +98,7 @@ try:
         DataFrame as _pd_DataFrame,
         Series as _pd_Series
     )
-    _pandas_found = False
+    _pandas_found = True
 except ImportError:  # pragma: no cover
     _pd_DataFrame = None
     _pd_Series = None

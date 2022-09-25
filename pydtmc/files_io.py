@@ -20,7 +20,7 @@ __all__ = [
 
 # noinspection PyPep8Naming
 from csv import (
-    QUOTE_MINIMAL as _csv_quote_minimal,
+    QUOTE_MINIMAL as _csv_QUOTE_MINIMAL,
     reader as _csv_reader,
     writer as _csv_writer
 )
@@ -255,7 +255,7 @@ def write_csv(d: _tmc_dict, file_path: str):
 
     with open(file_path, mode='w', newline='') as file:
 
-        writer = _csv_writer(file, delimiter=',', quoting=_csv_quote_minimal, quotechar='"')
+        writer = _csv_writer(file, delimiter=',', quoting=_csv_QUOTE_MINIMAL, quotechar='"')
 
         writer.writerow(states)
 

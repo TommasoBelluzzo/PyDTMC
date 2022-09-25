@@ -18,10 +18,12 @@ from random import (
 
 # Libraries
 
-import matplotlib.pyplot as _mplp
+from matplotlib.pyplot import (
+    close as _mplp_close
+)
 
 from pytest import (
-    mark as _pt_mark,
+    mark as _pt_mark
 )
 
 # Internal
@@ -75,7 +77,7 @@ def test_plot_eigenvalues(seed, maximum_size, runs):
         try:
 
             figure, _ = _plot_eigenvalues(mc)
-            _mplp.close(figure)
+            _mplp_close(figure)
 
             exception = False
 
@@ -112,10 +114,10 @@ def test_plot_graph(seed, maximum_size, runs):
         try:
 
             figure, _ = _plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=True)
-            _mplp.close(figure)
+            _mplp_close(figure)
 
             figure, _ = _plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=False)
-            _mplp.close(figure)
+            _mplp_close(figure)
 
             exception = False
 
@@ -161,7 +163,7 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
         try:
 
             figure, _ = _plot_redistributions(mc, distributions, initial_status, plot_type)
-            _mplp.close(figure)
+            _mplp_close(figure)
 
             exception = False
 
@@ -203,7 +205,7 @@ def test_plot_walk(seed, maximum_size, maximum_simulations, runs):
         try:
 
             figure, _ = _plot_walk(mc, walk, initial_state, plot_type)
-            _mplp.close(figure)
+            _mplp_close(figure)
 
             exception = False
 

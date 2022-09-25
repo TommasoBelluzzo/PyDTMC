@@ -30,10 +30,28 @@ from sys import (
 
 # Libraries
 
-import docutils.nodes as _dun
-import sphinx.addnodes as _span
-import sphinx.transforms.post_transforms as _sppt
-import sphinx.ext.intersphinx as _spei
+from docutils.nodes import (
+    bullet_list as _dun_bullet_list,
+    field_list as _dun_field_list,
+    paragraph as _dun_paragraph,
+    Text as _dun_Text
+)
+
+from sphinx.addnodes import (
+    desc as _span_desc,
+    desc_annotation as _span_desc_annotation,
+    desc_content as _span_desc_content,
+    desc_parameterlist as _span_desc_parameterlist,
+    desc_signature as _span_desc_signature
+)
+
+from sphinx.ext.intersphinx import (
+    InventoryAdapter as _spei_InventoryAdapter
+)
+
+from sphinx.transforms.post_transforms import (
+    SphinxPostTransform as _sppt_SphinxPostTransform
+)
 
 # noinspection PyUnresolvedReferences
 import sphinx_rtd_theme  # noqa
@@ -184,7 +202,7 @@ texinfo_documents = [(master_doc, project, project_title, author, project, 'A fr
 # CLASSES #
 ###########
 
-class _SphinxPostTransformConstructor(_sppt.SphinxPostTransform):
+class _SphinxPostTransformConstructor(_sppt_SphinxPostTransform):
 
     """
     A class decorator used for applying constructor post-transforms.
@@ -197,36 +215,36 @@ class _SphinxPostTransformConstructor(_sppt.SphinxPostTransform):
         if not _re_search(r'markov_chain_[A-Z_]+\.rst$', self.document['source'], flags=_re_ignorecase):
             return
 
-        for node in self.document.findall(_span.desc):
+        for node in self.document.findall(_span_desc):
 
             if not node.hasattr('objtype') or node['objtype'] != 'class':
                 continue
 
             node_desc_signature = node[0]
 
-            if not isinstance(node_desc_signature, _span.desc_signature):
+            if not isinstance(node_desc_signature, _span_desc_signature):
                 continue
 
             node_desc_content = node[1]
 
-            if not isinstance(node_desc_content, _span.desc_content):
+            if not isinstance(node_desc_content, _span_desc_content):
                 continue
 
             nodes_to_remove = []
 
             for node_child in node_desc_signature:
-                if isinstance(node_child, _span.desc_parameterlist):
+                if isinstance(node_child, _span_desc_parameterlist):
                     nodes_to_remove.append((node_desc_signature, node_child))
 
             for node_child in node_desc_content:
-                if isinstance(node_child, (_dun.paragraph, _dun.field_list)):
+                if isinstance(node_child, (_dun_paragraph, _dun_field_list)):
                     nodes_to_remove.append((node_desc_content, node_child))
 
             for parent, child in nodes_to_remove:
                 parent.remove(child)
 
 
-class _SphinxPostTransformLists(_sppt.SphinxPostTransform):
+class _SphinxPostTransformLists(_sppt_SphinxPostTransform):
 
     """
     A class decorator used for applying lists post-transforms.
@@ -236,20 +254,20 @@ class _SphinxPostTransformLists(_sppt.SphinxPostTransform):
 
     def run(self, **kwargs):
 
-        for node in self.document.findall(_dun.bullet_list):
+        for node in self.document.findall(_dun_bullet_list):
 
             target = node.parent
 
-            if target is None or not isinstance(target, _dun.paragraph):
+            if target is None or not isinstance(target, _dun_paragraph):
                 continue
 
             for child in target.children:
-                if isinstance(child, _dun.Text) and child.astext() == ' – ':
+                if isinstance(child, _dun_Text) and child.astext() == ' – ':
                     target.remove(child)
                     break
 
 
-class _SphinxPostTransformProperties(_sppt.SphinxPostTransform):
+class _SphinxPostTransformProperties(_sppt_SphinxPostTransform):
 
     """
     A class decorator used for applying properties post-transforms.
@@ -259,11 +277,11 @@ class _SphinxPostTransformProperties(_sppt.SphinxPostTransform):
 
     def run(self, **kwargs):
 
-        for node in self.document.findall(_span.desc_signature):
+        for node in self.document.findall(_span_desc_signature):
 
             parent = node.parent
 
-            if parent is None or not isinstance(parent, _span.desc):
+            if parent is None or not isinstance(parent, _span_desc):
                 continue
 
             if not parent.hasattr('objtype'):
@@ -278,7 +296,7 @@ class _SphinxPostTransformProperties(_sppt.SphinxPostTransform):
 
             for node_child in node:
 
-                if isinstance(node_child, _span.desc_annotation):
+                if isinstance(node_child, _span_desc_annotation):
 
                     node_child_text = node_child.astext().strip()
 
@@ -297,7 +315,7 @@ class _SphinxPostTransformProperties(_sppt.SphinxPostTransform):
 
 def _process_intersphinx_aliases(app):
 
-    inventories = _spei.InventoryAdapter(app.builder.env)
+    inventories = _spei_InventoryAdapter(app.builder.env)
 
     for alias, target in app.config.intersphinx_aliases.items():
 

@@ -22,8 +22,14 @@ from tempfile import (
 
 # Libraries
 
-import numpy.random as _npr
-import numpy.testing as _npt
+from numpy.random import (
+    randint as _npr_randint,
+    seed as _npr_seed
+)
+
+from numpy.testing import (
+    assert_allclose as _npt_assert_allclose
+)
 
 from pytest import (
     mark as _pt_mark
@@ -51,7 +57,7 @@ def test_dictionary(seed, maximum_size, runs):
         d = mc_to.to_dictionary()
         mc_from = _MarkovChain.from_dictionary(d)
 
-        _npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt_assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
 @_pt_mark.slow
@@ -66,12 +72,12 @@ def test_graph(seed, maximum_size, runs):
         graph = mc_to.to_graph(False)
         mc_from = _MarkovChain.from_graph(graph)
 
-        _npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt_assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
         graph = mc_to.to_graph(True)
         mc_from = _MarkovChain.from_graph(graph)
 
-        _npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt_assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
 # noinspection PyBroadException
@@ -99,21 +105,21 @@ def test_file(seed, maximum_size, runs, file_extension):
 
         assert exception is False
 
-        _npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt_assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
 def test_matrix(seed, maximum_size, runs):
 
-    _npr.seed(seed)
+    _npr_seed(seed)
 
     for _ in range(runs):
 
         size = _rd_randint(2, maximum_size)
 
-        m = _npr.randint(101, size=(size, size))
+        m = _npr_randint(101, size=(size, size))
         mc1 = _MarkovChain.from_matrix(m)
 
         m = mc1.to_matrix()
         mc2 = _MarkovChain.from_matrix(m)
 
-        _npt.assert_allclose(mc1.p, mc2.p, rtol=1e-5, atol=1e-8)
+        _npt_assert_allclose(mc1.p, mc2.p, rtol=1e-5, atol=1e-8)

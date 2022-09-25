@@ -28,12 +28,32 @@ from types import (
 
 # Libraries
 
-import networkx as _nx
-import numpy as _np
+from networkx import (
+    DiGraph as _nx_DiGraph,
+    from_numpy_matrix as _nx_from_numpy_matrix,
+    relabel_nodes as _nx_relabel_nodes
+)
+
+from numpy import (
+    array as _np_array,
+    asarray as _np_asarray,
+    ndarray as _np_ndarray
+)
 
 from numpy.random import (
     RandomState as _npr_RandomState
 )
+
+try:
+    from pandas import (
+        DataFrame as _pd_DataFrame,
+        Series as _pd_Series
+    )
+    _pandas_found = True
+except ImportError:  # noqa
+    _pd_DataFrame = None
+    _pd_Series = None
+    _pandas_found = False
 
 from pytest import (
     mark as _pt_mark,
@@ -41,12 +61,10 @@ from pytest import (
 )
 
 # noinspection PyUnresolvedReferences
-import scipy.sparse as _spsp  # noqa
-
-try:
-    import pandas as _pd
-except ImportError:  # noqa
-    _pd = None
+from scipy.sparse import (  # noqa
+    coo_matrix as _spsp_coo_matrix,
+    csr_matrix as _spsp_csr_matrix
+)
 
 # Internal
 
@@ -105,21 +123,21 @@ _base_directory = _osp_abspath(_osp_dirname(__file__))
 
 def _eval_replace(value):
 
-    value = value.replace('np.', '_np.')
-    value = value.replace('nx.', '_nx.')
-    value = value.replace('pd.', '_pd.')
+    value = value.replace('np.', '_np_')
+    value = value.replace('nx.', '_nx_')
+    value = value.replace('pd.', '_pd_')
     value = value.replace('spsp.', '_spsp.')
 
     return value
 
 
+# noinspection PyArgumentList
 def _string_to_function(source):
 
     ast_tree = _ast_parse(source)
     module_object = compile(ast_tree, '<ast>', 'exec')
     code_object = [c for c in module_object.co_consts if isinstance(c, _tp_CodeType)][0]
 
-    # noinspection PyArgumentList
     f = _tp_FunctionType(code_object, {})
 
     return f
@@ -162,7 +180,7 @@ def test_validate_extract_as_numeric(value, evaluate, is_valid):
 
     if value is not None and isinstance(value, str) and evaluate:
 
-        if 'pd.' in value and _pd is None:
+        if 'pd.' in value and not _pandas_found:
             should_skip = True
         else:
             value = _eval_replace(value)
@@ -186,7 +204,7 @@ def test_validate_extract_as_numeric(value, evaluate, is_valid):
 
         if result is not None:
 
-            actual = isinstance(result, _np.ndarray)
+            actual = isinstance(result, _np_ndarray)
             expected = True
 
             assert actual == expected
@@ -273,12 +291,12 @@ def test_validate_dictionary(dictionary_elements, key_tuple, is_valid):
         assert actual == expected
 
 
-# noinspection PyBroadException
+# noinspection DuplicatedCode, PyBroadException
 def test_validate_distribution(value, size, is_valid):
 
     if isinstance(value, list):
         for index, v in enumerate(value):
-            value[index] = _np.asarray(v)
+            value[index] = _np_asarray(v)
 
     try:
         result = _validate_distribution(value, size)
@@ -294,7 +312,7 @@ def test_validate_distribution(value, size, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, _np.ndarray) for v in result))
+        actual = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, _np_ndarray) for v in result))
         expected = True
 
         assert actual == expected
@@ -405,11 +423,11 @@ def test_validate_graph(graph_data, is_valid):
     if graph_data is None:
         g = None
     elif isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
-        g = _nx.from_numpy_matrix(_np.array(graph_data), create_using=_nx.DiGraph()) if len(graph_data) > 0 else _nx.DiGraph()
-        g = _nx.relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
+        g = _nx_from_numpy_matrix(_np_array(graph_data), create_using=_nx_DiGraph()) if len(graph_data) > 0 else _nx_DiGraph()
+        g = _nx_relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
     else:
 
-        g = _nx.DiGraph()
+        g = _nx_DiGraph()
 
         for x in graph_data:
             g.add_node(x)
@@ -428,7 +446,7 @@ def test_validate_graph(graph_data, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, _nx.DiGraph)
+        actual = isinstance(result, _nx_DiGraph)
         expected = True
 
         assert actual == expected
@@ -477,7 +495,7 @@ def test_validate_hyperparameter(value, size, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, _np.ndarray)
+        actual = isinstance(result, _np_ndarray)
         expected = True
 
         assert actual == expected
@@ -515,7 +533,7 @@ def test_validate_markov_chain(value, is_valid):
 
     if value is not None and isinstance(value, str):
 
-        if 'pd.' in value and _pd is None:
+        if 'pd.' in value and not _pandas_found:
             should_skip = True
         else:
 
@@ -553,7 +571,7 @@ def test_validate_markov_chain(value, is_valid):
 # noinspection PyBroadException
 def test_validate_mask(value, size, is_valid):
 
-    value = _np.asarray(value)
+    value = _np_asarray(value)
 
     try:
         result = _validate_mask(value, size)
@@ -569,7 +587,7 @@ def test_validate_mask(value, size, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, _np.ndarray)
+        actual = isinstance(result, _np_ndarray)
         expected = True
 
         assert actual == expected
@@ -578,7 +596,7 @@ def test_validate_mask(value, size, is_valid):
 # noinspection PyBroadException
 def test_validate_matrix(value, is_valid):
 
-    value = _np.asarray(value)
+    value = _np_asarray(value)
 
     try:
         result = _validate_matrix(value)
@@ -594,7 +612,7 @@ def test_validate_matrix(value, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, _np.ndarray)
+        actual = isinstance(result, _np_ndarray)
         expected = True
 
         assert actual == expected
@@ -663,7 +681,7 @@ def test_validate_rewards(value, size, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, _np.ndarray)
+        actual = isinstance(result, _np_ndarray)
         expected = True
 
         assert actual == expected
@@ -760,13 +778,13 @@ def test_validate_status(value, current_states, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, _np.ndarray)
+        actual = isinstance(result, _np_ndarray)
         expected = True
 
         assert actual == expected
 
 
-# noinspection PyBroadException
+# noinspection DuplicatedCode, PyBroadException
 def test_validate_time_points(value, is_valid):
 
     try:
@@ -835,7 +853,7 @@ def test_validate_transition_matrix(value, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, _np.ndarray)
+        actual = isinstance(result, _np_ndarray)
         expected = True
 
         assert actual == expected
@@ -858,7 +876,7 @@ def test_validate_vector(value, vector_type, flex, size, is_valid):
 
     if result is not None:
 
-        actual = isinstance(result, _np.ndarray)
+        actual = isinstance(result, _np_ndarray)
         expected = True
 
         assert actual == expected

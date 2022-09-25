@@ -7,8 +7,13 @@
 
 # Libraries
 
-import numpy as _np
-import numpy.testing as _npt
+from numpy import (
+    ndarray as _np_ndarray
+)
+
+from numpy.testing import (
+    assert_array_equal as _npt_assert_array_equal
+)
 
 # Internal
 
@@ -25,9 +30,9 @@ def _get_comparison(value):
 
     if value is None:
         comparison = 'standard'
-    elif isinstance(value, _np.ndarray):
+    elif isinstance(value, _np_ndarray):
         comparison = 'npt'
-    elif isinstance(value, list) and len(value) > 0 and isinstance(value[0], _np.ndarray):
+    elif isinstance(value, list) and len(value) > 0 and isinstance(value[0], _np_ndarray):
         comparison = 'npt_loop'
     else:
         comparison = 'standard'
@@ -39,7 +44,7 @@ def _get_comparison(value):
 def _compare_values_npt(actual, expected):
 
     try:
-        _npt.assert_array_equal(actual, expected)
+        _npt_assert_array_equal(actual, expected)
         return True
     except Exception:
         return False
@@ -56,7 +61,7 @@ def _compare_values_npt_loop(actual, expected):
 
     for _ in range({actual_length, expected_length}.pop()):
         try:
-            _npt.assert_array_equal(actual, expected)
+            _npt_assert_array_equal(actual, expected)
         except Exception:
             return False
 

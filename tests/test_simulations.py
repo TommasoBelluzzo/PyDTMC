@@ -7,8 +7,16 @@
 
 # Libraries
 
-import numpy as _np
-import numpy.testing as _npt
+from numpy import (
+    asarray as _np_asarray,
+    eye as _np_eye,
+    isclose as _np_isclose,
+    vstack as _np_vstack
+)
+
+from numpy.testing import (
+    assert_allclose as _npt_assert_allclose
+)
 
 # Internal
 
@@ -48,21 +56,21 @@ def test_redistribute(p, steps, initial_status, output_last, value):
     r = mc.redistribute(steps, initial_status, output_last)
     r = r if isinstance(r, list) else [r]
 
-    actual = _np.vstack(r)
-    expected = _np.asarray(value)
+    actual = _np_vstack(r)
+    expected = _np_asarray(value)
 
-    _npt.assert_allclose(actual, expected)
+    _npt_assert_allclose(actual, expected)
 
     if initial_status is not None:
 
         actual = r[0]
 
         if isinstance(initial_status, int):
-            expected = _np.eye(mc.size)[initial_status]
+            expected = _np_eye(mc.size)[initial_status]
         else:
             expected = initial_status
 
-        _npt.assert_allclose(actual, expected)
+        _npt_assert_allclose(actual, expected)
 
 
 def test_walk(p, seed, steps, initial_state, final_state, output_indices, value):
@@ -99,4 +107,4 @@ def test_walk_probability(p, walk, value):
     actual = mc.walk_probability(walk)
     expected = value
 
-    assert _np.isclose(actual, expected)
+    assert _np_isclose(actual, expected)
