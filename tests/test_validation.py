@@ -126,7 +126,7 @@ def _eval_replace(value):
     value = value.replace('np.', '_np_')
     value = value.replace('nx.', '_nx_')
     value = value.replace('pd.', '_pd_')
-    value = value.replace('spsp.', '_spsp.')
+    value = value.replace('spsp.', '_spsp_')
 
     return value
 

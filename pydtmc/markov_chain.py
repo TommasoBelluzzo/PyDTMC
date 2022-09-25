@@ -1885,10 +1885,11 @@ class MarkovChain(metaclass=_BaseClass):
 
         return m
 
+    # noinspection GrazieInspection
     def to_nth_order(self, order: int = 2) -> _tmc:
 
         """
-        The method returns an nth order transformation of the Markov chain.
+        The method returns an nth-order transformation of the Markov chain.
 
         :param order: the inertial weights to apply for the transformation.
         :raises ValidationError: if any input argument is not compliant.
