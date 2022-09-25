@@ -98,9 +98,11 @@ try:
         DataFrame as _pd_DataFrame,
         Series as _pd_Series
     )
+    _pandas_found = False
 except ImportError:  # pragma: no cover
     _pd_DataFrame = None
     _pd_Series = None
+    _pandas_found = False
 
 # Internal
 
@@ -187,7 +189,7 @@ def _is_number(value: _tany) -> bool:
 
 def _is_pandas(value: _tany) -> bool:
 
-    if _pd_DataFrame is None or _pd_Series is None:  # pragma: no cover
+    if not _pandas_found:  # pragma: no cover
         return False
 
     return value is not None and isinstance(value, (_pd_DataFrame, _pd_Series))

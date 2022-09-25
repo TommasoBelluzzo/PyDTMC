@@ -276,7 +276,7 @@ def birth_death(p: _tarray, q: _tarray) -> _tgenres:
 
     r = 1.0 - q - p
 
-    p = _np_diag(r, k=0) + _np_diag(p[0:-1], k=1) + _np_diag(q[1:], k=-1)
+    p = _np_diag(r) + _np_diag(p[0:-1], k=1) + _np_diag(q[1:], k=-1)
     p[_np_isclose(p, 0.0)] = 0.0
     p[_np_where(~p.any(axis=1)), :] = _np_ones(p.shape[0], dtype=float)
     p /= _np_sum(p, axis=1, keepdims=True)
@@ -369,12 +369,12 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
 
             if dr_zero and ds_zero:
 
-                bv = _np_eye(size, dtype=float)
+                bv = _np_eye(size)
                 bv[r, r] = 0.0
                 bv[r, s] = 1.0
                 basis_vectors.append(bv)
 
-                bv = _np_eye(size, dtype=float)
+                bv = _np_eye(size)
                 bv[r, r] = 1.0
                 bv[r, s] = 0.0
                 bv[s, s] = 0.0
@@ -383,14 +383,14 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
 
             else:
 
-                bv = _np_eye(size, dtype=float)
+                bv = _np_eye(size)
                 bv[r, r] = dsc
                 bv[r, s] = ds
                 bv[s, s] = drc
                 bv[s, r] = dr
                 basis_vectors.append(bv)
 
-    basis_vectors.append(_np_eye(size, dtype=float))
+    basis_vectors.append(_np_eye(size))
 
     h = _np_zeros((m, m), dtype=float)
     f = _np_zeros(m, dtype=float)
@@ -551,7 +551,7 @@ def lazy(p: _tarray, inertial_weights: _tarray) -> _tgenres:
     size = p.shape[0]
 
     p1 = (1.0 - inertial_weights)[:, _np_newaxis] * p
-    p2 = _np_eye(size, dtype=float) * inertial_weights
+    p2 = _np_eye(size) * inertial_weights
     p = p1 + p2
 
     return p, None

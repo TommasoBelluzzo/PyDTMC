@@ -35,9 +35,9 @@ def _get_comparison(value):
     return comparison
 
 
+# noinspection PyBroadException
 def _compare_values_npt(actual, expected):
 
-    # noinspection PyBroadException
     try:
         _npt.assert_array_equal(actual, expected)
         return True
@@ -45,6 +45,7 @@ def _compare_values_npt(actual, expected):
         return False
 
 
+# noinspection PyBroadException
 def _compare_values_npt_loop(actual, expected):
 
     actual_length = len(actual)
@@ -54,8 +55,6 @@ def _compare_values_npt_loop(actual, expected):
         return False
 
     for _ in range({actual_length, expected_length}.pop()):
-
-        # noinspection PyBroadException
         try:
             _npt.assert_array_equal(actual, expected)
         except Exception:
@@ -121,7 +120,7 @@ def test_aliased_properties(p):
 
         actual = eval('mc.' + member_name)
 
-        for member_alias in member.fget._aliases:
+        for member_alias in getattr(member.fget, '_aliases'):
 
             expected = eval('mc.' + member_alias)
             _compare_values(actual, expected)

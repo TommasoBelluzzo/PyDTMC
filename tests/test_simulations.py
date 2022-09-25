@@ -58,7 +58,7 @@ def test_redistribute(p, steps, initial_status, output_last, value):
         actual = r[0]
 
         if isinstance(initial_status, int):
-            expected = _np.eye(mc.size, dtype=float)[initial_status]
+            expected = _np.eye(mc.size)[initial_status]
         else:
             expected = initial_status
 

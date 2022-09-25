@@ -56,6 +56,7 @@ def test_closest_reversible(p, distribution, weighted, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+# noinspection PyArgumentEqualDefault
 def test_dirichlet_process(seed, size, diffusion_factor, diagonal_bias_factor, shift_concentration, value):
 
     mc = _MarkovChain.dirichlet_process(size, diffusion_factor, None, diagonal_bias_factor, shift_concentration, seed)
@@ -86,6 +87,7 @@ def test_identity(size, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+# noinspection PyArgumentEqualDefault
 def test_random(seed, size, zeros, mask, value):
 
     mc = _MarkovChain.random(size, None, zeros, mask, seed)
@@ -112,6 +114,7 @@ def test_random(seed, size, zeros, mask, value):
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+# noinspection PyArgumentEqualDefault
 def test_random_distribution(seed, size, f, args, value):
 
     mc = _MarkovChain.random_distribution(size, f, None, seed, **args)

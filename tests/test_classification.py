@@ -34,7 +34,7 @@ def test_classes_communicating(p, communicating_classes):
 
         _npt.assert_array_equal(mc.communication_matrix, _np.transpose(mc.communication_matrix))
 
-    if _np.array_equal(mc.p, _np.eye(mc.size, dtype=float)):
+    if _np.array_equal(mc.p, _np.eye(mc.size)):
 
         actual = [state for states in mc.communicating_classes for state in states]
         expected = mc.states
@@ -42,6 +42,7 @@ def test_classes_communicating(p, communicating_classes):
         assert actual == expected
 
 
+# noinspection DuplicatedCode
 def test_classes_recurrent(p, recurrent_classes):
 
     mc = _MarkovChain(p)
@@ -57,6 +58,7 @@ def test_classes_recurrent(p, recurrent_classes):
     assert actual == expected
 
 
+# noinspection DuplicatedCode
 def test_classes_transient(p, transient_classes):
 
     mc = _MarkovChain(p)
@@ -81,7 +83,7 @@ def test_classes_cyclic(p, cyclic_classes):
 
     assert actual == expected
 
-    if _np.array_equal(mc.p, _np.eye(mc.size, dtype=float)):
+    if _np.array_equal(mc.p, _np.eye(mc.size)):
 
         actual = mc.recurrent_states
         expected = mc.states

@@ -70,11 +70,11 @@ def _extract_fixtures(fixtures_file):
     return fixtures
 
 
+# noinspection PyBroadException
 def _parse_fixtures_benchmark(fixtures, func):
 
     values, ids = [], []
 
-    # noinspection PyBroadException
     try:
         module_name = func.split('_')[2]
         module = _il_import_module(f'pydtmc.{module_name}')

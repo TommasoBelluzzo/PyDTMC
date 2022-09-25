@@ -91,6 +91,7 @@ def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communicatio
     assert _np.array_equal(actual, expected)
 
 
+# noinspection DuplicatedCode
 def test_entropy(p, entropy_rate, entropy_rate_normalized, topological_entropy):
 
     mc = _MarkovChain(p)
@@ -229,16 +230,19 @@ def test_stationary_distributions(p, stationary_distributions):
     mc = _MarkovChain(p)
     stationary_distributions = [_np.array(stationary_distribution) for stationary_distribution in stationary_distributions]
 
+    # noinspection PyTypeChecker
     actual = len(mc.pi)
     expected = len(stationary_distributions)
 
     assert actual == expected
 
+    # noinspection PyTypeChecker
     actual = len(mc.pi)
     expected = len(mc.recurrent_classes)
 
     assert actual == expected
 
+    # noinspection PyTypeChecker
     ss_matrix = _np.vstack(mc.pi)
     actual = _npl.matrix_rank(ss_matrix)
     expected = min(ss_matrix.shape)
@@ -278,6 +282,7 @@ def test_transitions(p):
             assert _np.isclose(actual, expected)
 
 
+# noinspection DuplicatedCode
 def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales):
 
     mc = _MarkovChain(p)

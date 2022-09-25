@@ -182,7 +182,7 @@ def aliased(aliased_class):
         if len(set(aliases_flat)) < len(aliases_flat):
             raise AttributeError('Aliases must be unique and cannot be shared among different class members.')
 
-        if any(not _re_search(r'^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$', a) for a in aliases_flat):
+        if any(not _re_search(r'^[a-z][\da-z]*(?:_[\da-z]+)*$', a) for a in aliases_flat):
             raise ValueError('Aliases cannot start with an underscore character and must be compliant with PEP8 naming conventions.')
 
         if any(a in member_names for a in aliases_flat):

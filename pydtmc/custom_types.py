@@ -102,9 +102,11 @@ try:
         DataFrame as _pd_DataFrame,
         Series as _pd_Series
     )
+    _pandas_found = True
 except ImportError:  # noqa
     _pd_DataFrame = None
     _pd_Series = None
+    _pandas_found = False
 
 #########
 # TYPES #
@@ -141,13 +143,14 @@ olimit_float = _tp_Optional[tlimit_float]
 tlimit_int = _tp_Tuple[int, bool]
 olimit_int = _tp_Optional[tlimit_int]
 
+# noinspection PyTypeHints
 tmc = _tp_TypeVar('MarkovChain')
 omc = _tp_Optional[tmc]
 
 tplot = _tp_Tuple[_mplp_Figure, _mplp_Axes]
 oplot = _tp_Optional[tplot]
 
-tnumeric = _tp_Union[_np_ndarray, _spsp_matrix] if _pd_DataFrame is None or _pd_Series is None else _tp_Union[_np_ndarray, _spsp_matrix, _pd_DataFrame, _pd_Series]
+tnumeric = _tp_Union[_np_ndarray, _spsp_matrix] if not _pandas_found else _tp_Union[_np_ndarray, _spsp_matrix, _pd_DataFrame, _pd_Series]
 onumeric = _tp_Optional[tnumeric]
 
 trand = _npr_RandomState

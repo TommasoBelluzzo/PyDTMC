@@ -525,6 +525,7 @@ class MarkovChain(metaclass=_BaseClass):
         | If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
         """
 
+        # noinspection PyTypeChecker
         if len(self.pi) > 1:
             return None
 
@@ -578,7 +579,7 @@ class MarkovChain(metaclass=_BaseClass):
         indices = self.__transient_states_indices
 
         q = self.__p[_np_ix_(indices, indices)]
-        i = _np_eye(len(indices), dtype=float)
+        i = _np_eye(len(indices))
 
         fm = _npl_inv(i - q)
 
@@ -727,6 +728,7 @@ class MarkovChain(metaclass=_BaseClass):
         A property indicating whether the Markov chain is reversible.
         """
 
+        # noinspection PyTypeChecker
         if len(self.pi) > 1:
             return False
 
@@ -1018,7 +1020,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         | **Notes:**
 
-        - The algorithm is described in `Computing the nearest reversible Markov chain (Nielsen & Weber, 2015) <http://doi.org/10.1002/nla.1967>`_.
+        - The algorithm is described in `Computing the nearest reversible Markov chain (Nielsen & Weber, 2015) <https://doi.org/10.1002/nla.1967>`_.
 
         :param distribution: the distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param weighted: a boolean indicating whether to use the weighted Frobenius norm.
@@ -2291,7 +2293,7 @@ class MarkovChain(metaclass=_BaseClass):
     @staticmethod
     def from_file(file_path: str) -> _tmc:
 
-        """
+        r"""
         The method reads a Markov chain from the given file.
 
         | Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension.
@@ -2443,7 +2445,7 @@ class MarkovChain(metaclass=_BaseClass):
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
 
-        p = _np_eye(size, dtype=float)
+        p = _np_eye(size)
         mc = MarkovChain(p, states)
 
         return mc
@@ -2486,10 +2488,11 @@ class MarkovChain(metaclass=_BaseClass):
 
         return mc
 
+    # noinspection PyIncorrectDocstring
     @staticmethod
     def random_distribution(size: int, f: _trandfunc_flex, states: _olist_str = None, seed: _oint = None, **kwargs) -> _tmc:
 
-        """
+        r"""
         The method generates a Markov chain of given size using draws from a `Numpy <https://numpy.org/>`_ random distribution function.
 
         | **Notes:**

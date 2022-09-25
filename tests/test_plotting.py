@@ -35,10 +35,34 @@ from pydtmc import (
 )
 
 
+#############
+# FUNCTIONS #
+#############
+
+def _generate_configs_step1(seed, runs, maximum_size):
+
+    rs = _rd_getstate()
+    _rd_seed(seed)
+
+    configs = []
+
+    for _ in range(runs):
+
+        size = _rd_randint(2, maximum_size)
+        zeros = _rd_randint(0, size)
+
+        configs.append((size, zeros))
+
+    _rd_setstate(rs)
+
+    return configs
+
+
 #########
 # TESTS #
 #########
 
+# noinspection PyBroadException
 @_pt_mark.slow
 def test_plot_eigenvalues(seed, maximum_size, runs):
 
@@ -48,7 +72,6 @@ def test_plot_eigenvalues(seed, maximum_size, runs):
         zeros = _rd_randint(0, size)
         mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
-        # noinspection PyBroadException
         try:
 
             figure, _ = _plot_eigenvalues(mc)
@@ -62,6 +85,7 @@ def test_plot_eigenvalues(seed, maximum_size, runs):
         assert exception is False
 
 
+# noinspection PyArgumentEqualDefault, PyBroadException
 @_pt_mark.slow
 def test_plot_graph(seed, maximum_size, runs):
 
@@ -85,7 +109,6 @@ def test_plot_graph(seed, maximum_size, runs):
 
         mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
-        # noinspection PyBroadException
         try:
 
             figure, _ = _plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=True)
@@ -102,29 +125,19 @@ def test_plot_graph(seed, maximum_size, runs):
         assert exception is False
 
 
+# noinspection PyBroadException
 @_pt_mark.slow
 def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
 
-    rs = _rd_getstate()
-    _rd_seed(seed)
-
-    configs = []
-
-    for _ in range(runs):
-
-        size = _rd_randint(2, maximum_size)
-        zeros = _rd_randint(0, size)
-
-        configs.append((size, zeros))
-
-    _rd_setstate(rs)
+    plot_types = ('heatmap', 'projection')
 
     mcs = []
-    plot_types = ['heatmap', 'projection']
+    configs_step1 = _generate_configs_step1(seed, runs, maximum_size)
+    configs_step2 = []
 
     for i in range(runs):
 
-        size, zeros = configs[i]
+        size, zeros = configs_step1[i]
         mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
         if i == 0:
@@ -137,15 +150,14 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
             initial_status = None if isinstance(distributions, int) or _rd_random() < 0.5 else distributions[0]
             plot_type = _rd_choice(plot_types)
 
-        configs[i] = (distributions, initial_status, plot_type)
         mcs.append(mc)
+        configs_step2.append((distributions, initial_status, plot_type))
 
     for i in range(runs):
 
         mc = mcs[i]
-        distributions, initial_status, plot_type = configs[i]
+        distributions, initial_status, plot_type = configs_step2[i]
 
-        # noinspection PyBroadException
         try:
 
             figure, _ = _plot_redistributions(mc, distributions, initial_status, plot_type)
@@ -159,29 +171,19 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
         assert exception is False
 
 
+# noinspection PyBroadException
 @_pt_mark.slow
 def test_plot_walk(seed, maximum_size, maximum_simulations, runs):
 
-    rs = _rd_getstate()
-    _rd_seed(seed)
-
-    configs = []
-
-    for _ in range(runs):
-
-        size = _rd_randint(2, maximum_size)
-        zeros = _rd_randint(0, size)
-
-        configs.append((size, zeros))
-
-    _rd_setstate(rs)
+    plot_types = ('histogram', 'sequence', 'transitions')
 
     mcs = []
-    plot_types = ['histogram', 'sequence', 'transitions']
+    configs_step1 = _generate_configs_step1(seed, runs, maximum_size)
+    configs_step2 = []
 
     for i in range(runs):
 
-        size, zeros = configs[i]
+        size, zeros = configs_step1[i]
         mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
         r = _rd_randint(2, maximum_simulations)
@@ -190,15 +192,14 @@ def test_plot_walk(seed, maximum_size, maximum_simulations, runs):
         initial_state = None if isinstance(walk, int) or _rd_random() < 0.5 else walk[0]
         plot_type = _rd_choice(plot_types)
 
-        configs[i] = (walk, initial_state, plot_type)
         mcs.append(mc)
+        configs_step2.append((walk, initial_state, plot_type))
 
     for i in range(runs):
 
         mc = mcs[i]
-        walk, initial_state, plot_type = configs[i]
+        walk, initial_state, plot_type = configs_step2[i]
 
-        # noinspection PyBroadException
         try:
 
             figure, _ = _plot_walk(mc, walk, initial_state, plot_type)

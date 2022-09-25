@@ -116,9 +116,9 @@ def committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_int, 
     p, size, pi = mc.p, mc.size, mc.pi[0]
 
     if committor_type == 'backward':
-        a = _np_transpose(pi[:, _np_newaxis] * (p - _np_eye(size, dtype=float)))
+        a = _np_transpose(pi[:, _np_newaxis] * (p - _np_eye(size)))
     else:
-        a = p - _np_eye(size, dtype=float)
+        a = p - _np_eye(size)
 
     a[states1, :] = 0.0
     a[states1, states1] = 1.0
@@ -186,7 +186,7 @@ def first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, first_
 
     p, size = mc.p, mc.size
 
-    e = _np_ones((size, size), dtype=float) - _np_eye(size, dtype=float)
+    e = _np_ones((size, size), dtype=float) - _np_eye(size)
     g = _np_copy(p)
 
     if first_passage_states is None:
@@ -255,7 +255,7 @@ def hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
     hp = _np_ones(size, dtype=float)
 
     if non_target.size > 0:
-        a = p[non_target, :][:, non_target] - _np_eye(non_target.size, dtype=float)
+        a = p[non_target, :][:, non_target] - _np_eye(non_target.size)
         b = _np_sum(-p[non_target, :][:, target], axis=1)
         x = _spo_nnls(a, b)[0]
         hp[non_target] = x
@@ -287,7 +287,7 @@ def hitting_times(mc: _tmc, targets: _tlist_int) -> _tarray:
     solve = _np_setdiff1d(list(range(size)), _np_union1d(target, infinity))
 
     if solve.size > 0:
-        a = p[solve, :][:, solve] - _np_eye(solve.size, dtype=float)
+        a = p[solve, :][:, solve] - _np_eye(solve.size)
         b = -_np_ones(solve.size, dtype=float)
         x = _spo_nnls(a, b)[0]
         ht[solve] = x
@@ -333,7 +333,7 @@ def mean_first_passage_times_to(mc: _tmc, targets: _olist_int) -> _oarray:
     if targets is None:
 
         a = _np_tile(pi, (size, 1))
-        i = _np_eye(size, dtype=float)
+        i = _np_eye(size)
         z = _npl_inv(i - p + a)
 
         e = _np_ones((size, size), dtype=float)
@@ -344,7 +344,7 @@ def mean_first_passage_times_to(mc: _tmc, targets: _olist_int) -> _oarray:
 
     else:
 
-        a = _np_eye(size, dtype=float) - p
+        a = _np_eye(size) - p
         a[targets, :] = 0.0
         a[targets, targets] = 1.0
 
@@ -482,7 +482,7 @@ def sensitivity(mc: _tmc, state: int) -> _oarray:
     lev = _np_ones(size, dtype=float)
     rev = pi
 
-    a = _np_transpose(p) - _np_eye(size, dtype=float)
+    a = _np_transpose(p) - _np_eye(size)
     a = _np_transpose(_np_concatenate((a, [lev])))
 
     b = _np_zeros(size, dtype=float)

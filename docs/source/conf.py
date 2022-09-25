@@ -12,9 +12,9 @@ from datetime import (
 )
 
 from os.path import (
-    abspath as _os_abspath,
-    dirname as _os_dirname,
-    join as _os_join
+    abspath as _osp_abspath,
+    dirname as _osp_dirname,
+    join as _osp_join
 )
 
 # noinspection PyPep8Naming
@@ -43,15 +43,15 @@ import sphinx_rtd_theme  # noqa
 # REFERENCE PATH #
 ##################
 
-_sys_path.insert(0, _os_abspath('../..'))
+_sys_path.insert(0, _osp_abspath('../..'))
 
 
 ###############
 # INFORMATION #
 ###############
 
-_base_directory = _os_abspath(_os_dirname(__file__))
-_init_file = _os_join(_base_directory, '../../pydtmc/__init__.py')
+_base_directory = _osp_abspath(_osp_dirname(__file__))
+_init_file = _osp_join(_base_directory, '../../pydtmc/__init__.py')
 
 with open(_init_file, 'r') as _file:
 
@@ -197,7 +197,7 @@ class _SphinxPostTransformConstructor(_sppt.SphinxPostTransform):
         if not _re_search(r'markov_chain_[A-Z_]+\.rst$', self.document['source'], flags=_re_ignorecase):
             return
 
-        for node in self.document.traverse(_span.desc):
+        for node in self.document.findall(_span.desc):
 
             if not node.hasattr('objtype') or node['objtype'] != 'class':
                 continue
@@ -236,7 +236,7 @@ class _SphinxPostTransformLists(_sppt.SphinxPostTransform):
 
     def run(self, **kwargs):
 
-        for node in self.document.traverse(_dun.bullet_list):
+        for node in self.document.findall(_dun.bullet_list):
 
             target = node.parent
 
@@ -259,7 +259,7 @@ class _SphinxPostTransformProperties(_sppt.SphinxPostTransform):
 
     def run(self, **kwargs):
 
-        for node in self.document.traverse(_span.desc_signature):
+        for node in self.document.findall(_span.desc_signature):
 
             parent = node.parent
 

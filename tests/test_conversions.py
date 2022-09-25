@@ -74,6 +74,7 @@ def test_graph(seed, maximum_size, runs):
         _npt.assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
 
 
+# noinspection PyBroadException
 @_pt_mark.slow
 def test_file(seed, maximum_size, runs, file_extension):
 
@@ -86,16 +87,11 @@ def test_file(seed, maximum_size, runs, file_extension):
         file_handler, file_path = _tf_mkstemp(suffix=file_extension)
         _os_close(file_handler)
 
-        # noinspection PyBroadException
         try:
-
             mc_to.to_file(file_path)
             mc_from = _MarkovChain.from_file(file_path)
-
             exception = False
-
         except Exception:
-
             mc_from = None
             exception = True
 

@@ -129,12 +129,12 @@ def _string_to_function(source):
 # TESTS #
 #########
 
+# noinspection PyBroadException
 def test_validate_extract(value, evaluate, is_valid):
 
     if value is not None and isinstance(value, str) and evaluate:
         value = eval(value)
 
-    # noinspection PyBroadException
     try:
         result = _extract(value)
         result_is_valid = True
@@ -155,6 +155,7 @@ def test_validate_extract(value, evaluate, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_extract_as_numeric(value, evaluate, is_valid):
 
     should_skip = False
@@ -171,7 +172,6 @@ def test_validate_extract_as_numeric(value, evaluate, is_valid):
         _pt_skip('The test could not be performed because Pandas library could not be imported.')
     else:
 
-        # noinspection PyBroadException
         try:
             result = _extract_as_numeric(value)
             result_is_valid = True
@@ -192,9 +192,9 @@ def test_validate_extract_as_numeric(value, evaluate, is_valid):
             assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_boolean(value, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_boolean(value)
         result_is_valid = True
@@ -215,9 +215,9 @@ def test_validate_boolean(value, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_boundary_condition(value, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_boundary_condition(value)
         result_is_valid = True
@@ -238,6 +238,7 @@ def test_validate_boundary_condition(value, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_dictionary(dictionary_elements, key_tuple, is_valid):
 
     if dictionary_elements is None:
@@ -252,7 +253,6 @@ def test_validate_dictionary(dictionary_elements, key_tuple, is_valid):
             else:
                 d[dictionary_element[0]] = dictionary_element[1]
 
-    # noinspection PyBroadException
     try:
         result = _validate_dictionary(d)
         result_is_valid = True
@@ -273,13 +273,13 @@ def test_validate_dictionary(dictionary_elements, key_tuple, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_distribution(value, size, is_valid):
 
     if isinstance(value, list):
         for index, v in enumerate(value):
             value[index] = _np.asarray(v)
 
-    # noinspection PyBroadException
     try:
         result = _validate_distribution(value, size)
         result_is_valid = True
@@ -300,9 +300,9 @@ def test_validate_distribution(value, size, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_dpi(value, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_dpi(value)
         result_is_valid = True
@@ -323,9 +323,9 @@ def test_validate_dpi(value, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_enumerator(value, possible_values, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_enumerator(value, possible_values)
         result_is_valid = True
@@ -346,13 +346,13 @@ def test_validate_enumerator(value, possible_values, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 @_pt_mark.slow
 def test_validate_file_path(value, accepted_extensions, write_permission, is_valid):
 
     if value is not None and isinstance(value, str) and value.startswith('file_'):
         value = _osp_join(_base_directory, f'files/{value}')
 
-    # noinspection PyBroadException
     try:
         result = _validate_file_path(value, accepted_extensions, write_permission)
         result_is_valid = True
@@ -373,12 +373,12 @@ def test_validate_file_path(value, accepted_extensions, write_permission, is_val
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_float(value, lower_limit, upper_limit, is_valid):
 
     lower_limit = None if lower_limit is None else tuple(lower_limit)
     upper_limit = None if upper_limit is None else tuple(upper_limit)
 
-    # noinspection PyBroadException
     try:
         result = _validate_float(value, lower_limit, upper_limit)
         result_is_valid = True
@@ -399,6 +399,7 @@ def test_validate_float(value, lower_limit, upper_limit, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_graph(graph_data, is_valid):
 
     if graph_data is None:
@@ -413,39 +414,6 @@ def test_validate_graph(graph_data, is_valid):
         for x in graph_data:
             g.add_node(x)
 
-    # noinspection PyBroadException
-    try:
-        result = _validate_graph(g)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result is not None:
-
-        actual = isinstance(result, _nx.DiGraph)
-        expected = True
-
-        assert actual == expected
-
-    if graph_data is None:
-        g = None
-    elif isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
-        g = _nx.from_numpy_matrix(_np.array(graph_data), create_using=_nx.DiGraph()) if len(graph_data) > 0 else _nx.DiGraph()
-        g = _nx.relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
-    else:
-
-        g = _nx.DiGraph()
-
-        for x in graph_data:
-            g.add_node(x)
-
-    # noinspection PyBroadException
     try:
         result = _validate_graph(g)
         result_is_valid = True
@@ -466,12 +434,12 @@ def test_validate_graph(graph_data, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_integer(value, lower_limit, upper_limit, is_valid):
 
     lower_limit = None if lower_limit is None else tuple(lower_limit)
     upper_limit = None if upper_limit is None else tuple(upper_limit)
 
-    # noinspection PyBroadException
     try:
         result = _validate_integer(value, lower_limit, upper_limit)
         result_is_valid = True
@@ -492,9 +460,9 @@ def test_validate_integer(value, lower_limit, upper_limit, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_hyperparameter(value, size, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_hyperparameter(value, size)
         result_is_valid = True
@@ -515,11 +483,11 @@ def test_validate_hyperparameter(value, size, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_interval(value, is_valid):
 
     value = tuple(value) if isinstance(value, list) else value
 
-    # noinspection PyBroadException
     try:
         result = _validate_interval(value)
         result_is_valid = True
@@ -540,6 +508,7 @@ def test_validate_interval(value, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_markov_chain(value, is_valid):
 
     should_skip = False
@@ -561,7 +530,6 @@ def test_validate_markov_chain(value, is_valid):
         _pt_skip('The test could not be performed because Pandas library could not be imported.')
     else:
 
-        # noinspection PyBroadException
         try:
             result = _validate_markov_chain(value)
             result_is_valid = True
@@ -582,11 +550,11 @@ def test_validate_markov_chain(value, is_valid):
             assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_mask(value, size, is_valid):
 
     value = _np.asarray(value)
 
-    # noinspection PyBroadException
     try:
         result = _validate_mask(value, size)
         result_is_valid = True
@@ -607,11 +575,11 @@ def test_validate_mask(value, size, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_matrix(value, is_valid):
 
     value = _np.asarray(value)
 
-    # noinspection PyBroadException
     try:
         result = _validate_matrix(value)
         result_is_valid = True
@@ -632,9 +600,9 @@ def test_validate_matrix(value, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_partitions(value, current_states, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_partitions(value, current_states)
         result_is_valid = True
@@ -655,9 +623,9 @@ def test_validate_partitions(value, current_states, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_random_distribution(value, accepted_values, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_random_distribution(value, _npr_RandomState(0), accepted_values)
         result_is_valid = True
@@ -678,9 +646,9 @@ def test_validate_random_distribution(value, accepted_values, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_rewards(value, size, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_rewards(value, size)
         result_is_valid = True
@@ -701,9 +669,9 @@ def test_validate_rewards(value, size, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_state(value, current_states, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_state(value, current_states)
         result_is_valid = True
@@ -729,9 +697,9 @@ def test_validate_state(value, current_states, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_state_names(value, size, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_state_names(value, size)
         result_is_valid = True
@@ -752,9 +720,9 @@ def test_validate_state_names(value, size, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_states(value, current_states, states_type, flex, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_states(value, current_states, states_type, flex)
         result_is_valid = True
@@ -775,9 +743,9 @@ def test_validate_states(value, current_states, states_type, flex, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_status(value, current_states, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_status(value, current_states)
         result_is_valid = True
@@ -798,9 +766,9 @@ def test_validate_status(value, current_states, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_time_points(value, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_time_points(value)
         result_is_valid = True
@@ -821,6 +789,7 @@ def test_validate_time_points(value, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_transition_function(value, is_valid):
 
     if value is not None and isinstance(value, str):
@@ -829,7 +798,6 @@ def test_validate_transition_function(value, is_valid):
         elif value.startswith('lambda'):
             value = eval(value)
 
-    # noinspection PyBroadException
     try:
         result = _validate_transition_function(value)
         result_is_valid = True
@@ -850,9 +818,9 @@ def test_validate_transition_function(value, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_transition_matrix(value, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_transition_matrix(value)
         result_is_valid = True
@@ -873,9 +841,9 @@ def test_validate_transition_matrix(value, is_valid):
         assert actual == expected
 
 
+# noinspection PyBroadException
 def test_validate_vector(value, vector_type, flex, size, is_valid):
 
-    # noinspection PyBroadException
     try:
         result = _validate_vector(value, vector_type, flex, size)
         result_is_valid = True
