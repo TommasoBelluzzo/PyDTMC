@@ -79,8 +79,8 @@ from pydtmc.base_class import (  # noqa
 
 # noinspection PyProtectedMember
 from pydtmc.validation import (
-    _extract,
-    _extract_as_numeric,
+    _extract_generic,
+    _extract_numeric,
     validate_boolean as _validate_boolean,
     validate_boundary_condition as _validate_boundary_condition,
     validate_dictionary as _validate_dictionary,
@@ -154,7 +154,7 @@ def test_validate_extract(value, evaluate, is_valid):
         value = eval(value)
 
     try:
-        result = _extract(value)
+        result = _extract_generic(value)
         result_is_valid = True
     except Exception:
         result = None
@@ -191,7 +191,7 @@ def test_validate_extract_as_numeric(value, evaluate, is_valid):
     else:
 
         try:
-            result = _extract_as_numeric(value)
+            result = _extract_numeric(value)
             result_is_valid = True
         except Exception:
             result = None

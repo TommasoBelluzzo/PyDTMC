@@ -110,6 +110,7 @@ from .custom_types import (
     oint as _oint,
     olimit_float as _olimit_float,
     olimit_int as _olimit_int,
+    olimit_scalar as _olimit_scalar,
     olist_str as _olist_str,
     tany as _tany,
     tarray as _tarray,
@@ -126,6 +127,7 @@ from .custom_types import (
     tmc_dict as _tmc_dict,
     trand as _trand,
     trandfunc as _trandfunc,
+    tscalar as _tscalar,
     ttfunc as _ttfunc,
     ttimes_in as _ttimes_in
 )
@@ -210,7 +212,7 @@ def _is_tuple(value: _tany) -> bool:
     return value is not None and isinstance(value, tuple)
 
 
-def _extract(data: _tany) -> _tlist_any:
+def _extract_generic(data: _tany) -> _tlist_any:
 
     if _is_list(data):
         result = _cp_deepcopy(data)
@@ -227,7 +229,7 @@ def _extract(data: _tany) -> _tlist_any:
     return result
 
 
-def _extract_as_numeric(data: _tany) -> _tarray:
+def _extract_numeric(data: _tany) -> _tarray:
 
     if _is_list(data):
         result = _np_array(data)
@@ -248,6 +250,69 @@ def _extract_as_numeric(data: _tany) -> _tarray:
         raise TypeError('The data type is not supported.')
 
     return result
+
+
+def _extract_numeric_matrix(data: _tany, size: int) -> _tarray:
+
+    try:
+        result = _extract_numeric(data)
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+
+    result = result.astype(float)
+
+    if result.ndim != 2 or result.shape[0] != result.shape[1] or result.shape[0] != size:
+        raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
+
+    return result
+
+
+def _extract_numeric_vector(data: _tany, size: _oint) -> _tarray:
+
+    try:
+        result = _extract_numeric(data)
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+
+    result = result.astype(float)
+
+    if result.ndim > 2 or (result.ndim == 2 and result.shape[0] != 1) or (result.ndim == 1 and result.shape[0] == 0):
+        raise ValueError('The "@arg@" parameter must be a valid vector.')
+
+    result = _np_ravel(result)
+
+    if size is not None and result.size != size:
+        raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
+
+    return result
+
+
+def _validate_limits(value: _tscalar, value_type: str, lower_limit: _olimit_scalar, upper_limit: _olimit_scalar):
+
+    def _get_limit_text(gly_value_type, glt_limit_value):
+        return f'{glt_limit_value:d}' if gly_value_type == 'integer' else f'{glt_limit_value:f}'
+
+    if lower_limit is not None:
+
+        lower_limit_value = lower_limit[0]
+        lower_limit_included = lower_limit[1]
+
+        if lower_limit_included and value <= lower_limit_value:
+            raise ValueError(f'The "@arg@" parameter must be greater than {_get_limit_text(value_type, lower_limit_value)}.')
+
+        if not lower_limit_included and value < lower_limit_value:
+            raise ValueError(f'The "@arg@" parameter must be greater than or equal to {_get_limit_text(value_type, lower_limit_value)}.')
+
+    if upper_limit is not None:
+
+        upper_limit_value = upper_limit[0]
+        upper_limit_included = upper_limit[1]
+
+        if upper_limit_included and value >= upper_limit_value:
+            raise ValueError(f'The "@arg@" parameter must be less than {_get_limit_text(type, upper_limit_value)}.')
+
+        if not upper_limit_included and value > upper_limit_value:
+            raise ValueError(f'The "@arg@" parameter must be less than or equal to {_get_limit_text(type, upper_limit_value)}.')
 
 
 def validate_boolean(value: _tany) -> bool:
@@ -456,21 +521,7 @@ def validate_float(value: _tany, lower_limit: _olimit_float = None, upper_limit:
     if not _np_isfinite(value) or not _np_isreal(value):
         raise ValueError('The "@arg@" parameter be a finite real value.')
 
-    if lower_limit is not None:
-        if lower_limit[1]:
-            if value <= lower_limit[0]:
-                raise ValueError(f'The "@arg@" parameter must be greater than {lower_limit[0]:f}.')
-        else:
-            if value < lower_limit[0]:
-                raise ValueError(f'The "@arg@" parameter must be greater than or equal to {lower_limit[0]:f}.')
-
-    if upper_limit is not None:
-        if upper_limit[1]:
-            if value >= upper_limit[0]:
-                raise ValueError(f'The "@arg@" parameter must be less than {upper_limit[0]:f}.')
-        else:
-            if value > upper_limit[0]:
-                raise ValueError(f'The "@arg@" parameter must be less than or equal to {upper_limit[0]:f}.')
+    _validate_limits(value, 'float', lower_limit, upper_limit)
 
     return value
 
@@ -505,15 +556,7 @@ def validate_graph(value: _tany) -> _tgraphs:
 
 def validate_hyperparameter(value: _tany, size: int) -> _tarray:
 
-    try:
-        value = _extract_as_numeric(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
-
-    value = value.astype(float)
-
-    if value.ndim != 2 or value.shape[0] != value.shape[1] or value.shape[0] != size:
-        raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
+    value = _extract_numeric_matrix(value, size)
 
     if not all(_np_isfinite(x) and _np_isreal(x) and _np_equal(_np_mod(x, 1.0), 0.0) and x >= 1.0 for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only integers greater than or equal to 1.')
@@ -528,21 +571,7 @@ def validate_integer(value: _tany, lower_limit: _olimit_int = None, upper_limit:
 
     value = int(value)
 
-    if lower_limit is not None:
-        if lower_limit[1]:
-            if value <= lower_limit[0]:
-                raise ValueError(f'The "@arg@" parameter must be greater than {lower_limit[0]:d}.')
-        else:
-            if value < lower_limit[0]:
-                raise ValueError(f'The "@arg@" parameter must be greater than or equal to {lower_limit[0]:d}.')
-
-    if upper_limit is not None:
-        if upper_limit[1]:
-            if value >= upper_limit[0]:
-                raise ValueError(f'The "@arg@" parameter must be less than {upper_limit[0]:d}.')
-        else:
-            if value > upper_limit[0]:
-                raise ValueError(f'The "@arg@" parameter must be less than or equal to {upper_limit[0]:d}.')
+    _validate_limits(value, 'integer', lower_limit, upper_limit)
 
     return value
 
@@ -583,15 +612,7 @@ def validate_markov_chain(value: _tany) -> _tmc:
 
 def validate_mask(value: _tany, size: int) -> _tarray:
 
-    try:
-        value = _extract_as_numeric(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
-
-    value = value.astype(float)
-
-    if value.ndim != 2 or value.shape[0] != value.shape[1] or value.shape[0] != size:
-        raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
+    value = _extract_numeric_matrix(value, size)
 
     if not all(_np_isnan(x) or (_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0) for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter can contain only NaNs and finite real values between 0 and 1.')
@@ -605,7 +626,7 @@ def validate_mask(value: _tany, size: int) -> _tarray:
 def validate_matrix(value: _tany) -> _tarray:
 
     try:
-        value = _extract_as_numeric(value)
+        value = _extract_numeric(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -679,6 +700,9 @@ def validate_partitions(value: _tany, current_states: _tlist_str) -> _tlists_int
 
 def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tlist_str) -> _trandfunc:
 
+    if value is None:
+        raise TypeError('The "@arg@" parameter is null.')
+
     if callable(value):  # pragma: no cover
 
         if 'of numpy.random' not in repr(value):
@@ -713,20 +737,7 @@ def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tl
 
 def validate_rewards(value: _tany, size: int) -> _tarray:
 
-    try:
-        value = _extract_as_numeric(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
-
-    value = value.astype(float)
-
-    if (value.ndim > 2) or (value.ndim == 2 and value.shape[0] != 1) or (value.ndim == 1 and value.shape[0] == 0):
-        raise ValueError('The "@arg@" parameter must be a valid vector.')
-
-    value = _np_ravel(value)
-
-    if value.size != size:
-        raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
+    value = _extract_numeric_vector(value, size)
 
     if not all(_np_isfinite(x) and _np_isreal(x) for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values.')
@@ -759,7 +770,7 @@ def validate_state(value: _tany, current_states: _tlist_str) -> int:
 def validate_state_names(value: _tany, size: _oint = None) -> _tlist_str:
 
     try:
-        value = _extract(value)
+        value = _extract_generic(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -814,7 +825,7 @@ def validate_states(value: _tany, current_states: _tlist_str, states_type: str, 
             return value
 
     try:
-        value = _extract(value)
+        value = _extract_generic(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -898,7 +909,7 @@ def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
         return result
 
     try:
-        value = _extract_as_numeric(value)
+        value = _extract_numeric(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -933,7 +944,7 @@ def validate_time_points(value: _tany) -> _ttimes_in:
         return value
 
     try:
-        value = _extract(value)
+        value = _extract_generic(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -997,7 +1008,7 @@ def validate_transition_function(value: _tany) -> _ttfunc:
 def validate_transition_matrix(value: _tany) -> _tarray:
 
     try:
-        value = _extract_as_numeric(value)
+        value = _extract_numeric(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -1029,20 +1040,7 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
 
     else:
 
-        try:
-            value = _extract_as_numeric(value)
-        except Exception as e:
-            raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
-
-        value = value.astype(float)
-
-        if (value.ndim > 2) or (value.ndim == 2 and value.shape[0] != 1) or (value.ndim == 1 and value.shape[0] == 0):
-            raise ValueError('The "@arg@" parameter must be a valid vector.')
-
-        value = _np_ravel(value)
-
-        if size is not None and (value.size != size):
-            raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
+        value = _extract_numeric_vector(value, size)
 
     if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')

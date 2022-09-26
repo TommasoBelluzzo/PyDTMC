@@ -54,7 +54,7 @@ The `Python` environment must include the following packages:
 * [NumPy](https://www.numpy.org/)
 * [SciPy](https://www.scipy.org/)
 
-<!-- -->
+*Notes:*
 
 * It's recommended to install [Graphviz](https://www.graphviz.org/) and [pydot](https://pypi.org/project/pydot/) before using the `plot_graph` function.
 * The packages [pytest](https://pytest.org/) and [pytest-benchmark](https://pypi.org/project/pytest-benchmark/) are required for performing unit tests.

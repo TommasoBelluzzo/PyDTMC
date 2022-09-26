@@ -139,6 +139,46 @@ _colors = ('#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#F
 # FUNCTIONS #
 #############
 
+def _xticks_states(ax, mc: _tmc, label: bool, minor_major: bool):
+
+    if label:
+        ax.set_xlabel('States', fontsize=13.0)
+
+    if minor_major:
+        ax.set_xticks(_np_arange(0.0, mc.size, 1.0), minor=False)
+        ax.set_xticks(_np_arange(-0.5, mc.size, 1.0), minor=True)
+    else:
+        ax.set_xticks(_np_arange(0.0, mc.size, 1.0))
+
+    ax.set_xticklabels(mc.states)
+
+
+def _xticks_steps(ax, length: int):
+
+    ax.set_xlabel('Steps', fontsize=13.0)
+    ax.set_xticks(_np_arange(0.0, length + 1.0, 1.0 if length <= 11 else 10.0), minor=False)
+    ax.set_xticks(_np_arange(-0.5, length, 1.0), minor=True)
+    ax.set_xticklabels(_np_arange(0, length + 1, 1 if length <= 11 else 10))
+    ax.set_xlim(-0.5, length - 0.5)
+
+
+def _yticks_frequency(ax, bottom: float, top: float):
+
+    ax.set_ylabel('Frequency', fontsize=13.0)
+    ax.set_yticks(_np_linspace(0.0, 1.0, 11))
+    ax.set_ylim(bottom, top)
+
+
+def _yticks_states(ax, mc: _tmc, label: bool):
+
+    if label:
+        ax.set_ylabel('States', fontsize=13.0)
+
+    ax.set_yticks(_np_arange(0.0, mc.size, 1.0), minor=False)
+    ax.set_yticks(_np_arange(-0.5, mc.size, 1.0), minor=True)
+    ax.set_yticklabels(mc.states)
+
+
 def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
 
     """
@@ -213,6 +253,7 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
     ax.yaxis.set_major_formatter(formatter)
     ax.set_xticks(_np_linspace(-1.0, 1.0, 9))
     ax.set_yticks(_np_linspace(-1.0, 1.0, 9))
+
     ax.grid(which='major')
 
     ax.legend(handles[::-1], labels[::-1], bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=len(handles))
@@ -425,6 +466,7 @@ def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edge
     return figure, ax
 
 
+# noinspection DuplicatedCode
 def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
 
     """
@@ -472,15 +514,8 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
         color_map = _mplc_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
         ax_is = ax.imshow(_np_transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
-        ax.set_xlabel('Steps', fontsize=13.0)
-        ax.set_xticks(_np_arange(0.0, distributions_len + 1.0, 1.0 if distributions_len <= 11 else 10.0), minor=False)
-        ax.set_xticks(_np_arange(-0.5, distributions_len, 1.0), minor=True)
-        ax.set_xticklabels(_np_arange(0, distributions_len + 1, 1 if distributions_len <= 11 else 10))
-        ax.set_xlim(-0.5, distributions_len - 0.5)
-
-        ax.set_yticks(_np_arange(0.0, mc.size, 1.0), minor=False)
-        ax.set_yticks(_np_arange(-0.5, mc.size, 1.0), minor=True)
-        ax.set_yticklabels(mc.states)
+        _xticks_steps(ax, distributions_len)
+        _yticks_states(ax, mc, False)
 
         ax.grid(which='minor', color='k')
 
@@ -506,17 +541,11 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
         else:  # pragma: no cover
             legend_size = mc.size
 
-        ax.set_xlabel('Steps', fontsize=13.0)
-        ax.set_xticks(_np_arange(0.0, distributions_len + 1.0, 1.0 if distributions_len <= 11 else 10.0), minor=False)
-        ax.set_xticks(_np_arange(-0.5, distributions_len, 1.0), minor=True)
-        ax.set_xticklabels(_np_arange(0, distributions_len + 1, 1 if distributions_len <= 11 else 10))
-        ax.set_xlim(-0.5, distributions_len - 0.5)
-
-        ax.set_ylabel('Frequencies', fontsize=13.0)
-        ax.set_yticks(_np_linspace(0.0, 1.0, 11))
-        ax.set_ylim(-0.05, 1.05)
+        _xticks_steps(ax, distributions_len)
+        _yticks_frequency(ax, -0.05, 1.05)
 
         ax.grid()
+
         ax.legend(bbox_to_anchor=(0.5, -0.15), loc='upper center', ncol=legend_size)
         ax.set_title('Redistplot (Projection)', fontsize=15.0, fontweight='bold')
 
@@ -529,6 +558,7 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
     return figure, ax
 
 
+# noinspection DuplicatedCode
 def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _oplot:
 
     """
@@ -590,13 +620,8 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
 
         ax.bar(_np_arange(0.0, mc.size, 1.0), walk_histogram, edgecolor=_color_black, facecolor=_colors[0])
 
-        ax.set_xlabel('States', fontsize=13.0)
-        ax.set_xticks(_np_arange(0.0, mc.size, 1.0))
-        ax.set_xticklabels(mc.states)
-
-        ax.set_ylabel('Frequencies', fontsize=13.0)
-        ax.set_yticks(_np_linspace(0.0, 1.0, 11))
-        ax.set_ylim(0.0, 1.0)
+        _xticks_states(ax, mc, True, False)
+        _yticks_frequency(ax, 0.0, 1.0)
 
         ax.set_title('Walkplot (Histogram)', fontsize=15.0, fontweight='bold')
 
@@ -610,16 +635,8 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         color_map = _mplc_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 2)
         ax.imshow(walk_sequence, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
-        ax.set_xlabel('Steps', fontsize=13.0)
-        ax.set_xticks(_np_arange(0.0, walk_len + 1.0, 1.0 if walk_len <= 11 else 10.0), minor=False)
-        ax.set_xticks(_np_arange(-0.5, walk_len, 1.0), minor=True)
-        ax.set_xticklabels(_np_arange(0, walk_len + 1, 1 if walk_len <= 11 else 10))
-        ax.set_xlim(-0.5, walk_len - 0.5)
-
-        ax.set_ylabel('States', fontsize=13.0)
-        ax.set_yticks(_np_arange(0.0, mc.size, 1.0), minor=False)
-        ax.set_yticks(_np_arange(-0.5, mc.size, 1.0), minor=True)
-        ax.set_yticklabels(mc.states)
+        _xticks_steps(ax, walk_len)
+        _yticks_states(ax, mc, True)
 
         ax.grid(which='minor', color='k')
 
@@ -637,13 +654,8 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         color_map = _mplc_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
         ax_is = ax.imshow(walk_transitions, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
-        ax.set_xticks(_np_arange(0.0, mc.size, 1.0), minor=False)
-        ax.set_xticks(_np_arange(-0.5, mc.size, 1.0), minor=True)
-        ax.set_xticklabels(mc.states)
-
-        ax.set_yticks(_np_arange(0.0, mc.size, 1.0), minor=False)
-        ax.set_yticks(_np_arange(-0.5, mc.size, 1.0), minor=True)
-        ax.set_yticklabels(mc.states)
+        _xticks_states(ax, mc, False, True)
+        _yticks_states(ax, mc, False)
 
         ax.grid(which='minor', color='k')
 

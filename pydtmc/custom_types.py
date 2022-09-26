@@ -3,6 +3,7 @@
 __all__ = [
     # Generic
     'ofloat', 'oint', 'ostr',
+    'tscalar', 'oscalar',
     'tany', 'texception', 'titerable',
     'tarray', 'oarray',
     'tcache', 'ocache',
@@ -11,6 +12,7 @@ __all__ = [
     'tfile', 'ofile',
     'tlimit_float', 'olimit_float',
     'tlimit_int', 'olimit_int',
+    'tlimit_scalar', 'olimit_scalar',
     'tmc', 'omc',
     'tplot', 'oplot',
     'trand', 'orand',
@@ -60,7 +62,6 @@ __all__ = [
 
 # Standard
 
-# noinspection PyPep8Naming
 from typing import (
     Any as _tp_Any,
     Callable as _tp_Callable,
@@ -118,6 +119,9 @@ ofloat = _tp_Optional[float]
 oint = _tp_Optional[int]
 ostr = _tp_Optional[str]
 
+tscalar = _tp_Union[float, int]
+oscalar = _tp_Optional[tscalar]
+
 tany = _tp_Any
 texception = Exception
 titerable = _tp_Iterable
@@ -142,6 +146,9 @@ olimit_float = _tp_Optional[tlimit_float]
 
 tlimit_int = _tp_Tuple[int, bool]
 olimit_int = _tp_Optional[tlimit_int]
+
+tlimit_scalar = _tp_Tuple[tscalar, bool]
+olimit_scalar = _tp_Optional[tlimit_scalar]
 
 # noinspection PyTypeHints
 tmc = _tp_TypeVar('MarkovChain')
@@ -213,13 +220,13 @@ ogenres = _tp_Optional[tgenres]
 tgenres_ext = _tp_Tuple[oarray, olist_str, ostr]
 ogenres_ext = _tp_Optional[tgenres_ext]
 
-tinterval = _tp_Tuple[_tp_Union[float, int], _tp_Union[float, int]]
+tinterval = _tp_Tuple[tscalar, tscalar]
 ointerval = _tp_Optional[tinterval]
 
 tmc_dict = _tp_Dict[_tp_Tuple[str, str], float]
 omc_dict = _tp_Optional[tmc_dict]
 
-tmc_dict_flex = _tp_Dict[_tp_Tuple[str, str], _tp_Union[float, int]]
+tmc_dict_flex = _tp_Dict[_tp_Tuple[str, str], tscalar]
 omc_dict_flex = _tp_Optional[tmc_dict_flex]
 
 tpart = _tp_List[_tp_Union[tlist_int, tlist_str]]

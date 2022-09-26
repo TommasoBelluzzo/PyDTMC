@@ -1173,6 +1173,21 @@
   ],
   "validate_random_distribution_data": [
     {
+      "value": null,
+      "accepted_values": [],
+      "is_valid": false
+    },
+    {
+      "value": 0.0,
+      "accepted_values": [],
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "accepted_values": [],
+      "is_valid": false
+    },
+    {
       "value": "beta",
       "accepted_values": [],
       "is_valid": true
