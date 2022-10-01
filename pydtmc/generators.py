@@ -571,14 +571,14 @@ def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tgenres_ex
     try:
         k = _np_dot(_npl_inv(_np_dot(_np_transpose(r), r)), _np_transpose(r))
     except Exception:  # pragma: no cover
-        return None, None, 'The Markov _chain is not lumpable with respect to the given partitions.'
+        return None, None, 'The Markov chain is not lumpable with respect to the given partitions.'
 
     left = _np_dot(_np_dot(_np_dot(r, k), p), r)
     right = _np_dot(p, r)
     is_lumpable = _np_array_equal(left, right)
 
     if not is_lumpable:  # pragma: no cover
-        return None, None, 'The Markov _chain is not lumpable with respect to the given partitions.'
+        return None, None, 'The Markov chain is not lumpable with respect to the given partitions.'
 
     p_lump = _np_dot(_np_dot(k, p), r)
 

@@ -70,7 +70,7 @@ def test_lazy(p, inertial_weights, value):
 def test_lump(p, partitions, value):
 
     if value is None:
-        _pt_skip('Markov _chain is not lumpable for the specified partitions.')
+        _pt_skip('Markov chain is not lumpable for the specified partitions.')
     else:
 
         mc = _MarkovChain(p)
@@ -96,7 +96,7 @@ def test_nth_order(p, order, value):
 def test_sub(p, states, value):
 
     if value is None:
-        _pt_skip('Markov _chain cannot generate the specified subchain.')
+        _pt_skip('Markov chain cannot generate the specified subchain.')
     else:
 
         mc = _MarkovChain(p)

@@ -47,6 +47,7 @@ __all__ = [
     'tstate', 'ostate',
     'tstates', 'ostates',
     'tstatus', 'ostatus',
+    'ttest', 'otest',
     'ttfunc', 'otfunc',
     'ttimes_in', 'otimes_in',
     'ttimes_out', 'otimes_out',
@@ -249,6 +250,9 @@ ostates = _tp_Optional[tstates]
 
 tstatus = _tp_Union[int, str, tnumeric]
 ostatus = _tp_Optional[tstatus]
+
+ttest = _tp_Tuple[bool, float, _tp_Dict[str, tany]]
+otest = _tp_Optional[ttest]
 
 ttfunc = _tp_Callable[[int, float, int, float], float]
 otfunc = _tp_Optional[ttfunc]

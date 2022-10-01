@@ -2180,7 +2180,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    def fit_walk(fitting_type: str, possible_states: _tlist_str, walk: _twalk, k: _tany = None) -> _tmc:
+    def fit_walk(fitting_type: str, walk: _twalk, possible_states: _olist_str = None, k: _tany = None) -> _tmc:
 
         """
         The method fits a Markov chain from an observed sequence of states using the specified fitting approach.
@@ -2188,8 +2188,8 @@ class MarkovChain(metaclass=_BaseClass):
         :param fitting_type:
          - **map** for the maximum a posteriori fitting;
          - **mle** for the maximum likelihood fitting.
-        :param possible_states: the possible states of the process.
         :param walk: the observed sequence of states.
+        :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequence of states*).
         :param k:
          | - In the maximum a posteriori fitting, the matrix for the a priori distribution (*if omitted, a default value of 1 is assigned to each matrix element*).
          | - In the maximum likelihood fitting, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (*if omitted, the value is set to True*).
@@ -2199,7 +2199,10 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             fitting_type = _validate_enumerator(fitting_type, ['map', 'mle'])
-            possible_states = _validate_state_names(possible_states)
+
+            if possible_states is not None:
+                possible_states = _validate_state_names(possible_states)
+
             walk = _validate_states(walk, possible_states, 'walk', False)
 
             if fitting_type == 'map':

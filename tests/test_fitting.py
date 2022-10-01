@@ -41,7 +41,7 @@ def test_fit_function(possible_states, f, quadrature_type, quadrature_interval, 
 
 def test_fit_walk(fitting_type, possible_states, walk, k, value):
 
-    mc = _MarkovChain.fit_walk(fitting_type, possible_states, walk, k)
+    mc = _MarkovChain.fit_walk(fitting_type, walk, possible_states, k)
 
     actual = mc.p
     expected = _np_asarray(value)

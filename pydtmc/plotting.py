@@ -182,13 +182,13 @@ def _yticks_states(ax, mc: _tmc, label: bool):
 def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the eigenvalues of the Markov _chain on the complex plane.
+    The function plots the eigenvalues of the Markov chain on the complex plane.
 
     | **Notes:**
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param mc: the target Markov _chain.
+    :param mc: the target Markov chain.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -271,14 +271,14 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
 def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, force_standard: bool = False, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the directed graph of the Markov _chain.
+    The function plots the directed graph of the Markov chain.
 
     | **Notes:**
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
     * `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are not required, but they provide access to extended graphs with additional features.
 
-    :param mc: the target Markov _chain.
+    :param mc: the target Markov chain.
     :param nodes_color: a boolean indicating whether to display colored nodes based on communicating classes.
     :param nodes_type: a boolean indicating whether to use a different shape for every node type.
     :param edges_color: a boolean indicating whether to display edges using a gradient based on transition probabilities, valid only for extended graphs.
@@ -470,13 +470,13 @@ def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edge
 def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
 
     """
-    The function plots a redistribution of states on the given Markov _chain.
+    The function plots a redistribution of states on the given Markov chain.
 
     | **Notes:**
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param mc: the target Markov _chain.
+    :param mc: the target Markov chain.
     :param distributions: a sequence of redistributions or the number of redistributions to perform.
     :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
     :param plot_type:
@@ -504,7 +504,7 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
     if initial_status is not None and not _np_array_equal(distributions[0], initial_status):  # pragma: no cover
         raise ValueError('The "initial_status" parameter, if specified when the "distributions" parameter represents a sequence of redistributions, must match the first element.')
 
-    distributions_len = 1 if isinstance(distributions, _np_ndarray) else len(distributions)
+    distributions_length = 1 if isinstance(distributions, _np_ndarray) else len(distributions)
     distributions = _np_array([distributions]) if isinstance(distributions, _np_ndarray) else _np_array(distributions)
 
     figure, ax = _mplp_subplots(dpi=dpi)
@@ -514,7 +514,7 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
         color_map = _mplc_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
         ax_is = ax.imshow(_np_transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
-        _xticks_steps(ax, distributions_len)
+        _xticks_steps(ax, distributions_length)
         _yticks_states(ax, mc, False)
 
         ax.grid(which='minor', color='k')
@@ -528,12 +528,12 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
 
         ax.set_prop_cycle('color', _colors)
 
-        if distributions_len == 2:
+        if distributions_length == 2:
             for i in range(mc.size):
-                ax.plot(_np_arange(0.0, distributions_len, 1.0), distributions[:, i], label=mc.states[i], marker='o')
+                ax.plot(_np_arange(0.0, distributions_length, 1.0), distributions[:, i], label=mc.states[i], marker='o')
         else:
             for i in range(mc.size):
-                ax.plot(_np_arange(0.0, distributions_len, 1.0), distributions[:, i], label=mc.states[i])
+                ax.plot(_np_arange(0.0, distributions_length, 1.0), distributions[:, i], label=mc.states[i])
 
         if _np_allclose(distributions[0, :], _np_ones(mc.size, dtype=float) / mc.size):
             ax.plot(0.0, distributions[0, 0], color=_color_black, label="Start", marker='o', markeredgecolor=_color_black, markerfacecolor=_color_black)
@@ -541,7 +541,7 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
         else:  # pragma: no cover
             legend_size = mc.size
 
-        _xticks_steps(ax, distributions_len)
+        _xticks_steps(ax, distributions_length)
         _yticks_frequency(ax, -0.05, 1.05)
 
         ax.grid()
@@ -562,13 +562,13 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
 def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _oplot:
 
     """
-    The function plots a random walk on the given Markov _chain.
+    The function plots a random walk on the given Markov chain.
 
     | **Notes:**
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param mc: the target Markov _chain.
+    :param mc: the target Markov chain.
     :param walk: a sequence of states or the number of simulations to perform.
     :param initial_state: the initial state of the walk (*if omitted, it is chosen uniformly at random*).
     :param plot_type:
@@ -586,7 +586,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         mc = _validate_markov_chain(mc)
 
         if isinstance(walk, (int, _np_integer)):
-            walk = _validate_integer(walk, lower_limit=(1, False))
+            walk = _validate_integer(walk, lower_limit=(2, False))
         else:
             walk = _validate_states(walk, mc.states, 'walk', False)
 
@@ -605,13 +605,13 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
     if initial_state is not None and (walk[0] != initial_state):  # pragma: no cover
         raise ValueError('The "initial_state" parameter, if specified when the "walk" parameter represents a sequence of states, must match the first element.')
 
-    walk_len = len(walk)
+    walk_length = len(walk)
 
     figure, ax = _mplp_subplots(dpi=dpi)
 
     if plot_type == 'histogram':
 
-        walk_histogram = _np_zeros((mc.size, walk_len), dtype=float)
+        walk_histogram = _np_zeros((mc.size, walk_length), dtype=float)
 
         for index, state in enumerate(walk):
             walk_histogram[state, index] = 1.0
@@ -627,7 +627,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
 
     elif plot_type == 'sequence':
 
-        walk_sequence = _np_zeros((mc.size, walk_len), dtype=float)
+        walk_sequence = _np_zeros((mc.size, walk_length), dtype=float)
 
         for index, state in enumerate(walk):
             walk_sequence[state, index] = 1.0
@@ -635,7 +635,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         color_map = _mplc_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 2)
         ax.imshow(walk_sequence, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
-        _xticks_steps(ax, walk_len)
+        _xticks_steps(ax, walk_length)
         _yticks_states(ax, mc, True)
 
         ax.grid(which='minor', color='k')
@@ -646,7 +646,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
 
         walk_transitions = _np_zeros((mc.size, mc.size), dtype=float)
 
-        for i in range(1, walk_len):
+        for i in range(1, walk_length):
             walk_transitions[walk[i - 1], walk[i]] += 1.0
 
         walk_transitions /= _np_sum(walk_transitions)

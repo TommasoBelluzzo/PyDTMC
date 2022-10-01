@@ -36,10 +36,6 @@ __all__ = [
 
 # Standard
 
-from copy import (
-    deepcopy as _cp_deepcopy
-)
-
 from inspect import (
     isclass as _ins_isclass,
     signature as _ins_signature
@@ -53,32 +49,22 @@ from os.path import (
     isfile as _osp_isfile
 )
 
-from typing import (
-    Iterable as _tp_Iterable
-)
-
 # Libraries
 
 from networkx import (
-    DiGraph as _nx_DiGraph,
-    MultiDiGraph as _nx_MultiDiGraph
+    DiGraph as _nx_DiGraph
 )
 
 from numpy import (
     allclose as _np_allclose,
     any as _np_any,
-    array as _np_array,
-    copy as _np_copy,
     equal as _np_equal,
-    floating as _np_floating,
-    integer as _np_integer,
     isclose as _np_isclose,
     isfinite as _np_isfinite,
     isnan as _np_isnan,
     isreal as _np_isreal,
     issubdtype as _np_issubdtype,
     mod as _np_mod,
-    ndarray as _np_ndarray,
     ndenumerate as _np_ndenumerate,
     nansum as _np_nansum,
     number as _np_number,
@@ -87,10 +73,6 @@ from numpy import (
     repeat as _np_repeat,
     sum as _np_sum,
     zeros as _np_zeros
-)
-
-from scipy.sparse import (
-    spmatrix as _spsp_spmatrix
 )
 
 try:
@@ -119,7 +101,6 @@ from .custom_types import (
     tfile as _tfile,
     tgraphs as _tgraphs,
     tinterval as _tinterval,
-    tlist_any as _tlist_any,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
@@ -133,7 +114,20 @@ from .custom_types import (
 )
 
 from .utilities import (
-    get_file_extension as _get_file_extension
+    extract_data_generic as _extract_data_generic,
+    extract_data_numeric as _extract_data_numeric,
+    get_file_extension as _get_file_extension,
+    is_array as _is_array,
+    is_bool as _is_bool,
+    is_dictionary as _is_dictionary,
+    is_float as _is_float,
+    is_graph as _is_graph,
+    is_integer as _is_integer,
+    is_iterable as _is_iterable,
+    is_list as _is_list,
+    is_number as _is_number,
+    is_string as _is_string,
+    is_tuple as _is_tuple
 )
 
 
@@ -141,121 +135,10 @@ from .utilities import (
 # FUNCTIONS #
 #############
 
-def _is_array(value: _tany) -> bool:
-
-    return value is not None and isinstance(value, _np_ndarray)
-
-
-def _is_bool(value: _tany) -> bool:
-
-    return value is not None and isinstance(value, bool)
-
-
-def _is_dictionary(value: _tany) -> bool:
-
-    return value is not None and isinstance(value, dict)
-
-
-def _is_float(value: _tany) -> bool:
-
-    return value is not None and isinstance(value, (float, _np_floating))
-
-
-def _is_graph(value: _tany, multi: bool) -> bool:
-
-    if multi:
-        return value is not None and isinstance(value, _nx_MultiDiGraph)
-
-    return value is not None and isinstance(value, _nx_DiGraph)
-
-
-def _is_integer(value: _tany) -> bool:
-
-    return value is not None and isinstance(value, (int, _np_integer)) and not isinstance(value, bool)
-
-
-def _is_iterable(value: _tany) -> bool:
-
-    return value is not None and isinstance(value, _tp_Iterable) and not isinstance(value, (bytearray, bytes, str))
-
-
-def _is_list(value: _tany) -> bool:
-
-    return value is not None and isinstance(value, list)
-
-
-def _is_number(value: _tany) -> bool:
-
-    return _is_float(value) or _is_integer(value)
-
-
-def _is_pandas(value: _tany) -> bool:
-
-    if not _pandas_found:  # pragma: no cover
-        return False
-
-    return value is not None and isinstance(value, (_pd_DataFrame, _pd_Series))
-
-
-def _is_spmatrix(value: _tany) -> bool:
-
-    return value is not None and isinstance(value, _spsp_spmatrix)
-
-
-def _is_string(value: _tany) -> bool:
-
-    return value is not None and isinstance(value, str) and len(value) > 0
-
-
-def _is_tuple(value: _tany) -> bool:
-
-    return value is not None and isinstance(value, tuple)
-
-
-def _extract_generic(data: _tany) -> _tlist_any:
-
-    if _is_list(data):
-        result = _cp_deepcopy(data)
-    elif _is_dictionary(data):
-        result = list(data.values())
-    elif _is_iterable(data):
-        result = list(data)
-    else:
-        result = None
-
-    if result is None:
-        raise TypeError('The data type is not supported.')
-
-    return result
-
-
-def _extract_numeric(data: _tany) -> _tarray:
-
-    if _is_list(data):
-        result = _np_array(data)
-    elif _is_dictionary(data):
-        result = _np_array(list(data.values()))
-    elif _is_array(data):
-        result = _np_copy(data)
-    elif _is_spmatrix(data):
-        result = _np_array(data.todense())
-    elif _is_pandas(data):
-        result = data.to_numpy(copy=True)
-    elif _is_iterable(data):
-        result = _np_array(list(data))
-    else:
-        result = None
-
-    if result is None or not _np_issubdtype(result.dtype, _np_number):
-        raise TypeError('The data type is not supported.')
-
-    return result
-
-
 def _extract_numeric_matrix(data: _tany, size: int) -> _tarray:
 
     try:
-        result = _extract_numeric(data)
+        result = _extract_data_numeric(data)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -270,7 +153,7 @@ def _extract_numeric_matrix(data: _tany, size: int) -> _tarray:
 def _extract_numeric_vector(data: _tany, size: _oint) -> _tarray:
 
     try:
-        result = _extract_numeric(data)
+        result = _extract_data_numeric(data)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -399,9 +282,9 @@ def validate_distribution(value: _tany, size: int) -> _tdists_flex:
 
     if _is_list(value):
 
-        value_len = len(value)
+        value_length = len(value)
 
-        if value_len <= 1:
+        if value_length <= 1:
             raise ValueError('The "@arg@" parameter, when specified as a list of vectors, must contain at least 2 elements.')
 
         for index, vector in enumerate(value):
@@ -626,7 +509,7 @@ def validate_mask(value: _tany, size: int) -> _tarray:
 def validate_matrix(value: _tany) -> _tarray:
 
     try:
-        value = _extract_numeric(value)
+        value = _extract_data_numeric(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -770,7 +653,7 @@ def validate_state(value: _tany, current_states: _tlist_str) -> int:
 def validate_state_names(value: _tany, size: _oint = None) -> _tlist_str:
 
     try:
-        value = _extract_generic(value)
+        value = _extract_data_generic(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -793,7 +676,7 @@ def validate_state_names(value: _tany, size: _oint = None) -> _tlist_str:
     return value
 
 
-def validate_states(value: _tany, current_states: _tlist_str, states_type: str, flex: bool) -> _tlist_int:
+def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bool) -> _tlist_int:
 
     if flex:
 
@@ -803,7 +686,7 @@ def validate_states(value: _tany, current_states: _tlist_str, states_type: str, 
                 raise ValueError('The "@arg@" parameter, when specified as an integer, cannot be associated to a walk.')
 
             value = int(value)
-            limit = len(current_states) - 1
+            limit = len(states) - 1
 
             if value < 0 or value > limit:
                 raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and the number of existing states minus one ({limit:d}).')
@@ -817,63 +700,92 @@ def validate_states(value: _tany, current_states: _tlist_str, states_type: str, 
             if states_type == 'walk':
                 raise ValueError('The "@arg@" parameter, when specified as a string, cannot be associated to a walk.')
 
-            if value not in current_states:
-                raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(current_states)}).')
+            if value not in states:
+                raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(states)}).')
 
-            value = [current_states.index(value)]
+            value = [states.index(value)]
 
             return value
 
     try:
-        value = _extract_generic(value)
+        value = _extract_data_generic(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
-    current_states_length = len(current_states)
-
     if all(_is_integer(state) for state in value):
+        value_type = 'integer'
+    elif all(_is_string(state) for state in value):
+        value_type = 'string'
+    else:
+
+        if flex:
+            message = 'The "@arg@" parameter must be either an integer, a non-empty string, an array_like object of integers or an array_like object of non-empty strings.'
+        else:
+            message = 'The "@arg@" parameter must be either an array_like object of integers or an array_like object of non-empty strings.'
+
+        raise TypeError(message)
+
+    if value_type == 'integer':
 
         value = [int(state) for state in value]
 
-        if any(state < 0 or state >= current_states_length for state in value):
-            raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and the number of existing states minus one ({current_states_length - 1:d}).')
+        if states is None:
 
-    elif all(_is_string(state) for state in value):
+            states = [str(i) for i in range(1, len(set(value)) + 1)]
+            states_length = len(states)
 
-        value = [current_states.index(state) if state in current_states else -1 for state in value]
+            if states_length < 2:
+                raise ValueError(f'The "@arg@" parameter does not provide enough data to infer the possible states.')
 
-        if any(state == -1 for state in value):
-            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the names of the existing states ({", ".join(current_states)}).')
+        else:
+            states_length = len(states)
+
+        if any(state < 0 or state >= states_length for state in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and the number of existing states minus one ({states_length - 1:d}).')
 
     else:
 
-        if not flex:
-            raise TypeError('The "@arg@" parameter must be either an array_like object of integers or an array_like object of non-empty strings.')
+        if states is None:
 
-        raise TypeError('The "@arg@" parameter must be either an integer, a non-empty string, an array_like object of integers or an array_like object of non-empty strings.')
+            states = sorted(set(value))
+            states_length = len(states)
 
-    states_length = len(value)
+            if states_length < 2:
+                raise ValueError(f'The "@arg@" parameter does not provide enough data to infer the possible states.')
 
-    if states_type != 'walk' and len(set(value)) < states_length:
-        raise ValueError('The "@arg@" parameter must contain only unique values.')
+        else:
+            states_length = len(states)
+
+        value = [states.index(state) if state in states else -1 for state in value]
+
+        if any(state == -1 for state in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the names of the existing states ({", ".join(states)}).')
+
+    value_length = len(value)
 
     if states_type == 'regular':
 
-        if states_length < 1 or states_length > current_states_length:
-            raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states ({current_states_length:d}).')
+        if len(set(value)) < value_length:
+            raise ValueError('The "@arg@" parameter must contain only unique values.')
+
+        if value_length < 1 or value_length > states_length:
+            raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states ({states_length:d}).')
 
         value = sorted(value)
 
     elif states_type == 'subset':
 
-        if states_length < 1 or states_length >= current_states_length:
-            raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states minus one ({current_states_length - 1:d}).')
+        if len(set(value)) < value_length:
+            raise ValueError('The "@arg@" parameter must contain only unique values.')
+
+        if value_length < 1 or value_length >= states_length:
+            raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states minus one ({states_length - 1:d}).')
 
         value = sorted(value)
 
-    else:
+    elif states_type == 'walk':
 
-        if states_length < 2:
+        if value_length < 2:
             raise ValueError('The "@arg@" parameter must contain at least two elements.')
 
     return value
@@ -909,7 +821,7 @@ def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
         return result
 
     try:
-        value = _extract_numeric(value)
+        value = _extract_data_numeric(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -944,7 +856,7 @@ def validate_time_points(value: _tany) -> _ttimes_in:
         return value
 
     try:
-        value = _extract_generic(value)
+        value = _extract_data_generic(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
@@ -973,6 +885,7 @@ def validate_time_points(value: _tany) -> _ttimes_in:
     return value
 
 
+# noinspection PyBroadException
 def validate_transition_function(value: _tany) -> _ttfunc:
 
     if value is None or _ins_isclass(value) or not callable(value):
@@ -988,7 +901,6 @@ def validate_transition_function(value: _tany) -> _ttfunc:
     if not all(parameter in valid_parameters for parameter in sig.parameters.keys()):
         raise ValueError(f'The "@arg@" parameter must define the following input arguments: {", ".join(valid_parameters)}.')
 
-    # noinspection PyBroadException
     try:
         result = value(1, 1.0, 1, 1.0)
     except Exception as e:  # pragma: no cover
@@ -1008,7 +920,7 @@ def validate_transition_function(value: _tany) -> _ttfunc:
 def validate_transition_matrix(value: _tany) -> _tarray:
 
     try:
-        value = _extract_numeric(value)
+        value = _extract_data_numeric(value)
     except Exception as e:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
 
