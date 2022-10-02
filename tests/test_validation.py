@@ -44,6 +44,7 @@ from numpy.random import (
     RandomState as _npr_RandomState
 )
 
+# noinspection DuplicatedCode
 try:
     from pandas import (
         DataFrame as _pd_DataFrame,
@@ -60,12 +61,6 @@ from pytest import (
     skip as _pt_skip
 )
 
-# noinspection PyUnresolvedReferences
-from scipy.sparse import (  # noqa
-    coo_matrix as _spsp_coo_matrix,
-    csr_matrix as _spsp_csr_matrix
-)
-
 # Internal
 
 from pydtmc import (
@@ -79,8 +74,6 @@ from pydtmc.base_class import (  # noqa
 
 # noinspection PyProtectedMember
 from pydtmc.validation import (
-    _extract_data_generic,
-    _extract_data_numeric,
     validate_boolean as _validate_boolean,
     validate_boundary_condition as _validate_boundary_condition,
     validate_dictionary as _validate_dictionary,
@@ -146,69 +139,6 @@ def _string_to_function(source):
 #########
 # TESTS #
 #########
-
-# noinspection PyBroadException
-def test_validate_extract(value, evaluate, is_valid):
-
-    if value is not None and isinstance(value, str) and evaluate:
-        value = eval(value)
-
-    try:
-        result = _extract_data_generic(value)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result is not None:
-
-        actual = isinstance(result, list)
-        expected = True
-
-        assert actual == expected
-
-
-# noinspection PyBroadException
-def test_validate_extract_as_numeric(value, evaluate, is_valid):
-
-    should_skip = False
-
-    if value is not None and isinstance(value, str) and evaluate:
-
-        if 'pd.' in value and not _pandas_found:
-            should_skip = True
-        else:
-            value = _eval_replace(value)
-            value = eval(value)
-
-    if should_skip:
-        _pt_skip('The test could not be performed because Pandas library could not be imported.')
-    else:
-
-        try:
-            result = _extract_data_numeric(value)
-            result_is_valid = True
-        except Exception:
-            result = None
-            result_is_valid = False
-
-        actual = result_is_valid
-        expected = is_valid
-
-        assert actual == expected
-
-        if result is not None:
-
-            actual = isinstance(result, _np_ndarray)
-            expected = True
-
-            assert actual == expected
-
 
 # noinspection PyBroadException
 def test_validate_boolean(value, is_valid):

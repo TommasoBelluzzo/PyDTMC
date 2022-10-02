@@ -1,0 +1,256 @@
+{
+  "extract_data_generic_data": [
+    {
+      "value": [],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [null, null, null],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [0.33, 0.97, 0.13],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [-5, 0, -5],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [true, false, true],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [[], [], []],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [["NaN"], ["Infinity"], ["NaN"]],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [["A", "B"], ["C", "D"], ["E", "F"]],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": {"V1": 0.0, "V2": 0.0, "V3": 7.5, "V4": 0.0},
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": "tuple(['A', 'B', 'C'])",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "set([2, 4, 6, 6])",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "frozenset([2, 4, 6, 6])",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "range(10)",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "(i**3.0 for i in range(1,10,2))",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": null,
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": "abcdefg",
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": 345.72,
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": "bytes.fromhex('2EF0 F1F2')",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
+      "value": "bytearray.fromhex('2EF0 F1F2')",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
+      "value": "lambda x, y, z: x + (y * z)",
+      "evaluate": true,
+      "is_valid": false
+    }
+  ],
+  "extract_data_numeric_data": [
+    {
+      "value": [],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [[], [], []],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [0.81, 0.84, 0.46, 0.73],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [145, 297, 189, 23, 47, 582],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [["NaN", 0.4, 0.4], [0.1, "Infinity", 0.3], ["NaN", 0.0, 0.7]],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": {"V1": 0.0, "V2": 0.0, "V3": 7.5, "V4": 0.0},
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": "tuple([5, 8, 0])",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "set([-4, -4, 1, 6, -4, 0])",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "frozenset([10, 100, 1000, float('inf')])",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "range(25)",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "np.asarray([[2, 3], [3, 2], [2, 3]])",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "spsp.coo_matrix((np.asarray([4, 5, 7, 9]), (np.asarray([0, 3, 1, 0]), np.asarray([0, 3, 1, 2]))), shape=(4, 4))",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "spsp.csr_matrix(np.asarray([[1, 0, 0, 1, 0, 0], [0, 0, 2, 0, 0, 1], [0, 0, 0, 2, 0, 0]]))",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "pd.Series([0.5, 14.7, 10.1, float('nan'), 6.0, 8.3])",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": "pd.DataFrame([{'a': 1, 'b': 2}, {'a': 5, 'b': 10, 'c': 20}])",
+      "evaluate": true,
+      "is_valid": true
+    },
+    {
+      "value": null,
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": 12.26668000,
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": "mnopq",
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": [null, null],
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": [true, false, false, true],
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": [["A", "B"], ["C", "D"], ["E", "F"]],
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": {"1": "A", "2": "B", "3": "C"},
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": "tuple(['A', None, 'B'])",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
+      "value": "set(['A', 4, 8, 11])",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
+      "value": "frozenset([3, 3, 1, 'Z', None])",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
+      "value": "bytes.fromhex('A034 E1C0')",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
+      "value": "bytearray.fromhex('A034 E1C0')",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
+      "value": "lambda x, y, z: x + (y * z)",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
+      "value": "np.asarray([[True, 'A'], [False, 'B']])",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
+      "value": "pd.DataFrame({'Name': ['Jack', 'Rick', 'Steve', 'Vicky'], 'Age': [28, 34, 29, 42]})",
+      "evaluate": true,
+      "is_valid": false
+    }
+  ]
+}
