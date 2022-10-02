@@ -157,6 +157,10 @@ def extract_data_numeric(data: _tany) -> _tarray:
 def generate_validation_error(e: _texception, trace: _tany) -> _ValidationError:
 
     arguments = ''.join(trace[0][4]).split('=', 1)[0].strip()
+
+    if ',' in arguments:
+        arguments = arguments[:arguments.index(',')]
+
     message = str(e).replace('@arg@', arguments)
     validation_error = _ValidationError(message)
 

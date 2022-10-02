@@ -588,7 +588,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         if isinstance(walk, (int, _np_integer)):
             walk = _validate_integer(walk, lower_limit=(2, False))
         else:
-            walk = _validate_states(walk, mc.states, 'walk', False)
+            walk, _ = _validate_states(walk, mc.states, 'walk', False)
 
         if initial_state is not None:
             initial_state = _validate_state(initial_state, mc.states)

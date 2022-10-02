@@ -1079,8 +1079,8 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             committor_type = _validate_enumerator(committor_type, ['backward', 'forward'])
-            states1 = _validate_states(states1, self.__states, 'subset', True)
-            states2 = _validate_states(states2, self.__states, 'subset', True)
+            states1, _ = _validate_states(states1, self.__states, 'subset', True)
+            states2, _ = _validate_states(states2, self.__states, 'subset', True)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1193,7 +1193,9 @@ class MarkovChain(metaclass=_BaseClass):
 
             steps = _validate_integer(steps, lower_limit=(0, True))
             initial_state = _validate_state(initial_state, self.__states)
-            first_passage_states = None if first_passage_states is None else _validate_states(first_passage_states, self.__states, 'regular', True)
+
+            if first_passage_states is not None:
+                first_passage_states, _ = _validate_states(first_passage_states, self.__states, 'regular', True)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1223,7 +1225,7 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             initial_state = _validate_state(initial_state, self.__states)
-            first_passage_states = _validate_states(first_passage_states, self.__states, 'subset', True)
+            first_passage_states, _ = _validate_states(first_passage_states, self.__states, 'subset', True)
             rewards = _validate_rewards(rewards, self.__size)
             steps = _validate_integer(steps, lower_limit=(0, True))
 
@@ -1259,7 +1261,10 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            targets = self.__states_indices.copy() if targets is None else _validate_states(targets, self.__states, 'regular', True)
+            if targets is None:
+                targets = self.__states_indices.copy()
+            else:
+                targets, _ = _validate_states(targets, self.__states, 'regular', True)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1284,7 +1289,10 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            targets = self.__states_indices.copy() if targets is None else _validate_states(targets, self.__states, 'regular', True)
+            if targets is None:
+                targets = self.__states_indices.copy()
+            else:
+                targets, _ = _validate_states(targets, self.__states, 'regular', True)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1459,8 +1467,8 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            origins = _validate_states(origins, self.__states, 'subset', True)
-            targets = _validate_states(targets, self.__states, 'subset', True)
+            origins, _ = _validate_states(origins, self.__states, 'subset', True)
+            targets, _ = _validate_states(targets, self.__states, 'subset', True)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1486,7 +1494,8 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            targets = None if targets is None else _validate_states(targets, self.__states, 'regular', True)
+            if targets is not None:
+                targets, _ = _validate_states(targets, self.__states, 'regular', True)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1697,8 +1706,11 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            walk1 = _validate_states(walk1, self.__states, 'walk', False)
-            walk2 = None if walk2 is None else _validate_states(walk2, self.__states, 'walk', False)
+            walk1, _ = _validate_states(walk1, self.__states, 'walk', False)
+
+            if walk2 is not None:
+                walk2, _ = _validate_states(walk2, self.__states, 'walk', False)
+
             time_points = _validate_time_points(time_points)
 
         except Exception as e:  # pragma: no cover
@@ -1728,7 +1740,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            walk = _validate_states(walk, self.__states, 'walk', False)
+            walk, _ = _validate_states(walk, self.__states, 'walk', False)
             initial_distribution = _np_ones(self.__size, dtype=float) / self.__size if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
             time_points = _validate_time_points(time_points)
 
@@ -1924,7 +1936,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            states = _validate_states(states, self.__states, 'subset', True)
+            states, _ = _validate_states(states, self.__states, 'subset', True)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -2003,7 +2015,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            walk = _validate_states(walk, self.__states, 'walk', False)
+            walk, _ = _validate_states(walk, self.__states, 'walk', False)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -2200,10 +2212,11 @@ class MarkovChain(metaclass=_BaseClass):
 
             fitting_type = _validate_enumerator(fitting_type, ['map', 'mle'])
 
-            if possible_states is not None:
+            if possible_states is None:
+                walk, possible_states = _validate_states(walk, possible_states, 'walk', False)
+            else:
                 possible_states = _validate_state_names(possible_states)
-
-            walk = _validate_states(walk, possible_states, 'walk', False)
+                walk, _ = _validate_states(walk, possible_states, 'walk', False)
 
             if fitting_type == 'map':
                 k = _np_ones((len(possible_states), len(possible_states)), dtype=float) if k is None else _validate_hyperparameter(k, len(possible_states))

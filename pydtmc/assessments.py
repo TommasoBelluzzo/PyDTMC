@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'assess_first_order',
     'assess_markovianity'
 ]
 
@@ -33,7 +34,8 @@ from numpy import (
 )
 
 from scipy.stats import (
-    chi2 as _sps_chi2
+    chi2 as _sps_chi2,
+    chi2_contingency as _sps_chi2_contingency
 )
 
 # Internal
@@ -63,7 +65,57 @@ from .validation import (
 # FUNCTIONS #
 #############
 
-def assess_markovianity(walk: _twalk, possible_states: _olist_str, significance: float = 0.05) -> _ttest:
+def assess_first_order(walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
+
+    """
+    The function verifies whether the given sequence can be associated to a first-order Markov process.
+
+    :param walk: the observed sequence of states.
+    :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequence of states*).
+    :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
+    :raises ValidationError: if any input argument is not compliant.
+    """
+
+    try:
+
+        if possible_states is None:
+            walk, possible_states = _validate_states(walk, possible_states, 'walk', False)
+        else:
+            possible_states = _validate_state_names(possible_states)
+            walk, _ = _validate_states(walk, possible_states, 'walk', False)
+
+        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+
+    except Exception as e:  # pragma: no cover
+        raise _generate_validation_error(e, _ins_trace()) from None
+
+    sequence = [possible_states[state] for state in walk]
+    k = len(walk) - 2
+    n = len(possible_states)
+
+    chi2 = 0.0
+
+    for state in possible_states:
+
+        m = _np_zeros((n, n), dtype=int)
+
+        for i in range(k):
+            if state == sequence[i + 1]:
+                p = possible_states.index(sequence[i])
+                f = possible_states.index(sequence[i + 2])
+                m[p, f] += 1
+
+        m_chi2, _, _, _ = _sps_chi2_contingency(m)
+        chi2 += m_chi2
+
+    dof = n * (n - 1)**2
+    p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
+    rejection = p_value < significance
+
+    return rejection, p_value, {'chi2': chi2, 'dof': dof}
+
+
+def assess_markovianity(walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
 
     """
     The function verifies whether the given sequence holds the Markov property.
@@ -97,8 +149,8 @@ def assess_markovianity(walk: _twalk, possible_states: _olist_str, significance:
         sf = _np_fliplr(sc_set)
         sfu = _np_unique(sf, axis=0)
 
-        a = [".".join(item) for item in sf.astype(str)]
-        b = sorted([".".join(item) for item in sfu.astype(str)])
+        a = [".".join(item) for item in (sf + 1).astype(str)]
+        b = sorted([".".join(item) for item in (sfu + 1).astype(str)])
         indices = [a.index(x) for x in b]
         indices_length = len(indices)
 
@@ -112,10 +164,12 @@ def assess_markovianity(walk: _twalk, possible_states: _olist_str, significance:
 
     try:
 
-        if possible_states is not None:
+        if possible_states is None:
+            walk, possible_states = _validate_states(walk, possible_states, 'walk', False)
+        else:
             possible_states = _validate_state_names(possible_states)
+            walk, _ = _validate_states(walk, possible_states, 'walk', False)
 
-        walk = _validate_states(walk, possible_states, 'walk', False)
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as e:  # pragma: no cover

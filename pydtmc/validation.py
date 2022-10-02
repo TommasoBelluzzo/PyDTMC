@@ -101,7 +101,6 @@ from .custom_types import (
     tfile as _tfile,
     tgraphs as _tgraphs,
     tinterval as _tinterval,
-    tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
     tmc as _tmc,
@@ -110,7 +109,8 @@ from .custom_types import (
     trandfunc as _trandfunc,
     tscalar as _tscalar,
     ttfunc as _ttfunc,
-    ttimes_in as _ttimes_in
+    ttimes_in as _ttimes_in,
+    tvalid_states as _tvalid_states
 )
 
 from .utilities import (
@@ -676,7 +676,7 @@ def validate_state_names(value: _tany, size: _oint = None) -> _tlist_str:
     return value
 
 
-def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bool) -> _tlist_int:
+def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bool) -> _tvalid_states:
 
     if flex:
 
@@ -693,7 +693,7 @@ def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bo
 
             value = [value]
 
-            return value
+            return value, states
 
         if _is_string(value):
 
@@ -705,7 +705,7 @@ def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bo
 
             value = [states.index(value)]
 
-            return value
+            return value, states
 
     try:
         value = _extract_data_generic(value)
@@ -794,7 +794,7 @@ def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bo
         if value_length < 2:
             raise ValueError('The "@arg@" parameter must contain at least two elements.')
 
-    return value
+    return value, states
 
 
 def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:

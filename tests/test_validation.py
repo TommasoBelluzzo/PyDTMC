@@ -672,10 +672,10 @@ def test_validate_state_names(value, size, is_valid):
 def test_validate_states(value, states, states_type, flex, is_valid):
 
     try:
-        result = _validate_states(value, states, states_type, flex)
+        result_value, result_states = _validate_states(value, states, states_type, flex)
         result_is_valid = True
     except Exception:
-        result = None
+        result_value, result_states = None, None
         result_is_valid = False
 
     actual = result_is_valid
@@ -683,9 +683,14 @@ def test_validate_states(value, states, states_type, flex, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
-        actual = isinstance(result, list) and all(isinstance(v, int) for v in result)
+        actual = isinstance(result_value, list) and all(isinstance(v, int) for v in result_value)
+        expected = True
+
+        assert actual == expected
+
+        actual = isinstance(result_states, list) and all(isinstance(v, str) for v in result_states)
         expected = True
 
         assert actual == expected
