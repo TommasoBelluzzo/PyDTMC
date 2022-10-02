@@ -739,10 +739,10 @@ def test_validate_state_names(value, size, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_states(value, current_states, states_type, flex, is_valid):
+def test_validate_states(value, states, states_type, flex, is_valid):
 
     try:
-        result = _validate_states(value, current_states, states_type, flex)
+        result = _validate_states(value, states, states_type, flex)
         result_is_valid = True
     except Exception:
         result = None

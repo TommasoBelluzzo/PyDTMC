@@ -339,7 +339,7 @@ def validate_enumerator(value: _tany, possible_values: _tlist_str) -> str:
     return value
 
 
-def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_permission: bool) -> _tfile:  # pragma: no cover
+def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_permission: bool) -> _tfile:
 
     if not _is_string(value):
         raise TypeError('The "@arg@" parameter must be a non-empty string.')
@@ -731,6 +731,9 @@ def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bo
 
         if states is None:
 
+            if states_type != 'walk':
+                raise ValueError(f'The "@arg@" parameter must be validated against a list of possible states.')
+
             states = [str(i) for i in range(1, len(set(value)) + 1)]
             states_length = len(states)
 
@@ -746,6 +749,9 @@ def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bo
     else:
 
         if states is None:
+
+            if states_type != 'walk':
+                raise ValueError(f'The "@arg@" parameter must be validated against a list of possible states.')
 
             states = sorted(set(value))
             states_length = len(states)
