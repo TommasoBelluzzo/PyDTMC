@@ -24,7 +24,7 @@ from types import (
 # Libraries
 
 # noinspection PyUnresolvedReferences
-from numpy import (
+from numpy import (  # noqa
     asarray as _np_asarray,
     ndarray as _np_ndarray
 )

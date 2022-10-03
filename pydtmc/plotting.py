@@ -483,8 +483,8 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
      - **heatmap** for displaying an heatmap plot;
      - **projection** for displaying a projection plot.
     :param dpi: the resolution of the plot expressed in dots per inch.
-    :raises ValueError: if the "distributions" parameter represents a sequence of redistributions and the "initial_status" parameter does not match its first element.
     :raises ValidationError: if any input argument is not compliant.
+    :raises ValueError: if the "distributions" parameter represents a sequence of redistributions and the "initial_status" parameter does not match its first element.
     """
 
     try:
@@ -577,8 +577,8 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
      - **transitions** for displaying a transitions plot.
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :param dpi: the resolution of the plot expressed in dots per inch.
-    :raises ValueError: if the "walk" parameter represents a sequence of states and the "initial_state" parameter does not match its first element.
     :raises ValidationError: if any input argument is not compliant.
+    :raises ValueError: if the "walk" parameter represents a sequence of states and the "initial_state" parameter does not match its first element.
     """
 
     try:

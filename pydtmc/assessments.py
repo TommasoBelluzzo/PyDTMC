@@ -2,7 +2,9 @@
 
 __all__ = [
     'assess_first_order',
-    'assess_markovianity'
+    'assess_markovianity',
+    'assess_stationarity',
+    'assess_theoretical_compatibility'
 ]
 
 
@@ -16,6 +18,10 @@ from inspect import (
     trace as _ins_trace
 )
 
+from math import (
+    ceil as _math_ceil
+)
+
 # Libraries
 
 from numpy import (
@@ -24,7 +30,9 @@ from numpy import (
     argwhere as _np_argwhere,
     asarray as _np_asarray,
     concatenate as _np_concatenate,
+    count_nonzero as _np_count_nonzero,
     fliplr as _np_fliplr,
+    log as _np_log,
     ravel as _np_ravel,
     setdiff1d as _np_setdiff1d,
     sum as _np_sum,
@@ -42,8 +50,13 @@ from scipy.stats import (
 
 from .custom_types import (
     olist_str as _olist_str,
+    tmc as _tmc,
     ttest as _ttest,
     twalk as _twalk
+)
+
+from .exceptions import (
+    ValidationError as _ValidationError
 )
 
 from .fitting import (
@@ -56,6 +69,8 @@ from .utilities import (
 
 from .validation import (
     validate_float as _validate_float,
+    validate_integer as _validate_integer,
+    validate_markov_chain as _validate_markov_chain,
     validate_state_names as _validate_state_names,
     validate_states as _validate_states
 )
@@ -65,6 +80,7 @@ from .validation import (
 # FUNCTIONS #
 #############
 
+# noinspection DuplicatedCode
 def assess_first_order(walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
 
     """
@@ -89,9 +105,10 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
     except Exception as e:  # pragma: no cover
         raise _generate_validation_error(e, _ins_trace()) from None
 
-    sequence = [possible_states[state] for state in walk]
-    k = len(walk) - 2
+    km2 = len(walk) - 2
     n = len(possible_states)
+
+    sequence = [possible_states[state] for state in walk]
 
     chi2 = 0.0
 
@@ -99,10 +116,10 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
 
         m = _np_zeros((n, n), dtype=int)
 
-        for i in range(k):
+        for i in range(km2):
             if state == sequence[i + 1]:
-                p = possible_states.index(sequence[i])
-                f = possible_states.index(sequence[i + 2])
+                p = walk[i]
+                f = walk[i + 2]
                 m[p, f] += 1
 
         m_chi2, _, _, _ = _sps_chi2_contingency(m)
@@ -115,6 +132,7 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
 
 
+# noinspection DuplicatedCode
 def assess_markovianity(walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
 
     """
@@ -178,8 +196,8 @@ def assess_markovianity(walk: _twalk, possible_states: _olist_str = None, signif
     sequence = [possible_states[state] for state in walk]
     p, _ = _fit_walk('mle', possible_states, walk, False)
 
-    walk_length = len(walk)
-    sample_length = walk_length - (walk_length % 3)
+    sequence_length = len(sequence)
+    sample_length = sequence_length - (sequence_length % 3)
 
     sample = walk[:sample_length]
     c1 = sample[0:(sample_length - 2)]
@@ -199,8 +217,8 @@ def assess_markovianity(walk: _twalk, possible_states: _olist_str = None, signif
         fnp = _fnp_iteration(i, sts3, sts2, s02, p)
         tests[i] = ((so3[i] - fnp)**2.0) / fnp
 
-    doubles = [f'{sequence[i]}{sequence[i + 1]}' for i in range(walk_length - 1)]
-    triples = [f'{sequence[i]}{sequence[i + 1]}{sequence[i + 2]}' for i in range(walk_length - 2)]
+    doubles = [f'{sequence[i]}{sequence[i + 1]}' for i in range(sequence_length - 1)]
+    triples = [f'{sequence[i]}{sequence[i + 1]}{sequence[i + 2]}' for i in range(sequence_length - 2)]
 
     chi2 = _np_sum(tests)
     dof = len(set(triples)) - len(set(doubles)) + len(set(sequence)) - 1
@@ -208,3 +226,125 @@ def assess_markovianity(walk: _twalk, possible_states: _olist_str = None, signif
     rejection = p_value < significance
 
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
+
+
+# noinspection DuplicatedCode
+def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks: int = 1, significance: float = 0.05) -> _ttest:
+
+    """
+    The function verifies whether the given sequence is stationary.
+
+    :param walk: the observed sequence of states.
+    :param blocks: the number of blocks in which the sequence is divided.
+    :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequence of states*).
+    :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
+    :raises ValidationError: if any input argument is not compliant.
+    """
+
+    try:
+
+        if possible_states is None:
+            walk, possible_states = _validate_states(walk, possible_states, 'walk', False)
+        else:
+            possible_states = _validate_state_names(possible_states)
+            walk, _ = _validate_states(walk, possible_states, 'walk', False)
+
+        blocks = _validate_integer(blocks, lower_limit=(1, False))
+        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+
+    except Exception as e:  # pragma: no cover
+        raise _generate_validation_error(e, _ins_trace()) from None
+
+    k = len(walk)
+    km1 = k - 1
+    n = len(possible_states)
+    nc = 1.0 / n
+
+    sequence = [possible_states[state] for state in walk]
+    block_size = float(k) / blocks
+
+    chi2 = 0.0
+
+    for state in possible_states:
+
+        m = _np_zeros((blocks, n), dtype=float)
+
+        for i in range(km1):
+            if sequence[i] == state:
+                p = _math_ceil(i / block_size) + 1
+                f = walk[i + 1]
+                m[p, f] += 1.0
+
+        m[_np_argwhere(_np_sum(m, axis=1) == 0.0), :] = nc
+
+        m_chi2, _, _, _ = _sps_chi2_contingency(m)
+        chi2 += m_chi2
+
+    dof = n * (blocks - 1) * (n - 1)
+    p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
+    rejection = p_value < significance
+
+    return rejection, p_value, {'chi2': chi2, 'dof': dof}
+
+
+# noinspection DuplicatedCode
+def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
+
+    """
+    The function verifies whether the given empirical sequence is statistically compatible with the given theoretical Markov process.
+
+    :param mc: a Markov chain representing the theoretical process.
+    :param walk: the observed sequence of states.
+    :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequence of states*).
+    :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
+    :raises ValidationError: if any input argument is not compliant.
+    """
+
+    try:
+
+        mc = _validate_markov_chain(mc)
+
+        if possible_states is None:
+            walk, possible_states = _validate_states(walk, possible_states, 'walk', False)
+        else:
+            possible_states = _validate_state_names(possible_states)
+            walk, _ = _validate_states(walk, possible_states, 'walk', False)
+
+        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+
+    except Exception as e:  # pragma: no cover
+        raise _generate_validation_error(e, _ins_trace()) from None
+
+    if mc.states != possible_states:
+        raise _ValidationError('The states of the Markov chain and the "possible_states" parameter must be equal.')
+
+    p, n, n2 = mc.p, mc.size, mc.size**2
+    f = _np_zeros((n, n), dtype=int)
+
+    for (i, j) in zip(walk[:-1], walk[1:]):
+        f[i, j] += 1
+
+    if _np_sum((p == 0.0) == (f == 0)) == n2:
+
+        chi2 = 0.0
+
+        for i in range(n):
+
+            f_i = _np_sum(f[:, i])
+
+            for j in range(n):
+
+                p_ij = p[i, j]
+                f_ij = f[i, j]
+
+                if p_ij > 0.0 and f_ij > 0:
+                    chi2 += f_ij * _np_log(f_ij / (f_i * p_ij))
+
+        chi2 *= 2.0
+        dof = (n * (n - 1)) - (n2 - _np_count_nonzero(p))
+        p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
+        rejection = p_value < significance
+
+        return rejection, p_value, {'chi2': chi2, 'dof': dof}
+
+    return True, 0.0, {'chi2': float('nan'), 'dof': float('nan')}

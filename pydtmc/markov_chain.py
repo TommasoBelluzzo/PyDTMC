@@ -2219,7 +2219,8 @@ class MarkovChain(metaclass=_BaseClass):
                 walk, _ = _validate_states(walk, possible_states, 'walk', False)
 
             if fitting_type == 'map':
-                k = _np_ones((len(possible_states), len(possible_states)), dtype=float) if k is None else _validate_hyperparameter(k, len(possible_states))
+                possible_states_length = len(possible_states)
+                k = _np_ones((possible_states_length, possible_states_length), dtype=float) if k is None else _validate_hyperparameter(k, len(possible_states))
             else:
                 k = False if k is None else _validate_boolean(k)
 
@@ -2238,8 +2239,8 @@ class MarkovChain(metaclass=_BaseClass):
         The method generates a Markov chain from the given dictionary, whose keys represent state pairs and whose values represent transition probabilities.
 
         :param d: the dictionary to transform into the transition matrix.
-        :raises ValueError: if the transition matrix defined by the dictionary is not valid.
         :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the transition matrix defined by the dictionary is not valid.
         """
 
         try:

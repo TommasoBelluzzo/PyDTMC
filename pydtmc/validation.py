@@ -732,13 +732,13 @@ def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bo
         if states is None:
 
             if states_type != 'walk':
-                raise ValueError(f'The "@arg@" parameter must be validated against a list of possible states.')
+                raise ValueError('The "@arg@" parameter must be validated against a list of possible states.')
 
             states = [str(i) for i in range(1, len(set(value)) + 1)]
             states_length = len(states)
 
             if states_length < 2:
-                raise ValueError(f'The "@arg@" parameter does not provide enough data to infer the possible states.')
+                raise ValueError('The "@arg@" parameter does not provide enough data to infer the possible states.')
 
         else:
             states_length = len(states)
@@ -751,13 +751,13 @@ def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bo
         if states is None:
 
             if states_type != 'walk':
-                raise ValueError(f'The "@arg@" parameter must be validated against a list of possible states.')
+                raise ValueError('The "@arg@" parameter must be validated against a list of possible states.')
 
             states = sorted(set(value))
             states_length = len(states)
 
             if states_length < 2:
-                raise ValueError(f'The "@arg@" parameter does not provide enough data to infer the possible states.')
+                raise ValueError('The "@arg@" parameter does not provide enough data to infer the possible states.')
 
         else:
             states_length = len(states)
