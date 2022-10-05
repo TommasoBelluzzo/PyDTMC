@@ -1,0 +1,160 @@
+{
+  "assess_first_order_data": [
+    {
+      "walk": [0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1],
+      "possible_states": ["A", "B"],
+      "significance": 0.05,
+      "value": [false, 0.77880078, 0.50000000, 2]
+    },
+    {
+      "walk": [0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1],
+      "possible_states": null,
+      "significance": 0.05,
+      "value": [false, 0.77880078, 0.50000000, 2]
+    },
+    {
+      "walk": ["A", "B", "A", "A", "B", "A", "A", "B", "B", "A", "B", "A", "A", "A", "B", "B"],
+      "possible_states": ["A", "B"],
+      "significance": 0.05,
+      "value": [false, 0.77880078, 0.50000000, 2]
+    },
+    {
+      "walk": ["A", "B", "A", "A", "B", "A", "A", "B", "B", "A", "B", "A", "A", "A", "B", "B"],
+      "possible_states": null,
+      "significance": 0.05,
+      "value": [false, 0.77880078, 0.50000000, 2]
+    },
+    {
+      "walk": ["A", "B", "C", "C", "C", "A", "A", "B", "C", "A", "A", "C", "B", "A", "A", "B", "C", "A", "B", "A", "C", "C", "A", "B", "C"],
+      "possible_states": ["A", "B", "C"],
+      "significance": 0.05,
+      "value": [null, "NaN", "NaN", "NaN"]
+    },
+    {
+      "walk": ["A", "B", "A", "B", "B", "A", "A", "A", "A", "B", "A", "A", "B", "A", "A"],
+      "possible_states": ["A", "B"],
+      "significance": 0.05,
+      "value": [false, 1.00000000, 0.00000000, 2]
+    },
+    {
+      "walk": ["C", "A", "B", "C", "A", "B", "C", "A", "B", "C", "A", "B", "A", "A", "B", "C", "C", "A", "B", "C", "A", "B", "B", "C", "B", "A", "C", "C", "C", "A", "B", "C", "A", "B", "C", "A", "B"],
+      "possible_states": ["A", "B", "C"],
+      "significance": 0.05,
+      "value": [true, 0.04645782, 21.27777778, 12]
+    },
+    {
+      "walk": ["C", "A", "B", "B", "A"],
+      "possible_states": ["A", "B", "C"],
+      "significance": 0.05,
+      "value": [null, "NaN", "NaN", "NaN"]
+    }
+  ],
+  "assess_markov_property_data": [
+    {
+      "walk": [1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0],
+      "possible_states": ["A", "B"],
+      "significance": 0.05,
+      "value": [false, 0.91666434, 0.95416667, 4]
+    },
+    {
+      "walk": [1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0],
+      "possible_states": null,
+      "significance": 0.05,
+      "value": [false, 0.91666434, 0.95416667, 4]
+    },
+    {
+      "walk": ["B", "B", "B", "A", "B", "A", "B", "A", "A", "B", "B", "B", "A", "B", "A", "A"],
+      "possible_states": ["A", "B"],
+      "significance": 0.05,
+      "value": [false, 0.91666434, 0.95416667, 4]
+    },
+    {
+      "walk": ["B", "B", "B", "A", "B", "A", "B", "A", "A", "B", "B", "B", "A", "B", "A", "A"],
+      "possible_states": null,
+      "significance": 0.05,
+      "value": [false, 0.91666434, 0.95416667, 4]
+    },
+    {
+      "walk": ["D", "B", "A", "D", "B", "A", "D", "B", "A", "D", "B", "A", "D", "B", "A", "D", "B", "A", "D", "B", "A", "D", "B", "A"],
+      "possible_states": ["A", "B", "C", "D"],
+      "significance": 0.05,
+      "value": [false, 1.00000000, 0.00000000, 2]
+    },
+    {
+      "walk": ["B", "A", "A", "B", "B"],
+      "possible_states": ["A", "B"],
+      "significance": 0.05,
+      "value": [true, 0.00000000, 0.50000000, 0]
+    },
+    {
+      "walk": ["C", "A", "C", "A", "C", "A", "B", "C", "A", "B", "C", "A", "B", "B", "B"],
+      "possible_states": ["A", "B", "C"],
+      "significance": 0.05,
+      "value": [false, 0.93392423, 0.83333333, 4]
+    },
+    {
+      "walk": ["A", "B", "B", "A", "B", "B", "B", "B", "B"],
+      "possible_states": ["A", "B"],
+      "significance": 0.05,
+      "value": [false, 0.87517332, 0.26666667, 2]
+    }
+  ],
+  "assess_stationarity_data": [
+    {
+      "walk": [0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0],
+      "possible_states": ["A", "B"],
+      "blocks": 1,
+      "significance": 0.05,
+      "value": [true, 0.00000000, 0.19601915, 0]
+    },
+    {
+      "walk": [0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0],
+      "possible_states": null,
+      "blocks": 1,
+      "significance": 0.05,
+      "value": [true, 0.00000000, 0.19601915, 0]
+    },
+    {
+      "walk": ["A", "B", "A", "A", "A", "A", "B", "A", "B", "A", "B", "A", "A", "B", "B", "B", "A"],
+      "possible_states": ["A", "B"],
+      "blocks": 1,
+      "significance": 0.05,
+      "value": [true, 0.00000000, 0.19601915, 0]
+    },
+    {
+      "walk": ["A", "B", "A", "A", "A", "A", "B", "A", "B", "A", "B", "A", "A", "B", "B", "B", "A"],
+      "possible_states": null,
+      "blocks": 1,
+      "significance": 0.05,
+      "value": [true, 0.00000000, 0.19601915, 0]
+    },
+    {
+      "walk": ["C", "B", "A", "B", "A", "C", "A", "C", "C", "A", "B", "C", "B", "C", "B", "B", "B", "A", "C", "A", "B", "A"],
+      "possible_states": ["A", "B", "C"],
+      "blocks": 2,
+      "significance": 0.05,
+      "value": [null, "NaN", "NaN", "NaN"]
+    },
+    {
+      "walk": ["A", "B", "A", "A", "B", "A", "B", "A", "B", "A", "B", "A", "B", "B", "B", "A"],
+      "possible_states": ["A", "B"],
+      "blocks": 3,
+      "significance": 0.05,
+      "value": [false, 0.7449549, 1.95000000, 4]
+    },
+    {
+      "walk": ["B", "A", "A", "A", "B", "B", "B", "A", "A", "A", "A", "A", "B", "A", "B", "A", "B", "B", "B", "A", "A"],
+      "possible_states": ["A", "B"],
+      "blocks": 1,
+      "significance": 0.05,
+      "value": [true, 0.00000000, 0.08672584, 0]
+    },
+    {
+      "walk": ["B", "A", "A", "A", "B", "B", "B", "A", "A", "A", "A", "A", "B", "A", "B", "A", "B", "B", "B", "A", "A"],
+      "possible_states": ["A", "B"],
+      "blocks": 2,
+      "significance": 0.05,
+      "value": [false, 1.00000000, 0.00000000, 2]
+    }
+  ]
+}

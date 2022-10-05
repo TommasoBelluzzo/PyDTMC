@@ -354,7 +354,7 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
 
     try:
         file_extension = _get_file_extension(file_path)
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
         raise ValueError('The "@arg@" parameter defines an invalid file path.') from e
 
     if accepted_extensions is not None and len(accepted_extensions) > 0 and file_extension not in accepted_extensions:
@@ -367,7 +367,7 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
             with open(file_path, mode='w'):
                 pass
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise ValueError('The "@arg@" parameter defines the path to an inaccessible file.') from e
 
     else:
@@ -383,7 +383,7 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
                 if not file.read(1):
                     file_empty = True
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise ValueError('The "@arg@" parameter defines the path to an inaccessible file.') from e
 
         if file_empty:

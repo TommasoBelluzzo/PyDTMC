@@ -2,7 +2,7 @@
 
 __all__ = [
     'assess_first_order',
-    'assess_markovianity',
+    'assess_markov_property',
     'assess_stationarity',
     'assess_theoretical_compatibility'
 ]
@@ -19,7 +19,8 @@ from inspect import (
 )
 
 from math import (
-    ceil as _math_ceil
+    ceil as _math_ceil,
+    isnan as _math_isnan
 )
 
 # Libraries
@@ -43,7 +44,8 @@ from numpy import (
 
 from scipy.stats import (
     chi2 as _sps_chi2,
-    chi2_contingency as _sps_chi2_contingency
+    chi2_contingency as _sps_chi2_contingency,
+    chisquare as _sps_chisquare
 )
 
 # Internal
@@ -80,7 +82,7 @@ from .validation import (
 # FUNCTIONS #
 #############
 
-# noinspection DuplicatedCode
+# noinspection DuplicatedCode, PyBroadException
 def assess_first_order(walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
 
     """
@@ -105,25 +107,30 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
     except Exception as e:  # pragma: no cover
         raise _generate_validation_error(e, _ins_trace()) from None
 
-    km2 = len(walk) - 2
-    n = len(possible_states)
-
+    k, n = len(walk) - 2, len(possible_states)
     sequence = [possible_states[state] for state in walk]
 
     chi2 = 0.0
 
     for state in possible_states:
 
-        m = _np_zeros((n, n), dtype=int)
+        ct = _np_zeros((n, n), dtype=float)
 
-        for i in range(km2):
+        for i in range(k):
             if state == sequence[i + 1]:
                 p = walk[i]
                 f = walk[i + 2]
-                m[p, f] += 1
+                ct[p, f] += 1
 
-        m_chi2, _, _, _ = _sps_chi2_contingency(m)
-        chi2 += m_chi2
+        try:
+            ct_chi2, _, _, _ = _sps_chi2_contingency(ct)
+        except Exception:
+            ct_chi2 = float('nan')
+
+        if _math_isnan(ct_chi2):
+            return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
+
+        chi2 += ct_chi2
 
     dof = n * (n - 1)**2
     p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
@@ -133,7 +140,7 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
 
 
 # noinspection DuplicatedCode
-def assess_markovianity(walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
+def assess_markov_property(walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
 
     """
     The function verifies whether the given sequence holds the Markov property.
@@ -156,9 +163,10 @@ def assess_markovianity(walk: _twalk, possible_states: _olist_str = None, signif
         m2 = _np_argwhere(fnp_n2[:, 1] == b) + 1
         m = _np_ravel(_np_concatenate([m1, m2]))
 
-        k = _np_setdiff1d(_np_arange(m.size), _np_unique(m, return_index=True)[1])
+        k = _np_setdiff1d(_np_arange(m.size), _np_unique(m, return_index=True)[1]).item()
+        m_k = m[k]
 
-        result = fnp_c[m[k] - 1] * p_jk
+        result = fnp_c[m_k - 1] * p_jk
 
         return result
 
@@ -210,25 +218,22 @@ def assess_markovianity(walk: _twalk, possible_states: _olist_str = None, signif
     set2 = _np_transpose(_np_asarray([c1, c2]))
     sts2, s02 = _sorted_counts(set2)
 
-    tests_length = so3.size
-    tests = _np_zeros(tests_length, dtype=float)
+    chi2 = 0.0
 
-    for i in range(tests_length):
+    for i in range(so3.size):
         fnp = _fnp_iteration(i, sts3, sts2, s02, p)
-        tests[i] = ((so3[i] - fnp)**2.0) / fnp
+        chi2 += ((so3[i] - fnp)**2.0) / fnp
 
     doubles = [f'{sequence[i]}{sequence[i + 1]}' for i in range(sequence_length - 1)]
     triples = [f'{sequence[i]}{sequence[i + 1]}{sequence[i + 2]}' for i in range(sequence_length - 2)]
-
-    chi2 = _np_sum(tests)
     dof = len(set(triples)) - len(set(doubles)) + len(set(sequence)) - 1
-    p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
+
+    p_value = 0.0 if dof == 0 else 1.0 - _sps_chi2.cdf(chi2, dof)
     rejection = p_value < significance
 
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
 
 
-# noinspection DuplicatedCode
 def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks: int = 1, significance: float = 0.05) -> _ttest:
 
     """
@@ -240,6 +245,26 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
     :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
+
+    # noinspection PyBroadException
+    def _chi2_contingency(cs_ct):
+
+        try:
+            v, _, _, _ = _sps_chi2_contingency(ct)
+        except Exception:
+            v = float('nan')
+
+        return v
+
+    # noinspection PyBroadException
+    def _chi2_standard(cs_ct):
+
+        try:
+            v, _ = _sps_chisquare(_np_ravel(ct))
+        except Exception:
+            v = float('nan')
+
+        return v
 
     try:
 
@@ -255,39 +280,43 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
     except Exception as e:  # pragma: no cover
         raise _generate_validation_error(e, _ins_trace()) from None
 
-    k = len(walk)
-    km1 = k - 1
-    n = len(possible_states)
-    nc = 1.0 / n
-
+    k, n = len(walk), len(possible_states)
     sequence = [possible_states[state] for state in walk]
+
+    iters = k - 1
     block_size = float(k) / blocks
+    adjustment = 1.0 / n
+    chi2_func = _chi2_standard if blocks == 1 else _chi2_contingency
 
     chi2 = 0.0
 
     for state in possible_states:
 
-        m = _np_zeros((blocks, n), dtype=float)
+        ct = _np_zeros((blocks, n), dtype=float)
 
-        for i in range(km1):
+        for i in range(iters):
             if sequence[i] == state:
-                p = _math_ceil(i / block_size) + 1
+                p = _math_ceil((i + 1) / block_size) - 1
                 f = walk[i + 1]
-                m[p, f] += 1.0
+                ct[p, f] += 1.0
 
-        m[_np_argwhere(_np_sum(m, axis=1) == 0.0), :] = nc
+        ct[_np_argwhere(_np_sum(ct, axis=1) == 0.0), :] = adjustment
+        ct /= _np_sum(ct, axis=1, keepdims=True)
 
-        m_chi2, _, _, _ = _sps_chi2_contingency(m)
-        chi2 += m_chi2
+        ct_chi2 = chi2_func(ct)
 
-    dof = n * (blocks - 1) * (n - 1)
-    p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
+        if _math_isnan(ct_chi2):
+            return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
+
+        chi2 += ct_chi2
+
+    dof = n * (n - 1) * (blocks - 1)
+    p_value = 0.0 if dof == 0 else 1.0 - _sps_chi2.cdf(chi2, dof)
     rejection = p_value < significance
 
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
 
 
-# noinspection DuplicatedCode
 def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
 
     """
@@ -347,4 +376,4 @@ def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _o
 
         return rejection, p_value, {'chi2': chi2, 'dof': dof}
 
-    return True, 0.0, {'chi2': float('nan'), 'dof': float('nan')}
+    return True, 0.0, {'chi2': float('nan'), 'dof': 0}

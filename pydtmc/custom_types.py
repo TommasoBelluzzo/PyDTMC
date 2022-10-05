@@ -2,7 +2,7 @@
 
 __all__ = [
     # Generic
-    'ofloat', 'oint', 'ostr',
+    'obool', 'ofloat', 'oint', 'ostr',
     'tscalar', 'oscalar',
     'tany', 'texception', 'titerable',
     'tarray', 'oarray',
@@ -117,6 +117,7 @@ except ImportError:  # noqa
 
 # Generic
 
+obool = _tp_Optional[bool]
 ofloat = _tp_Optional[float]
 oint = _tp_Optional[int]
 ostr = _tp_Optional[str]
@@ -252,7 +253,7 @@ ostates = _tp_Optional[tstates]
 tstatus = _tp_Union[int, str, tnumeric]
 ostatus = _tp_Optional[tstatus]
 
-ttest = _tp_Tuple[bool, float, _tp_Dict[str, tany]]
+ttest = _tp_Tuple[obool, float, _tp_Dict[str, tany]]
 otest = _tp_Optional[ttest]
 
 ttfunc = _tp_Callable[[int, float, int, float], float]
