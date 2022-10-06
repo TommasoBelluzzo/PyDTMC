@@ -2,6 +2,7 @@
 
 __all__ = [
     'assess_first_order',
+    'assess_homogeneity',
     'assess_markov_property',
     'assess_stationarity',
     'assess_theoretical_compatibility'
@@ -54,7 +55,8 @@ from .custom_types import (
     olist_str as _olist_str,
     tmc as _tmc,
     ttest as _ttest,
-    twalk as _twalk
+    twalk as _twalk,
+    twalks as _twalks
 )
 
 from .exceptions import (
@@ -74,7 +76,8 @@ from .validation import (
     validate_integer as _validate_integer,
     validate_markov_chain as _validate_markov_chain,
     validate_state_names as _validate_state_names,
-    validate_states as _validate_states
+    validate_states as _validate_states,
+    validate_walks as _validate_walks
 )
 
 
@@ -133,6 +136,66 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
         chi2 += ct_chi2
 
     dof = n * (n - 1)**2
+    p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
+    rejection = p_value < significance
+
+    return rejection, p_value, {'chi2': chi2, 'dof': dof}
+
+
+# noinspection DuplicatedCode
+def assess_homogeneity(walks: _twalks, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
+
+    """
+    The function verifies whether the given sequences belong to the same Markov process.
+
+    :param walks: the observed sequences of states.
+    :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequences of states*).
+    :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
+    :raises ValidationError: if any input argument is not compliant.
+    """
+
+    try:
+
+        walks, possible_states = _validate_walks(walks, possible_states)
+        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+
+    except Exception as e:  # pragma: no cover
+        raise _generate_validation_error(e, _ins_trace()) from None
+
+    k, n = len(walks), len(possible_states)
+
+    fs = []
+    f_pooled = _np_zeros((n, n), dtype=float)
+
+    for walk in walks:
+
+        f = _np_zeros((n, n), dtype=float)
+
+        for (i, j) in zip(walk[:-1], walk[1:]):
+            f[i, j] += 1.0
+
+        fs.append(f)
+        f_pooled += f
+
+    f_pooled_transitions = _np_sum(f_pooled)
+
+    chi2 = 0.0
+
+    for f in fs:
+
+        f_transitions = _np_sum(f)
+
+        for i in range(n):
+            for j in range(n):
+
+                f_ij = f[i, j]
+                f_pooled_ij = f_pooled[i, j]
+
+                if f_ij > 0.0 and f_pooled_ij > 0.0:
+                    chi2 += f_ij * _np_log((f_pooled_transitions * f_ij) / (f_transitions * f_pooled_ij))
+
+    chi2 *= 2.0
+    dof = (n**2 - 1) * (k - 1)
     p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
     rejection = p_value < significance
 
@@ -202,7 +265,7 @@ def assess_markov_property(walk: _twalk, possible_states: _olist_str = None, sig
         raise _generate_validation_error(e, _ins_trace()) from None
 
     sequence = [possible_states[state] for state in walk]
-    p, _ = _fit_walk('mle', possible_states, walk, False)
+    p, _ = _fit_walk('mle', False, possible_states, walk)
 
     sequence_length = len(sequence)
     sample_length = sequence_length - (sequence_length % 3)
@@ -247,20 +310,20 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
     """
 
     # noinspection PyBroadException
-    def _chi2_contingency(cs_ct):
+    def _chi2_contingency(cc_ct):  # pragma: no cover
 
         try:
-            v, _, _, _ = _sps_chi2_contingency(ct)
+            v, _, _, _ = _sps_chi2_contingency(cc_ct)
         except Exception:
             v = float('nan')
 
         return v
 
     # noinspection PyBroadException
-    def _chi2_standard(cs_ct):
+    def _chi2_standard(cs_ct):  # pragma: no cover
 
         try:
-            v, _ = _sps_chisquare(_np_ravel(ct))
+            v, _ = _sps_chisquare(_np_ravel(cs_ct))
         except Exception:
             v = float('nan')
 
@@ -317,6 +380,7 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
 
 
+# noinspection DuplicatedCode
 def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
 
     """
@@ -347,13 +411,13 @@ def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _o
     if mc.states != possible_states:
         raise _ValidationError('The states of the Markov chain and the "possible_states" parameter must be equal.')
 
-    p, n, n2 = mc.p, mc.size, mc.size**2
+    p, n = mc.p, mc.size
     f = _np_zeros((n, n), dtype=int)
 
     for (i, j) in zip(walk[:-1], walk[1:]):
         f[i, j] += 1
 
-    if _np_sum((p == 0.0) == (f == 0)) == n2:
+    if _np_all(f[p == 0.0] == 0):
 
         chi2 = 0.0
 
@@ -370,10 +434,10 @@ def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _o
                     chi2 += f_ij * _np_log(f_ij / (f_i * p_ij))
 
         chi2 *= 2.0
-        dof = (n * (n - 1)) - (n2 - _np_count_nonzero(p))
+        dof = (n * (n - 1)) - (n**2 - _np_count_nonzero(p))
         p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
         rejection = p_value < significance
 
         return rejection, p_value, {'chi2': chi2, 'dof': dof}
 
-    return True, 0.0, {'chi2': float('nan'), 'dof': 0}
+    return True, 0.0, {'chi2': float('nan'), 'dof': float('nan')}

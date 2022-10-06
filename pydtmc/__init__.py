@@ -7,7 +7,7 @@ __author__ = 'Tommaso Belluzzo'
 __all__ = [
     'ValidationError',
     'MarkovChain',
-    'assess_first_order', 'assess_markov_property', 'assess_stationarity', 'assess_theoretical_compatibility',
+    'assess_first_order', 'assess_homogeneity', 'assess_markov_property', 'assess_stationarity', 'assess_theoretical_compatibility',
     'plot_eigenvalues', 'plot_graph', 'plot_redistributions', 'plot_walk'
 ]
 
@@ -21,6 +21,7 @@ from pydtmc.markov_chain import (
 
 from pydtmc.assessments import (
     assess_first_order,
+    assess_homogeneity,
     assess_markov_property,
     assess_stationarity,
     assess_theoretical_compatibility

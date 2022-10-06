@@ -26,7 +26,8 @@ __all__ = [
     'validate_time_points',
     'validate_transition_function',
     'validate_transition_matrix',
-    'validate_vector'
+    'validate_vector',
+    'validate_walks'
 ]
 
 
@@ -110,7 +111,8 @@ from .custom_types import (
     tscalar as _tscalar,
     ttfunc as _ttfunc,
     ttimes_in as _ttimes_in,
-    tvalid_states as _tvalid_states
+    tvalid_states as _tvalid_states,
+    tvalid_walks as _tvalid_walks
 )
 
 from .utilities import (
@@ -676,7 +678,7 @@ def validate_state_names(value: _tany, size: _oint = None) -> _tlist_str:
     return value
 
 
-def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bool) -> _tvalid_states:
+def validate_states(value: _tany, possible_states: _olist_str, states_type: str, flex: bool) -> _tvalid_states:
 
     if flex:
 
@@ -686,26 +688,26 @@ def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bo
                 raise ValueError('The "@arg@" parameter, when specified as an integer, cannot be associated to a walk.')
 
             value = int(value)
-            limit = len(states) - 1
+            limit = len(possible_states) - 1
 
             if value < 0 or value > limit:
                 raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and the number of existing states minus one ({limit:d}).')
 
             value = [value]
 
-            return value, states
+            return value, possible_states
 
         if _is_string(value):
 
             if states_type == 'walk':
                 raise ValueError('The "@arg@" parameter, when specified as a string, cannot be associated to a walk.')
 
-            if value not in states:
-                raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(states)}).')
+            if value not in possible_states:
+                raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(possible_states)}).')
 
-            value = [states.index(value)]
+            value = [possible_states.index(value)]
 
-            return value, states
+            return value, possible_states
 
     try:
         value = _extract_data_generic(value)
@@ -729,43 +731,43 @@ def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bo
 
         value = [int(state) for state in value]
 
-        if states is None:
+        if possible_states is None:
 
             if states_type != 'walk':
                 raise ValueError('The "@arg@" parameter must be validated against a list of possible states.')
 
-            states = [str(i) for i in range(1, len(set(value)) + 1)]
-            states_length = len(states)
+            possible_states = [str(i) for i in range(1, len(set(value)) + 1)]
+            states_length = len(possible_states)
 
             if states_length < 2:
                 raise ValueError('The "@arg@" parameter does not provide enough data to infer the possible states.')
 
         else:
-            states_length = len(states)
+            states_length = len(possible_states)
 
         if any(state < 0 or state >= states_length for state in value):
             raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and the number of existing states minus one ({states_length - 1:d}).')
 
     else:
 
-        if states is None:
+        if possible_states is None:
 
             if states_type != 'walk':
                 raise ValueError('The "@arg@" parameter must be validated against a list of possible states.')
 
-            states = sorted(set(value))
-            states_length = len(states)
+            possible_states = sorted(set(value))
+            states_length = len(possible_states)
 
             if states_length < 2:
                 raise ValueError('The "@arg@" parameter does not provide enough data to infer the possible states.')
 
         else:
-            states_length = len(states)
+            states_length = len(possible_states)
 
-        value = [states.index(state) if state in states else -1 for state in value]
+        value = [possible_states.index(state) if state in possible_states else -1 for state in value]
 
         if any(state == -1 for state in value):
-            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the names of the existing states ({", ".join(states)}).')
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the names of the existing states ({", ".join(possible_states)}).')
 
     value_length = len(value)
 
@@ -794,7 +796,7 @@ def validate_states(value: _tany, states: _olist_str, states_type: str, flex: bo
         if value_length < 2:
             raise ValueError('The "@arg@" parameter must contain at least two elements.')
 
-    return value, states
+    return value, possible_states
 
 
 def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
@@ -973,3 +975,30 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
         raise ValueError('The "@arg@" parameter values must sum to 1.')
 
     return value
+
+
+def validate_walks(value: _tany, possible_states: _olist_str) -> _tvalid_walks:
+
+    try:
+        value = _extract_data_generic(value)
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+
+    value_length = len(value)
+
+    if value_length < 2:
+        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
+
+    possible_states_all = []
+
+    for i in range(value_length):
+
+        try:
+            value_i, possible_states_i = validate_states(value[i], possible_states, 'walk', False)
+        except Exception:
+            raise ValueError('The "@arg@" parameter contains invalid elements.')
+
+        value[i] = value_i
+        possible_states_all.append(possible_states_i)
+
+    return value, possible_states_all.pop()

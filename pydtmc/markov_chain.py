@@ -2141,7 +2141,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    def fit_function(possible_states: _tlist_str, f: _ttfunc, quadrature_type: str, quadrature_interval: _ointerval = None) -> _tmc:
+    def fit_function(quadrature_type: str, f: _ttfunc, possible_states: _tlist_str, quadrature_interval: _ointerval = None) -> _tmc:
 
         """
         The method fits a Markov chain using the given transition function and the given quadrature type for the computation of nodes and weights.
@@ -2155,8 +2155,6 @@ class MarkovChain(metaclass=_BaseClass):
           - **y_index** an integer value representing the index of the j-th quadrature node;
           - **y_value** a float value representing the value of the j-th quadrature node.
 
-        :param possible_states: the possible states of the process.
-        :param f: the transition function of the process.
         :param quadrature_type:
          - **gauss-chebyshev** for the Gauss-Chebyshev quadrature;
          - **gauss-legendre** for the Gauss-Legendre quadrature;
@@ -2164,6 +2162,8 @@ class MarkovChain(metaclass=_BaseClass):
          - **newton-cotes** for the Newton-Cotes quadrature;
          - **simpson-rule** for the Simpson rule;
          - **trapezoid-rule** for the Trapezoid rule.
+        :param f: the transition function of the process.
+        :param possible_states: the possible states of the process.
         :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (*if omitted, the interval [0, 1] is used*).
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Gauss-Legendre quadrature fails to converge.
@@ -2171,9 +2171,9 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            possible_states = _validate_state_names(possible_states)
-            f = _validate_transition_function(f)
             quadrature_type = _validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'niederreiter', 'newton-cotes', 'simpson-rule', 'trapezoid-rule'])
+            f = _validate_transition_function(f)
+            possible_states = _validate_state_names(possible_states)
             quadrature_interval = (0.0, 1.0) if quadrature_interval is None else _validate_interval(quadrature_interval)
 
         except Exception as e:  # pragma: no cover
@@ -2182,7 +2182,7 @@ class MarkovChain(metaclass=_BaseClass):
         if quadrature_type == 'simpson-rule' and (len(possible_states) % 2) == 0:  # pragma: no cover
             raise _ValidationError('The quadrature based on the Simpson rule requires an odd number of possible states.')
 
-        p, error_message = _fit_function(possible_states, f, quadrature_type, quadrature_interval)
+        p, error_message = _fit_function(quadrature_type, quadrature_interval, possible_states, f)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -2192,7 +2192,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    def fit_walk(fitting_type: str, walk: _twalk, possible_states: _olist_str = None, k: _tany = None) -> _tmc:
+    def fit_walk(fitting_type: str, walk: _twalk, k: _tany = None, possible_states: _olist_str = None) -> _tmc:
 
         """
         The method fits a Markov chain from an observed sequence of states using the specified fitting approach.
@@ -2201,10 +2201,10 @@ class MarkovChain(metaclass=_BaseClass):
          - **map** for the maximum a posteriori fitting;
          - **mle** for the maximum likelihood fitting.
         :param walk: the observed sequence of states.
-        :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequence of states*).
         :param k:
          | - In the maximum a posteriori fitting, the matrix for the a priori distribution (*if omitted, a default value of 1 is assigned to each matrix element*).
          | - In the maximum likelihood fitting, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (*if omitted, the value is set to True*).
+        :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequence of states*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2227,7 +2227,7 @@ class MarkovChain(metaclass=_BaseClass):
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
 
-        p, _ = _fit_walk(fitting_type, possible_states, walk, k)
+        p, _ = _fit_walk(fitting_type, k, possible_states, walk)
         mc = MarkovChain(p, possible_states)
 
         return mc

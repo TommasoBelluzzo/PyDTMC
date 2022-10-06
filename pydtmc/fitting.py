@@ -52,7 +52,7 @@ from .custom_types import (
 #############
 
 # noinspection PyBroadException
-def fit_function(possible_states: _tlist_str, f: _ttfunc, quadrature_type: str, quadrature_interval: _tinterval) -> _tfitres:
+def fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible_states: _tlist_str, f: _ttfunc) -> _tfitres:
 
     size = len(possible_states)
 
@@ -168,7 +168,7 @@ def fit_function(possible_states: _tlist_str, f: _ttfunc, quadrature_type: str, 
     return p, None
 
 
-def fit_walk(fitting_type: str, possible_states: _tlist_str, walk: _tlist_int, k: _tany) -> _tfitres:
+def fit_walk(fitting_type: str, k: _tany, possible_states: _tlist_str, walk: _tlist_int) -> _tfitres:
 
     size = len(possible_states)
     p = _np_zeros((size, size), dtype=float)

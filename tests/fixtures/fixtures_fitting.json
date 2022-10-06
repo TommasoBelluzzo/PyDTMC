@@ -1,145 +1,159 @@
 {
   "fit_function_data": [
     {
-      "possible_states": ["A", "B", "C"],
-      "f": "(x_value + y_value)**2.0",
       "quadrature_type": "gauss-chebyshev",
       "quadrature_interval": null,
+      "possible_states": ["A", "B", "C"],
+      "f": "(x_value + y_value)**2.0",
       "value": [[0.00985334, 0.44118948, 0.54895719], [0.06594351, 0.51282051, 0.42123598], [0.10399481, 0.53388997, 0.36211522]]
     },
     {
-      "possible_states": ["A", "B", "C"],
-      "f": "1.0 if x_index == y_index else 0.0",
       "quadrature_type": "gauss-legendre",
       "quadrature_interval": null,
+      "possible_states": ["A", "B", "C"],
+      "f": "1.0 if x_index == y_index else 0.0",
       "value": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
     },
     {
-      "possible_states": ["A", "B", "C"],
-      "f": "1.0 + (x_value * y_value)",
       "quadrature_type": "gauss-legendre",
       "quadrature_interval": [5.0, 10.0],
+      "possible_states": ["A", "B", "C"],
+      "f": "1.0 + (x_value * y_value)",
       "value": [[0.20773400, 0.44444400, 0.34782100], [0.20730900, 0.44444400, 0.34824700], [0.20705500, 0.44444400, 0.34850000]]
     },
     {
-      "possible_states": ["A", "B", "C", "D"],
-      "f": "3.0",
       "quadrature_type": "niederreiter",
       "quadrature_interval": null,
+      "possible_states": ["A", "B", "C", "D"],
+      "f": "3.0",
       "value": [[0.25, 0.25, 0.25, 0.25], [0.25, 0.25, 0.25, 0.25], [0.25, 0.25, 0.25, 0.25], [0.25, 0.25, 0.25, 0.25]]
     },
     {
-      "possible_states": ["A", "B", "C", "D"],
-      "f": "(x_value * 1.5) + y_value",
       "quadrature_type": "niederreiter",
       "quadrature_interval": [0.0, 2.0],
+      "possible_states": ["A", "B", "C", "D"],
+      "f": "(x_value * 1.5) + y_value",
       "value": [[0.22378200, 0.31329500, 0.18670500, 0.27621800], [0.23294300, 0.29117900, 0.20882100, 0.26705700], [0.21628100, 0.33140500, 0.16859500, 0.28371900], [0.23005700, 0.29814700, 0.20185300, 0.26994300]]
     },
     {
-      "possible_states": ["A", "B", "C"],
-      "f": "x_value**y_value",
       "quadrature_type": "newton-cotes",
       "quadrature_interval": null,
+      "possible_states": ["A", "B", "C"],
+      "f": "x_value**y_value",
       "value": [[0.53961500, 0.29696100, 0.16342400], [0.41259900, 0.32748000, 0.25992100], [0.35378400, 0.33292300, 0.31329300]]
     },
     {
-      "possible_states": ["A", "B", "C"],
-      "f": "x_value**y_value",
       "quadrature_type": "newton-cotes",
       "quadrature_interval": [0.0, 2.0],
+      "possible_states": ["A", "B", "C"],
+      "f": "x_value**y_value",
       "value": [[0.58415600, 0.28083300, 0.13501000], [0.33333333, 0.33333333, 0.33333333], [0.22821800, 0.32081100, 0.45097100]]
     },
     {
-      "possible_states": ["A", "B", "C"],
-      "f": "(x_value + y_value) * 1.75",
       "quadrature_type": "simpson-rule",
       "quadrature_interval": [0.0, 2.0],
+      "possible_states": ["A", "B", "C"],
+      "f": "(x_value + y_value) * 1.75",
       "value": [[0.00000000, 0.66666667, 0.33333333], [0.08333333, 0.66666667, 0.25000000], [0.11111111, 0.66666667, 0.22222222]]
     },
     {
-      "possible_states": ["A", "B"],
-      "f": "x_value**0.5",
       "quadrature_type": "trapezoid-rule",
       "quadrature_interval": null,
+      "possible_states": ["A", "B"],
+      "f": "x_value**0.5",
       "value": [[0.5, 0.5], [0.5, 0.5]]
     },
     {
-      "possible_states": ["A", "B"],
-      "f": "(x_value + y_value) * 0.99",
       "quadrature_type": "trapezoid-rule",
       "quadrature_interval": null,
+      "possible_states": ["A", "B"],
+      "f": "(x_value + y_value) * 0.99",
       "value": [[0.0, 1.0], [0.33333333, 0.66666667]]
     }
   ],
   "fit_walk_data": [
     {
       "fitting_type": "map",
+      "k": null,
+      "possible_states": null,
+      "walk": ["A", "A", "C", "A", "C", "C", "B", "C", "A", "C", "C"],
+      "value": [[0.25, 0.00, 0.75], [0.0, 0.0, 1.0], [0.4, 0.2, 0.4]]
+    },
+    {
+      "fitting_type": "mle",
+      "k": null,
+      "possible_states": null,
+      "walk": ["A", "A", "C", "A", "C", "C", "B", "C", "A", "C", "C"],
+      "value": [[0.25, 0.00, 0.75], [0.0, 0.0, 1.0], [0.4, 0.2, 0.4]]
+    },
+    {
+      "fitting_type": "map",
+      "k": null,
       "possible_states": ["A", "B", "C"],
       "walk": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B", "A", "A"],
-      "k": null,
       "value": [[0.5, 0.5, 0.0], [0.33333333, 0.00000000, 0.66666667], [0.2, 0.2, 0.6]]
     },
     {
       "fitting_type": "mle",
+      "k": null,
       "possible_states": ["A", "B", "C"],
       "walk": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B", "A", "A"],
-      "k": null,
       "value": [[0.5, 0.5, 0.0], [0.33333333, 0.0, 0.66666667], [0.2, 0.2, 0.6]]
     },
     {
       "fitting_type": "map",
+      "k": [[7, 15, 9], [1, 7, 7], [9, 1, 2]],
       "possible_states": ["A", "B", "C"],
       "walk": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B"],
-      "k": [[7, 15, 9], [1, 7, 7], [9, 1, 2]],
       "value": [[0.22580600, 0.51612900, 0.25806500], [0.0, 0.42857100, 0.57142900], [0.64285700, 0.07142900, 0.28571400]]
     },
     {
       "fitting_type": "mle",
+      "k": true,
       "possible_states": ["A", "B", "C"],
       "walk": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B", "A", "A"],
-      "k": true,
       "value": [[0.49987509, 0.49987509, 0.00024981], [0.33333333, 0.00033300, 0.66633367], [0.20007995, 0.20007995, 0.59984010]]
     },
     {
       "fitting_type": "map",
+      "k": null,
       "possible_states": ["A", "B", "C", "D"],
       "walk": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
-      "k": null,
       "value": [[0.33333333, 0.33333333, 0.33333333, 0.00000000], [0.5, 0.0, 0.5, 0.0], [0.5, 0.0, 0.5, 0.0], [0.25, 0.25, 0.25, 0.25]]
     },
     {
       "fitting_type": "mle",
+      "k": null,
       "possible_states": ["A", "B", "C", "D"],
       "walk": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
-      "k": null,
       "value": [[0.33333333, 0.33333333, 0.33333333, 0.00000000], [0.5, 0.0, 0.5, 0.0], [0.5, 0.0, 0.5, 0.0], [0.25, 0.25, 0.25, 0.25]]
     },
     {
       "fitting_type": "map",
+      "k": [[3, 5, 3, 5], [5, 3, 5, 3], [8, 1, 17, 3], [4, 9, 1, 1]],
       "possible_states": ["A", "B", "C", "D"],
       "walk": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
-      "k": [[3, 5, 3, 5], [5, 3, 5, 3], [8, 1, 17, 3], [4, 9, 1, 1]],
       "value": [[0.22222222, 0.33333333, 0.22222222, 0.22222222], [0.35714300, 0.14285700, 0.35714300, 0.14285700], [0.32258100, 0.00000000, 0.61290300, 0.06451600], [0.27272700, 0.72727300, 0.00000000, 0.00000000]]
     },
     {
       "fitting_type": "mle",
+      "k": true,
       "possible_states": ["A", "B", "C", "D"],
       "walk": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
-      "k": true,
       "value": [[0.33327781, 0.33327781, 0.33327781, 0.00016656], [0.49950100, 0.00049900, 0.49950100, 0.00049900], [0.49983344, 0.00016656, 0.49983344, 0.00016656], [0.25, 0.25, 0.25, 0.25]]
     },
     {
       "fitting_type": "map",
+      "k": null,
       "possible_states": ["A", "B", "C", "D"],
       "walk": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D"],
-      "k": null,
       "value": [[0.33333333, 0.33333333, 0.33333333, 0.00000000], [0.5, 0.0, 0.5, 0.0], [0.33333333, 0.00000000, 0.50000000, 0.16666667], [0.0, 0.0, 0.0, 1.0]]
     },
     {
       "fitting_type": "mle",
+      "k": null,
       "possible_states": ["A", "B", "C", "D"],
       "walk": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D"],
-      "k": null,
       "value": [[0.33333333, 0.33333333, 0.33333333, 0.0], [0.5, 0.0, 0.5, 0.0], [0.33333333, 0.00000000, 0.50000000, 0.16666667], [0.0, 0.0, 0.0, 1.0]]
     }
   ]
