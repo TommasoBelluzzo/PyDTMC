@@ -995,8 +995,8 @@ def validate_walks(value: _tany, possible_states: _olist_str) -> _tvalid_walks:
 
         try:
             value_i, possible_states_i = validate_states(value[i], possible_states, 'walk', False)
-        except Exception:
-            raise ValueError('The "@arg@" parameter contains invalid elements.')
+        except Exception as e:
+            raise ValueError('The "@arg@" parameter contains invalid elements.') from e
 
         value[i] = value_i
         possible_states_all.append(possible_states_i)
