@@ -820,4 +820,4 @@ def test_validate_vector(value, vector_type, flex, size, is_valid):
 # noinspection PyBroadException
 def test_validate_walks(value, is_valid):
 
-    assert True
+    assert value == is_valid
