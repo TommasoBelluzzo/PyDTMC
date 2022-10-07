@@ -80,6 +80,7 @@ from .validation import (
     validate_walks as _validate_walks
 )
 
+import scipy
 
 #############
 # FUNCTIONS #
@@ -115,6 +116,7 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
 
     chi2 = 0.0
 
+    print(scipy.__version__)
     print('--------------')
 
     for state in possible_states:
@@ -135,7 +137,7 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
         if _math_isnan(ct_chi2):
             return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
 
-        print(ct_chi2)
+        print(ct, ct_chi2)
 
         chi2 += ct_chi2
 
@@ -357,6 +359,7 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
 
     chi2 = 0.0
 
+    print(scipy.__version__)
     print('--------------')
 
     for state in possible_states:
@@ -377,7 +380,7 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
         if _math_isnan(ct_chi2):
             return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
 
-        print(ct_chi2)
+        print(ct, ct_chi2)
 
         chi2 += ct_chi2
 
