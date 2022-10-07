@@ -43,6 +43,8 @@ from numpy import (
     zeros as _np_zeros
 )
 
+import scipy
+
 from scipy.stats import (
     chi2 as _sps_chi2,
     chi2_contingency as _sps_chi2_contingency,
@@ -79,8 +81,6 @@ from .validation import (
     validate_states as _validate_states,
     validate_walks as _validate_walks
 )
-
-import scipy
 
 #############
 # FUNCTIONS #
