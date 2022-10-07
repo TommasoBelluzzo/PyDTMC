@@ -86,6 +86,7 @@ import scipy
 # FUNCTIONS #
 #############
 
+
 # noinspection DuplicatedCode, PyBroadException
 def assess_first_order(walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
 
