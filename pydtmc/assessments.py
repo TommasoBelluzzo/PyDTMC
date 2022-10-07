@@ -115,6 +115,8 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
 
     chi2 = 0.0
 
+    print('--------------')
+
     for state in possible_states:
 
         ct = _np_zeros((n, n), dtype=float)
@@ -354,6 +356,8 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
     chi2_func = _chi2_standard if blocks == 1 else _chi2_contingency
 
     chi2 = 0.0
+
+    print('--------------')
 
     for state in possible_states:
 
