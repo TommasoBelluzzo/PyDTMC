@@ -133,6 +133,8 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
         if _math_isnan(ct_chi2):
             return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
 
+        print(ct_chi2)
+
         chi2 += ct_chi2
 
     dof = n * (n - 1)**2
@@ -371,6 +373,8 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
         if _math_isnan(ct_chi2):
             return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
 
+        print(ct_chi2)
+
         chi2 += ct_chi2
 
     dof = n * (n - 1) * (blocks - 1)
@@ -408,7 +412,7 @@ def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _o
     except Exception as e:  # pragma: no cover
         raise _generate_validation_error(e, _ins_trace()) from None
 
-    if mc.states != possible_states:
+    if mc.states != possible_states:  # pragma: no cover
         raise _ValidationError('The states of the Markov chain and the "possible_states" parameter must be equal.')
 
     p, n = mc.p, mc.size

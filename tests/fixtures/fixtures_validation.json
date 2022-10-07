@@ -1817,5 +1817,6 @@
       "size": 3,
       "is_valid": false
     }
-  ]
+  ],
+  "validate_walks_data": []
 }
