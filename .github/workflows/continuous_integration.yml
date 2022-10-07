@@ -70,5 +70,5 @@ jobs:
         COVERALLS_SERVICE_NAME: github-actions
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
       run: |
-        pytest --benchmark-skip --cov=pydtmc tests/
+        pytest -s --benchmark-skip --cov=pydtmc tests/
         coveralls
