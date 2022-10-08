@@ -1791,6 +1791,56 @@
   ],
   "validate_walks_data": [
     {
+      "value": null,
+      "possible_states": ["A", "B"],
+      "is_valid": false
+    },
+    {
+      "value": true,
+      "possible_states": ["A", "B"],
+      "is_valid": false
+    },
+    {
+      "value": 3.0,
+      "possible_states": ["A", "B"],
+      "is_valid": false
+    },
+    {
+      "value": 1,
+      "possible_states": ["A", "B"],
+      "is_valid": false
+    },
+    {
+      "value": [0, 1],
+      "possible_states": ["A", "B"],
+      "is_valid": false
+    },
+    {
+      "value": [0, [0, 1, 0, 1, 2, 0, 1, 2, 0, 0, 0, 1]],
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [null, [2, 2, 1, 0, 2, 0]],
+      "possible_states": ["1", "2", "3"],
+      "is_valid": false
+    },
+    {
+      "value": ["A", "B"],
+      "possible_states": ["A", "B"],
+      "is_valid": false
+    },
+    {
+      "value": ["A", ["C", "A", "A", "A", "A", "B"]],
+      "possible_states": ["A", "B"],
+      "is_valid": false
+    },
+    {
+      "value": [null, ["B", "C", "C", "A", "C", "B", "A", "A", "A"]],
+      "possible_states": ["A", "B"],
+      "is_valid": false
+    },
+    {
       "value": [
         [1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0]
       ],
@@ -1804,6 +1854,22 @@
       ],
       "possible_states": ["A", "B", "C"],
       "is_valid": true
+    },
+    {
+      "value": [
+        [0, 0, 1, 0, 2, 0, 1, 1, 0, 2, 0, 1, 1, 2, 0],
+        [1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0]
+      ],
+      "possible_states": null,
+      "is_valid": false
+    },
+    {
+      "value": [
+        [0, 0, 1, 0, 2, 0, 1, 1, 0, 2, 0, 1, 1, 2, 0],
+        [1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0]
+      ],
+      "possible_states": [],
+      "is_valid": false
     },
     {
       "value": [
@@ -1838,6 +1904,22 @@
       ],
       "possible_states": ["A", "B", "C"],
       "is_valid": true
+    },
+    {
+      "value": [
+        ["B", "A", "A", "B", "B", "B", "A", "A", "B", "A", "A", "B"],
+        ["A", "B", "A", "B", "B", "A", "B", "A", "A", "B", "B", "A", "A", "A"]
+      ],
+      "possible_states": null,
+      "is_valid": false
+    },
+    {
+      "value": [
+        ["B", "A", "A", "B", "B", "B", "A", "A", "B", "A", "A", "B"],
+        ["A", "B", "A", "B", "B", "A", "B", "A", "A", "B", "B", "A", "A", "A"]
+      ],
+      "possible_states": [],
+      "is_valid": false
     },
     {
       "value": [
