@@ -232,7 +232,8 @@ from .validation import (
     validate_time_points as _validate_time_points,
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
-    validate_vector as _validate_vector
+    validate_vector as _validate_vector,
+    validate_walk as _validate_walk
 )
 
 
@@ -1079,8 +1080,8 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             committor_type = _validate_enumerator(committor_type, ['backward', 'forward'])
-            states1, _ = _validate_states(states1, self.__states, 'subset', True)
-            states2, _ = _validate_states(states2, self.__states, 'subset', True)
+            states1 = _validate_states(states1, self.__states, True)
+            states2 = _validate_states(states2, self.__states, True)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1195,7 +1196,7 @@ class MarkovChain(metaclass=_BaseClass):
             initial_state = _validate_state(initial_state, self.__states)
 
             if first_passage_states is not None:
-                first_passage_states, _ = _validate_states(first_passage_states, self.__states, 'regular', True)
+                first_passage_states = _validate_states(first_passage_states, self.__states, False)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1225,7 +1226,7 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             initial_state = _validate_state(initial_state, self.__states)
-            first_passage_states, _ = _validate_states(first_passage_states, self.__states, 'subset', True)
+            first_passage_states = _validate_states(first_passage_states, self.__states, True)
             rewards = _validate_rewards(rewards, self.__size)
             steps = _validate_integer(steps, lower_limit=(0, True))
 
@@ -1264,7 +1265,7 @@ class MarkovChain(metaclass=_BaseClass):
             if targets is None:
                 targets = self.__states_indices.copy()
             else:
-                targets, _ = _validate_states(targets, self.__states, 'regular', True)
+                targets = _validate_states(targets, self.__states, False)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1292,7 +1293,7 @@ class MarkovChain(metaclass=_BaseClass):
             if targets is None:
                 targets = self.__states_indices.copy()
             else:
-                targets, _ = _validate_states(targets, self.__states, 'regular', True)
+                targets = _validate_states(targets, self.__states, False)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1467,8 +1468,8 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            origins, _ = _validate_states(origins, self.__states, 'subset', True)
-            targets, _ = _validate_states(targets, self.__states, 'subset', True)
+            origins = _validate_states(origins, self.__states, True)
+            targets = _validate_states(targets, self.__states, True)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1495,7 +1496,7 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             if targets is not None:
-                targets, _ = _validate_states(targets, self.__states, 'regular', True)
+                targets = _validate_states(targets, self.__states, False)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -1706,10 +1707,10 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            walk1, _ = _validate_states(walk1, self.__states, 'walk', False)
+            walk1, _ = _validate_walk(walk1, self.__states)
 
             if walk2 is not None:
-                walk2, _ = _validate_states(walk2, self.__states, 'walk', False)
+                walk2, _ = _validate_walk(walk2, self.__states)
 
             time_points = _validate_time_points(time_points)
 
@@ -1740,7 +1741,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            walk, _ = _validate_states(walk, self.__states, 'walk', False)
+            walk, _ = _validate_walk(walk, self.__states)
             initial_distribution = _np_ones(self.__size, dtype=float) / self.__size if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
             time_points = _validate_time_points(time_points)
 
@@ -1936,7 +1937,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            states, _ = _validate_states(states, self.__states, 'subset', True)
+            states = _validate_states(states, self.__states, True)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -2015,7 +2016,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            walk, _ = _validate_states(walk, self.__states, 'walk', False)
+            walk, _ = _validate_walk(walk, self.__states)
 
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
@@ -2213,10 +2214,10 @@ class MarkovChain(metaclass=_BaseClass):
             fitting_type = _validate_enumerator(fitting_type, ['map', 'mle'])
 
             if possible_states is None:
-                walk, possible_states = _validate_states(walk, possible_states, 'walk', False)
+                walk, possible_states = _validate_walk(walk, None)
             else:
                 possible_states = _validate_state_names(possible_states)
-                walk, _ = _validate_states(walk, possible_states, 'walk', False)
+                walk, _ = _validate_walk(walk, possible_states)
 
             if fitting_type == 'map':
                 possible_states_length = len(possible_states)

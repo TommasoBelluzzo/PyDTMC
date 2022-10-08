@@ -77,7 +77,7 @@ from .validation import (
     validate_integer as _validate_integer,
     validate_markov_chain as _validate_markov_chain,
     validate_state_names as _validate_state_names,
-    validate_states as _validate_states,
+    validate_walk as _validate_walk,
     validate_walks as _validate_walks
 )
 
@@ -101,10 +101,10 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
     try:
 
         if possible_states is None:
-            walk, possible_states = _validate_states(walk, possible_states, 'walk', False)
+            walk, possible_states = _validate_walk(walk, None)
         else:
             possible_states = _validate_state_names(possible_states)
-            walk, _ = _validate_states(walk, possible_states, 'walk', False)
+            walk, _ = _validate_walk(walk, possible_states)
 
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
@@ -271,10 +271,10 @@ def assess_markov_property(walk: _twalk, possible_states: _olist_str = None, sig
     try:
 
         if possible_states is None:
-            walk, possible_states = _validate_states(walk, possible_states, 'walk', False)
+            walk, possible_states = _validate_walk(walk, None)
         else:
             possible_states = _validate_state_names(possible_states)
-            walk, _ = _validate_states(walk, possible_states, 'walk', False)
+            walk, _ = _validate_walk(walk, possible_states)
 
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
@@ -349,10 +349,10 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
     try:
 
         if possible_states is None:
-            walk, possible_states = _validate_states(walk, possible_states, 'walk', False)
+            walk, possible_states = _validate_walk(walk, None)
         else:
             possible_states = _validate_state_names(possible_states)
-            walk, _ = _validate_states(walk, possible_states, 'walk', False)
+            walk, _ = _validate_walk(walk, possible_states)
 
         blocks = _validate_integer(blocks, lower_limit=(1, False))
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
@@ -415,10 +415,10 @@ def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _o
         mc = _validate_markov_chain(mc)
 
         if possible_states is None:
-            walk, possible_states = _validate_states(walk, possible_states, 'walk', False)
+            walk, possible_states = _validate_walk(walk, None)
         else:
             possible_states = _validate_state_names(possible_states)
-            walk, _ = _validate_states(walk, possible_states, 'walk', False)
+            walk, _ = _validate_walk(walk, possible_states)
 
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 

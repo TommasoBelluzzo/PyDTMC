@@ -1128,374 +1128,243 @@
   "validate_states_data": [
     {
       "value": null,
-      "states": ["A", "B", "C", "D", "E"],
-      "states_type": "regular",
-      "flex": false,
+      "possible_states": ["A", "B", "C", "D", "E"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": true,
-      "states": ["1", "2"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["1", "2"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": -3,
-      "states": ["1", "2"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["1", "2"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": 0,
-      "states": ["1", "2"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["1", "2"],
+      "subset": false,
       "is_valid": true
     },
     {
       "value": 1,
-      "states": ["1", "2"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["1", "2"],
+      "subset": false,
       "is_valid": true
     },
     {
       "value": 2,
-      "states": ["1", "2"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["1", "2"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": "a",
-      "states": ["A", "B", "C", "D"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["A", "B", "C", "D"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": "B",
-      "states": ["A", "B", "C", "D", "E"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["A", "B", "C", "D", "E"],
+      "subset": false,
       "is_valid": true
     },
     {
       "value": "D",
-      "states": ["A", "B", "C", "D", "E"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["A", "B", "C", "D", "E"],
+      "subset": false,
       "is_valid": true
     },
     {
       "value": "E",
-      "states": ["A", "B", "C", "D"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["A", "B", "C", "D"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": [],
-      "states": ["A", "B", "C"],
-      "states_type": "regular",
-      "flex": false,
+      "possible_states": ["A", "B", "C"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": [true, false],
-      "states": ["1", "2", "3", "4"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["1", "2", "3", "4"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": [0],
-      "states": ["1", "2"],
-      "states_type": "regular",
-      "flex": false,
+      "possible_states": ["1", "2"],
+      "subset": false,
       "is_valid": true
     },
     {
       "value": [0, 2, 6],
-      "states": ["A", "B", "C"],
-      "states_type": "regular",
-      "flex": false,
+      "possible_states": ["A", "B", "C"],
+      "subset": false,
+      "is_valid": false
+    },
+    {
+      "value": [0, null, 2, 3],
+      "possible_states": ["1", "2", "3", "4"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": [0, true, 2, 3],
-      "states": ["1", "2", "3", "4"],
-      "states_type": "regular",
-      "flex": false,
+      "possible_states": ["1", "2", "3", "4"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": [0, 0, 3, 1, 0, 2],
-      "states": null,
-      "states_type": "regular",
-      "flex": false,
+      "possible_states": null,
+      "subset": false,
       "is_valid": false
     },
     {
       "value": ["1", "5"],
-      "states": ["1", "2", "3", "4"],
-      "states_type": "regular",
-      "flex": false,
+      "possible_states": ["1", "2", "3", "4"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": ["2", "4"],
-      "states": ["1", "2", "3", "4"],
-      "states_type": "regular",
-      "flex": false,
+      "possible_states": ["1", "2", "3", "4"],
+      "subset": false,
       "is_valid": true
     },
     {
       "value": ["A", "C"],
-      "states": ["1", "2", "3", "4"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["1", "2", "3", "4"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": ["A", "B", "D"],
-      "states": ["A", "B", "C", "D"],
-      "states_type": "regular",
-      "flex": true,
+      "possible_states": ["A", "B", "C", "D"],
+      "subset": false,
       "is_valid": true
     },
     {
       "value": ["A", "B", "A", "C", "A", "B", "B"],
-      "states": ["A", "B", "C"],
-      "states_type": "regular",
-      "flex": false,
+      "possible_states": ["A", "B", "C"],
+      "subset": false,
+      "is_valid": false
+    },
+    {
+      "value": ["C", "C", "C", "C"],
+      "possible_states": ["A", "B", "C"],
+      "subset": false,
       "is_valid": false
     },
     {
       "value": ["A", "B", "A", "C", "A", "B", "B"],
-      "states": null,
-      "states_type": "regular",
-      "flex": false,
+      "possible_states": null,
+      "subset": false,
       "is_valid": false
     },
     {
       "value": null,
-      "states": ["A", "B", "C"],
-      "states_type": "subset",
-      "flex": true,
+      "possible_states": ["A", "B", "C"],
+      "subset": true,
       "is_valid": false
     },
     {
       "value": true,
-      "states": ["A", "B", "C"],
-      "states_type": "subset",
-      "flex": false,
+      "possible_states": ["A", "B", "C"],
+      "subset": true,
       "is_valid": false
     },
     {
       "value": 8,
-      "states": ["A", "B", "C"],
-      "states_type": "subset",
-      "flex": true,
+      "possible_states": ["A", "B", "C"],
+      "subset": true,
       "is_valid": false
     },
     {
       "value": "1",
-      "states": ["1", "2", "3"],
-      "states_type": "subset",
-      "flex": true,
+      "possible_states": ["1", "2", "3"],
+      "subset": true,
       "is_valid": true
     },
     {
       "value": "3",
-      "states": ["1", "2", "3"],
-      "states_type": "subset",
-      "flex": false,
-      "is_valid": false
+      "possible_states": ["1", "2", "3"],
+      "subset": true,
+      "is_valid": true
     },
     {
       "value": [],
-      "states": ["A", "B"],
-      "states_type": "subset",
-      "flex": false,
+      "possible_states": ["A", "B"],
+      "subset": true,
       "is_valid": false
     },
     {
       "value": [false, false],
-      "states": ["A", "B"],
-      "states_type": "subset",
-      "flex": false,
+      "possible_states": ["A", "B"],
+      "subset": true,
       "is_valid": false
     },
     {
       "value": [-1, 3],
-      "states": ["A", "B"],
-      "states_type": "subset",
-      "flex": false,
+      "possible_states": ["A", "B"],
+      "subset": true,
       "is_valid": false
     },
     {
       "value": ["3"],
-      "states": ["1", "2", "3"],
-      "states_type": "subset",
-      "flex": false,
+      "possible_states": ["1", "2", "3"],
+      "subset": true,
       "is_valid": true
     },
     {
       "value": ["2", "3"],
-      "states": ["1", "2", "3"],
-      "states_type": "subset",
-      "flex": false,
+      "possible_states": ["1", "2", "3"],
+      "subset": true,
       "is_valid": true
     },
     {
       "value": ["2", "5"],
-      "states": ["1", "2", "3"],
-      "states_type": "subset",
-      "flex": false,
+      "possible_states": ["1", "2", "3"],
+      "subset": true,
       "is_valid": false
     },
     {
       "value": ["3", "1"],
-      "states": null,
-      "states_type": "subset",
-      "flex": false,
+      "possible_states": null,
+      "subset": true,
       "is_valid": false
     },
     {
       "value": ["A", "A"],
-      "states": ["A", "B", "C"],
-      "states_type": "subset",
-      "flex": false,
+      "possible_states": ["A", "B", "C"],
+      "subset": true,
       "is_valid": false
+    },
+    {
+      "value": ["A", "B"],
+      "possible_states": ["A", "B", "C", "D"],
+      "subset": true,
+      "is_valid": true
     },
     {
       "value": ["A", "B", "C"],
-      "states": ["A", "B", "C"],
-      "states_type": "subset",
-      "flex": false,
+      "possible_states": ["A", "B", "C"],
+      "subset": true,
       "is_valid": false
     },
     {
-      "value": null,
-      "states": ["A", "B", "C"],
-      "states_type": "walk",
-      "flex": true,
+      "value": ["1", "2"],
+      "possible_states": ["A", "B", "C"],
+      "subset": true,
       "is_valid": false
-    },
-    {
-      "value": false,
-      "states": ["1", "2", "3"],
-      "states_type": "walk",
-      "flex": true,
-      "is_valid": false
-    },
-    {
-      "value": 1,
-      "states": ["A", "B", "C"],
-      "states_type": "walk",
-      "flex": true,
-      "is_valid": false
-    },
-    {
-      "value": 1,
-      "states": ["A", "B", "C"],
-      "states_type": "walk",
-      "flex": false,
-      "is_valid": false
-    },
-    {
-      "value": "A",
-      "states": ["A", "B", "C"],
-      "states_type": "walk",
-      "flex": true,
-      "is_valid": false
-    },
-    {
-      "value": [],
-      "states": ["1", "2", "3"],
-      "states_type": "walk",
-      "flex": false,
-      "is_valid": false
-    },
-    {
-      "value": [true],
-      "states": ["A", "B", "C"],
-      "states_type": "walk",
-      "flex": false,
-      "is_valid": false
-    },
-    {
-      "value": [-1],
-      "states": ["A", "B", "C"],
-      "states_type": "walk",
-      "flex": false,
-      "is_valid": false
-    },
-    {
-      "value": [0, 1],
-      "states": ["A", "B", "C"],
-      "states_type": "walk",
-      "flex": false,
-      "is_valid": true
-    },
-    {
-      "value": [0, 0, 0, 0],
-      "states": null,
-      "states_type": "walk",
-      "flex": false,
-      "is_valid": false
-    },
-    {
-      "value": [0, 1, 1, 2, 1, 0, 0, 1, 2],
-      "states": ["A", "B", "C"],
-      "states_type": "walk",
-      "flex": false,
-      "is_valid": true
-    },
-    {
-      "value": ["2"],
-      "states": ["1", "2", "3"],
-      "states_type": "walk",
-      "flex": true,
-      "is_valid": false
-    },
-    {
-      "value": ["2", "1"],
-      "states": ["1", "2", "3"],
-      "states_type": "walk",
-      "flex": true,
-      "is_valid": true
-    },
-    {
-      "value": ["1", "1", "1", "1", "1"],
-      "states": null,
-      "states_type": "walk",
-      "flex": true,
-      "is_valid": false
-    },
-    {
-      "value": ["2", "3", "1", "1", "1", "1", "1", "3", "2", "4"],
-      "states": ["1", "2", "3", "4"],
-      "states_type": "walk",
-      "flex": false,
-      "is_valid": true
-    },
-    {
-      "value": ["A"],
-      "states": ["A", "B"],
-      "states_type": "walk",
-      "flex": false,
-      "is_valid": false
-    },
-    {
-      "value": ["A", "A", "A", "A", "A"],
-      "states": ["A", "B"],
-      "states_type": "walk",
-      "flex": false,
-      "is_valid": true
     }
   ],
   "validate_status_data": [
@@ -1674,6 +1543,108 @@
     {
       "value": [[], []],
       "is_valid": false
+    }
+  ],
+  "validate_walk_data": [
+    {
+      "value": null,
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": false,
+      "possible_states": ["1", "2", "3"],
+      "is_valid": false
+    },
+    {
+      "value": 1,
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": 1,
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": "A",
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "possible_states": ["1", "2", "3"],
+      "is_valid": false
+    },
+    {
+      "value": [true],
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [-1],
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [1],
+      "possible_states": ["1", "2", "3"],
+      "is_valid": false
+    },
+    {
+      "value": [0, 1],
+      "possible_states": ["A", "B", "C"],
+      "is_valid": true
+    },
+    {
+      "value": [0, 0, 0, 0],
+      "possible_states": null,
+      "is_valid": false
+    },
+    {
+      "value": [0, 1, 1, 2, 1, 0, 0, 1, 2],
+      "possible_states": ["A", "B", "C"],
+      "is_valid": true
+    },
+    {
+      "value": [3, 2, 0, 0, 0, 1, 1, 3, 2],
+      "possible_states": ["1", "2", "3", "4"],
+      "is_valid": true
+    },
+    {
+      "value": [3, 2, 0, 0, 0, 1, 1, 3, 2],
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": ["2"],
+      "possible_states": ["1", "2", "3"],
+      "is_valid": false
+    },
+    {
+      "value": ["2", "1"],
+      "possible_states": ["1", "2", "3"],
+      "is_valid": true
+    },
+    {
+      "value": ["1", "1", "1", "1", "1"],
+      "possible_states": null,
+      "is_valid": false
+    },
+    {
+      "value": ["2", "3", "1", "1", "1", "1", "1", "3", "2", "4"],
+      "possible_states": ["1", "2", "3", "4"],
+      "is_valid": true
+    },
+    {
+      "value": ["A"],
+      "possible_states": ["A", "B"],
+      "is_valid": false
+    },
+    {
+      "value": ["A", "A", "A", "A", "A"],
+      "possible_states": ["A", "B"],
+      "is_valid": true
     }
   ],
   "validate_vector_data": [

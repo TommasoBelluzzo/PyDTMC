@@ -27,6 +27,7 @@ __all__ = [
     'validate_transition_function',
     'validate_transition_matrix',
     'validate_vector',
+    'validate_walk',
     'validate_walks'
 ]
 
@@ -102,6 +103,7 @@ from .custom_types import (
     tfile as _tfile,
     tgraphs as _tgraphs,
     tinterval as _tinterval,
+    tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
     tmc as _tmc,
@@ -111,7 +113,7 @@ from .custom_types import (
     tscalar as _tscalar,
     ttfunc as _ttfunc,
     ttimes_in as _ttimes_in,
-    tvalid_states as _tvalid_states,
+    tvalid_walk as _tvalid_walk,
     tvalid_walks as _tvalid_walks
 )
 
@@ -678,36 +680,28 @@ def validate_state_names(value: _tany, size: _oint = None) -> _tlist_str:
     return value
 
 
-def validate_states(value: _tany, possible_states: _olist_str, states_type: str, flex: bool) -> _tvalid_states:
+def validate_states(value: _tany, possible_states: _tlist_str, subset: bool) -> _tlist_int:
 
-    if flex:
+    if _is_integer(value):
 
-        if _is_integer(value):
+        value = int(value)
+        limit = len(possible_states) - 1
 
-            if states_type == 'walk':
-                raise ValueError('The "@arg@" parameter, when specified as an integer, cannot be associated to a walk.')
+        if value < 0 or value > limit:
+            raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and the number of existing states minus one ({limit:d}).')
 
-            value = int(value)
-            limit = len(possible_states) - 1
+        value = [value]
 
-            if value < 0 or value > limit:
-                raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and the number of existing states minus one ({limit:d}).')
+        return value
 
-            value = [value]
+    if _is_string(value):
 
-            return value, possible_states
+        if value not in possible_states:
+            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(possible_states)}).')
 
-        if _is_string(value):
+        value = [possible_states.index(value)]
 
-            if states_type == 'walk':
-                raise ValueError('The "@arg@" parameter, when specified as a string, cannot be associated to a walk.')
-
-            if value not in possible_states:
-                raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(possible_states)}).')
-
-            value = [possible_states.index(value)]
-
-            return value, possible_states
+        return value
 
     try:
         value = _extract_data_generic(value)
@@ -719,62 +713,32 @@ def validate_states(value: _tany, possible_states: _olist_str, states_type: str,
     elif all(_is_string(state) for state in value):
         value_type = 'string'
     else:
-
-        if flex:
-            message = 'The "@arg@" parameter must be either an integer, a non-empty string, an array_like object of integers or an array_like object of non-empty strings.'
-        else:
-            message = 'The "@arg@" parameter must be either an array_like object of integers or an array_like object of non-empty strings.'
-
-        raise TypeError(message)
+        raise TypeError('The "@arg@" parameter must be either an integer, a non-empty string, an array_like object of integers or an array_like object of non-empty strings.')
 
     if value_type == 'integer':
 
         value = [int(state) for state in value]
 
-        if possible_states is None:
+        try:
+            possible_states = validate_state_names(possible_states)
+        except Exception as e:
+            raise ValueError(
+                'The "@arg@" parameter must be validated against a coherent list of possible states.') from e
 
-            if states_type != 'walk':
-                raise ValueError('The "@arg@" parameter must be validated against a list of possible states.')
-
-            possible_states = [str(i) for i in range(1, len(set(value)) + 1)]
-            possible_states_length = len(possible_states)
-
-            if possible_states_length < 2:
-                raise ValueError('The "@arg@" parameter does not provide enough data to infer the possible states.')
-
-        else:
-
-            try:
-                possible_states = validate_state_names(possible_states)
-            except Exception as e:
-                raise ValueError('The "@arg@" parameter must be validated against a coherent list of possible states.') from e
-
-            possible_states_length = len(possible_states)
+        possible_states_length = len(possible_states)
 
         if any(state < 0 or state >= possible_states_length for state in value):
             raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and the number of existing states minus one ({possible_states_length - 1:d}).')
 
     else:
 
-        if possible_states is None:
+        try:
+            possible_states = validate_state_names(possible_states)
+        except Exception as e:
+            raise ValueError(
+                'The "@arg@" parameter must be validated against a coherent list of possible states.') from e
 
-            if states_type != 'walk':
-                raise ValueError('The "@arg@" parameter must be validated against a list of possible states.')
-
-            possible_states = sorted(set(value))
-            possible_states_length = len(possible_states)
-
-            if possible_states_length < 2:
-                raise ValueError('The "@arg@" parameter does not provide enough data to infer the possible states.')
-
-        else:
-
-            try:
-                possible_states = validate_state_names(possible_states)
-            except Exception as e:
-                raise ValueError('The "@arg@" parameter must be validated against a coherent list of possible states.') from e
-
-            possible_states_length = len(possible_states)
+        possible_states_length = len(possible_states)
 
         value = [possible_states.index(state) if state in possible_states else -1 for state in value]
 
@@ -783,32 +747,19 @@ def validate_states(value: _tany, possible_states: _olist_str, states_type: str,
 
     value_length = len(value)
 
-    if states_type == 'regular':
+    if len(set(value)) < value_length:
+        raise ValueError('The "@arg@" parameter must contain only unique values.')
 
-        if len(set(value)) < value_length:
-            raise ValueError('The "@arg@" parameter must contain only unique values.')
-
+    if subset:
+        if value_length < 1 or value_length >= possible_states_length:
+            raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states minus one ({possible_states_length - 1:d}).')
+    else:
         if value_length < 1 or value_length > possible_states_length:
             raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states ({possible_states_length:d}).')
 
-        value = sorted(value)
+    value = sorted(value)
 
-    elif states_type == 'subset':
-
-        if len(set(value)) < value_length:
-            raise ValueError('The "@arg@" parameter must contain only unique values.')
-
-        if value_length < 1 or value_length >= possible_states_length:
-            raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states minus one ({possible_states_length - 1:d}).')
-
-        value = sorted(value)
-
-    elif states_type == 'walk':
-
-        if value_length < 2:
-            raise ValueError('The "@arg@" parameter must contain at least two elements.')
-
-    return value, possible_states
+    return value
 
 
 def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
@@ -989,6 +940,71 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
     return value
 
 
+def validate_walk(value: _tany, possible_states: _olist_str) -> _tvalid_walk:
+
+    try:
+        value = _extract_data_generic(value)
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+
+    if all(_is_integer(state) for state in value):
+        value_type = 'integer'
+    elif all(_is_string(state) for state in value):
+        value_type = 'string'
+    else:
+        raise TypeError('The "@arg@" parameter must be either an array_like object of integers or an array_like object of non-empty strings.')
+
+    if value_type == 'integer':
+
+        value = [int(state) for state in value]
+
+        if possible_states is None:
+
+            possible_states = [str(i) for i in range(1, len(set(value)) + 1)]
+            possible_states_length = len(possible_states)
+
+            if possible_states_length < 2:
+                raise ValueError('The "@arg@" parameter does not provide enough data to infer the possible states.')
+
+        else:
+
+            try:
+                possible_states = validate_state_names(possible_states)
+            except Exception as e:
+                raise ValueError('The "@arg@" parameter must be validated against a valid list of possible states.') from e
+
+            possible_states_length = len(possible_states)
+
+        if any(state < 0 or state >= possible_states_length for state in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and the number of existing states minus one ({possible_states_length - 1:d}).')
+
+    else:
+
+        if possible_states is None:
+
+            possible_states = sorted(set(value))
+
+            if len(possible_states) < 2:
+                raise ValueError('The "@arg@" parameter does not provide enough data to infer the possible states.')
+
+        else:
+
+            try:
+                possible_states = validate_state_names(possible_states)
+            except Exception as e:
+                raise ValueError('The "@arg@" parameter must be validated against a valid list of possible states.') from e
+
+        value = [possible_states.index(state) if state in possible_states else -1 for state in value]
+
+        if any(state == -1 for state in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the names of the existing states ({", ".join(possible_states)}).')
+
+    if len(value) < 2:
+        raise ValueError('The "@arg@" parameter must contain at least two elements.')
+
+    return value, possible_states
+
+
 def validate_walks(value: _tany, possible_states: _tlist_str) -> _tvalid_walks:
 
     try:
@@ -1004,43 +1020,12 @@ def validate_walks(value: _tany, possible_states: _tlist_str) -> _tvalid_walks:
     try:
         possible_states = validate_state_names(possible_states)
     except Exception as e:
-        raise ValueError('The "@arg@" parameter must be validated against a list of possible states.') from e
-
-    possible_states_length = len(possible_states)
+        raise ValueError('The "@arg@" parameter must be validated against a valid list of possible states.') from e
 
     for i in range(value_length):
-
-        value_i = value[i]
-
         try:
-            value_i = _extract_data_generic(value_i)
+            value[i], _ = validate_walk(value[i], possible_states)
         except Exception as e:
             raise ValueError('The "@arg@" parameter contains invalid elements.') from e
-
-        if len(value_i) < 2:
-            raise ValueError('The "@arg@" parameter contains invalid elements.')
-
-        if all(_is_integer(state) for state in value_i):
-            value_i_type = 'integer'
-        elif all(_is_string(state) for state in value_i):
-            value_i_type = 'string'
-        else:
-            raise ValueError('The "@arg@" parameter contains invalid elements.')
-
-        if value_i_type == 'integer':
-
-            value_i = [int(state) for state in value_i]
-
-            if any(state < 0 or state >= possible_states_length for state in value_i):
-                raise ValueError('The "@arg@" parameter contains invalid elements.')
-
-        else:
-
-            value_i = [possible_states.index(state) if state in possible_states else -1 for state in value_i]
-
-            if any(state == -1 for state in value_i):
-                raise ValueError('The "@arg@" parameter contains invalid elements.')
-
-        value[i] = value_i
 
     return value, possible_states

@@ -100,6 +100,7 @@ from pydtmc.validation import (
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
     validate_vector as _validate_vector,
+    validate_walk as _validate_walk,
     validate_walks as _validate_walks
 )
 
@@ -156,7 +157,7 @@ def test_validate_boolean(value, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, bool)
         expected = True
@@ -179,7 +180,7 @@ def test_validate_boundary_condition(value, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, (float, int, str))
         expected = True
@@ -214,7 +215,7 @@ def test_validate_dictionary(dictionary_elements, key_tuple, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, dict)
         expected = True
@@ -241,7 +242,7 @@ def test_validate_distribution(value, size, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, _np_ndarray) for v in result))
         expected = True
@@ -264,7 +265,7 @@ def test_validate_dpi(value, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, int)
         expected = True
@@ -287,7 +288,7 @@ def test_validate_enumerator(value, possible_values, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, str)
         expected = True
@@ -314,7 +315,7 @@ def test_validate_file_path(value, accepted_extensions, write_permission, is_val
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = result[0] == value
         expected = True
@@ -340,7 +341,7 @@ def test_validate_float(value, lower_limit, upper_limit, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, float)
         expected = True
@@ -375,7 +376,7 @@ def test_validate_graph(graph_data, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, _nx_DiGraph)
         expected = True
@@ -401,7 +402,7 @@ def test_validate_integer(value, lower_limit, upper_limit, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, int)
         expected = True
@@ -424,7 +425,7 @@ def test_validate_hyperparameter(value, size, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, _np_ndarray)
         expected = True
@@ -449,7 +450,7 @@ def test_validate_interval(value, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = all(isinstance(v, float) for v in result)
         expected = True
@@ -491,7 +492,7 @@ def test_validate_markov_chain(value, is_valid):
 
         assert actual == expected
 
-        if result is not None:
+        if result_is_valid:
 
             actual = isinstance(result, _MarkovChain)
             expected = True
@@ -516,7 +517,7 @@ def test_validate_mask(value, size, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, _np_ndarray)
         expected = True
@@ -541,7 +542,7 @@ def test_validate_matrix(value, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, _np_ndarray)
         expected = True
@@ -564,7 +565,7 @@ def test_validate_partitions(value, current_states, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, list) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
         expected = True
@@ -587,7 +588,7 @@ def test_validate_random_distribution(value, accepted_values, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = callable(result)
         expected = True
@@ -610,7 +611,7 @@ def test_validate_rewards(value, size, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, _np_ndarray)
         expected = True
@@ -633,7 +634,7 @@ def test_validate_state(value, current_states, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, int)
         expected = True
@@ -661,7 +662,7 @@ def test_validate_state_names(value, size, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, list) and all(isinstance(v, str) for v in result)
         expected = True
@@ -670,13 +671,13 @@ def test_validate_state_names(value, size, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_states(value, states, states_type, flex, is_valid):
+def test_validate_states(value, possible_states, subset, is_valid):
 
     try:
-        result_value, result_states = _validate_states(value, states, states_type, flex)
+        result = _validate_states(value, possible_states, subset)
         result_is_valid = True
     except Exception:
-        result_value, result_states = None, None
+        result = None
         result_is_valid = False
 
     actual = result_is_valid
@@ -686,12 +687,7 @@ def test_validate_states(value, states, states_type, flex, is_valid):
 
     if result_is_valid:
 
-        actual = isinstance(result_value, list) and all(isinstance(v, int) for v in result_value)
-        expected = True
-
-        assert actual == expected
-
-        actual = isinstance(result_states, list) and all(isinstance(v, str) for v in result_states)
+        actual = isinstance(result, list) and all(isinstance(v, int) for v in result)
         expected = True
 
         assert actual == expected
@@ -712,7 +708,7 @@ def test_validate_status(value, current_states, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, _np_ndarray)
         expected = True
@@ -735,7 +731,7 @@ def test_validate_time_points(value, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, int) for v in result))
         expected = True
@@ -764,7 +760,7 @@ def test_validate_transition_function(value, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = callable(result)
         expected = True
@@ -787,7 +783,7 @@ def test_validate_transition_matrix(value, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, _np_ndarray)
         expected = True
@@ -810,9 +806,46 @@ def test_validate_vector(value, vector_type, flex, size, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, _np_ndarray)
+        expected = True
+
+        assert actual == expected
+
+
+# noinspection PyBroadException
+def test_validate_walk(value, possible_states, is_valid):
+
+    try:
+        result = _validate_walk(value, possible_states)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+
+        actual = isinstance(result, tuple)
+        expected = True
+
+        assert actual == expected
+
+        result_value = result[0]
+
+        actual = isinstance(result_value, list) and all(isinstance(v, int) for v in result_value)
+        expected = True
+
+        assert actual == expected
+
+        result_possible_states = result[1]
+
+        actual = isinstance(result_possible_states, list) and all(isinstance(v, str) for v in result_possible_states)
         expected = True
 
         assert actual == expected
@@ -833,23 +866,23 @@ def test_validate_walks(value, possible_states, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, tuple)
         expected = True
 
         assert actual == expected
 
-        result0 = result[0]
+        result_value = result[0]
 
-        actual = isinstance(result0, list) and all(isinstance(v, list) for v in result0) and all(isinstance(v, int) for r in result0 for v in r)
+        actual = isinstance(result_value, list) and all(isinstance(r, list) for r in result_value) and all(isinstance(v, int) for r in result_value for v in r)
         expected = True
 
         assert actual == expected
 
-        result1 = result[1]
+        result_possible_states = result[1]
 
-        actual = isinstance(result1, list) and all(isinstance(v, str) for v in result1)
+        actual = isinstance(result_possible_states, list) and all(isinstance(v, str) for v in result_possible_states)
         expected = True
 
         assert actual == expected

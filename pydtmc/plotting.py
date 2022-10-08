@@ -120,8 +120,8 @@ from .validation import (
     validate_integer as _validate_integer,
     validate_markov_chain as _validate_markov_chain,
     validate_state as _validate_state,
-    validate_states as _validate_states,
-    validate_status as _validate_status
+    validate_status as _validate_status,
+    validate_walk as _validate_walk
 )
 
 
@@ -588,7 +588,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         if isinstance(walk, (int, _np_integer)):
             walk = _validate_integer(walk, lower_limit=(2, False))
         else:
-            walk, _ = _validate_states(walk, mc.states, 'walk', False)
+            walk, _ = _validate_walk(walk, mc.states)
 
         if initial_state is not None:
             initial_state = _validate_state(initial_state, mc.states)

@@ -52,6 +52,7 @@ __all__ = [
     'ttimes_in', 'otimes_in',
     'ttimes_out', 'otimes_out',
     'tvalid_states', 'ovalid_states',
+    'tvalid_walk', 'ovalid_walk',
     'tvalid_walks', 'ovalid_walks',
     'twalk', 'owalk',
     'twalk_flex', 'owalk_flex',
@@ -269,6 +270,9 @@ otimes_out = _tp_Optional[ttimes_out]
 
 tvalid_states = _tp_Tuple[tlist_int, tlist_str]
 ovalid_states = _tp_Optional[tvalid_states]
+
+tvalid_walk = _tp_Tuple[tlist_int, tlist_str]
+ovalid_walk = _tp_Optional[tvalid_walk]
 
 tvalid_walks = _tp_Tuple[tlists_int, tlist_str]
 ovalid_walks = _tp_Optional[tvalid_walks]
