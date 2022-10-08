@@ -45,11 +45,14 @@ from numpy import (
 
 from scipy.stats import (
     chi2 as _sps_chi2,
-    chi2_contingency as _sps_chi2_contingency,
     chisquare as _sps_chisquare
 )
 
 # Internal
+
+from .computations import (
+    chi2_contingency as _chi2_contingency
+)
 
 from .custom_types import (
     olist_str as _olist_str,
@@ -127,7 +130,7 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
                 ct[p, f] += 1
 
         try:
-            ct_chi2, _, _, _ = _sps_chi2_contingency(ct)
+            ct_chi2, _, _, _ = _chi2_contingency(ct)
         except Exception:
             ct_chi2 = float('nan')
 
@@ -327,17 +330,17 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
     """
 
     # noinspection PyBroadException
-    def _chi2_contingency(cc_ct):  # pragma: no cover
+    def _chi2_contingency_inner(cc_ct):  # pragma: no cover
 
         try:
-            v, _, _, _ = _sps_chi2_contingency(cc_ct)
+            v, _, _, _ = _chi2_contingency(cc_ct)
         except Exception:
             v = float('nan')
 
         return v
 
     # noinspection PyBroadException
-    def _chi2_standard(cs_ct):  # pragma: no cover
+    def _chi2_standard_inner(cs_ct):  # pragma: no cover
 
         try:
             v, _ = _sps_chisquare(_np_ravel(cs_ct))
@@ -366,7 +369,7 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
     iters = k - 1
     block_size = float(k) / blocks
     adjustment = 1.0 / n
-    chi2_func = _chi2_standard if blocks == 1 else _chi2_contingency
+    chi2_func = _chi2_standard_inner if blocks == 1 else _chi2_contingency_inner
 
     chi2 = 0.0
 

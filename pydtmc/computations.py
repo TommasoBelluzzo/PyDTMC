@@ -2,6 +2,7 @@
 
 __all__ = [
     'calculate_periods',
+    'chi2_contingency',
     'eigenvalues_sorted',
     'find_cyclic_classes',
     'find_lumping_partitions',
@@ -29,7 +30,9 @@ from math import (
 
 from numpy import (
     abs as _np_abs,
+    any as _np_any,
     append as _np_append,
+    apply_over_axes as _np_apply_over_axes,
     argsort as _np_argsort,
     argwhere as _np_argwhere,
     array as _np_array,
@@ -40,8 +43,11 @@ from numpy import (
     dot as _np_dot,
     eye as _np_eye,
     isclose as _np_isclose,
+    minimum as _np_minimum,
+    prod as _np_prod,
     real as _np_real,
     remainder as _np_remainder,
+    sign as _np_sign,
     sort as _np_sort,
     sum as _np_sum,
     transpose as _np_transpose,
@@ -59,6 +65,10 @@ from numpy.linalg import (
 from networkx import (
     shortest_path_length as _nx_shortest_path_length,
     strongly_connected_components as _nx_strongly_connected_components
+)
+
+from scipy.stats import (
+    chi2 as _sps_chi2
 )
 
 # Internal
@@ -152,6 +162,45 @@ def calculate_periods(graph: _tgraph) -> _tlist_int:
             periods[index] = 1
 
     return periods
+
+
+def chi2_contingency(observed: _tarray, correction: bool = True):
+
+    observed = observed.astype(float)
+
+    if _np_any(observed < 0.0):
+        raise ValueError("The table of observed frequencies must contain only non-negative values.")
+
+    d, z = observed.ndim, observed.size
+    d_range = list(range(d))
+
+    marginals = []
+
+    for k in d_range:
+        marginal = _np_apply_over_axes(_np_sum, observed, [j for j in d_range if j != k])
+        marginals.append(marginal)
+
+    expected = _np_prod(marginals) / (_np_sum(observed) ** (d - 1))
+
+    if _np_any(expected == 0.0):
+        raise ValueError("The internally computed table of expected frequencies contains null elements.")
+
+    dof = expected.size - sum(expected.shape) + expected.ndim - 1
+
+    if dof == 0:
+        chi2, p_value = 0.0, 1.0
+    else:
+
+        if correction and dof == 1:
+            diff = expected - observed
+            direction = _np_sign(diff)
+            magnitude = _np_minimum(0.5, _np_abs(diff))
+            observed = observed + (magnitude * direction)
+
+        chi2 = _np_sum((observed - expected)**2.0 / expected)
+        p_value = _sps_chi2.sf(chi2, dof - 2)
+
+    return chi2, p_value, dof, expected
 
 
 def eigenvalues_sorted(m: _tarray) -> _tarray:
