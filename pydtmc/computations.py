@@ -201,7 +201,7 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
         chi2 = _np_sum((observed - expected)**2.0 / expected)
         p_value = _sps_chi2.sf(chi2, dof - 2)
 
-    return p_value, chi2, dof
+    return chi2, p_value
 
 
 def eigenvalues_sorted(m: _tarray) -> _tarray:

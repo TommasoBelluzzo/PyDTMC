@@ -260,7 +260,7 @@ ostatus = _tp_Optional[tstatus]
 ttest = _tp_Tuple[obool, float, _tp_Dict[str, tany]]
 otest = _tp_Optional[ttest]
 
-ttest_chi2 = _tp_Tuple[float, float, int]
+ttest_chi2 = _tp_Tuple[float, float]
 otest_chi2 = _tp_Optional[ttest_chi2]
 
 ttfunc = _tp_Callable[[int, float, int, float], float]
