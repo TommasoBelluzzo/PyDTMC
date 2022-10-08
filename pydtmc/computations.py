@@ -80,7 +80,8 @@ from .custom_types import (
     tlist_int as _tlist_int,
     tlists_int as _tlists_int,
     tparts as _tparts,
-    trdl as _trdl
+    trdl as _trdl,
+    ttest_chi2 as _ttest_chi2
 )
 
 
@@ -164,7 +165,7 @@ def calculate_periods(graph: _tgraph) -> _tlist_int:
     return periods
 
 
-def chi2_contingency(observed: _tarray, correction: bool = True):
+def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
 
     observed = observed.astype(float)
 
@@ -185,7 +186,7 @@ def chi2_contingency(observed: _tarray, correction: bool = True):
     if _np_any(expected == 0.0):
         raise ValueError("The internally computed table of expected frequencies contains null elements.")
 
-    dof = expected.size - sum(expected.shape) + expected.ndim - 1
+    dof = expected.size - sum(expected.shape) + d - 1
 
     if dof == 0:
         chi2, p_value = 0.0, 1.0
@@ -200,7 +201,7 @@ def chi2_contingency(observed: _tarray, correction: bool = True):
         chi2 = _np_sum((observed - expected)**2.0 / expected)
         p_value = _sps_chi2.sf(chi2, dof - 2)
 
-    return chi2, p_value, dof, expected
+    return p_value, chi2, dof
 
 
 def eigenvalues_sorted(m: _tarray) -> _tarray:

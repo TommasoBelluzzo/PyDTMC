@@ -130,7 +130,7 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
                 ct[p, f] += 1
 
         try:
-            ct_chi2, _, _, _ = _chi2_contingency(ct)
+            _, ct_chi2, _ = _chi2_contingency(ct)
         except Exception:
             ct_chi2 = float('nan')
 
@@ -333,7 +333,7 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
     def _chi2_contingency_inner(cc_ct):  # pragma: no cover
 
         try:
-            v, _, _, _ = _chi2_contingency(cc_ct)
+            _, v, _ = _chi2_contingency(cc_ct)
         except Exception:
             v = float('nan')
 
