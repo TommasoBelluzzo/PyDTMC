@@ -75,7 +75,7 @@
       ],
       "possible_states": ["A", "B", "C", "D"],
       "significance": 0.05,
-      "value": [true, 0.00000051, 58.22436317, 15]
+      "value": [null, "NaN", "NaN", "NaN"]
     },
     {
       "walks": [

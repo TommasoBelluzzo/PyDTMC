@@ -165,6 +165,22 @@ def assess_homogeneity(walks: _twalks, possible_states: _tlist_str, significance
 
     k, n = len(walks), len(possible_states)
 
+    intersections_found = []
+
+    for i in range(k):
+        walk_i = walks[i]
+
+        for j in range(k):
+            walk_j = walks[j]
+
+            if i != j:
+                intersection = list(set(walk_i) & set(walk_j))
+                intersection_found = len(intersection) > 0
+                intersections_found.append(intersection_found)
+
+    if not any(intersections_found):
+        return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
+
     fs = []
     f_pooled = _np_zeros((n, n), dtype=float)
 
