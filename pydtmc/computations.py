@@ -171,7 +171,7 @@ def chi2_contingency(observed: _tarray, correction: bool = True):
     if _np_any(observed < 0.0):
         raise ValueError("The table of observed frequencies must contain only non-negative values.")
 
-    d, z = observed.ndim, observed.size
+    d = observed.ndim
     d_range = list(range(d))
 
     marginals = []
