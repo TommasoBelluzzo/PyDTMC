@@ -100,6 +100,7 @@ from pydtmc.validation import (
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
     validate_vector as _validate_vector,
+    validate_walks as _validate_walks
 )
 
 
@@ -818,6 +819,37 @@ def test_validate_vector(value, vector_type, flex, size, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_walks(value, is_valid):
+def test_validate_walks(value, possible_states, is_valid):
 
-    assert value == is_valid
+    try:
+        result = _validate_walks(value, possible_states)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result is not None:
+
+        actual = isinstance(result, tuple)
+        expected = True
+
+        assert actual == expected
+
+        result0 = result[0]
+
+        actual = isinstance(result0, list) and all(isinstance(v, list) for v in result0) and all(isinstance(v, int) for r in result0 for v in r)
+        expected = True
+
+        assert actual == expected
+
+        result1 = result[1]
+
+        actual = isinstance(result1, list) and all(isinstance(v, str) for v in result1)
+        expected = True
+
+        assert actual == expected

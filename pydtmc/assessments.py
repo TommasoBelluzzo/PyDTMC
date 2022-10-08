@@ -43,8 +43,6 @@ from numpy import (
     zeros as _np_zeros
 )
 
-import scipy
-
 from scipy.stats import (
     chi2 as _sps_chi2,
     chi2_contingency as _sps_chi2_contingency,
@@ -55,6 +53,7 @@ from scipy.stats import (
 
 from .custom_types import (
     olist_str as _olist_str,
+    tlist_str as _tlist_str,
     tmc as _tmc,
     ttest as _ttest,
     twalk as _twalk,
@@ -117,9 +116,6 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
 
     chi2 = 0.0
 
-    print(scipy.__version__)
-    print('--------------')
-
     for state in possible_states:
 
         ct = _np_zeros((n, n), dtype=float)
@@ -138,8 +134,6 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
         if _math_isnan(ct_chi2):
             return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
 
-        print(ct, ct_chi2)
-
         chi2 += ct_chi2
 
     dof = n * (n - 1)**2
@@ -150,13 +144,13 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
 
 
 # noinspection DuplicatedCode
-def assess_homogeneity(walks: _twalks, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
+def assess_homogeneity(walks: _twalks, possible_states: _tlist_str, significance: float = 0.05) -> _ttest:
 
     """
     The function verifies whether the given sequences belong to the same Markov process.
 
     :param walks: the observed sequences of states.
-    :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequences of states*).
+    :param possible_states: the possible states of the process.
     :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -360,9 +354,6 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
 
     chi2 = 0.0
 
-    print(scipy.__version__)
-    print('--------------')
-
     for state in possible_states:
 
         ct = _np_zeros((blocks, n), dtype=float)
@@ -380,8 +371,6 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
 
         if _math_isnan(ct_chi2):
             return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
-
-        print(ct, ct_chi2)
 
         chi2 += ct_chi2
 
