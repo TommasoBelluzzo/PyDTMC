@@ -188,7 +188,7 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
 
     dof = expected.size - sum(expected.shape) + d - 1
 
-    if dof == 0:
+    if dof == 0:  # pragma: no cover
         chi2, p_value = 0.0, 1.0
     else:
 
