@@ -1604,11 +1604,7 @@ class MarkovChain(metaclass=_BaseClass):
         except Exception as e:  # pragma: no cover
             raise _generate_validation_error(e, _ins_trace()) from None
 
-        if cutoff_type == 'traditional':
-            cutoff = 0.25
-        else:
-            cutoff = 1.0 / (2.0 * _np_exp(1.0))
-
+        cutoff = 0.25 if cutoff_type == 'traditional' else 1.0 / (2.0 * _np_exp(1.0))
         value = _mixing_time(self, initial_distribution, jump, cutoff)
 
         return value

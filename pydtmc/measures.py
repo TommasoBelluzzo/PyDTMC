@@ -453,18 +453,15 @@ def mixing_time(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: floa
 
     iterations = 0
 
+    tvd = 1.0
     d = initial_distribution.dot(p)
     mt = 0
 
-    while iterations < 100:
+    while iterations < 100 and tvd > cutoff:
 
         iterations += 1
 
         tvd = _np_sum(_np_abs(d - pi))
-
-        if tvd > cutoff:
-            break
-
         d = d.dot(p)
         mt += jump
 
