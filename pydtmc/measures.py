@@ -144,7 +144,7 @@ def expected_rewards(p: _tarray, steps: int, rewards: _tarray) -> _tany:
     er = _np_copy(rewards)
 
     for _ in range(steps):
-        er = original_rewards + _np_dot(er, p)
+        er = original_rewards + _np_dot(p, er)
 
     return er
 
