@@ -82,7 +82,7 @@ def test_plot_comparison(seed, maximum_size, maximum_elements, runs):
 
         try:
 
-            figure, _ = _plot_comparison(mcs, dark=dark)
+            figure, _ = _plot_comparison(mcs, dark_colormap=dark)
             _mplp_close(figure)
 
             exception = False

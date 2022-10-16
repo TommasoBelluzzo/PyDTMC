@@ -93,6 +93,7 @@ from pydtmc.validation import (
     validate_state_names as _validate_state_names,
     validate_states as _validate_states,
     validate_status as _validate_status,
+    validate_strings as _validate_strings,
     validate_time_points as _validate_time_points,
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
@@ -743,6 +744,29 @@ def test_validate_status(value, current_states, is_valid):
     if result_is_valid:
 
         actual = isinstance(result, _np_ndarray)
+        expected = True
+
+        assert actual == expected
+
+
+# noinspection PyBroadException
+def test_validate_strings(value, size, is_valid):
+
+    try:
+        result = _validate_strings(value, size)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+
+        actual = isinstance(result, list) and all(isinstance(v, str) for v in result)
         expected = True
 
         assert actual == expected

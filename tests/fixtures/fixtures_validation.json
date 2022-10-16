@@ -1493,6 +1493,58 @@
       "is_valid": false
     }
   ],
+  "validate_strings_data": [
+    {
+      "value": ["S1", "S2", "S3", "S4"],
+      "size": null,
+      "is_valid": true
+    },
+    {
+      "value": ["S1", "S2", "S3", "S4"],
+      "size": 4,
+      "is_valid": true
+    },
+    {
+      "value": ["S1", "S2", "S3", "S4"],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", " ", "S3", " "],
+      "size": null,
+      "is_valid": true
+    },
+    {
+      "value": ["S1"],
+      "size": null,
+      "is_valid": true
+    },
+    {
+      "value": ["S1"],
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": 0,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": "S1",
+      "size": null,
+      "is_valid": false
+    }
+  ],
   "validate_time_points_data": [
     {
       "value": 5,

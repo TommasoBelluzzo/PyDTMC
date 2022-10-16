@@ -109,6 +109,7 @@ from numpy.linalg import (
 
 from .custom_types import (
     oint as _oint,
+    olist_str as _olist_str,
     oplot as _oplot,
     ostate as _ostate,
     ostatus as _ostatus,
@@ -133,6 +134,7 @@ from .validation import (
     validate_markov_chains as _validate_markov_chains,
     validate_state as _validate_state,
     validate_status as _validate_status,
+    validate_strings as _validate_strings,
     validate_walk as _validate_walk
 )
 
@@ -191,7 +193,7 @@ def _yticks_states(ax, mc: _tmc, label: bool):
     ax.set_yticklabels(mc.states)
 
 
-def plot_comparison(mcs: _tlist_mc, constrained_layout: bool = False, dark: bool = False, dpi: int = 100) -> _oplot:
+def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_layout: bool = False, dark_colormap: bool = False, dpi: int = 100) -> _oplot:
 
     """
     The function plots the transition matrix of every Markov chain in the form of a heatmap.
@@ -201,8 +203,9 @@ def plot_comparison(mcs: _tlist_mc, constrained_layout: bool = False, dark: bool
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
     :param mcs: the Markov chains.
+    :param mcs_names: the name of each Markov chain subplot (*if omitted, a standard name is given to each subplot*).
     :param constrained_layout: a boolean indicating whether to use a constrained layout.
-    :param dark: a boolean indicating whether to use a dark colormap instead of the default one.
+    :param dark_colormap: a boolean indicating whether to use a dark colormap instead of the default one.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -210,8 +213,9 @@ def plot_comparison(mcs: _tlist_mc, constrained_layout: bool = False, dark: bool
     try:
 
         mcs = _validate_markov_chains(mcs)
+        mcs_names = [f'MC{index + 1} Size={mc.size:d}' for index, mc in enumerate(mcs)] if mcs_names is None else _validate_strings(mcs_names, len(mcs))
         constrained_layout = _validate_boolean(constrained_layout)
-        dark = _validate_boolean(dark)
+        dark_colormap = _validate_boolean(dark_colormap)
         dpi = _validate_dpi(dpi)
 
     except Exception as e:  # pragma: no cover
@@ -225,20 +229,20 @@ def plot_comparison(mcs: _tlist_mc, constrained_layout: bool = False, dark: bool
     axes = list(axes.flat)
     ax_is = None
 
-    if dark:
+    if dark_colormap:
 
-        for i, (ax, mc) in enumerate(zip(axes, mcs)):
+        for i, (ax, mc, mc_name) in enumerate(zip(axes, mcs, mcs_names)):
             ax_is = ax.imshow(mc.p, aspect='auto', cmap='hot', vmin=0.0, vmax=1.0)
-            ax.set_title(f'MC{i + 1} Size={mc.size:d}', fontsize=9.0, fontweight='normal', pad=1)
+            ax.set_title(mc_name, fontsize=9.0, fontweight='normal', pad=1)
             ax.set_axis_off()
 
     else:
 
         color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
 
-        for i, (ax, mc) in enumerate(zip(axes, mcs)):
+        for i, (ax, mc, mc_name) in enumerate(zip(axes, mcs, mcs_names)):
             ax_is = ax.imshow(mc.p, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
-            ax.set_title(f'MC{i + 1} Size={mc.size:d}', fontsize=9.0, fontweight='normal', pad=1)
+            ax.set_title(mc_name, fontsize=9.0, fontweight='normal', pad=1)
             ax.set_xticks([])
             ax.set_xticks([], minor=True)
             ax.set_yticks([])

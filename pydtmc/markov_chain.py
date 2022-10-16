@@ -162,7 +162,8 @@ from .fitting import (
 )
 
 from .generators import (
-    aggregate as _aggregate,
+    aggregate_spectral_bu as _aggregate_spectral_bu,
+    aggregate_spectral_td as _aggregate_spectral_td,
     approximation as _approximation,
     birth_death as _birth_death,
     bounded as _bounded,
@@ -1019,7 +1020,14 @@ class MarkovChain(metaclass=_BaseClass):
         if not self.is_ergodic:  # pragma: no cover
             raise ValueError('The Markov chain is not ergodic.')
 
-        p, error_message = _aggregate(self.p, self.pi[0], method, s)
+        if method == 'adaptive':
+            if self.__size < 10:
+                method = 'spectral-top-down'
+            else:
+                method = 'spectral-bottom-up' if (float(s) / self.__size) <= 0.3 else 'spectral-top-down'
+
+        func = _aggregate_spectral_bu if method == 'spectral-bottom-up' else _aggregate_spectral_td
+        p, error_message = func(self.p, self.pi[0], s)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)

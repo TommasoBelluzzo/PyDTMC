@@ -24,6 +24,7 @@ __all__ = [
     'validate_state_names',
     'validate_states',
     'validate_status',
+    'validate_strings',
     'validate_time_points',
     'validate_transition_function',
     'validate_transition_matrix',
@@ -831,6 +832,27 @@ def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
 
     if not _np_isclose(_np_sum(value), 1.0):
         raise ValueError('The "@arg@" parameter values must sum to 1.')
+
+    return value
+
+
+def validate_strings(value: _tany, size: _oint = None) -> _tlist_str:
+
+    try:
+        value = _extract_data_generic(value)
+    except Exception as e:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+
+    if not all(_is_string(s) for s in value):
+        raise TypeError('The "@arg@" parameter must contain only non-empty strings.')
+
+    value_length = len(value)
+
+    if value_length == 0:
+        raise ValueError('The "@arg@" parameter must contain at least one element.')
+
+    if size is not None and value_length != size:
+        raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {size:d}.')
 
     return value
 
