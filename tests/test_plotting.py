@@ -30,6 +30,7 @@ from pytest import (
 
 from pydtmc import (
     MarkovChain as _MarkovChain,
+    plot_comparison as _plot_comparison,
     plot_eigenvalues as _plot_eigenvalues,
     plot_graph as _plot_graph,
     plot_redistributions as _plot_redistributions,
@@ -63,6 +64,32 @@ def _generate_configs_step1(seed, runs, maximum_size):
 #########
 # TESTS #
 #########
+
+# noinspection PyBroadException
+@_pt_mark.slow
+def test_plot_comparison(seed, maximum_size, maximum_elements, runs):
+
+    for _ in range(runs):
+
+        mcs_count = _rd_randint(2, maximum_elements)
+        mcs = []
+
+        for i in range(mcs_count):
+            size = _rd_randint(2, maximum_size)
+            mcs.append(_MarkovChain.random(size, seed=seed))
+
+        try:
+
+            figure, _ = _plot_comparison(mcs)
+            _mplp_close(figure)
+
+            exception = False
+
+        except Exception:
+            exception = True
+
+        assert exception is False
+
 
 # noinspection PyBroadException
 @_pt_mark.slow

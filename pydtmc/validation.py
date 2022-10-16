@@ -14,6 +14,7 @@ __all__ = [
     'validate_integer',
     'validate_interval',
     'validate_markov_chain',
+    'validate_markov_chains',
     'validate_mask',
     'validate_matrix',
     'validate_partitions',
@@ -196,10 +197,10 @@ def _validate_limits(value: _tscalar, value_type: str, lower_limit: _olimit_scal
         upper_limit_included = upper_limit[1]
 
         if upper_limit_included and value >= upper_limit_value:
-            raise ValueError(f'The "@arg@" parameter must be less than {_get_limit_text(type, upper_limit_value)}.')
+            raise ValueError(f'The "@arg@" parameter must be less than {_get_limit_text(value_type, upper_limit_value)}.')
 
         if not upper_limit_included and value > upper_limit_value:
-            raise ValueError(f'The "@arg@" parameter must be less than or equal to {_get_limit_text(type, upper_limit_value)}.')
+            raise ValueError(f'The "@arg@" parameter must be less than or equal to {_get_limit_text(value_type, upper_limit_value)}.')
 
 
 def validate_boolean(value: _tany) -> bool:
@@ -493,6 +494,25 @@ def validate_markov_chain(value: _tany) -> _tmc:
 
     if value is None or (f'{value.__module__}.{value.__class__.__name__}' != 'pydtmc.markov_chain.MarkovChain'):
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+
+    return value
+
+
+def validate_markov_chains(value: _tany) -> _tmc:
+
+    if not _is_list(value):
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+
+    value_length = len(value)
+
+    if value_length < 2:
+        raise ValueError('The "@arg@" parameter must contain at least two elements.')
+
+    for i in range(value_length):
+        try:
+            value[i] = validate_markov_chain(value[i])
+        except Exception as e:
+            raise ValueError('The "@arg@" parameter contains invalid elements.') from e
 
     return value
 

@@ -17,10 +17,6 @@ from os.path import (
     join as _osp_join
 )
 
-from re import (
-    search as _re_search
-)
-
 from types import (
     CodeType as _tp_CodeType,
     FunctionType as _tp_FunctionType
@@ -87,6 +83,7 @@ from pydtmc.validation import (
     validate_hyperparameter as _validate_hyperparameter,
     validate_interval as _validate_interval,
     validate_markov_chain as _validate_markov_chain,
+    validate_markov_chains as _validate_markov_chains,
     validate_mask as _validate_mask,
     validate_matrix as _validate_matrix,
     validate_partitions as _validate_partitions,
@@ -122,6 +119,8 @@ def _eval_replace(value):
     value = value.replace('nx.', '_nx_')
     value = value.replace('pd.', '_pd_')
     value = value.replace('spsp.', '_spsp_')
+    value = value.replace('BaseClass', '_BaseClass')
+    value = value.replace('MarkovChain', '_MarkovChain')
 
     return value
 
@@ -470,14 +469,10 @@ def test_validate_markov_chain(value, is_valid):
         else:
 
             value = _eval_replace(value)
-
-            if _re_search(r'^(?:BaseClass|MarkovChain)\(', value):
-                value = '_' + value
-
             value = eval(value)
 
     if should_skip:
-        _pt_skip('The test could not be performed because Pandas library could not be imported.')
+        _pt_skip('Pandas library could not be imported.')
     else:
 
         try:
@@ -495,6 +490,43 @@ def test_validate_markov_chain(value, is_valid):
         if result_is_valid:
 
             actual = isinstance(result, _MarkovChain)
+            expected = True
+
+            assert actual == expected
+
+
+# noinspection PyBroadException
+def test_validate_markov_chains(value, is_valid):
+
+    should_skip = False
+
+    if value is not None and isinstance(value, str):
+
+        if 'pd.' in value and not _pandas_found:
+            should_skip = True
+        else:
+            value = _eval_replace(value)
+            value = eval(value)
+
+    if should_skip:
+        _pt_skip('Pandas library could not be imported.')
+    else:
+
+        try:
+            result = _validate_markov_chains(value)
+            result_is_valid = True
+        except Exception:
+            result = None
+            result_is_valid = False
+
+        actual = result_is_valid
+        expected = is_valid
+
+        assert actual == expected
+
+        if result_is_valid:
+
+            actual = isinstance(result, list) and all(isinstance(v, _MarkovChain) for v in result)
             expected = True
 
             assert actual == expected

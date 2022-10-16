@@ -7,6 +7,7 @@ Instance Methods
 	:noindex:
 	:members:
 		absorption_probabilities,
+		aggregate,
 		are_communicating,
 		closest_reversible,
 		committor_probabilities,

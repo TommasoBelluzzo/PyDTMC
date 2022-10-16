@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'plot_comparison',
     'plot_eigenvalues',
     'plot_graph',
     'plot_redistributions',
@@ -26,6 +27,11 @@ from io import (
     BytesIO as _io_BytesIO
 )
 
+from math import (
+    ceil as _math_ceil,
+    sqrt as _math_sqrt
+)
+
 # noinspection PyPep8Naming
 from subprocess import (
     call as _sp_call,
@@ -34,8 +40,12 @@ from subprocess import (
 
 # Libraries
 
+from matplotlib.colorbar import (
+    make_axes as _mplcb_make_axes
+)
+
 from matplotlib.colors import (
-    LinearSegmentedColormap as _mplc_LinearSegmentedColormap
+    LinearSegmentedColormap as _mplcr_LinearSegmentedColormap
 )
 
 from matplotlib.image import (
@@ -103,6 +113,7 @@ from .custom_types import (
     ostate as _ostate,
     ostatus as _ostatus,
     tdists_flex as _tdists_flex,
+    tlist_mc as _tlist_mc,
     tlist_str as _tlist_str,
     tmc as _tmc,
     twalk_flex as _twalk_flex
@@ -119,6 +130,7 @@ from .validation import (
     validate_enumerator as _validate_enumerator,
     validate_integer as _validate_integer,
     validate_markov_chain as _validate_markov_chain,
+    validate_markov_chains as _validate_markov_chains,
     validate_state as _validate_state,
     validate_status as _validate_status,
     validate_walk as _validate_walk
@@ -179,6 +191,72 @@ def _yticks_states(ax, mc: _tmc, label: bool):
     ax.set_yticklabels(mc.states)
 
 
+def plot_comparison(mcs: _tlist_mc, constrained_layout: bool = False, dark: bool = False, dpi: int = 100) -> _oplot:
+
+    """
+    The function plots the transition matrix of every Markov chain in the form of a heatmap.
+
+    | **Notes:**
+
+    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+
+    :param mcs: the Markov chains.
+    :param constrained_layout: a boolean indicating whether to use a constrained layout.
+    :param dark: a boolean indicating whether to use a dark colormap instead of the default one.
+    :param dpi: the resolution of the plot expressed in dots per inch.
+    :raises ValidationError: if any input argument is not compliant.
+    """
+
+    try:
+
+        mcs = _validate_markov_chains(mcs)
+        constrained_layout = _validate_boolean(constrained_layout)
+        dark = _validate_boolean(dark)
+        dpi = _validate_dpi(dpi)
+
+    except Exception as e:  # pragma: no cover
+        raise _generate_validation_error(e, _ins_trace()) from None
+
+    n = len(mcs)
+    rows = int(_math_sqrt(n))
+    columns = int(_math_ceil(n / float(rows)))
+
+    figure, axes = _mplp_subplots(rows, columns, constrained_layout=constrained_layout, dpi=dpi)
+    axes = list(axes.flat)
+    ax_is = None
+
+    if dark:
+
+        for i, (ax, mc) in enumerate(zip(axes, mcs)):
+            ax_is = ax.imshow(mc.p, aspect='auto', cmap='hot', vmin=0.0, vmax=1.0)
+            ax.set_title(f'MC{i + 1} Size={mc.size:d}', fontsize=9.0, fontweight='normal', pad=1)
+            ax.set_axis_off()
+
+    else:
+
+        color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
+
+        for i, (ax, mc) in enumerate(zip(axes, mcs)):
+            ax_is = ax.imshow(mc.p, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+            ax.set_title(f'MC{i + 1} Size={mc.size:d}', fontsize=9.0, fontweight='normal', pad=1)
+            ax.set_xticks([])
+            ax.set_xticks([], minor=True)
+            ax.set_yticks([])
+            ax.set_yticks([], minor=True)
+
+    figure.suptitle('Comparison Plot', fontsize=15.0, fontweight='bold')
+
+    color_map_ax, color_map_ax_kwargs = _mplcb_make_axes(axes, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
+    figure.colorbar(ax_is, cax=color_map_ax, **color_map_ax_kwargs)
+    color_map_ax.set_xticklabels([0.0, 0.25, 0.5, 0.75, 1.0])
+
+    if _mplp_isinteractive():  # pragma: no cover
+        _mplp_show(block=False)
+        return None
+
+    return figure, axes
+
+
 def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
 
     """
@@ -188,7 +266,7 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param mc: the target Markov chain.
+    :param mc: the Markov chain.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -208,15 +286,15 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
 
     theta = _np_linspace(0.0, 2.0 * _np_pi, 200)
 
-    values = _npl_eigvals(mc.p).astype(complex)
-    values_final = _np_unique(_np_append(values, _np_array([1.0]).astype(complex)))
+    evalues = _npl_eigvals(mc.p).astype(complex)
+    evalues_final = _np_unique(_np_append(evalues, _np_array([1.0]).astype(complex)))
 
     x_unit_circle = _np_cos(theta)
     y_unit_circle = _np_sin(theta)
 
     if mc.is_ergodic:
 
-        values_abs = _np_sort(_np_abs(values))
+        values_abs = _np_sort(_np_abs(evalues))
         values_ct1 = _np_isclose(values_abs, 1.0)
 
         if not _np_all(values_ct1):
@@ -240,7 +318,7 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
 
     ax.plot(x_unit_circle, y_unit_circle, color='red', linestyle='-', linewidth=3.0)
 
-    h, = ax.plot(_np_real(values_final), _np_imag(values_final), color='blue', linestyle='None', marker='*', markersize=12.5)
+    h, = ax.plot(_np_real(evalues_final), _np_imag(evalues_final), color='blue', linestyle='None', marker='*', markersize=12.5)
     handles.append(h)
     labels.append('Eigenvalues')
 
@@ -257,7 +335,7 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
     ax.grid(which='major')
 
     ax.legend(handles[::-1], labels[::-1], bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=len(handles))
-    ax.set_title('Eigenplot', fontsize=15.0, fontweight='bold')
+    ax.set_title('Eigenvalues Plot', fontsize=15.0, fontweight='bold')
 
     _mplp_subplots_adjust(bottom=0.2)
 
@@ -278,7 +356,7 @@ def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edge
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
     * `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are not required, but they provide access to extended graphs with additional features.
 
-    :param mc: the target Markov chain.
+    :param mc: the Markov chain.
     :param nodes_color: a boolean indicating whether to display colored nodes based on communicating classes.
     :param nodes_type: a boolean indicating whether to use a different shape for every node type.
     :param edges_color: a boolean indicating whether to display edges using a gradient based on transition probabilities, valid only for extended graphs.
@@ -476,11 +554,11 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param mc: the target Markov chain.
+    :param mc: the Markov chain.
     :param distributions: a sequence of redistributions or the number of redistributions to perform.
     :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
     :param plot_type:
-     - **heatmap** for displaying an heatmap plot;
+     - **heatmap** for displaying a heatmap plot;
      - **projection** for displaying a projection plot.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
@@ -511,7 +589,7 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
 
     if plot_type == 'heatmap':
 
-        color_map = _mplc_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
+        color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
         ax_is = ax.imshow(_np_transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         _xticks_steps(ax, distributions_length)
@@ -522,7 +600,7 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
         cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
         cb.ax.set_xticklabels([0.0, 0.25, 0.5, 0.75, 1.0])
 
-        ax.set_title('Redistplot (Heatmap)', fontsize=15.0, fontweight='bold')
+        ax.set_title('Redistributions Plot (Heatmap)', fontsize=15.0, fontweight='bold')
 
     else:
 
@@ -547,7 +625,7 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
         ax.grid()
 
         ax.legend(bbox_to_anchor=(0.5, -0.15), loc='upper center', ncol=legend_size)
-        ax.set_title('Redistplot (Projection)', fontsize=15.0, fontweight='bold')
+        ax.set_title('Redistributions Plot (Projection)', fontsize=15.0, fontweight='bold')
 
         _mplp_subplots_adjust(bottom=0.2)
 
@@ -568,7 +646,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param mc: the target Markov chain.
+    :param mc: the Markov chain.
     :param walk: a sequence of states or the number of simulations to perform.
     :param initial_state: the initial state of the walk (*if omitted, it is chosen uniformly at random*).
     :param plot_type:
@@ -623,7 +701,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         _xticks_states(ax, mc, True, False)
         _yticks_frequency(ax, 0.0, 1.0)
 
-        ax.set_title('Walkplot (Histogram)', fontsize=15.0, fontweight='bold')
+        ax.set_title('Walk Plot (Histogram)', fontsize=15.0, fontweight='bold')
 
     elif plot_type == 'sequence':
 
@@ -632,7 +710,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         for index, state in enumerate(walk):
             walk_sequence[state, index] = 1.0
 
-        color_map = _mplc_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 2)
+        color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 2)
         ax.imshow(walk_sequence, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         _xticks_steps(ax, walk_length)
@@ -640,7 +718,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
 
         ax.grid(which='minor', color='k')
 
-        ax.set_title('Walkplot (Sequence)', fontsize=15.0, fontweight='bold')
+        ax.set_title('Walk Plot (Sequence)', fontsize=15.0, fontweight='bold')
 
     else:
 
@@ -651,7 +729,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
 
         walk_transitions /= _np_sum(walk_transitions)
 
-        color_map = _mplc_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
+        color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
         ax_is = ax.imshow(walk_transitions, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         _xticks_states(ax, mc, False, True)
@@ -662,7 +740,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
         cb.ax.set_xticklabels([0.0, 0.25, 0.5, 0.75, 1.0])
 
-        ax.set_title('Walkplot (Transitions)', fontsize=15.0, fontweight='bold')
+        ax.set_title('Walk Plot (Transitions)', fontsize=15.0, fontweight='bold')
 
     if _mplp_isinteractive():  # pragma: no cover
         _mplp_show(block=False)

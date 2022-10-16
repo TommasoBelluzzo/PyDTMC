@@ -24,6 +24,7 @@ __all__ = [
     'tlist_array', 'olist_array',
     'tlist_float', 'olist_float',
     'tlist_int', 'olist_int',
+    'tlist_mc', 'olist_mc',
     'tlist_str', 'olist_str',
     # Lists of Lists
     'tlists_any', 'olists_any',
@@ -161,7 +162,7 @@ olimit_scalar = _tp_Optional[tlimit_scalar]
 tmc = _tp_TypeVar('MarkovChain')
 omc = _tp_Optional[tmc]
 
-tplot = _tp_Tuple[_mplp_Figure, _mplp_Axes]
+tplot = _tp_Tuple[_mplp_Figure, _tp_Union[_mplp_Axes, _tp_List[_mplp_Axes]]]
 oplot = _tp_Optional[tplot]
 
 tnumeric = _tp_Union[_np_ndarray, _spsp_matrix] if not _pandas_found else _tp_Union[_np_ndarray, _spsp_matrix, _pd_DataFrame, _pd_Series]
@@ -189,6 +190,9 @@ olist_float = _tp_Optional[tlist_float]
 
 tlist_int = _tp_List[int]
 olist_int = _tp_Optional[tlist_int]
+
+tlist_mc = _tp_List[tmc]
+olist_mc = _tp_Optional[tlist_mc]
 
 tlist_str = _tp_List[str]
 olist_str = _tp_Optional[tlist_str]

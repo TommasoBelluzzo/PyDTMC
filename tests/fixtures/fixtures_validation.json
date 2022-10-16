@@ -771,6 +771,80 @@
       "is_valid": false
     }
   ],
+  "validate_markov_chains_data": [
+    {
+      "value": "[MarkovChain([[0.1, 0.9], [0.4, 0.6]]), MarkovChain([[0.5, 0.5], [0.5, 0.5]]), MarkovChain([[1.0, 0.0], [0.0, 1.0]])]",
+      "is_valid": true
+    },
+    {
+      "value": "[MarkovChain([[0.3, 0.7], [0.3, 0.7]]), MarkovChain([[0.2, 0.8], [0.4, 0.6]])]",
+      "is_valid": true
+    },
+    {
+      "value": "[MarkovChain([[0.1, 0.9], [0.4, 0.6]]), None]",
+      "is_valid": false
+    },
+    {
+      "value": "[1, MarkovChain([[0.1, 0.9], [0.4, 0.6]])]",
+      "is_valid": false
+    },
+    {
+      "value": "[MarkovChain([[0.1, 0.9], [0.4, 0.6]]), []]",
+      "is_valid": false
+    },
+    {
+      "value": "[MarkovChain([[0.1, 0.9], [0.4, 0.6]]), BaseClass('Test', (), {})]",
+      "is_valid": false
+    },
+    {
+      "value": "[MarkovChain([[0.1, 0.9], [0.5, 0.5]])]",
+      "is_valid": false
+    },
+    {
+      "value": "(MarkovChain([[0.1, 0.9], [0.5, 0.5]]))",
+      "is_valid": false
+    },
+    {
+      "value": "MarkovChain([[0.2, 0.8], [0.8, 0.2]])",
+      "is_valid": false
+    },
+    {
+      "value": "BaseClass('Test', (), {})",
+      "is_valid": false
+    },
+    {
+      "value": "range(3)",
+      "is_valid": false
+    },
+    {
+      "value": "TypeError()",
+      "is_valid": false
+    },
+    {
+      "value": "nx.DiGraph()",
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "is_valid": false
+    },
+    {
+      "value": 5.0,
+      "is_valid": false
+    },
+    {
+      "value": false,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "is_valid": false
+    },
+    {
+      "value": {},
+      "is_valid": false
+    }
+  ],
   "validate_mask_data": [
     {
       "value": [["NaN", 0.5, "NaN"], [1.0, 0.0, 0.0], [0.3, "NaN", 0.2]],
@@ -1545,108 +1619,6 @@
       "is_valid": false
     }
   ],
-  "validate_walk_data": [
-    {
-      "value": null,
-      "possible_states": ["A", "B", "C"],
-      "is_valid": false
-    },
-    {
-      "value": false,
-      "possible_states": ["1", "2", "3"],
-      "is_valid": false
-    },
-    {
-      "value": 1,
-      "possible_states": ["A", "B", "C"],
-      "is_valid": false
-    },
-    {
-      "value": 1,
-      "possible_states": ["A", "B", "C"],
-      "is_valid": false
-    },
-    {
-      "value": "A",
-      "possible_states": ["A", "B", "C"],
-      "is_valid": false
-    },
-    {
-      "value": [],
-      "possible_states": ["1", "2", "3"],
-      "is_valid": false
-    },
-    {
-      "value": [true],
-      "possible_states": ["A", "B", "C"],
-      "is_valid": false
-    },
-    {
-      "value": [-1],
-      "possible_states": ["A", "B", "C"],
-      "is_valid": false
-    },
-    {
-      "value": [1],
-      "possible_states": ["1", "2", "3"],
-      "is_valid": false
-    },
-    {
-      "value": [0, 1],
-      "possible_states": ["A", "B", "C"],
-      "is_valid": true
-    },
-    {
-      "value": [0, 0, 0, 0],
-      "possible_states": null,
-      "is_valid": false
-    },
-    {
-      "value": [0, 1, 1, 2, 1, 0, 0, 1, 2],
-      "possible_states": ["A", "B", "C"],
-      "is_valid": true
-    },
-    {
-      "value": [3, 2, 0, 0, 0, 1, 1, 3, 2],
-      "possible_states": ["1", "2", "3", "4"],
-      "is_valid": true
-    },
-    {
-      "value": [3, 2, 0, 0, 0, 1, 1, 3, 2],
-      "possible_states": ["A", "B", "C"],
-      "is_valid": false
-    },
-    {
-      "value": ["2"],
-      "possible_states": ["1", "2", "3"],
-      "is_valid": false
-    },
-    {
-      "value": ["2", "1"],
-      "possible_states": ["1", "2", "3"],
-      "is_valid": true
-    },
-    {
-      "value": ["1", "1", "1", "1", "1"],
-      "possible_states": null,
-      "is_valid": false
-    },
-    {
-      "value": ["2", "3", "1", "1", "1", "1", "1", "3", "2", "4"],
-      "possible_states": ["1", "2", "3", "4"],
-      "is_valid": true
-    },
-    {
-      "value": ["A"],
-      "possible_states": ["A", "B"],
-      "is_valid": false
-    },
-    {
-      "value": ["A", "A", "A", "A", "A"],
-      "possible_states": ["A", "B"],
-      "is_valid": true
-    }
-  ],
   "validate_vector_data": [
     {
       "value": 0.3,
@@ -1787,6 +1759,118 @@
       "flex": false,
       "size": 3,
       "is_valid": false
+    }
+  ],
+  "validate_walk_data": [
+    {
+      "value": null,
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": false,
+      "possible_states": ["1", "2", "3"],
+      "is_valid": false
+    },
+    {
+      "value": 1,
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": 1,
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": "A",
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "possible_states": ["1", "2", "3"],
+      "is_valid": false
+    },
+    {
+      "value": [true],
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [-1],
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [1],
+      "possible_states": ["1", "2", "3"],
+      "is_valid": false
+    },
+    {
+      "value": [0, 1],
+      "possible_states": ["A", "B", "C"],
+      "is_valid": true
+    },
+    {
+      "value": [0, 1],
+      "possible_states": [-1, 8],
+      "is_valid": false
+    },
+    {
+      "value": [0, 0, 0, 0],
+      "possible_states": null,
+      "is_valid": false
+    },
+    {
+      "value": [0, 1, 1, 2, 1, 0, 0, 1, 2],
+      "possible_states": ["A", "B", "C"],
+      "is_valid": true
+    },
+    {
+      "value": [3, 2, 0, 0, 0, 1, 1, 3, 2],
+      "possible_states": ["1", "2", "3", "4"],
+      "is_valid": true
+    },
+    {
+      "value": [3, 2, 0, 0, 0, 1, 1, 3, 2],
+      "possible_states": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": ["2"],
+      "possible_states": ["1", "2", "3"],
+      "is_valid": false
+    },
+    {
+      "value": ["2", "1"],
+      "possible_states": ["1", "2", "3"],
+      "is_valid": true
+    },
+    {
+      "value": ["2", "1"],
+      "possible_states": ["1", "1"],
+      "is_valid": false
+    },
+    {
+      "value": ["1", "1", "1", "1", "1"],
+      "possible_states": null,
+      "is_valid": false
+    },
+    {
+      "value": ["2", "3", "1", "1", "1", "1", "1", "3", "2", "4"],
+      "possible_states": ["1", "2", "3", "4"],
+      "is_valid": true
+    },
+    {
+      "value": ["A"],
+      "possible_states": ["A", "B"],
+      "is_valid": false
+    },
+    {
+      "value": ["A", "A", "A", "A", "A"],
+      "possible_states": ["A", "B"],
+      "is_valid": true
     }
   ],
   "validate_walks_data": [

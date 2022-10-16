@@ -136,7 +136,7 @@ def test_extract_data_numeric(value, evaluate, is_valid):
             value = eval(value)
 
     if should_skip:
-        _pt_skip('The test could not be performed because Pandas library could not be imported.')
+        _pt_skip('Pandas library could not be imported.')
     else:
 
         try:

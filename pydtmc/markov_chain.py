@@ -162,6 +162,7 @@ from .fitting import (
 )
 
 from .generators import (
+    aggregate as _aggregate,
     approximation as _approximation,
     birth_death as _birth_death,
     bounded as _bounded,
@@ -990,6 +991,43 @@ class MarkovChain(metaclass=_BaseClass):
 
         return self.__cache['ap']
 
+    def aggregate(self, s: int, method: str = 'adaptive') -> _tmc:
+
+        """
+        The method attempts to reduce the state space of the Markov chain to the given number of states through a Kullback-Leibler divergence minimization approach.
+
+        :param s: the number of states of the reduced Markov chain.
+        :param method:
+         - **spectral-bottom-up** for a spectral theory based aggregation, bottom-up (more suitable for reducing a large number of states).
+         - **spectral-top-down** for a spectral theory based aggregation, top-down (more suitable for reducing a small number of states).
+         - **adaptive** for automatically selecting the best aggregation method.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the Markov chain defines only two states or is not **ergodic**.
+        """
+
+        try:
+
+            method = _validate_enumerator(method, ['adaptive', 'spectral-bottom-up', 'spectral-top-down'])
+            s = _validate_integer(s, lower_limit=(2, False), upper_limit=(self.__size - 1, False))
+
+        except Exception as e:  # pragma: no cover
+            raise _generate_validation_error(e, _ins_trace()) from None
+
+        if self.__size == 2:  # pragma: no cover
+            raise ValueError('The Markov chain defines only two states.')
+
+        if not self.is_ergodic:  # pragma: no cover
+            raise ValueError('The Markov chain is not ergodic.')
+
+        p, error_message = _aggregate(self.p, self.pi[0], method, s)
+
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
+
+        mc = MarkovChain(p)
+
+        return mc
+
     def are_communicating(self, state1: _tstate, state2: _tstate) -> bool:
 
         """
@@ -1422,7 +1460,7 @@ class MarkovChain(metaclass=_BaseClass):
             raise _generate_validation_error(e, _ins_trace()) from None
 
         if self.__size == 2:  # pragma: no cover
-            raise ValueError('The Markov chain defines only two states and cannot be lumped.')
+            raise ValueError('The Markov chain defines only two states.')
 
         p, states, error_message = _lump(self.p, self.states, partitions)
 

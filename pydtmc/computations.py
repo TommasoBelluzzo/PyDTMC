@@ -169,7 +169,7 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
 
     observed = observed.astype(float)
 
-    if _np_any(observed < 0.0):
+    if _np_any(observed < 0.0):  # pragma: no cover
         raise ValueError("The table of observed frequencies must contain only non-negative values.")
 
     d = observed.ndim
@@ -183,7 +183,7 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
 
     expected = _np_prod(marginals) / (_np_sum(observed) ** (d - 1))
 
-    if _np_any(expected == 0.0):
+    if _np_any(expected == 0.0):  # pragma: no cover
         raise ValueError("The internally computed table of expected frequencies contains null elements.")
 
     dof = expected.size - sum(expected.shape) + d - 1
@@ -206,10 +206,10 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
 
 def eigenvalues_sorted(m: _tarray) -> _tarray:
 
-    ev = _npl_eigvals(m)
-    ev = _np_sort(_np_abs(ev))
+    evalues = _npl_eigvals(m)
+    evalues = _np_sort(_np_abs(evalues))
 
-    return ev
+    return evalues
 
 
 def find_cyclic_classes(p: _tarray) -> _tlists_int:
@@ -259,6 +259,7 @@ def find_cyclic_classes(p: _tarray) -> _tlists_int:
     return indices
 
 
+# noinspection PyBroadException
 def find_lumping_partitions(p: _tarray) -> _tparts:
 
     size = p.shape[0]
@@ -299,9 +300,10 @@ def find_lumping_partitions(p: _tarray) -> _tparts:
             for state in lumping:
                 r[state, index] = 1.0
 
-        # noinspection PyBroadException
+        rt = _np_transpose(r)
+
         try:
-            k = _np_dot(_npl_inv(_np_dot(_np_transpose(r), r)), _np_transpose(r))
+            k = _np_dot(_npl_inv(_np_dot(rt, r)), rt)
         except Exception:  # pragma: no cover
             continue
 
@@ -344,14 +346,14 @@ def gth_solve(p: _tarray) -> _tarray:
 
 def rdl_decomposition(p: _tarray) -> _trdl:
 
-    values, vectors = _npl_eig(p)
+    evalues, evectors = _npl_eig(p)
 
-    indices = _np_argsort(_np_abs(values))[::-1]
-    values = values[indices]
-    vectors = vectors[:, indices]
+    indices = _np_argsort(_np_abs(evalues))[::-1]
+    evalues = evalues[indices]
+    vectors = evectors[:, indices]
 
     r = _np_copy(vectors)
-    d = _np_diag(values)
+    d = _np_diag(evalues)
     l = _npl_solve(_np_transpose(r), _np_eye(p.shape[0], dtype=float))  # noqa
 
     k = _np_sum(l[:, 0])

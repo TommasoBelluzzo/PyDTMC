@@ -165,7 +165,7 @@ def test_irreducibility(p):
     mc = _MarkovChain(p)
 
     if not mc.is_irreducible:
-        _pt_skip('Markov chain is not irreducible.')
+        _pt_skip('The Markov chain is not irreducible.')
     else:
 
         actual = mc.states
@@ -230,7 +230,7 @@ def test_regularity(p):
     mc = _MarkovChain(p)
 
     if not mc.is_regular:
-        _pt_skip('Markov chain is not regular.')
+        _pt_skip('The Markov chain is not regular.')
     else:
 
         actual = mc.is_irreducible

@@ -110,7 +110,7 @@ def test_first_passage_reward(p, steps, initial_state, first_passage_states, rew
     mc = _MarkovChain(p)
 
     if mc.size <= 2:
-        _pt_skip('Markov chain size is less than or equal to 2.')
+        _pt_skip('The size of the Markov chain is less than or equal to 2.')
     else:
 
         actual = mc.first_passage_reward(steps, initial_state, first_passage_states, rewards)

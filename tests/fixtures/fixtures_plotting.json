@@ -1,10 +1,16 @@
 {
-  "plot_graph_data": {
+  "plot_comparison_data": {
+    "seed": 7331,
+    "maximum_size": 25,
+    "maximum_elements": 12,
+    "runs": 25
+  },
+  "plot_eigenvalues_data": {
     "seed": 7331,
     "maximum_size": 6,
     "runs": 25
   },
-  "plot_eigenvalues_data": {
+  "plot_graph_data": {
     "seed": 7331,
     "maximum_size": 6,
     "runs": 25

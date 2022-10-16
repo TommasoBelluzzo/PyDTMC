@@ -30,6 +30,21 @@ from pydtmc import (
 # TESTS #
 #########
 
+def test_aggregate(p, method, s, value):
+
+    mc = _MarkovChain(p)
+
+    if mc.size == 2 or not mc.is_ergodic:
+        _pt_skip('The Markov chain cannot be aggregated.')
+
+    mc_aggregated = mc.aggregate(s, method)
+
+    actual = mc_aggregated.p
+    expected = _np_asarray(value)
+
+    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_bounded(p, boundary_condition, value):
 
     mc = _MarkovChain(p)
@@ -69,17 +84,17 @@ def test_lazy(p, inertial_weights, value):
 
 def test_lump(p, partitions, value):
 
-    if value is None:
-        _pt_skip('Markov chain is not lumpable for the specified partitions.')
-    else:
+    mc = _MarkovChain(p)
 
-        mc = _MarkovChain(p)
-        mc_lump = mc.lump(partitions)
+    if partitions not in mc.lumping_partitions:
+        _pt_skip('The Markov chain is not lumpable for the specified partitions.')
 
-        actual = mc_lump.p
-        expected = _np_asarray(value)
+    mc_lump = mc.lump(partitions)
 
-        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    actual = mc_lump.p
+    expected = _np_asarray(value)
+
+    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_nth_order(p, order, value):
@@ -96,18 +111,15 @@ def test_nth_order(p, order, value):
 def test_sub(p, states, value):
 
     if value is None:
-        _pt_skip('Markov chain cannot generate the specified subchain.')
+        _pt_skip('The Markov chain cannot generate the specified subchain.')
     else:
 
         mc = _MarkovChain(p)
 
         try:
-
             mc_sub = mc.to_sub_chain(states)
             exception = False
-
         except ValueError:
-
             mc_sub = None
             exception = True
 
@@ -117,3 +129,10 @@ def test_sub(p, states, value):
         expected = _np_asarray(value)
 
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        if mc.is_ergodic:
+
+            actual = mc_sub.p
+            expected = mc.p
+
+            _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

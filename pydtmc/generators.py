@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'aggregate',
     'approximation',
     'birth_death',
     'bounded',
@@ -26,6 +27,7 @@ from numpy import (
     abs as _np_abs,
     apply_along_axis as _np_apply_along_axis,
     arange as _np_arange,
+    argsort as _np_argsort,
     array as _np_array,
     array_equal as _np_array_equal,
     copy as _np_copy,
@@ -39,13 +41,16 @@ from numpy import (
     fix as _np_fix,
     flatnonzero as _np_flatnonzero,
     fliplr as _np_fliplr,
+    hstack as _np_hstack,
     inf as _np_inf,
     isclose as _np_isclose,
     isinf as _np_isinf,
     isnan as _np_isnan,
     ix_ as _np_ix,
     linspace as _np_linspace,
+    log2 as _np_log2,
     nan as _np_nan,
+    nan_to_num as _np_nan_to_num,
     nansum as _np_nansum,
     newaxis as _np_newaxis,
     ones as _np_ones,
@@ -63,8 +68,10 @@ from numpy import (
 )
 
 from numpy.linalg import (
+    eig as _npl_eig,
     inv as _npl_inv,
-    multi_dot as _npl_multi_dot
+    multi_dot as _npl_multi_dot,
+    solve as _npl_solve
 )
 
 from scipy.integrate import (
@@ -98,6 +105,105 @@ from .custom_types import (
 #############
 # FUNCTIONS #
 #############
+
+def aggregate(p: _tarray, pi: _tarray, method: str, s: int) -> _tgenres:
+
+    def _calculate_q(cq_p, cq_pi, cq_phi):
+
+        cq_pi = _np_diag(cq_pi)
+        z = cq_phi.shape[1]
+
+        q_num = _np_dot(_np_dot(_np_dot(_np_transpose(cq_phi), cq_pi), cq_p), cq_phi)
+        q_den = _np_zeros((z, 1), dtype=float)
+
+        for zi in range(z):
+            cq_phi_zi = cq_phi[:, zi]
+            q_den[zi] = _np_dot(_np_dot(_np_transpose(cq_phi_zi), cq_pi), cq_phi_zi)
+
+        q_den = _np_repeat(q_den, z, 1)
+
+        result = q_num / q_den
+
+        return result
+
+    def _create_bipartition_candidate(cbc_p, cbc_pi, cbc_phi, cbc_index):
+
+        v = cbc_phi[:, cbc_index]
+
+        if _np_sum(v) <= 1.0:
+            return None
+
+        indices = v > 0.0
+        p_sub = cbc_p[_np_ix(indices, indices)]
+        pi_sub = _np_diag(cbc_pi[indices])
+
+        ar = 0.5 * (p_sub + _np_dot(_npl_solve(pi_sub, _np_transpose(p_sub)), pi_sub))
+
+        evalues, evectors = _npl_eig(ar)
+        index = _np_argsort(_np_abs(evalues))[-2]
+
+        evector = evectors[:, index]
+        evector = _np_transpose(evector[_np_newaxis, :])
+
+        vt = _np_transpose(v[_np_newaxis, :])
+
+        v1 = _np_copy(vt)
+        v1[indices] = evector >= 0.0
+
+        v2 = _np_copy(vt)
+        v2[indices] = evector < 0.0
+
+        bc_stack = _np_hstack((cbc_phi[:, :cbc_index], v1, v2, cbc_phi[:, (cbc_index + 1):]))
+
+        return bc_stack
+
+    def _kullback_leibler_divergence(kld_p, kld_pi, kld_phi, kld_q):
+
+        kld_pi = kld_pi[_np_newaxis, :]
+
+        super_q = _np_dot(_np_dot(kld_phi, kld_q), _np_transpose(kld_phi))
+        rho = _np_sum(kld_p * _np_nan_to_num(_np_log2(kld_p / super_q), copy=False), axis=1)
+        t = _np_sum(kld_pi * rho)
+
+        super_pi = _np_dot(_np_dot(kld_pi, kld_phi), _np_transpose(kld_phi))
+        psi = _np_nan_to_num(_np_log2(kld_pi / super_pi), copy=False)
+        u = _np_sum(kld_pi * psi)
+
+        kld = t - u
+
+        return kld
+
+    method += 'x'
+
+    size = p.shape[0]
+    eq_prob = 1.0 / size
+
+    phi = _np_ones((size, 1), dtype=float)
+    q = _np_ones((size, size), dtype=float) * eq_prob
+    k = 1
+
+    while k < s:
+
+        phi_k, r_k = phi, _np_inf
+
+        for i in range(phi.shape[1]):
+
+            bc = _create_bipartition_candidate(p, pi, phi, i)
+
+            if bc is None:
+                continue
+
+            bc_q = _calculate_q(p, pi, bc)
+            bc_r = _kullback_leibler_divergence(p, pi, bc, bc_q)
+
+            if bc_r < r_k:
+                phi_k, r_k, q = bc, bc_r, bc_q
+
+        phi = phi_k
+        k += 1
+
+    return q, None
+
 
 def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tgenres_ext:
 
@@ -567,9 +673,11 @@ def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tgenres_ex
         for state in partition:
             r[state, index] = 1.0
 
+    rt = _np_transpose(r)
+
     # noinspection PyBroadException
     try:
-        k = _np_dot(_npl_inv(_np_dot(_np_transpose(r), r)), _np_transpose(r))
+        k = _np_dot(_npl_inv(_np_dot(rt, r)), rt)
     except Exception:  # pragma: no cover
         return None, None, 'The Markov chain is not lumpable with respect to the given partitions.'
 
