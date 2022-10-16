@@ -74,7 +74,7 @@ def test_plot_comparison(seed, maximum_size, maximum_elements, runs):
         mcs_count = _rd_randint(2, maximum_elements)
         mcs = []
 
-        for i in range(mcs_count):
+        for _ in range(mcs_count):
             size = _rd_randint(2, maximum_size)
             mcs.append(_MarkovChain.random(size, seed=seed))
 
