@@ -1515,6 +1515,31 @@
       "is_valid": true
     },
     {
+      "value": ["S1", " ", "S3", ""],
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": [null, "S2", "S3", "S4"],
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", "S2", false, "S4"],
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", 1, "S3", 3],
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", "S2", "S3", []],
+      "size": null,
+      "is_valid": false
+    },
+    {
       "value": ["S1"],
       "size": null,
       "is_valid": true
