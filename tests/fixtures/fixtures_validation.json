@@ -1510,6 +1510,11 @@
       "is_valid": false
     },
     {
+      "value": ["S1", "S2", "S3", "S4"],
+      "size": 5,
+      "is_valid": false
+    },
+    {
       "value": ["S1", " ", "S3", " "],
       "size": null,
       "is_valid": true
@@ -1525,12 +1530,22 @@
       "is_valid": false
     },
     {
+      "value": ["", "", "", ""],
+      "size": 4,
+      "is_valid": false
+    },
+    {
       "value": ["S1", "S2", false, "S4"],
       "size": null,
       "is_valid": false
     },
     {
       "value": ["S1", 1, "S3", 3],
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", "S2", 8.12, "S4"],
       "size": null,
       "is_valid": false
     },
@@ -1560,7 +1575,17 @@
       "is_valid": false
     },
     {
+      "value": true,
+      "size": null,
+      "is_valid": false
+    },
+    {
       "value": 0,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": -1.33,
       "size": null,
       "is_valid": false
     },
