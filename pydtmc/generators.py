@@ -139,7 +139,7 @@ def aggregate_spectral_bu(p: _tarray, pi: _tarray, s: int) -> _tgenres:
 
         v = cbc_phi[:, cbc_index]
 
-        if _np_sum(v) <= 1.0:
+        if _np_sum(v) <= 1.0:  # pragma: no cover
             return None
 
         indices = v > 0.0
@@ -180,7 +180,7 @@ def aggregate_spectral_bu(p: _tarray, pi: _tarray, s: int) -> _tgenres:
 
             bc = _create_bipartition_candidate(p, pi, phi, i)
 
-            if bc is None:
+            if bc is None:  # pragma: no cover
                 continue
 
             bc_q = _calculate_q(p, pi, bc)

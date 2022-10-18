@@ -1020,7 +1020,7 @@ class MarkovChain(metaclass=_BaseClass):
         if not self.is_ergodic:  # pragma: no cover
             raise ValueError('The Markov chain is not ergodic.')
 
-        if method == 'adaptive':
+        if method == 'adaptive':  # pragma: no cover
             if self.__size < 10:
                 method = 'spectral-top-down'
             else:
