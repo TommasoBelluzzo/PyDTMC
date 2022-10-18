@@ -277,11 +277,10 @@ def aggregate_spectral_td(p: _tarray, pi: _tarray, s: int) -> _tgenres:
         return cbc_phi
 
     q = _np_copy(p)
-    q_size = q.shape[0]
+    k = q.shape[0]
+    eta = _np_eye(k)
 
-    eta = _np_eye(q_size)
-
-    for i in range(q_size - s):
+    for i in range(k - s):
 
         q_pi = pi if i == 0 else _calculate_invariant(q)
         phi = _np_ones((q.shape[0], 1), dtype=float)

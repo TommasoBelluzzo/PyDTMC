@@ -231,7 +231,7 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
 
     if dark_colormap:
 
-        for i, (ax, mc, mc_name) in enumerate(zip(axes, mcs, mcs_names)):
+        for ax, mc, mc_name in zip(axes, mcs, mcs_names):
             ax_is = ax.imshow(mc.p, aspect='auto', cmap='hot', vmin=0.0, vmax=1.0)
             ax.set_title(mc_name, fontsize=9.0, fontweight='normal', pad=1)
             ax.set_axis_off()
@@ -240,7 +240,7 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
 
         color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
 
-        for i, (ax, mc, mc_name) in enumerate(zip(axes, mcs, mcs_names)):
+        for ax, mc, mc_name in zip(axes, mcs, mcs_names):
             ax_is = ax.imshow(mc.p, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
             ax.set_title(mc_name, fontsize=9.0, fontweight='normal', pad=1)
             ax.set_xticks([])
