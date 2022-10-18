@@ -26,9 +26,12 @@ __all__ = [
 
 from numpy import (
     abs as _np_abs,
+    amax as _np_amax,
+    any as _np_any,
     apply_along_axis as _np_apply_along_axis,
     arange as _np_arange,
     argsort as _np_argsort,
+    argwhere as _np_argwhere,
     array as _np_array,
     array_equal as _np_array_equal,
     copy as _np_copy,
@@ -49,9 +52,7 @@ from numpy import (
     isnan as _np_isnan,
     ix_ as _np_ix,
     linspace as _np_linspace,
-    log2 as _np_log2,
     nan as _np_nan,
-    nan_to_num as _np_nan_to_num,
     nansum as _np_nansum,
     newaxis as _np_newaxis,
     ones as _np_ones,
@@ -61,6 +62,7 @@ from numpy import (
     sqrt as _np_sqrt,
     stack as _np_stack,
     sum as _np_sum,
+    take as _np_take,
     trace as _np_trace,
     transpose as _np_transpose,
     unravel_index as _np_unravel_index,
@@ -89,6 +91,10 @@ from scipy.stats import (
 
 # Internal
 
+from .computations import (
+    kullback_leibler_divergence as _kullback_leibler_divergence
+)
+
 from .custom_types import (
     ofloat as _ofloat,
     tarray as _tarray,
@@ -109,6 +115,7 @@ from .custom_types import (
 
 def aggregate_spectral_bu(p: _tarray, pi: _tarray, s: int) -> _tgenres:
 
+    # noinspection DuplicatedCode
     def _calculate_q(cq_p, cq_pi, cq_phi):
 
         cq_pi = _np_diag(cq_pi)
@@ -123,10 +130,11 @@ def aggregate_spectral_bu(p: _tarray, pi: _tarray, s: int) -> _tgenres:
 
         q_den = _np_repeat(q_den, z, 1)
 
-        result = q_num / q_den
+        q_value = q_num / q_den
 
-        return result
+        return q_value
 
+    # noinspection DuplicatedCode
     def _create_bipartition_candidate(cbc_p, cbc_pi, cbc_phi, cbc_index):
 
         v = cbc_phi[:, cbc_index]
@@ -157,22 +165,6 @@ def aggregate_spectral_bu(p: _tarray, pi: _tarray, s: int) -> _tgenres:
         bc_stack = _np_hstack((cbc_phi[:, :cbc_index], v1, v2, cbc_phi[:, (cbc_index + 1):]))
 
         return bc_stack
-
-    def _kullback_leibler_divergence(kld_p, kld_pi, kld_phi, kld_q):
-
-        kld_pi = kld_pi[_np_newaxis, :]
-
-        super_q = _np_dot(_np_dot(kld_phi, kld_q), _np_transpose(kld_phi))
-        rho = _np_sum(kld_p * _np_nan_to_num(_np_log2(kld_p / super_q), copy=False), axis=1)
-        t = _np_sum(kld_pi * rho)
-
-        super_pi = _np_dot(_np_dot(kld_pi, kld_phi), _np_transpose(kld_phi))
-        psi = _np_nan_to_num(_np_log2(kld_pi / super_pi), copy=False)
-        u = _np_sum(kld_pi * psi)
-
-        kld = t - u
-
-        return kld
 
     size = p.shape[0]
 
@@ -207,33 +199,54 @@ def aggregate_spectral_bu(p: _tarray, pi: _tarray, s: int) -> _tgenres:
 
 def aggregate_spectral_td(p: _tarray, pi: _tarray, s: int) -> _tgenres:
 
-    def _calculate_q(cq_p, cq_pi, cq_phi):
+    def _calculate_invariant(ci_q):
+
+        size = q.shape[0]
+
+        kappa = _np_ones(size, dtype=float) / size
+        theta = _np_dot(kappa, ci_q)
+
+        z = 0
+
+        while _np_amax(_np_abs(kappa - theta)) > 1e-8 and z < 1000:
+            kappa = (kappa + theta) / 2.0
+            theta = _np_dot(kappa, ci_q)
+            z += 1
+
+        return theta
+
+    # noinspection DuplicatedCode
+    def _calculate_q(cq_p, cq_pi, cq_phi, cq_eta, cq_index):
 
         cq_pi = _np_diag(cq_pi)
-        z = cq_phi.shape[1]
 
-        q_num = _np_dot(_np_dot(_np_dot(_np_transpose(cq_phi), cq_pi), cq_p), cq_phi)
+        vi = _np_ravel(_np_argwhere(cq_phi[:, cq_index] == 1.0))
+        vi0, vi1 = vi[0], vi[1]
+        phi_i = _np_hstack((cq_eta[:, :vi0], _np_amax(_np_take(cq_eta, vi, 1), axis=1, keepdims=True), cq_eta[:, (vi0 + 1):(vi1 - 1)], cq_eta[:, (vi1 + 1):]))
+
+        z = phi_i.shape[1]
+
+        q_num = _np_dot(_np_dot(_np_dot(_np_transpose(phi_i), cq_pi), cq_p), phi_i)
         q_den = _np_zeros((z, 1), dtype=float)
 
         for zi in range(z):
-            cq_phi_zi = cq_phi[:, zi]
-            q_den[zi] = _np_dot(_np_dot(_np_transpose(cq_phi_zi), cq_pi), cq_phi_zi)
+            q_eta_zi = phi_i[:, zi]
+            q_den[zi] = _np_dot(_np_dot(_np_transpose(q_eta_zi), cq_pi), q_eta_zi)
 
         q_den = _np_repeat(q_den, z, 1)
 
-        result = q_num / q_den
+        q_value = q_num / q_den
 
-        return result
+        return q_value, phi_i
 
-    def _create_bipartition_candidate(cbc_p, cbc_pi, cbc_phi, cbc_index):
+    # noinspection DuplicatedCode
+    def _update_bipartition_candidates(cbc_q, cbc_pi, cbc_phi):
 
-        v = cbc_phi[:, cbc_index]
-
-        if _np_sum(v) <= 1.0:
-            return None
+        last_index = cbc_phi.shape[1] - 1
+        v = cbc_phi[:, last_index]
 
         indices = v > 0.0
-        p_sub = cbc_p[_np_ix(indices, indices)]
+        p_sub = cbc_q[_np_ix(indices, indices)]
         pi_sub = _np_diag(cbc_pi[indices])
 
         ar = 0.5 * (p_sub + _np_dot(_npl_solve(pi_sub, _np_transpose(p_sub)), pi_sub))
@@ -252,51 +265,38 @@ def aggregate_spectral_td(p: _tarray, pi: _tarray, s: int) -> _tgenres:
         v2 = _np_copy(vt)
         v2[indices] = evector < 0.0
 
-        bc_stack = _np_hstack((cbc_phi[:, :cbc_index], v1, v2, cbc_phi[:, (cbc_index + 1):]))
+        cbc_phi = cbc_phi[:, :-1]
 
-        return bc_stack
+        if _np_sum(v1) > 1.0:
+            cbc_phi = _np_hstack((cbc_phi[:, :last_index], v1, cbc_phi[:, (last_index + 1):]))
+            last_index += 1
 
-    def _kullback_leibler_divergence(kld_p, kld_pi, kld_phi, kld_q):
+        if _np_sum(v2) > 1.0:
+            cbc_phi = _np_hstack((cbc_phi[:, :last_index], v2, cbc_phi[:, (last_index + 1):]))
 
-        kld_pi = kld_pi[_np_newaxis, :]
+        return cbc_phi
 
-        super_q = _np_dot(_np_dot(kld_phi, kld_q), _np_transpose(kld_phi))
-        rho = _np_sum(kld_p * _np_nan_to_num(_np_log2(kld_p / super_q), copy=False), axis=1)
-        t = _np_sum(kld_pi * rho)
+    q = _np_copy(p)
+    q_size = q.shape[0]
 
-        super_pi = _np_dot(_np_dot(kld_pi, kld_phi), _np_transpose(kld_phi))
-        psi = _np_nan_to_num(_np_log2(kld_pi / super_pi), copy=False)
-        u = _np_sum(kld_pi * psi)
+    eta = _np_eye(q_size)
 
-        kld = t - u
+    for i in range(q_size - s):
 
-        return kld
+        q_pi = pi if i == 0 else _calculate_invariant(q)
+        phi = _np_ones((q.shape[0], 1), dtype=float)
 
-    size = p.shape[0]
+        while _np_any(_np_sum(phi, axis=0) > 2.0):
+            phi = _update_bipartition_candidates(q, q_pi, phi)
 
-    phi = _np_ones((size, 1), dtype=float)
-    q = _np_ones((size, size), dtype=float) * (1.0 / size)
-    k = 1
+        u = []
 
-    while k < s:
+        for j in range(phi.shape[1]):
+            q_j, phi_j = _calculate_q(p, pi, phi, eta, j)
+            r_j = _kullback_leibler_divergence(p, pi, phi_j, q_j)
+            u.append((r_j, q_j, phi_j))
 
-        phi_k, r_k = phi, _np_inf
-
-        for i in range(phi.shape[1]):
-
-            bc = _create_bipartition_candidate(p, pi, phi, i)
-
-            if bc is None:
-                continue
-
-            bc_q = _calculate_q(p, pi, bc)
-            bc_r = _kullback_leibler_divergence(p, pi, bc, bc_q)
-
-            if bc_r < r_k:
-                phi_k, r_k, q = bc, bc_r, bc_q
-
-        phi = phi_k
-        k += 1
+        _, q, eta = sorted(u, key=lambda x: x[0], reverse=True).pop()
 
     q /= _np_sum(q, axis=1, keepdims=True)
 

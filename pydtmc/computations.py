@@ -7,6 +7,7 @@ __all__ = [
     'find_cyclic_classes',
     'find_lumping_partitions',
     'gth_solve',
+    'kullback_leibler_divergence',
     'rdl_decomposition',
     'slem'
 ]
@@ -43,7 +44,10 @@ from numpy import (
     dot as _np_dot,
     eye as _np_eye,
     isclose as _np_isclose,
+    log2 as _np_log2,
     minimum as _np_minimum,
+    nan_to_num as _np_nan_to_num,
+    newaxis as _np_newaxis,
     prod as _np_prod,
     real as _np_real,
     remainder as _np_remainder,
@@ -89,7 +93,7 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
-def _calculate_period(graph: _tgraph) -> int:
+def _calculate_period(graph):
 
     sccs = list(_nx_strongly_connected_components(graph))
 
@@ -342,6 +346,23 @@ def gth_solve(p: _tarray) -> _tarray:
     x /= _np_sum(x)
 
     return x
+
+
+def kullback_leibler_divergence(p, pi, phi, q):
+
+    pi = pi[_np_newaxis, :]
+
+    super_q = _np_dot(_np_dot(phi, q), _np_transpose(phi))
+    theta = _np_sum(p * _np_nan_to_num(_np_log2(p / super_q), copy=False), axis=1)
+    t = _np_sum(pi * theta)
+
+    super_pi = _np_dot(_np_dot(pi, phi), _np_transpose(phi))
+    psi = _np_nan_to_num(_np_log2(pi / super_pi), copy=False)
+    u = _np_sum(pi * psi)
+
+    kld = t - u
+
+    return kld
 
 
 def rdl_decomposition(p: _tarray) -> _trdl:

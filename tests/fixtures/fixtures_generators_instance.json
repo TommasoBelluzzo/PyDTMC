@@ -5,7 +5,7 @@
     "canonical_form": null,
     "aggregate_data": [
       {
-        "method": "spectral-bottom-up",
+        "method": "adaptive",
         "s": 2,
         "value": null
       }
@@ -71,7 +71,7 @@
     "canonical_form": [[0.7, 0.1, 0.2], [0.3, 0.4, 0.3], [0.0, 0.0, 1.0]],
     "aggregate_data": [
       {
-        "method": "spectral-bottom-up",
+        "method": "adaptive",
         "s": 2,
         "value": null
       }
@@ -137,6 +137,11 @@
     "canonical_form": null,
     "aggregate_data": [
       {
+        "method": "adaptive",
+        "s": 2,
+        "value": [[0.735294, 0.264706], [0.900000, 0.100000]]
+      },
+      {
         "method": "spectral-bottom-up",
         "s": 2,
         "value": [[0.100000, 0.900000], [0.264706, 0.735294]]
@@ -144,7 +149,7 @@
       {
         "method": "spectral-top-down",
         "s": 2,
-        "value": [[0.100000, 0.900000], [0.264706, 0.735294]]
+        "value": [[0.735294, 0.264706], [0.900000, 0.100000]]
       }
     ],
     "bounded_data": [
@@ -208,7 +213,7 @@
     "canonical_form": null,
     "aggregate_data": [
       {
-        "method": "spectral-bottom-up",
+        "method": "adaptive",
         "s": 3,
         "value": null
       }
@@ -274,12 +279,7 @@
     "canonical_form": null,
     "aggregate_data": [
       {
-        "method": "spectral-bottom-up",
-        "s": 3,
-        "value": null
-      },
-      {
-        "method": "spectral-bottom-up",
+        "method": "adaptive",
         "s": 4,
         "value": null
       }
@@ -345,14 +345,29 @@
     "canonical_form": null,
     "aggregate_data": [
       {
+        "method": "adaptive",
+        "s": 2,
+        "value": [[0.731448, 0.268552], [0.452688, 0.547312]]
+      },
+      {
         "method": "spectral-bottom-up",
         "s": 2,
         "value": [[0.731448, 0.268552], [0.452688, 0.547312]]
       },
       {
-        "method": "spectral-top-down",
+        "method":  "spectral-top-down",
+        "s": 2,
+        "value": [[0.731448, 0.268552], [0.452688, 0.547312]]
+      },
+      {
+        "method": "spectral-bottom-up",
         "s": 3,
         "value": [[0.050000, 0.800000, 0.150000], [0.100000, 0.600000, 0.300000], [0.202509, 0.250179, 0.547312]]
+      },
+      {
+        "method": "spectral-top-down",
+        "s": 3,
+        "value": [[0.600000, 0.100000, 0.300000], [0.800000, 0.050000, 0.150000], [0.250179, 0.202509, 0.547312]]
       }
     ],
     "bounded_data": [
