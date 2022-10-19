@@ -57,7 +57,7 @@
       ],
       "possible_states": ["A", "B"],
       "significance": 0.05,
-      "value": [false, 0.50643441, 2.33191509, 3]
+      "value": [false, 0.31162412, 2.33191509, 2]
     },
     {
       "walks": [
@@ -66,7 +66,7 @@
       ],
       "possible_states": ["A", "B", "C"],
       "significance": 0.05,
-      "value": [true, 0.01148185, 19.71211476, 8]
+      "value": [true, 0.00311568, 19.71211476, 6]
     },
     {
       "walks": [
@@ -84,7 +84,7 @@
       ],
       "possible_states": ["A", "B"],
       "significance": 0.05,
-      "value": [false, 0.50643441, 2.33191509, 3]
+      "value": [false, 0.31162412, 2.33191509, 2]
     },
     {
       "walks": [
@@ -93,7 +93,7 @@
       ],
       "possible_states": ["A", "B", "C", "D"],
       "significance": 0.01,
-      "value": [true, 0.00089346, 38.028907, 15]
+      "value": [true, 0.0001519, 38.028907, 12]
     },
     {
       "walks": [
@@ -102,7 +102,7 @@
       ],
       "possible_states": ["A", "B"],
       "significance": 0.01,
-      "value": [false, 0.01834997, 10.0255769, 3]
+      "value": [true, 0.00665233, 10.0255769, 2]
     },
     {
       "walks": [
@@ -111,7 +111,7 @@
       ],
       "possible_states": ["A", "B"],
       "significance": 0.01,
-      "value": [false, 0.72596965, 1.31333231, 3]
+      "value": [false, 0.51857731, 1.31333231, 2]
     },
     {
       "walks": [
@@ -120,7 +120,7 @@
       ],
       "possible_states": ["A", "B", "C"],
       "significance": 0.05,
-      "value": [false, 0.15140145, 11.99557451, 8]
+      "value": [false, 0.0620676, 11.99557451, 6]
     }
   ],
   "assess_markov_property_data": [
