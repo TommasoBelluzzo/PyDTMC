@@ -8,7 +8,11 @@ build:
 
 python:
    install:
-   - requirements: docs/requirements.txt
+   - method: pip
+     path: .
+     extra_requirements:
+       - build
+       - docs
 
 sphinx:
   builder: html
