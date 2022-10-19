@@ -215,7 +215,7 @@ def assess_homogeneity(walks: _twalks, possible_states: _tlist_str, significance
                     chi2 += f_ij * _np_log((f_pooled_transitions * f_ij) / (f_transitions * f_pooled_ij))
 
     chi2 *= 2.0
-    dof = (n**2 - 1) * (k - 1)
+    dof = (n * (n - 1)) * (k - 1)
     p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
     rejection = p_value < significance
 
