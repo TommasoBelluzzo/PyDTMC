@@ -72,6 +72,7 @@ from .fitting import (
 )
 
 from .utilities import (
+    generate_state_names as _generate_state_names,
     generate_validation_error as _generate_validation_error
 )
 
@@ -103,16 +104,12 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
 
     try:
 
-        if possible_states is None:
-            walk, possible_states = _validate_walk(walk, None)
-        else:
-            possible_states = _validate_state_names(possible_states)
-            walk, _ = _validate_walk(walk, possible_states)
-
+        possible_states = _generate_state_names(walk) if possible_states is None else _validate_state_names(possible_states)
+        walk = _validate_walk(walk, possible_states)
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
-    except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _ins_trace()) from None
+    except Exception as ex:  # pragma: no cover
+        raise _generate_validation_error(ex, _ins_trace()) from None
 
     k, n = len(walk) - 2, len(possible_states)
     sequence = [possible_states[state] for state in walk]
@@ -160,11 +157,12 @@ def assess_homogeneity(walks: _twalks, possible_states: _tlist_str, significance
 
     try:
 
-        walks, possible_states = _validate_walks(walks, possible_states)
+        possible_states = _validate_state_names(possible_states)
+        walks = _validate_walks(walks, possible_states)
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
-    except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _ins_trace()) from None
+    except Exception as ex:  # pragma: no cover
+        raise _generate_validation_error(ex, _ins_trace()) from None
 
     k, n = len(walks), len(possible_states)
 
@@ -273,16 +271,12 @@ def assess_markov_property(walk: _twalk, possible_states: _olist_str = None, sig
 
     try:
 
-        if possible_states is None:
-            walk, possible_states = _validate_walk(walk, None)
-        else:
-            possible_states = _validate_state_names(possible_states)
-            walk, _ = _validate_walk(walk, possible_states)
-
+        possible_states = _generate_state_names(walk) if possible_states is None else _validate_state_names(possible_states)
+        walk = _validate_walk(walk, possible_states)
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
-    except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _ins_trace()) from None
+    except Exception as ex:  # pragma: no cover
+        raise _generate_validation_error(ex, _ins_trace()) from None
 
     sequence = [possible_states[state] for state in walk]
     p, _ = _fit_walk('mle', False, possible_states, walk)
@@ -351,17 +345,13 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
 
     try:
 
-        if possible_states is None:
-            walk, possible_states = _validate_walk(walk, None)
-        else:
-            possible_states = _validate_state_names(possible_states)
-            walk, _ = _validate_walk(walk, possible_states)
-
+        possible_states = _generate_state_names(walk) if possible_states is None else _validate_state_names(possible_states)
+        walk = _validate_walk(walk, possible_states)
         blocks = _validate_integer(blocks, lower_limit=(1, False))
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
-    except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _ins_trace()) from None
+    except Exception as ex:  # pragma: no cover
+        raise _generate_validation_error(ex, _ins_trace()) from None
 
     k, n = len(walk), len(possible_states)
     sequence = [possible_states[state] for state in walk]
@@ -415,18 +405,13 @@ def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _o
 
     try:
 
+        possible_states = _generate_state_names(walk) if possible_states is None else _validate_state_names(possible_states)
+        walk = _validate_walk(walk, possible_states)
         mc = _validate_markov_chain(mc)
-
-        if possible_states is None:
-            walk, possible_states = _validate_walk(walk, None)
-        else:
-            possible_states = _validate_state_names(possible_states)
-            walk, _ = _validate_walk(walk, possible_states)
-
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
-    except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _ins_trace()) from None
+    except Exception as ex:  # pragma: no cover
+        raise _generate_validation_error(ex, _ins_trace()) from None
 
     if mc.states != possible_states:  # pragma: no cover
         raise _ValidationError('The states of the Markov chain and the "possible_states" parameter must be equal.')

@@ -2,6 +2,7 @@
 
 __all__ = [
     'create_rng',
+    'generate_state_names',
     'generate_validation_error',
     'get_file_extension',
     'get_numpy_random_distributions',
@@ -86,6 +87,7 @@ except ImportError:  # pragma: no cover
 
 from .custom_types import (
     oint as _oint,
+    olist_str as _olist_str,
     tany as _tany,
     tarray as _tarray,
     texception as _texception,
@@ -154,14 +156,39 @@ def extract_data_numeric(data: _tany) -> _tarray:
     return result
 
 
-def generate_validation_error(e: _texception, trace: _tany) -> _ValidationError:
+def generate_state_names(source: _tany) -> _olist_str:
+
+    if is_iterable(source):
+        source = list(source)
+
+    if all(is_integer(state) for state in source):
+        state_names = [str(i) for i in range(1, len(set(source)) + 1)]
+    elif all(is_string(state) for state in source):
+        state_names = sorted(set(source))
+    else:
+        return None
+
+    state_names_length = len(state_names)
+
+    if state_names_length < 2:
+        return None
+
+    state_names_unique = len(set(source))
+
+    if state_names_unique < state_names_length:
+        return None
+
+    return state_names
+
+
+def generate_validation_error(ex: _texception, trace: _tany) -> _ValidationError:
 
     arguments = ''.join(trace[0][4]).split('=', 1)[0].strip()
 
     if ',' in arguments:
         arguments = arguments[:arguments.index(',')]
 
-    message = str(e).replace('@arg@', arguments)
+    message = str(ex).replace('@arg@', arguments)
     validation_error = _ValidationError(message)
 
     return validation_error

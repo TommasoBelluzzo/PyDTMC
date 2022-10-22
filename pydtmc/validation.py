@@ -6,10 +6,13 @@ __all__ = [
     'validate_dictionary',
     'validate_distribution',
     'validate_dpi',
+    'validate_emission_matrix',
     'validate_enumerator',
     'validate_file_path',
     'validate_float',
     'validate_graph',
+    'validate_hmm_sequence',
+    'validate_hmm_symbols',
     'validate_hyperparameter',
     'validate_integer',
     'validate_interval',
@@ -104,6 +107,8 @@ from .custom_types import (
     tdists_flex as _tdists_flex,
     tfile as _tfile,
     tgraphs as _tgraphs,
+    thmm_sequence as _thmm_sequence,
+    thmm_symbols_out as _thmm_symbols_out,
     tinterval as _tinterval,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
@@ -114,9 +119,7 @@ from .custom_types import (
     trandfunc as _trandfunc,
     tscalar as _tscalar,
     ttfunc as _ttfunc,
-    ttimes_in as _ttimes_in,
-    tvalid_walk as _tvalid_walk,
-    tvalid_walks as _tvalid_walks
+    ttimes_in as _ttimes_in
 )
 
 from .utilities import (
@@ -145,8 +148,8 @@ def _extract_numeric_matrix(data: _tany, size: int) -> _tarray:
 
     try:
         result = _extract_data_numeric(data)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     result = result.astype(float)
 
@@ -160,8 +163,8 @@ def _extract_numeric_vector(data: _tany, size: _oint) -> _tarray:
 
     try:
         result = _extract_data_numeric(data)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     result = result.astype(float)
 
@@ -331,6 +334,30 @@ def validate_dpi(value: _tany) -> int:
     return value
 
 
+def validate_emission_matrix(value: _tany, size: int) -> _tarray:
+
+    try:
+        value = _extract_data_numeric(value)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+    value = value.astype(float)
+
+    if value.ndim != 2:
+        raise ValueError('The "@arg@" parameter must be a 2d matrix.')
+
+    if value.shape[0] != size:
+        raise ValueError(f'The "@arg@" parameter must have a number of rows equal to {size:d}.')
+
+    if value.shape[1] < 2:
+        raise ValueError('The "@arg@" parameter must have a number of columns greater than or equal to 2.')
+
+    if not all(_np_isfinite(x) and _np_isreal(x) for _, x in _np_ndenumerate(value)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values.')
+
+    return value
+
+
 def validate_enumerator(value: _tany, possible_values: _tlist_str) -> str:
 
     if not all(_is_string(possible_value) for possible_value in possible_values):
@@ -360,8 +387,8 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
 
     try:
         file_extension = _get_file_extension(file_path)
-    except Exception as e:  # pragma: no cover
-        raise ValueError('The "@arg@" parameter defines an invalid file path.') from e
+    except Exception as ex:  # pragma: no cover
+        raise ValueError('The "@arg@" parameter defines an invalid file path.') from ex
 
     if accepted_extensions is not None and len(accepted_extensions) > 0 and file_extension not in accepted_extensions:
         raise ValueError(f'The "@arg@" parameter must have one of the following extensions: {", ".join(sorted(accepted_extensions)).replace(".", "")}.')
@@ -373,24 +400,22 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
             with open(file_path, mode='w'):
                 pass
 
-        except Exception as e:  # pragma: no cover
-            raise ValueError('The "@arg@" parameter defines the path to an inaccessible file.') from e
+        except Exception as ex:  # pragma: no cover
+            raise ValueError('The "@arg@" parameter defines the path to an inaccessible file.') from ex
 
     else:
 
         file_empty = False
 
         try:
-
             with open(file_path, mode='r') as file:
-
                 file.seek(0)
 
                 if not file.read(1):
                     file_empty = True
 
-        except Exception as e:  # pragma: no cover
-            raise ValueError('The "@arg@" parameter defines the path to an inaccessible file.') from e
+        except Exception as ex:  # pragma: no cover
+            raise ValueError('The "@arg@" parameter defines the path to an inaccessible file.') from ex
 
         if file_empty:
             raise ValueError('The "@arg@" parameter defines the path to an empty file.')
@@ -439,6 +464,70 @@ def validate_graph(value: _tany) -> _tgraphs:
 
     if not all(_is_number(edge[2]) and float(edge[2]) > 0.0 for edge in edges):
         raise ValueError('The "@arg@" parameter must define edge wright as non-negative numbers.')
+
+    return value
+
+
+def validate_hmm_sequence(value: _tany, possible_states: _tlist_str, possible_symbols: _tlist_str) -> _thmm_sequence:
+
+    if possible_states is None or possible_symbols is None:
+        raise ValueError('The "@arg@" parameter must be validated against a proper list of possible states and a proper list of possible symbols.')
+
+    try:
+        value = _extract_data_generic(value)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+    if len(value) != 2:
+        raise ValueError('The "@arg@" parameter must contain two elements.')
+
+    value_states, value_symbols = value[0], value[1]
+
+    try:
+        value_states = validate_walk(value_states, possible_states)
+    except Exception as ex:
+        raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
+
+    try:
+        value_symbols = validate_walk(value_symbols, possible_symbols)
+    except Exception as ex:
+        raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
+
+    value = (value_states, value_symbols)
+
+    return value
+
+
+def validate_hmm_symbols(value: _tany, possible_symbols: _tlist_str, allow_lists: bool) -> _thmm_symbols_out:
+
+    if possible_symbols is None:
+        raise ValueError('The "@arg@" parameter must be validated against a proper list of possible symbols.')
+
+    try:
+        value = _extract_data_generic(value)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+    if all(_is_integer(v) for v in value) or all(_is_string(v) for v in value):
+
+        try:
+            value = validate_walk(value, possible_symbols)
+        except Exception as ex:
+            raise ValueError('The "@arg@" parameter contains invalid values.') from ex
+
+        if allow_lists:
+            value = [value]
+
+    elif allow_lists and all(_is_list(state) for state in value):
+
+        for i, value_i in enumerate(value):
+            try:
+                value[i] = validate_walk(value_i, possible_symbols)
+            except Exception as ex:
+                raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
+
+    else:
+        raise TypeError('The "@arg@" parameter is wrongly typed.')
 
     return value
 
@@ -512,8 +601,8 @@ def validate_markov_chains(value: _tany) -> _tmc:
     for i in range(value_length):
         try:
             value[i] = validate_markov_chain(value[i])
-        except Exception as e:
-            raise ValueError('The "@arg@" parameter contains invalid elements.') from e
+        except Exception as ex:
+            raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
 
     return value
 
@@ -535,8 +624,8 @@ def validate_matrix(value: _tany) -> _tarray:
 
     try:
         value = _extract_data_numeric(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     value = value.astype(float)
 
@@ -679,8 +768,8 @@ def validate_state_names(value: _tany, size: _oint = None) -> _tlist_str:
 
     try:
         value = _extract_data_generic(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     if not all(_is_string(state) for state in value):
         raise TypeError('The "@arg@" parameter must contain only non-empty strings.')
@@ -702,6 +791,9 @@ def validate_state_names(value: _tany, size: _oint = None) -> _tlist_str:
 
 
 def validate_states(value: _tany, possible_states: _tlist_str, subset: bool) -> _tlist_int:
+
+    if possible_states is None:
+        raise ValueError('The "@arg@" parameter must be validated against a proper list of possible states.')
 
     if _is_integer(value):
 
@@ -726,8 +818,8 @@ def validate_states(value: _tany, possible_states: _tlist_str, subset: bool) -> 
 
     try:
         value = _extract_data_generic(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     if all(_is_integer(state) for state in value):
         value_type = 'integer'
@@ -736,30 +828,16 @@ def validate_states(value: _tany, possible_states: _tlist_str, subset: bool) -> 
     else:
         raise TypeError('The "@arg@" parameter must be either an integer, a non-empty string, an array_like object of integers or an array_like object of non-empty strings.')
 
+    possible_states_length = len(possible_states)
+
     if value_type == 'integer':
 
         value = [int(state) for state in value]
-
-        try:
-            possible_states = validate_state_names(possible_states)
-        except Exception as e:
-            raise ValueError(
-                'The "@arg@" parameter must be validated against a coherent list of possible states.') from e
-
-        possible_states_length = len(possible_states)
 
         if any(state < 0 or state >= possible_states_length for state in value):
             raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and the number of existing states minus one ({possible_states_length - 1:d}).')
 
     else:
-
-        try:
-            possible_states = validate_state_names(possible_states)
-        except Exception as e:
-            raise ValueError(
-                'The "@arg@" parameter must be validated against a coherent list of possible states.') from e
-
-        possible_states_length = len(possible_states)
 
         value = [possible_states.index(state) if state in possible_states else -1 for state in value]
 
@@ -814,8 +892,8 @@ def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
 
     try:
         value = _extract_data_numeric(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     value = value.astype(float)
 
@@ -840,8 +918,8 @@ def validate_strings(value: _tany, size: _oint = None) -> _tlist_str:
 
     try:
         value = _extract_data_generic(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     if not all(_is_string(s) for s in value):
         raise TypeError('The "@arg@" parameter must contain only non-empty strings.')
@@ -870,8 +948,8 @@ def validate_time_points(value: _tany) -> _ttimes_in:
 
     try:
         value = _extract_data_generic(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     if all(_is_integer(time_point) for time_point in value):
 
@@ -916,8 +994,8 @@ def validate_transition_function(value: _tany) -> _ttfunc:
 
     try:
         result = value(1, 1.0, 1, 1.0)
-    except Exception as e:  # pragma: no cover
-        raise ValueError('The "@arg@" parameter behavior is not compliant.') from e
+    except Exception as ex:  # pragma: no cover
+        raise ValueError('The "@arg@" parameter behavior is not compliant.') from ex
 
     if not _is_number(result):
         raise ValueError('The "@arg@" parameter behavior is not compliant.')
@@ -930,17 +1008,20 @@ def validate_transition_function(value: _tany) -> _ttfunc:
     return value
 
 
-def validate_transition_matrix(value: _tany) -> _tarray:
+def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
 
     try:
         value = _extract_data_numeric(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     value = value.astype(float)
 
     if value.ndim != 2 or value.shape[0] != value.shape[1] or value.shape[0] < 2:
         raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
+
+    if size is not None and value.shape[0] != size:
+        raise ValueError(f'The "@arg@" parameter must have a size greater than or equal to {size:d}.')
 
     if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
@@ -962,9 +1043,7 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
             raise ValueError('The "@arg@" parameter must have a defined size.')
 
         value = _np_repeat(float(value), size)
-
     else:
-
         value = _extract_numeric_vector(value, size)
 
     if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
@@ -982,12 +1061,15 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
     return value
 
 
-def validate_walk(value: _tany, possible_states: _olist_str) -> _tvalid_walk:
+def validate_walk(value: _tany, possible_states: _tlist_str) -> _tlist_int:
+
+    if possible_states is None:
+        raise ValueError('The "@arg@" parameter must be validated against a proper list of possible states.')
 
     try:
         value = _extract_data_generic(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     if all(_is_integer(state) for state in value):
         value_type = 'integer'
@@ -998,43 +1080,12 @@ def validate_walk(value: _tany, possible_states: _olist_str) -> _tvalid_walk:
 
     if value_type == 'integer':
 
-        value = [int(state) for state in value]
-
-        if possible_states is None:
-
-            possible_states = [str(i) for i in range(1, len(set(value)) + 1)]
-            possible_states_length = len(possible_states)
-
-            if possible_states_length < 2:
-                raise ValueError('The "@arg@" parameter does not provide enough data to infer the possible states.')
-
-        else:
-
-            try:
-                possible_states = validate_state_names(possible_states)
-            except Exception as e:
-                raise ValueError('The "@arg@" parameter must be validated against a valid list of possible states.') from e
-
-            possible_states_length = len(possible_states)
+        possible_states_length = len(possible_states)
 
         if any(state < 0 or state >= possible_states_length for state in value):
             raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and the number of existing states minus one ({possible_states_length - 1:d}).')
 
     else:
-
-        if possible_states is None:
-
-            possible_states = sorted(set(value))
-
-            if len(possible_states) < 2:
-                raise ValueError('The "@arg@" parameter does not provide enough data to infer the possible states.')
-
-        else:
-
-            try:
-                possible_states = validate_state_names(possible_states)
-            except Exception as e:
-                raise ValueError('The "@arg@" parameter must be validated against a valid list of possible states.') from e
 
         value = [possible_states.index(state) if state in possible_states else -1 for state in value]
 
@@ -1044,30 +1095,28 @@ def validate_walk(value: _tany, possible_states: _olist_str) -> _tvalid_walk:
     if len(value) < 2:
         raise ValueError('The "@arg@" parameter must contain at least two elements.')
 
-    return value, possible_states
+    return value
 
 
-def validate_walks(value: _tany, possible_states: _tlist_str) -> _tvalid_walks:
+def validate_walks(value: _tany, possible_states: _tlist_str) -> _tlists_int:
+
+    if possible_states is None:
+        raise ValueError('The "@arg@" parameter must be validated against a proper list of possible states.')
 
     try:
         value = _extract_data_generic(value)
-    except Exception as e:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from e
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     value_length = len(value)
 
     if value_length < 2:
         raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
 
-    try:
-        possible_states = validate_state_names(possible_states)
-    except Exception as e:
-        raise ValueError('The "@arg@" parameter must be validated against a valid list of possible states.') from e
-
     for i in range(value_length):
         try:
-            value[i], _ = validate_walk(value[i], possible_states)
-        except Exception as e:
-            raise ValueError('The "@arg@" parameter contains invalid elements.') from e
+            value[i] = validate_walk(value[i], possible_states)
+        except Exception as ex:
+            raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
 
-    return value, possible_states
+    return value

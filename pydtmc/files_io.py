@@ -108,8 +108,8 @@ def read_csv(file_path: str) -> _tmc_dict:
 
                     try:
                         probability = float(probabilities[i])
-                    except Exception as e:  # pragma: no cover
-                        raise ValueError('The file contains invalid rows.') from e
+                    except Exception as ex:  # pragma: no cover
+                        raise ValueError('The file contains invalid rows.') from ex
 
                     d[(state_from, state_to)] = probability
 
@@ -177,8 +177,8 @@ def read_txt(file_path: str) -> _tmc_dict:
 
             try:
                 ls2 = float(ls[2])
-            except Exception as e:  # pragma: no cover
-                raise ValueError('The file contains invalid lines.') from e
+            except Exception as ex:  # pragma: no cover
+                raise ValueError('The file contains invalid lines.') from ex
 
             d[(ls[0], ls[1])] = ls2
 
@@ -193,8 +193,8 @@ def read_xml(file_path: str) -> _tmc_dict:
 
     try:
         document = _xml_parse(file_path)
-    except Exception as e:  # pragma: no cover
-        raise ValueError('The file format is not compliant.') from e
+    except Exception as ex:  # pragma: no cover
+        raise ValueError('The file format is not compliant.') from ex
 
     root = document.getroot()
 
@@ -235,8 +235,8 @@ def read_xml(file_path: str) -> _tmc_dict:
 
         try:
             probability = float(probability)
-        except Exception as e:  # pragma: no cover
-            raise ValueError('The file contains invalid subelements.') from e
+        except Exception as ex:  # pragma: no cover
+            raise ValueError('The file contains invalid subelements.') from ex
 
         d[(state_from, state_to)] = probability
 

@@ -218,8 +218,8 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
         dark_colormap = _validate_boolean(dark_colormap)
         dpi = _validate_dpi(dpi)
 
-    except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _ins_trace()) from None
+    except Exception as ex:  # pragma: no cover
+        raise _generate_validation_error(ex, _ins_trace()) from None
 
     n = len(mcs)
     rows = int(_math_sqrt(n))
@@ -280,8 +280,8 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
         mc = _validate_markov_chain(mc)
         dpi = _validate_dpi(dpi)
 
-    except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _ins_trace()) from None
+    except Exception as ex:  # pragma: no cover
+        raise _generate_validation_error(ex, _ins_trace()) from None
 
     figure, ax = _mplp_subplots(dpi=dpi)
 
@@ -416,8 +416,8 @@ def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edge
         force_standard = _validate_boolean(force_standard)
         dpi = _validate_dpi(dpi)
 
-    except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _ins_trace()) from None
+    except Exception as ex:  # pragma: no cover
+        raise _generate_validation_error(ex, _ins_trace()) from None
 
     if force_standard:
         extended_graph = False
@@ -577,8 +577,8 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
         plot_type = _validate_enumerator(plot_type, ['heatmap', 'projection'])
         dpi = _validate_dpi(dpi)
 
-    except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _ins_trace()) from None
+    except Exception as ex:  # pragma: no cover
+        raise _generate_validation_error(ex, _ins_trace()) from None
 
     if isinstance(distributions, int):
         distributions = mc.redistribute(distributions, initial_status=initial_status, output_last=False)
@@ -670,7 +670,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         if isinstance(walk, (int, _np_integer)):
             walk = _validate_integer(walk, lower_limit=(2, False))
         else:
-            walk, _ = _validate_walk(walk, mc.states)
+            walk = _validate_walk(walk, mc.states)
 
         if initial_state is not None:
             initial_state = _validate_state(initial_state, mc.states)
@@ -678,8 +678,8 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         plot_type = _validate_enumerator(plot_type, ['histogram', 'sequence', 'transitions'])
         dpi = _validate_dpi(dpi)
 
-    except Exception as e:  # pragma: no cover
-        raise _generate_validation_error(e, _ins_trace()) from None
+    except Exception as ex:  # pragma: no cover
+        raise _generate_validation_error(ex, _ins_trace()) from None
 
     if isinstance(walk, int):
         walk = mc.walk(walk, initial_state=initial_state, output_indices=True, seed=seed)

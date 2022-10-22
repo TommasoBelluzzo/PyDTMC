@@ -583,7 +583,7 @@ def test_validate_matrix(value, is_valid):
         assert actual == expected
 
 
-# noinspection PyBroadException
+# noinspection DuplicatedCode, PyBroadException
 def test_validate_partitions(value, current_states, is_valid):
 
     try:
@@ -825,10 +825,10 @@ def test_validate_transition_function(value, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_transition_matrix(value, is_valid):
+def test_validate_transition_matrix(value, size, is_valid):
 
     try:
-        result = _validate_transition_matrix(value)
+        result = _validate_transition_matrix(value, size)
         result_is_valid = True
     except Exception:
         result = None
@@ -887,27 +887,13 @@ def test_validate_walk(value, possible_states, is_valid):
 
     if result_is_valid:
 
-        actual = isinstance(result, tuple)
-        expected = True
-
-        assert actual == expected
-
-        result_value = result[0]
-
-        actual = isinstance(result_value, list) and all(isinstance(v, int) for v in result_value)
-        expected = True
-
-        assert actual == expected
-
-        result_possible_states = result[1]
-
-        actual = isinstance(result_possible_states, list) and all(isinstance(v, str) for v in result_possible_states)
+        actual = isinstance(result, list) and all(isinstance(v, int) for v in result)
         expected = True
 
         assert actual == expected
 
 
-# noinspection PyBroadException
+# noinspection DuplicatedCode, PyBroadException
 def test_validate_walks(value, possible_states, is_valid):
 
     try:
@@ -924,21 +910,7 @@ def test_validate_walks(value, possible_states, is_valid):
 
     if result_is_valid:
 
-        actual = isinstance(result, tuple)
-        expected = True
-
-        assert actual == expected
-
-        result_value = result[0]
-
-        actual = isinstance(result_value, list) and all(isinstance(r, list) for r in result_value) and all(isinstance(v, int) for r in result_value for v in r)
-        expected = True
-
-        assert actual == expected
-
-        result_possible_states = result[1]
-
-        actual = isinstance(result_possible_states, list) and all(isinstance(v, str) for v in result_possible_states)
+        actual = isinstance(result, list) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
         expected = True
 
         assert actual == expected

@@ -9,6 +9,7 @@ __all__ = [
     'tcache', 'ocache',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
+    'thmm', 'ohmm',
     'tfile', 'ofile',
     'tlimit_float', 'olimit_float',
     'tlimit_int', 'olimit_int',
@@ -35,9 +36,18 @@ __all__ = [
     # Specific
     'tbcond', 'obcond',
     'tdists_flex', 'odists_flex',
-    'tfitres', 'ofitres',
+    'tfitting_res', 'ofitting_res',
     'tgenres', 'ogenres',
     'tgenres_ext', 'ogenres_ext',
+    'thmm_decoding', 'ohmm_decoding',
+    'thmm_params', 'ohmm_params',
+    'thmm_params_res', 'ohmm_params_res',
+    'thmm_sequence', 'ohmm_sequence',
+    'thmm_sequence_ext', 'ohmm_sequence_ext',
+    'thmm_size', 'ohmm_size',
+    'thmm_symbols', 'ohmm_symbols',
+    'thmm_symbols_ext', 'ohmm_symbols_ext',
+    'thmm_symbols_out', 'ohmm_symbols_out',
     'tinterval', 'ointerval',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
@@ -54,8 +64,6 @@ __all__ = [
     'ttimes_in', 'otimes_in',
     'ttimes_out', 'otimes_out',
     'tvalid_states', 'ovalid_states',
-    'tvalid_walk', 'ovalid_walk',
-    'tvalid_walks', 'ovalid_walks',
     'twalk', 'owalk',
     'twalk_flex', 'owalk_flex',
     'twalks', 'owalks',
@@ -149,6 +157,10 @@ ograph = _tp_Optional[tgraph]
 tgraphs = _tp_Union[tgraph, _nx_MultiDiGraph]
 ographs = _tp_Optional[tgraphs]
 
+# noinspection PyTypeHints
+thmm = _tp_TypeVar('HiddenMarkovModel')
+ohmm = _tp_Optional[thmm]
+
 tlimit_float = _tp_Tuple[float, bool]
 olimit_float = _tp_Optional[tlimit_float]
 
@@ -222,14 +234,41 @@ obcond = _tp_Optional[tbcond]
 tdists_flex = _tp_Union[int, tlist_array]
 odists_flex = _tp_Optional[tdists_flex]
 
-tfitres = _tp_Tuple[oarray, ostr]
-ofitres = _tp_Optional[tfitres]
+tfitting_res = _tp_Tuple[oarray, ostr]
+ofitting_res = _tp_Optional[tfitting_res]
 
 tgenres = _tp_Tuple[oarray, ostr]
 ogenres = _tp_Optional[tgenres]
 
 tgenres_ext = _tp_Tuple[oarray, olist_str, ostr]
 ogenres_ext = _tp_Optional[tgenres_ext]
+
+thmm_decoding = _tp_Union[_tp_Tuple[float, tarray, tarray, tarray, tarray], _tp_Tuple[float, tarray, tarray, tarray]]
+ohmm_decoding = _tp_Optional[thmm_decoding]
+
+thmm_params = _tp_Tuple[tarray, tarray]
+ohmm_params = _tp_Optional[thmm_params]
+
+thmm_params_res = _tp_Tuple[oarray, oarray, ostr]
+ohmm_params_res = _tp_Optional[thmm_params_res]
+
+thmm_sequence = _tp_Tuple[tlist_int, tlist_int]
+ohmm_sequence = _tp_Optional[thmm_sequence]
+
+thmm_sequence_ext = _tp_Union[_tp_Tuple[tlist_int, tlist_int], _tp_Tuple[tlist_str, tlist_str]]
+ohmm_sequence_ext = _tp_Optional[thmm_sequence_ext]
+
+thmm_size = _tp_Tuple[int, int]
+ohmm_size = _tp_Optional[thmm_size]
+
+thmm_symbols = _tp_Union[tlist_int, tlist_str]
+ohmm_symbols = _tp_Optional[thmm_symbols]
+
+thmm_symbols_ext = _tp_Union[tlist_int, tlist_str, tlists_int, tlists_str]
+ohmm_symbols_ext = _tp_Optional[thmm_symbols_ext]
+
+thmm_symbols_out = _tp_Union[tlist_int, tlists_int]
+ohmm_symbols_out = _tp_Optional[thmm_symbols_out]
 
 tinterval = _tp_Tuple[tscalar, tscalar]
 ointerval = _tp_Optional[tinterval]
@@ -278,12 +317,6 @@ otimes_out = _tp_Optional[ttimes_out]
 
 tvalid_states = _tp_Tuple[tlist_int, tlist_str]
 ovalid_states = _tp_Optional[tvalid_states]
-
-tvalid_walk = _tp_Tuple[tlist_int, tlist_str]
-ovalid_walk = _tp_Optional[tvalid_walk]
-
-tvalid_walks = _tp_Tuple[tlists_int, tlist_str]
-ovalid_walks = _tp_Optional[tvalid_walks]
 
 twalk = _tp_Union[tlist_int, tlist_str]
 owalk = _tp_Optional[twalk]
