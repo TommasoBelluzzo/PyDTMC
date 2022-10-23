@@ -129,13 +129,13 @@ nitpick_ignore = []
 # InterSphinx
 
 intersphinx_aliases = {
-    ('py:class', '~HiddenMarkovModel'): ('py:class', 'pydtmc.HiddenMarkovModel'),
-    ('py:class', '~MarkovChain'): ('py:class', 'pydtmc.MarkovChain'),
     ('py:class', 'matplotlib.axes._axes.Axes'): ('py:class', 'matplotlib.axes.Axes'),
     ('py:class', 'networkx.classes.digraph.DiGraph'): ('py:class', 'networkx.DiGraph'),
     ('py:class', 'networkx.classes.digraph.MultiDiGraph'): ('py:class', 'networkx.MultiDiGraph'),
     ('py:class', 'networkx.classes.multidigraph.MultiDiGraph'): ('py:class', 'networkx.MultiDiGraph'),
-    ('py:class', 'scipy.sparse.base.spmatrix'): ('py:class', 'scipy.sparse.spmatrix')
+    ('py:class', 'scipy.sparse.base.spmatrix'): ('py:class', 'scipy.sparse.spmatrix'),
+    ('py:class', '~HiddenMarkovModel'): ('py:class', 'pydtmc.HiddenMarkovModel'),
+    ('py:class', '~MarkovChain'): ('py:class', 'pydtmc.MarkovChain')
 }
 
 intersphinx_mapping = {

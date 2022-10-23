@@ -410,6 +410,29 @@ def test_validate_graph(graph_data, is_valid):
 
 
 # noinspection PyBroadException
+def test_validate_hyperparameter(value, size, is_valid):
+
+    try:
+        result = _validate_hyperparameter(value, size)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+
+        actual = isinstance(result, _np_ndarray)
+        expected = True
+
+        assert actual == expected
+
+
+# noinspection PyBroadException
 def test_validate_hmm_symbols(value, possible_symbols, allow_lists, is_valid):
 
     try:
@@ -457,29 +480,6 @@ def test_validate_integer(value, lower_limit, upper_limit, is_valid):
     if result_is_valid:
 
         actual = isinstance(result, int)
-        expected = True
-
-        assert actual == expected
-
-
-# noinspection PyBroadException
-def test_validate_hyperparameter(value, size, is_valid):
-
-    try:
-        result = _validate_hyperparameter(value, size)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-
-        actual = isinstance(result, _np_ndarray)
         expected = True
 
         assert actual == expected
