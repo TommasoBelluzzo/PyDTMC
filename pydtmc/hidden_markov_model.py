@@ -42,7 +42,9 @@ from .custom_types import (
     thmm_sequence_ext as _thmm_sequence_ext,
     thmm_size as _thmm_size,
     thmm_symbols as _thmm_symbols,
-    thmm_symbols_ext as _thmm_symbols_ext
+    thmm_symbols_ext as _thmm_symbols_ext,
+    thmm_viterbi_ext as _thmm_viterbi_ext,
+    tmc as _tmc
 )
 
 from .decorators import (
@@ -53,7 +55,12 @@ from .hmm import (
     decode as _decode,
     estimate as _estimate,
     simulate as _simulate,
-    train as _train
+    train as _train,
+    viterbi as _viterbi
+)
+
+from .markov_chain import (
+    MarkovChain as _MarkovChain
 )
 
 from .utilities import (
@@ -110,6 +117,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
                 raise _generate_validation_error(ex, _ins_trace()) from None
 
         self.__e: _tarray = e
+        self.__mc: _tmc = _MarkovChain(p, states)
         self.__p: _tarray = p
         self.__size: _thmm_size = (p.shape[0], e.shape[1])
         self.__states: _tlist_str = states
@@ -121,6 +129,13 @@ class HiddenMarkovModel(metaclass=_BaseClass):
             return _np_array_equal(self.p, other.p) and _np_array_equal(self.e, other.e) and self.states == other.states and self.symbols == other.symbols
 
         return False
+
+    def __getattr__(self, name):
+
+        if hasattr(self.__mc, name):
+            return getattr(self.__mc, name)
+
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'.")
 
     def __hash__(self) -> int:
 
@@ -192,7 +207,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
     def decode(self, symbols: _thmm_symbols, use_scaling: bool = True) -> _thmm_decoding:
 
         """
-        The method calculates the posterior state probabilities, the backward probabilities and forward probabilities of an observed sequence symbols.
+        The method calculates the log probability, the posterior probabilities, the backward probabilities and the forward probabilities of an observed sequence of symbols.
 
         :param symbols: the observed sequence of symbols.
         :param use_scaling: a boolean indicating whether to return scaled backward and forward probabilities together with their scaling factors.
@@ -215,7 +230,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
     def simulate(self, steps: int, initial_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _thmm_sequence_ext:
 
         """
-        The method simulates a random walk of the given number of steps.
+        The method simulates a random sequence of states and symbols of the given number of steps.
 
         :param steps: the number of steps.
         :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
@@ -243,6 +258,34 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return value
 
+    def viterbi(self, symbols: _thmm_symbols, output_indices: bool = False) -> _thmm_viterbi_ext:
+
+        """
+        The method calculates the log probability and the most probable states path of an observed sequence of symbols.
+
+        :param symbols: the observed sequence of symbols.
+        :param output_indices: a boolean indicating whether to output the state indices.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the observed sequence of symbols produced one or more null transition probabilities.
+        """
+
+        try:
+
+            symbols = _validate_hmm_symbols(symbols, self.__symbols, False)
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        value = _viterbi(self.__p, self.__e, symbols)
+
+        if value is None:  # pragma: no cover
+            raise ValueError('The observed sequence of symbols produced one or more null transition probabilities; more data is required.')
+
+        if not output_indices:
+            value = (value[0], [*map(self.__states.__getitem__, value[1])])
+
+        return value
+
     @staticmethod
     def estimate(sequence: _thmm_sequence_ext, possible_states: _tlist_str, possible_symbols: _tlist_str) -> _thmm:
 
@@ -264,7 +307,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
 
-        p, e = _estimate(possible_states, possible_symbols, sequence)
+        p, e = _estimate(len(possible_states), len(possible_symbols), sequence, True)
         hmm = HiddenMarkovModel(p, e, possible_states, possible_symbols)
 
         return hmm

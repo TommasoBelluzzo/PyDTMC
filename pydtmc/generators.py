@@ -45,6 +45,7 @@ from numpy import (
     fix as _np_fix,
     flatnonzero as _np_flatnonzero,
     fliplr as _np_fliplr,
+    full as _np_full,
     hstack as _np_hstack,
     inf as _np_inf,
     isclose as _np_isclose,
@@ -169,7 +170,7 @@ def aggregate_spectral_bu(p: _tarray, pi: _tarray, s: int) -> _tgenres:
     size = p.shape[0]
 
     phi = _np_ones((size, 1), dtype=float)
-    q = _np_ones((size, size), dtype=float) * (1.0 / size)
+    q = _np_full((size, size), 1.0 / size, dtype=float)
     k = 1
 
     while k < s:
@@ -561,11 +562,13 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
     basis_vectors = []
 
     for r in range(size_m1):
+
         dr = distribution[r]
         drc = 1.0 - dr
         dr_zero = dr == 0.0
 
         for s in range(r + 1, size):
+
             ds = distribution[s]
             dsc = 1.0 - ds
             ds_zero = ds == 0.0

@@ -189,7 +189,7 @@ def assess_homogeneity(walks: _twalks, possible_states: _tlist_str, significance
 
         f = _np_zeros((n, n), dtype=float)
 
-        for (i, j) in zip(walk[:-1], walk[1:]):
+        for i, j in zip(walk[:-1], walk[1:]):
             f[i, j] += 1.0
 
         fs.append(f)
@@ -419,7 +419,7 @@ def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _o
     p, n = mc.p, mc.size
     f = _np_zeros((n, n), dtype=int)
 
-    for (i, j) in zip(walk[:-1], walk[1:]):
+    for i, j in zip(walk[:-1], walk[1:]):
         f[i, j] += 1
 
     if _np_all(f[p == 0.0] == 0):

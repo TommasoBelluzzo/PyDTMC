@@ -48,6 +48,8 @@ __all__ = [
     'thmm_symbols', 'ohmm_symbols',
     'thmm_symbols_ext', 'ohmm_symbols_ext',
     'thmm_symbols_out', 'ohmm_symbols_out',
+    'thmm_viterbi', 'ohmm_viterbi',
+    'thmm_viterbi_ext', 'ohmm_viterbi_ext',
     'tinterval', 'ointerval',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
@@ -269,6 +271,12 @@ ohmm_symbols_ext = _tp_Optional[thmm_symbols_ext]
 
 thmm_symbols_out = _tp_Union[tlist_int, tlists_int]
 ohmm_symbols_out = _tp_Optional[thmm_symbols_out]
+
+thmm_viterbi = _tp_Tuple[float, tlist_int]
+ohmm_viterbi = _tp_Optional[thmm_viterbi]
+
+thmm_viterbi_ext = _tp_Tuple[float, _tp_Union[tlist_int, tlist_str]]
+ohmm_viterbi_ext = _tp_Optional[thmm_viterbi_ext]
 
 tinterval = _tp_Tuple[tscalar, tscalar]
 ointerval = _tp_Optional[tinterval]

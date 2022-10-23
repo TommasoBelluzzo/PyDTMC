@@ -178,7 +178,7 @@ def fit_walk(fitting_type: str, k: _tany, possible_states: _tlist_str, walk: _tl
         f = _np_zeros((size, size), dtype=int)
         eq_prob = 1.0 / size
 
-        for (i, j) in zip(walk[:-1], walk[1:]):
+        for i, j in zip(walk[:-1], walk[1:]):
             f[i, j] += 1
 
         for i in range(size):
@@ -200,7 +200,7 @@ def fit_walk(fitting_type: str, k: _tany, possible_states: _tlist_str, walk: _tl
 
     else:
 
-        for (i, j) in zip(walk[:-1], walk[1:]):
+        for i, j in zip(walk[:-1], walk[1:]):
             p[i, j] += 1.0
 
         if k:

@@ -352,7 +352,7 @@ def validate_emission_matrix(value: _tany, size: int) -> _tarray:
     if value.shape[1] < 2:
         raise ValueError('The "@arg@" parameter must have a number of columns greater than or equal to 2.')
 
-    if not all(_np_isfinite(x) and _np_isreal(x) for _, x in _np_ndenumerate(value)):
+    if not all(_np_isfinite(x) and _np_isreal(x) and x >= 0.0 for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values.')
 
     return value
@@ -492,6 +492,9 @@ def validate_hmm_sequence(value: _tany, possible_states: _tlist_str, possible_sy
         value_symbols = validate_walk(value_symbols, possible_symbols)
     except Exception as ex:
         raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
+
+    if len(value_states) != len(value_symbols):
+        raise ValueError('The "@arg@" parameter must contain two elements of equal length.')
 
     value = (value_states, value_symbols)
 

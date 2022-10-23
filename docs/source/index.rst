@@ -7,6 +7,7 @@ PyDTMC
 	:hidden:
 
 	markov_chain
+	hidden_markov_model
 	assessment_functions
 	plotting_functions
 	custom_exceptions
