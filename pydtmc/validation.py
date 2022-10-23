@@ -353,7 +353,7 @@ def validate_emission_matrix(value: _tany, size: int) -> _tarray:
         raise ValueError('The "@arg@" parameter must have a number of columns greater than or equal to 2.')
 
     if not all(_np_isfinite(x) and _np_isreal(x) and x >= 0.0 for _, x in _np_ndenumerate(value)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values.')
+        raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')
 
     return value
 
