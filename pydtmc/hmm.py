@@ -135,9 +135,6 @@ def estimate(n: int, k: int, sequence: _thmm_sequence, handle_nulls: bool) -> _t
         p[_np_where(~p.any(axis=1)), :] = _np_ones(n, dtype=float)
         p /= _np_sum(p, axis=1, keepdims=True)
 
-        e[_np_where(~e.any(axis=1)), :] = _np_ones(k, dtype=float)
-        e /= _np_sum(e, axis=1, keepdims=True)
-
     else:
 
         p_rows = _np_sum(p, axis=1, keepdims=True)

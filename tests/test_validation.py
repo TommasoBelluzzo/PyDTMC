@@ -80,6 +80,7 @@ from pydtmc.validation import (
     validate_file_path as _validate_file_path,
     validate_float as _validate_float,
     validate_graph as _validate_graph,
+    validate_hmm_sequence as _validate_hmm_sequence,
     validate_hmm_symbols as _validate_hmm_symbols,
     validate_integer as _validate_integer,
     validate_hyperparameter as _validate_hyperparameter,
@@ -427,6 +428,29 @@ def test_validate_hyperparameter(value, size, is_valid):
     if result_is_valid:
 
         actual = isinstance(result, _np_ndarray)
+        expected = True
+
+        assert actual == expected
+
+
+# noinspection DuplicatedCode, PyBroadException
+def test_validate_hmm_sequence(value, possible_states, possible_symbols, is_valid):
+
+    try:
+        result = _validate_hmm_sequence(value, possible_states, possible_symbols)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+
+        actual = isinstance(result, tuple) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
         expected = True
 
         assert actual == expected

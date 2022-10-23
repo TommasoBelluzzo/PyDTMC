@@ -1074,6 +1074,9 @@ def validate_walk(value: _tany, possible_states: _tlist_str) -> _tlist_int:
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
+    if len(value) < 2:
+        raise ValueError('The "@arg@" parameter must contain at least two elements.')
+
     if all(_is_integer(state) for state in value):
         value_type = 'integer'
     elif all(_is_string(state) for state in value):
@@ -1094,9 +1097,6 @@ def validate_walk(value: _tany, possible_states: _tlist_str) -> _tlist_int:
 
         if any(state == -1 for state in value):
             raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the names of the existing states ({", ".join(possible_states)}).')
-
-    if len(value) < 2:
-        raise ValueError('The "@arg@" parameter must contain at least two elements.')
 
     return value
 
