@@ -33,6 +33,7 @@ from numpy import (
     multiply as _np_multiply,
     newaxis as _np_newaxis,
     ones as _np_ones,
+    round as _np_round,
     sum as _np_sum,
     take as _np_take,
     tile as _np_tile,
@@ -332,7 +333,8 @@ def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tli
             omega_i = omega[im1]
 
             for j in range(n):
-                prob = omega_i + p_log[:, j] + e_log[j, symbol_i]
+
+                prob = _np_round(omega_i + p_log[:, j] + e_log[j, symbol_i], 14)
                 max_index = _np_argmax(prob)
 
                 print('prob 0', f"{prob[0].item():.16f}")
