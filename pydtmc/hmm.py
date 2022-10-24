@@ -24,6 +24,7 @@ from numpy import (
     cumsum as _np_cumsum,
     exp as _np_exp,
     fliplr as _np_fliplr,
+    full as _np_full,
     hstack as _np_hstack,
     inf as _np_inf,
     isnan as _np_isnan,
@@ -193,10 +194,10 @@ def simulate(hmm: _thmm, steps: int, initial_state: int, rng: _trand) -> _thmm_s
 def train(algorithm: str, p_guess: _tarray, e_guess: _tarray, symbols: _tlists_int) -> _thmm_params_res:
 
     n, k, f = p_guess.shape[0], e_guess.shape[1], len(symbols)
-
     p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
-    ll, converged = 1.0, False
+    initial_distribution = _np_full(n, 1.0 / n, dtype=float)
 
+    ll, converged = 1.0, False
     iterations = 0
 
     while iterations < 500:
@@ -236,7 +237,7 @@ def train(algorithm: str, p_guess: _tarray, e_guess: _tarray, symbols: _tlists_i
 
                 symbols_i = symbols[i]
 
-                log_prob_i, states_i = viterbi(p_guess, e_guess, symbols_i)
+                log_prob_i, states_i = viterbi(p_guess, e_guess, initial_distribution, symbols_i)
                 ll += log_prob_i
 
                 p_i, e_i = estimate(n, k, (states_i, symbols_i), False)
