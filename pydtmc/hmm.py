@@ -30,6 +30,7 @@ from numpy import (
     isnan as _np_isnan,
     ix_ as _np_ix,
     log as _np_log,
+    longfloat as _np_longdouble,
     multiply as _np_multiply,
     newaxis as _np_newaxis,
     ones as _np_ones,
@@ -286,7 +287,7 @@ def train(algorithm: str, p_guess: _tarray, e_guess: _tarray, symbols: _tlists_i
 def viterbi(p: _tarray, e: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
 
     n, f = p.shape[0], len(symbols)
-    p_log, e_log = _np_log(p), _np_log(e)
+    p_log, e_log = _np_log(p).astype(_np_longdouble), _np_log(e).astype(_np_longdouble)
 
     print('p_log', p_log)
     print('e_log', e_log)
@@ -295,7 +296,7 @@ def viterbi(p: _tarray, e: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
     transitions = _np_full((n, f), -1, dtype=int)
 
     infs = [-_np_inf] * (n - 1)
-    v = _np_array([0.0] + infs)
+    v = _np_array([0.0] + infs, dtype=_np_longdouble)
     v_previous = _np_copy(v)
 
     for i in range(f):
@@ -315,7 +316,7 @@ def viterbi(p: _tarray, e: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
                 print('value', value)
                 print('comparison', value_j > value)
 
-                if value_j > value:
+                if (value_j - value) > 1e-16:
                     value = value_j
                     transition = j
 
