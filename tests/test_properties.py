@@ -11,7 +11,6 @@ from numpy import (
     abs as _np_abs,
     array as _np_array,
     array_equal as _np_array_equal,
-    asarray as _np_asarray,
     isclose as _np_isclose,
     logical_or as _np_logical_or,
     sort as _np_sort,
@@ -83,7 +82,7 @@ def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communicatio
     mc = _MarkovChain(p)
 
     actual = mc.accessibility_matrix
-    expected = _np_asarray(accessibility_matrix)
+    expected = _np_array(accessibility_matrix)
 
     assert _np_array_equal(actual, expected)
 
@@ -101,12 +100,12 @@ def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communicatio
             assert actual == expected
 
     actual = mc.adjacency_matrix
-    expected = _np_asarray(adjacency_matrix)
+    expected = _np_array(adjacency_matrix)
 
     assert _np_array_equal(actual, expected)
 
     actual = mc.communication_matrix
-    expected = _np_asarray(communication_matrix)
+    expected = _np_array(communication_matrix)
 
     assert _np_array_equal(actual, expected)
 
@@ -146,7 +145,7 @@ def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
     expected = fundamental_matrix
 
     if actual is not None and expected is not None:
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
@@ -335,7 +334,7 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     expected = implied_timescales
 
     if actual is not None and expected is not None:
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected

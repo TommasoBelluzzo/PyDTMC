@@ -8,7 +8,7 @@
 # Libraries
 
 from numpy import (
-    asarray as _np_asarray,
+    array as _np_array,
     eye as _np_eye,
     isclose as _np_isclose,
     vstack as _np_vstack
@@ -57,7 +57,7 @@ def test_redistribute(p, steps, initial_status, output_last, value):
     r = r if isinstance(r, list) else [r]
 
     actual = _np_vstack(r)
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected)
 

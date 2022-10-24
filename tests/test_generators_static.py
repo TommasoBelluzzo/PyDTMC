@@ -8,7 +8,7 @@
 # Libraries
 
 from numpy import (
-    asarray as _np_asarray,
+    array as _np_array,
     count_nonzero as _np_count_nonzero,
     isnan as _np_isnan
 )
@@ -33,7 +33,7 @@ def test_approximation(size, approximation_type, alpha, sigma, rho, k, value):
     mc = _MarkovChain.approximation(size, approximation_type, alpha, sigma, rho, k)
 
     actual = mc.p
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -43,7 +43,7 @@ def test_birth_death(p, q, value):
     mc = _MarkovChain.birth_death(p, q)
 
     actual = mc.p
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -58,7 +58,7 @@ def test_closest_reversible(p, distribution, weighted, value):
         expected = mc.p
     else:
         actual = cr.p
-        expected = _np_asarray(value)
+        expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -69,7 +69,7 @@ def test_dirichlet_process(seed, size, diffusion_factor, diagonal_bias_factor, s
     mc = _MarkovChain.dirichlet_process(size, diffusion_factor, None, diagonal_bias_factor, shift_concentration, seed)
 
     actual = mc.p
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -79,7 +79,7 @@ def test_gamblers_ruin(size, w, value):
     mc = _MarkovChain.gamblers_ruin(size, w)
 
     actual = mc.p
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -89,7 +89,7 @@ def test_identity(size, value):
     mc = _MarkovChain.identity(size)
 
     actual = mc.p
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -100,7 +100,7 @@ def test_random(seed, size, zeros, mask, value):
     mc = _MarkovChain.random(size, None, zeros, mask, seed)
 
     actual = mc.p
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -113,10 +113,10 @@ def test_random(seed, size, zeros, mask, value):
 
     if mask is not None:
 
-        indices = ~_np_isnan(_np_asarray(mask))
+        indices = ~_np_isnan(_np_array(mask))
 
         actual = mc.p[indices]
-        expected = _np_asarray(value)[indices]
+        expected = _np_array(value)[indices]
 
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -127,7 +127,7 @@ def test_random_distribution(seed, size, f, args, value):
     mc = _MarkovChain.random_distribution(size, f, None, seed, **args)
 
     actual = mc.p
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -137,6 +137,6 @@ def test_urn_model(n, model, value):
     mc = _MarkovChain.urn_model(n, model)
 
     actual = mc.p
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

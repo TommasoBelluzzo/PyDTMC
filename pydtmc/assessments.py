@@ -30,7 +30,7 @@ from numpy import (
     all as _np_all,
     arange as _np_arange,
     argwhere as _np_argwhere,
-    asarray as _np_asarray,
+    array as _np_array,
     concatenate as _np_concatenate,
     count_nonzero as _np_count_nonzero,
     fliplr as _np_fliplr,
@@ -289,10 +289,10 @@ def assess_markov_property(walk: _twalk, possible_states: _olist_str = None, sig
     c2 = sample[1:(sample_length - 1)]
     c3 = sample[2:sample_length]
 
-    set3 = _np_transpose(_np_asarray([c1, c2, c3]))
+    set3 = _np_transpose(_np_array([c1, c2, c3]))
     sts3, so3 = _sorted_counts(set3)
 
-    set2 = _np_transpose(_np_asarray([c1, c2]))
+    set2 = _np_transpose(_np_array([c1, c2]))
     sts2, s02 = _sorted_counts(set2)
 
     chi2 = 0.0

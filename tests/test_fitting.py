@@ -8,7 +8,7 @@
 # Libraries
 
 from numpy import (
-    asarray as _np_asarray
+    array as _np_array
 )
 
 from numpy.testing import (
@@ -34,7 +34,7 @@ def test_fit_function(quadrature_type, f, possible_states, quadrature_interval, 
     mc = _MarkovChain.fit_function(quadrature_type, f, possible_states, quadrature_interval)
 
     actual = mc.p
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -44,6 +44,6 @@ def test_fit_walk(fitting_type, k, possible_states, walk, value):
     mc = _MarkovChain.fit_walk(fitting_type, walk, k, possible_states)
 
     actual = mc.p
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

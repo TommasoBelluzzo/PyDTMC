@@ -208,6 +208,7 @@ def pytest_configure(config):
 
     config.addinivalue_line('filterwarnings', 'ignore::DeprecationWarning')
     config.addinivalue_line('filterwarnings', 'ignore::PendingDeprecationWarning')
+    config.addinivalue_line('filterwarnings', 'ignore::VisibleDeprecationWarning')
     config.addinivalue_line('filterwarnings', 'ignore::matplotlib.cbook.mplDeprecation')
 
     config.addinivalue_line('markers', 'slow: mark tests as slow (exclude them with \'-m "not slow"\').')

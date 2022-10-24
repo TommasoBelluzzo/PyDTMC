@@ -8,7 +8,7 @@
 # Libraries
 
 from numpy import (
-    asarray as _np_asarray,
+    array as _np_array,
     diag as _np_diag,
     dot as _np_dot,
     isclose as _np_isclose,
@@ -43,7 +43,7 @@ def test_absorption_probabilities(p, absorption_probabilities):
     expected = absorption_probabilities
 
     if actual is not None and expected is not None:
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
@@ -57,7 +57,7 @@ def test_committor_probabilities(p, states1, states2, value_backward, value_forw
     expected = value_backward
 
     if actual is not None and expected is not None:
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
@@ -66,7 +66,7 @@ def test_committor_probabilities(p, states1, states2, value_backward, value_forw
     expected = value_forward
 
     if actual is not None and expected is not None:
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
@@ -77,7 +77,7 @@ def test_expected_rewards(p, steps, rewards, value):
     mc = _MarkovChain(p)
 
     actual = mc.expected_rewards(steps, rewards)
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -87,7 +87,7 @@ def test_expected_transitions(p, steps, initial_distribution, value):
     mc = _MarkovChain(p)
 
     actual = mc.expected_transitions(steps, initial_distribution)
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -97,7 +97,7 @@ def test_first_passage_probabilities(p, steps, initial_state, first_passage_stat
     mc = _MarkovChain(p)
 
     actual = mc.first_passage_probabilities(steps, initial_state, first_passage_states)
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     if first_passage_states is not None:
 
@@ -124,7 +124,7 @@ def test_hitting_probabilities(p, targets, value):
     mc = _MarkovChain(p)
 
     actual = mc.hitting_probabilities(targets)
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -139,7 +139,7 @@ def test_hitting_times(p, targets, value):
     mc = _MarkovChain(p)
 
     actual = mc.hitting_times(targets)
-    expected = _np_asarray(value)
+    expected = _np_array(value)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -152,7 +152,7 @@ def test_mean_first_passage_times_between(p, origins, targets, value):
     expected = value
 
     if actual is not None and expected is not None:
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
@@ -167,7 +167,7 @@ def test_mean_first_passage_times_to(p, targets, value):
 
     if actual is not None and expected is not None:
 
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         if targets is None:
@@ -187,7 +187,7 @@ def test_mean_absorption_times(p, mean_absorption_times):
     expected = mean_absorption_times
 
     if actual is not None and expected is not None:
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
@@ -205,7 +205,7 @@ def test_mean_number_visits(p, mean_number_visits):
     mc = _MarkovChain(p)
 
     actual = mc.mean_number_visits()
-    expected = _np_asarray(mean_number_visits)
+    expected = _np_array(mean_number_visits)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -218,7 +218,7 @@ def test_mean_recurrence_times(p, mean_recurrence_times):
     expected = mean_recurrence_times
 
     if actual is not None and expected is not None:
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
@@ -249,7 +249,7 @@ def test_sensitivity(p, state, value):
     expected = value
 
     if actual is not None and expected is not None:
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
@@ -259,11 +259,11 @@ def test_time_correlations(p, walk1, walk2, time_points, value):
 
     mc = _MarkovChain(p)
 
-    actual = _np_asarray(mc.time_correlations(walk1, walk2, time_points))
+    actual = _np_array(mc.time_correlations(walk1, walk2, time_points))
     expected = value
 
     if actual is not None and expected is not None:
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
@@ -273,11 +273,11 @@ def test_time_relaxations(p, walk, initial_distribution, time_points, value):
 
     mc = _MarkovChain(p)
 
-    actual = _np_asarray(mc.time_relaxations(walk, initial_distribution, time_points))
+    actual = _np_array(mc.time_relaxations(walk, initial_distribution, time_points))
     expected = value
 
     if actual is not None and expected is not None:
-        expected = _np_asarray(expected)
+        expected = _np_array(expected)
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected

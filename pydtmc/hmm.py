@@ -18,7 +18,7 @@ __all__ = [
 from numpy import (
     abs as _np_abs,
     argmax as _np_argmax,
-    asarray as _np_asarray,
+    array as _np_array,
     copy as _np_copy,
     cumprod as _np_cumprod,
     cumsum as _np_cumsum,
@@ -291,7 +291,7 @@ def viterbi(p: _tarray, e: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
     states = [0] * f
     transitions = _np_full((n, f), -1, dtype=int)
 
-    v = _np_asarray([0.0] + ([-_np_inf] * (n - 1)))
+    v = _np_array([0.0] + ([-_np_inf] * (n - 1)))
     v_previous = _np_copy(v)
 
     for i in range(f):

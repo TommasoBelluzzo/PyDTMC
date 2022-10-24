@@ -32,7 +32,6 @@ from networkx import (
 
 from numpy import (
     array as _np_array,
-    asarray as _np_asarray,
     ndarray as _np_ndarray
 )
 
@@ -231,7 +230,7 @@ def test_validate_distribution(value, size, is_valid):
 
     if isinstance(value, list):
         for index, v in enumerate(value):
-            value[index] = _np_asarray(v)
+            value[index] = _np_array(v)
 
     try:
         result = _validate_distribution(value, size)
@@ -612,7 +611,7 @@ def test_validate_markov_chains(value, is_valid):
 # noinspection PyBroadException
 def test_validate_mask(value, size, is_valid):
 
-    value = _np_asarray(value)
+    value = _np_array(value)
 
     try:
         result = _validate_mask(value, size)
@@ -637,7 +636,7 @@ def test_validate_mask(value, size, is_valid):
 # noinspection PyBroadException
 def test_validate_matrix(value, is_valid):
 
-    value = _np_asarray(value)
+    value = _np_array(value)
 
     try:
         result = _validate_matrix(value)

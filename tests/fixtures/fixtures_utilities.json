@@ -153,17 +153,17 @@
       "is_valid": true
     },
     {
-      "value": "np.asarray([[2, 3], [3, 2], [2, 3]])",
+      "value": "np.array([[2, 3], [3, 2], [2, 3]])",
       "evaluate": true,
       "is_valid": true
     },
     {
-      "value": "spsp.coo_matrix((np.asarray([4, 5, 7, 9]), (np.asarray([0, 3, 1, 0]), np.asarray([0, 3, 1, 2]))), shape=(4, 4))",
+      "value": "spsp.coo_matrix((np.array([4, 5, 7, 9]), (np.array([0, 3, 1, 0]), np.array([0, 3, 1, 2]))), shape=(4, 4))",
       "evaluate": true,
       "is_valid": true
     },
     {
-      "value": "spsp.csr_matrix(np.asarray([[1, 0, 0, 1, 0, 0], [0, 0, 2, 0, 0, 1], [0, 0, 0, 2, 0, 0]]))",
+      "value": "spsp.csr_matrix(np.array([[1, 0, 0, 1, 0, 0], [0, 0, 2, 0, 0, 1], [0, 0, 0, 2, 0, 0]]))",
       "evaluate": true,
       "is_valid": true
     },
@@ -243,7 +243,7 @@
       "is_valid": false
     },
     {
-      "value": "np.asarray([[True, 'A'], [False, 'B']])",
+      "value": "np.array([[True, 'A'], [False, 'B']])",
       "evaluate": true,
       "is_valid": false
     },
