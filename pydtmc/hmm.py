@@ -300,12 +300,12 @@ def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tli
     for i in range(1, f):
 
         im1 = i - 1
-        symbol = symbols[i]
-        omega_im1 = omega[im1]
+        symbol_i = symbols[i]
+        omega_i = omega[im1]
 
         for j in range(n):
 
-            probability = omega_im1 + p_log[:, j] + e_log[j, symbol]
+            probability = omega_i + p_log[:, j] + e_log[j, symbol_i]
             prev[im1, j] = _np_argmax(probability)
             omega[i, j] = _np_max(probability)
 
@@ -317,6 +317,9 @@ def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tli
 
     states = [last_state] + ([0] * (f - 1))
     states_index = 1
+
+    print('prev', prev)
+    print('omega', omega)
 
     for i in range(f - 2, -1, -1):
         states[states_index] = prev[i, last_state].item()
