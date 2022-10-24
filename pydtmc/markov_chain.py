@@ -1022,7 +1022,7 @@ class MarkovChain(metaclass=_BaseClass):
             raise ValueError('The Markov chain is not ergodic.')
 
         if method == 'adaptive':  # pragma: no cover
-            if self.__size < 10:
+            if self.__size < 30:
                 method = 'spectral-top-down'
             else:
                 method = 'spectral-bottom-up' if (float(s) / self.__size) <= 0.3 else 'spectral-top-down'
@@ -1061,7 +1061,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return result
 
-    def closest_reversible(self, distribution: _onumeric = None, weighted: bool = False) -> _tmc:
+    def closest_reversible(self, initial_distribution: _onumeric = None, weighted: bool = False) -> _tmc:
 
         """
         The method computes the closest reversible of the Markov chain.
@@ -1070,7 +1070,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         - The algorithm is described in `Computing the nearest reversible Markov chain (Nielsen & Weber, 2015) <https://doi.org/10.1002/nla.1967>`_.
 
-        :param distribution: the distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+        :param initial_distribution: the distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param weighted: a boolean indicating whether to use the weighted Frobenius norm.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the closest reversible could not be computed.
@@ -1078,22 +1078,22 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            distribution = _np_ones(self.__size, dtype=float) / self.__size if distribution is None else _validate_vector(distribution, 'stochastic', False, self.__size)
+            initial_distribution = _np_full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
             weighted = _validate_boolean(weighted)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
 
-        zeros = len(distribution) - _np_count_nonzero(distribution)
+        zeros = len(initial_distribution) - _np_count_nonzero(initial_distribution)
 
         if weighted and zeros > 0:  # pragma: no cover
-            raise _ValidationError('If the weighted Frobenius norm is used, the distribution must not contain zero-valued probabilities.')
+            raise _ValidationError('If the weighted Frobenius norm is used, the initial distribution must not contain zero-valued probabilities.')
 
         if self.is_reversible:
             p = _np_copy(self.__p)
         else:
 
-            p, error_message = _closest_reversible(self.__p, distribution, weighted)
+            p, error_message = _closest_reversible(self.__p, initial_distribution, weighted)
 
             if error_message is not None:  # pragma: no cover
                 raise ValueError(error_message)
@@ -1212,7 +1212,7 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             steps = _validate_integer(steps, lower_limit=(0, True))
-            initial_distribution = _np_ones(self.__size, dtype=float) / self.__size if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
+            initial_distribution = _np_full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
@@ -1606,7 +1606,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            initial_distribution = _np_ones(self.__size, dtype=float) / self.__size if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
+            initial_distribution = _np_full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
             jump = _validate_integer(jump, lower_limit=(0, True))
             cutoff_type = _validate_enumerator(cutoff_type, ['natural', 'traditional'])
 
@@ -1696,7 +1696,7 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             steps = _validate_integer(steps, lower_limit=(1, False))
-            initial_status = _np_ones(self.__size, dtype=float) / self.__size if initial_status is None else _validate_status(initial_status, self.__states)
+            initial_status = _np_full(self.__size, 1.0 / self.__size, dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
             output_last = _validate_boolean(output_last)
 
         except Exception as ex:  # pragma: no cover
@@ -1785,7 +1785,7 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             walk = _validate_walk(walk, self.__states)
-            initial_distribution = _np_ones(self.__size, dtype=float) / self.__size if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
+            initial_distribution = _np_full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
             time_points = _validate_time_points(time_points)
 
         except Exception as ex:  # pragma: no cover

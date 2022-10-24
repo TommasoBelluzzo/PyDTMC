@@ -21,7 +21,8 @@ from inspect import (
 # Libraries
 
 from numpy import (
-    array_equal as _np_array_equal
+    array_equal as _np_array_equal,
+    full as _np_full
 )
 
 # Internal
@@ -34,6 +35,7 @@ from .custom_types import (
     oint as _oint,
     olist_str as _olist_str,
     ostate as _ostate,
+    ostatus as _ostatus,
     tarray as _tarray,
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
@@ -75,9 +77,10 @@ from .validation import (
     validate_state as _validate_state,
     validate_state_names as _validate_state_names,
     validate_emission_matrix as _validate_emission_matrix,
-    validate_transition_matrix as _validate_transition_matrix,
     validate_hmm_sequence as _validate_hmm_sequence,
-    validate_hmm_symbols as _validate_hmm_symbols
+    validate_hmm_symbols as _validate_hmm_symbols,
+    validate_status as _validate_status,
+    validate_transition_matrix as _validate_transition_matrix,
 )
 
 
@@ -258,12 +261,13 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return value
 
-    def viterbi(self, symbols: _thmm_symbols, output_indices: bool = False) -> _thmm_viterbi_ext:
+    def viterbi(self, symbols: _thmm_symbols, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_viterbi_ext:
 
         """
         The method calculates the log probability and the most probable states path of an observed sequence of symbols.
 
         :param symbols: the observed sequence of symbols.
+        :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param output_indices: a boolean indicating whether to output the state indices.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the observed sequence of symbols produced one or more null transition probabilities.
@@ -272,11 +276,12 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         try:
 
             symbols = _validate_hmm_symbols(symbols, self.__symbols, False)
+            initial_status = _np_full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
 
-        value = _viterbi(self.__p, self.__e, symbols)
+        value = _viterbi(self.__p, self.__e, initial_status, symbols)
 
         if value is None:  # pragma: no cover
             raise ValueError('The observed sequence of symbols produced one or more null transition probabilities; more data is required.')

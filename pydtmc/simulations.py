@@ -64,12 +64,12 @@ def predict(mc: _tmc, steps: int, initial_state: int) -> _olist_int:
     return value
 
 
-def redistribute(mc: _tmc, steps: int, initial_status: _tarray, output_last: bool) -> _tredists:
+def redistribute(mc: _tmc, steps: int, initial_distribution: _tarray, output_last: bool) -> _tredists:
 
     p = mc.p
 
     value = _np_zeros((steps + 1, mc.size), dtype=float)
-    value[0, :] = initial_status
+    value[0, :] = initial_distribution
 
     for i in range(1, steps + 1):
         value_i = value[i - 1, :].dot(p)

@@ -303,14 +303,19 @@
       "is_valid": false
     },
     {
-      "value": [[0.0, 0.1, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]],
+      "value": [[0.1, 0.1, 0.3, 0.1], [0.0, 0.0, 0.0, 0.0]],
       "size": 2,
-      "is_valid": true
+      "is_valid": false
+    },
+    {
+      "value": [[0.0, 0.0, 0.0, 0.0], [0.1, 0.1, 0.3, 0.1]],
+      "size": 2,
+      "is_valid": false
     },
     {
       "value": [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]],
       "size": 2,
-      "is_valid": true
+      "is_valid": false
     },
     {
       "value": [[0.234, 0.000, 0.028], [0.333, 0.333, 0.333], [0.532, 0.322, 0.609]],
@@ -334,6 +339,11 @@
     },
     {
       "value": [],
+      "size": 1,
+      "is_valid": false
+    },
+    {
+      "value": [true],
       "size": 1,
       "is_valid": false
     },
@@ -2107,6 +2117,11 @@
       "is_valid": false
     },
     {
+      "value": [["NaN", 0.5, 0.1], ["NaN", 0.3, 0.3], [0.2, 0.2, "NaN"]],
+      "size": null,
+      "is_valid": false
+    },
+    {
       "value": [[1.0]],
       "size": null,
       "is_valid": false
@@ -2118,6 +2133,11 @@
     },
     {
       "value": [],
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": [false],
       "size": null,
       "is_valid": false
     },

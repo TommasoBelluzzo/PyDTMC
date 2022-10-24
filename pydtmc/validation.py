@@ -355,6 +355,13 @@ def validate_emission_matrix(value: _tany, size: int) -> _tarray:
     if not all(_np_isfinite(x) and _np_isreal(x) and x >= 0.0 for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')
 
+    value_rows = _np_sum(value, axis=1, keepdims=True)
+
+    if _np_any(value_rows == 0.0):
+        raise ValueError('The "@arg@" parameter rows must have at least one positive value.')
+
+    value /= value_rows
+
     return value
 
 

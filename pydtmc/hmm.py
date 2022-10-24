@@ -17,20 +17,19 @@ __all__ = [
 
 from numpy import (
     abs as _np_abs,
+    all as _np_all,
     argmax as _np_argmax,
-    array as _np_array,
     copy as _np_copy,
     cumprod as _np_cumprod,
     cumsum as _np_cumsum,
     exp as _np_exp,
     fliplr as _np_fliplr,
-    full as _np_full,
     hstack as _np_hstack,
     inf as _np_inf,
     isnan as _np_isnan,
     ix_ as _np_ix,
     log as _np_log,
-    longdouble as _np_longdouble,
+    max as _np_max,
     multiply as _np_multiply,
     newaxis as _np_newaxis,
     ones as _np_ones,
@@ -284,64 +283,43 @@ def train(algorithm: str, p_guess: _tarray, e_guess: _tarray, symbols: _tlists_i
     return p, e, None
 
 
-def viterbi(p: _tarray, e: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
+def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
 
     n, f = p.shape[0], len(symbols)
     p_log, e_log = _np_log(p), _np_log(e)
 
-    print('p_log', p_log)
-    print('e_log', e_log)
+    omega = _np_zeros((f, n), dtype=float)
+    omega[0, :] = _np_log(initial_distribution * e[:, symbols[0]])
 
-    states = [0] * f
-    transitions = _np_full((n, f), -1, dtype=int)
+    if _np_all(omega[0, :] == -_np_inf):
+        return None
 
-    infs = [-_np_inf] * (n - 1)
-    v = _np_array([0.0] + infs, dtype=_np_longdouble)
-    v_previous = _np_copy(v)
+    prev = _np_zeros((f - 1, n), dtype=int)
 
-    for i in range(f):
+    for i in range(1, f):
 
+        im1 = i - 1
         symbol = symbols[i]
+        omega_im1 = omega[im1]
 
-        for state in range(n):
+        for j in range(n):
 
-            value = _np_longdouble(-_np_inf)
-            transition = -1
+            probability = omega_im1 + p_log[:, j] + e_log[j, symbol]
+            prev[im1, j] = _np_argmax(probability)
+            omega[i, j] = _np_max(probability)
 
-            for j in range(n):
-
-                value_j = _np_longdouble(v_previous[j]) + _np_longdouble(p_log[j, state])
-                print('j', j)
-                print('value_j', value_j)
-                print('value', value)
-                print('comparison', value_j > value)
-
-                if value_j > value:
-                    value = value_j
-                    transition = j
-
-            transitions[state, i] = transition
-            v[state] = e_log[state, symbol] + value
-
-            print('transitions - loop', transitions)
-            print('v - loop', v)
-
-        v_previous = _np_copy(v)
-
-    print('transitions', transitions)
-
-    final_state = _np_argmax(v).item()
-    log_prob = v[final_state]
-
-    states[-1] = final_state
-
-    for i in range(f - 2, -1, -1):
-
-        transition = transitions[states[i + 1], i + 1].item()
-
-        if transition == -1:
+        if _np_all(omega[i, :] == -_np_inf):
             return None
 
-        states[i] = transition
+    last_state = _np_argmax(omega[f - 1, :]).item()
+    log_prob = omega[f - 1, last_state].item()
+
+    states = [last_state] + ([0] * (f - 1))
+    states_index = 1
+
+    for i in range(f - 2, -1, -1):
+        states[states_index] = prev[i, last_state].item()
+        last_state = prev[i, last_state].item()
+        states_index += 1
 
     return log_prob, states

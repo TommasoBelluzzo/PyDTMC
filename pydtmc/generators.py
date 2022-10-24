@@ -537,7 +537,7 @@ def canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tli
     return p, None
 
 
-def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _tgenres:
+def closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tgenres:
 
     def _jacobian(xj, hj, fj):
 
@@ -554,7 +554,7 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
     size = p.shape[0]
     size_m1 = size - 1
 
-    zeros = len(distribution) - _np_count_nonzero(distribution)
+    zeros = len(initial_distribution) - _np_count_nonzero(initial_distribution)
 
     m = int(((size_m1 * size) / 2) + (((zeros - 1) * zeros) / 2) + 1)
     mm1 = m - 1
@@ -563,13 +563,13 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
 
     for r in range(size_m1):
 
-        dr = distribution[r]
+        dr = initial_distribution[r]
         drc = 1.0 - dr
         dr_zero = dr == 0.0
 
         for s in range(r + 1, size):
 
-            ds = distribution[s]
+            ds = initial_distribution[s]
             dsc = 1.0 - ds
             ds_zero = ds == 0.0
 
@@ -603,7 +603,7 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
 
     if weighted:
 
-        d = _np_diag(distribution)
+        d = _np_diag(initial_distribution)
         di = _npl_inv(d)
 
         for i in range(m):
@@ -645,13 +645,13 @@ def closest_reversible(p: _tarray, distribution: _tnumeric, weighted: bool) -> _
 
         for r in range(size_m1):
             r_eq_i = r == i
-            dr = distribution[r]
+            dr = initial_distribution[r]
             drc = -1.0 + dr
             dr_zero = dr == 0.0
 
             for s in range(r + 1, size):
                 s_eq_i = s == i
-                ds = distribution[s]
+                ds = initial_distribution[s]
                 dsc = -1.0 + ds
                 ds_zero = ds == 0.0
 
