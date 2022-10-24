@@ -294,7 +294,8 @@ def viterbi(p: _tarray, e: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
     states = [0] * f
     transitions = _np_full((n, f), -1, dtype=int)
 
-    v = _np_array([0.0] + ([-_np_inf] * (n - 1)))
+    infs = [-_np_inf] * (n - 1)
+    v = _np_array([0.0] + infs)
     v_previous = _np_copy(v)
 
     for i in range(f):
@@ -309,6 +310,10 @@ def viterbi(p: _tarray, e: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
             for j in range(n):
 
                 value_j = v_previous[j] + p_log[j, state]
+                print('j', j)
+                print('value_j', value_j)
+                print('value', value)
+                print('comparison', value_j > value)
 
                 if value_j > value:
                     value = value_j
@@ -316,6 +321,9 @@ def viterbi(p: _tarray, e: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
 
             transitions[state, i] = transition
             v[state] = e_log[state, symbol] + value
+
+            print('transitions - loop', transitions)
+            print('v - loop', v)
 
         v_previous = _np_copy(v)
 

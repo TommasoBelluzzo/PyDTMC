@@ -19,6 +19,9 @@ from pydtmc import (
 # noinspection PyBroadException
 def test_viterbi(p, e, symbols, output_indices, value):
 
+    if value is not None and value[0] in [-20.93318727, -9.8953314]:
+        print('PROBLEM')
+
     hmm = _HiddenMarkovModel(p, e)
 
     try:
