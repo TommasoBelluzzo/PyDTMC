@@ -288,6 +288,9 @@ def viterbi(p: _tarray, e: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
     n, f = p.shape[0], len(symbols)
     p_log, e_log = _np_log(p), _np_log(e)
 
+    print('p_log', p_log)
+    print('e_log', e_log)
+
     states = [0] * f
     transitions = _np_full((n, f), -1, dtype=int)
 
@@ -315,6 +318,8 @@ def viterbi(p: _tarray, e: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
             v[state] = e_log[state, symbol] + value
 
         v_previous = _np_copy(v)
+
+    print('transitions', transitions)
 
     final_state = _np_argmax(v).item()
     log_prob = v[final_state]
