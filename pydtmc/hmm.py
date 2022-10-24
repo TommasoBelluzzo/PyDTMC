@@ -335,8 +335,8 @@ def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tli
                 prob = omega_i + p_log[:, j] + e_log[j, symbol_i]
                 max_index = _np_argmax(prob)
 
-                print('prob', "{:.16f}".format(prob[0].item()))
-                print('prob', "{:.16f}".format(prob[0].item()))
+                print('prob 0', f"{prob[0].item():.16f}")
+                print('prob 1', f"{prob[1].item():.16f}")
                 print('max_index', max_index)
 
                 omega[i, j] = prob[max_index]
