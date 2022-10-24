@@ -319,6 +319,7 @@ def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tli
 
     if round(log_prob, 8) == -9.8953314:
 
+        print('p_log', p_log)
         print('e_log', e_log)
 
         omega = _np_vstack((omega_0, _np_zeros((f - 1, n), dtype=float)))
