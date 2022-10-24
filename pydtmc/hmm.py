@@ -30,13 +30,13 @@ from numpy import (
     isnan as _np_isnan,
     ix_ as _np_ix,
     log as _np_log,
-    max as _np_max,
     multiply as _np_multiply,
     newaxis as _np_newaxis,
     ones as _np_ones,
     sum as _np_sum,
     take as _np_take,
     tile as _np_tile,
+    vstack as _np_vstack,
     where as _np_where,
     zeros as _np_zeros
 )
@@ -289,13 +289,13 @@ def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tli
     n, f = p.shape[0], len(symbols)
     p_log, e_log = _np_log(p), _np_log(e)
 
-    omega = _np_zeros((f, n), dtype=float)
-    omega[0, :] = _np_log(initial_distribution * e[:, symbols[0]])
+    omega_0 = _np_log(initial_distribution * e[:, symbols[0]])
 
-    if _np_all(omega[0, :] == -_np_inf):
+    if _np_all(omega_0 == -_np_inf):
         return None
 
-    prev = _np_zeros((f - 1, n), dtype=int)
+    omega = _np_vstack((omega_0, _np_zeros((f - 1, n), dtype=float)))
+    path = _np_zeros((f - 1, n), dtype=int)
 
     for i in range(1, f):
 
@@ -305,9 +305,11 @@ def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tli
 
         for j in range(n):
 
-            probability = omega_i + p_log[:, j] + e_log[j, symbol_i]
-            prev[im1, j] = _np_argmax(probability)
-            omega[i, j] = _np_max(probability)
+            prob = omega_i + p_log[:, j] + e_log[j, symbol_i]
+            max_index = _np_argmax(prob)
+
+            omega[i, j] = prob[max_index]
+            path[im1, j] = max_index
 
         if _np_all(omega[i, :] == -_np_inf):
             return None
@@ -318,12 +320,9 @@ def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tli
     states = [last_state] + ([0] * (f - 1))
     states_index = 1
 
-    print('prev', prev)
-    print('omega', omega)
-
     for i in range(f - 2, -1, -1):
-        states[states_index] = prev[i, last_state].item()
-        last_state = prev[i, last_state].item()
+        states[states_index] = path[i, last_state].item()
+        last_state = path[i, last_state].item()
         states_index += 1
 
     return log_prob, states

@@ -74,11 +74,11 @@ from pydtmc.validation import (
     validate_dictionary as _validate_dictionary,
     validate_distribution as _validate_distribution,
     validate_dpi as _validate_dpi,
-    validate_emission_matrix as _validate_emission_matrix,
     validate_enumerator as _validate_enumerator,
     validate_file_path as _validate_file_path,
     validate_float as _validate_float,
     validate_graph as _validate_graph,
+    validate_hmm_emission as _validate_hmm_emission,
     validate_hmm_sequence as _validate_hmm_sequence,
     validate_hmm_symbols as _validate_hmm_symbols,
     validate_integer as _validate_integer,
@@ -276,29 +276,6 @@ def test_validate_dpi(value, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_emission_matrix(value, size, is_valid):
-
-    try:
-        result = _validate_emission_matrix(value, size)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-
-        actual = isinstance(result, _np_ndarray)
-        expected = True
-
-        assert actual == expected
-
-
-# noinspection PyBroadException
 def test_validate_enumerator(value, possible_values, is_valid):
 
     try:
@@ -410,10 +387,10 @@ def test_validate_graph(graph_data, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_hyperparameter(value, size, is_valid):
+def test_validate_hmm_emission(value, size, is_valid):
 
     try:
-        result = _validate_hyperparameter(value, size)
+        result = _validate_hmm_emission(value, size)
         result_is_valid = True
     except Exception:
         result = None
@@ -477,6 +454,29 @@ def test_validate_hmm_symbols(value, possible_symbols, allow_lists, is_valid):
         else:
             actual = isinstance(result, list) and all(isinstance(v, int) for v in result)
 
+        expected = True
+
+        assert actual == expected
+
+
+# noinspection PyBroadException
+def test_validate_hyperparameter(value, size, is_valid):
+
+    try:
+        result = _validate_hyperparameter(value, size)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+
+        actual = isinstance(result, _np_ndarray)
         expected = True
 
         assert actual == expected

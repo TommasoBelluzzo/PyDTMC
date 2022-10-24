@@ -76,7 +76,7 @@ from .validation import (
     validate_integer as _validate_integer,
     validate_state as _validate_state,
     validate_state_names as _validate_state_names,
-    validate_emission_matrix as _validate_emission_matrix,
+    validate_hmm_emission as _validate_hmm_emission,
     validate_hmm_sequence as _validate_hmm_sequence,
     validate_hmm_symbols as _validate_hmm_symbols,
     validate_status as _validate_status,
@@ -112,7 +112,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
             try:
 
                 p = _validate_transition_matrix(p)
-                e = _validate_emission_matrix(e, p.shape[0])
+                e = _validate_hmm_emission(e, p.shape[0])
                 states = [str(i) for i in range(1, p.shape[0] + 1)] if states is None else _validate_state_names(states, p.shape[0])
                 symbols = [str(i) for i in range(1, e.shape[1] + 1)] if symbols is None else _validate_state_names(symbols, e.shape[0])
 
@@ -342,7 +342,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
             symbols = _validate_hmm_symbols(symbols, possible_symbols, True)
             algorithm = _validate_enumerator(algorithm, ['baum-welch', 'viterbi'])
             p_guess = _validate_transition_matrix(p_guess, len(possible_states))
-            e_guess = _validate_emission_matrix(e_guess, p_guess.shape[0])
+            e_guess = _validate_hmm_emission(e_guess, p_guess.shape[0])
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None

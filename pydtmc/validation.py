@@ -6,11 +6,11 @@ __all__ = [
     'validate_dictionary',
     'validate_distribution',
     'validate_dpi',
-    'validate_emission_matrix',
     'validate_enumerator',
     'validate_file_path',
     'validate_float',
     'validate_graph',
+    'validate_hmm_emission',
     'validate_hmm_sequence',
     'validate_hmm_symbols',
     'validate_hyperparameter',
@@ -308,7 +308,7 @@ def validate_distribution(value: _tany, size: int) -> _tdists_flex:
                 raise ValueError('The "@arg@" parameter must contain only vectors of size {size:d}.')
 
             if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(vector)):
-                raise ValueError('The "@arg@" parameter must contain only vectors consisting of finite real values between 0 and 1.')
+                raise ValueError('The "@arg@" parameter must contain only vectors consisting of finite real values between 0.0 and 1.0.')
 
             if not _np_isclose(_np_sum(vector), 1.0):
                 raise ValueError('The "@arg@" parameter must contain only vectors consisting of values whose sum is 1.')
@@ -330,37 +330,6 @@ def validate_dpi(value: _tany) -> int:
     if value not in possible_values:
         possible_values = [str(possible_value) for possible_value in possible_values]
         raise ValueError(f'The "@arg@" parameter must have one of the following values: {", ".join(possible_values)}.')
-
-    return value
-
-
-def validate_emission_matrix(value: _tany, size: int) -> _tarray:
-
-    try:
-        value = _extract_data_numeric(value)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-    value = value.astype(float)
-
-    if value.ndim != 2:
-        raise ValueError('The "@arg@" parameter must be a 2d matrix.')
-
-    if value.shape[0] != size:
-        raise ValueError(f'The "@arg@" parameter must have a number of rows equal to {size:d}.')
-
-    if value.shape[1] < 2:
-        raise ValueError('The "@arg@" parameter must have a number of columns greater than or equal to 2.')
-
-    if not all(_np_isfinite(x) and _np_isreal(x) and x >= 0.0 for _, x in _np_ndenumerate(value)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')
-
-    value_rows = _np_sum(value, axis=1, keepdims=True)
-
-    if _np_any(value_rows == 0.0):
-        raise ValueError('The "@arg@" parameter rows must have at least one positive value.')
-
-    value /= value_rows
 
     return value
 
@@ -471,6 +440,34 @@ def validate_graph(value: _tany) -> _tgraphs:
 
     if not all(_is_number(edge[2]) and float(edge[2]) > 0.0 for edge in edges):
         raise ValueError('The "@arg@" parameter must define edge wright as non-negative numbers.')
+
+    return value
+
+
+# noinspection DuplicatedCode
+def validate_hmm_emission(value: _tany, size: int) -> _tarray:
+
+    try:
+        value = _extract_data_numeric(value)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+    value = value.astype(float)
+
+    if value.ndim != 2:
+        raise ValueError('The "@arg@" parameter must be a 2d matrix.')
+
+    if value.shape[0] != size:
+        raise ValueError(f'The "@arg@" parameter must have a number of rows equal to {size:d}.')
+
+    if value.shape[1] < 2:
+        raise ValueError('The "@arg@" parameter must have a number of columns greater than or equal to 2.')
+
+    if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
+
+    if not _np_allclose(_np_sum(value, axis=1), _np_ones(value.shape[0], dtype=float)):
+        raise ValueError('The "@arg@" parameter rows must sum to 1.')
 
     return value
 
@@ -916,7 +913,7 @@ def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
         raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
 
     if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
     if not _np_isclose(_np_sum(value), 1.0):
         raise ValueError('The "@arg@" parameter values must sum to 1.')
@@ -1018,6 +1015,7 @@ def validate_transition_function(value: _tany) -> _ttfunc:
     return value
 
 
+# noinspection DuplicatedCode
 def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
 
     try:
@@ -1034,7 +1032,7 @@ def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
         raise ValueError(f'The "@arg@" parameter must have a size greater than or equal to {size:d}.')
 
     if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
     if not _np_allclose(_np_sum(value, axis=1), _np_ones(value.shape[0], dtype=float)):
         raise ValueError('The "@arg@" parameter rows must sum to 1.')
@@ -1057,7 +1055,7 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
         value = _extract_numeric_vector(value, size)
 
     if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values between 0 and 1.')
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
     if vector_type == 'annihilation' and not _np_isclose(value[0], 0.0):
         raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the first index.')
