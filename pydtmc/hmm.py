@@ -318,38 +318,6 @@ def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tli
     last_state = _np_argmax(omega[f - 1, :]).item()
     log_prob = omega[f - 1, last_state].item()
 
-    if round(log_prob, 8) == -9.8953314:
-
-        print('p_log', p_log)
-        print('e_log', e_log)
-
-        omega = _np_vstack((omega_0, _np_zeros((f - 1, n), dtype=float)))
-        path = _np_zeros((f - 1, n), dtype=int)
-
-        for i in range(1, f):
-
-            im1 = i - 1
-            symbol_i = symbols[i]
-            omega_i = omega[im1]
-
-            for j in range(n):
-
-                prob = _np_round(omega_i + p_log[:, j] + e_log[j, symbol_i], 14)
-                max_index = _np_argmax(prob)
-
-                print('prob 0', f"{prob[0].item():.16f}")
-                print('prob 1', f"{prob[1].item():.16f}")
-                print('max_index', max_index)
-
-                omega[i, j] = prob[max_index]
-                path[im1, j] = max_index
-
-            if _np_all(omega[i, :] == -_np_inf):
-                return None
-
-        print('path', path)
-        print('omega', omega)
-
     states = [last_state] + ([0] * (f - 1))
     states_index = 1
 

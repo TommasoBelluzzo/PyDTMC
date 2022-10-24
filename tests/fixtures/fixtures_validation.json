@@ -757,6 +757,18 @@
       "is_valid": true
     },
     {
+      "value": [[0, 0, 1, 1, 1, 1, 1, 1], [3, 4, 2, 2, 1, 2, 1, 2]],
+      "possible_states": null,
+      "possible_symbols": ["A", "B", "C", "D", "E"],
+      "is_valid": false
+    },
+    {
+      "value": [[0, 0, 1, 1, 1, 1, 1, 1], [3, 4, 2, 2, 1, 2, 1, 2]],
+      "possible_states": ["A", "B"],
+      "possible_symbols": null,
+      "is_valid": false
+    },
+    {
       "value": [["A", "B", "B", "A", "C"], ["A", "E", "F", "E", "E"]],
       "possible_states": ["A", "B"],
       "possible_symbols": ["A", "B", "C", "D", "E"],
