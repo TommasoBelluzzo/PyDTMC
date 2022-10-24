@@ -306,7 +306,7 @@ def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tli
 
         for j in range(n):
 
-            prob = _np_round(omega_i + p_log[:, j] + e_log[j, symbol_i], 14)
+            prob = _np_round(omega_i + p_log[:, j] + e_log[j, symbol_i], 12)
             max_index = _np_argmax(prob)
 
             omega[i, j] = prob[max_index]
