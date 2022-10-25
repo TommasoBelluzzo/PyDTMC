@@ -5,6 +5,16 @@
 # IMPORTS #
 ###########
 
+# Libraries
+
+from numpy import (
+    array as _np_array
+)
+
+from numpy.testing import (
+    assert_allclose as _npt_assert_allclose
+)
+
 # Internal
 
 from pydtmc import (
@@ -15,6 +25,36 @@ from pydtmc import (
 #########
 # TESTS #
 #########
+
+# noinspection PyBroadException
+def test_restrict(p, e, states, symbols, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    try:
+        hmm_restricted = hmm.restrict(states, symbols)
+    except Exception:
+        hmm_restricted = None
+
+    if hmm_restricted is None:
+
+        actual = hmm_restricted
+        expected = value
+
+        assert actual == expected
+
+    else:
+
+        actual = hmm_restricted.p
+        expected = _np_array(value[0])
+
+        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = hmm_restricted.e
+        expected = _np_array(value[1])
+
+        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
 
 def test_simulate(p, e, seed, steps, initial_state, output_indices, value):
 

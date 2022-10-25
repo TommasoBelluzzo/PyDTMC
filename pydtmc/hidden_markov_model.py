@@ -12,8 +12,6 @@ __all__ = [
 # Standard
 
 from inspect import (
-    getmembers as _ins_getmembers,
-    isfunction as _ins_isfunction,
     stack as _ins_stack,
     trace as _ins_trace
 )
@@ -35,6 +33,7 @@ from .custom_types import (
     oint as _oint,
     olist_str as _olist_str,
     ostate as _ostate,
+    ostates as _ostates,
     ostatus as _ostatus,
     tarray as _tarray,
     tlist_str as _tlist_str,
@@ -50,12 +49,18 @@ from .custom_types import (
 )
 
 from .decorators import (
+    instance_generator as _instance_generator,
     random_output as _random_output
+)
+
+from .exceptions import (
+    ValidationError as _ValidationError
 )
 
 from .hmm import (
     decode as _decode,
     estimate as _estimate,
+    restrict as _restrict,
     simulate as _simulate,
     train as _train,
     viterbi as _viterbi
@@ -67,7 +72,9 @@ from .markov_chain import (
 
 from .utilities import (
     create_rng as _create_rng,
-    generate_validation_error as _generate_validation_error
+    generate_validation_error as _generate_validation_error,
+    get_caller as _get_caller,
+    get_instance_generators as _get_instance_generators
 )
 
 from .validation import (
@@ -79,6 +86,7 @@ from .validation import (
     validate_hmm_emission as _validate_hmm_emission,
     validate_hmm_sequence as _validate_hmm_sequence,
     validate_hmm_symbols as _validate_hmm_symbols,
+    validate_states as _validate_states,
     validate_status as _validate_status,
     validate_transition_matrix as _validate_transition_matrix,
 )
@@ -100,14 +108,16 @@ class HiddenMarkovModel(metaclass=_BaseClass):
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    _random_distributions: _olist_str = None
+    __instance_generators: _olist_str = None
 
     def __init__(self, p: _tnumeric, e: _tnumeric, states: _olist_str = None, symbols: _olist_str = None):
 
-        caller = _ins_stack()[1][3]
-        sm = [x[1].__name__ for x in _ins_getmembers(HiddenMarkovModel, predicate=_ins_isfunction) if x[1].__name__[0] != '_' and isinstance(HiddenMarkovModel.__dict__.get(x[1].__name__), staticmethod)]
+        if HiddenMarkovModel.__instance_generators is None:
+            HiddenMarkovModel.__instance_generators = _get_instance_generators(self.__class__)
 
-        if caller not in sm:
+        caller = _get_caller(_ins_stack())
+
+        if caller not in HiddenMarkovModel.__instance_generators:
 
             try:
 
@@ -229,6 +239,39 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return value
 
+    @_instance_generator()
+    def restrict(self, states: _ostates = None, symbols: _ostates = None) -> _thmm:
+
+        """
+        The method returns a submodel restricted to the given states and symbols.
+
+        | **Notes:**
+
+        - Submodel transition and emission matrices are normalized so that their rows sum to 1.0.
+        - Submodel transition and emission matrices whose rows sum to 0.0 are replaced by uniformly distributed probabilities.
+
+        :param states: the states to include in the submodel.
+        :param symbols: the symbols to include in the submodel.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        if states is None and symbols is None:
+            raise _ValidationError('Either submodel states or submodel symbols must be defined.')
+
+        try:
+
+            states = list(range(self.__size[0])) if states is None else _validate_states(states, self.__states, True, 2)
+            symbols = list(range(self.__size[1])) if symbols is None else _validate_states(symbols, self.__symbols, True, 2)
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        p, e, states_out, symbols_out = _restrict(self.__p, self.__e, self.__states, self.__symbols, states, symbols)
+
+        hmm = HiddenMarkovModel(p, e, states_out, symbols_out)
+
+        return hmm
+
     @_random_output()
     def simulate(self, steps: int, initial_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _thmm_sequence_ext:
 
@@ -292,6 +335,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         return value
 
     @staticmethod
+    @_instance_generator()
     def estimate(sequence: _thmm_sequence_ext, possible_states: _tlist_str, possible_symbols: _tlist_str) -> _thmm:
 
         """
@@ -318,6 +362,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         return hmm
 
     @staticmethod
+    @_instance_generator()
     def train(algorithm: str, symbols: _thmm_symbols_ext, possible_states: _tlist_str, p_guess: _tarray, possible_symbols: _tlist_str, e_guess: _tarray) -> _thmm:
 
         """

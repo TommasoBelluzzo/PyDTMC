@@ -467,7 +467,7 @@ def validate_hmm_emission(value: _tany, size: int) -> _tarray:
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
     if not _np_allclose(_np_sum(value, axis=1), _np_ones(value.shape[0], dtype=float)):
-        raise ValueError('The "@arg@" parameter rows must sum to 1.')
+        raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
 
     return value
 
@@ -797,7 +797,7 @@ def validate_state_names(value: _tany, size: _oint = None) -> _tlist_str:
     return value
 
 
-def validate_states(value: _tany, possible_states: _tlist_str, subset: bool) -> _tlist_int:
+def validate_states(value: _tany, possible_states: _tlist_str, subset: bool, length_limit: int = 1) -> _tlist_int:
 
     if possible_states is None:
         raise ValueError('The "@arg@" parameter must be validated against a proper list of possible states.')
@@ -857,10 +857,10 @@ def validate_states(value: _tany, possible_states: _tlist_str, subset: bool) -> 
         raise ValueError('The "@arg@" parameter must contain only unique values.')
 
     if subset:
-        if value_length < 1 or value_length >= possible_states_length:
+        if value_length < length_limit or value_length >= possible_states_length:
             raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states minus one ({possible_states_length - 1:d}).')
     else:
-        if value_length < 1 or value_length > possible_states_length:
+        if value_length < length_limit or value_length > possible_states_length:
             raise ValueError(f'The "@arg@" parameter must contain a number of elements between 1 and the number of existing states ({possible_states_length:d}).')
 
     value = sorted(value)
@@ -916,7 +916,7 @@ def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
     if not _np_isclose(_np_sum(value), 1.0):
-        raise ValueError('The "@arg@" parameter values must sum to 1.')
+        raise ValueError('The "@arg@" parameter values must sum to 1.0.')
 
     return value
 
@@ -1035,7 +1035,7 @@ def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
     if not _np_allclose(_np_sum(value, axis=1), _np_ones(value.shape[0], dtype=float)):
-        raise ValueError('The "@arg@" parameter rows must sum to 1.')
+        raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
 
     return value
 
@@ -1064,7 +1064,7 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
         raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the last index.')
 
     if vector_type == 'stochastic' and not _np_isclose(_np_sum(value), 1.0):
-        raise ValueError('The "@arg@" parameter values must sum to 1.')
+        raise ValueError('The "@arg@" parameter values must sum to 1.0.')
 
     return value
 

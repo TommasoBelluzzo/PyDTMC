@@ -3,6 +3,7 @@
 __all__ = [
     'decode',
     'estimate',
+    'restrict',
     'simulate',
     'train',
     'viterbi'
@@ -53,10 +54,12 @@ from .custom_types import (
     tarray as _tarray,
     thmm as _thmm,
     thmm_decoding as _thmm_decoding,
+    thmm_generation as _thmm_generation,
     thmm_params as _thmm_params,
     thmm_params_res as _thmm_params_res,
     thmm_sequence as _thmm_sequence,
     tlist_int as _tlist_int,
+    tlist_str as _tlist_str,
     tlists_int as _tlists_int,
     trand as _trand
 )
@@ -148,6 +151,29 @@ def estimate(n: int, k: int, sequence: _thmm_sequence, handle_nulls: bool) -> _t
         e = _np_abs(e / e_rows)
 
     return p, e
+
+
+def restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str, sub_states: _tlist_int, sub_symbols: _tlist_int) -> _thmm_generation:
+
+    p, e = _np_copy(p), _np_copy(e)
+
+    p_decrease = len(sub_states) < p.shape[0]
+    e_decrease = p_decrease or len(sub_symbols) < e.shape[0]
+
+    if p_decrease:
+        p = p[_np_ix(sub_states, sub_states)]
+        p[_np_where(~p.any(axis=1)), :] = _np_ones(p.shape[0], dtype=float)
+        p /= _np_sum(p, axis=1, keepdims=True)
+
+    if e_decrease:
+        e = e[_np_ix(sub_states, sub_symbols)]
+        e[_np_where(~e.any(axis=1)), :] = _np_ones(e.shape[1], dtype=float)
+        e /= _np_sum(e, axis=1, keepdims=True)
+
+    state_names = [*map(states.__getitem__, sub_states)]
+    symbol_names = [*map(symbols.__getitem__, sub_symbols)]
+
+    return p, e, state_names, symbol_names
 
 
 # noinspection DuplicatedCode
@@ -302,17 +328,17 @@ def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tli
 
         im1 = i - 1
         symbol_i = symbols[i]
-        omega_i = omega[im1]
+        omega_im1 = omega[im1]
 
         for j in range(n):
 
-            prob = _np_round(omega_i + p_log[:, j] + e_log[j, symbol_i], 12)
+            prob = _np_round(omega_im1 + p_log[:, j] + e_log[j, symbol_i], 12)
             max_index = _np_argmax(prob)
 
             omega[i, j] = prob[max_index]
             path[im1, j] = max_index
 
-        if _np_all(omega[i, :] == -_np_inf):
+        if _np_all(omega[i, :] == -_np_inf):  # pragma: no cover
             return None
 
     last_state = _np_argmax(omega[f - 1, :]).item()

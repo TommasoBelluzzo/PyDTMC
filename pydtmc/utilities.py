@@ -4,7 +4,9 @@ __all__ = [
     'create_rng',
     'generate_state_names',
     'generate_validation_error',
+    'get_caller',
     'get_file_extension',
+    'get_instance_generators',
     'get_numpy_random_distributions',
     'extract_data_generic',
     'extract_data_numeric',
@@ -32,6 +34,11 @@ __all__ = [
 
 from copy import (
     deepcopy as _cp_deepcopy
+)
+
+from inspect import (
+    getmembers as _ins_getmembers,
+    isfunction as _ins_isfunction
 )
 
 from pathlib import (
@@ -93,7 +100,8 @@ from .custom_types import (
     texception as _texception,
     tlist_any as _tlist_any,
     tlist_str as _tlist_str,
-    trand as _trand
+    trand as _trand,
+    tstack as _tstack
 )
 
 from .exceptions import (
@@ -194,9 +202,28 @@ def generate_validation_error(ex: _texception, trace: _tany) -> _ValidationError
     return validation_error
 
 
+def get_caller(stack: _tstack) -> str:
+
+    result = stack[1][3]
+
+    return result
+
+
 def get_file_extension(file_path: str) -> str:
 
     result = ''.join(_pl_Path(file_path).suffixes).lower()
+
+    return result
+
+
+def get_instance_generators(cls: _tany) -> _tlist_str:
+
+    result = []
+
+    if cls is not None:
+        for member_name, member in _ins_getmembers(cls, predicate=_ins_isfunction):
+            if member_name[0] != '_' and hasattr(member, '_instance_generator'):
+                result.append(member_name)
 
     return result
 

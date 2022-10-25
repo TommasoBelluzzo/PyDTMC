@@ -11,15 +11,20 @@ __all__ = [
     'tgraphs', 'ographs',
     'thmm', 'ohmm',
     'tfile', 'ofile',
+    'tinterval', 'ointerval',
     'tlimit_float', 'olimit_float',
     'tlimit_int', 'olimit_int',
     'tlimit_scalar', 'olimit_scalar',
     'tmc', 'omc',
+    'tnumeric', 'onumeric',
     'tplot', 'oplot',
     'trand', 'orand',
     'trandfunc', 'orandfunc',
     'trandfunc_flex', 'orandfunc_flex',
-    'tnumeric', 'onumeric',
+    'trdl', 'ordl',
+    'tstack', 'ostack',
+    'ttest', 'otest',
+    'ttest_chi2', 'otest_chi2',
     # Lists
     'tlist_any', 'olist_any',
     'tlist_array', 'olist_array',
@@ -37,9 +42,8 @@ __all__ = [
     'tbcond', 'obcond',
     'tdists_flex', 'odists_flex',
     'tfitting_res', 'ofitting_res',
-    'tgenres', 'ogenres',
-    'tgenres_ext', 'ogenres_ext',
     'thmm_decoding', 'ohmm_decoding',
+    'thmm_generation', 'ohmm_generation',
     'thmm_params', 'ohmm_params',
     'thmm_params_res', 'ohmm_params_res',
     'thmm_sequence', 'ohmm_sequence',
@@ -50,18 +54,16 @@ __all__ = [
     'thmm_symbols_out', 'ohmm_symbols_out',
     'thmm_viterbi', 'ohmm_viterbi',
     'thmm_viterbi_ext', 'ohmm_viterbi_ext',
-    'tinterval', 'ointerval',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
+    'tmc_generation', 'omc_generation',
+    'tmc_generation_ext', 'omc_generation_ext',
     'tpart', 'opart',
     'tparts', 'oparts',
-    'trdl', 'ordl',
     'tredists', 'oredists',
     'tstate', 'ostate',
     'tstates', 'ostates',
     'tstatus', 'ostatus',
-    'ttest', 'otest',
-    'ttest_chi2', 'otest_chi2',
     'ttfunc', 'otfunc',
     'ttimes_in', 'otimes_in',
     'ttimes_out', 'otimes_out',
@@ -78,6 +80,10 @@ __all__ = [
 ###########
 
 # Standard
+
+from inspect import (
+    FrameInfo as _ins_FrameInfo
+)
 
 from typing import (
     Any as _tp_Any,
@@ -159,6 +165,9 @@ ograph = _tp_Optional[tgraph]
 tgraphs = _tp_Union[tgraph, _nx_MultiDiGraph]
 ographs = _tp_Optional[tgraphs]
 
+tinterval = _tp_Tuple[tscalar, tscalar]
+ointerval = _tp_Optional[tinterval]
+
 # noinspection PyTypeHints
 thmm = _tp_TypeVar('HiddenMarkovModel')
 ohmm = _tp_Optional[thmm]
@@ -176,11 +185,11 @@ olimit_scalar = _tp_Optional[tlimit_scalar]
 tmc = _tp_TypeVar('MarkovChain')
 omc = _tp_Optional[tmc]
 
-tplot = _tp_Tuple[_mplp_Figure, _tp_Union[_mplp_Axes, _tp_List[_mplp_Axes]]]
-oplot = _tp_Optional[tplot]
-
 tnumeric = _tp_Union[_np_ndarray, _spsp_matrix] if not _pandas_found else _tp_Union[_np_ndarray, _spsp_matrix, _pd_DataFrame, _pd_Series]
 onumeric = _tp_Optional[tnumeric]
+
+tplot = _tp_Tuple[_mplp_Figure, _tp_Union[_mplp_Axes, _tp_List[_mplp_Axes]]]
+oplot = _tp_Optional[tplot]
 
 trand = _npr_RandomState
 orand = _tp_Optional[trand]
@@ -190,6 +199,18 @@ orandfunc = _tp_Optional[trandfunc]
 
 trandfunc_flex = _tp_Union[_tp_Callable, str]
 orandfunc_flex = _tp_Optional[trandfunc_flex]
+
+trdl = _tp_Tuple[tarray, tarray, tarray]
+ordl = _tp_Optional[trdl]
+
+tstack = _tp_List[_ins_FrameInfo]
+ostack = _tp_Optional[tstack]
+
+ttest = _tp_Tuple[obool, float, _tp_Dict[str, tany]]
+otest = _tp_Optional[ttest]
+
+ttest_chi2 = _tp_Tuple[float, float]
+otest_chi2 = _tp_Optional[ttest_chi2]
 
 # Lists
 
@@ -239,14 +260,11 @@ odists_flex = _tp_Optional[tdists_flex]
 tfitting_res = _tp_Tuple[oarray, ostr]
 ofitting_res = _tp_Optional[tfitting_res]
 
-tgenres = _tp_Tuple[oarray, ostr]
-ogenres = _tp_Optional[tgenres]
-
-tgenres_ext = _tp_Tuple[oarray, olist_str, ostr]
-ogenres_ext = _tp_Optional[tgenres_ext]
-
 thmm_decoding = _tp_Union[_tp_Tuple[float, tarray, tarray, tarray, tarray], _tp_Tuple[float, tarray, tarray, tarray]]
 ohmm_decoding = _tp_Optional[thmm_decoding]
+
+thmm_generation = _tp_Tuple[tarray, tarray, tlist_str, tlist_str]
+ohmm_generation = _tp_Optional[thmm_generation]
 
 thmm_params = _tp_Tuple[tarray, tarray]
 ohmm_params = _tp_Optional[thmm_params]
@@ -278,23 +296,23 @@ ohmm_viterbi = _tp_Optional[thmm_viterbi]
 thmm_viterbi_ext = _tp_Tuple[float, _tp_Union[tlist_int, tlist_str]]
 ohmm_viterbi_ext = _tp_Optional[thmm_viterbi_ext]
 
-tinterval = _tp_Tuple[tscalar, tscalar]
-ointerval = _tp_Optional[tinterval]
-
 tmc_dict = _tp_Dict[_tp_Tuple[str, str], float]
 omc_dict = _tp_Optional[tmc_dict]
 
 tmc_dict_flex = _tp_Dict[_tp_Tuple[str, str], tscalar]
 omc_dict_flex = _tp_Optional[tmc_dict_flex]
 
+tmc_generation = _tp_Tuple[oarray, ostr]
+omc_generation = _tp_Optional[tmc_generation]
+
+tmc_generation_ext = _tp_Tuple[oarray, olist_str, ostr]
+omc_generation_ext = _tp_Optional[tmc_generation_ext]
+
 tpart = _tp_List[_tp_Union[tlist_int, tlist_str]]
 opart = _tp_Optional[tpart]
 
 tparts = _tp_List[tpart]
 oparts = _tp_Optional[tparts]
-
-trdl = _tp_Tuple[tarray, tarray, tarray]
-ordl = _tp_Optional[trdl]
 
 tredists = _tp_Union[tarray, tlist_array]
 oredists = _tp_Optional[tredists]
@@ -307,12 +325,6 @@ ostates = _tp_Optional[tstates]
 
 tstatus = _tp_Union[int, str, tnumeric]
 ostatus = _tp_Optional[tstatus]
-
-ttest = _tp_Tuple[obool, float, _tp_Dict[str, tany]]
-otest = _tp_Optional[ttest]
-
-ttest_chi2 = _tp_Tuple[float, float]
-otest_chi2 = _tp_Optional[ttest_chi2]
 
 ttfunc = _tp_Callable[[int, float, int, float], float]
 otfunc = _tp_Optional[ttfunc]

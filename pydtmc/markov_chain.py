@@ -16,8 +16,6 @@ from copy import (
 )
 
 from inspect import (
-    getmembers as _ins_getmembers,
-    isfunction as _ins_isfunction,
     stack as _ins_stack,
     trace as _ins_trace
 )
@@ -138,6 +136,7 @@ from .decorators import (
     alias as _alias,
     aliased as _aliased,
     cached_property as _cached_property,
+    instance_generator as _instance_generator,
     random_output as _random_output
 )
 
@@ -162,8 +161,8 @@ from .fitting import (
 )
 
 from .generators import (
-    aggregate_spectral_bu as _aggregate_spectral_bu,
-    aggregate_spectral_td as _aggregate_spectral_td,
+    aggregate_spectral_bottom_up as _aggregate_spectral_bottom_up,
+    aggregate_spectral_top_down as _aggregate_spectral_top_down,
     approximation as _approximation,
     birth_death as _birth_death,
     bounded as _bounded,
@@ -209,6 +208,8 @@ from .utilities import (
     create_rng as _create_rng,
     generate_state_names as _generate_state_names,
     generate_validation_error as _generate_validation_error,
+    get_caller as _get_caller,
+    get_instance_generators as _get_instance_generators,
     get_numpy_random_distributions as _get_numpy_random_distributions
 )
 
@@ -255,14 +256,17 @@ class MarkovChain(metaclass=_BaseClass):
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    _random_distributions: _olist_str = None
+    __instance_generators: _olist_str = None
+    __random_distributions: _olist_str = None
 
     def __init__(self, p: _tnumeric, states: _olist_str = None):
 
-        caller = _ins_stack()[1][3]
-        sm = [x[1].__name__ for x in _ins_getmembers(MarkovChain, predicate=_ins_isfunction) if x[1].__name__[0] != '_' and isinstance(MarkovChain.__dict__.get(x[1].__name__), staticmethod)]
+        if MarkovChain.__instance_generators is None:
+            MarkovChain.__instance_generators = _get_instance_generators(self.__class__)
 
-        if caller not in sm:
+        caller = _get_caller(_ins_stack())
+
+        if caller not in MarkovChain.__instance_generators:
 
             try:
 
@@ -993,6 +997,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return self.__cache['ap']
 
+    @_instance_generator()
     def aggregate(self, s: int, method: str = 'adaptive') -> _tmc:
 
         """
@@ -1027,13 +1032,13 @@ class MarkovChain(metaclass=_BaseClass):
             else:
                 method = 'spectral-bottom-up' if (float(s) / self.__size) <= 0.3 else 'spectral-top-down'
 
-        func = _aggregate_spectral_bu if method == 'spectral-bottom-up' else _aggregate_spectral_td
-        p, error_message = func(self.p, self.pi[0], s)
+        func = _aggregate_spectral_bottom_up if method == 'spectral-bottom-up' else _aggregate_spectral_top_down
+        p, states, error_message = func(self.p, self.pi[0], s)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
-        mc = MarkovChain(p)
+        mc = MarkovChain(p, states)
 
         return mc
 
@@ -1061,6 +1066,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return result
 
+    @_instance_generator()
     def closest_reversible(self, initial_distribution: _onumeric = None, weighted: bool = False) -> _tmc:
 
         """
@@ -1087,7 +1093,7 @@ class MarkovChain(metaclass=_BaseClass):
         zeros = len(initial_distribution) - _np_count_nonzero(initial_distribution)
 
         if weighted and zeros > 0:  # pragma: no cover
-            raise _ValidationError('If the weighted Frobenius norm is used, the initial distribution must not contain zero-valued probabilities.')
+            raise _ValidationError('If the weighted Frobenius norm is used, the initial distribution must not contain null probabilities.')
 
         if self.is_reversible:
             p = _np_copy(self.__p)
@@ -1451,6 +1457,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return result
 
+    @_instance_generator()
     def lump(self, partitions: _tpart) -> _tmc:
 
         """
@@ -1796,6 +1803,7 @@ class MarkovChain(metaclass=_BaseClass):
         return value
 
     @_alias('to_bounded')
+    @_instance_generator()
     def to_bounded_chain(self, boundary_condition: _tbcond) -> _tmc:
 
         """
@@ -1824,6 +1832,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @_alias('to_canonical')
+    @_instance_generator()
     def to_canonical_form(self) -> _tmc:
 
         """
@@ -1906,6 +1915,7 @@ class MarkovChain(metaclass=_BaseClass):
             _write_xml(d, file_path)
 
     @_alias('to_lazy')
+    @_instance_generator()
     def to_lazy_chain(self, inertial_weights: _tweights = 0.5) -> _tmc:
 
         """
@@ -1964,7 +1974,8 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @_alias('to_sub')
-    def to_sub_chain(self, states: _tstates) -> _tmc:
+    @_instance_generator()
+    def to_subchain(self, states: _tstates) -> _tmc:
 
         """
         The method returns a subchain containing all the given states plus all the states reachable from them.
@@ -1985,12 +1996,12 @@ class MarkovChain(metaclass=_BaseClass):
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
 
-        p, states, error_message = _sub(self.__p, self.__states, self.adjacency_matrix, states)
+        p, states_out, error_message = _sub(self.__p, self.__states, self.adjacency_matrix, states)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p, states_out)
 
         return mc
 
@@ -2119,6 +2130,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def birth_death(p: _tarray, q: _tarray, states: _olist_str = None) -> _tmc:
 
         """
@@ -2153,6 +2165,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def dirichlet_process(size: int, diffusion_factor: int, states: _olist_str = None, diagonal_bias_factor: _ofloat = None, shift_concentration: bool = False, seed: _oint = None) -> _tmc:
 
         """
@@ -2185,6 +2198,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def fit_function(quadrature_type: str, f: _ttfunc, possible_states: _tlist_str, quadrature_interval: _ointerval = None) -> _tmc:
 
         """
@@ -2236,6 +2250,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def fit_walk(fitting_type: str, walk: _twalk, k: _tany = None, possible_states: _olist_str = None) -> _tmc:
 
         """
@@ -2274,6 +2289,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def from_dictionary(d: _tmc_dict_flex) -> _tmc:
 
         """
@@ -2310,6 +2326,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def from_graph(graph: _tgraphs) -> _tmc:
 
         """
@@ -2350,6 +2367,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def from_file(file_path: str) -> _tmc:
 
         r"""
@@ -2425,6 +2443,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def from_matrix(m: _tnumeric, states: _olist_str = None) -> _tmc:
 
         """
@@ -2460,6 +2479,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def gamblers_ruin(size: int, w: float, states: _olist_str = None) -> _tmc:
 
         """
@@ -2486,6 +2506,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def identity(size: int, states: _olist_str = None) -> _tmc:
 
         """
@@ -2510,6 +2531,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def random(size: int, states: _olist_str = None, zeros: int = 0, mask: _onumeric = None, seed: _oint = None) -> _tmc:
 
         """
@@ -2549,6 +2571,7 @@ class MarkovChain(metaclass=_BaseClass):
 
     # noinspection PyIncorrectDocstring
     @staticmethod
+    @_instance_generator()
     def random_distribution(size: int, f: _trandfunc_flex, states: _olist_str = None, seed: _oint = None, **kwargs) -> _tmc:
 
         r"""
@@ -2570,14 +2593,14 @@ class MarkovChain(metaclass=_BaseClass):
         :raises ValidationError: if any input argument is not compliant.
         """
 
-        if MarkovChain._random_distributions is None:
-            MarkovChain._random_distributions = _get_numpy_random_distributions()
+        if MarkovChain.__random_distributions is None:
+            MarkovChain.__random_distributions = _get_numpy_random_distributions()
 
         try:
 
             rng = _create_rng(seed)
             size = _validate_integer(size, lower_limit=(2, False))
-            f = _validate_random_distribution(f, rng, MarkovChain._random_distributions)
+            f = _validate_random_distribution(f, rng, MarkovChain.__random_distributions)
             states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
 
         except Exception as ex:  # pragma: no cover
@@ -2593,6 +2616,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
+    @_instance_generator()
     def urn_model(n: int, model: str) -> _tmc:
 
         """

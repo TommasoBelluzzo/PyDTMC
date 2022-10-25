@@ -7,5 +7,6 @@ Instance Methods
 	:noindex:
 	:members:
 		decode,
+		restrict,
 		simulate,
 		viterbi

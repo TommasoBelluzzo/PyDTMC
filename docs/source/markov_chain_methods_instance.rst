@@ -43,7 +43,7 @@ Instance Methods
 		to_file,
 		to_lazy_chain,
 		to_matrix,
-		to_sub_chain,
+		to_subchain,
 		transition_probability,
 		walk,
 		walk_probability

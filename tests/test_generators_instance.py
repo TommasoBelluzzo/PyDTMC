@@ -117,7 +117,7 @@ def test_sub(p, states, value):
         mc = _MarkovChain(p)
 
         try:
-            mc_sub = mc.to_sub_chain(states)
+            mc_sub = mc.to_subchain(states)
             exception = False
         except ValueError:
             mc_sub = None

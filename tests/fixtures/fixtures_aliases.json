@@ -22,7 +22,7 @@
         "to_bounded_chain": ["absorbing"],
         "to_canonical_form": null,
         "to_lazy_chain": [0.6],
-        "to_sub_chain": [[1, 2]]
+        "to_subchain": [[1, 2]]
       }
     },
     {
@@ -47,7 +47,7 @@
         "to_bounded_chain": ["reflecting"],
         "to_canonical_form": null,
         "to_lazy_chain": [[0.1, 0.2, 0.1]],
-        "to_sub_chain": [[0, 2]]
+        "to_subchain": [[0, 2]]
       }
     }    ,
     {
@@ -72,7 +72,7 @@
         "to_bounded_chain": [0.75],
         "to_canonical_form": null,
         "to_lazy_chain": [0.1],
-        "to_sub_chain": [[1, 2, 3]]
+        "to_subchain": [[1, 2, 3]]
       }
     }
   ],

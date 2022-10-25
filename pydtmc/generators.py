@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'aggregate_spectral_bu',
-    'aggregate_spectral_td',
+    'aggregate_spectral_bottom_up',
+    'aggregate_spectral_top_down',
     'approximation',
     'birth_death',
     'bounded',
@@ -100,8 +100,8 @@ from .custom_types import (
     ofloat as _ofloat,
     tarray as _tarray,
     tbcond as _tbcond,
-    tgenres as _tgenres,
-    tgenres_ext as _tgenres_ext,
+    tmc_generation as _tmc_generation,
+    tmc_generation_ext as _tmc_generation_ext,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
@@ -114,7 +114,7 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
-def aggregate_spectral_bu(p: _tarray, pi: _tarray, s: int) -> _tgenres:
+def aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation_ext:
 
     # noinspection DuplicatedCode
     def _calculate_q(cq_p, cq_pi, cq_phi):
@@ -195,10 +195,12 @@ def aggregate_spectral_bu(p: _tarray, pi: _tarray, s: int) -> _tgenres:
 
     q /= _np_sum(q, axis=1, keepdims=True)
 
-    return q, None
+    states = [f'ASBU{i:d}' for i in range(1, q.shape[0] + 1)]
+
+    return q, states, None
 
 
-def aggregate_spectral_td(p: _tarray, pi: _tarray, s: int) -> _tgenres:
+def aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generation_ext:
 
     def _calculate_invariant(ci_q):
 
@@ -299,11 +301,12 @@ def aggregate_spectral_td(p: _tarray, pi: _tarray, s: int) -> _tgenres:
         _, q, eta = sorted(u, key=lambda x: x[0], reverse=True).pop()
 
     q /= _np_sum(q, axis=1, keepdims=True)
+    states = [f'ASTD{i:d}' for i in range(1, q.shape[0] + 1)]
 
-    return q, None
+    return q, states, None
 
 
-def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tgenres_ext:
+def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tmc_generation_ext:
 
     def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
 
@@ -471,12 +474,12 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
                 z = x[j] - rx
                 p[i, j] = _sps_norm.cdf((z + step) / sigma) - _sps_norm.cdf((z - step) / sigma)
 
-    states = ['A' + str(i) for i in range(1, p.shape[0] + 1)]
+    states = [f'A{i:d}' for i in range(1, p.shape[0] + 1)]
 
     return p, states, None
 
 
-def birth_death(p: _tarray, q: _tarray) -> _tgenres:
+def birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
 
     r = 1.0 - q - p
 
@@ -488,7 +491,7 @@ def birth_death(p: _tarray, q: _tarray) -> _tgenres:
     return p, None
 
 
-def bounded(p: _tarray, boundary_condition: _tbcond) -> _tgenres:
+def bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
 
     size = p.shape[0]
 
@@ -518,7 +521,7 @@ def bounded(p: _tarray, boundary_condition: _tbcond) -> _tgenres:
     return p_adjusted, None
 
 
-def canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tlist_int) -> _tgenres:
+def canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tlist_int) -> _tmc_generation:
 
     p = _np_copy(p)
 
@@ -537,7 +540,7 @@ def canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tli
     return p, None
 
 
-def closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tgenres:
+def closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tmc_generation:
 
     def _jacobian(xj, hj, fj):
 
@@ -737,7 +740,7 @@ def dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_
     return p, None
 
 
-def gamblers_ruin(size: int, w: float) -> _tgenres:
+def gamblers_ruin(size: int, w: float) -> _tmc_generation:
 
     wc = 1.0 - w
 
@@ -752,7 +755,7 @@ def gamblers_ruin(size: int, w: float) -> _tgenres:
     return p, None
 
 
-def lazy(p: _tarray, inertial_weights: _tarray) -> _tgenres:
+def lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
 
     size = p.shape[0]
 
@@ -763,7 +766,7 @@ def lazy(p: _tarray, inertial_weights: _tarray) -> _tgenres:
     return p, None
 
 
-def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tgenres_ext:
+def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_generation_ext:
 
     size = p.shape[0]
 
@@ -796,7 +799,7 @@ def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tgenres_ex
     return p_lump, state_names, None
 
 
-def random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tgenres:
+def random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generation:
 
     full_rows = _np_isclose(_np_nansum(mask, axis=1, dtype=float), 1.0)
 
@@ -844,7 +847,7 @@ def random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tgenres:
     return p, None
 
 
-def sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tgenres_ext:
+def sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_generation_ext:
 
     size = p.shape[0]
 
@@ -868,6 +871,7 @@ def sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _
 
     p = _np_copy(p)
     p = p[_np_ix(sub_states, sub_states)]
+    p /= _np_sum(p, axis=1, keepdims=True)
 
     if p.size == 1:  # pragma: no cover
         return None, None, 'The subchain is not a valid Markov chain.'
@@ -877,7 +881,7 @@ def sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _
     return p, state_names, None
 
 
-def urn_model(n: int, model: str) -> _tgenres_ext:
+def urn_model(n: int, model: str) -> _tmc_generation_ext:
 
     dn = n * 2
     size = dn + 1
@@ -918,6 +922,6 @@ def urn_model(n: int, model: str) -> _tgenres_ext:
 
             p[i, :] = r
 
-    state_names = [f'U{i}' for i in range(1, (n * 2) + 2)]
+    state_names = [f'U{i:d}' for i in range(1, (n * 2) + 2)]
 
     return p, state_names, None

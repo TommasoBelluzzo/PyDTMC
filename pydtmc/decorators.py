@@ -4,6 +4,7 @@ __all__ = [
     'alias',
     'aliased',
     'cached_property',
+    'instance_generator',
     'random_output'
 ]
 
@@ -116,6 +117,27 @@ class cached_property(property):
     def deleter(self, fdel):
 
         raise AttributeError('Cached properties cannot be altered.')
+
+
+# noinspection PyPep8Naming
+class instance_generator:
+
+    """
+    A class decorator used for marking instance generator methods.
+    """
+
+    def __init__(self):
+
+        pass
+
+    def __call__(self, obj):
+
+        if isinstance(obj, property):
+            obj.fget._instance_generator = True
+        else:
+            obj._instance_generator = True
+
+        return obj
 
 
 # noinspection PyPep8Naming
