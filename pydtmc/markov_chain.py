@@ -1133,8 +1133,8 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             committor_type = _validate_enumerator(committor_type, ['backward', 'forward'])
-            states1 = _validate_states(states1, self.__states, True)
-            states2 = _validate_states(states2, self.__states, True)
+            states1 = _validate_states(states1, self.__states, True, 1)
+            states2 = _validate_states(states2, self.__states, True, 1)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
@@ -1249,7 +1249,7 @@ class MarkovChain(metaclass=_BaseClass):
             initial_state = _validate_state(initial_state, self.__states)
 
             if first_passage_states is not None:
-                first_passage_states = _validate_states(first_passage_states, self.__states, False)
+                first_passage_states = _validate_states(first_passage_states, self.__states, False, 1)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
@@ -1279,7 +1279,7 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             initial_state = _validate_state(initial_state, self.__states)
-            first_passage_states = _validate_states(first_passage_states, self.__states, True)
+            first_passage_states = _validate_states(first_passage_states, self.__states, True, 1)
             rewards = _validate_rewards(rewards, self.__size)
             steps = _validate_integer(steps, lower_limit=(0, True))
 
@@ -1318,7 +1318,7 @@ class MarkovChain(metaclass=_BaseClass):
             if targets is None:
                 targets = self.__states_indices.copy()
             else:
-                targets = _validate_states(targets, self.__states, False)
+                targets = _validate_states(targets, self.__states, False, 1)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
@@ -1346,7 +1346,7 @@ class MarkovChain(metaclass=_BaseClass):
             if targets is None:
                 targets = self.__states_indices.copy()
             else:
-                targets = _validate_states(targets, self.__states, False)
+                targets = _validate_states(targets, self.__states, False, 1)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
@@ -1522,8 +1522,8 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            origins = _validate_states(origins, self.__states, True)
-            targets = _validate_states(targets, self.__states, True)
+            origins = _validate_states(origins, self.__states, True, 1)
+            targets = _validate_states(targets, self.__states, True, 1)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
@@ -1550,7 +1550,7 @@ class MarkovChain(metaclass=_BaseClass):
         try:
 
             if targets is not None:
-                targets = _validate_states(targets, self.__states, False)
+                targets = _validate_states(targets, self.__states, False, 1)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
@@ -1991,7 +1991,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         try:
 
-            states = _validate_states(states, self.__states, True)
+            states = _validate_states(states, self.__states, True, 1)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None

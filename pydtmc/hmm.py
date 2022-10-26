@@ -50,6 +50,7 @@ from numpy.linalg import (
 # Internal
 
 from .custom_types import (
+    oint as _oint,
     ohmm_viterbi as _ohmm_viterbi,
     tarray as _tarray,
     thmm as _thmm,
@@ -177,9 +178,15 @@ def restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str, su
 
 
 # noinspection DuplicatedCode
-def simulate(hmm: _thmm, steps: int, initial_state: int, rng: _trand) -> _thmm_sequence:
+def simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint, final_symbol: _oint, rng: _trand) -> _thmm_sequence:
 
     n, k = hmm.size
+    check_final_state = final_state is not None
+    check_final_symbol = final_symbol is not None
+
+    current_state = initial_state
+    states = [initial_state]
+    symbols = [rng.choice(k, size=1, p=hmm.e[current_state, :]).item()]
 
     pr = rng.random(steps)
     pc = _np_cumsum(hmm.p, axis=1)
@@ -188,10 +195,6 @@ def simulate(hmm: _thmm, steps: int, initial_state: int, rng: _trand) -> _thmm_s
     er = rng.random(steps)
     ec = _np_cumsum(hmm.e, axis=1)
     ec /= _np_tile(_np_take(ec, [-1], axis=1), k)
-
-    current_state = initial_state
-    states = []
-    symbols = []
 
     for i in range(steps):
 
@@ -214,6 +217,9 @@ def simulate(hmm: _thmm, steps: int, initial_state: int, rng: _trand) -> _thmm_s
         current_state = state
         states.append(state)
         symbols.append(symbol)
+
+        if (check_final_state and state == final_state) or (check_final_symbol and symbol == final_symbol):
+            break
 
     return states, symbols
 

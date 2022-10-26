@@ -273,13 +273,15 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         return hmm
 
     @_random_output()
-    def simulate(self, steps: int, initial_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _thmm_sequence_ext:
+    def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, final_symbol: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _thmm_sequence_ext:
 
         """
         The method simulates a random sequence of states and symbols of the given number of steps.
 
         :param steps: the number of steps.
         :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
+        :param final_state: the final state of the simulation (*if specified, the simulation stops as soon as it is reached even if not all the steps have been performed*).
+        :param final_symbol: the final state of the simulation (*if specified, the simulation stops as soon as it is reached even if not all the steps have been performed*).
         :param output_indices: a boolean indicating whether to output the state indices.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
@@ -289,13 +291,15 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
             rng = _create_rng(seed)
             steps = _validate_integer(steps, lower_limit=(1, False))
-            initial_state = 0 if initial_state is None else _validate_state(initial_state, self.__states)
+            initial_state = rng.randint(0, self.__size[0]) if initial_state is None else _validate_state(initial_state, self.__states)
+            final_state = None if final_state is None else _validate_state(final_state, self.__states)
+            final_symbol = None if final_symbol is None else _validate_state(final_symbol, self.__symbols)
             output_indices = _validate_boolean(output_indices)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
 
-        value = _simulate(self, steps, initial_state, rng)
+        value = _simulate(self, steps, initial_state, final_state, final_symbol, rng)
 
         if not output_indices:
             v0 = [*map(self.__states.__getitem__, value[0])]

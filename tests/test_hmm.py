@@ -56,11 +56,11 @@ def test_restrict(p, e, states, symbols, value):
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-def test_simulate(p, e, seed, steps, initial_state, output_indices, value):
+def test_simulate(p, e, seed, steps, initial_state, final_state, final_symbol, output_indices, value):
 
     hmm = _HiddenMarkovModel(p, e)
 
-    actual = hmm.simulate(steps, initial_state, output_indices, seed)
+    actual = hmm.simulate(steps, initial_state, final_state, final_symbol, output_indices, seed)
     expected = tuple(value)
 
     assert actual == expected

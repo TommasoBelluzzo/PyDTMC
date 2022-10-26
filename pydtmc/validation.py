@@ -797,7 +797,7 @@ def validate_state_names(value: _tany, size: _oint = None) -> _tlist_str:
     return value
 
 
-def validate_states(value: _tany, possible_states: _tlist_str, subset: bool, length_limit: int = 1) -> _tlist_int:
+def validate_states(value: _tany, possible_states: _tlist_str, subset: bool, length_limit: int) -> _tlist_int:
 
     if possible_states is None:
         raise ValueError('The "@arg@" parameter must be validated against a proper list of possible states.')

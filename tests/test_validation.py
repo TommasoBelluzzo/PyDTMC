@@ -779,10 +779,10 @@ def test_validate_state_names(value, size, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_states(value, possible_states, subset, is_valid):
+def test_validate_states(value, possible_states, subset, length_limit, is_valid):
 
     try:
-        result = _validate_states(value, possible_states, subset)
+        result = _validate_states(value, possible_states, subset, length_limit)
         result_is_valid = True
     except Exception:
         result = None
