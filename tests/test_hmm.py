@@ -26,7 +26,23 @@ from pydtmc import (
 # TESTS #
 #########
 
-# noinspection PyBroadException
+# noinspection DuplicatedCode
+def test_estimate(sequence, possible_states, possible_symbols, value):
+
+    hmm = _HiddenMarkovModel.estimate(sequence, possible_states, possible_symbols)
+
+    actual = hmm.p
+    expected = _np_array(value[0])
+
+    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+    actual = hmm.e
+    expected = _np_array(value[1])
+
+    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+# noinspection DuplicatedCode, PyBroadException
 def test_restrict(p, e, states, symbols, value):
 
     hmm = _HiddenMarkovModel(p, e)
