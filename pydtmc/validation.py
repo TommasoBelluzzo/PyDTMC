@@ -144,7 +144,7 @@ from .utilities import (
 # FUNCTIONS #
 #############
 
-def _extract_numeric_matrix(data: _tany, size: int) -> _tarray:
+def _extract_numeric_matrix(data: _tany, rows: int, columns: int) -> _tarray:
 
     try:
         result = _extract_data_numeric(data)
@@ -153,8 +153,8 @@ def _extract_numeric_matrix(data: _tany, size: int) -> _tarray:
 
     result = result.astype(float)
 
-    if result.ndim != 2 or result.shape[0] != result.shape[1] or result.shape[0] != size:
-        raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
+    if result.ndim != 2 or result.shape[0] != rows or result.shape[1] != columns:
+        raise ValueError(f'The "@arg@" parameter must be a 2d matrix with size equal to ({rows:d}, {columns:d}).')
 
     return result
 
@@ -541,7 +541,7 @@ def validate_hmm_symbols(value: _tany, possible_symbols: _tlist_str, allow_lists
 
 def validate_hyperparameter(value: _tany, size: int) -> _tarray:
 
-    value = _extract_numeric_matrix(value, size)
+    value = _extract_numeric_matrix(value, size, size)
 
     if not all(_np_isfinite(x) and _np_isreal(x) and _np_equal(_np_mod(x, 1.0), 0.0) and x >= 1.0 for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only integers greater than or equal to 1.')
@@ -614,9 +614,9 @@ def validate_markov_chains(value: _tany) -> _tmc:
     return value
 
 
-def validate_mask(value: _tany, size: int) -> _tarray:
+def validate_mask(value: _tany, rows: int, columns: int) -> _tarray:
 
-    value = _extract_numeric_matrix(value, size)
+    value = _extract_numeric_matrix(value, rows, columns)
 
     if not all(_np_isnan(x) or (_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0) for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter can contain only NaNs and finite real values between 0 and 1.')

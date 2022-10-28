@@ -20,7 +20,8 @@ from inspect import (
 
 from numpy import (
     array_equal as _np_array_equal,
-    full as _np_full
+    full as _np_full,
+    nan as _np_nan
 )
 
 # Internal
@@ -32,6 +33,7 @@ from .base_class import (
 from .custom_types import (
     oint as _oint,
     olist_str as _olist_str,
+    onumeric as _onumeric,
     ostate as _ostate,
     ostates as _ostates,
     ostatus as _ostatus,
@@ -60,6 +62,7 @@ from .exceptions import (
 from .hmm import (
     decode as _decode,
     estimate as _estimate,
+    random as _random,
     restrict as _restrict,
     simulate as _simulate,
     train as _train,
@@ -86,6 +89,7 @@ from .validation import (
     validate_hmm_emission as _validate_hmm_emission,
     validate_hmm_sequence as _validate_hmm_sequence,
     validate_hmm_symbols as _validate_hmm_symbols,
+    validate_mask as _validate_mask,
     validate_states as _validate_states,
     validate_status as _validate_status,
     validate_transition_matrix as _validate_transition_matrix,
@@ -124,7 +128,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
                 p = _validate_transition_matrix(p)
                 e = _validate_hmm_emission(e, p.shape[0])
                 states = [str(i) for i in range(1, p.shape[0] + 1)] if states is None else _validate_state_names(states, p.shape[0])
-                symbols = [str(i) for i in range(1, e.shape[1] + 1)] if symbols is None else _validate_state_names(symbols, e.shape[0])
+                symbols = [str(i) for i in range(1, e.shape[1] + 1)] if symbols is None else _validate_state_names(symbols, e.shape[1])
 
             except Exception as ex:  # pragma: no cover
                 raise _generate_validation_error(ex, _ins_trace()) from None
@@ -362,6 +366,62 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         p, e = _estimate(len(possible_states), len(possible_symbols), sequence, True)
         hmm = HiddenMarkovModel(p, e, possible_states, possible_symbols)
+
+        return hmm
+
+    @staticmethod
+    @_instance_generator()
+    def random(n: int, k: int, states: _olist_str = None, p_zeros: int = 0, p_mask: _onumeric = None, symbols: _olist_str = None, e_zeros: int = 0, e_mask: _onumeric = None, seed: _oint = None) -> _thmm:
+
+        """
+        The method generates a Markov chain of given size with random transition probabilities.
+
+        | **Notes:**
+
+        - In the mask parameter, undefined transition probabilities are represented by *NaN* values.
+
+        :param n: the number of states.
+        :param k: the number of symbols.
+        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param p_zeros: the number of null transition probabilities.
+        :param p_mask: a matrix representing locations and values of fixed transition probabilities.
+        :param symbols: the name of each symbol (*if omitted, an increasing sequence of integers starting at 1*).
+        :param e_zeros: the number of null emission probabilities.
+        :param e_mask: a matrix representing locations and values of fixed emission probabilities.
+        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            rng = _create_rng(seed)
+            n = _validate_integer(n, lower_limit=(2, False))
+            k = _validate_integer(k, lower_limit=(2, False))
+
+            if states is not None:
+                states = _validate_state_names(states, n)
+
+            p_zeros = _validate_integer(p_zeros, lower_limit=(0, False))
+            p_mask = _np_full((n, n), _np_nan, dtype=float) if p_mask is None else _validate_mask(p_mask, n, n)
+
+            if symbols is not None:
+                symbols = _validate_state_names(symbols, k)
+
+            e_zeros = _validate_integer(e_zeros, lower_limit=(0, False))
+            e_mask = _np_full((n, k), _np_nan, dtype=float) if e_mask is None else _validate_mask(e_mask, n, k)
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        p, e, states_out, symbols_out, error_message = _random(rng, n, k, p_zeros, p_mask, e_zeros, e_mask)
+
+        if error_message is not None:  # pragma: no cover
+            raise _ValidationError(error_message)
+
+        states = states_out if states is None else states
+        symbols = symbols_out if symbols is None else symbols
+
+        hmm = HiddenMarkovModel(p, e, states, symbols)
 
         return hmm
 

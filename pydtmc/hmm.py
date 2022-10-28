@@ -3,6 +3,7 @@
 __all__ = [
     'decode',
     'estimate',
+    'random',
     'restrict',
     'simulate',
     'train',
@@ -19,25 +20,35 @@ __all__ = [
 from numpy import (
     abs as _np_abs,
     all as _np_all,
+    arange as _np_arange,
     argmax as _np_argmax,
+    array as _np_array,
     copy as _np_copy,
     cumprod as _np_cumprod,
     cumsum as _np_cumsum,
     exp as _np_exp,
+    flatnonzero as _np_flatnonzero,
     fliplr as _np_fliplr,
     full as _np_full,
     hstack as _np_hstack,
     inf as _np_inf,
+    isclose as _np_isclose,
+    isinf as _np_isinf,
     isnan as _np_isnan,
     ix_ as _np_ix,
     log as _np_log,
     multiply as _np_multiply,
+    nan as _np_nan,
+    nansum as _np_nansum,
     newaxis as _np_newaxis,
     ones as _np_ones,
+    ravel as _np_ravel,
     round as _np_round,
     sum as _np_sum,
     take as _np_take,
     tile as _np_tile,
+    transpose as _np_transpose,
+    unravel_index as _np_unravel_index,
     vstack as _np_vstack,
     where as _np_where,
     zeros as _np_zeros
@@ -56,6 +67,7 @@ from .custom_types import (
     thmm as _thmm,
     thmm_decoding as _thmm_decoding,
     thmm_generation as _thmm_generation,
+    thmm_generation_ext as _thmm_generation_ext,
     thmm_params as _thmm_params,
     thmm_params_res as _thmm_params_res,
     thmm_sequence as _thmm_sequence,
@@ -155,6 +167,81 @@ def estimate(n: int, k: int, sequence: _thmm_sequence, handle_nulls: bool) -> _t
         e = _np_abs(e / e_rows)
 
     return p, e
+
+
+def random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: int, e_mask: _tarray) -> _thmm_generation_ext:
+
+    # noinspection DuplicatedCode
+    def process_matrix(pm_rows, pm_columns, pm_mask, pm_full_rows, pm_mask_unassigned, pm_zeros, pm_zeros_required):
+
+        pm_mask_internal = _np_copy(pm_mask)
+        rows_range = _np_arange(pm_rows)
+
+        for i in rows_range:
+            if not pm_full_rows[i]:
+                row = pm_mask_unassigned[i, :]
+                columns = _np_flatnonzero(row)
+                j = columns[rng.randint(0, _np_sum(row).item())]
+                pm_mask_internal[i, j] = _np_inf
+
+        pm_mask_unassigned = _np_isnan(pm_mask_internal)
+        indices_unassigned = _np_flatnonzero(pm_mask_unassigned)
+
+        r = rng.permutation(pm_zeros_required)
+        indices_zero = indices_unassigned[r[0:pm_zeros]]
+        indices_rows, indices_columns = _np_unravel_index(indices_zero, (pm_rows, pm_columns))
+
+        pm_mask_internal[indices_rows, indices_columns] = 0.0
+        pm_mask_internal[_np_isinf(pm_mask_internal)] = _np_nan
+
+        m = _np_copy(pm_mask_internal)
+        m_unassigned = _np_isnan(pm_mask_internal)
+        m[m_unassigned] = _np_ravel(rng.rand(1, _np_sum(m_unassigned, dtype=int).item()))
+
+        for i in rows_range:
+
+            assigned_columns = _np_isnan(pm_mask_internal[i, :])
+            s = _np_sum(m[i, assigned_columns])
+
+            if s > 0.0:
+                si = _np_sum(m[i, ~assigned_columns])
+                m[i, assigned_columns] *= (1.0 - si) / s
+
+        return m
+
+    # noinspection DuplicatedCode
+    def process_zeros(pz_columns, pz_zeros, pz_mask):
+
+        pz_mask_internal = _np_copy(pz_mask)
+
+        full_rows = _np_isclose(_np_nansum(pz_mask_internal, axis=1, dtype=float), 1.0)
+
+        mask_full = _np_transpose(_np_array([full_rows] * pz_columns))
+        pz_mask_internal[_np_isnan(pz_mask_internal) & mask_full] = 0.0
+
+        mask_unassigned = _np_isnan(pz_mask_internal)
+        zeros_required = (_np_sum(mask_unassigned) - _np_sum(~full_rows)).item()
+        result = pz_zeros > zeros_required
+
+        return full_rows, mask_unassigned, zeros_required, result
+
+    p_full_rows, p_mask_unassigned, p_zeros_required, p_result = process_zeros(n, p_zeros, p_mask)
+
+    if p_result:
+        return None, None, None, None, f'The number of null transition probabilities exceeds the maximum threshold of {p_zeros_required:d}.'
+
+    e_full_rows, e_mask_unassigned, e_zeros_required, e_result = process_zeros(k, e_zeros, e_mask)
+
+    if e_result:
+        return None, None, None, None, f'The number of null transition probabilities exceeds the maximum threshold of {e_zeros_required:d}.'
+
+    p = process_matrix(n, n, p_mask, p_full_rows, p_mask_unassigned, p_zeros, p_zeros_required)
+    states = [str(i) for i in range(1, n + 1)]
+
+    e = process_matrix(n, k, e_mask, e_full_rows, e_mask_unassigned, e_zeros, e_zeros_required)
+    symbols = [str(i) for i in range(1, k + 1)]
+
+    return p, e, states, symbols, None
 
 
 def restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str, sub_states: _tlist_int, sub_symbols: _tlist_int) -> _thmm_generation:

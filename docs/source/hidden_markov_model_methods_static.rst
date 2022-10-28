@@ -7,4 +7,5 @@ Static Methods
 	:noindex:
 	:members:
 		estimate,
+		random,
 		train

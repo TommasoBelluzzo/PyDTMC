@@ -8,7 +8,9 @@
 # Libraries
 
 from numpy import (
-    array as _np_array
+    array as _np_array,
+    count_nonzero as _np_count_nonzero,
+    isnan as _np_isnan
 )
 
 from numpy.testing import (
@@ -40,6 +42,58 @@ def test_estimate(sequence, possible_states, possible_symbols, value):
     expected = _np_array(value[1])
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+# noinspection PyArgumentEqualDefault
+def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
+
+    hmm = _HiddenMarkovModel.random(n, k, None, p_zeros, p_mask, None, e_zeros, e_mask, seed)
+
+    actual = hmm.p
+    expected = _np_array(value[0])
+
+    print(actual)
+
+    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+    if p_zeros > 0 and p_mask is None:
+
+        actual = n**2 - _np_count_nonzero(hmm.p)
+        expected = p_zeros
+
+        assert actual == expected
+
+    if p_mask is not None:
+
+        indices = ~_np_isnan(_np_array(p_mask))
+
+        actual = hmm.p[indices]
+        expected = _np_array(value[0])[indices]
+
+        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+    actual = hmm.e
+    expected = _np_array(value[1])
+
+    print(actual)
+
+    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+    if e_zeros > 0 and e_mask is None:
+
+        actual = (n * k) - _np_count_nonzero(hmm.e)
+        expected = e_zeros
+
+        assert actual == expected
+
+    if e_mask is not None:
+
+        indices = ~_np_isnan(_np_array(e_mask))
+
+        actual = hmm.e[indices]
+        expected = _np_array(value[1])[indices]
+
+        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 # noinspection DuplicatedCode, PyBroadException

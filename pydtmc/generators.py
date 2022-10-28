@@ -799,11 +799,12 @@ def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_genera
     return p_lump, state_names, None
 
 
+# noinspection DuplicatedCode
 def random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generation:
 
     full_rows = _np_isclose(_np_nansum(mask, axis=1, dtype=float), 1.0)
 
-    mask_full = _np_transpose(_np_array([full_rows, ] * size))
+    mask_full = _np_transpose(_np_array([full_rows] * size))
     mask[_np_isnan(mask) & mask_full] = 0.0
 
     mask_unassigned = _np_isnan(mask)

@@ -2530,6 +2530,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return mc
 
+    # noinspection DuplicatedCode
     @staticmethod
     @_instance_generator()
     def random(size: int, states: _olist_str = None, zeros: int = 0, mask: _onumeric = None, seed: _oint = None) -> _tmc:
@@ -2543,7 +2544,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         :param size: the size of the Markov chain.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
-        :param zeros: the number of zero-valued transition probabilities.
+        :param zeros: the number of null transition probabilities.
         :param mask: a matrix representing locations and values of fixed transition probabilities.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
@@ -2555,7 +2556,7 @@ class MarkovChain(metaclass=_BaseClass):
             size = _validate_integer(size, lower_limit=(2, False))
             states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
             zeros = _validate_integer(zeros, lower_limit=(0, False))
-            mask = _np_full((size, size), _np_nan, dtype=float) if mask is None else _validate_mask(mask, size)
+            mask = _np_full((size, size), _np_nan, dtype=float) if mask is None else _validate_mask(mask, size, size)
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None

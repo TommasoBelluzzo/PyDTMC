@@ -44,6 +44,7 @@ __all__ = [
     'tfitting_res', 'ofitting_res',
     'thmm_decoding', 'ohmm_decoding',
     'thmm_generation', 'ohmm_generation',
+    'thmm_generation_ext', 'ohmm_generation_ext',
     'thmm_params', 'ohmm_params',
     'thmm_params_res', 'ohmm_params_res',
     'thmm_sequence', 'ohmm_sequence',
@@ -265,6 +266,9 @@ ohmm_decoding = _tp_Optional[thmm_decoding]
 
 thmm_generation = _tp_Tuple[tarray, tarray, tlist_str, tlist_str]
 ohmm_generation = _tp_Optional[thmm_generation]
+
+thmm_generation_ext = _tp_Tuple[oarray, oarray, olist_str, olist_str, ostr]
+ohmm_generation_ext = _tp_Optional[thmm_generation_ext]
 
 thmm_params = _tp_Tuple[tarray, tarray]
 ohmm_params = _tp_Optional[thmm_params]
