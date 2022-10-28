@@ -609,12 +609,12 @@ def test_validate_markov_chains(value, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_mask(value, size, is_valid):
+def test_validate_mask(value, rows, columns, is_valid):
 
     value = _np_array(value)
 
     try:
-        result = _validate_mask(value, size)
+        result = _validate_mask(value, rows, columns)
         result_is_valid = True
     except Exception:
         result = None

@@ -1256,52 +1256,86 @@
   "validate_mask_data": [
     {
       "value": [["NaN", 0.5, "NaN"], [1.0, 0.0, 0.0], [0.3, "NaN", 0.2]],
-      "size": 3,
+      "rows": 3,
+      "columns": 3,
       "is_valid": true
     },
     {
       "value": [["NaN", "NaN", "NaN"], ["NaN", "NaN", "NaN"], ["NaN", "NaN", "NaN"]],
-      "size": 3,
+      "rows": 3,
+      "columns": 3,
       "is_valid": true
     },
     {
       "value": [[0, 1, 0], [0, 0, 1], [1, 0, 0]],
-      "size": 3,
+      "rows": 3,
+      "columns": 3,
       "is_valid": true
     },
     {
       "value": [[0.2, 0.5, 0.1, "NaN"], [0.1, 0.5, 0.2, 0.2], [0.8, "NaN", "NaN", "NaN"]],
-      "size": 4,
+      "rows": 4,
+      "columns": 4,
       "is_valid": false
     },
     {
       "value": [[0.0, "NaN", 0.7, 0.3], [0.8, "NaN", 0.2, "NaN"], ["NaN", "NaN", "NaN", "NaN"], ["NaN", "NaN", "NaN", "NaN"]],
-      "size": 5,
+      "rows": 5,
+      "columns": 5,
       "is_valid": false
     },
     {
-      "value": [["Infinity", 0.5, "Infinity"], [0.25, 0.25, "Infinity"], [0.2, 0.1, "Infinity"]],
-      "size": 3,
+      "value": [["Infinity", 0.50, "Infinity"], [0.25, 0.25, "Infinity"], [0.20, 0.10, "Infinity"]],
+      "rows": 3,
+      "columns": 3,
       "is_valid": false
     },
     {
-      "value": [["NaN", "NaN", "NaN"], [0.00, 0.45, 0.55], [1.0, "NaN", 0.2]],
-      "size": 3,
+      "value": [["NaN", "NaN", "NaN"], [0.00, 0.45, 0.55], [1.00, "NaN", 0.20]],
+      "rows": 3,
+      "columns": 3,
+      "is_valid": false
+    },
+    {
+      "value": [["NaN", 0.5, "NaN", "NaN"], [0.0, 0.1, 0.1, "NaN"]],
+      "rows": 2,
+      "columns": 4,
+      "is_valid": true
+    },
+    {
+      "value": [["NaN", 0.5, "NaN"], [0.0, 0.1, 0.1]],
+      "rows": 2,
+      "columns": 4,
+      "is_valid": false
+    },
+    {
+      "value": [["NaN", 0.5], [0.0, 1.0], ["NaN", "NaN"], [0.0, 1.0]],
+      "rows": 4,
+      "columns": 2,
+      "is_valid": true
+    },
+    {
+      "value": [["NaN", 0.5], ["NaN", "NaN"], [0.0, 1.0]],
+      "rows": 4,
+      "columns": 2,
       "is_valid": false
     },
     {
       "value": null,
-      "size": null,
+      "rows": null,
+      "columns": null,
       "is_valid": false
     },
     {
       "value": true,
-      "size": null,
+      "rows": null,
+      "columns": null,
       "is_valid": false
     },
     {
       "value": [[], []],
-      "size": 2,
+      "rows": 2,
+      "columns": 2,
       "is_valid": false
     }
   ],
