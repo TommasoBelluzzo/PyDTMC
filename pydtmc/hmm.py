@@ -227,12 +227,12 @@ def random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: 
 
     p_full_rows, p_mask_unassigned, p_zeros_required, p_result = process_zeros(n, p_zeros, p_mask)
 
-    if p_result:
+    if p_result:  # pragma: no cover
         return None, None, None, None, f'The number of null transition probabilities exceeds the maximum threshold of {p_zeros_required:d}.'
 
     e_full_rows, e_mask_unassigned, e_zeros_required, e_result = process_zeros(k, e_zeros, e_mask)
 
-    if e_result:
+    if e_result:  # pragma: no cover
         return None, None, None, None, f'The number of null transition probabilities exceeds the maximum threshold of {e_zeros_required:d}.'
 
     p = process_matrix(n, n, p_mask, p_full_rows, p_mask_unassigned, p_zeros, p_zeros_required)
