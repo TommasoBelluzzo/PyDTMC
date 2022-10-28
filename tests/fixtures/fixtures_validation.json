@@ -1303,7 +1303,7 @@
       "is_valid": true
     },
     {
-      "value": [["NaN", 0.5, "NaN"], [0.0, 0.1, 0.1]],
+      "value": [[0.25, "NaN", "NaN"], ["NaN", "NaN", "NaN"]],
       "rows": 2,
       "columns": 4,
       "is_valid": false
@@ -1315,7 +1315,7 @@
       "is_valid": true
     },
     {
-      "value": [["NaN", 0.5], ["NaN", "NaN"], [0.0, 1.0]],
+      "value": [["NaN", 0.3], ["NaN", "NaN"], [1.0, 0.0]],
       "rows": 4,
       "columns": 2,
       "is_valid": false
