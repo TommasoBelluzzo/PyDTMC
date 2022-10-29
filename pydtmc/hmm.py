@@ -61,11 +61,11 @@ from numpy.linalg import (
 # Internal
 
 from .custom_types import (
-    oint as _oint,
+    ohmm_decoding as _ohmm_decoding,
     ohmm_viterbi as _ohmm_viterbi,
+    oint as _oint,
     tarray as _tarray,
     thmm as _thmm,
-    thmm_decoding as _thmm_decoding,
     thmm_generation as _thmm_generation,
     thmm_generation_ext as _thmm_generation_ext,
     thmm_params as _thmm_params,
@@ -82,7 +82,7 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
-def decode(p: _tarray, e: _tarray, symbols: _tlist_int, use_scaling: bool) -> _thmm_decoding:
+def decode(p: _tarray, e: _tarray, symbols: _tlist_int, use_scaling: bool) -> _ohmm_decoding:
 
     n, k = p.shape[0], e.shape[1]
 
@@ -104,6 +104,10 @@ def decode(p: _tarray, e: _tarray, symbols: _tlist_int, use_scaling: bool) -> _t
             forward[state, i] = e[state, symbol] * _np_sum(_np_multiply(forward_i, p[:, state]))
 
         s_i = _np_sum(forward[:, i])
+
+        if s_i == 0.0:
+            return None
+
         s[i] = s_i
         forward[:, i] /= s_i
 

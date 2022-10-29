@@ -28,6 +28,56 @@ from pydtmc import (
 # TESTS #
 #########
 
+def test_decode(p, e, symbols, use_scaling, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+    decoding = hmm.decode(symbols, use_scaling)
+
+    if decoding is None:
+
+        actual = decoding
+        expected = value
+
+        assert actual == expected
+
+    else:
+
+        actual = round(decoding[0], 8)
+        expected = value[0]
+
+        assert actual == expected
+
+        actual = decoding[1]
+        expected = _np_array(value[1])
+
+        print(actual)
+
+        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = decoding[2]
+        expected = _np_array(value[2])
+
+        print(actual)
+
+        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = decoding[3]
+        expected = _np_array(value[3])
+
+        print(actual)
+
+        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        if use_scaling:
+
+            actual = decoding[4]
+            expected = _np_array(value[4])
+
+            print(actual)
+
+            _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 # noinspection DuplicatedCode
 def test_estimate(sequence, possible_states, possible_symbols, value):
 
@@ -52,8 +102,6 @@ def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
     actual = hmm.p
     expected = _np_array(value[0])
 
-    print(actual)
-
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     if p_zeros > 0 and p_mask is None:
@@ -74,8 +122,6 @@ def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
 
     actual = hmm.e
     expected = _np_array(value[1])
-
-    print(actual)
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 

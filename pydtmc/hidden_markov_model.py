@@ -31,6 +31,7 @@ from .base_class import (
 )
 
 from .custom_types import (
+    ohmm_decoding as _ohmm_decoding,
     oint as _oint,
     olist_str as _olist_str,
     onumeric as _onumeric,
@@ -41,7 +42,6 @@ from .custom_types import (
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
     thmm as _thmm,
-    thmm_decoding as _thmm_decoding,
     thmm_sequence_ext as _thmm_sequence_ext,
     thmm_size as _thmm_size,
     thmm_symbols as _thmm_symbols,
@@ -221,10 +221,14 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return self.__symbols
 
-    def decode(self, symbols: _thmm_symbols, use_scaling: bool = True) -> _thmm_decoding:
+    def decode(self, symbols: _thmm_symbols, use_scaling: bool = True) -> _ohmm_decoding:
 
         """
         The method calculates the log probability, the posterior probabilities, the backward probabilities and the forward probabilities of an observed sequence of symbols.
+
+        | **Notes:**
+
+        - If the observed sequence of symbols cannot be decoded, then :py:class:`None` is returned.
 
         :param symbols: the observed sequence of symbols.
         :param use_scaling: a boolean indicating whether to return scaled backward and forward probabilities together with their scaling factors.
