@@ -17,11 +17,13 @@
         "mean_number_visits": null,
         "mean_recurrence_times": null,
         "mixing_time": [null, 3, "natural"],
+        "next_state": [1, false, 7331],
         "time_correlations": [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], null, [1, 10, 100]],
         "time_relaxations": [[0, 1, 1, 1, 1, 0], null, [1, 10, 100]],
         "to_bounded_chain": ["absorbing"],
         "to_canonical_form": null,
         "to_lazy_chain": [0.6],
+        "to_nth_order": [3],
         "to_subchain": [[1, 2]]
       }
     },
@@ -42,11 +44,13 @@
         "mean_number_visits": null,
         "mean_recurrence_times": null,
         "mixing_time": [null, 12, "traditional"],
+        "next_state": [1, false, 7331],
         "time_correlations": [[0, 0, 0, 1, 2, 2, 2, 2, 2], null, 50],
         "time_relaxations": [[0, 1, 1, 1, 1, 0], null, 50],
         "to_bounded_chain": ["reflecting"],
         "to_canonical_form": null,
         "to_lazy_chain": [[0.1, 0.2, 0.1]],
+        "to_nth_order": [6],
         "to_subchain": [[0, 2]]
       }
     }    ,
@@ -66,12 +70,14 @@
         "mean_first_passage_times_to": [[0, 3, 4]],
         "mean_number_visits": null,
         "mean_recurrence_times": null,
+        "next_state": [1, false, 7331],
         "mixing_time": [[0.4, 0.0, 0.2, 0.2, 0.2, 0.0], 5, "natural"],
         "time_correlations": [[0, 1, 1, 1, 1, 0], [2, 2, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 1, 2, 3, 4, 5]],
         "time_relaxations": [[0, 1, 1, 1, 1, 0], [0.0, 0.0, 0.8, 0.0, 0.0, 0.2], [0, 1, 2, 3, 4, 5]],
         "to_bounded_chain": [0.75],
         "to_canonical_form": null,
         "to_lazy_chain": [0.1],
+        "to_nth_order": [2],
         "to_subchain": [[1, 2, 3]]
       }
     }

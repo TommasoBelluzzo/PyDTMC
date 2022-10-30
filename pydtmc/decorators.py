@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'alias',
     'aliased',
     'cached_property',
-    'instance_generator',
-    'random_output'
+    'object_mark'
 ]
 
 
@@ -32,28 +30,6 @@ from threading import (
 ###########
 # CLASSES #
 ###########
-
-# noinspection PyPep8Naming
-class alias:
-
-    """
-    | A class decorator used for implementing property and method aliases.
-    | It can be used only inside @aliased-decorated classes.
-    """
-
-    def __init__(self, *aliases):
-
-        self.aliases = aliases
-
-    def __call__(self, obj):
-
-        if isinstance(obj, property):
-            obj.fget._aliases = self.aliases
-        else:
-            obj._aliases = self.aliases
-
-        return obj
-
 
 # noinspection PyPep8Naming
 class cached_property(property):
@@ -120,43 +96,57 @@ class cached_property(property):
 
 
 # noinspection PyPep8Naming
-class instance_generator:
+class object_mark:
 
     """
-    A class decorator used for marking instance generator methods.
+    A class decorator used for marking methods and properties.
     """
 
-    def __init__(self):
+    def __init__(self, aliases=None, instance_generator=False, random_output=False, underlying_exclusion=False):
 
-        pass
+        if aliases is None and not instance_generator and not random_output and not underlying_exclusion:
+            raise AttributeError('Object mark must have at least one argument value different than the default one.')
+
+        self.mark_applied = False
+        self.aliases = aliases
+        self.instance_generator = instance_generator
+        self.random_output = random_output
+        self.underlying_exclusion = underlying_exclusion
 
     def __call__(self, obj):
 
-        if isinstance(obj, property):
-            obj.fget._instance_generator = True
-        else:
-            obj._instance_generator = True
-
-        return obj
-
-
-# noinspection PyPep8Naming
-class random_output:
-
-    """
-    A class decorator used for marking random output methods.
-    """
-
-    def __init__(self):
-
-        pass
-
-    def __call__(self, obj):
+        if self.mark_applied:
+            return obj
 
         if isinstance(obj, property):
-            obj.fget._random_output = True
+
+            if self.aliases is not None:
+                obj.fget._aliases = self.aliases
+
+            if self.instance_generator:
+                obj.fget._instance_generator = True
+
+            if self.random_output:
+                obj.fget._random_output = True
+
+            if self.underlying_exclusion:
+                obj.fget._underlying_exclusion = True
+
         else:
-            obj._random_output = True
+
+            if self.aliases is not None:
+                obj._aliases = self.aliases
+
+            if self.instance_generator:
+                obj._instance_generator = True
+
+            if self.random_output:
+                obj._random_output = True
+
+            if self.underlying_exclusion:
+                obj._underlying_exclusion = True
+
+        self.mark_applied = True
 
         return obj
 

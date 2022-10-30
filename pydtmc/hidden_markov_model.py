@@ -51,8 +51,7 @@ from .custom_types import (
 )
 
 from .decorators import (
-    instance_generator as _instance_generator,
-    random_output as _random_output
+    object_mark as _object_mark
 )
 
 from .exceptions import (
@@ -77,7 +76,8 @@ from .utilities import (
     create_rng as _create_rng,
     generate_validation_error as _generate_validation_error,
     get_caller as _get_caller,
-    get_instance_generators as _get_instance_generators
+    get_instance_generators as _get_instance_generators,
+    get_underlying_exclusions as _get_underlying_exclusions
 )
 
 from .validation import (
@@ -113,6 +113,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
     """
 
     __instance_generators: _olist_str = None
+    __underlying_exclusions: _olist_str = None
 
     def __init__(self, p: _tnumeric, e: _tnumeric, states: _olist_str = None, symbols: _olist_str = None):
 
@@ -147,9 +148,12 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return False
 
-    def __getattr__(self, name):
+    def __getattr__(self, name):  # pragma: no cover
 
-        if hasattr(self.__mc, name):
+        if HiddenMarkovModel.__underlying_exclusions is None:
+            HiddenMarkovModel.__underlying_exclusions = _get_underlying_exclusions(self.__class__)
+
+        if hasattr(self.__mc, name) and name not in HiddenMarkovModel.__underlying_exclusions:
             return getattr(self.__mc, name)
 
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'.")
@@ -247,7 +251,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return value
 
-    @_instance_generator()
+    @_object_mark(instance_generator=True)
     def restrict(self, states: _ostates = None, symbols: _ostates = None) -> _thmm:
 
         """
@@ -280,7 +284,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return hmm
 
-    @_random_output()
+    @_object_mark(random_output=True)
     def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, final_symbol: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _thmm_sequence_ext:
 
         """
@@ -347,7 +351,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         return value
 
     @staticmethod
-    @_instance_generator()
+    @_object_mark(instance_generator=True)
     def estimate(sequence: _thmm_sequence_ext, possible_states: _tlist_str, possible_symbols: _tlist_str) -> _thmm:
 
         """
@@ -374,7 +378,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         return hmm
 
     @staticmethod
-    @_instance_generator()
+    @_object_mark(instance_generator=True, random_output=True)
     def random(n: int, k: int, states: _olist_str = None, p_zeros: int = 0, p_mask: _onumeric = None, symbols: _olist_str = None, e_zeros: int = 0, e_mask: _onumeric = None, seed: _oint = None) -> _thmm:
 
         """
@@ -430,7 +434,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         return hmm
 
     @staticmethod
-    @_instance_generator()
+    @_object_mark(instance_generator=True)
     def train(algorithm: str, symbols: _thmm_symbols_ext, possible_states: _tlist_str, p_guess: _tarray, possible_symbols: _tlist_str, e_guess: _tarray) -> _thmm:
 
         """

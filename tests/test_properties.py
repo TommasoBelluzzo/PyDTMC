@@ -5,6 +5,12 @@
 # IMPORTS #
 ###########
 
+# Standard
+
+from timeit import (
+    timeit as _ti_timeit
+)
+
 # Libraries
 
 from numpy import (
@@ -108,6 +114,24 @@ def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communicatio
     expected = _np_array(communication_matrix)
 
     assert _np_array_equal(actual, expected)
+
+
+def test_cached(p):
+
+    mc = _MarkovChain(p)
+
+    lcl = locals()
+    lcl['mc'] = mc
+
+    for member_name, member in _MarkovChain.__dict__.items():
+
+        if not isinstance(member, property) or not hasattr(member.fget, '_aliases') or member_name in getattr(member.fget, '_aliases'):
+            continue
+
+        time1 = round(_ti_timeit(lambda: getattr(mc, member_name), number=1), 10)
+        time2 = round(_ti_timeit(lambda: getattr(mc, member_name), number=1), 10)
+
+        assert time1 > time2
 
 
 # noinspection DuplicatedCode
