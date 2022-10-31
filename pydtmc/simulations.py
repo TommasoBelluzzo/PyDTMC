@@ -103,13 +103,13 @@ def walk(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rng: _tra
     return value
 
 
-def walk_probability(mc: _tmc, walk: _tlist_int) -> float:
+def walk_probability(mc: _tmc, walk_param: _tlist_int) -> float:
 
     p = mc.p
 
     wp = 0.0
 
-    for i, j in zip(walk[:-1], walk[1:]):
+    for i, j in zip(walk_param[:-1], walk_param[1:]):
 
         if p[i, j] > 0.0:
             wp += _np_log(p[i, j])
