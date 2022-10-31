@@ -118,6 +118,9 @@ def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communicatio
 
 def test_cached(p):
 
+    def statement(st_mc, st_member_name):
+        return getattr(st_mc, st_member_name)
+
     mc = _MarkovChain(p)
 
     lcl = locals()
@@ -128,8 +131,8 @@ def test_cached(p):
         if not isinstance(member, property) or not hasattr(member.fget, '_aliases') or member_name in getattr(member.fget, '_aliases'):
             continue
 
-        time1 = round(_ti_timeit(lambda: getattr(mc, member_name), number=1), 10)
-        time2 = round(_ti_timeit(lambda: getattr(mc, member_name), number=1), 10)
+        time1 = round(_ti_timeit(statement(mc, member_name), number=1), 10)
+        time2 = round(_ti_timeit(statement(mc, member_name), number=1), 10)
 
         assert time1 > time2
 
