@@ -121,18 +121,19 @@ def test_cached(p):
     def statement(st_mc, st_member_name):
         return getattr(st_mc, st_member_name)
 
-    mc = _MarkovChain(p)
-
     lcl = locals()
-    lcl['mc'] = mc
+    lcl['mc'] = _MarkovChain(p)
+    lcl['statement'] = statement
 
     for member_name, member in _MarkovChain.__dict__.items():
 
         if not isinstance(member, property) or not hasattr(member.fget, '_aliases') or member_name in getattr(member.fget, '_aliases'):
             continue
 
-        time1 = round(_ti_timeit(statement(mc, member_name), number=1), 10)
-        time2 = round(_ti_timeit(statement(mc, member_name), number=1), 10)
+        lcl['member_name'] = member_name
+
+        time1 = round(_ti_timeit("statement(mc, member_name)", number=1, globals=lcl), 10)
+        time2 = round(_ti_timeit("statement(mc, member_name)", number=1, globals=lcl), 10)
 
         assert time1 > time2
 
