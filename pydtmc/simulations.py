@@ -3,7 +3,7 @@
 __all__ = [
     'predict',
     'redistribute',
-    'simulate',
+    'walk',
     'walk_probability'
 ]
 
@@ -83,7 +83,7 @@ def redistribute(mc: _tmc, steps: int, initial_distribution: _tarray, output_las
     return value
 
 
-def simulate(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rng: _trand) -> _tlist_int:
+def walk(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rng: _trand) -> _tlist_int:
 
     p, size = mc.p, mc.size
     check_final_state = final_state is not None

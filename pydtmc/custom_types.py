@@ -45,11 +45,13 @@ __all__ = [
     'thmm_decoding', 'ohmm_decoding',
     'thmm_generation', 'ohmm_generation',
     'thmm_generation_ext', 'ohmm_generation_ext',
+    'thmm_pair_float', 'ohmm_pair_float',
+    'thmm_pair_int', 'ohmm_pair_int',
     'thmm_params', 'ohmm_params',
     'thmm_params_res', 'ohmm_params_res',
     'thmm_sequence', 'ohmm_sequence',
     'thmm_sequence_ext', 'ohmm_sequence_ext',
-    'thmm_size', 'ohmm_size',
+    'thmm_step', 'ohmm_step',
     'thmm_symbols', 'ohmm_symbols',
     'thmm_symbols_ext', 'ohmm_symbols_ext',
     'thmm_symbols_out', 'ohmm_symbols_out',
@@ -270,6 +272,12 @@ ohmm_generation = _tp_Optional[thmm_generation]
 thmm_generation_ext = _tp_Tuple[oarray, oarray, olist_str, olist_str, ostr]
 ohmm_generation_ext = _tp_Optional[thmm_generation_ext]
 
+thmm_pair_float = _tp_Tuple[float, float]
+ohmm_pair_float = _tp_Optional[thmm_pair_float]
+
+thmm_pair_int = _tp_Tuple[int, int]
+ohmm_pair_int = _tp_Optional[thmm_pair_int]
+
 thmm_params = _tp_Tuple[tarray, tarray]
 ohmm_params = _tp_Optional[thmm_params]
 
@@ -282,8 +290,8 @@ ohmm_sequence = _tp_Optional[thmm_sequence]
 thmm_sequence_ext = _tp_Union[_tp_Tuple[tlist_int, tlist_int], _tp_Tuple[tlist_str, tlist_str]]
 ohmm_sequence_ext = _tp_Optional[thmm_sequence_ext]
 
-thmm_size = _tp_Tuple[int, int]
-ohmm_size = _tp_Optional[thmm_size]
+thmm_step = _tp_Union[int, str, _tp_Tuple[int, int], _tp_Tuple[str, str]]
+ohmm_step = _tp_Optional[thmm_step]
 
 thmm_symbols = _tp_Union[tlist_int, tlist_str]
 ohmm_symbols = _tp_Optional[thmm_symbols]

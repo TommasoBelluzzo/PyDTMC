@@ -19,9 +19,15 @@ from inspect import (
 # Libraries
 
 from numpy import (
+    all as _np_all,
     array_equal as _np_array_equal,
     full as _np_full,
     nan as _np_nan
+)
+
+from numpy.linalg import (
+    det as _npl_det,
+    matrix_rank as _npl_matrix_rank
 )
 
 # Internal
@@ -42,15 +48,19 @@ from .custom_types import (
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
     thmm as _thmm,
+    thmm_pair_float as _thmm_pair_float,
+    thmm_pair_int as _thmm_pair_int,
     thmm_sequence_ext as _thmm_sequence_ext,
-    thmm_size as _thmm_size,
+    thmm_step as _thmm_step,
     thmm_symbols as _thmm_symbols,
     thmm_symbols_ext as _thmm_symbols_ext,
     thmm_viterbi_ext as _thmm_viterbi_ext,
-    tmc as _tmc
+    tmc as _tmc,
+    tstate as _tstate
 )
 
 from .decorators import (
+    cached_property as _cached_property,
     object_mark as _object_mark
 )
 
@@ -76,8 +86,7 @@ from .utilities import (
     create_rng as _create_rng,
     generate_validation_error as _generate_validation_error,
     get_caller as _get_caller,
-    get_instance_generators as _get_instance_generators,
-    get_underlying_exclusions as _get_underlying_exclusions
+    get_instance_generators as _get_instance_generators
 )
 
 from .validation import (
@@ -113,7 +122,6 @@ class HiddenMarkovModel(metaclass=_BaseClass):
     """
 
     __instance_generators: _olist_str = None
-    __underlying_exclusions: _olist_str = None
 
     def __init__(self, p: _tnumeric, e: _tnumeric, states: _olist_str = None, symbols: _olist_str = None):
 
@@ -137,7 +145,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         self.__e: _tarray = e
         self.__mc: _tmc = _MarkovChain(p, states)
         self.__p: _tarray = p
-        self.__size: _thmm_size = (p.shape[0], e.shape[1])
+        self.__size: _thmm_pair_int = (p.shape[0], e.shape[1])
         self.__states: _tlist_str = states
         self.__symbols: _tlist_str = symbols
 
@@ -147,16 +155,6 @@ class HiddenMarkovModel(metaclass=_BaseClass):
             return _np_array_equal(self.p, other.p) and _np_array_equal(self.e, other.e) and self.states == other.states and self.symbols == other.symbols
 
         return False
-
-    def __getattr__(self, name):  # pragma: no cover
-
-        if HiddenMarkovModel.__underlying_exclusions is None:
-            HiddenMarkovModel.__underlying_exclusions = _get_underlying_exclusions(self.__class__)
-
-        if hasattr(self.__mc, name) and name not in HiddenMarkovModel.__underlying_exclusions:
-            return getattr(self.__mc, name)
-
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'.")
 
     def __hash__(self) -> int:
 
@@ -179,6 +177,18 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return value
 
+    @_cached_property
+    def determinants(self) -> _thmm_pair_float:
+
+        """
+        A property representing the determinants of the transition and emission matrices of the hidden Markov model.
+        """
+
+        pd = _npl_det(self.__p)
+        ed = _npl_det(self.__e)
+
+        return pd, ed
+
     @property
     def e(self) -> _tarray:
 
@@ -187,6 +197,46 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         """
 
         return self.__e
+
+    @_cached_property
+    def is_ergodic(self) -> bool:
+
+        """
+        A property indicating whether the hidden Markov model is ergodic.
+        """
+
+        result = self.__mc.is_ergodic and _np_all(self.__e > 0.0)
+
+        return result
+
+    @_cached_property
+    def is_regular(self) -> bool:
+
+        """
+        A property indicating whether the hidden Markov model is regular.
+        """
+
+        result = self.ranks[0] == self.__size[1]
+
+        return result
+
+    @property
+    def k(self) -> int:
+
+        """
+        A property representing the size of the hidden Markov model symbol space.
+        """
+
+        return self.__size[1]
+
+    @property
+    def n(self) -> int:
+
+        """
+        A property representing the size of the hidden Markov model state space.
+        """
+
+        return self.__size[0]
 
     @property
     def p(self) -> _tarray:
@@ -197,8 +247,20 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return self.__p
 
+    @_cached_property
+    def ranks(self) -> _thmm_pair_int:
+
+        """
+        A property representing the ranks of the transition and emission matrices of the hidden Markov model.
+        """
+
+        rp = _npl_matrix_rank(self.__p)
+        re = _npl_matrix_rank(self.__e)
+
+        return rp, re
+
     @property
-    def size(self) -> _thmm_size:
+    def size(self) -> _thmm_pair_int:
 
         """
         | A property representing the size of the hidden Markov model.
@@ -248,6 +310,45 @@ class HiddenMarkovModel(metaclass=_BaseClass):
             raise _generate_validation_error(ex, _ins_trace()) from None
 
         value = _decode(self.__p, self.__e, symbols, use_scaling)
+
+        return value
+
+    @_object_mark(random_output=True)
+    def next(self, initial_state: _tstate, target: str = 'both', output_index: bool = False, seed: _oint = None) -> _thmm_step:
+
+        """
+        The method simulates a single random step.
+
+        :param initial_state: the initial state.
+        :param target:
+         - **state** for a random state;
+         - **symbol** for a random symbol;
+         - **both** for a random state and a random symbol.
+        :param output_index: a boolean indicating whether to output the state index.
+        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            rng = _create_rng(seed)
+            target = _validate_enumerator(target, ['both', 'state', 'symbol'])
+            initial_state = _validate_state(initial_state, self.__states)
+            output_index = _validate_boolean(output_index)
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        simulation = _simulate(self, 1, initial_state, None, None, rng)
+
+        if target == 'state':
+            value = simulation[0][-1] if output_index else self.__states[simulation[0][-1]]
+        elif target == 'symbol':
+            value = simulation[1][-1] if output_index else self.__states[simulation[1][-1]]
+        else:
+            v0 = simulation[0][-1] if output_index else self.__states[simulation[0][-1]]
+            v1 = simulation[1][-1] if output_index else self.__states[simulation[1][-1]]
+            value = (v0, v1)
 
         return value
 

@@ -102,49 +102,31 @@ class object_mark:
     A class decorator used for marking methods and properties.
     """
 
-    def __init__(self, aliases=None, instance_generator=False, random_output=False, underlying_exclusion=False):
+    def __init__(self, aliases=None, instance_generator=False, random_output=False):
 
-        if aliases is None and not instance_generator and not random_output and not underlying_exclusion:
+        if aliases is None and not instance_generator and not random_output:
             raise AttributeError('Object mark must have at least one argument value different than the default one.')
 
         self.mark_applied = False
         self.aliases = aliases
         self.instance_generator = instance_generator
         self.random_output = random_output
-        self.underlying_exclusion = underlying_exclusion
 
     def __call__(self, obj):
 
         if self.mark_applied:
             return obj
 
-        if isinstance(obj, property):
+        target = obj.fget if isinstance(obj, property) else obj
 
-            if self.aliases is not None:
-                obj.fget._aliases = self.aliases
+        if self.aliases is not None:
+            target._aliases = self.aliases
 
-            if self.instance_generator:
-                obj.fget._instance_generator = True
+        if self.instance_generator:
+            target._instance_generator = True
 
-            if self.random_output:
-                obj.fget._random_output = True
-
-            if self.underlying_exclusion:
-                obj.fget._underlying_exclusion = True
-
-        else:
-
-            if self.aliases is not None:
-                obj._aliases = self.aliases
-
-            if self.instance_generator:
-                obj._instance_generator = True
-
-            if self.random_output:
-                obj._random_output = True
-
-            if self.underlying_exclusion:
-                obj._underlying_exclusion = True
+        if self.random_output:
+            target._random_output = True
 
         self.mark_applied = True
 

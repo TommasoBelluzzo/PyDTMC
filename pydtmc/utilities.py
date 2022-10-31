@@ -8,7 +8,6 @@ __all__ = [
     'get_file_extension',
     'get_instance_generators',
     'get_numpy_random_distributions',
-    'get_underlying_exclusions',
     'extract_data_generic',
     'extract_data_numeric',
     'is_array',
@@ -264,18 +263,6 @@ def get_numpy_random_distributions() -> _tlist_str:
             if doc_summary_first.startswith(valid_summary):
                 result.append(func_name)
                 break
-
-    return result
-
-
-def get_underlying_exclusions(cls: _tany) -> _tlist_str:
-
-    result = []
-
-    if cls is not None:
-        for member_name, member in _ins_getmembers(cls, predicate=_ins_isfunction):
-            if member_name[0] != '_' and hasattr(member, '_underlying_exclusion'):
-                result.append(member_name)
 
     return result
 

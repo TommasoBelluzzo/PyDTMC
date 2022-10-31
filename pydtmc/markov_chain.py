@@ -198,7 +198,7 @@ from .measures import (
 from .simulations import (
     predict as _predict,
     redistribute as _redistribute,
-    simulate as _simulate,
+    walk as _walk,
     walk_probability as _walk_probability
 )
 
@@ -345,23 +345,22 @@ class MarkovChain(metaclass=_BaseClass):
         return indices
 
     @_cached_property
-    def _cyclic_classes_indices(self) -> _tlists_int:
+    def __cyclic_classes_indices(self) -> _tlists_int:
 
         if not self.is_irreducible:
-            return []
-
-        if self.is_aperiodic:
-            return self.__communicating_classes_indices.copy()
-
-        indices = _find_cyclic_classes(self.__p)
-        indices = sorted(indices, key=lambda x: (-len(x), x[0]))
+            indices = []
+        elif self.is_aperiodic:
+            indices = self.__communicating_classes_indices.copy()
+        else:
+            indices = _find_cyclic_classes(self.__p)
+            indices = sorted(indices, key=lambda x: (-len(x), x[0]))
 
         return indices
 
     @_cached_property
     def __cyclic_states_indices(self) -> _tlist_int:
 
-        indices = sorted(_it_chain.from_iterable(self._cyclic_classes_indices))
+        indices = sorted(_it_chain.from_iterable(self.__cyclic_classes_indices))
 
         return indices
 
@@ -497,7 +496,7 @@ class MarkovChain(metaclass=_BaseClass):
         A property representing the cyclic classes of the Markov chain.
         """
 
-        classes = [[*map(self.__states.__getitem__, i)] for i in self._cyclic_classes_indices]
+        classes = [[*map(self.__states.__getitem__, i)] for i in self.__cyclic_classes_indices]
 
         return classes
 
@@ -531,23 +530,22 @@ class MarkovChain(metaclass=_BaseClass):
         | If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
         """
 
-        # noinspection PyTypeChecker
         if len(self.pi) > 1:
-            return None
+            h = None
+        else:
 
-        pi = self.pi[0]
-        h = 0.0
+            pi = self.pi[0]
+            h = 0.0
 
-        for i in range(self.__size):
-            pi_i = pi[i]
-            for j in range(self.__size):
-                if self.__p[i, j] > 0.0:
-                    h += pi_i * self.__p[i, j] * _np_log(self.__p[i, j])
+            for i in range(self.__size):
+                pi_i = pi[i]
+                for j in range(self.__size):
+                    if self.__p[i, j] > 0.0:
+                        h += pi_i * self.__p[i, j] * _np_log(self.__p[i, j])
 
-        if _np_isclose(h, 0.0):
-            return h
+            h = h if _np_isclose(h, 0.0) else -h
 
-        return -h
+        return h
 
     @_cached_property
     def entropy_rate_normalized(self) -> _ofloat:
@@ -560,9 +558,8 @@ class MarkovChain(metaclass=_BaseClass):
         h = self.entropy_rate
 
         if h is None:
-            return None
-
-        if _np_isclose(h, 0.0):
+            hn = None
+        elif _np_isclose(h, 0.0):
             hn = 0.0
         else:
             ev = _eigenvalues_sorted(self.adjacency_matrix)
@@ -580,14 +577,15 @@ class MarkovChain(metaclass=_BaseClass):
         """
 
         if not self.is_absorbing or len(self.transient_states) == 0:
-            return None
+            fm = None
+        else:
 
-        indices = self.__transient_states_indices
+            indices = self.__transient_states_indices
 
-        q = self.__p[_np_ix_(indices, indices)]
-        i = _np_eye(len(indices))
+            q = self.__p[_np_ix_(indices, indices)]
+            i = _np_eye(len(indices))
 
-        fm = _npl_inv(i - q)
+            fm = _npl_inv(i - q)
 
         return fm
 
@@ -600,10 +598,10 @@ class MarkovChain(metaclass=_BaseClass):
         """
 
         if not self.is_ergodic:
-            return None
-
-        ev = self.__eigenvalues_sorted[::-1]
-        it = _np_append(_np_inf, -1.0 / _np_log(ev[1:]))
+            it = None
+        else:
+            ev = self.__eigenvalues_sorted[::-1]
+            it = _np_append(_np_inf, -1.0 / _np_log(ev[1:]))
 
         return it
 
@@ -615,30 +613,31 @@ class MarkovChain(metaclass=_BaseClass):
         """
 
         if len(self.absorbing_states) == 0:
-            return False
+            result = False
+        else:
 
-        indices = set(self.__states_indices)
-        absorbing_indices = set(self.__absorbing_states_indices)
-        transient_indices = set()
+            indices = set(self.__states_indices)
+            absorbing_indices = set(self.__absorbing_states_indices)
+            transient_indices = set()
 
-        progress = True
-        unknown_states = None
+            progress = True
+            unknown_states = None
 
-        while progress:
+            while progress:
 
-            unknown_states = indices.copy() - absorbing_indices - transient_indices
-            known_states = absorbing_indices | transient_indices
+                unknown_states = indices.copy() - absorbing_indices - transient_indices
+                known_states = absorbing_indices | transient_indices
 
-            progress = False
+                progress = False
 
-            for i in unknown_states:
-                for j in known_states:
-                    if self.__p[i, j] > 0.0:
-                        transient_indices.add(i)
-                        progress = True
-                        break
+                for i in unknown_states:
+                    for j in known_states:
+                        if self.__p[i, j] > 0.0:
+                            transient_indices.add(i)
+                            progress = True
+                            break
 
-        result = len(unknown_states) == 0
+            result = len(unknown_states) == 0
 
         return result
 
@@ -669,9 +668,9 @@ class MarkovChain(metaclass=_BaseClass):
         transient_indices = self.__transient_states_indices
 
         if len(recurrent_indices) == 0 or len(transient_indices) == 0:
-            return True
-
-        result = max(transient_indices) < min(recurrent_indices)
+            result = True
+        else:
+            result = max(transient_indices) < min(recurrent_indices)
 
         return result
 
@@ -690,7 +689,7 @@ class MarkovChain(metaclass=_BaseClass):
     def is_ergodic(self) -> bool:
 
         """
-        A property indicating whether the Markov chain is ergodic or not.
+        A property indicating whether the Markov chain is ergodic.
         """
 
         result = self.is_irreducible and self.is_aperiodic
@@ -767,9 +766,8 @@ class MarkovChain(metaclass=_BaseClass):
         fm = self.fundamental_matrix
 
         if fm is None:
-            return None
-
-        if fm.size == 1:
+            kc = None
+        elif fm.size == 1:
             kc = fm[0].item()
         else:
             kc = _np_trace(fm).item()
@@ -995,7 +993,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return self.__cache['ap']
 
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def aggregate(self, s: int, method: str = 'adaptive') -> _tmc:
 
         """
@@ -1064,7 +1062,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return result
 
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def closest_reversible(self, initial_distribution: _onumeric = None, weighted: bool = False) -> _tmc:
 
         """
@@ -1455,7 +1453,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return result
 
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def lump(self, partitions: _tpart) -> _tmc:
 
         """
@@ -1623,11 +1621,11 @@ class MarkovChain(metaclass=_BaseClass):
 
         return value
 
-    @_object_mark(aliases=['next'], random_output=True, underlying_exclusion=True)
+    @_object_mark(aliases=['next'], random_output=True)
     def next_state(self, initial_state: _tstate, output_index: bool = False, seed: _oint = None) -> _tstate:
 
         """
-        The method simulates a single random walk step.
+        The method simulates a single random step.
 
         | **Notes:**
 
@@ -1648,14 +1646,13 @@ class MarkovChain(metaclass=_BaseClass):
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
 
-        value = _simulate(self, 1, initial_state, None, rng)[-1]
+        value = _walk(self, 1, initial_state, None, rng)[-1]
 
         if not output_index:
             value = self.__states[value]
 
         return value
 
-    @_object_mark(underlying_exclusion=True)
     def predict(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _owalk:
 
         """
@@ -1687,7 +1684,6 @@ class MarkovChain(metaclass=_BaseClass):
 
         return value
 
-    @_object_mark(underlying_exclusion=True)
     def redistribute(self, steps: int, initial_status: _ostatus = None, output_last: bool = True) -> _tredists:
 
         """
@@ -1801,7 +1797,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return value
 
-    @_object_mark(aliases=['to_bounded'], instance_generator=True, underlying_exclusion=True)
+    @_object_mark(aliases=['to_bounded'], instance_generator=True)
     def to_bounded_chain(self, boundary_condition: _tbcond) -> _tmc:
 
         """
@@ -1829,7 +1825,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return mc
 
-    @_object_mark(aliases=['to_canonical'], instance_generator=True, underlying_exclusion=True)
+    @_object_mark(aliases=['to_canonical'], instance_generator=True)
     def to_canonical_form(self) -> _tmc:
 
         """
@@ -1846,7 +1842,6 @@ class MarkovChain(metaclass=_BaseClass):
 
         return mc
 
-    @_object_mark(underlying_exclusion=True)
     def to_dictionary(self) -> _tmc_dict:
 
         """
@@ -1857,7 +1852,6 @@ class MarkovChain(metaclass=_BaseClass):
 
         return d
 
-    @_object_mark(underlying_exclusion=True)
     def to_graph(self, multi: bool = False) -> _tgraphs:
 
         """
@@ -1882,7 +1876,6 @@ class MarkovChain(metaclass=_BaseClass):
 
         return graph
 
-    @_object_mark(underlying_exclusion=True)
     def to_file(self, file_path: str):
 
         """
@@ -1914,7 +1907,7 @@ class MarkovChain(metaclass=_BaseClass):
         else:
             _write_xml(d, file_path)
 
-    @_object_mark(aliases=['to_lazy'], instance_generator=True, underlying_exclusion=True)
+    @_object_mark(aliases=['to_lazy'], instance_generator=True)
     def to_lazy_chain(self, inertial_weights: _tweights = 0.5) -> _tmc:
 
         """
@@ -1940,7 +1933,6 @@ class MarkovChain(metaclass=_BaseClass):
 
         return mc
 
-    @_object_mark(underlying_exclusion=True)
     def to_matrix(self) -> _tarray:
 
         """
@@ -1952,7 +1944,7 @@ class MarkovChain(metaclass=_BaseClass):
         return m
 
     # noinspection GrazieInspection
-    @_object_mark(aliases=['to_nth'], instance_generator=True, underlying_exclusion=True)
+    @_object_mark(aliases=['to_nth'], instance_generator=True)
     def to_nth_order(self, order: int = 2) -> _tmc:
 
         """
@@ -1978,7 +1970,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return mc
 
-    @_object_mark(aliases=['to_sub'], instance_generator=True, underlying_exclusion=True)
+    @_object_mark(aliases=['to_sub'], instance_generator=True)
     def to_subchain(self, states: _tstates) -> _tmc:
 
         """
@@ -2031,7 +2023,7 @@ class MarkovChain(metaclass=_BaseClass):
 
         return value
 
-    @_object_mark(random_output=True, underlying_exclusion=True)
+    @_object_mark(random_output=True)
     def walk(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _twalk:
 
         """
@@ -2056,7 +2048,7 @@ class MarkovChain(metaclass=_BaseClass):
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
 
-        value = _simulate(self, steps, initial_state, final_state, rng)
+        value = _walk(self, steps, initial_state, final_state, rng)
 
         if not output_indices:
             value = [*map(self.__states.__getitem__, value)]
@@ -2084,7 +2076,7 @@ class MarkovChain(metaclass=_BaseClass):
         return value
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat = None) -> _tmc:
 
         """
@@ -2135,7 +2127,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def birth_death(p: _tarray, q: _tarray, states: _olist_str = None) -> _tmc:
 
         """
@@ -2170,7 +2162,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def dirichlet_process(size: int, diffusion_factor: int, states: _olist_str = None, diagonal_bias_factor: _ofloat = None, shift_concentration: bool = False, seed: _oint = None) -> _tmc:
 
         """
@@ -2203,7 +2195,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def fit_function(quadrature_type: str, f: _ttfunc, possible_states: _tlist_str, quadrature_interval: _ointerval = None) -> _tmc:
 
         """
@@ -2255,7 +2247,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def fit_walk(fitting_type: str, walk: _twalk, k: _tany = None, possible_states: _olist_str = None) -> _tmc:
 
         """
@@ -2294,7 +2286,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def from_dictionary(d: _tmc_dict_flex) -> _tmc:
 
         """
@@ -2331,7 +2323,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def from_graph(graph: _tgraphs) -> _tmc:
 
         """
@@ -2372,7 +2364,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def from_file(file_path: str) -> _tmc:
 
         r"""
@@ -2448,7 +2440,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def from_matrix(m: _tnumeric, states: _olist_str = None) -> _tmc:
 
         """
@@ -2484,7 +2476,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def gamblers_ruin(size: int, w: float, states: _olist_str = None) -> _tmc:
 
         """
@@ -2511,7 +2503,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def identity(size: int, states: _olist_str = None) -> _tmc:
 
         """
@@ -2537,7 +2529,7 @@ class MarkovChain(metaclass=_BaseClass):
 
     # noinspection DuplicatedCode
     @staticmethod
-    @_object_mark(instance_generator=True, random_output=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True, random_output=True)
     def random(size: int, states: _olist_str = None, zeros: int = 0, mask: _onumeric = None, seed: _oint = None) -> _tmc:
 
         """
@@ -2577,7 +2569,7 @@ class MarkovChain(metaclass=_BaseClass):
 
     # noinspection PyIncorrectDocstring
     @staticmethod
-    @_object_mark(instance_generator=True, random_output=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True, random_output=True)
     def random_distribution(size: int, f: _trandfunc_flex, states: _olist_str = None, seed: _oint = None, **kwargs) -> _tmc:
 
         r"""
@@ -2622,7 +2614,7 @@ class MarkovChain(metaclass=_BaseClass):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, underlying_exclusion=True)
+    @_object_mark(instance_generator=True)
     def urn_model(n: int, model: str) -> _tmc:
 
         """
