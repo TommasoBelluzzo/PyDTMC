@@ -34,7 +34,6 @@ from networkx import (
     condensation as _nx_condensation,
     DiGraph as _nx_DiGraph,
     is_aperiodic as _nx_is_aperiodic,
-    MultiDiGraph as _nx_MultiDiGraph,
     relabel_nodes as _nx_relabel_nodes,
     strongly_connected_components as _nx_strongly_connected_components
 )
@@ -259,6 +258,13 @@ class MarkovChain(metaclass=_BaseClass):
 
     def __init__(self, p: _tnumeric, states: _olist_str = None):
 
+        def _build_graph(bg_p, bg_states):
+
+            graph = _nx_DiGraph(p)
+            graph = _nx_relabel_nodes(graph, dict(zip(range(bg_p.shape[0]), bg_states)))
+
+            return graph
+
         if MarkovChain.__instance_generators is None:
             MarkovChain.__instance_generators = _get_instance_generators(self.__class__)
 
@@ -276,11 +282,8 @@ class MarkovChain(metaclass=_BaseClass):
 
         size = p.shape[0]
 
-        graph = _nx_DiGraph(p)
-        graph = _nx_relabel_nodes(graph, dict(zip(range(size), states)))
-
         self.__cache: _tcache = {}
-        self.__digraph: _tgraph = graph
+        self.__digraph: _tgraph = _build_graph(p, states)
         self.__p: _tarray = p
         self.__size: int = size
         self.__states: _tlist_str = states
@@ -1845,34 +1848,20 @@ class MarkovChain(metaclass=_BaseClass):
     def to_dictionary(self) -> _tmc_dict:
 
         """
-        The method returns a dictionary representing the Markov chain transitions.
+        The method returns a dictionary representing the Markov chain.
         """
 
         d = {(self.__states[i], self.__states[j]): self.__p[i, j] for i in range(self.__size) for j in range(self.__size)}
 
         return d
 
-    def to_graph(self, multi: bool = False) -> _tgraphs:
+    def to_graph(self) -> _tgraph:
 
         """
         The method returns a directed graph representing the Markov chain.
-
-        :param multi: a boolean indicating whether the graph is allowed to define multiple edges between two nodes.
-        :raises ValidationError: if any input argument is not compliant.
         """
 
-        try:
-
-            multi = _validate_boolean(multi)
-
-        except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
-
-        if multi:
-            graph = _nx_MultiDiGraph(self.__p)
-            graph = _nx_relabel_nodes(graph, dict(zip(range(self.__size), self.__states)))
-        else:
-            graph = _cp_deepcopy(self.__digraph)
+        graph = _cp_deepcopy(self.__digraph)
 
         return graph
 
@@ -2004,7 +1993,7 @@ class MarkovChain(metaclass=_BaseClass):
     def transition_probability(self, state_target: _tstate, state_origin: _tstate) -> float:
 
         """
-        The method computes the probability of a given state, conditioned on the process being at a given specific state.
+        The method computes the probability of a given state, conditioned on the process being at a given state.
 
         :param state_target: the target state.
         :param state_origin: the origin state.

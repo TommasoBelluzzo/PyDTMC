@@ -59,6 +59,7 @@ from pytest import (
 # Internal
 
 from pydtmc import (
+    HiddenMarkovModel as _HiddenMarkovModel,
     MarkovChain as _MarkovChain
 )
 
@@ -78,6 +79,7 @@ from pydtmc.validation import (
     validate_file_path as _validate_file_path,
     validate_float as _validate_float,
     validate_graph as _validate_graph,
+    validate_hidden_markov_model as _validate_hidden_markov_model,
     validate_hmm_emission as _validate_hmm_emission,
     validate_hmm_sequence as _validate_hmm_sequence,
     validate_hmm_symbols as _validate_hmm_symbols,
@@ -88,6 +90,7 @@ from pydtmc.validation import (
     validate_markov_chains as _validate_markov_chains,
     validate_mask as _validate_mask,
     validate_matrix as _validate_matrix,
+    validate_object as _validate_object,
     validate_partitions as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
@@ -123,6 +126,7 @@ def _eval_replace(value):
     value = value.replace('pd.', '_pd_')
     value = value.replace('spsp.', '_spsp_')
     value = value.replace('BaseClass', '_BaseClass')
+    value = value.replace('HiddenMarkovModel', '_HiddenMarkovModel')
     value = value.replace('MarkovChain', '_MarkovChain')
 
     return value
@@ -387,6 +391,43 @@ def test_validate_graph(graph_data, is_valid):
 
 
 # noinspection PyBroadException
+def test_validate_hidden_markov_model(value, is_valid):
+
+    should_skip = False
+
+    if value is not None and isinstance(value, str):
+
+        if 'pd.' in value and not _pandas_found:
+            should_skip = True
+        else:
+            value = _eval_replace(value)
+            value = eval(value)
+
+    if should_skip:
+        _pt_skip('Pandas library could not be imported.')
+    else:
+
+        try:
+            result = _validate_hidden_markov_model(value)
+            result_is_valid = True
+        except Exception:
+            result = None
+            result_is_valid = False
+
+        actual = result_is_valid
+        expected = is_valid
+
+        assert actual == expected
+
+        if result_is_valid:
+
+            actual = isinstance(result, _HiddenMarkovModel)
+            expected = True
+
+            assert actual == expected
+
+
+# noinspection PyBroadException
 def test_validate_hmm_emission(value, size, is_valid):
 
     try:
@@ -543,7 +584,6 @@ def test_validate_markov_chain(value, is_valid):
         if 'pd.' in value and not _pandas_found:
             should_skip = True
         else:
-
             value = _eval_replace(value)
             value = eval(value)
 
@@ -656,6 +696,43 @@ def test_validate_matrix(value, is_valid):
         expected = True
 
         assert actual == expected
+
+
+# noinspection PyBroadException
+def test_validate_object(value, is_valid):
+
+    should_skip = False
+
+    if value is not None and isinstance(value, str):
+
+        if 'pd.' in value and not _pandas_found:
+            should_skip = True
+        else:
+            value = _eval_replace(value)
+            value = eval(value)
+
+    if should_skip:
+        _pt_skip('Pandas library could not be imported.')
+    else:
+
+        try:
+            result = _validate_object(value)
+            result_is_valid = True
+        except Exception:
+            result = None
+            result_is_valid = False
+
+        actual = result_is_valid
+        expected = is_valid
+
+        assert actual == expected
+
+        if result_is_valid:
+
+            actual = (isinstance(result[0], _HiddenMarkovModel) and not result[1]) or (isinstance(result[0], _MarkovChain) and result[1])
+            expected = True
+
+            assert actual == expected
 
 
 # noinspection DuplicatedCode, PyBroadException

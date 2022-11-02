@@ -10,6 +10,7 @@ __all__ = [
     'validate_file_path',
     'validate_float',
     'validate_graph',
+    'validate_hidden_markov_model',
     'validate_hmm_emission',
     'validate_hmm_sequence',
     'validate_hmm_symbols',
@@ -20,6 +21,7 @@ __all__ = [
     'validate_markov_chains',
     'validate_mask',
     'validate_matrix',
+    'validate_object',
     'validate_partitions',
     'validate_random_distribution',
     'validate_rewards',
@@ -107,6 +109,7 @@ from .custom_types import (
     tdists_flex as _tdists_flex,
     tfile as _tfile,
     tgraphs as _tgraphs,
+    thmm as _thmm,
     thmm_sequence as _thmm_sequence,
     thmm_symbols_out as _thmm_symbols_out,
     tinterval as _tinterval,
@@ -115,6 +118,7 @@ from .custom_types import (
     tlists_int as _tlists_int,
     tmc as _tmc,
     tmc_dict as _tmc_dict,
+    tobject_out as _tobject_out,
     trand as _trand,
     trandfunc as _trandfunc,
     tscalar as _tscalar,
@@ -444,6 +448,14 @@ def validate_graph(value: _tany) -> _tgraphs:
     return value
 
 
+def validate_hidden_markov_model(value: _tany) -> _thmm:
+
+    if value is None or (f'{value.__module__}.{value.__class__.__name__}' != 'pydtmc.hidden_markov_model.HiddenMarkovModel'):
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+
+    return value
+
+
 # noinspection DuplicatedCode
 def validate_hmm_emission(value: _tany, size: int) -> _tarray:
 
@@ -643,6 +655,22 @@ def validate_matrix(value: _tany) -> _tarray:
         raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')
 
     return value
+
+
+def validate_object(value: _tany) -> _tobject_out:
+
+    if value is None:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+
+    value_reference = f'{value.__module__}.{value.__class__.__name__}'
+
+    if value_reference == 'pydtmc.markov_chain.MarkovChain':
+        return value, True
+
+    if value_reference == 'pydtmc.hidden_markov_model.HiddenMarkovModel':
+        return value, False
+
+    raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
 
 def validate_partitions(value: _tany, current_states: _tlist_str) -> _tlists_int:

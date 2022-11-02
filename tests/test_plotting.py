@@ -29,6 +29,7 @@ from pytest import (
 # Internal
 
 from pydtmc import (
+    HiddenMarkovModel as _HiddenMarkovModel,
     MarkovChain as _MarkovChain,
     plot_comparison as _plot_comparison,
     plot_eigenvalues as _plot_eigenvalues,
@@ -130,22 +131,21 @@ def test_plot_graph(seed, maximum_size, runs):
         size = _rd_randint(2, maximum_size)
         zeros = _rd_randint(0, size)
 
-        configs.append((size, zeros) + tuple(_rd_random() < 0.5 for _ in range(4)))
+        configs.append((size, zeros) + tuple(_rd_random() < 0.5 for _ in range(5)))
 
     _rd_setstate(rs)
 
     for i in range(runs):
 
-        size, zeros, nodes_color, nodes_type, edges_color, edges_value = configs[i]
-
-        mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
+        size, zeros, type_mc, nodes_color, nodes_type, edges_color, edges_value = configs[i]
+        obj = _MarkovChain.random(size, zeros=zeros, seed=seed) if type_mc else _HiddenMarkovModel.random(size, size * 2, p_zeros=zeros, e_zeros=zeros, seed=seed)
 
         try:
 
-            figure, _ = _plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=True)
+            figure, _ = _plot_graph(obj, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=True)
             _mplp_close(figure)
 
-            figure, _ = _plot_graph(mc, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=False)
+            figure, _ = _plot_graph(obj, nodes_color=nodes_color, nodes_type=nodes_type, edges_color=edges_color, edges_value=edges_value, force_standard=False)
             _mplp_close(figure)
 
             exception = False

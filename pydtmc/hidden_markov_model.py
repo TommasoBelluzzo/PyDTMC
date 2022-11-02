@@ -11,12 +11,20 @@ __all__ = [
 
 # Standard
 
+from copy import (
+    deepcopy as _cp_deepcopy
+)
+
 from inspect import (
     stack as _ins_stack,
     trace as _ins_trace
 )
 
 # Libraries
+
+from networkx import (
+    DiGraph as _nx_DiGraph
+)
 
 from numpy import (
     all as _np_all,
@@ -45,9 +53,11 @@ from .custom_types import (
     ostates as _ostates,
     ostatus as _ostatus,
     tarray as _tarray,
+    tgraph as _tgraph,
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
     thmm as _thmm,
+    thmm_dict as _thmm_dict,
     thmm_pair_float as _thmm_pair_float,
     thmm_pair_int as _thmm_pair_int,
     thmm_sequence_ext as _thmm_sequence_ext,
@@ -125,6 +135,24 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
     def __init__(self, p: _tnumeric, e: _tnumeric, states: _olist_str = None, symbols: _olist_str = None):
 
+        def _build_graph(bg_p, bg_e, bg_states, bg_symbols):
+
+            n, k = len(states), len(symbols)
+
+            graph = _nx_DiGraph()
+
+            graph.add_nodes_from(bg_states, layer=0)
+            graph.add_nodes_from(bg_symbols, layer=1)
+
+            for i in range(n):
+                state_i = bg_states[i]
+                for j in range(n):
+                    graph.add_edge(state_i, bg_states[j], weight=bg_p[i, j])
+                for j in range(k):
+                    graph.add_edge(state_i, bg_symbols[j], weight=bg_e[i, j])
+
+            return graph
+
         if HiddenMarkovModel.__instance_generators is None:
             HiddenMarkovModel.__instance_generators = _get_instance_generators(self.__class__)
 
@@ -136,12 +164,16 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
                 p = _validate_transition_matrix(p)
                 e = _validate_hmm_emission(e, p.shape[0])
-                states = [str(i) for i in range(1, p.shape[0] + 1)] if states is None else _validate_state_names(states, p.shape[0])
-                symbols = [str(i) for i in range(1, e.shape[1] + 1)] if symbols is None else _validate_state_names(symbols, e.shape[1])
+                states = [f'P{i:d}' for i in range(1, p.shape[0] + 1)] if states is None else _validate_state_names(states, p.shape[0])
+                symbols = [f'E{i:d}' for i in range(1, e.shape[1] + 1)] if symbols is None else _validate_state_names(symbols, e.shape[1])
 
             except Exception as ex:  # pragma: no cover
                 raise _generate_validation_error(ex, _ins_trace()) from None
 
+        if len(list(set(states) & set(symbols))) > 0:
+            raise _ValidationError('State names and symbol names must be different.')
+
+        self.__digraph: _tgraph = _build_graph(p, e, states, symbols)
         self.__e: _tarray = e
         self.__mc: _tmc = _MarkovChain(p, states)
         self.__p: _tarray = p
@@ -313,6 +345,28 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return value
 
+    def emission_probability(self, symbol: _tstate, state: _tstate) -> float:
+
+        """
+        The method computes the probability of a given symbol, conditioned on the process being at a given specific state.
+
+        :param symbol: the target symbol.
+        :param state: the origin state.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            symbol = _validate_state(symbol, self.__symbols)
+            state = _validate_state(state, self.__states)
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        value = self.__e[state, symbol]
+
+        return value
+
     @_object_mark(random_output=True)
     def next(self, initial_state: _tstate, target: str = 'both', output_index: bool = False, seed: _oint = None) -> _thmm_step:
 
@@ -421,6 +475,67 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return value
 
+    def to_dictionary(self) -> _thmm_dict:
+
+        """
+        The method returns a dictionary representing the hidden Markov model.
+        """
+
+        n, k = self.__size
+
+        d = {}
+
+        for i in range(n):
+            state = self.__states[i]
+            for j in range(n):
+                d[('P', state, self.__states[j])] = self.__p[i, j]
+            for j in range(k):
+                d[('E', state, self.__symbols[j])] = self.__e[i, j]
+
+        return d
+
+    def to_graph(self) -> _tgraph:
+
+        """
+        The method returns a directed graph representing the hidden Markov model.
+        """
+
+        graph = _cp_deepcopy(self.__digraph)
+
+        return graph
+
+    def to_markov_chain(self) -> _tmc:
+
+        """
+        The method returns underlying Markov chain of the hidden Markov model.
+        """
+
+        mc = _cp_deepcopy(self.__mc)
+
+        return mc
+
+    def transition_probability(self, state_target: _tstate, state_origin: _tstate) -> float:
+
+        """
+        The method computes the probability of a given state, conditioned on the process being at a given state.
+
+        :param state_target: the target state.
+        :param state_origin: the origin state.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            state_target = _validate_state(state_target, self.__states)
+            state_origin = _validate_state(state_origin, self.__states)
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        value = self.__p[state_origin, state_target]
+
+        return value
+
     def viterbi(self, symbols: _thmm_symbols, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_viterbi_ext:
 
         """
@@ -472,6 +587,9 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
+
+        if len(list(set(possible_states) & set(possible_symbols))) > 0:
+            raise _ValidationError('State names and symbol names must be different.')
 
         p, e = _estimate(len(possible_states), len(possible_symbols), sequence, True)
         hmm = HiddenMarkovModel(p, e, possible_states, possible_symbols)
@@ -530,6 +648,9 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         states = states_out if states is None else states
         symbols = symbols_out if symbols is None else symbols
 
+        if len(list(set(states) & set(symbols))) > 0:
+            raise _ValidationError('State names and symbol names must be different.')
+
         hmm = HiddenMarkovModel(p, e, states, symbols)
 
         return hmm
@@ -564,6 +685,9 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         except Exception as ex:  # pragma: no cover
             raise _generate_validation_error(ex, _ins_trace()) from None
+
+        if len(list(set(possible_states) & set(possible_symbols))) > 0:
+            raise _ValidationError('State names and symbol names must be different.')
 
         p, e, error_message = _train(algorithm, p_guess, e_guess, symbols)
 

@@ -17,6 +17,8 @@ __all__ = [
     'tlimit_scalar', 'olimit_scalar',
     'tmc', 'omc',
     'tnumeric', 'onumeric',
+    'tobject', 'oobject',
+    'tobject_out', 'oobject_out',
     'tplot', 'oplot',
     'trand', 'orand',
     'trandfunc', 'orandfunc',
@@ -43,6 +45,7 @@ __all__ = [
     'tdists_flex', 'odists_flex',
     'tfitting_res', 'ofitting_res',
     'thmm_decoding', 'ohmm_decoding',
+    'thmm_dict', 'ohmm_dict',
     'thmm_generation', 'ohmm_generation',
     'thmm_generation_ext', 'ohmm_generation_ext',
     'thmm_pair_float', 'ohmm_pair_float',
@@ -191,6 +194,12 @@ omc = _tp_Optional[tmc]
 tnumeric = _tp_Union[_np_ndarray, _spsp_matrix] if not _pandas_found else _tp_Union[_np_ndarray, _spsp_matrix, _pd_DataFrame, _pd_Series]
 onumeric = _tp_Optional[tnumeric]
 
+tobject = _tp_Union[tmc, thmm]
+oobject = _tp_Optional[tobject]
+
+tobject_out = _tp_Tuple[tobject, bool]
+oobject_out = _tp_Optional[tobject_out]
+
 tplot = _tp_Tuple[_mplp_Figure, _tp_Union[_mplp_Axes, _tp_List[_mplp_Axes]]]
 oplot = _tp_Optional[tplot]
 
@@ -265,6 +274,9 @@ ofitting_res = _tp_Optional[tfitting_res]
 
 thmm_decoding = _tp_Union[_tp_Tuple[float, tarray, tarray, tarray, tarray], _tp_Tuple[float, tarray, tarray, tarray]]
 ohmm_decoding = _tp_Optional[thmm_decoding]
+
+thmm_dict = _tp_Dict[_tp_Tuple[str, str, str], float]
+ohmm_dict = _tp_Optional[thmm_dict]
 
 thmm_generation = _tp_Tuple[tarray, tarray, tlist_str, tlist_str]
 ohmm_generation = _tp_Optional[thmm_generation]

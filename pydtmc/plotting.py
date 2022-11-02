@@ -105,6 +105,18 @@ from numpy.linalg import (
     eigvals as _npl_eigvals
 )
 
+try:
+    from pydot import (
+        Cluster as _pyd_Cluster,
+        Dot as _pyd_Dot,
+        Edge as _pyd_Edge,
+        Node as _pyd_Node
+    )
+    _pydot_found = True
+except ImportError:  # noqa
+    _pyd_Cluster, _pyd_Dot, _pyd_Edge, _pyd_Node = None, None, None, None
+    _pydot_found = False
+
 # Internal
 
 from .custom_types import (
@@ -117,6 +129,7 @@ from .custom_types import (
     tlist_mc as _tlist_mc,
     tlist_str as _tlist_str,
     tmc as _tmc,
+    tobject as _tobject,
     twalk_flex as _twalk_flex
 )
 
@@ -132,6 +145,7 @@ from .validation import (
     validate_integer as _validate_integer,
     validate_markov_chain as _validate_markov_chain,
     validate_markov_chains as _validate_markov_chains,
+    validate_object as _validate_object,
     validate_state as _validate_state,
     validate_status as _validate_status,
     validate_strings as _validate_strings,
@@ -350,27 +364,45 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
     return figure, ax
 
 
-def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, force_standard: bool = False, dpi: int = 100) -> _oplot:
+# noinspection PyBroadException
+def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, force_standard: bool = False, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the directed graph of the Markov chain.
+    The function plots the directed graph of the given object, which can be either a Markov chain or a hidden Markov model.
 
     | **Notes:**
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
     * `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are not required, but they provide access to extended graphs with additional features.
+    * The use of different edge colors is available only for extended graphs.
 
-    :param mc: the Markov chain.
-    :param nodes_color: a boolean indicating whether to display colored nodes based on communicating classes.
-    :param nodes_type: a boolean indicating whether to use a different shape for every node type.
-    :param edges_color: a boolean indicating whether to display edges using a gradient based on transition probabilities, valid only for extended graphs.
-    :param edges_value: a boolean indicating whether to display the transition probability of every edge.
+    :param obj: the object to be converted into a graph.
+    :param nodes_color: a boolean indicating whether to display colored state nodes based on communicating classes.
+    :param nodes_type: a boolean indicating whether to use a different shape for every type of state node.
+    :param edges_color: a boolean indicating whether to display edges color using a probability-based gradient.
+    :param edges_value: a boolean indicating whether to display the probability of every edge.
     :param force_standard: a boolean indicating whether to use a standard graph even if extended graphs are available.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    def edge_colors(hex_from: str, hex_to: str, steps: int) -> _tlist_str:
+    def _decode_image(di_g, di_dpi):
+
+        buffer = _io_BytesIO()
+        buffer.write(di_g.create_png())
+        buffer.seek(0)
+
+        img = _mpli_imread(buffer)
+        img_x = img.shape[0] / di_dpi
+        img_xi = img_x * 1.1
+        img_xo = ((img_xi - img_x) / 2.0) * di_dpi
+        img_y = img.shape[1] / di_dpi
+        img_yi = img_y * 1.1
+        img_yo = ((img_yi - img_y) / 2.0) * di_dpi
+
+        return img, img_x, img_xo, img_y, img_yo
+
+    def _edge_colors(hex_from: str, hex_to: str, steps: int) -> _tlist_str:
 
         begin = [int(hex_from[i:i + 2], 16) for i in range(1, 6, 2)]
         end = [int(hex_to[i:i + 2], 16) for i in range(1, 6, 2)]
@@ -378,25 +410,25 @@ def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edge
 
         steps_m1 = float(steps) - 1.0
 
-        clist = [hex_from]
+        colors_list = [hex_from]
 
         for s in range(1, steps):
             rgb = [int(begin[j] + ((float(s) / steps_m1) * delta[j])) for j in range(3)]
-            clist.append(f'#{"".join([f"0{rgb_value:x}" if rgb_value < 16 else f"{rgb_value:x}" for rgb_value in rgb])}')  # noqa
+            colors_list.append(f'#{"".join([f"0{rgb_value:x}" if rgb_value < 16 else f"{rgb_value:x}" for rgb_value in rgb])}')  # noqa
 
-        return clist
+        return colors_list
 
-    def node_colors(count: int) -> _tlist_str:
+    def _node_colors(count: int) -> _tlist_str:
 
         colors = _cp_deepcopy(_colors)
         colors_limit = len(colors) - 1
         colors_offset = 0
 
-        clist = []
+        colors_list = []
 
         while count > 0:
 
-            clist.append(colors[colors_offset])
+            colors_list.append(colors[colors_offset])
             colors_offset += 1
 
             if colors_offset > colors_limit:  # pragma: no cover
@@ -404,11 +436,199 @@ def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edge
 
             count -= 1
 
-        return clist
+        return colors_list
+
+    # noinspection DuplicatedCode
+    def _plot_hmm_extended(phe_hmm, phe_nodes_color, phe_nodes_type, phe_edges_color, phe_edges_value, phe_dpi):
+
+        mc = phe_hmm.to_markov_chain()
+
+        g = _pyd_Dot(graph_type='digraph', compound='true', rank='same', rankdir="TB")
+
+        g_cluster0 = _pyd_Cluster('states', style='invis', rank='same', rankdir="LR")
+
+        for state in phe_hmm.states:
+            g_cluster0.add_node(_pyd_Node(state))
+
+        g.add_subgraph(g_cluster0)
+
+        clust1 = _pyd_Cluster('symbols', style='invis', rank='same', rankdir="LR")
+
+        for symbol in phe_hmm.symbols:
+            clust1.add_node(_pyd_Node(symbol))
+
+        g.add_subgraph(clust1)
+
+        for i in range(phe_hmm.n):
+            state_i = phe_hmm.states[i]
+            for j in range(phe_hmm.n):
+                g.add_edge(_pyd_Edge(state_i, phe_hmm.states[j], weight=phe_hmm.p[i, j]))
+            for j in range(phe_hmm.k):
+                g.add_edge(_pyd_Edge(state_i, phe_hmm.symbols[j], weight=phe_hmm.e[i, j]))
+
+        if phe_nodes_color:
+            c = _node_colors(len(mc.communicating_classes))
+            for subgraph in g.get_subgraphs():
+                if subgraph.get_name().endswith('states'):
+                    for node in subgraph.get_nodes():
+                        node_name = node.get_name()
+                        for index, cc in enumerate(mc.communicating_classes):
+                            if node_name in cc:
+                                node.set_style('filled')
+                                node.set_fillcolor(c[index])
+                                break
+                else:
+                    for node in subgraph.get_nodes():
+                        node.set_style('filled')
+                        node.set_fillcolor(_color_gray)
+
+        if phe_nodes_type:
+            for subgraph in g.get_subgraphs():
+                if subgraph.get_name().endswith('states'):
+                    for node in subgraph.get_nodes():
+                        if node.get_name() in mc.transient_states:
+                            node.set_shape('box')
+                        else:
+                            node.set_shape('ellipse')
+                else:
+                    for node in subgraph.get_nodes():
+                        node.set_shape('hexagon')
+
+        if phe_edges_color:
+            c = _edge_colors(_color_gray, _color_black, 20)
+            for edge in g.get_edges():
+                edge_destination = edge.get_destination()
+                if edge_destination in phe_hmm.symbols:
+                    probability = phe_hmm.emission_probability(edge_destination, edge.get_source())
+                    edge_style = 'dashed'
+                else:
+                    probability = phe_hmm.transition_probability(edge_destination, edge.get_source())
+                    edge_style = 'filled'
+                x = int(round(probability * 20.0)) - 1
+                edge.set_style(edge_style)
+                edge.set_color(c[x])
+
+        if phe_edges_value:
+            for edge in g.get_edges():
+                edge_destination = edge.get_destination()
+                if edge_destination in phe_hmm.symbols:
+                    probability = phe_hmm.emission_probability(edge_destination, edge.get_source())
+                else:
+                    probability = phe_hmm.transition_probability(edge_destination, edge.get_source())
+                edge.set_label(f' {round(probability, 2):g} ')
+
+        img, img_x, img_xo, img_y, img_yo = _decode_image(g, phe_dpi)
+
+        f = _mplp_figure(figsize=(img_y * 1.1, img_x * 1.1), dpi=phe_dpi)
+        f.figimage(img, yo=img_yo, xo=img_xo)
+
+        a = f.gca()
+        a.axis('off')
+
+        return f, a
+
+    # noinspection DuplicatedCode
+    def _plot_mc_extended(pme_mc, pme_nodes_color, pme_nodes_type, pme_edges_color, pme_edges_value, pme_dpi):
+
+        g = pme_mc.to_graph()
+        g_pydot = _nx_pydot.to_pydot(g)
+
+        if pme_nodes_color:
+            c = _node_colors(len(pme_mc.communicating_classes))
+            for node in g_pydot.get_nodes():
+                node_name = node.get_name()
+                for index, cc in enumerate(pme_mc.communicating_classes):
+                    if node_name in cc:
+                        node.set_style('filled')
+                        node.set_fillcolor(c[index])
+                        break
+
+        if pme_nodes_type:
+            for node in g_pydot.get_nodes():
+                if node.get_name() in pme_mc.transient_states:
+                    node.set_shape('box')
+                else:
+                    node.set_shape('ellipse')
+
+        if pme_edges_color:
+            c = _edge_colors(_color_gray, _color_black, 20)
+            for edge in g_pydot.get_edges():
+                probability = pme_mc.transition_probability(edge.get_destination(), edge.get_source())
+                x = int(round(probability * 20.0)) - 1
+                edge.set_style('filled')
+                edge.set_color(c[x])
+
+        if pme_edges_value:
+            for edge in g_pydot.get_edges():
+                probability = pme_mc.transition_probability(edge.get_destination(), edge.get_source())
+                edge.set_label(f' {round(probability, 2):g} ')
+
+        img, img_x, img_xo, img_y, img_yo = _decode_image(g_pydot, pme_dpi)
+
+        f = _mplp_figure(figsize=(img_y * 1.1, img_x * 1.1), dpi=pme_dpi)
+        f.figimage(img, yo=img_yo, xo=img_xo)
+
+        a = f.gca()
+        a.axis('off')
+
+        return f, a
+
+    def _plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_type, pms_edges_value, pms_dpi):
+
+        g = pms_mc.to_graph()
+
+        mpi = _mplp_isinteractive()
+        _mplp_interactive(False)
+
+        f, a = _mplp_subplots(dpi=pms_dpi)
+
+        positions = _nx_spring_layout(g)
+        node_colors_all = _node_colors(len(pms_mc.communicating_classes))
+
+        for node in g.nodes:
+
+            node_color = None
+
+            if pms_nodes_color:
+                for index, cc in enumerate(pms_mc.communicating_classes):
+                    if node in cc:
+                        node_color = node_colors_all[index]
+                        break
+
+            if pms_nodes_type:
+                if node in pms_mc.transient_states:
+                    node_shape = 's'
+                else:
+                    node_shape = 'o'
+            else:
+                node_shape = None
+
+            if node_color is not None and node_shape is not None:
+                _nx_draw_networkx_nodes(g, positions, ax=a, nodelist=[node], edgecolors='k', node_color=node_color, node_shape=node_shape)
+            elif node_color is not None and node_shape is None:
+                _nx_draw_networkx_nodes(g, positions, ax=a, nodelist=[node], edgecolors='k', node_color=node_color)
+            elif node_color is None and node_shape is not None:
+                _nx_draw_networkx_nodes(g, positions, ax=a, nodelist=[node], edgecolors='k', node_shape=node_shape)
+            else:
+                _nx_draw_networkx_nodes(g, positions, ax=a, edgecolors='k')
+
+        _nx_draw_networkx_labels(g, positions, ax=a)
+        _nx_draw_networkx_edges(g, positions, ax=a, arrows=False)
+
+        if pms_edges_value:
+            edges_values = {}
+            for edge in g.edges:
+                probability = pms_mc.transition_probability(edge[1], edge[0])
+                edges_values[(edge[0], edge[1])] = f' {round(probability,2):g} '
+            _nx_draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edges_values, label_pos=0.7)
+
+        _mplp_interactive(mpi)
+
+        return f, a
 
     try:
 
-        mc = _validate_markov_chain(mc)
+        obj, obj_mc = _validate_object(obj)
         nodes_color = _validate_boolean(nodes_color)
         nodes_type = _validate_boolean(nodes_type)
         edges_color = _validate_boolean(edges_color)
@@ -419,127 +639,24 @@ def plot_graph(mc: _tmc, nodes_color: bool = True, nodes_type: bool = True, edge
     except Exception as ex:  # pragma: no cover
         raise _generate_validation_error(ex, _ins_trace()) from None
 
-    if force_standard:
-        extended_graph = False
-    else:
+    extended_graph = not force_standard and _pydot_found
 
-        extended_graph = True
-
-        # noinspection PyBroadException
+    if extended_graph:
         try:
             _sp_call(['dot', '-V'], stdout=_sp_pipe, stderr=_sp_pipe)
         except Exception:  # pragma: no cover
             extended_graph = False
 
-        try:
-            import pydot  # noqa
-        except ImportError:  # pragma: no cover
-            extended_graph = False
-
-    g = mc.to_graph()
-
     if extended_graph:
-
-        g_pydot = _nx_pydot.to_pydot(g)
-
-        if nodes_color:
-            c = node_colors(len(mc.communicating_classes))
-            for node in g_pydot.get_nodes():
-                state = node.get_name()
-                for index, cc in enumerate(mc.communicating_classes):
-                    if state in cc:
-                        node.set_style('filled')
-                        node.set_fillcolor(c[index])
-                        break
-
-        if nodes_type:
-            for node in g_pydot.get_nodes():
-                if node.get_name() in mc.transient_states:
-                    node.set_shape('box')
-                else:
-                    node.set_shape('ellipse')
-
-        if edges_color:
-            c = edge_colors(_color_gray, _color_black, 20)
-            for edge in g_pydot.get_edges():
-                probability = mc.transition_probability(edge.get_destination(), edge.get_source())
-                x = int(round(probability * 20.0)) - 1
-                edge.set_style('filled')
-                edge.set_color(c[x])
-
-        if edges_value:
-            for edge in g_pydot.get_edges():
-                probability = mc.transition_probability(edge.get_destination(), edge.get_source())
-                edge.set_label(f' {round(probability, 2):g} ')
-
-        buffer = _io_BytesIO()
-        buffer.write(g_pydot.create_png())
-        buffer.seek(0)
-
-        img = _mpli_imread(buffer)
-        img_x = img.shape[0] / dpi
-        img_xi = img_x * 1.1
-        img_xo = ((img_xi - img_x) / 2.0) * dpi
-        img_y = img.shape[1] / dpi
-        img_yi = img_y * 1.1
-        img_yo = ((img_yi - img_y) / 2.0) * dpi
-
-        figure = _mplp_figure(figsize=(img_y * 1.1, img_x * 1.1), dpi=dpi)
-        figure.figimage(img, yo=img_yo, xo=img_xo)
-        ax = figure.gca()
-        ax.axis('off')
-
+        if obj_mc:
+            figure, ax = _plot_mc_extended(obj, nodes_color, nodes_type, edges_color, edges_value, dpi)
+        else:
+            figure, ax = _plot_hmm_extended(obj, nodes_color, nodes_type, edges_color, edges_value, dpi)
     else:
-
-        mpi = _mplp_isinteractive()
-        _mplp_interactive(False)
-
-        figure, ax = _mplp_subplots(dpi=dpi)
-
-        positions = _nx_spring_layout(g)
-        node_colors_all = node_colors(len(mc.communicating_classes))
-
-        for node in g.nodes:
-
-            node_color = None
-
-            if nodes_color:
-                for index, cc in enumerate(mc.communicating_classes):
-                    if node in cc:
-                        node_color = node_colors_all[index]
-                        break
-
-            if nodes_type:
-                if node in mc.transient_states:
-                    node_shape = 's'
-                else:
-                    node_shape = 'o'
-            else:
-                node_shape = None
-
-            if node_color is not None and node_shape is not None:
-                _nx_draw_networkx_nodes(g, positions, ax=ax, nodelist=[node], edgecolors='k', node_color=node_color, node_shape=node_shape)
-            elif node_color is not None and node_shape is None:
-                _nx_draw_networkx_nodes(g, positions, ax=ax, nodelist=[node], edgecolors='k', node_color=node_color)
-            elif node_color is None and node_shape is not None:
-                _nx_draw_networkx_nodes(g, positions, ax=ax, nodelist=[node], edgecolors='k', node_shape=node_shape)
-            else:
-                _nx_draw_networkx_nodes(g, positions, ax=ax, edgecolors='k')
-
-        _nx_draw_networkx_labels(g, positions, ax=ax)
-        _nx_draw_networkx_edges(g, positions, ax=ax, arrows=False)
-
-        if edges_value:
-
-            edges_values = {}
-
-            for edge in g.edges:
-                probability = mc.transition_probability(edge[1], edge[0])
-                edges_values[(edge[0], edge[1])] = f' {round(probability,2):g} '
-
-            _nx_draw_networkx_edge_labels(g, positions, ax=ax, edge_labels=edges_values, label_pos=0.7)
-
-        _mplp_interactive(mpi)
+        if obj_mc:
+            figure, ax = _plot_mc_standard(obj, nodes_color, nodes_type, edges_value, dpi)
+        else:
+            figure, ax = _plot_hmm_standard(obj, nodes_color, nodes_type, edges_value, dpi)
 
     if _mplp_isinteractive():  # pragma: no cover
         _mplp_show(block=False)

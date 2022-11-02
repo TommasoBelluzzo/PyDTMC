@@ -414,7 +414,7 @@ def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _o
         raise _generate_validation_error(ex, _ins_trace()) from None
 
     if mc.states != possible_states:  # pragma: no cover
-        raise _ValidationError('The states of the Markov chain and the "possible_states" parameter must be equal.')
+        raise _ValidationError('The states of the Markov chain and the possible states must be equal.')
 
     p, n = mc.p, mc.size
     f = _np_zeros((n, n), dtype=int)

@@ -573,6 +573,48 @@
       "is_valid": false
     }
   ],
+  "validate_hidden_markov_model_data": [
+    {
+      "value": "HiddenMarkovModel([[0.2, 0.8], [0.6, 0.4]], [[0.2, 0.6, 0.2], [0.4, 0.3, 0.3]])",
+      "is_valid": true
+    },
+    {
+      "value": "BaseClass('Test', (), {})",
+      "is_valid": false
+    },
+    {
+      "value": "range(10)",
+      "is_valid": false
+    },
+    {
+      "value": "TypeError()",
+      "is_valid": false
+    },
+    {
+      "value": "nx.DiGraph()",
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "is_valid": false
+    },
+    {
+      "value": 10,
+      "is_valid": false
+    },
+    {
+      "value": false,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "is_valid": false
+    },
+    {
+      "value": {},
+      "is_valid": false
+    }
+  ],
   "validate_hmm_emission_data": [
     {
       "value": [[0.2, 0.1, 0.1, 0.3, 0.3], [0.1, 0.3, 0.1, 0.3, 0.2]],
@@ -1378,6 +1420,52 @@
     },
     {
       "value": [[], []],
+      "is_valid": false
+    }
+  ],
+  "validate_object_data": [
+    {
+      "value": "MarkovChain([[0.33, 0.67], [0.61, 0.39]])",
+      "is_valid": true
+    },
+    {
+      "value": "HiddenMarkovModel([[0.2, 0.8], [0.6, 0.4]], [[0.2, 0.6, 0.2], [0.4, 0.3, 0.3]])",
+      "is_valid": true
+    },
+    {
+      "value": "BaseClass('Test', (), {})",
+      "is_valid": false
+    },
+    {
+      "value": "range(10)",
+      "is_valid": false
+    },
+    {
+      "value": "TypeError()",
+      "is_valid": false
+    },
+    {
+      "value": "nx.DiGraph()",
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "is_valid": false
+    },
+    {
+      "value": 10,
+      "is_valid": false
+    },
+    {
+      "value": false,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "is_valid": false
+    },
+    {
+      "value": {},
       "is_valid": false
     }
   ],

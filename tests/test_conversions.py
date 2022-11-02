@@ -22,6 +22,11 @@ from tempfile import (
 
 # Libraries
 
+from networkx import (
+    MultiDiGraph as _MultiDiGraph,
+    relabel_nodes as _nx_relabel_nodes
+)
+
 from numpy.random import (
     randint as _npr_randint,
     seed as _npr_seed
@@ -67,17 +72,17 @@ def test_graph(seed, maximum_size, runs):
 
         size = _rd_randint(2, maximum_size)
         zeros = _rd_randint(0, size)
-        mc_to = _MarkovChain.random(size, zeros=zeros, seed=seed)
+        mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
-        graph = mc_to.to_graph(False)
+        graph = mc.to_graph()
         mc_from = _MarkovChain.from_graph(graph)
 
-        _npt_assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt_assert_allclose(mc_from.p, mc.p, rtol=1e-5, atol=1e-8)
 
-        graph = mc_to.to_graph(True)
+        graph = _nx_relabel_nodes(_MultiDiGraph(mc.p), dict(zip(range(mc.size), mc.states)))
         mc_from = _MarkovChain.from_graph(graph)
 
-        _npt_assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt_assert_allclose(mc_from.p, mc.p, rtol=1e-5, atol=1e-8)
 
 
 # noinspection PyBroadException

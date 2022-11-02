@@ -240,10 +240,10 @@ def random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: 
         return None, None, None, None, f'The number of null transition probabilities exceeds the maximum threshold of {e_zeros_required:d}.'
 
     p = process_matrix(n, n, p_mask, p_full_rows, p_mask_unassigned, p_zeros, p_zeros_required)
-    states = [str(i) for i in range(1, n + 1)]
+    states = [f'P{i:d}' for i in range(1, n + 1)]
 
     e = process_matrix(n, k, e_mask, e_full_rows, e_mask_unassigned, e_zeros, e_zeros_required)
-    symbols = [str(i) for i in range(1, k + 1)]
+    symbols = [f'E{i:d}' for i in range(1, k + 1)]
 
     return p, e, states, symbols, None
 
@@ -349,9 +349,10 @@ def train(algorithm: str, p_guess: _tarray, e_guess: _tarray, symbols: _tlists_i
 
                 for u in range(n):
                     for v in range(n):
+                        lp_z = lp[u, v]
                         for w in range(f_i):
                             wp1 = w + 1
-                            p[u, v] += _np_exp(lb[v, wp1] + lf[u, w] + lp[u, v] + le[v, symbols_i[wp1]]) / s_i[wp1]
+                            p[u, v] += _np_exp(lb[v, wp1] + lf[u, w] + lp_z + le[v, symbols_i[wp1]]) / s_i[wp1]
 
                 for u in range(n):
                     for v in range(k):
