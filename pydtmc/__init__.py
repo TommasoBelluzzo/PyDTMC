@@ -38,27 +38,3 @@ from pydtmc.plotting import (
     plot_redistributions,
     plot_walk
 )
-
-if __name__ == '__main__':
-
-    from matplotlib.pyplot import (
-        interactive as _mplp_interactive,
-        isinteractive as _mplp_isinteractive,
-        figure as _mplp_figure,
-        Rectangle as _mplp_Rectangle,
-        show as _mplp_show,
-        subplots as _mplp_subplots,
-        subplots_adjust as _mplp_subplots_adjust
-    )
-
-    mc = MarkovChain([[0.4, 0.6], [0.7, 0.3]])
-    #f, a = plot_graph(mc)
-    #_mplp_show(block=False)
-
-    z = 1
-
-    hmm = HiddenMarkovModel([[0.4, 0.6], [0.7, 0.3]], [[0.1, 0.5, 0.4], [0.2, 0.6, 0.2]])
-    f, a = plot_graph(hmm)
-    _mplp_show(block=False)
-
-    z = 1
