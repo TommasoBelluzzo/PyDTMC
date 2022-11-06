@@ -46,7 +46,7 @@ try:
         Series as _pd_Series
     )
     _pandas_found = True
-except ImportError:  # noqa
+except ImportError:  # pragma: no cover
     _pd_DataFrame, _pd_Series = None, None
     _pandas_found = False
 

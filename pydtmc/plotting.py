@@ -118,7 +118,7 @@ try:
         Subgraph as _pyd_Subgraph
     )
     _pydot_found = True
-except ImportError:  # noqa
+except ImportError:  # pragma: no cover
     _pyd_Dot, _pyd_Edge, _pyd_Node, _pyd_Subgraph = None, None, None, None
     _pydot_found = False
 
@@ -711,7 +711,7 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_shape: bool = True
                         break
 
             if pme_nodes_shape:
-                if state_i in pme_mc.transient_states:
+                if state_i in pme_mc.transient_states:  # pragma: no cover
                     node_attributes['shape'] = 'box'
                 else:
                     node_attributes['shape'] = 'ellipse'
@@ -771,7 +771,7 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_shape: bool = True
                         break
 
             if pms_nodes_shape:
-                if node in pms_mc.transient_states:
+                if node in pms_mc.transient_states:  # pragma: no cover
                     node_shape = 's'
                 else:
                     node_shape = 'o'
