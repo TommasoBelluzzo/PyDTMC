@@ -47,8 +47,7 @@ try:
     )
     _pandas_found = True
 except ImportError:  # noqa
-    _pd_DataFrame = None
-    _pd_Series = None
+    _pd_DataFrame, _pd_Series = None, None
     _pandas_found = False
 
 from pytest import (
@@ -584,6 +583,7 @@ def test_validate_markov_chain(value, is_valid):
         if 'pd.' in value and not _pandas_found:
             should_skip = True
         else:
+
             value = _eval_replace(value)
             value = eval(value)
 

@@ -29,6 +29,8 @@ from io import (
 
 from math import (
     ceil as _math_ceil,
+    floor as _math_floor,
+    log10 as _math_log10,
     sqrt as _math_sqrt
 )
 
@@ -71,7 +73,7 @@ from networkx import (
     draw_networkx_edges as _nx_draw_networkx_edges,
     draw_networkx_labels as _nx_draw_networkx_labels,
     draw_networkx_nodes as _nx_draw_networkx_nodes,
-    nx_pydot as _nx_pydot,
+    multipartite_layout as _nx_multipartite_layout,
     spring_layout as _nx_spring_layout
 )
 
@@ -81,14 +83,17 @@ from numpy import (
     allclose as _np_allclose,
     append as _np_append,
     arange as _np_arange,
+    arctan2 as _np_arctan2,
     array as _np_array,
     array_equal as _np_array_equal,
+    dot as _np_dot,
     cos as _np_cos,
     imag as _np_imag,
     integer as _np_integer,
     isclose as _np_isclose,
     linspace as _np_linspace,
     meshgrid as _np_meshgrid,
+    min as _np_min,
     ndarray as _np_ndarray,
     ones as _np_ones,
     pi as _np_pi,
@@ -107,14 +112,14 @@ from numpy.linalg import (
 
 try:
     from pydot import (
-        Cluster as _pyd_Cluster,
         Dot as _pyd_Dot,
         Edge as _pyd_Edge,
-        Node as _pyd_Node
+        Node as _pyd_Node,
+        Subgraph as _pyd_Subgraph
     )
     _pydot_found = True
 except ImportError:  # noqa
-    _pyd_Cluster, _pyd_Dot, _pyd_Edge, _pyd_Node = None, None, None, None
+    _pyd_Dot, _pyd_Edge, _pyd_Node, _pyd_Subgraph = None, None, None, None
     _pydot_found = False
 
 # Internal
@@ -127,7 +132,6 @@ from .custom_types import (
     ostatus as _ostatus,
     tdists_flex as _tdists_flex,
     tlist_mc as _tlist_mc,
-    tlist_str as _tlist_str,
     tmc as _tmc,
     tobject as _tobject,
     twalk_flex as _twalk_flex
@@ -160,7 +164,12 @@ from .validation import (
 _color_black = '#000000'
 _color_gray = '#E0E0E0'
 _color_white = '#FFFFFF'
-_colors = ('#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#FB8072', '#FCCDE5')
+_colors = ('#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#FB8072', '#FCCDE5', '#E5C494')
+
+_default_color_edge = _color_black
+_default_color_node = _color_white
+_default_color_symbol = _color_gray
+_node_size = 500
 
 
 #############
@@ -365,7 +374,7 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
 
 
 # noinspection PyBroadException
-def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_type: bool = True, edges_color: bool = True, edges_value: bool = True, force_standard: bool = False, dpi: int = 100) -> _oplot:
+def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _oplot:
 
     """
     The function plots the directed graph of the given object, which can be either a Markov chain or a hidden Markov model.
@@ -373,23 +382,37 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_type: bool = True,
     | **Notes:**
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
-    * `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are not required, but they provide access to extended graphs with additional features.
-    * The use of different edge colors is available only for extended graphs.
+    * `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are not required, but they provide access to extended mode with improved rendering and additional features.
+    * The rendering, especially in standard mode or for big graphs, is not granted to be high-quality.
+    * For Markov chains, the color of nodes is based on communicating classes; for hidden Markov models, every state node has a different color and symbol nodes are gray.
+    * For Markov chains, recurrent nodes have an elliptical shape and transient nodes have a rectangular shape; for hidden Markov models, state nodes have an elliptical shape and symbol nodes have a hexagonal shape.
 
     :param obj: the object to be converted into a graph.
-    :param nodes_color: a boolean indicating whether to display colored state nodes based on communicating classes.
-    :param nodes_type: a boolean indicating whether to use a different shape for every type of state node.
-    :param edges_color: a boolean indicating whether to display edges color using a probability-based gradient.
-    :param edges_value: a boolean indicating whether to display the probability of every edge.
-    :param force_standard: a boolean indicating whether to use a standard graph even if extended graphs are available.
+    :param nodes_color: a boolean indicating whether to use a different color for every type of node.
+    :param nodes_shape: a boolean indicating whether to use a different shape for every type of node.
+    :param edges_label: a boolean indicating whether to display the probability of every edge as text.
+    :param force_standard: a boolean indicating whether to use standard mode even if extended mode is available.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
 
+    def _calculate_magnitude(*cm_elements):
+
+        magnitudes = []
+
+        for element in cm_elements:
+            element_minimum = _np_min(element).item()
+            element_magnitude = 0 if element_minimum == 0.0 else int(-_math_floor(_math_log10(abs(element_minimum))))
+            magnitudes.append(element_magnitude)
+
+        magnitude = max(1, min(max(magnitudes), 4))
+
+        return magnitude
+
     def _decode_image(di_g, di_dpi):
 
         buffer = _io_BytesIO()
-        buffer.write(di_g.create_png())
+        buffer.write(di_g.create(format='png'))
         buffer.seek(0)
 
         img = _mpli_imread(buffer)
@@ -402,23 +425,50 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_type: bool = True,
 
         return img, img_x, img_xo, img_y, img_yo
 
-    def _edge_colors(hex_from: str, hex_to: str, steps: int) -> _tlist_str:
+    def _draw_edge_labels_curved(delc_ax, delc_positions, delc_edge_labels):
 
-        begin = [int(hex_from[i:i + 2], 16) for i in range(1, 6, 2)]
-        end = [int(hex_to[i:i + 2], 16) for i in range(1, 6, 2)]
-        delta = [end[j] - begin[j] for j in range(3)]
+        for (n1, n2), (rad, label) in delc_edge_labels.items():
 
-        steps_m1 = float(steps) - 1.0
+            (x1, y1) = delc_positions[n1]
+            (x2, y2) = delc_positions[n2]
+            p1 = delc_ax.transData.transform(_np_array(delc_positions[n1]))
+            p2 = delc_ax.transData.transform(_np_array(delc_positions[n2]))
 
-        colors_list = [hex_from]
+            linear_mid = (0.5 * p1) + (0.5 * p2)
+            cp_mid = linear_mid + (rad * _np_dot(_np_array([(0, 1), (-1, 0)]), p2 - p1))
+            cp1 = (0.5 * p1) + (0.5 * cp_mid)
+            cp2 = (0.5 * p2) + (0.5 * cp_mid)
+            bezier_mid = (0.5 * cp1) + (0.5 * cp2)
 
-        for s in range(1, steps):
-            rgb = [int(begin[j] + ((float(s) / steps_m1) * delta[j])) for j in range(3)]
-            colors_list.append(f'#{"".join([f"0{rgb_value:x}" if rgb_value < 16 else f"{rgb_value:x}" for rgb_value in rgb])}')  # noqa
+            (x, y) = delc_ax.transData.inverted().transform(bezier_mid)
+            xy = _np_array((x, y))
 
-        return colors_list
+            angle = (_np_arctan2(y2 - y1, x2 - x1) / (2.0 * _np_pi)) * 360.0
 
-    def _node_colors(count: int) -> _tlist_str:
+            if angle > 90.0:
+                angle -= 180.0
+
+            if angle < -90.0:
+                angle += 180.0
+
+            rotation = delc_ax.transData.transform_angles(_np_array((angle,)), xy.reshape((1, 2)))[0]
+            transform = delc_ax.transData
+            bbox = dict(boxstyle='round', ec=(1.0, 1.0, 1.0), fc=(1.0, 1.0, 1.0))
+
+            delc_ax.text(
+                x, y,
+                label, color='k', size=10, family='sans-serif', weight='normal',
+                horizontalalignment='center', verticalalignment='center',
+                bbox=bbox, clip_on=True, rotation=rotation, transform=transform, zorder=1
+            )
+
+        delc_ax.tick_params(
+            axis='both', which='both',
+            bottom=False, left=False,
+            labelbottom=False, labelleft=False
+        )
+
+    def _node_colors(nc_count):
 
         colors = _cp_deepcopy(_colors)
         colors_limit = len(colors) - 1
@@ -426,7 +476,7 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_type: bool = True,
 
         colors_list = []
 
-        while count > 0:
+        while nc_count > 0:
 
             colors_list.append(colors[colors_offset])
             colors_offset += 1
@@ -434,88 +484,99 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_type: bool = True,
             if colors_offset > colors_limit:  # pragma: no cover
                 colors_offset = 0
 
-            count -= 1
+            nc_count -= 1
 
         return colors_list
 
     # noinspection DuplicatedCode
-    def _plot_hmm_extended(phe_hmm, phe_nodes_color, phe_nodes_type, phe_edges_color, phe_edges_value, phe_dpi):
+    def _plot_hmm_extended(phe_hmm, phe_nodes_color, phe_nodes_type, phe_edges_label, phe_dpi):
 
-        mc = phe_hmm.to_markov_chain()
+        magnitude = _calculate_magnitude(phe_hmm.p, phe_hmm.e)
 
-        g = _pyd_Dot(graph_type='digraph', compound='true', rank='same', rankdir="TB")
+        node_colors = _node_colors(phe_hmm.n) if phe_nodes_color else []
+        edge_colors = _cp_deepcopy(node_colors) if phe_nodes_color else []
 
-        g_cluster0 = _pyd_Cluster('states', style='invis', rank='same', rankdir="LR")
+        g = _pyd_Dot(graph_type='digraph')
 
-        for state in phe_hmm.states:
-            g_cluster0.add_node(_pyd_Node(state))
+        g_sub1 = _pyd_Subgraph(rank='same')
+        g.add_subgraph(g_sub1)
 
-        g.add_subgraph(g_cluster0)
-
-        clust1 = _pyd_Cluster('symbols', style='invis', rank='same', rankdir="LR")
-
-        for symbol in phe_hmm.symbols:
-            clust1.add_node(_pyd_Node(symbol))
-
-        g.add_subgraph(clust1)
+        g_sub2 = _pyd_Subgraph(rank='same')
+        g.add_subgraph(g_sub2)
 
         for i in range(phe_hmm.n):
+
+            state = phe_hmm.states[i]
+
+            node_attributes = {}
+
+            if phe_nodes_color:
+                node_attributes['style'] = 'filled'
+                node_attributes['fillcolor'] = node_colors[i]
+
+            if phe_nodes_type:
+                node_attributes['shape'] = 'ellipse'
+
+            g_sub1.add_node(_pyd_Node(state, **node_attributes))
+
+        for symbol in phe_hmm.symbols:
+
+            node_attributes = {}
+
+            if phe_nodes_color:
+                node_attributes['style'] = 'filled'
+                node_attributes['fillcolor'] = _default_color_symbol
+
+            if phe_nodes_type:
+                node_attributes['shape'] = 'hexagon'
+
+            g_sub2.add_node(_pyd_Node(symbol, **node_attributes))
+
+        for i in range(phe_hmm.n):
+
             state_i = phe_hmm.states[i]
+
             for j in range(phe_hmm.n):
-                g.add_edge(_pyd_Edge(state_i, phe_hmm.states[j], weight=phe_hmm.p[i, j]))
+
+                tp = phe_hmm.p[i, j]
+
+                if tp > 0.0:
+
+                    state_j = phe_hmm.states[j]
+
+                    edge_attributes = {
+                        'style': 'filled',
+                        'color': _default_color_edge
+                    }
+
+                    if phe_edges_label:
+                        edge_attributes['label'] = f' {round(tp, magnitude):.{magnitude}f} '
+                        edge_attributes['fontsize'] = 9
+
+                    if i == j:
+                        edge_attributes['headport'] = 'n'
+                        edge_attributes['tailport'] = 'n'
+
+                    g.add_edge(_pyd_Edge(state_i, state_j, **edge_attributes))
+
             for j in range(phe_hmm.k):
-                g.add_edge(_pyd_Edge(state_i, phe_hmm.symbols[j], weight=phe_hmm.e[i, j]))
 
-        if phe_nodes_color:
-            c = _node_colors(len(mc.communicating_classes))
-            for subgraph in g.get_subgraphs():
-                if subgraph.get_name().endswith('states'):
-                    for node in subgraph.get_nodes():
-                        node_name = node.get_name()
-                        for index, cc in enumerate(mc.communicating_classes):
-                            if node_name in cc:
-                                node.set_style('filled')
-                                node.set_fillcolor(c[index])
-                                break
-                else:
-                    for node in subgraph.get_nodes():
-                        node.set_style('filled')
-                        node.set_fillcolor(_color_gray)
+                ep = phe_hmm.e[i, j]
 
-        if phe_nodes_type:
-            for subgraph in g.get_subgraphs():
-                if subgraph.get_name().endswith('states'):
-                    for node in subgraph.get_nodes():
-                        if node.get_name() in mc.transient_states:
-                            node.set_shape('box')
-                        else:
-                            node.set_shape('ellipse')
-                else:
-                    for node in subgraph.get_nodes():
-                        node.set_shape('hexagon')
+                if ep > 0.0:
 
-        if phe_edges_color:
-            c = _edge_colors(_color_gray, _color_black, 20)
-            for edge in g.get_edges():
-                edge_destination = edge.get_destination()
-                if edge_destination in phe_hmm.symbols:
-                    probability = phe_hmm.emission_probability(edge_destination, edge.get_source())
-                    edge_style = 'dashed'
-                else:
-                    probability = phe_hmm.transition_probability(edge_destination, edge.get_source())
-                    edge_style = 'filled'
-                x = int(round(probability * 20.0)) - 1
-                edge.set_style(edge_style)
-                edge.set_color(c[x])
+                    symbol = phe_hmm.symbols[j]
 
-        if phe_edges_value:
-            for edge in g.get_edges():
-                edge_destination = edge.get_destination()
-                if edge_destination in phe_hmm.symbols:
-                    probability = phe_hmm.emission_probability(edge_destination, edge.get_source())
-                else:
-                    probability = phe_hmm.transition_probability(edge_destination, edge.get_source())
-                edge.set_label(f' {round(probability, 2):g} ')
+                    edge_attributes = {
+                        'style': 'dashed',
+                        'color': edge_colors[i] if phe_nodes_color else _default_color_edge
+                    }
+
+                    if phe_edges_label:
+                        edge_attributes['label'] = f' {round(ep, magnitude):.{magnitude}f} '
+                        edge_attributes['fontsize'] = 9
+
+                    g.add_edge(_pyd_Edge(state_i, symbol, **edge_attributes))
 
         img, img_x, img_xo, img_y, img_yo = _decode_image(g, phe_dpi)
 
@@ -527,43 +588,156 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_type: bool = True,
 
         return f, a
 
+    def _plot_hmm_standard(phs_hmm, phs_nodes_color, phs_nodes_shape, phe_edges_label, phs_dpi):
+
+        g = phs_hmm.to_graph()
+        positions = _nx_multipartite_layout(g, align='horizontal', subset_key='layer')
+        magnitude = _calculate_magnitude(phs_hmm.p, phs_hmm.e)
+
+        node_colors = _node_colors(phs_hmm.n) if phs_nodes_color else []
+        edge_colors = _cp_deepcopy(node_colors) if phs_nodes_color else []
+
+        mpi = _mplp_isinteractive()
+        _mplp_interactive(False)
+
+        f, a = _mplp_subplots(dpi=phs_dpi)
+
+        for i, node in enumerate(g.nodes):
+
+            if phs_nodes_color:
+                if node in phs_hmm.states:
+                    node_color = node_colors[i]
+                else:
+                    node_color = _default_color_symbol
+            else:
+                node_color = _default_color_node
+
+            if phs_nodes_shape:
+                if node in phs_hmm.states:
+                    node_shape = 'o'
+                else:
+                    node_shape = 'H'
+            else:
+                node_shape = 'o'
+
+            _nx_draw_networkx_nodes(g, positions, ax=a, nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_node_size, edgecolors='k')
+
+        _nx_draw_networkx_labels(g, positions, ax=a)
+
+        edge_labels_curved, edge_labels_straight_state, edge_labels_straight_symbol = {}, {}, {}
+
+        for i in range(phs_hmm.n):
+
+            state_i = phs_hmm.states[i]
+
+            for j in range(phs_hmm.n):
+
+                tp = phs_hmm.p[i, j]
+
+                if tp > 0.0:
+
+                    state_j = phs_hmm.states[j]
+
+                    edge = (state_i, state_j)
+                    edge_color = _default_color_edge
+
+                    if i != j and reversed(edge) in g.edges:
+
+                        edge_length = abs(i - j)
+                        edge_rad = 0.15 if edge_length == 1 else edge_length * 0.25
+                        edge_connection = f'arc3, rad={edge_rad:f}'
+
+                        if phe_edges_label:
+                            edge_labels_curved[edge] = (edge_rad, f' {round(tp, magnitude):.{magnitude}f} ')
+
+                    else:
+
+                        edge_connection = 'arc3'
+
+                        if phe_edges_label:
+                            edge_labels_straight_state[edge] = f' {round(tp, magnitude):.{magnitude}f} '
+
+                    _nx_draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True, connectionstyle=edge_connection)
+
+            for j in range(phs_hmm.k):
+
+                ep = phs_hmm.e[i, j]
+
+                if ep > 0.0:
+
+                    symbol_j = phs_hmm.symbols[j]
+
+                    edge = (state_i, symbol_j)
+                    edge_color = edge_colors[i] if phs_nodes_color else _default_color_edge
+
+                    if phe_edges_label:
+                        edge_labels_straight_symbol[edge] = f' {round(ep, magnitude):.{magnitude}f} '
+
+                    _nx_draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True, style='dashed')
+
+        if len(edge_labels_straight_state) > 0:
+            _nx_draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edge_labels_straight_state)
+
+        if len(edge_labels_straight_symbol) > 0:
+            _nx_draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edge_labels_straight_symbol, label_pos=0.25)
+
+        if len(edge_labels_curved) > 0:
+            _draw_edge_labels_curved(a, positions, edge_labels_curved)
+
+        _mplp_interactive(mpi)
+
+        return f, a
+
     # noinspection DuplicatedCode
-    def _plot_mc_extended(pme_mc, pme_nodes_color, pme_nodes_type, pme_edges_color, pme_edges_value, pme_dpi):
+    def _plot_mc_extended(pme_mc, pme_nodes_color, pme_nodes_shape, phe_edges_label, pme_dpi):
 
-        g = pme_mc.to_graph()
-        g_pydot = _nx_pydot.to_pydot(g)
+        magnitude = _calculate_magnitude(pme_mc.p)
 
-        if pme_nodes_color:
-            c = _node_colors(len(pme_mc.communicating_classes))
-            for node in g_pydot.get_nodes():
-                node_name = node.get_name()
+        node_colors = _node_colors(len(pme_mc.communicating_classes)) if pme_nodes_color else []
+
+        g = _pyd_Dot(graph_type='digraph')
+
+        for i in range(pme_mc.size):
+
+            state_i = pme_mc.states[i]
+
+            node_attributes = {}
+
+            if pme_nodes_color:
                 for index, cc in enumerate(pme_mc.communicating_classes):
-                    if node_name in cc:
-                        node.set_style('filled')
-                        node.set_fillcolor(c[index])
+                    if state_i in cc:
+                        node_attributes['style'] = 'filled'
+                        node_attributes['fillcolor'] = node_colors[index]
                         break
 
-        if pme_nodes_type:
-            for node in g_pydot.get_nodes():
-                if node.get_name() in pme_mc.transient_states:
-                    node.set_shape('box')
+            if pme_nodes_shape:
+                if state_i in pme_mc.transient_states:
+                    node_attributes['shape'] = 'box'
                 else:
-                    node.set_shape('ellipse')
+                    node_attributes['shape'] = 'ellipse'
 
-        if pme_edges_color:
-            c = _edge_colors(_color_gray, _color_black, 20)
-            for edge in g_pydot.get_edges():
-                probability = pme_mc.transition_probability(edge.get_destination(), edge.get_source())
-                x = int(round(probability * 20.0)) - 1
-                edge.set_style('filled')
-                edge.set_color(c[x])
+            g.add_node(_pyd_Node(state_i, **node_attributes))
 
-        if pme_edges_value:
-            for edge in g_pydot.get_edges():
-                probability = pme_mc.transition_probability(edge.get_destination(), edge.get_source())
-                edge.set_label(f' {round(probability, 2):g} ')
+            for j in range(pme_mc.size):
 
-        img, img_x, img_xo, img_y, img_yo = _decode_image(g_pydot, pme_dpi)
+                tp = pme_mc.p[i, j]
+
+                if tp > 0.0:
+
+                    state_j = pme_mc.states[j]
+
+                    edge_attributes = {
+                        'style': 'filled',
+                        'color': _default_color_edge
+                    }
+
+                    if phe_edges_label:
+                        edge_attributes['label'] = f' {round(tp, magnitude):.{magnitude}f} '
+                        edge_attributes['fontsize'] = 9
+
+                    g.add_edge(_pyd_Edge(state_i, state_j, **edge_attributes))
+
+        img, img_x, img_xo, img_y, img_yo = _decode_image(g, pme_dpi)
 
         f = _mplp_figure(figsize=(img_y * 1.1, img_x * 1.1), dpi=pme_dpi)
         f.figimage(img, yo=img_yo, xo=img_xo)
@@ -573,54 +747,79 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_type: bool = True,
 
         return f, a
 
-    def _plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_type, pms_edges_value, pms_dpi):
+    def _plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_shape, phe_edges_label, pms_dpi):
 
         g = pms_mc.to_graph()
+        positions = _nx_spring_layout(g)
+        magnitude = _calculate_magnitude(pms_mc.p)
+
+        node_colors = _node_colors(len(pms_mc.communicating_classes)) if pms_nodes_color else []
 
         mpi = _mplp_isinteractive()
         _mplp_interactive(False)
 
         f, a = _mplp_subplots(dpi=pms_dpi)
 
-        positions = _nx_spring_layout(g)
-        node_colors_all = _node_colors(len(pms_mc.communicating_classes))
-
         for node in g.nodes:
 
-            node_color = None
+            node_color = _default_color_node
 
             if pms_nodes_color:
                 for index, cc in enumerate(pms_mc.communicating_classes):
                     if node in cc:
-                        node_color = node_colors_all[index]
+                        node_color = node_colors[index]
                         break
 
-            if pms_nodes_type:
+            if pms_nodes_shape:
                 if node in pms_mc.transient_states:
                     node_shape = 's'
                 else:
                     node_shape = 'o'
             else:
-                node_shape = None
+                node_shape = 'o'
 
-            if node_color is not None and node_shape is not None:
-                _nx_draw_networkx_nodes(g, positions, ax=a, nodelist=[node], edgecolors='k', node_color=node_color, node_shape=node_shape)
-            elif node_color is not None and node_shape is None:
-                _nx_draw_networkx_nodes(g, positions, ax=a, nodelist=[node], edgecolors='k', node_color=node_color)
-            elif node_color is None and node_shape is not None:
-                _nx_draw_networkx_nodes(g, positions, ax=a, nodelist=[node], edgecolors='k', node_shape=node_shape)
-            else:
-                _nx_draw_networkx_nodes(g, positions, ax=a, edgecolors='k')
+            _nx_draw_networkx_nodes(g, positions, ax=a, nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_node_size, edgecolors='k')
 
         _nx_draw_networkx_labels(g, positions, ax=a)
-        _nx_draw_networkx_edges(g, positions, ax=a, arrows=False)
 
-        if pms_edges_value:
-            edges_values = {}
-            for edge in g.edges:
-                probability = pms_mc.transition_probability(edge[1], edge[0])
-                edges_values[(edge[0], edge[1])] = f' {round(probability,2):g} '
-            _nx_draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edges_values, label_pos=0.7)
+        edge_labels_curved, edge_labels_straight = {}, {}
+
+        for i in range(pms_mc.size):
+
+            state_i = pms_mc.states[i]
+
+            for j in range(pms_mc.size):
+
+                tp = pms_mc.p[i, j]
+
+                if tp > 0.0:
+
+                    state_j = pms_mc.states[j]
+
+                    edge = (state_i, state_j)
+                    edge_color = _default_color_edge
+
+                    if i != j and reversed(edge) in g.edges:
+
+                        edge_connection = 'arc3, rad=0.1'
+
+                        if phe_edges_label:
+                            edge_labels_curved[edge] = (0.1, f' {round(tp, magnitude):.{magnitude}f} ')
+
+                    else:
+
+                        edge_connection = 'arc3'
+
+                        if phe_edges_label:
+                            edge_labels_straight[edge] = f' {round(tp, magnitude):.{magnitude}f} '
+
+                    _nx_draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True, connectionstyle=edge_connection)
+
+        if len(edge_labels_straight) > 0:
+            _nx_draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edge_labels_straight)
+
+        if len(edge_labels_curved) > 0:
+            _draw_edge_labels_curved(a, positions, edge_labels_curved)
 
         _mplp_interactive(mpi)
 
@@ -630,9 +829,8 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_type: bool = True,
 
         obj, obj_mc = _validate_object(obj)
         nodes_color = _validate_boolean(nodes_color)
-        nodes_type = _validate_boolean(nodes_type)
-        edges_color = _validate_boolean(edges_color)
-        edges_value = _validate_boolean(edges_value)
+        nodes_shape = _validate_boolean(nodes_shape)
+        edges_label = _validate_boolean(edges_label)
         force_standard = _validate_boolean(force_standard)
         dpi = _validate_dpi(dpi)
 
@@ -648,15 +846,11 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_type: bool = True,
             extended_graph = False
 
     if extended_graph:
-        if obj_mc:
-            figure, ax = _plot_mc_extended(obj, nodes_color, nodes_type, edges_color, edges_value, dpi)
-        else:
-            figure, ax = _plot_hmm_extended(obj, nodes_color, nodes_type, edges_color, edges_value, dpi)
+        func = _plot_mc_extended if obj_mc else _plot_hmm_extended
     else:
-        if obj_mc:
-            figure, ax = _plot_mc_standard(obj, nodes_color, nodes_type, edges_value, dpi)
-        else:
-            figure, ax = _plot_hmm_standard(obj, nodes_color, nodes_type, edges_value, dpi)
+        func = _plot_mc_standard if obj_mc else _plot_hmm_standard
+
+    figure, ax = func(obj, nodes_color, nodes_shape, edges_label, dpi)
 
     if _mplp_isinteractive():  # pragma: no cover
         _mplp_show(block=False)

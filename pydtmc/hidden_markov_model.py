@@ -22,10 +22,6 @@ from inspect import (
 
 # Libraries
 
-from networkx import (
-    DiGraph as _nx_DiGraph
-)
-
 from numpy import (
     all as _np_all,
     array_equal as _np_array_equal,
@@ -93,6 +89,7 @@ from .markov_chain import (
 )
 
 from .utilities import (
+    build_graph_hidden_markov_model as _build_graph_hidden_markov_model,
     create_rng as _create_rng,
     generate_validation_error as _generate_validation_error,
     get_caller as _get_caller,
@@ -135,24 +132,6 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
     def __init__(self, p: _tnumeric, e: _tnumeric, states: _olist_str = None, symbols: _olist_str = None):
 
-        def _build_graph(bg_p, bg_e, bg_states, bg_symbols):
-
-            n, k = len(states), len(symbols)
-
-            graph = _nx_DiGraph()
-
-            graph.add_nodes_from(bg_states, layer=0)
-            graph.add_nodes_from(bg_symbols, layer=1)
-
-            for i in range(n):
-                state_i = bg_states[i]
-                for j in range(n):
-                    graph.add_edge(state_i, bg_states[j], weight=bg_p[i, j])
-                for j in range(k):
-                    graph.add_edge(state_i, bg_symbols[j], weight=bg_e[i, j])
-
-            return graph
-
         if HiddenMarkovModel.__instance_generators is None:
             HiddenMarkovModel.__instance_generators = _get_instance_generators(self.__class__)
 
@@ -173,7 +152,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         if len(list(set(states) & set(symbols))) > 0:
             raise _ValidationError('State names and symbol names must be different.')
 
-        self.__digraph: _tgraph = _build_graph(p, e, states, symbols)
+        self.__digraph: _tgraph = _build_graph_hidden_markov_model(p, e, states, symbols)
         self.__e: _tarray = e
         self.__mc: _tmc = _MarkovChain(p, states)
         self.__p: _tarray = p
@@ -348,7 +327,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
     def emission_probability(self, symbol: _tstate, state: _tstate) -> float:
 
         """
-        The method computes the probability of a given symbol, conditioned on the process being at a given specific state.
+        The method computes the probability of a given symbol, conditioned on the process being at a given state.
 
         :param symbol: the target symbol.
         :param state: the origin state.

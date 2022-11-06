@@ -32,9 +32,7 @@ from math import (
 
 from networkx import (
     condensation as _nx_condensation,
-    DiGraph as _nx_DiGraph,
     is_aperiodic as _nx_is_aperiodic,
-    relabel_nodes as _nx_relabel_nodes,
     strongly_connected_components as _nx_strongly_connected_components
 )
 
@@ -202,6 +200,7 @@ from .simulations import (
 )
 
 from .utilities import (
+    build_graph_markov_chain as _build_graph_markov_chain,
     create_rng as _create_rng,
     generate_state_names as _generate_state_names,
     generate_validation_error as _generate_validation_error,
@@ -258,13 +257,6 @@ class MarkovChain(metaclass=_BaseClass):
 
     def __init__(self, p: _tnumeric, states: _olist_str = None):
 
-        def _build_graph(bg_p, bg_states):
-
-            graph = _nx_DiGraph(p)
-            graph = _nx_relabel_nodes(graph, dict(zip(range(bg_p.shape[0]), bg_states)))
-
-            return graph
-
         if MarkovChain.__instance_generators is None:
             MarkovChain.__instance_generators = _get_instance_generators(self.__class__)
 
@@ -283,7 +275,7 @@ class MarkovChain(metaclass=_BaseClass):
         size = p.shape[0]
 
         self.__cache: _tcache = {}
-        self.__digraph: _tgraph = _build_graph(p, states)
+        self.__digraph: _tgraph = _build_graph_markov_chain(p, states)
         self.__p: _tarray = p
         self.__size: int = size
         self.__states: _tlist_str = states

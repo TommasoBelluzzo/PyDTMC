@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'build_graph_hidden_markov_model',
+    'build_graph_markov_chain',
     'create_rng',
     'generate_state_names',
     'generate_validation_error',
@@ -86,8 +88,7 @@ try:
     )
     _pandas_found = True
 except ImportError:  # pragma: no cover
-    _pd_DataFrame = None
-    _pd_Series = None
+    _pd_DataFrame, _pd_Series = None, None
     _pandas_found = False
 
 # Internal
@@ -98,6 +99,7 @@ from .custom_types import (
     tany as _tany,
     tarray as _tarray,
     texception as _texception,
+    tgraph as _tgraph,
     tlist_any as _tlist_any,
     tlist_str as _tlist_str,
     trand as _trand,
@@ -112,6 +114,56 @@ from .exceptions import (
 #############
 # FUNCTIONS #
 #############
+
+def build_graph_hidden_markov_model(p, e, states, symbols):
+
+    n, k = len(states), len(symbols)
+
+    graph = _nx_DiGraph()
+    graph.add_nodes_from(states, layer=1)
+    graph.add_nodes_from(symbols, layer=0)
+
+    for i in range(n):
+
+        state_i = states[i]
+
+        for j in range(n):
+
+            p_ij = p[i, j]
+
+            if p_ij > 0.0:
+                graph.add_edge(state_i, states[j], weight=p_ij)
+
+        for j in range(k):
+
+            e_ij = e[i, j]
+
+            if e_ij > 0.0:
+                graph.add_edge(state_i, symbols[j], weight=e_ij)
+
+    return graph
+
+
+def build_graph_markov_chain(p: _tarray, states: _tlist_str) -> _tgraph:
+
+    n = len(states)
+
+    graph = _nx_DiGraph()
+    graph.add_nodes_from(states)
+
+    for i in range(n):
+
+        state_i = states[i]
+
+        for j in range(n):
+
+            p_ij = p[i, j]
+
+            if p_ij > 0.0:
+                graph.add_edge(state_i, states[j], weight=p_ij)
+
+    return graph
+
 
 def create_rng(seed: _oint) -> _trand:
 

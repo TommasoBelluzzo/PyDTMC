@@ -37,8 +37,7 @@ try:
     )
     _pandas_found = True
 except ImportError:  # noqa
-    _pd_DataFrame = None
-    _pd_Series = None
+    _pd_DataFrame, _pd_Series = None, None
     _pandas_found = False
 
 from pytest import (
