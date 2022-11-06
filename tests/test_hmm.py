@@ -10,6 +10,7 @@
 from numpy import (
     array as _np_array,
     count_nonzero as _np_count_nonzero,
+    isclose as _np_isclose,
     isnan as _np_isnan
 )
 
@@ -92,6 +93,48 @@ def test_estimate(sequence, possible_states, possible_symbols, value):
     expected = _np_array(value[1])
 
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_probabilities(p, e):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    transition_matrix = hmm.p
+    states = hmm.states
+
+    for index1, state1 in enumerate(states):
+        for index2, state2 in enumerate(states):
+
+            actual = hmm.transition_probability(state1, state2)
+            expected = transition_matrix[index2, index1]
+
+            assert _np_isclose(actual, expected)
+
+    emission_matrix = hmm.e
+    symbols = hmm.symbols
+
+    for index1, state in enumerate(states):
+        for index2, symbol in enumerate(symbols):
+
+            actual = hmm.emission_probability(symbol, state)
+            expected = emission_matrix[index1, index2]
+
+            assert _np_isclose(actual, expected)
+
+
+def test_properties(p, e, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.is_ergodic
+    expected = value[0]
+
+    assert actual == expected
+
+    actual = hmm.is_regular
+    expected = value[1]
+
+    assert actual == expected
 
 
 # noinspection PyArgumentEqualDefault

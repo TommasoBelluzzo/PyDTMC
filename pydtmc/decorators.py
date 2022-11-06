@@ -66,13 +66,11 @@ class cached_property(property):
         if instance is None:
             return self
 
-        instance_dict = instance.__dict__
-
         with self._lock:
             try:
-                return instance_dict[self._func_name]
+                return instance.__dict__[self._func_name]
             except KeyError:
-                return instance_dict.setdefault(self._func_name, self._func(instance))
+                return instance.__dict__.setdefault(self._func_name, self._func(instance))
 
     def __set__(self, instance, value):
 

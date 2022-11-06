@@ -30,7 +30,6 @@ from numpy import (
 )
 
 from numpy.linalg import (
-    det as _npl_det,
     matrix_rank as _npl_matrix_rank
 )
 
@@ -54,14 +53,12 @@ from .custom_types import (
     tnumeric as _tnumeric,
     thmm as _thmm,
     thmm_dict as _thmm_dict,
-    thmm_pair_float as _thmm_pair_float,
     thmm_pair_int as _thmm_pair_int,
     thmm_sequence_ext as _thmm_sequence_ext,
     thmm_step as _thmm_step,
     thmm_symbols as _thmm_symbols,
     thmm_symbols_ext as _thmm_symbols_ext,
     thmm_viterbi_ext as _thmm_viterbi_ext,
-    tmc as _tmc,
     tstate as _tstate
 )
 
@@ -154,7 +151,6 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         self.__digraph: _tgraph = _build_graph_hidden_markov_model(p, e, states, symbols)
         self.__e: _tarray = e
-        self.__mc: _tmc = _MarkovChain(p, states)
         self.__p: _tarray = p
         self.__size: _thmm_pair_int = (p.shape[0], e.shape[1])
         self.__states: _tlist_str = states
@@ -188,18 +184,6 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return value
 
-    @_cached_property
-    def determinants(self) -> _thmm_pair_float:
-
-        """
-        A property representing the determinants of the transition and emission matrices of the hidden Markov model.
-        """
-
-        pd = _npl_det(self.__p)
-        ed = _npl_det(self.__e)
-
-        return pd, ed
-
     @property
     def e(self) -> _tarray:
 
@@ -216,7 +200,8 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         A property indicating whether the hidden Markov model is ergodic.
         """
 
-        result = self.__mc.is_ergodic and _np_all(self.__e > 0.0)
+        mc = _MarkovChain(self.__p, self.__states)
+        result = mc.is_ergodic and _np_all(self.__e > 0.0)
 
         return result
 
@@ -227,7 +212,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         A property indicating whether the hidden Markov model is regular.
         """
 
-        result = self.ranks[0] == self.__size[1]
+        result = _npl_matrix_rank(self.__e) == self.__size[1]
 
         return result
 
@@ -257,18 +242,6 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         """
 
         return self.__p
-
-    @_cached_property
-    def ranks(self) -> _thmm_pair_int:
-
-        """
-        A property representing the ranks of the transition and emission matrices of the hidden Markov model.
-        """
-
-        rp = _npl_matrix_rank(self.__p)
-        re = _npl_matrix_rank(self.__e)
-
-        return rp, re
 
     @property
     def size(self) -> _thmm_pair_int:
@@ -482,16 +455,6 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         graph = _cp_deepcopy(self.__digraph)
 
         return graph
-
-    def to_markov_chain(self) -> _tmc:
-
-        """
-        The method returns underlying Markov chain of the hidden Markov model.
-        """
-
-        mc = _cp_deepcopy(self.__mc)
-
-        return mc
 
     def transition_probability(self, state_target: _tstate, state_origin: _tstate) -> float:
 
