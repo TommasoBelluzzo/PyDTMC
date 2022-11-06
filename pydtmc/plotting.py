@@ -653,10 +653,7 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_type: bool = True,
         else:
             figure, ax = _plot_hmm_extended(obj, nodes_color, nodes_type, edges_color, edges_value, dpi)
     else:
-        if obj_mc:
-            figure, ax = _plot_mc_standard(obj, nodes_color, nodes_type, edges_value, dpi)
-        else:
-            figure, ax = _plot_hmm_standard(obj, nodes_color, nodes_type, edges_value, dpi)
+        figure, ax = _plot_mc_standard(obj, nodes_color, nodes_type, edges_value, dpi)
 
     if _mplp_isinteractive():  # pragma: no cover
         _mplp_show(block=False)
