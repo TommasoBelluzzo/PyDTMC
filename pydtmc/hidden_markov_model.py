@@ -24,9 +24,14 @@ from inspect import (
 
 from numpy import (
     all as _np_all,
+    allclose as _np_allclose,
     array_equal as _np_array_equal,
     full as _np_full,
-    nan as _np_nan
+    isclose as _np_isclose,
+    nan as _np_nan,
+    ones as _np_ones,
+    sum as _np_sum,
+    zeros as _np_zeros
 )
 
 from numpy.linalg import (
@@ -49,10 +54,12 @@ from .custom_types import (
     ostatus as _ostatus,
     tarray as _tarray,
     tgraph as _tgraph,
+    tgraphs as _tgraphs,
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
     thmm as _thmm,
     thmm_dict as _thmm_dict,
+    thmm_dict_flex as _thmm_dict_flex,
     thmm_pair_int as _thmm_pair_int,
     thmm_sequence_ext as _thmm_sequence_ext,
     thmm_step as _thmm_step,
@@ -86,7 +93,7 @@ from .markov_chain import (
 )
 
 from .utilities import (
-    build_graph_hidden_markov_model as _build_graph_hidden_markov_model,
+    build_hmm_graph as _build_hmm_graph,
     create_rng as _create_rng,
     generate_validation_error as _generate_validation_error,
     get_caller as _get_caller,
@@ -99,6 +106,8 @@ from .validation import (
     validate_integer as _validate_integer,
     validate_state as _validate_state,
     validate_state_names as _validate_state_names,
+    validate_hmm_dictionary as _validate_hmm_dictionary,
+    validate_hmm_graph as _validate_hmm_graph,
     validate_hmm_emission as _validate_hmm_emission,
     validate_hmm_sequence as _validate_hmm_sequence,
     validate_hmm_symbols as _validate_hmm_symbols,
@@ -149,7 +158,7 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         if len(list(set(states) & set(symbols))) > 0:
             raise _ValidationError('State names and symbol names must be different.')
 
-        self.__digraph: _tgraph = _build_graph_hidden_markov_model(p, e, states, symbols)
+        self.__digraph: _tgraph = _build_hmm_graph(p, e, states, symbols)
         self.__e: _tarray = e
         self.__p: _tarray = p
         self.__size: _thmm_pair_int = (p.shape[0], e.shape[1])
@@ -535,6 +544,114 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         p, e = _estimate(len(possible_states), len(possible_symbols), sequence, True)
         hmm = HiddenMarkovModel(p, e, possible_states, possible_symbols)
+
+        return hmm
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def from_dictionary(d: _thmm_dict_flex) -> _thmm:
+
+        """
+        The method generates a hidden Markov model from the given dictionary, whose keys represent state pairs and whose values represent transition probabilities.
+
+        :param d: the dictionary to transform into the transition matrix.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the transition matrix defined by the dictionary is not valid.
+        """
+
+        try:
+
+            d = _validate_hmm_dictionary(d)
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        states = [key[1] for key in d.keys() if key[0] == 'P' and key[1] == key[2]]
+        symbols = [key[2] for key in d.keys() if key[0] == 'E' and key[1] == states[0]]
+        n, k = len(states), len(symbols)
+
+        if n < 2:  # pragma: no cover
+            raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
+
+        if k < 2:  # pragma: no cover
+            raise ValueError('The size of the emission matrix defined by the dictionary must be greater than or equal to 2.')
+
+        p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
+
+        for it, ip in d.items():
+            if it[0] == 'E':
+                e[states.index(it[1]), symbols.index(it[2])] = ip
+            else:
+                p[states.index(it[1]), states.index(it[2])] = ip
+
+        if not _np_allclose(_np_sum(p, axis=1), _np_ones(n, dtype=float)):  # pragma: no cover
+            raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.0.')
+
+        if not _np_allclose(_np_sum(e, axis=1), _np_ones(n, dtype=float)):  # pragma: no cover
+            raise ValueError('The rows of the emission matrix defined by the dictionary must sum to 1.0.')
+
+        hmm = HiddenMarkovModel(p, e, states, symbols)
+
+        return hmm
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def from_graph(graph: _tgraphs) -> _thmm:
+
+        """
+        The method generates a hidden Markov model from the given directed graph, whose transition and emission matrices are obtained through the normalization of edge weights.
+
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            graph = _validate_hmm_graph(graph)
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        nodes = graph.nodes(data='layer', default=-1)
+        states = [node[0] for node in nodes if node[1] == 1]
+        symbols = [node[0] for node in nodes if node[1] == 0]
+
+        n, k = len(states), len(symbols)
+        p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
+
+        edge_types = graph.edges(data='type', default='')
+        edge_weights = graph.edges(data='weight', default=0.0)
+
+        edges = []
+
+        for edge in graph.edges:
+
+            edge_type = [edge_type[2] for edge_type in edge_types if edge_type[0] == edge[0] and edge_type[1] == edge[1]][0]
+            edge_weight = [edge_weight[2] for edge_weight in edge_weights if edge_weight[0] == edge[0] and edge_weight[1] == edge[1]][0]
+
+            i = states.index(edge[0])
+
+            if edge_type == 'E':
+                j = symbols.index(edge[1])
+                e[i, j] = float(edge_weight)
+            else:
+                j = states.index(edge[1])
+                p[i, j] = float(edge_weight)
+
+        p_sums, e_sums = _np_sum(p, axis=1), _np_sum(e, axis=1)
+
+        for i in range(n):
+
+            if _np_isclose(p_sums[i], 0.0):  # pragma: no cover
+                p[i, :] = _np_ones(n, dtype=float) / n
+            else:
+                p[i, :] /= p_sums[i]
+
+            if _np_isclose(e_sums[i], 0.0):  # pragma: no cover
+                e[i, :] = _np_ones(k, dtype=float) / k
+            else:
+                e[i, :] /= p_sums[i]
+
+        hmm = HiddenMarkovModel(p, e, states, symbols)
 
         return hmm
 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'build_graph_hidden_markov_model',
-    'build_graph_markov_chain',
+    'build_hmm_graph',
+    'build_mc_graph',
     'create_rng',
     'generate_state_names',
     'generate_validation_error',
@@ -115,7 +115,7 @@ from .exceptions import (
 # FUNCTIONS #
 #############
 
-def build_graph_hidden_markov_model(p, e, states, symbols):
+def build_hmm_graph(p, e, states, symbols):
 
     n, k = len(states), len(symbols)
 
@@ -132,19 +132,19 @@ def build_graph_hidden_markov_model(p, e, states, symbols):
             p_ij = p[i, j]
 
             if p_ij > 0.0:
-                graph.add_edge(state_i, states[j], weight=p_ij)
+                graph.add_edge(state_i, states[j], type='P', weight=p_ij)
 
         for j in range(k):
 
             e_ij = e[i, j]
 
             if e_ij > 0.0:
-                graph.add_edge(state_i, symbols[j], weight=e_ij)
+                graph.add_edge(state_i, symbols[j], type='E', weight=e_ij)
 
     return graph
 
 
-def build_graph_markov_chain(p: _tarray, states: _tlist_str) -> _tgraph:
+def build_mc_graph(p: _tarray, states: _tlist_str) -> _tgraph:
 
     n = len(states)
 

@@ -23,7 +23,7 @@ from tempfile import (
 # Libraries
 
 from networkx import (
-    MultiDiGraph as _MultiDiGraph,
+    MultiDiGraph as _nx_MultiDiGraph,
     relabel_nodes as _nx_relabel_nodes
 )
 
@@ -57,12 +57,12 @@ def test_dictionary(seed, maximum_size, runs):
 
         size = _rd_randint(2, maximum_size)
         zeros = _rd_randint(0, size)
-        mc_to = _MarkovChain.random(size, zeros=zeros, seed=seed)
+        mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
-        d = mc_to.to_dictionary()
+        d = mc.to_dictionary()
         mc_from = _MarkovChain.from_dictionary(d)
 
-        _npt_assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt_assert_allclose(mc_from.p, mc.p, rtol=1e-5, atol=1e-8)
 
 
 @_pt_mark.slow
@@ -79,7 +79,7 @@ def test_graph(seed, maximum_size, runs):
 
         _npt_assert_allclose(mc_from.p, mc.p, rtol=1e-5, atol=1e-8)
 
-        graph = _nx_relabel_nodes(_MultiDiGraph(mc.p), dict(zip(range(mc.size), mc.states)))
+        graph = _nx_relabel_nodes(_nx_MultiDiGraph(mc.p), dict(zip(range(mc.size), mc.states)))
         mc_from = _MarkovChain.from_graph(graph)
 
         _npt_assert_allclose(mc_from.p, mc.p, rtol=1e-5, atol=1e-8)
@@ -93,13 +93,13 @@ def test_file(seed, maximum_size, runs, file_extension):
 
         size = _rd_randint(2, maximum_size)
         zeros = _rd_randint(0, size)
-        mc_to = _MarkovChain.random(size, zeros=zeros, seed=seed)
+        mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
         file_handler, file_path = _tf_mkstemp(suffix=file_extension)
         _os_close(file_handler)
 
         try:
-            mc_to.to_file(file_path)
+            mc.to_file(file_path)
             mc_from = _MarkovChain.from_file(file_path)
             exception = False
         except Exception:
@@ -110,7 +110,7 @@ def test_file(seed, maximum_size, runs, file_extension):
 
         assert exception is False
 
-        _npt_assert_allclose(mc_from.p, mc_to.p, rtol=1e-5, atol=1e-8)
+        _npt_assert_allclose(mc_from.p, mc.p, rtol=1e-5, atol=1e-8)
 
 
 def test_matrix(seed, maximum_size, runs):

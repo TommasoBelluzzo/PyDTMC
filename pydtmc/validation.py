@@ -11,6 +11,8 @@ __all__ = [
     'validate_float',
     'validate_graph',
     'validate_hidden_markov_model',
+    'validate_hmm_dictionary',
+    'validate_hmm_graph',
     'validate_hmm_emission',
     'validate_hmm_sequence',
     'validate_hmm_symbols',
@@ -109,6 +111,7 @@ from .custom_types import (
     tfile as _tfile,
     tgraphs as _tgraphs,
     thmm as _thmm,
+    thmm_dict as _thmm_dict,
     thmm_sequence as _thmm_sequence,
     thmm_symbols_out as _thmm_symbols_out,
     tinterval as _tinterval,
@@ -241,6 +244,7 @@ def validate_boundary_condition(value: _tany) -> _tbcond:
     raise TypeError('The "@arg@" parameter must be either a float representing the first probability of the semi-reflecting condition or a non-empty string representing the boundary condition type.')
 
 
+# noinspection DuplicatedCode
 def validate_dictionary(value: _tany) -> _tmc_dict:
 
     if not _is_dictionary(value):
@@ -257,9 +261,7 @@ def validate_dictionary(value: _tany) -> _tmc_dict:
         states.add(d_key[0])
         states.add(d_key[1])
 
-    combinations = list(_it_product(states, repeat=2))
-
-    if len(value) != len(combinations) or not all(combination in value for combination in combinations):
+    if not all(combination in value for combination in _it_product(states, repeat=2)):
         raise ValueError('The "@arg@" parameter keys must contain all the possible combinations of states.')
 
     d_values = value.values()
@@ -439,10 +441,10 @@ def validate_graph(value: _tany) -> _tgraphs:
     if not all(_is_string(node) for node in nodes):
         raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
 
-    edges = list(value.edges(data='weight', default=0.0))
+    edge_weights = list(value.edges(data='weight', default=0.0))
 
-    if not all(_is_number(edge[2]) and float(edge[2]) > 0.0 for edge in edges):
-        raise ValueError('The "@arg@" parameter must define edge wright as non-negative numbers.')
+    if not all(_is_number(edge_weight[2]) and float(edge_weight[2]) > 0.0 for edge_weight in edge_weights):
+        raise ValueError('The "@arg@" parameter must define edge weight attributes as non-negative numbers.')
 
     return value
 
@@ -451,6 +453,111 @@ def validate_hidden_markov_model(value: _tany) -> _thmm:
 
     if value is None or (f'{value.__module__}.{value.__class__.__name__}' != 'pydtmc.hidden_markov_model.HiddenMarkovModel'):
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+
+    return value
+
+
+# noinspection DuplicatedCode
+def validate_hmm_dictionary(value: _tany) -> _thmm_dict:
+
+    if not _is_dictionary(value):
+        raise ValueError('The "@arg@" parameter must be a dictionary.')
+
+    d_keys = value.keys()
+
+    if not all(_is_tuple(d_key) and len(d_key) == 3 and _is_string(d_key[0]) and _is_string(d_key[1]) and _is_string(d_key[2]) for d_key in d_keys):
+        raise ValueError('The "@arg@" parameter keys must be tuples containing three non-empty strings.')
+
+    states = set()
+    symbols = set()
+
+    for d_key in d_keys:
+
+        key_type = d_key[0]
+
+        if key_type == 'E':
+            states.add(d_key[1])
+            symbols.add(d_key[2])
+        elif key_type == 'P':
+            states.add(d_key[1])
+            states.add(d_key[2])
+        else:
+            raise ValueError('The "@arg@" parameter must contain only keys whose first value is either "E" or "P".')
+
+    if not all(('P',) + combination in value for combination in _it_product(states, repeat=2)):
+        raise ValueError('The "@arg@" parameter keys must contain all the possible combinations of states with states.')
+
+    if not all(('E',) + combination in value for combination in _it_product(states, symbols)):
+        raise ValueError('The "@arg@" parameter keys must contain all the possible combinations of states with symbols.')
+
+    d_values = value.values()
+
+    if not all(_is_number(d_value) for d_value in d_values):
+        raise ValueError('The "@arg@" parameter values must be float or integer numbers.')
+
+    result = {}
+
+    for d_key, d_value in value.items():
+
+        d_value = float(d_value)
+
+        if _np_isfinite(d_value) and _np_isreal(d_value) and 0.0 <= d_value <= 1.0:
+            result[d_key] = d_value
+        else:
+            raise ValueError('The "@arg@" parameter values can contain only finite real numbers between 0 and 1.')
+
+    return result
+
+
+def validate_hmm_graph(value: _tany) -> _tgraphs:
+
+    non_multi = _is_graph(value, False)
+    multi = _is_graph(value, True)
+
+    if not non_multi and not multi:
+        raise ValueError('The "@arg@" parameter must be a directed graph.')
+
+    if multi:
+        value = _nx_DiGraph(value)
+
+    nodes = list(value.nodes(data='layer', default=-1))
+    nodes_state, nodes_symbol = [], []
+
+    for node in nodes:
+
+        node_layer = node[1]
+
+        if not _is_integer(node_layer) or node_layer not in (0, 1):
+            raise ValueError('The "@arg@" parameter must define node layer attributes as integers whose value is either 0 or 1.')
+
+        if node_layer == 0:
+            nodes_symbol.append(node[0])
+        else:
+            nodes_state.append(node[0])
+
+    if not all(_is_string(node) for node in nodes_state + nodes_symbol):
+        raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
+
+    if len(list(set(nodes_state) & set(nodes_symbol))) > 0:
+        raise ValueError('The "@arg@" parameter node labels must be unique.')
+
+    n, k = len(nodes_state), len(nodes_symbol)
+
+    if n < 2:
+        raise ValueError('The "@arg@" parameter must contain a number of state nodes greater than or equal to 2.')
+
+    if k < 2:
+        raise ValueError('The "@arg@" parameter must contain a number of symbol nodes greater than or equal to 2.')
+
+    edge_types = list(value.edges(data='type', default=''))
+
+    if not all(_is_string(edge_type[2]) and edge_type[2] in ('E', 'P') for edge_type in edge_types):
+        raise ValueError('The "@arg@" parameter must define edge type attributes as strings whose value is either "E" or "P".')
+
+    edge_weights = list(value.edges(data='weight', default=0.0))
+
+    if not all(_is_number(edge_weight[2]) and float(edge_weight[2]) > 0.0 for edge_weight in edge_weights):
+        raise ValueError('The "@arg@" parameter must define edge weight attributes as non-negative numbers.')
 
     return value
 

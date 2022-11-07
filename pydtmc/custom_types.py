@@ -46,6 +46,7 @@ __all__ = [
     'tfitting_res', 'ofitting_res',
     'thmm_decoding', 'ohmm_decoding',
     'thmm_dict', 'ohmm_dict',
+    'thmm_dict_flex', 'ohmm_dict_flex',
     'thmm_generation', 'ohmm_generation',
     'thmm_generation_ext', 'ohmm_generation_ext',
     'thmm_pair_float', 'ohmm_pair_float',
@@ -276,6 +277,9 @@ ohmm_decoding = _tp_Optional[thmm_decoding]
 
 thmm_dict = _tp_Dict[_tp_Tuple[str, str, str], float]
 ohmm_dict = _tp_Optional[thmm_dict]
+
+thmm_dict_flex = _tp_Dict[_tp_Tuple[str, str, str], tscalar]
+ohmm_dict_flex = _tp_Optional[thmm_dict_flex]
 
 thmm_generation = _tp_Tuple[tarray, tarray, tlist_str, tlist_str]
 ohmm_generation = _tp_Optional[thmm_generation]

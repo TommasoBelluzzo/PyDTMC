@@ -200,7 +200,7 @@ from .simulations import (
 )
 
 from .utilities import (
-    build_graph_markov_chain as _build_graph_markov_chain,
+    build_mc_graph as _build_mc_graph,
     create_rng as _create_rng,
     generate_state_names as _generate_state_names,
     generate_validation_error as _generate_validation_error,
@@ -275,7 +275,7 @@ class MarkovChain(metaclass=_BaseClass):
         size = p.shape[0]
 
         self.__cache: _tcache = {}
-        self.__digraph: _tgraph = _build_graph_markov_chain(p, states)
+        self.__digraph: _tgraph = _build_mc_graph(p, states)
         self.__p: _tarray = p
         self.__size: int = size
         self.__states: _tlist_str = states
@@ -2308,7 +2308,7 @@ class MarkovChain(metaclass=_BaseClass):
     def from_graph(graph: _tgraphs) -> _tmc:
 
         """
-        The method generates a Markov chain from the given directed graph, whose transition matrix is obtained through the normalization of the graph weights.
+        The method generates a Markov chain from the given directed graph, whose transition matrix is obtained through the normalization of edge weights.
 
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -2322,8 +2322,8 @@ class MarkovChain(metaclass=_BaseClass):
 
         states = list(graph.nodes)
         size = len(states)
-
         p = _np_zeros((size, size), dtype=float)
+
         edges = list(graph.edges(data='weight', default=0.0))
 
         for edge in edges:
