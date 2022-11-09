@@ -59,137 +59,240 @@ from numpy import (
 # Internal
 
 from .custom_types import (
-    tmc_dict as _tmc_dict
+    tobj_dict as _tobj_dict
 )
+
+
+#############
+# CONSTANTS #
+#############
+
+_valid_params_hmm = {
+    'reference': ('string', ('E', 'P')),
+    'element_from': ('string', None),
+    'element_to': ('string', None),
+    'probability': ('number', None)
+}
+
+_valid_params_mc = {
+    'state_from': ('string', None),
+    'state_to': ('string', None),
+    'probability': ('number', None)
+}
 
 
 #############
 # FUNCTIONS #
 #############
 
-def read_csv(file_path: str) -> _tmc_dict:
+def read_csv(mc: bool, file_path: str) -> _tobj_dict:
 
-    d = {}
+    def _read_csv_hmm(rch_data):
 
-    size = 0
-    states = []
+        labels, states, symbols = [], [], []
+        n, k, nk = 0, 0, 0
 
-    with open(file_path, mode='r', newline='') as file:
+        result = {}
 
-        file.seek(0)
-
-        data = _csv_reader(file)
-
-        for index, row in enumerate(data):
+        for index, row in enumerate(rch_data):
 
             if index == 0:
 
-                if not all(isinstance(state, str) for state in row) or not all(state is not None and len(state) > 0 for state in row):  # pragma: no cover
+                for label in row:
+
+                    if not isinstance(label, str) or len(label) < 3:
+                        raise ValueError('The file header is invalid.')
+
+                    label = label.strip()
+                    label_prefix = label[:2]
+
+                    if label_prefix == 'E_':
+                        label_value = label[2:]
+                        symbols.append(label_value)
+                        labels.append((label_prefix[:1], label_value))
+                    elif label_prefix == 'P_':
+                        label_value = label[2:]
+                        states.append(label_value)
+                        labels.append((label_prefix[:1], label_value))
+                    else:
+                        raise ValueError('The file header is invalid.')
+
+                n, k = len(states), len(symbols)
+
+                if len(set(states)) < n or len(set(symbols)) < k:  # pragma: no cover
                     raise ValueError('The file header is invalid.')
 
-                states = row
-                states_unique = len(set(states))
-                size = len(states)
+                if n != len(rch_data) - 1:
+                    raise ValueError('The file contains an invalid number of rows.')
 
-                if states_unique < size:  # pragma: no cover
-                    raise ValueError('The file header is invalid.')
+                nk = n + k
 
             else:
 
-                if len(row) != size or not all(isinstance(p, str) for p in row) or not all(p is not None and len(p) > 0 for p in row):  # pragma: no cover
+                if len(row) != nk or not all(isinstance(p, str) and len(p) > 0 for p in row):  # pragma: no cover
                     raise ValueError('The file contains invalid rows.')
 
-                probabilities = row
+                element_from = states[index - 1]
+
+                for i in range(nk):
+
+                    label_prefix, element_to = labels[i]
+
+                    try:
+                        probability = float(row[i])
+                    except Exception as ex:  # pragma: no cover
+                        raise ValueError('The file contains invalid rows.') from ex
+
+                    result[(label_prefix, element_from, element_to)] = probability
+
+        return result
+
+    def _read_csv_mc(rcm_data):
+
+        states = []
+        n = 0
+
+        result = {}
+
+        for index, row in enumerate(rcm_data):
+
+            if index == 0:
+
+                if not all(isinstance(state, str) and len(state) > 0 for state in row):  # pragma: no cover
+                    raise ValueError('The file header is invalid.')
+
+                states = row
+                n = len(states)
+
+                if len(set(states)) < n:  # pragma: no cover
+                    raise ValueError('The file header is invalid.')
+
+                if n != len(rcm_data) - 1:
+                    raise ValueError('The file contains an invalid number of rows.')
+
+            else:
+
+                if len(row) != n or not all(isinstance(p, str) and len(p) > 0 for p in row):  # pragma: no cover
+                    raise ValueError('The file contains invalid rows.')
+
                 state_from = states[index - 1]
 
-                for i in range(size):
+                for i in range(n):
 
                     state_to = states[i]
 
                     try:
-                        probability = float(probabilities[i])
+                        probability = float(row[i])
                     except Exception as ex:  # pragma: no cover
                         raise ValueError('The file contains invalid rows.') from ex
 
-                    d[(state_from, state_to)] = probability
+                    result[(state_from, state_to)] = probability
+
+        return result
+
+    with open(file_path, mode='r', newline='') as file:
+        file.seek(0)
+        reader = _csv_reader(file)
+        data = [row for _, row in enumerate(reader)]
+
+    d = _read_csv_mc(data) if mc else _read_csv_hmm(data)
 
     return d
 
 
-def read_json(file_path: str) -> _tmc_dict:
-
-    valid_keys = ('probability', 'state_from', 'state_to')
-
-    d = {}
+# noinspection PyTypeChecker
+def read_json(mc: bool, file_path: str) -> _tobj_dict:
 
     with open(file_path, mode='r') as file:
-
         file.seek(0)
-
         data = _json_load(file)
 
-        if not isinstance(data, list):  # pragma: no cover
+    if not isinstance(data, list):  # pragma: no cover
+        raise ValueError('The file format is not compliant.')
+
+    valid_params = _valid_params_mc if mc else _valid_params_hmm
+    valid_params_keys = sorted(valid_params.keys())
+
+    d = {}
+
+    for obj in data:
+
+        if not isinstance(obj, dict):  # pragma: no cover
             raise ValueError('The file format is not compliant.')
 
-        for obj in data:
+        if sorted(obj.keys()) != valid_params_keys:  # pragma: no cover
+            raise ValueError('The file contains invalid elements.')
 
-            if not isinstance(obj, dict):  # pragma: no cover
-                raise ValueError('The file format is not compliant.')
+        values = []
 
-            if tuple(sorted(obj.keys())) != valid_keys:  # pragma: no cover
+        for param_name, (param_type, param_possible_values) in valid_params.items():
+
+            value = obj[param_name]
+
+            if param_type == 'number':
+
+                if not isinstance(value, (float, int, _np_floating, _np_integer)):  # pragma: no cover
+                    raise ValueError('The file contains invalid elements.')
+
+                value = float(value)
+
+            elif param_type == 'string':
+
+                if not isinstance(value, str) or len(value) == 0:  # pragma: no cover
+                    raise ValueError('The file contains invalid elements.')
+
+            if param_possible_values is not None and value not in param_possible_values:
                 raise ValueError('The file contains invalid elements.')
 
-            state_from = obj['state_from']
-            state_to = obj['state_to']
-            probability = obj['probability']
+            values.append(value)
 
-            if not isinstance(state_from, str) or len(state_from) == 0:  # pragma: no cover
-                raise ValueError('The file contains invalid elements.')
-
-            if not isinstance(state_to, str) or len(state_to) == 0:  # pragma: no cover
-                raise ValueError('The file contains invalid elements.')
-
-            if not isinstance(probability, (float, int, _np_floating, _np_integer)):  # pragma: no cover
-                raise ValueError('The file contains invalid elements.')
-
-            d[(state_from, state_to)] = float(probability)
+        d[tuple(values[:-1])] = values[-1]
 
     return d
 
 
-def read_txt(file_path: str) -> _tmc_dict:
-
-    d = {}
+# noinspection PyTypeChecker
+def read_txt(mc: bool, file_path: str) -> _tobj_dict:
 
     with open(file_path, mode='r') as file:
-
         file.seek(0)
+        data = [line.strip().split() for line in file]
 
-        for line in file:
+    valid_params = _valid_params_mc if mc else _valid_params_hmm
+    valid_params_keys = tuple(valid_params.keys())
+    valid_params_length = len(valid_params)
 
-            if not line.strip():  # pragma: no cover
+    d = {}
+
+    for row in data:
+
+        if len(row) != valid_params_length:  # pragma: no cover
+            raise ValueError('The file contains invalid lines.')
+
+        values = []
+
+        for param_name, (param_type, param_possible_values) in valid_params.items():
+
+            value = row[valid_params_keys.index(param_name)]
+
+            if param_type == 'number':
+                try:
+                    value = float(value)
+                except Exception as ex:  # pragma: no cover
+                    raise ValueError('The file contains invalid lines.') from ex
+
+            if param_possible_values is not None and value not in param_possible_values:
                 raise ValueError('The file contains invalid lines.')
 
-            ls = line.split()
+            values.append(value)
 
-            if len(ls) != 3:  # pragma: no cover
-                raise ValueError('The file contains invalid lines.')
-
-            try:
-                ls2 = float(ls[2])
-            except Exception as ex:  # pragma: no cover
-                raise ValueError('The file contains invalid lines.') from ex
-
-            d[(ls[0], ls[1])] = ls2
+        d[tuple(values[:-1])] = values[-1]
 
     return d
 
 
-def read_xml(file_path: str) -> _tmc_dict:
-
-    valid_keys = ('probability', 'state_from', 'state_to')
-
-    d = {}
+# noinspection PyTypeChecker
+def read_xml(mc: bool, file_path: str) -> _tobj_dict:
 
     try:
         document = _xml_parse(file_path)
@@ -197,98 +300,166 @@ def read_xml(file_path: str) -> _tmc_dict:
         raise ValueError('The file format is not compliant.') from ex
 
     root = document.getroot()
+    root_tag = 'MarkovChain' if mc else 'HiddenMarkovModel'
 
-    if root.tag != 'MarkovChain':  # pragma: no cover
+    if root.tag != root_tag:  # pragma: no cover
         raise ValueError('The file root element is invalid.')
+
+    valid_params = _valid_params_mc if mc else _valid_params_hmm
+    valid_params_keys = sorted(valid_params.keys())
+
+    d = {}
 
     for element in root.iter():
 
-        if element.tag == 'MarkovChain':
+        if element.tag == root_tag:
             continue
 
-        if element.tag != 'Transition':  # pragma: no cover
-            raise ValueError('The file contains invalid subelements.')
+        if element.tag != 'Item':  # pragma: no cover
+            raise ValueError('The file contains invalid elements.')
 
         attributes = element.items()
 
         if len(attributes) == 0:  # pragma: no cover
-            raise ValueError('The file contains invalid subelements.')
+            raise ValueError('The file contains invalid elements.')
 
-        keys = [attribute[0] for attribute in attributes]
+        attributes_keys = [attribute[0] for attribute in attributes]
 
-        if tuple(sorted(keys)) != valid_keys:  # pragma: no cover
-            raise ValueError('The file contains invalid subelements.')
+        if sorted(attributes_keys) != valid_params_keys:  # pragma: no cover
+            raise ValueError('The file contains invalid elements.')
 
-        values = [attribute[1].strip() for attribute in attributes]
+        attributes_values = [attribute[1].strip() for attribute in attributes]
 
-        if any(len(value) == 0 for value in values):  # pragma: no cover
-            raise ValueError('The file contains invalid subelements.')
+        if any(len(attributes_value) == 0 for attributes_value in attributes_values):  # pragma: no cover
+            raise ValueError('The file contains invalid elements.')
 
-        index = keys.index('state_from')
-        state_from = values[index]
+        values = []
 
-        index = keys.index('state_to')
-        state_to = values[index]
+        for param_name, (param_type, param_possible_values) in valid_params.items():
 
-        index = keys.index('probability')
-        probability = values[index]
+            value = attributes_values[attributes_keys.index(param_name)]
 
-        try:
-            probability = float(probability)
-        except Exception as ex:  # pragma: no cover
-            raise ValueError('The file contains invalid subelements.') from ex
+            if param_type == 'number':
+                try:
+                    value = float(value)
+                except Exception as ex:  # pragma: no cover
+                    raise ValueError('The file contains invalid elements.') from ex
 
-        d[(state_from, state_to)] = probability
+            if param_possible_values is not None and value not in param_possible_values:
+                raise ValueError('The file contains invalid elements.')
+
+            values.append(value)
+
+        d[tuple(values[:-1])] = values[-1]
 
     return d
 
 
-def write_csv(d: _tmc_dict, file_path: str):
+def write_csv(mc: bool, d: _tobj_dict, file_path: str):
 
-    states = [key[0] for key in d.keys() if key[0] == key[1]]
-    size = len(states)
+    def _write_csv_hmm(wch_d):
 
-    p = _np_zeros((size, size), dtype=float)
+        states = [key[1] for key in wch_d.keys() if key[0] == 'P' and key[1] == key[2]]
+        symbols = [key[2] for key in wch_d.keys() if key[0] == 'E' and key[1] == states[0]]
+        n, k = len(states), len(symbols)
+        p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
 
-    for it, ip in d.items():
-        p[states.index(it[0]), states.index(it[1])] = ip
+        for (reference, element_from, element_to), probability in d.items():
+            if reference == 'E':
+                e[states.index(element_from), symbols.index(element_to)] = probability
+            else:
+                p[states.index(element_from), states.index(element_to)] = probability
+
+        header = [f'P_{state}' for state in states] + [f'E_{symbol}' for symbol in symbols]
+        rows = []
+
+        for i in range(n):
+            rows.append([str(x) for x in p[i, :].tolist()] + [str(x) for x in e[i, :].tolist()])
+
+        return header, rows
+
+    def _write_csv_mc(wcm_d):
+
+        states = [key[0] for key in wcm_d.keys() if key[0] == key[1]]
+        size = len(states)
+
+        p = _np_zeros((size, size), dtype=float)
+
+        for (state_from, state_to), probability in d.items():
+            p[states.index(state_from), states.index(state_to)] = probability
+
+        header = states
+        rows = []
+
+        for i in range(size):
+            rows.append([str(x) for x in p[i, :].tolist()])
+
+        return header, rows
+
+    header_out, rows_out = _write_csv_mc(d) if mc else _write_csv_hmm(d)
 
     with open(file_path, mode='w', newline='') as file:
 
         writer = _csv_writer(file, delimiter=',', quoting=_csv_QUOTE_MINIMAL, quotechar='"')
 
-        writer.writerow(states)
+        writer.writerow(header_out)
 
-        for i in range(size):
-            row = [str(x) for x in p[i, :].tolist()]
+        for row in rows_out:
             writer.writerow(row)
 
 
-def write_json(d: _tmc_dict, file_path: str):
+def write_json(mc: bool, d: _tobj_dict, file_path: str):
 
-    output = [{'state_from': it[0], 'state_to': it[1], 'probability': ip} for it, ip in d.items()]
+    valid_params_keys = tuple((_valid_params_mc if mc else _valid_params_hmm).keys())
+
+    data = []
+
+    for key, value in d.items():
+
+        item = {}
+
+        for index, attribute in enumerate(key):
+            item[valid_params_keys[index]] = attribute
+
+        item[valid_params_keys[-1]] = value
+
+        data.append(item)
 
     with open(file_path, mode='w') as file:
-        _json_dump(output, file)
+        _json_dump(data, file)
 
 
-def write_txt(d: _tmc_dict, file_path: str):
+def write_txt(d: _tobj_dict, file_path: str):
 
     with open(file_path, mode='w') as file:
 
-        for it, ip in d.items():
-            file.write(f'{it[0]} {it[1]} {ip}\n')
+        line = ''
+
+        for key, value in d.items():
+
+            for attribute in key:
+                line += f'{attribute} '
+
+            line += f'{value}\n'
+
+        file.write(line)
 
 
-def write_xml(d: _tmc_dict, file_path: str):
+def write_xml(mc: bool, d: _tobj_dict, file_path: str):
 
-    root = _xml_Element('MarkovChain')
+    valid_params_keys = tuple((_valid_params_mc if mc else _valid_params_hmm).keys())
+    root_tag = 'MarkovChain' if mc else 'HiddenMarkovModel'
 
-    for it, ip in d.items():
-        transition = _xml_SubElement(root, 'Transition')
-        transition.set('state_from', it[0])
-        transition.set('state_to', it[1])
-        transition.set('probability', str(ip))
+    root = _xml_Element(root_tag)
+
+    for key, value in d.items():
+
+        item = _xml_SubElement(root, 'Item')
+
+        for index, attribute in enumerate(key):
+            item.set(valid_params_keys[index], attribute)
+
+        item.set(valid_params_keys[-1], str(value))
 
     document = _xml_ElementTree.ElementTree(root)
 
@@ -297,8 +468,8 @@ def write_xml(d: _tmc_dict, file_path: str):
         xml_content = str(buffer.getvalue(), 'utf-8')
 
     xml_content = xml_content.replace('?>', " standalone='yes' ?>")
-    xml_content = xml_content.replace('<MarkovChain>', '<MarkovChain>\n')
-    xml_content = xml_content.replace('<Transition', '\t<Transition')
+    xml_content = xml_content.replace(f'<{root_tag}>', f'<{root_tag}>\n')
+    xml_content = xml_content.replace('<Item', '\t<Item')
     xml_content = xml_content.replace('" />', '"/>\n')
 
     with open(file_path, mode='w') as file:

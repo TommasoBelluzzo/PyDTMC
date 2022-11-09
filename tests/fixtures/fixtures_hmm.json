@@ -1,36 +1,4 @@
 {
-  "conversions_data": [
-    {
-      "seed": 7331,
-      "maximum_n": 3,
-      "maximum_k": 5,
-      "runs": 10
-    },
-    {
-      "seed": 7331,
-      "maximum_n": 3,
-      "maximum_k": 7,
-      "runs": 10
-    },
-    {
-      "seed": 7331,
-      "maximum_n": 3,
-      "maximum_k": 10,
-      "runs": 10
-    },
-    {
-      "seed": 7331,
-      "maximum_n": 5,
-      "maximum_k": 5,
-      "runs": 10
-    },
-    {
-      "seed": 7331,
-      "maximum_n": 10,
-      "maximum_k": 10,
-      "runs": 10
-    }
-  ],
   "decode_data": [
     {
       "p": [[1.0, 0.0], [0.0, 1.0]],

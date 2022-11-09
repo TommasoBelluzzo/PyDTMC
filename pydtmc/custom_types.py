@@ -18,7 +18,6 @@ __all__ = [
     'tmc', 'omc',
     'tnumeric', 'onumeric',
     'tobject', 'oobject',
-    'tobject_out', 'oobject_out',
     'tplot', 'oplot',
     'trand', 'orand',
     'trandfunc', 'orandfunc',
@@ -49,6 +48,7 @@ __all__ = [
     'thmm_dict_flex', 'ohmm_dict_flex',
     'thmm_generation', 'ohmm_generation',
     'thmm_generation_ext', 'ohmm_generation_ext',
+    'thmm_pair_array', 'ohmm_pair_array',
     'thmm_pair_float', 'ohmm_pair_float',
     'thmm_pair_int', 'ohmm_pair_int',
     'thmm_params', 'ohmm_params',
@@ -65,6 +65,7 @@ __all__ = [
     'tmc_dict_flex', 'omc_dict_flex',
     'tmc_generation', 'omc_generation',
     'tmc_generation_ext', 'omc_generation_ext',
+    'tobj_dict', 'oobj_dict',
     'tpart', 'opart',
     'tparts', 'oparts',
     'tredists', 'oredists',
@@ -197,9 +198,6 @@ onumeric = _tp_Optional[tnumeric]
 tobject = _tp_Union[tmc, thmm]
 oobject = _tp_Optional[tobject]
 
-tobject_out = _tp_Tuple[tobject, bool]
-oobject_out = _tp_Optional[tobject_out]
-
 tplot = _tp_Tuple[_mplp_Figure, _tp_Union[_mplp_Axes, _tp_List[_mplp_Axes]]]
 oplot = _tp_Optional[tplot]
 
@@ -287,6 +285,9 @@ ohmm_generation = _tp_Optional[thmm_generation]
 thmm_generation_ext = _tp_Tuple[oarray, oarray, olist_str, olist_str, ostr]
 ohmm_generation_ext = _tp_Optional[thmm_generation_ext]
 
+thmm_pair_array = _tp_Tuple[tarray, tarray]
+ohmm_pair_array = _tp_Optional[thmm_pair_array]
+
 thmm_pair_float = _tp_Tuple[float, float]
 ohmm_pair_float = _tp_Optional[thmm_pair_float]
 
@@ -334,6 +335,9 @@ omc_generation = _tp_Optional[tmc_generation]
 
 tmc_generation_ext = _tp_Tuple[oarray, olist_str, ostr]
 omc_generation_ext = _tp_Optional[tmc_generation_ext]
+
+tobj_dict = _tp_Union[thmm_dict, tmc_dict]
+oobj_dict = _tp_Optional[tobj_dict]
 
 tpart = _tp_List[_tp_Union[tlist_int, tlist_str]]
 opart = _tp_Optional[tpart]

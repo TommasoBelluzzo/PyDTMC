@@ -1,12 +1,12 @@
 {
   "dictionary_data": {
     "seed": 7331,
-    "maximum_size": 20,
+    "maximum_size": 30,
     "runs": 50
   },
   "graph_data": {
     "seed": 7331,
-    "maximum_size": 20,
+    "maximum_size": 10,
     "runs": 50
   },
   "file_data": [
@@ -41,7 +41,7 @@
   ],
   "matrix_data": {
     "seed": 7331,
-    "maximum_size": 20,
+    "maximum_size": 30,
     "runs": 50
   }
 }

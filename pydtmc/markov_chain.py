@@ -242,7 +242,7 @@ from .validation import (
 ###########
 
 @_aliased
-class MarkovChain(metaclass=_BaseClass):
+class MarkovChain(_BaseClass):
 
     """
     Defines a Markov chain with the given transition matrix.
@@ -1847,23 +1847,12 @@ class MarkovChain(metaclass=_BaseClass):
 
         return d
 
-    def to_graph(self) -> _tgraph:
-
-        """
-        The method returns a directed graph representing the Markov chain.
-        """
-
-        graph = _cp_deepcopy(self.__digraph)
-
-        return graph
-
     def to_file(self, file_path: str):
 
         """
         The method writes a Markov chain to the given file.
 
         | Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension.
-        |
 
         :param file_path: the location of the file in which the Markov chain must be written.
         :raises OSError: if the file cannot be written.
@@ -1880,13 +1869,23 @@ class MarkovChain(metaclass=_BaseClass):
         d = self.to_dictionary()
 
         if file_extension == '.csv':
-            _write_csv(d, file_path)
+            _write_csv(True, d, file_path)
         elif file_extension == '.json':
-            _write_json(d, file_path)
+            _write_json(True, d, file_path)
         elif file_extension == '.txt':
             _write_txt(d, file_path)
         else:
-            _write_xml(d, file_path)
+            _write_xml(True, d, file_path)
+
+    def to_graph(self) -> _tgraph:
+
+        """
+        The method returns a directed graph representing the Markov chain.
+        """
+
+        graph = _cp_deepcopy(self.__digraph)
+
+        return graph
 
     @_object_mark(aliases=['to_lazy'], instance_generator=True)
     def to_lazy_chain(self, inertial_weights: _tweights = 0.5) -> _tmc:
@@ -1914,15 +1913,15 @@ class MarkovChain(metaclass=_BaseClass):
 
         return mc
 
-    def to_matrix(self) -> _tarray:
+    def to_matrices(self) -> _tlist_array:
 
         """
-        The method returns the transition matrix of the Markov chain.
+        The method returns a list whose only element represents the transition matrix of the Markov chain.
         """
 
-        m = _np_copy(self.__p)
+        matrices = [_np_copy(self.__p)]
 
-        return m
+        return matrices
 
     # noinspection GrazieInspection
     @_object_mark(aliases=['to_nth'], instance_generator=True)
@@ -2293,8 +2292,8 @@ class MarkovChain(metaclass=_BaseClass):
 
         p = _np_zeros((size, size), dtype=float)
 
-        for it, ip in d.items():
-            p[states.index(it[0]), states.index(it[1])] = ip
+        for (state_from, state_to), probability in d.items():
+            p[states.index(state_from), states.index(state_to)] = probability
 
         if not _np_allclose(_np_sum(p, axis=1), _np_ones(size, dtype=float)):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.')
@@ -2303,6 +2302,84 @@ class MarkovChain(metaclass=_BaseClass):
 
         return mc
 
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def from_file(file_path: str) -> _tmc:
+
+        r"""
+        The method reads a Markov chain from the given file.
+
+        | Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension.
+
+        | In **csv** files, data must be structured as follows:
+
+        - *Delimiter:* **comma**
+        - *Quoting:* **minimal**
+        - *Quote Character:* **double quote**
+        - *Header Row:* state names
+        - *Data Rows:* probabilities
+
+        | In **json** files, data must be structured as an array of objects with the following properties:
+
+        - **state_from** *(string)*
+        - **state_to** *(string)*
+        - **probability** *(float or int)*
+
+        | In **txt** files, every line of the file must have the following format:
+
+        - **<state_from> <state_to> <probability>**
+
+        | In **xml** files, the structure must be defined as follows:
+
+        - *Root Element:* **MarkovChain**
+        - *Child Elements:* **Item**\ *, with attributes:*
+
+          - **state_from** *(string)*
+          - **state_to** *(string)*
+          - **probability** *(float or int)*
+
+        :param file_path: the location of the file that defines the Markov chain.
+        :raises FileNotFoundError: if the file does not exist.
+        :raises OSError: if the file cannot be read or is empty.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the file contains invalid data.
+        """
+
+        try:
+
+            file_path, file_extension = _validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], False)
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        if file_extension == '.csv':
+            d = _read_csv(True, file_path)
+        elif file_extension == '.json':
+            d = _read_json(True, file_path)
+        elif file_extension == '.txt':
+            d = _read_txt(True, file_path)
+        else:
+            d = _read_xml(True, file_path)
+
+        states = [key[0] for key in d.keys() if key[0] == key[1]]
+        size = len(states)
+
+        if size < 2:  # pragma: no cover
+            raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
+
+        p = _np_zeros((size, size), dtype=float)
+
+        for (state_from, state_to), probability in d.items():
+            p[states.index(state_from), states.index(state_to)] = probability
+
+        if not _np_allclose(_np_sum(p, axis=1), _np_ones(size, dtype=float)):  # pragma: no cover
+            raise ValueError('The rows of the transition matrix defined by the file must sum to 1.')
+
+        mc = MarkovChain(p, states)
+
+        return mc
+
+    # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True)
     def from_graph(graph: _tgraphs) -> _tmc:
@@ -2335,94 +2412,21 @@ class MarkovChain(metaclass=_BaseClass):
 
         for i in range(size):
 
-            if _np_isclose(p_sums[i], 0.0):  # pragma: no cover
+            p_sums_i = p_sums[i]
+
+            if _np_isclose(p_sums_i, 0.0):  # pragma: no cover
                 p[i, :] = _np_ones(size, dtype=float) / size
             else:
-                p[i, :] /= p_sums[i]
+                p[i, :] /= p_sums_i
 
         mc = MarkovChain(p, states)
 
         return mc
 
+    # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True)
-    def from_file(file_path: str) -> _tmc:
-
-        r"""
-        The method reads a Markov chain from the given file.
-
-        | Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension.
-
-        | In **csv** files, the header must contain the state names and the following rows must contain the probabilities.
-        | The following format settings are required:
-
-        - *Delimiter:* **comma**
-        - *Quoting:* **minimal**
-        - *Quote Character:* **double quote**
-
-        | In **json** files, data must be structured as an array of objects with the following properties:
-
-        - **state_from** *(string)*
-        - **state_to** *(string)*
-        - **probability** *(float or int)*
-
-        | In **txt** files, every line of the file must have the following format:
-
-        - **<state_from> <state_to> <probability>**
-
-        | In **xml** files, the structure must be defined as follows:
-
-        - *Root Element:* **MarkovChain**
-        - *Child Elements:* **Transition**\ *, with attributes:*
-
-          - **state_from** *(string)*
-          - **state_to** *(string)*
-          - **probability** *(float or int)*
-
-        :param file_path: the location of the file that defines the Markov chain.
-        :raises FileNotFoundError: if the file does not exist.
-        :raises OSError: if the file cannot be read or is empty.
-        :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the file contains invalid data.
-        """
-
-        try:
-
-            file_path, file_extension = _validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], False)
-
-        except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
-
-        if file_extension == '.csv':
-            d = _read_csv(file_path)
-        elif file_extension == '.json':
-            d = _read_json(file_path)
-        elif file_extension == '.txt':
-            d = _read_txt(file_path)
-        else:
-            d = _read_xml(file_path)
-
-        states = [key[0] for key in d if key[0] == key[1]]
-        size = len(states)
-
-        if size < 2:  # pragma: no cover
-            raise ValueError('The size of the transition matrix defined by the file must be greater than or equal to 2.')
-
-        p = _np_zeros((size, size), dtype=float)
-
-        for it, ip in d.items():
-            p[states.index(it[0]), states.index(it[1])] = ip
-
-        if not _np_allclose(_np_sum(p, axis=1), _np_ones(size, dtype=float)):  # pragma: no cover
-            raise ValueError('The rows of the transition matrix defined by the file must sum to 1.')
-
-        mc = MarkovChain(p, states)
-
-        return mc
-
-    @staticmethod
-    @_object_mark(instance_generator=True)
-    def from_matrix(m: _tnumeric, states: _olist_str = None) -> _tmc:
+    def from_matrices(m: _tnumeric, states: _olist_str = None) -> _tmc:
 
         """
         The method generates a Markov chain with the given state names, whose transition matrix is obtained through the normalization of the given matrix.
@@ -2447,10 +2451,12 @@ class MarkovChain(metaclass=_BaseClass):
 
         for i in range(size):
 
-            if _np_isclose(p_sums[i], 0.0):  # pragma: no cover
+            p_sums_i = p_sums[i]
+
+            if _np_isclose(p_sums_i, 0.0):  # pragma: no cover
                 p[i, :] = _np_ones(size, dtype=float) / size
             else:
-                p[i, :] /= p_sums[i]
+                p[i, :] /= p_sums_i
 
         mc = MarkovChain(p, states)
 

@@ -5,27 +5,7 @@
 # IMPORTS #
 ###########
 
-# Standard
-
-from os import (
-    close as _os_close,
-    remove as _os_remove
-)
-
-from random import (
-    randint as _rd_randint
-)
-
-from tempfile import (
-    mkstemp as _tf_mkstemp
-)
-
 # Libraries
-
-from networkx import (
-    MultiDiGraph as _nx_MultiDiGraph,
-    relabel_nodes as _nx_relabel_nodes
-)
 
 from numpy import (
     array as _np_array,
@@ -34,17 +14,8 @@ from numpy import (
     isnan as _np_isnan
 )
 
-from numpy.random import (
-    randint as _npr_randint,
-    seed as _npr_seed
-)
-
 from numpy.testing import (
     assert_allclose as _npt_assert_allclose
-)
-
-from pytest import (
-    mark as _pt_mark
 )
 
 # Internal
@@ -57,59 +28,6 @@ from pydtmc import (
 #########
 # TESTS #
 #########
-
-# noinspection PyBroadException
-@_pt_mark.slow
-def test_conversions(seed, maximum_n, maximum_k, runs):
-
-    for _ in range(runs):
-
-        n, k = _rd_randint(2, maximum_n), _rd_randint(2, maximum_k)
-        p_zeros, e_zeros = _rd_randint(0, n), _rd_randint(0, k)
-        hmm = _HiddenMarkovModel.random(n, k, p_zeros=p_zeros, e_zeros=e_zeros, seed=seed)
-
-        d = hmm.to_dictionary()
-        hmm_from = _HiddenMarkovModel.from_dictionary(d)
-        _npt_assert_allclose(hmm_from.p, hmm.p, rtol=1e-5, atol=1e-8)
-        _npt_assert_allclose(hmm_from.e, hmm.e, rtol=1e-5, atol=1e-8)
-
-        graph = hmm.to_graph()
-        hmm_from = _HiddenMarkovModel.from_graph(graph)
-        _npt_assert_allclose(hmm_from.p, hmm.p, rtol=1e-5, atol=1e-8)
-        _npt_assert_allclose(hmm_from.e, hmm.e, rtol=1e-5, atol=1e-8)
-
-        graph = _nx_relabel_nodes(_nx_MultiDiGraph(hmm.p), dict(zip(range(hmm.size), hmm.states)))
-        hmm_from = _HiddenMarkovModel.from_graph(graph)
-        _npt_assert_allclose(hmm_from.p, hmm.p, rtol=1e-5, atol=1e-8)
-        _npt_assert_allclose(hmm_from.e, hmm.e, rtol=1e-5, atol=1e-8)
-        #
-        # file_handler, file_path = _tf_mkstemp(suffix=file_extension)
-        # _os_close(file_handler)
-        #
-        # try:
-        #     hmm.to_file(file_path)
-        #     hmm_from = _HiddenMarkovModel.from_file(file_path)
-        #     exception = False
-        # except Exception:
-        #     hmm_from = None
-        #     exception = True
-        #
-        # _os_remove(file_path)
-        #
-        # assert exception is False
-        #
-        # _npt_assert_allclose(hmm_from.p, hmm.p, rtol=1e-5, atol=1e-8)
-        # _npt_assert_allclose(hmm_from.e, hmm.e, rtol=1e-5, atol=1e-8)
-        #
-        # mp, me = _npr_randint(101, size=(n, n)), _npr_randint(101, size=(n, k))
-        # mc1 = _HiddenMarkovModel.from_matrices(mp, me)
-        #
-        # mp, me = mc1.to_matrices()
-        # mc2 = _HiddenMarkovModel.from_matrices(mp, me)
-        #
-        # _npt_assert_allclose(mc1.p, mc2.p, rtol=1e-5, atol=1e-8)
-        # _npt_assert_allclose(mc1.e, mc2.e, rtol=1e-5, atol=1e-8)
-
 
 def test_decode(p, e, symbols, use_scaling, value):
 

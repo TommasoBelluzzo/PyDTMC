@@ -579,11 +579,7 @@
       "is_valid": true
     },
     {
-      "value": "BaseClass('Test', (), {})",
-      "is_valid": false
-    },
-    {
-      "value": "range(10)",
+      "value": "range(4)",
       "is_valid": false
     },
     {
@@ -599,11 +595,15 @@
       "is_valid": false
     },
     {
-      "value": 10,
+      "value": false,
       "is_valid": false
     },
     {
-      "value": false,
+      "value": -3.3,
+      "is_valid": false
+    },
+    {
+      "value": 11,
       "is_valid": false
     },
     {
@@ -1185,11 +1185,7 @@
       "is_valid": true
     },
     {
-      "value": "BaseClass('Test', (), {})",
-      "is_valid": false
-    },
-    {
-      "value": "range(10)",
+      "value": "range(14)",
       "is_valid": false
     },
     {
@@ -1205,7 +1201,11 @@
       "is_valid": false
     },
     {
-      "value": 10,
+      "value": 22.3477,
+      "is_valid": false
+    },
+    {
+      "value": 6,
       "is_valid": false
     },
     {
@@ -1239,11 +1239,11 @@
       "is_valid": false
     },
     {
-      "value": "[MarkovChain([[0.1, 0.9], [0.4, 0.6]]), []]",
+      "value": "[MarkovChain([[0.1, 0.9], [0.4, 0.6]]), 1]",
       "is_valid": false
     },
     {
-      "value": "[MarkovChain([[0.1, 0.9], [0.4, 0.6]]), BaseClass('Test', (), {})]",
+      "value": "[MarkovChain([[0.1, 0.9], [0.4, 0.6]]), []]",
       "is_valid": false
     },
     {
@@ -1251,7 +1251,7 @@
       "is_valid": false
     },
     {
-      "value": "(MarkovChain([[0.1, 0.9], [0.5, 0.5]]))",
+      "value": "(MarkovChain([[0.1, 0.9], [0.5, 0.5]]),)",
       "is_valid": false
     },
     {
@@ -1259,11 +1259,7 @@
       "is_valid": false
     },
     {
-      "value": "BaseClass('Test', (), {})",
-      "is_valid": false
-    },
-    {
-      "value": "range(3)",
+      "value": "range(13)",
       "is_valid": false
     },
     {
@@ -1279,11 +1275,15 @@
       "is_valid": false
     },
     {
+      "value": false,
+      "is_valid": false
+    },
+    {
       "value": 5.0,
       "is_valid": false
     },
     {
-      "value": false,
+      "value": 5,
       "is_valid": false
     },
     {
@@ -1433,11 +1433,11 @@
       "is_valid": true
     },
     {
-      "value": "BaseClass('Test', (), {})",
+      "value": "object()",
       "is_valid": false
     },
     {
-      "value": "range(10)",
+      "value": "range(100)",
       "is_valid": false
     },
     {
@@ -1453,11 +1453,15 @@
       "is_valid": false
     },
     {
-      "value": 10,
+      "value": false,
       "is_valid": false
     },
     {
-      "value": false,
+      "value": 7.2,
+      "is_valid": false
+    },
+    {
+      "value": 4,
       "is_valid": false
     },
     {

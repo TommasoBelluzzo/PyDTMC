@@ -43,21 +43,27 @@ from pydtmc import (
 # FUNCTIONS #
 #############
 
-def _generate_configs_step1(seed, runs, maximum_size):
+def _generate_configs(seed, runs, maximum_size, params_generator=None):
 
-    rs = _rd_getstate()
+    random_state = _rd_getstate()
     _rd_seed(seed)
 
+    params_generator_defined = params_generator is not None
     configs = []
 
     for _ in range(runs):
 
         size = _rd_randint(2, maximum_size)
         zeros = _rd_randint(0, size)
+        config = [size, zeros]
 
-        configs.append((size, zeros))
+        if params_generator_defined:
+            for param in params_generator():
+                config.append(param)
 
-    _rd_setstate(rs)
+        configs.append(tuple(config))
+
+    _rd_setstate(random_state)
 
     return configs
 
@@ -68,7 +74,7 @@ def _generate_configs_step1(seed, runs, maximum_size):
 
 # noinspection PyBroadException
 @_pt_mark.slow
-def test_plot_comparison(seed, maximum_size, maximum_elements, runs):
+def test_plot_comparison(seed, runs, maximum_size, maximum_elements):
 
     for _ in range(runs):
 
@@ -96,12 +102,13 @@ def test_plot_comparison(seed, maximum_size, maximum_elements, runs):
 
 # noinspection PyBroadException
 @_pt_mark.slow
-def test_plot_eigenvalues(seed, maximum_size, runs):
+def test_plot_eigenvalues(seed, runs, maximum_size):
 
-    for _ in range(runs):
+    configs = _generate_configs(seed, runs, maximum_size)
 
-        size = _rd_randint(2, maximum_size)
-        zeros = _rd_randint(0, size)
+    for i in range(runs):
+
+        size, zeros = configs[i]
         mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
         try:
@@ -119,26 +126,30 @@ def test_plot_eigenvalues(seed, maximum_size, runs):
 
 # noinspection PyArgumentEqualDefault, PyBroadException
 @_pt_mark.slow
-def test_plot_graph(seed, maximum_size, runs):
+def test_plot_graph(seed, runs, maximum_size):
 
-    rs = _rd_getstate()
-    _rd_seed(seed)
+    def _params_generator():
 
-    configs = []
+        p_obj_mc = _rd_random() < 0.5
+        p_size_multiplier = 1 if p_obj_mc else _rd_randint(1, 3)
+        p_nodes_color = _rd_random() < 0.5
+        p_nodes_shape = _rd_random() < 0.5
+        p_edges_label = _rd_random() < 0.5
 
-    for _ in range(runs):
+        yield from [p_obj_mc, p_size_multiplier, p_nodes_color, p_nodes_shape, p_edges_label]
 
-        size = _rd_randint(2, maximum_size)
-        zeros = _rd_randint(0, size)
-
-        configs.append((size, zeros) + tuple(_rd_random() < 0.5 for _ in range(4)))
-
-    _rd_setstate(rs)
+    configs = _generate_configs(seed, runs, maximum_size, params_generator=_params_generator)
 
     for i in range(runs):
 
-        size, zeros, type_mc, nodes_color, nodes_shape, edges_label = configs[i]
-        obj = _MarkovChain.random(size, zeros=zeros, seed=seed) if type_mc else _HiddenMarkovModel.random(size, size * 2, p_zeros=zeros, e_zeros=zeros, seed=seed)
+        size, zeros, obj_mc, size_multiplier, nodes_color, nodes_shape, edges_label = configs[i]
+
+        if obj_mc:
+            obj = _MarkovChain.random(size, zeros=zeros, seed=seed)
+        else:
+            n, k = size, size * size_multiplier
+            p_zeros, e_zeros = zeros, zeros * size_multiplier
+            obj = _HiddenMarkovModel.random(n, k, p_zeros=p_zeros, e_zeros=e_zeros, seed=seed)
 
         try:
 
@@ -158,17 +169,23 @@ def test_plot_graph(seed, maximum_size, runs):
 
 # noinspection PyBroadException
 @_pt_mark.slow
-def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
+def test_plot_redistributions(seed, runs, maximum_size, maximum_distributions):
 
-    plot_types = ('heatmap', 'projection')
+    def _params_generator():
 
-    mcs = []
-    configs_step1 = _generate_configs_step1(seed, runs, maximum_size)
-    configs_step2 = []
+        p_steps = _rd_randint(1, maximum_distributions)
+        p_distributions_check = _rd_random() < 0.5
+        p_initial_status_check = _rd_random() < 0.5
+        p_plot_type = _rd_choice(('heatmap', 'projection'))
+
+        yield from [p_steps, p_distributions_check, p_initial_status_check, p_plot_type]
+
+    configs_base = _generate_configs(seed, runs, maximum_size, params_generator=_params_generator)
+    configs_plot, mcs = [], []
 
     for i in range(runs):
 
-        size, zeros = configs_step1[i]
+        size, zeros, steps, distributions_check, initial_status_check, plot_type = configs_base[i]
         mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
         if i == 0:
@@ -176,18 +193,16 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
             initial_status = None
             plot_type = 'projection'
         else:
-            r = _rd_randint(1, maximum_distributions)
-            distributions = r if _rd_random() < 0.5 else mc.redistribute(r, output_last=False)
-            initial_status = None if isinstance(distributions, int) or _rd_random() < 0.5 else distributions[0]
-            plot_type = _rd_choice(plot_types)
+            distributions = steps if distributions_check else mc.redistribute(steps, output_last=False)
+            initial_status = None if isinstance(distributions, int) or initial_status_check else distributions[0]
 
         mcs.append(mc)
-        configs_step2.append((distributions, initial_status, plot_type))
+        configs_plot.append((distributions, initial_status, plot_type))
 
     for i in range(runs):
 
         mc = mcs[i]
-        distributions, initial_status, plot_type = configs_step2[i]
+        distributions, initial_status, plot_type = configs_plot[i]
 
         try:
 
@@ -204,32 +219,35 @@ def test_plot_redistributions(seed, maximum_size, maximum_distributions, runs):
 
 # noinspection PyBroadException
 @_pt_mark.slow
-def test_plot_walk(seed, maximum_size, maximum_simulations, runs):
+def test_plot_walk(seed, runs, maximum_size, maximum_simulations):
 
-    plot_types = ('histogram', 'sequence', 'transitions')
+    def _params_generator():
 
-    mcs = []
-    configs_step1 = _generate_configs_step1(seed, runs, maximum_size)
-    configs_step2 = []
+        p_steps = _rd_randint(2, maximum_simulations)
+        p_walk_check = _rd_random() < 0.5
+        p_initial_state_check = _rd_random() < 0.5
+        p_plot_type = _rd_choice(('histogram', 'sequence', 'transitions'))
+
+        yield from [p_steps, p_walk_check, p_initial_state_check, p_plot_type]
+
+    configs_base = _generate_configs(seed, runs, maximum_size, params_generator=_params_generator)
+    configs_plot, mcs = [], []
 
     for i in range(runs):
 
-        size, zeros = configs_step1[i]
+        size, zeros, steps, walk_check, initial_state_check, plot_type = configs_base[i]
         mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
-        r = _rd_randint(2, maximum_simulations)
-
-        walk = r if _rd_random() < 0.5 else mc.walk(r, output_indices=True)
-        initial_state = None if isinstance(walk, int) or _rd_random() < 0.5 else walk[0]
-        plot_type = _rd_choice(plot_types)
+        walk = steps if walk_check else mc.walk(steps, output_indices=True)
+        initial_state = None if isinstance(walk, int) or initial_state_check else walk[0]
 
         mcs.append(mc)
-        configs_step2.append((walk, initial_state, plot_type))
+        configs_plot.append((walk, initial_state, plot_type))
 
     for i in range(runs):
 
         mc = mcs[i]
-        walk, initial_state, plot_type = configs_step2[i]
+        walk, initial_state, plot_type = configs_plot[i]
 
         try:
 

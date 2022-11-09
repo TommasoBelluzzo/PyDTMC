@@ -113,7 +113,7 @@ def test_extract_data_generic(value, evaluate, is_valid):
 
     assert actual == expected
 
-    if result is not None:
+    if result_is_valid:
 
         actual = isinstance(result, list)
         expected = True
@@ -150,7 +150,7 @@ def test_extract_data_numeric(value, evaluate, is_valid):
 
         assert actual == expected
 
-        if result is not None:
+        if result_is_valid:
 
             actual = isinstance(result, _np_ndarray)
             expected = True

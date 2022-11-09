@@ -1,30 +1,30 @@
 {
   "plot_comparison_data": {
     "seed": 7331,
+    "runs": 25,
     "maximum_size": 25,
-    "maximum_elements": 12,
-    "runs": 25
+    "maximum_elements": 12
   },
   "plot_eigenvalues_data": {
     "seed": 7331,
-    "maximum_size": 6,
-    "runs": 25
+    "runs": 25,
+    "maximum_size": 10
   },
   "plot_graph_data": {
     "seed": 7331,
-    "maximum_size": 6,
-    "runs": 25
+    "runs": 25,
+    "maximum_size": 5
   },
   "plot_redistributions_data": {
     "seed": 7331,
-    "maximum_size": 6,
-    "maximum_distributions": 20,
-    "runs": 50
+    "runs": 50,
+    "maximum_size": 10,
+    "maximum_distributions": 20
   },
   "plot_walk_data": {
     "seed": 7331,
-    "maximum_size": 6,
-    "maximum_simulations": 20,
-    "runs": 25
+    "runs": 25,
+    "maximum_size": 10,
+    "maximum_simulations": 20
   }
 }

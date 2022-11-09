@@ -827,7 +827,7 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_shape: bool = True
 
     try:
 
-        obj, obj_mc = _validate_object(obj)
+        obj = _validate_object(obj)
         nodes_color = _validate_boolean(nodes_color)
         nodes_shape = _validate_boolean(nodes_shape)
         edges_label = _validate_boolean(edges_label)
@@ -844,6 +844,8 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_shape: bool = True
             _sp_call(['dot', '-V'], stdout=_sp_pipe, stderr=_sp_pipe)
         except Exception:  # pragma: no cover
             extended_graph = False
+
+    obj_mc = obj.__class__.__name__ == 'MarkovChain'
 
     if extended_graph:
         func = _plot_mc_extended if obj_mc else _plot_hmm_extended

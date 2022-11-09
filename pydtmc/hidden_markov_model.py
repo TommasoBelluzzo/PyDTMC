@@ -26,6 +26,7 @@ from numpy import (
     all as _np_all,
     allclose as _np_allclose,
     array_equal as _np_array_equal,
+    copy as _np_copy,
     full as _np_full,
     isclose as _np_isclose,
     nan as _np_nan,
@@ -55,6 +56,7 @@ from .custom_types import (
     tarray as _tarray,
     tgraph as _tgraph,
     tgraphs as _tgraphs,
+    tlist_array as _tlist_array,
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
     thmm as _thmm,
@@ -76,6 +78,17 @@ from .decorators import (
 
 from .exceptions import (
     ValidationError as _ValidationError
+)
+
+from .files_io import (
+    read_csv as _read_csv,
+    read_json as _read_json,
+    read_txt as _read_txt,
+    read_xml as _read_xml,
+    write_csv as _write_csv,
+    write_json as _write_json,
+    write_txt as _write_txt,
+    write_xml as _write_xml
 )
 
 from .hmm import (
@@ -103,15 +116,17 @@ from .utilities import (
 from .validation import (
     validate_boolean as _validate_boolean,
     validate_enumerator as _validate_enumerator,
-    validate_integer as _validate_integer,
-    validate_state as _validate_state,
-    validate_state_names as _validate_state_names,
+    validate_file_path as _validate_file_path,
     validate_hmm_dictionary as _validate_hmm_dictionary,
     validate_hmm_graph as _validate_hmm_graph,
     validate_hmm_emission as _validate_hmm_emission,
     validate_hmm_sequence as _validate_hmm_sequence,
     validate_hmm_symbols as _validate_hmm_symbols,
+    validate_integer as _validate_integer,
+    validate_state as _validate_state,
     validate_mask as _validate_mask,
+    validate_matrix as _validate_matrix,
+    validate_state_names as _validate_state_names,
     validate_states as _validate_states,
     validate_status as _validate_status,
     validate_transition_matrix as _validate_transition_matrix,
@@ -122,7 +137,7 @@ from .validation import (
 # CLASSES #
 ###########
 
-class HiddenMarkovModel(metaclass=_BaseClass):
+class HiddenMarkovModel(_BaseClass):
 
     """
     Defines a hidden Markov model with the given transition and emission matrices.
@@ -455,6 +470,36 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return d
 
+    def to_file(self, file_path: str):
+
+        """
+        The method writes a hidden Markov model to the given file.
+
+        | Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension.
+
+        :param file_path: the location of the file in which the hidden Markov model must be written.
+        :raises OSError: if the file cannot be written.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            file_path, file_extension = _validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        d = self.to_dictionary()
+
+        if file_extension == '.csv':
+            _write_csv(False, d, file_path)
+        elif file_extension == '.json':
+            _write_json(False, d, file_path)
+        elif file_extension == '.txt':
+            _write_txt(d, file_path)
+        else:
+            _write_xml(False, d, file_path)
+
     def to_graph(self) -> _tgraph:
 
         """
@@ -464,6 +509,20 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         graph = _cp_deepcopy(self.__digraph)
 
         return graph
+
+    def to_matrices(self) -> _tlist_array:
+
+        """
+        | The method returns a list of two elements representing the matrices of the hidden Markov model.
+        | The first one is the transition matrix, the second one is the emission matrix.
+        """
+
+        matrices = [
+            _np_copy(self.__p),
+            _np_copy(self.__e)
+        ]
+
+        return matrices
 
     def transition_probability(self, state_target: _tstate, state_origin: _tstate) -> float:
 
@@ -567,22 +626,24 @@ class HiddenMarkovModel(metaclass=_BaseClass):
             raise _generate_validation_error(ex, _ins_trace()) from None
 
         states = [key[1] for key in d.keys() if key[0] == 'P' and key[1] == key[2]]
-        symbols = [key[2] for key in d.keys() if key[0] == 'E' and key[1] == states[0]]
-        n, k = len(states), len(symbols)
+        n = len(states)
 
         if n < 2:  # pragma: no cover
             raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
+
+        symbols = [key[2] for key in d.keys() if key[0] == 'E' and key[1] == states[0]]
+        k = len(symbols)
 
         if k < 2:  # pragma: no cover
             raise ValueError('The size of the emission matrix defined by the dictionary must be greater than or equal to 2.')
 
         p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
 
-        for it, ip in d.items():
-            if it[0] == 'E':
-                e[states.index(it[1]), symbols.index(it[2])] = ip
+        for (reference, element_from, element_to), probability in d.items():
+            if reference == 'E':
+                e[states.index(element_from), symbols.index(element_to)] = probability
             else:
-                p[states.index(it[1]), states.index(it[2])] = ip
+                p[states.index(element_from), states.index(element_to)] = probability
 
         if not _np_allclose(_np_sum(p, axis=1), _np_ones(n, dtype=float)):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.0.')
@@ -594,6 +655,99 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         return hmm
 
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def from_file(file_path: str) -> _thmm:
+
+        r"""
+        The method reads a hidden Markov model from the given file.
+
+        | Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension.
+        | Transition probabilities are associated to reference attribute "P", emission probabilities are associated to reference attribute "E".
+
+        | In **csv** files, data must be structured as follows:
+
+        - *Delimiter:* **comma**
+        - *Quoting:* **minimal**
+        - *Quote Character:* **double quote**
+        - *Header Row:* state names (prefixed with "P_") and symbol names (prefixed with "E_")
+        - *Data Rows:* **probabilities**
+
+        | In **json** files, data must be structured as an array of objects with the following properties:
+
+        - **reference** *(string)*
+        - **element_from** *(string)*
+        - **element_to** *(string)*
+        - **probability** *(float or int)*
+
+        | In **txt** files, every line of the file must have the following format:
+
+        - **<reference> <element_from> <element_to> <probability>**
+
+        | In **xml** files, the structure must be defined as follows:
+
+        - *Root Element:* **HiddenMarkovModel**
+        - *Child Elements:* **Item**\ *, with attributes:*
+
+          - **reference** *(string)*
+          - **element_from** *(string)*
+          - **element_to** *(string)*
+          - **probability** *(float or int)*
+
+        :param file_path: the location of the file that defines the Markov chain.
+        :raises FileNotFoundError: if the file does not exist.
+        :raises OSError: if the file cannot be read or is empty.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the file contains invalid data.
+        """
+
+        try:
+
+            file_path, file_extension = _validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], False)
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        if file_extension == '.csv':
+            d = _read_csv(False, file_path)
+        elif file_extension == '.json':
+            d = _read_json(False, file_path)
+        elif file_extension == '.txt':
+            d = _read_txt(False, file_path)
+        else:
+            d = _read_xml(False, file_path)
+
+        states = [key[1] for key in d.keys() if key[0] == 'P' and key[1] == key[2]]
+        n = len(states)
+
+        if n < 2:  # pragma: no cover
+            raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
+
+        symbols = [key[2] for key in d.keys() if key[0] == 'E' and key[1] == states[0]]
+        k = len(symbols)
+
+        if k < 2:  # pragma: no cover
+            raise ValueError('The size of the emission matrix defined by the dictionary must be greater than or equal to 2.')
+
+        p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
+
+        for (reference, element_from, element_to), probability in d.items():
+            if reference == 'E':
+                e[states.index(element_from), symbols.index(element_to)] = probability
+            else:
+                p[states.index(element_from), states.index(element_to)] = probability
+
+        if not _np_allclose(_np_sum(p, axis=1), _np_ones(n, dtype=float)):  # pragma: no cover
+            raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.0.')
+
+        if not _np_allclose(_np_sum(e, axis=1), _np_ones(n, dtype=float)):  # pragma: no cover
+            raise ValueError('The rows of the emission matrix defined by the dictionary must sum to 1.0.')
+
+        hmm = HiddenMarkovModel(p, e, states, symbols)
+
+        return hmm
+
+    # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True)
     def from_graph(graph: _tgraphs) -> _thmm:
@@ -621,8 +775,6 @@ class HiddenMarkovModel(metaclass=_BaseClass):
         edge_types = graph.edges(data='type', default='')
         edge_weights = graph.edges(data='weight', default=0.0)
 
-        edges = []
-
         for edge in graph.edges:
 
             edge_type = [edge_type[2] for edge_type in edge_types if edge_type[0] == edge[0] and edge_type[1] == edge[1]][0]
@@ -641,15 +793,68 @@ class HiddenMarkovModel(metaclass=_BaseClass):
 
         for i in range(n):
 
-            if _np_isclose(p_sums[i], 0.0):  # pragma: no cover
+            p_sums_i = p_sums[i]
+
+            if _np_isclose(p_sums_i, 0.0):  # pragma: no cover
                 p[i, :] = _np_ones(n, dtype=float) / n
             else:
-                p[i, :] /= p_sums[i]
+                p[i, :] /= p_sums_i
 
-            if _np_isclose(e_sums[i], 0.0):  # pragma: no cover
+            e_sums_i = e_sums[i]
+
+            if _np_isclose(e_sums_i, 0.0):  # pragma: no cover
                 e[i, :] = _np_ones(k, dtype=float) / k
             else:
-                e[i, :] /= p_sums[i]
+                e[i, :] /= e_sums_i
+
+        hmm = HiddenMarkovModel(p, e, states, symbols)
+
+        return hmm
+
+    # noinspection DuplicatedCode
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def from_matrices(mp: _tnumeric, me: _tnumeric, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:
+
+        """
+        The method generates a Markov chain with the given state names, whose transition matrix is obtained through the normalization of the given matrix.
+
+        :param mp: the matrix to transform into the transition matrix.
+        :param me: the matrix to transform into the emission matrix.
+        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param symbols: the name of each symbol (*if omitted, an increasing sequence of integers starting at 1*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            mp = _validate_matrix(mp)
+            me = _validate_matrix(me, mp.shape[0])
+            states = [f'P{i:d}' for i in range(1, mp.shape[0] + 1)] if states is None else _validate_state_names(states, mp.shape[0])
+            symbols = [f'E{i:d}' for i in range(1, me.shape[1] + 1)] if symbols is None else _validate_state_names(symbols, me.shape[1])
+
+        except Exception as ex:  # pragma: no cover
+            raise _generate_validation_error(ex, _ins_trace()) from None
+
+        n, k = mp.shape[0], me.shape[1]
+        p, e = _np_copy(mp), _np_copy(me)
+        p_sums, e_sums = _np_sum(p, axis=1), _np_sum(e, axis=1)
+
+        for i in range(n):
+
+            p_sums_i = p_sums[i]
+
+            if _np_isclose(p_sums_i, 0.0):  # pragma: no cover
+                p[i, :] = _np_ones(n, dtype=float) / n
+            else:
+                p[i, :] /= p_sums_i
+
+            e_sums_i = e_sums[i]
+
+            if _np_isclose(e_sums_i, 0.0):  # pragma: no cover
+                e[i, :] = _np_ones(k, dtype=float) / k
+            else:
+                e[i, :] /= e_sums_i
 
         hmm = HiddenMarkovModel(p, e, states, symbols)
 

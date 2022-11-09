@@ -766,6 +766,7 @@ def lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
     return p, None
 
 
+# noinspection PyBroadException
 def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_generation_ext:
 
     size = p.shape[0]
@@ -778,7 +779,6 @@ def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_genera
 
     rt = _np_transpose(r)
 
-    # noinspection PyBroadException
     try:
         k = _np_dot(_npl_inv(_np_dot(rt, r)), rt)
     except Exception:  # pragma: no cover
@@ -792,8 +792,6 @@ def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_genera
         return None, None, 'The Markov chain is not lumpable with respect to the given partitions.'
 
     p_lump = _np_dot(_np_dot(k, p), r)
-
-    # noinspection PyTypeChecker
     state_names = [','.join(list(map(states.__getitem__, partition))) for partition in partitions]
 
     return p_lump, state_names, None

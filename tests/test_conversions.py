@@ -13,7 +13,11 @@ from os import (
 )
 
 from random import (
-    randint as _rd_randint
+    getstate as _rd_getstate,
+    randint as _rd_randint,
+    random as _rd_random,
+    seed as _rd_seed,
+    setstate as _rd_setstate
 )
 
 from tempfile import (
@@ -23,8 +27,7 @@ from tempfile import (
 # Libraries
 
 from networkx import (
-    MultiDiGraph as _nx_MultiDiGraph,
-    relabel_nodes as _nx_relabel_nodes
+    MultiDiGraph as _nx_MultiDiGraph
 )
 
 from numpy.random import (
@@ -43,77 +46,135 @@ from pytest import (
 # Internal
 
 from pydtmc import (
+    HiddenMarkovModel as _HiddenMarkovModel,
     MarkovChain as _MarkovChain
 )
+
+
+#############
+# FUNCTIONS #
+#############
+
+def _generate_objects(seed, runs, maximum_size):
+
+    random_state = _rd_getstate()
+    _rd_seed(seed)
+
+    objects = []
+
+    for _ in range(runs):
+
+        obj_mc = _rd_random() < 0.5
+        size = _rd_randint(2, maximum_size)
+        zeros = _rd_randint(0, size)
+
+        if obj_mc:
+
+            size = _rd_randint(2, maximum_size)
+            zeros = _rd_randint(0, size)
+
+            objects.append(_MarkovChain.random(size, zeros=zeros, seed=seed))
+
+        else:
+
+            size_multiplier = _rd_randint(1, 3)
+
+            n, k = size, size * size_multiplier
+            p_zeros, e_zeros = zeros, zeros * size_multiplier
+
+            objects.append(_HiddenMarkovModel.random(n, k, p_zeros=p_zeros, e_zeros=e_zeros, seed=seed))
+
+    _rd_setstate(random_state)
+
+    return objects
 
 
 #########
 # TESTS #
 #########
 
-def test_dictionary(seed, maximum_size, runs):
+def test_dictionary(seed, runs, maximum_size):
 
-    for _ in range(runs):
+    objects = _generate_objects(seed, runs, maximum_size)
 
-        size = _rd_randint(2, maximum_size)
-        zeros = _rd_randint(0, size)
-        mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
+    for obj in objects:
 
-        d = mc.to_dictionary()
-        mc_from = _MarkovChain.from_dictionary(d)
+        obj_matrices = obj.to_matrices()
 
-        _npt_assert_allclose(mc_from.p, mc.p, rtol=1e-5, atol=1e-8)
+        d = obj.to_dictionary()
+
+        obj_from = obj.from_dictionary(d)
+        obj_from_matrices = obj_from.to_matrices()
+
+        for index, obj_matrix in enumerate(obj_matrices):
+            obj_from_matrix = obj_from_matrices[index]
+            _npt_assert_allclose(obj_from_matrix, obj_matrix, rtol=1e-5, atol=1e-8)
 
 
 @_pt_mark.slow
-def test_graph(seed, maximum_size, runs):
+def test_graph(seed, runs, maximum_size):
 
-    for _ in range(runs):
+    objects = _generate_objects(seed, runs, maximum_size)
 
-        size = _rd_randint(2, maximum_size)
-        zeros = _rd_randint(0, size)
-        mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
+    for obj in objects:
 
-        graph = mc.to_graph()
-        mc_from = _MarkovChain.from_graph(graph)
+        obj_matrices = obj.to_matrices()
 
-        _npt_assert_allclose(mc_from.p, mc.p, rtol=1e-5, atol=1e-8)
+        graph = obj.to_graph()
 
-        graph = _nx_relabel_nodes(_nx_MultiDiGraph(mc.p), dict(zip(range(mc.size), mc.states)))
-        mc_from = _MarkovChain.from_graph(graph)
+        obj_from = obj.from_graph(graph)
+        obj_from_matrices = obj_from.to_matrices()
 
-        _npt_assert_allclose(mc_from.p, mc.p, rtol=1e-5, atol=1e-8)
+        for index, obj_matrix in enumerate(obj_matrices):
+            obj_from_matrix = obj_from_matrices[index]
+            _npt_assert_allclose(obj_from_matrix, obj_matrix, rtol=1e-5, atol=1e-8)
+
+        graph = _nx_MultiDiGraph(graph)
+
+        obj_from = obj.from_graph(graph)
+        obj_from_matrices = obj_from.to_matrices()
+
+        for index, obj_matrix in enumerate(obj_matrices):
+            obj_from_matrix = obj_from_matrices[index]
+            _npt_assert_allclose(obj_from_matrix, obj_matrix, rtol=1e-5, atol=1e-8)
 
 
 # noinspection PyBroadException
 @_pt_mark.slow
-def test_file(seed, maximum_size, runs, file_extension):
+def test_file(seed, runs, maximum_size, file_extension):
 
-    for _ in range(runs):
+    objects = _generate_objects(seed, runs, maximum_size)
 
-        size = _rd_randint(2, maximum_size)
-        zeros = _rd_randint(0, size)
-        mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
+    for obj in objects:
+
+        obj_matrices = obj.to_matrices()
 
         file_handler, file_path = _tf_mkstemp(suffix=file_extension)
         _os_close(file_handler)
 
         try:
-            mc.to_file(file_path)
-            mc_from = _MarkovChain.from_file(file_path)
+            obj.to_file(file_path)
+            obj_from = obj.from_file(file_path)
             exception = False
         except Exception:
-            mc_from = None
+            obj_from = None
             exception = True
 
-        _os_remove(file_path)
+        try:
+            _os_remove(file_path)
+        except Exception:
+            pass
 
         assert exception is False
 
-        _npt_assert_allclose(mc_from.p, mc.p, rtol=1e-5, atol=1e-8)
+        obj_from_matrices = obj_from.to_matrices()
+
+        for index, obj_matrix in enumerate(obj_matrices):
+            obj_from_matrix = obj_from_matrices[index]
+            _npt_assert_allclose(obj_from_matrix, obj_matrix, rtol=1e-5, atol=1e-8)
 
 
-def test_matrix(seed, maximum_size, runs):
+def test_matrices(seed, runs, maximum_size):
 
     _npr_seed(seed)
 

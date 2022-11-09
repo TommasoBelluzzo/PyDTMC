@@ -120,7 +120,7 @@ from .custom_types import (
     tlists_int as _tlists_int,
     tmc as _tmc,
     tmc_dict as _tmc_dict,
-    tobject_out as _tobject_out,
+    tobject as _tobject,
     trand as _trand,
     trandfunc as _trandfunc,
     tscalar as _tscalar,
@@ -132,6 +132,7 @@ from .utilities import (
     extract_data_generic as _extract_data_generic,
     extract_data_numeric as _extract_data_numeric,
     get_file_extension as _get_file_extension,
+    get_full_name as _get_full_name,
     is_array as _is_array,
     is_bool as _is_bool,
     is_dictionary as _is_dictionary,
@@ -509,6 +510,28 @@ def validate_hmm_dictionary(value: _tany) -> _thmm_dict:
     return result
 
 
+# noinspection DuplicatedCode
+def validate_hmm_emission(value: _tany, size: int) -> _tarray:
+
+    try:
+        value = _extract_data_numeric(value)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+    value = value.astype(float)
+
+    if value.ndim != 2 or value.shape[0] != size or value.shape[1] < 2:
+        raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least two columns and a number of rows equal to {size:d}.')
+
+    if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
+
+    if not _np_allclose(_np_sum(value, axis=1), _np_ones(value.shape[0], dtype=float)):
+        raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
+
+    return value
+
+
 def validate_hmm_graph(value: _tany) -> _tgraphs:
 
     non_multi = _is_graph(value, False)
@@ -558,34 +581,6 @@ def validate_hmm_graph(value: _tany) -> _tgraphs:
 
     if not all(_is_number(edge_weight[2]) and float(edge_weight[2]) > 0.0 for edge_weight in edge_weights):
         raise ValueError('The "@arg@" parameter must define edge weight attributes as non-negative numbers.')
-
-    return value
-
-
-# noinspection DuplicatedCode
-def validate_hmm_emission(value: _tany, size: int) -> _tarray:
-
-    try:
-        value = _extract_data_numeric(value)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-    value = value.astype(float)
-
-    if value.ndim != 2:
-        raise ValueError('The "@arg@" parameter must be a 2d matrix.')
-
-    if value.shape[0] != size:
-        raise ValueError(f'The "@arg@" parameter must have a number of rows equal to {size:d}.')
-
-    if value.shape[1] < 2:
-        raise ValueError('The "@arg@" parameter must have a number of columns greater than or equal to 2.')
-
-    if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
-
-    if not _np_allclose(_np_sum(value, axis=1), _np_ones(value.shape[0], dtype=float)):
-        raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
 
     return value
 
@@ -745,7 +740,7 @@ def validate_mask(value: _tany, rows: int, columns: int) -> _tarray:
     return value
 
 
-def validate_matrix(value: _tany) -> _tarray:
+def validate_matrix(value: _tany, rows: _oint = None) -> _tarray:
 
     try:
         value = _extract_data_numeric(value)
@@ -754,8 +749,12 @@ def validate_matrix(value: _tany) -> _tarray:
 
     value = value.astype(float)
 
-    if value.ndim != 2 or value.shape[0] < 2 or value.shape[0] != value.shape[1]:
-        raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
+    if rows is None:
+        if value.ndim != 2 or value.shape[0] < 2 or value.shape[0] != value.shape[1]:
+            raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
+    else:
+        if value.ndim != 2 or value.shape[0] != rows or value.shape[1] < 2:
+            raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least two columns and a number of rows equal to {rows:d}.')
 
     if not all(_np_isfinite(x) and _np_isreal(x) and x >= 0.0 for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')
@@ -763,20 +762,27 @@ def validate_matrix(value: _tany) -> _tarray:
     return value
 
 
-def validate_object(value: _tany) -> _tobject_out:
+# noinspection PyBroadException
+def validate_object(value: _tany) -> _tobject:
 
     if value is None:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+        raise TypeError('The "@arg@" parameter is null.')
 
-    value_reference = f'{value.__module__}.{value.__class__.__name__}'
+    try:
+        value_module = value.__module__
+    except Exception:
+        value_module = value.__class__.__module__
 
-    if value_reference == 'pydtmc.markov_chain.MarkovChain':
-        return value, True
+    if not value_module.startswith('pydtmc.'):
+        raise TypeError('The "@arg@" parameter is wrongly typed.')
 
-    if value_reference == 'pydtmc.hidden_markov_model.HiddenMarkovModel':
-        return value, False
+    value_bases = value.__class__.__bases__ or ()
+    value_base = 'None' if len(value_bases) == 0 else _get_full_name(value_bases[0])
 
-    raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+    if value_base != 'pydtmc.base_class.BaseClass':
+        raise TypeError('The "@arg@" parameter is wrongly typed.')
+
+    return value
 
 
 def validate_partitions(value: _tany, current_states: _tlist_str) -> _tlists_int:

@@ -8,6 +8,7 @@ __all__ = [
     'generate_validation_error',
     'get_caller',
     'get_file_extension',
+    'get_full_name',
     'get_instance_generators',
     'get_numpy_random_distributions',
     'extract_data_generic',
@@ -185,9 +186,6 @@ def extract_data_generic(data: _tany) -> _tlist_any:
     elif is_iterable(data):
         result = list(data)
     else:
-        result = None
-
-    if result is None:
         raise TypeError('The data type is not supported.')
 
     return result
@@ -278,6 +276,25 @@ def get_instance_generators(cls: _tany) -> _tlist_str:
                 result.append(member_name)
 
     return result
+
+
+# noinspection PyBroadException
+def get_full_name(o: _tany) -> str:
+
+    try:
+        module = o.__module__
+    except Exception:
+        module = o.__class__.__module__
+
+    try:
+        name = o.__qualname__
+    except Exception:
+        name = o.__class__.__qualname__
+
+    if module is None or module == 'builtins':
+        return name
+
+    return f'{module}.{name}'
 
 
 def get_numpy_random_distributions() -> _tlist_str:

@@ -6,20 +6,83 @@ __all__ = [
 
 
 ###########
+# IMPORTS #
+###########
+
+# Standard
+
+# noinspection PyPep8Naming
+from abc import (
+    ABC as _abc_ABC,
+    abstractmethod as _abc_abstractmethod
+)
+
+
+###########
 # CLASSES #
 ###########
 
-class BaseClass(type):
+class BaseClass(_abc_ABC):
 
     """
-    Defines an abstract base class used for the package classes.
+    Defines an abstract base class used by package classes.
     """
 
     # noinspection PyMethodParameters
-    def __new__(cls, class_name, class_bases, class_dict):
+    def __new__(cls, *args, **kwargs):
 
-        for class_base in class_bases:
-            if isinstance(class_base, BaseClass):
-                raise TypeError(f"Type '{class_base.__name__}' is not an acceptable base type.")
+        if cls is BaseClass:
+            raise TypeError('The base class cannot be instantiated.')
 
-        return type.__new__(cls, class_name, class_bases, class_dict)
+        return super().__new__(cls)
+
+    @property
+    @_abc_abstractmethod
+    def p(self):
+        pass
+
+    @property
+    @_abc_abstractmethod
+    def size(self):
+        pass
+
+    @property
+    @_abc_abstractmethod
+    def states(self):
+        pass
+
+    @_abc_abstractmethod
+    def to_dictionary(self):
+        pass
+
+    @_abc_abstractmethod
+    def to_file(self, file_path):
+        pass
+
+    @_abc_abstractmethod
+    def to_graph(self):
+        pass
+
+    @_abc_abstractmethod
+    def to_matrices(self):
+        pass
+
+    @staticmethod
+    @_abc_abstractmethod
+    def from_dictionary(d):
+        pass
+
+    @staticmethod
+    @_abc_abstractmethod
+    def from_file(file_path):
+        pass
+
+    @staticmethod
+    @_abc_abstractmethod
+    def from_graph(graph):
+        pass
+
+    @staticmethod
+    @_abc_abstractmethod
+    def from_matrices(*args):
+        pass

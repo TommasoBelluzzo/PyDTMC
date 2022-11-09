@@ -62,11 +62,6 @@ from pydtmc import (
     MarkovChain as _MarkovChain
 )
 
-# noinspection PyUnresolvedReferences
-from pydtmc.base_class import (  # noqa
-    BaseClass as _BaseClass
-)
-
 # noinspection PyProtectedMember
 from pydtmc.validation import (
     validate_boolean as _validate_boolean,
@@ -124,7 +119,6 @@ def _eval_replace(value):
     value = value.replace('nx.', '_nx_')
     value = value.replace('pd.', '_pd_')
     value = value.replace('spsp.', '_spsp_')
-    value = value.replace('BaseClass', '_BaseClass')
     value = value.replace('HiddenMarkovModel', '_HiddenMarkovModel')
     value = value.replace('MarkovChain', '_MarkovChain')
 
@@ -716,23 +710,15 @@ def test_validate_object(value, is_valid):
     else:
 
         try:
-            result = _validate_object(value)
+            _validate_object(value)
             result_is_valid = True
         except Exception:
-            result = None
             result_is_valid = False
 
         actual = result_is_valid
         expected = is_valid
 
         assert actual == expected
-
-        if result_is_valid:
-
-            actual = (isinstance(result[0], _HiddenMarkovModel) and not result[1]) or (isinstance(result[0], _MarkovChain) and result[1])
-            expected = True
-
-            assert actual == expected
 
 
 # noinspection DuplicatedCode, PyBroadException
