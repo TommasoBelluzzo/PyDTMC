@@ -766,7 +766,7 @@ def validate_mask(value: _tany, rows: int, columns: int) -> _tarray:
     return value
 
 
-def validate_matrix(value: _tany, rows: _oint = None) -> _tarray:
+def validate_matrix(value: _tany, columns: _oint = None, rows: _oint = None) -> _tarray:
 
     try:
         value = _extract_data_numeric(value)
@@ -775,12 +775,18 @@ def validate_matrix(value: _tany, rows: _oint = None) -> _tarray:
 
     value = value.astype(float)
 
-    if rows is None:
+    if columns is None and rows is None:
         if value.ndim != 2 or value.shape[0] < 2 or value.shape[0] != value.shape[1]:
             raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
-    else:
+    elif columns is not None and rows is None:
+        if value.ndim != 2 or value.shape[0] < 2 or value.shape[1] != columns:
+            raise ValueError(f'The "@arg@" parameter must be a 2d matrix with {columns:d} columns and at least 2 rows.')
+    elif columns is None and rows is not None:
         if value.ndim != 2 or value.shape[0] != rows or value.shape[1] < 2:
-            raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least two columns and a number of rows equal to {rows:d}.')
+            raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least 2 columns and {rows:d} rows.')
+    else:
+        if value.ndim != 2 or value.shape[0] != rows or value.shape[1] != columns:
+            raise ValueError(f'The "@arg@" parameter must be a 2d matrix with {columns:d} columns and {rows:d} rows.')
 
     if not all(_np_isfinite(x) and _np_isreal(x) and x >= 0.0 for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')

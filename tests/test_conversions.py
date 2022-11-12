@@ -104,6 +104,7 @@ def _generate_objects(seed, runs, maximum_size):
 #########
 
 def test_dictionary(seed, runs, maximum_size):
+
     objects = _generate_objects(seed, runs, maximum_size)
 
     for obj, to_matrices in objects:
@@ -122,6 +123,7 @@ def test_dictionary(seed, runs, maximum_size):
 
 @_pt_mark.slow
 def test_graph(seed, runs, maximum_size):
+
     objects = _generate_objects(seed, runs, maximum_size)
 
     for obj, to_matrices in objects:
@@ -150,6 +152,7 @@ def test_graph(seed, runs, maximum_size):
 # noinspection PyBroadException
 @_pt_mark.slow
 def test_file(seed, runs, maximum_size, file_extension):
+
     objects = _generate_objects(seed, runs, maximum_size)
 
     for obj, to_matrices in objects:

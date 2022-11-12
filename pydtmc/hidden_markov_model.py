@@ -829,7 +829,7 @@ class HiddenMarkovModel(_BaseClass):
         try:
 
             mp = _validate_matrix(mp)
-            me = _validate_matrix(me, mp.shape[1])
+            me = _validate_matrix(me, rows=mp.shape[1])
             states = _create_labels(mp.shape[1], 'P') if states is None else _validate_labels_input(states, mp.shape[1])
             symbols = _create_labels(me.shape[1], 'E') if symbols is None else _validate_labels_input(symbols, me.shape[1])
 

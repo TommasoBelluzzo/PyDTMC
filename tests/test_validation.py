@@ -588,12 +588,12 @@ def test_validate_mask(value, rows, columns, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_matrix(value, is_valid):
+def test_validate_matrix(value, columns, rows, is_valid):
 
     value = _np_array(value)
 
     try:
-        result = _validate_matrix(value)
+        result = _validate_matrix(value, columns, rows)
         result_is_valid = True
     except Exception:
         result = None
@@ -605,11 +605,8 @@ def test_validate_matrix(value, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, _np_ndarray)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, _np_ndarray)
+        assert result_check is True
 
 
 # noinspection PyBroadException
