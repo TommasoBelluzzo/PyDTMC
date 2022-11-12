@@ -320,11 +320,30 @@ def simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint, fin
 
 def train(algorithm: str, p_guess: _tarray, e_guess: _tarray, symbols: _tlists_int) -> _thmm_params_res:
 
+    def _check_convergence(cc_ll, cc_ll_previous, cc_p_guess, cc_p_guess_previous, cc_e_guess, cc_e_guess_previous):
+
+        delta = abs(cc_ll - cc_ll_previous) / (1.0 + abs(cc_ll_previous))
+
+        if delta >= 1e-6:
+            return False
+
+        delta = _npl_norm(cc_p_guess - cc_p_guess_previous, ord=_np_inf) / cc_p_guess[0]
+
+        if delta >= 1e-6:
+            return False
+
+        delta = _npl_norm(cc_e_guess - cc_e_guess_previous, ord=_np_inf) / cc_e_guess[1]
+
+        if delta >= 1e-6:
+            return False
+
+        return True
+
     n, k, f = p_guess.shape[0], e_guess.shape[1], len(symbols)
     p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
     initial_distribution = _np_full(n, 1.0 / n, dtype=float)
 
-    ll, converged = 1.0, False
+    ll = 1.0
     iterations = 0
 
     while iterations < 500:
@@ -387,29 +406,21 @@ def train(algorithm: str, p_guess: _tarray, e_guess: _tarray, symbols: _tlists_i
         p_guess[_np_isnan(p_guess)] = 0.0
         e_guess[_np_isnan(e_guess)] = 0.0
 
-        convergence_check = (abs(ll - ll_previous) / (1.0 + abs(ll_previous))) < 1e-6
+        result = _check_convergence(ll, ll_previous, p_guess, p_guess_previous, e_guess, e_guess_previous)
 
-        if convergence_check:
-            convergence_check = (_npl_norm(p_guess - p_guess_previous, ord=_np_inf) / n) < 1e-6
-
-            if convergence_check:
-                convergence_check = (_npl_norm(e_guess - e_guess_previous, ord=_np_inf) / k) < 1e-6
-
-                if convergence_check:
-                    p, e = _np_copy(p_guess), _np_copy(e_guess)
-                    converged = True
-                    break
+        if result:
+            p, e = _np_copy(p_guess), _np_copy(e_guess)
+            return p, e, None
 
         p = _np_zeros((n, n), dtype=float)
         e = _np_zeros((n, k), dtype=float)
 
         iterations += 1
 
-    if not converged:
-        algorithm_name = '-'.join([x.capitalize() for x in algorithm.split('-')])
-        return None, None, f'The {algorithm_name} algorithm failed to converge.'
+    algorithm_name = '-'.join([x.capitalize() for x in algorithm.split('-')])
+    message = f'The {algorithm_name} algorithm failed to converge.'
 
-    return p, e, None
+    return None, None, message
 
 
 def viterbi(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:

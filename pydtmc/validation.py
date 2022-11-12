@@ -19,6 +19,7 @@ __all__ = [
     'validate_hyperparameter',
     'validate_integer',
     'validate_interval',
+    'validate_labels_input',
     'validate_markov_chain',
     'validate_markov_chains',
     'validate_mask',
@@ -28,7 +29,6 @@ __all__ = [
     'validate_random_distribution',
     'validate_rewards',
     'validate_state',
-    'validate_state_names',
     'validate_states',
     'validate_status',
     'validate_strings',
@@ -700,6 +700,32 @@ def validate_interval(value: _tany) -> _tinterval:
     return a, b
 
 
+def validate_labels_input(value: _tany, size: _oint = None) -> _tlist_str:
+
+    try:
+        value = _extract_data_generic(value)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+    if not all(_is_string(state) for state in value):
+        raise TypeError('The "@arg@" parameter must contain only non-empty strings.')
+
+    states_length = len(value)
+
+    if states_length < 2:
+        raise ValueError('The "@arg@" parameter must contain at least two elements.')
+
+    states_unique = len(set(value))
+
+    if states_unique < states_length:
+        raise ValueError('The "@arg@" parameter must contain only unique values.')
+
+    if size is not None and states_length != size:
+        raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {size:d}.')
+
+    return value
+
+
 def validate_markov_chain(value: _tany) -> _tmc:
 
     if value is None or (f'{value.__module__}.{value.__class__.__name__}' != 'pydtmc.markov_chain.MarkovChain'):
@@ -794,7 +820,7 @@ def validate_partitions(value: _tany, current_states: _tlist_str) -> _tlists_int
     current_states_length = len(current_states)
 
     if partitions_length < 2 or partitions_length >= current_states_length:
-        raise ValueError(f'The "@arg@" parameter must contain a number of elements between 0 and the number of existing states minus one ({current_states_length - 1:d}).')
+        raise ValueError(f'The "@arg@" parameter must contain a number of elements between 2 and the number of existing states minus one ({current_states_length - 1:d}).')
 
     partitions_flat = []
     partitions_groups = []
@@ -909,32 +935,6 @@ def validate_state(value: _tany, current_states: _tlist_str) -> int:
         return current_states.index(value)
 
     raise TypeError('The "@arg@" parameter must be either an integer or a non-empty string.')
-
-
-def validate_state_names(value: _tany, size: _oint = None) -> _tlist_str:
-
-    try:
-        value = _extract_data_generic(value)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-    if not all(_is_string(state) for state in value):
-        raise TypeError('The "@arg@" parameter must contain only non-empty strings.')
-
-    states_length = len(value)
-
-    if states_length < 2:
-        raise ValueError('The "@arg@" parameter must contain at least two elements.')
-
-    states_unique = len(set(value))
-
-    if states_unique < states_length:
-        raise ValueError('The "@arg@" parameter must contain only unique values.')
-
-    if size is not None and states_length != size:
-        raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {size:d}.')
-
-    return value
 
 
 def validate_states(value: _tany, possible_states: _tlist_str, subset: bool, length_limit: int) -> _tlist_int:

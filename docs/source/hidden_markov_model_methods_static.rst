@@ -7,5 +7,9 @@ Static Methods
 	:noindex:
 	:members:
 		estimate,
+		from_dictionary,
+		from_graph,
+		from_file,
+		from_matrix,
 		random,
 		train

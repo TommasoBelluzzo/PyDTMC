@@ -7,6 +7,13 @@ Instance Methods
 	:noindex:
 	:members:
 		decode,
+		emission_probability,
+		next,
 		restrict,
 		simulate,
+		to_dictionary,
+		to_graph,
+		to_file,
+		to_matrix,
+		transition_probability,
 		viterbi

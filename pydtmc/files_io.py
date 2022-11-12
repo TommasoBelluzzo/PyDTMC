@@ -69,15 +69,15 @@ from .custom_types import (
 
 _valid_params_hmm = {
     'reference': ('string', ('E', 'P')),
-    'element_from': ('string', None),
-    'element_to': ('string', None),
-    'probability': ('number', None)
+    'element_from': ('string', ()),
+    'element_to': ('string', ()),
+    'probability': ('number', ())
 }
 
 _valid_params_mc = {
-    'state_from': ('string', None),
-    'state_to': ('string', None),
-    'probability': ('number', None)
+    'state_from': ('string', ()),
+    'state_to': ('string', ()),
+    'probability': ('number', ())
 }
 
 
@@ -241,7 +241,7 @@ def read_json(mc: bool, file_path: str) -> _tobj_dict:
                 if not isinstance(value, str) or len(value) == 0:  # pragma: no cover
                     raise ValueError('The file contains invalid elements.')
 
-            if param_possible_values is not None and value not in param_possible_values:
+            if len(param_possible_values) > 0 and value not in param_possible_values:
                 raise ValueError('The file contains invalid elements.')
 
             values.append(value)
@@ -281,7 +281,7 @@ def read_txt(mc: bool, file_path: str) -> _tobj_dict:
                 except Exception as ex:  # pragma: no cover
                     raise ValueError('The file contains invalid lines.') from ex
 
-            if param_possible_values is not None and value not in param_possible_values:
+            if len(param_possible_values) > 0 and value not in param_possible_values:
                 raise ValueError('The file contains invalid lines.')
 
             values.append(value)
@@ -345,7 +345,7 @@ def read_xml(mc: bool, file_path: str) -> _tobj_dict:
                 except Exception as ex:  # pragma: no cover
                     raise ValueError('The file contains invalid elements.') from ex
 
-            if param_possible_values is not None and value not in param_possible_values:
+            if len(param_possible_values) > 0 and value not in param_possible_values:
                 raise ValueError('The file contains invalid elements.')
 
             values.append(value)

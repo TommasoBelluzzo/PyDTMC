@@ -138,7 +138,7 @@ from .custom_types import (
 )
 
 from .utilities import (
-    generate_validation_error as _generate_validation_error
+    create_validation_error as _create_validation_error
 )
 
 from .validation import (
@@ -242,7 +242,7 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _generate_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins_trace()) from None
 
     n = len(mcs)
     rows = int(_math_sqrt(n))
@@ -304,12 +304,11 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _generate_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins_trace()) from None
 
     figure, ax = _mplp_subplots(dpi=dpi)
 
-    handles = []
-    labels = []
+    handles, labels = [], []
 
     theta = _np_linspace(0.0, 2.0 * _np_pi, 200)
 
@@ -835,7 +834,7 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_shape: bool = True
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _generate_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins_trace()) from None
 
     extended_graph = not force_standard and _pydot_found
 
@@ -891,7 +890,7 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _generate_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins_trace()) from None
 
     if isinstance(distributions, int):
         distributions = mc.redistribute(distributions, initial_status=initial_status, output_last=False)
@@ -992,12 +991,12 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _generate_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins_trace()) from None
 
     if isinstance(walk, int):
         walk = mc.walk(walk, initial_state=initial_state, output_indices=True, seed=seed)
 
-    if initial_state is not None and (walk[0] != initial_state):  # pragma: no cover
+    if initial_state is not None and walk[0] != initial_state:  # pragma: no cover
         raise ValueError('The "initial_state" parameter, if specified when the "walk" parameter represents a sequence of states, must match the first element.')
 
     walk_length = len(walk)

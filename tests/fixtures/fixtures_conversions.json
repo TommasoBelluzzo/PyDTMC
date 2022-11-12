@@ -1,47 +1,42 @@
 {
   "dictionary_data": {
     "seed": 7331,
-    "maximum_size": 30,
-    "runs": 50
+    "runs": 100,
+    "maximum_size": 30
   },
   "graph_data": {
     "seed": 7331,
-    "maximum_size": 10,
-    "runs": 50
+    "runs": 50,
+    "maximum_size": 10
   },
   "file_data": [
     {
       "id": "csv",
       "seed": 7331,
-      "maximum_size": 20,
       "runs": 50,
+      "maximum_size": 20,
       "file_extension": ".csv"
     },
     {
       "id": "json",
       "seed": 7331,
-      "maximum_size": 20,
       "runs": 50,
+      "maximum_size": 20,
       "file_extension": ".json"
     },
     {
       "id": "txt",
       "seed": 7331,
-      "maximum_size": 20,
       "runs": 50,
+      "maximum_size": 20,
       "file_extension": ".txt"
     },
     {
       "id": "xml",
       "seed": 7331,
-      "maximum_size": 20,
       "runs": 50,
+      "maximum_size": 20,
       "file_extension": ".xml"
     }
-  ],
-  "matrix_data": {
-    "seed": 7331,
-    "maximum_size": 30,
-    "runs": 50
-  }
+  ]
 }

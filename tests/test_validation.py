@@ -7,19 +7,10 @@
 
 # Standard
 
-from ast import (
-    parse as _ast_parse
-)
-
 from os.path import (
     abspath as _osp_abspath,
     dirname as _osp_dirname,
     join as _osp_join
-)
-
-from types import (
-    CodeType as _tp_CodeType,
-    FunctionType as _tp_FunctionType
 )
 
 # Libraries
@@ -39,17 +30,6 @@ from numpy.random import (
     RandomState as _npr_RandomState
 )
 
-# noinspection DuplicatedCode
-try:
-    from pandas import (
-        DataFrame as _pd_DataFrame,
-        Series as _pd_Series
-    )
-    _pandas_found = True
-except ImportError:  # pragma: no cover
-    _pd_DataFrame, _pd_Series = None, None
-    _pandas_found = False
-
 from pytest import (
     mark as _pt_mark,
     skip as _pt_skip
@@ -62,7 +42,6 @@ from pydtmc import (
     MarkovChain as _MarkovChain
 )
 
-# noinspection PyProtectedMember
 from pydtmc.validation import (
     validate_boolean as _validate_boolean,
     validate_boundary_condition as _validate_boundary_condition,
@@ -80,6 +59,7 @@ from pydtmc.validation import (
     validate_integer as _validate_integer,
     validate_hyperparameter as _validate_hyperparameter,
     validate_interval as _validate_interval,
+    validate_labels_input as _validate_labels_input,
     validate_markov_chain as _validate_markov_chain,
     validate_markov_chains as _validate_markov_chains,
     validate_mask as _validate_mask,
@@ -89,7 +69,6 @@ from pydtmc.validation import (
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
     validate_state as _validate_state,
-    validate_state_names as _validate_state_names,
     validate_states as _validate_states,
     validate_status as _validate_status,
     validate_strings as _validate_strings,
@@ -101,40 +80,17 @@ from pydtmc.validation import (
     validate_walks as _validate_walks
 )
 
+from .utilities import (
+    evaluate as _evaluate,
+    string_to_function as _string_to_function
+)
+
 
 #############
 # CONSTANTS #
 #############
 
 _base_directory = _osp_abspath(_osp_dirname(__file__))
-
-
-#############
-# FUNCTIONS #
-#############
-
-def _eval_replace(value):
-
-    value = value.replace('np.', '_np_')
-    value = value.replace('nx.', '_nx_')
-    value = value.replace('pd.', '_pd_')
-    value = value.replace('spsp.', '_spsp_')
-    value = value.replace('HiddenMarkovModel', '_HiddenMarkovModel')
-    value = value.replace('MarkovChain', '_MarkovChain')
-
-    return value
-
-
-# noinspection PyArgumentList
-def _string_to_function(source):
-
-    ast_tree = _ast_parse(source)
-    module_object = compile(ast_tree, '<ast>', 'exec')
-    code_object = [c for c in module_object.co_consts if isinstance(c, _tp_CodeType)][0]
-
-    f = _tp_FunctionType(code_object, {})
-
-    return f
 
 
 #########
@@ -157,11 +113,8 @@ def test_validate_boolean(value, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, bool)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, bool)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -180,11 +133,8 @@ def test_validate_boundary_condition(value, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, (float, int, str))
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, (float, int, str))
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -215,11 +165,8 @@ def test_validate_dictionary(dictionary_elements, key_tuple, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, dict)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, dict) and all(isinstance(k, tuple) and all(isinstance(x, str) for x in k) and isinstance(v, float) for k, v in result.items())
+        assert result_check is True
 
 
 # noinspection DuplicatedCode, PyBroadException
@@ -242,11 +189,8 @@ def test_validate_distribution(value, size, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, _np_ndarray) for v in result))
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, _np_ndarray) for v in result))
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -265,11 +209,8 @@ def test_validate_dpi(value, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, int)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, int)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -288,18 +229,15 @@ def test_validate_enumerator(value, possible_values, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, str)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, str)
+        assert result_check is True
 
 
 # noinspection PyBroadException
 @_pt_mark.slow
 def test_validate_file_path(value, accepted_extensions, write_permission, is_valid):
 
-    if value is not None and isinstance(value, str) and value.startswith('file_'):
+    if isinstance(value, str) and value.startswith('file_'):
         value = _osp_join(_base_directory, f'files/{value}')
 
     try:
@@ -315,11 +253,8 @@ def test_validate_file_path(value, accepted_extensions, write_permission, is_val
     assert actual == expected
 
     if result_is_valid:
-
-        actual = result[0] == value
-        expected = True
-
-        assert actual == expected
+        result_check = result[0] == value
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -341,11 +276,8 @@ def test_validate_float(value, lower_limit, upper_limit, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, float)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, float)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -353,15 +285,19 @@ def test_validate_graph(graph_data, is_valid):
 
     if graph_data is None:
         g = None
-    elif isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
-        g = _nx_from_numpy_matrix(_np_array(graph_data), create_using=_nx_DiGraph()) if len(graph_data) > 0 else _nx_DiGraph()
-        g = _nx_relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
     else:
 
-        g = _nx_DiGraph()
+        if isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
 
-        for x in graph_data:
-            g.add_node(x)
+            g = _nx_from_numpy_matrix(_np_array(graph_data), create_using=_nx_DiGraph()) if len(graph_data) > 0 else _nx_DiGraph()
+            g = _nx_relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
+
+        else:
+
+            g = _nx_DiGraph()
+
+            for x in graph_data:
+                g.add_node(x)
 
     try:
         result = _validate_graph(g)
@@ -376,27 +312,19 @@ def test_validate_graph(graph_data, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, _nx_DiGraph)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, _nx_DiGraph)
+        assert result_check is True
 
 
 # noinspection PyBroadException
 def test_validate_hidden_markov_model(value, is_valid):
 
-    should_skip = False
+    if isinstance(value, str):
+        value, skip = _evaluate(value)
+    else:
+        skip = False
 
-    if value is not None and isinstance(value, str):
-
-        if 'pd.' in value and not _pandas_found:
-            should_skip = True
-        else:
-            value = _eval_replace(value)
-            value = eval(value)
-
-    if should_skip:
+    if skip:
         _pt_skip('Pandas library could not be imported.')
     else:
 
@@ -413,11 +341,8 @@ def test_validate_hidden_markov_model(value, is_valid):
         assert actual == expected
 
         if result_is_valid:
-
-            actual = isinstance(result, _HiddenMarkovModel)
-            expected = True
-
-            assert actual == expected
+            result_check = isinstance(result, _HiddenMarkovModel)
+            assert result_check is True
 
 
 # noinspection PyBroadException
@@ -436,11 +361,8 @@ def test_validate_hmm_emission(value, size, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, _np_ndarray)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, _np_ndarray)
+        assert result_check is True
 
 
 # noinspection DuplicatedCode, PyBroadException
@@ -459,11 +381,8 @@ def test_validate_hmm_sequence(value, possible_states, possible_symbols, is_vali
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, tuple) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, tuple) and all(isinstance(v, list) and all(isinstance(s, int) for s in v) for v in result)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -484,13 +403,11 @@ def test_validate_hmm_symbols(value, possible_symbols, allow_lists, is_valid):
     if result_is_valid:
 
         if allow_lists:
-            actual = isinstance(result, list) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
+            result_check = isinstance(result, list) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
         else:
-            actual = isinstance(result, list) and all(isinstance(v, int) for v in result)
+            result_check = isinstance(result, list) and all(isinstance(v, int) for v in result)
 
-        expected = True
-
-        assert actual == expected
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -509,11 +426,8 @@ def test_validate_hyperparameter(value, size, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, _np_ndarray)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, _np_ndarray)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -535,11 +449,8 @@ def test_validate_integer(value, lower_limit, upper_limit, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, int)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, int)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -560,8 +471,28 @@ def test_validate_interval(value, is_valid):
     assert actual == expected
 
     if result_is_valid:
+        result_check = all(isinstance(v, float) for v in result)
+        assert result_check is True
 
-        actual = all(isinstance(v, float) for v in result)
+
+# noinspection PyBroadException
+def test_validate_labels_input(value, size, is_valid):
+
+    try:
+        result = _validate_labels_input(value, size)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+
+        actual = isinstance(result, list) and all(isinstance(v, str) for v in result)
         expected = True
 
         assert actual == expected
@@ -570,18 +501,12 @@ def test_validate_interval(value, is_valid):
 # noinspection PyBroadException
 def test_validate_markov_chain(value, is_valid):
 
-    should_skip = False
+    if isinstance(value, str):
+        value, skip = _evaluate(value)
+    else:
+        skip = False
 
-    if value is not None and isinstance(value, str):
-
-        if 'pd.' in value and not _pandas_found:
-            should_skip = True
-        else:
-
-            value = _eval_replace(value)
-            value = eval(value)
-
-    if should_skip:
+    if skip:
         _pt_skip('Pandas library could not be imported.')
     else:
 
@@ -608,17 +533,12 @@ def test_validate_markov_chain(value, is_valid):
 # noinspection PyBroadException
 def test_validate_markov_chains(value, is_valid):
 
-    should_skip = False
+    if isinstance(value, str):
+        value, skip = _evaluate(value)
+    else:
+        skip = False
 
-    if value is not None and isinstance(value, str):
-
-        if 'pd.' in value and not _pandas_found:
-            should_skip = True
-        else:
-            value = _eval_replace(value)
-            value = eval(value)
-
-    if should_skip:
+    if skip:
         _pt_skip('Pandas library could not be imported.')
     else:
 
@@ -695,17 +615,12 @@ def test_validate_matrix(value, is_valid):
 # noinspection PyBroadException
 def test_validate_object(value, is_valid):
 
-    should_skip = False
+    if isinstance(value, str):
+        value, skip = _evaluate(value)
+    else:
+        skip = False
 
-    if value is not None and isinstance(value, str):
-
-        if 'pd.' in value and not _pandas_found:
-            should_skip = True
-        else:
-            value = _eval_replace(value)
-            value = eval(value)
-
-    if should_skip:
+    if skip:
         _pt_skip('Pandas library could not be imported.')
     else:
 
@@ -819,29 +734,6 @@ def test_validate_state(value, current_states, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_state_names(value, size, is_valid):
-
-    try:
-        result = _validate_state_names(value, size)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-
-        actual = isinstance(result, list) and all(isinstance(v, str) for v in result)
-        expected = True
-
-        assert actual == expected
-
-
-# noinspection PyBroadException
 def test_validate_states(value, possible_states, subset, length_limit, is_valid):
 
     try:
@@ -936,7 +828,7 @@ def test_validate_time_points(value, is_valid):
 # noinspection PyBroadException
 def test_validate_transition_function(value, is_valid):
 
-    if value is not None and isinstance(value, str):
+    if isinstance(value, str):
         if value.startswith('def'):
             value = _string_to_function(value)
         elif value.startswith('lambda'):

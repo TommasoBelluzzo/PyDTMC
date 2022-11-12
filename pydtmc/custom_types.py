@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    # Generic
+    # Base Types
+    'tany',
     'obool', 'ofloat', 'oint', 'ostr',
     'tscalar', 'oscalar',
-    'tany', 'texception', 'titerable',
     'tarray', 'oarray',
+    'tnumeric', 'onumeric',
+    'texception',
+    'titerable',
+    # Generic Types
     'tcache', 'ocache',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
@@ -16,7 +20,6 @@ __all__ = [
     'tlimit_int', 'olimit_int',
     'tlimit_scalar', 'olimit_scalar',
     'tmc', 'omc',
-    'tnumeric', 'onumeric',
     'tobject', 'oobject',
     'tplot', 'oplot',
     'trand', 'orand',
@@ -143,7 +146,9 @@ except ImportError:  # pragma: no cover
 # TYPES #
 #########
 
-# Generic
+# Base Types
+
+tany = _tp_Any
 
 obool = _tp_Optional[bool]
 ofloat = _tp_Optional[float]
@@ -153,12 +158,17 @@ ostr = _tp_Optional[str]
 tscalar = _tp_Union[float, int]
 oscalar = _tp_Optional[tscalar]
 
-tany = _tp_Any
-texception = Exception
-titerable = _tp_Iterable
-
 tarray = _np_ndarray
 oarray = _tp_Optional[tarray]
+
+tnumeric = _tp_Union[_np_ndarray, _spsp_matrix] if not _pandas_found else _tp_Union[_np_ndarray, _spsp_matrix, _pd_DataFrame, _pd_Series]
+onumeric = _tp_Optional[tnumeric]
+
+texception = Exception
+
+titerable = _tp_Iterable
+
+# Generic Types
 
 tcache = _tp_Dict[str, tany]
 ocache = _tp_Optional[tcache]
@@ -191,9 +201,6 @@ olimit_scalar = _tp_Optional[tlimit_scalar]
 # noinspection PyTypeHints
 tmc = _tp_TypeVar('MarkovChain')
 omc = _tp_Optional[tmc]
-
-tnumeric = _tp_Union[_np_ndarray, _spsp_matrix] if not _pandas_found else _tp_Union[_np_ndarray, _spsp_matrix, _pd_DataFrame, _pd_Series]
-onumeric = _tp_Optional[tnumeric]
 
 tobject = _tp_Union[tmc, thmm]
 oobject = _tp_Optional[tobject]

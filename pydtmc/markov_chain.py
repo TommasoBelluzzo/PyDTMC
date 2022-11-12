@@ -201,9 +201,9 @@ from .simulations import (
 
 from .utilities import (
     build_mc_graph as _build_mc_graph,
+    create_labels as _create_labels,
     create_rng as _create_rng,
-    generate_state_names as _generate_state_names,
-    generate_validation_error as _generate_validation_error,
+    create_validation_error as _create_validation_error,
     get_caller as _get_caller,
     get_instance_generators as _get_instance_generators,
     get_numpy_random_distributions as _get_numpy_random_distributions
@@ -220,13 +220,13 @@ from .validation import (
     validate_hyperparameter as _validate_hyperparameter,
     validate_integer as _validate_integer,
     validate_interval as _validate_interval,
+    validate_labels_input as _validate_labels_input,
     validate_mask as _validate_mask,
     validate_matrix as _validate_matrix,
     validate_partitions as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
     validate_state as _validate_state,
-    validate_state_names as _validate_state_names,
     validate_states as _validate_states,
     validate_status as _validate_status,
     validate_time_points as _validate_time_points,
@@ -267,17 +267,15 @@ class MarkovChain(_BaseClass):
             try:
 
                 p = _validate_transition_matrix(p)
-                states = [str(i) for i in range(1, p.shape[0] + 1)] if states is None else _validate_state_names(states, p.shape[0])
+                states = _create_labels(p.shape[1]) if states is None else _validate_labels_input(states, p.shape[1])
 
             except Exception as ex:  # pragma: no cover
-                raise _generate_validation_error(ex, _ins_trace()) from None
-
-        size = p.shape[0]
+                raise _create_validation_error(ex, _ins_trace()) from None
 
         self.__cache: _tcache = {}
         self.__digraph: _tgraph = _build_mc_graph(p, states)
         self.__p: _tarray = p
-        self.__size: int = size
+        self.__size: int = p.shape[1]
         self.__states: _tlist_str = states
 
     def __eq__(self, other) -> bool:
@@ -1009,7 +1007,7 @@ class MarkovChain(_BaseClass):
             s = _validate_integer(s, lower_limit=(2, False), upper_limit=(self.__size - 1, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         if self.__size == 2:  # pragma: no cover
             raise ValueError('The Markov chain defines only two states.')
@@ -1049,7 +1047,7 @@ class MarkovChain(_BaseClass):
             state2 = _validate_state(state2, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         a1 = self.accessibility_matrix[state1, state2] != 0
         a2 = self.accessibility_matrix[state2, state1] != 0
@@ -1079,7 +1077,7 @@ class MarkovChain(_BaseClass):
             weighted = _validate_boolean(weighted)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         zeros = len(initial_distribution) - _np_count_nonzero(initial_distribution)
 
@@ -1128,7 +1126,7 @@ class MarkovChain(_BaseClass):
             states2 = _validate_states(states2, self.__states, True, 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         intersection = _np_intersect1d(states1, states2)
 
@@ -1158,7 +1156,7 @@ class MarkovChain(_BaseClass):
             state = _validate_state(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = self.__p[state, :]
 
@@ -1185,7 +1183,7 @@ class MarkovChain(_BaseClass):
             rewards = _validate_rewards(rewards, self.__size)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _expected_rewards(self.__p, steps, rewards)
 
@@ -1212,7 +1210,7 @@ class MarkovChain(_BaseClass):
             initial_distribution = _np_full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _expected_transitions(self.__p, self.__rdl_decomposition, steps, initial_distribution)
 
@@ -1243,7 +1241,7 @@ class MarkovChain(_BaseClass):
                 first_passage_states = _validate_states(first_passage_states, self.__states, False, 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _first_passage_probabilities(self, steps, initial_state, first_passage_states)
 
@@ -1275,7 +1273,7 @@ class MarkovChain(_BaseClass):
             steps = _validate_integer(steps, lower_limit=(0, True))
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         if self.__size == 2:  # pragma: no cover
             raise ValueError('The Markov chain defines only two states and the first passage rewards cannot be computed.')
@@ -1312,7 +1310,7 @@ class MarkovChain(_BaseClass):
                 targets = _validate_states(targets, self.__states, False, 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _hitting_probabilities(self, targets)
 
@@ -1340,7 +1338,7 @@ class MarkovChain(_BaseClass):
                 targets = _validate_states(targets, self.__states, False, 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _hitting_times(self, targets)
 
@@ -1360,7 +1358,7 @@ class MarkovChain(_BaseClass):
             state = _validate_state(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         result = state in self.__absorbing_states_indices
 
@@ -1382,7 +1380,7 @@ class MarkovChain(_BaseClass):
             state_origin = _validate_state(state_origin, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         result = self.accessibility_matrix[state_origin, state_target] != 0
 
@@ -1402,7 +1400,7 @@ class MarkovChain(_BaseClass):
             state = _validate_state(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         result = state in self.__cyclic_states_indices
 
@@ -1422,7 +1420,7 @@ class MarkovChain(_BaseClass):
             state = _validate_state(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         result = state in self.__recurrent_states_indices
 
@@ -1442,7 +1440,7 @@ class MarkovChain(_BaseClass):
             state = _validate_state(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         result = state in self.__transient_states_indices
 
@@ -1464,7 +1462,7 @@ class MarkovChain(_BaseClass):
             partitions = _validate_partitions(partitions, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         if self.__size == 2:  # pragma: no cover
             raise ValueError('The Markov chain defines only two states.')
@@ -1517,7 +1515,7 @@ class MarkovChain(_BaseClass):
             targets = _validate_states(targets, self.__states, True, 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _mean_first_passage_times_between(self, origins, targets)
 
@@ -1544,7 +1542,7 @@ class MarkovChain(_BaseClass):
                 targets = _validate_states(targets, self.__states, False, 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _mean_first_passage_times_to(self, targets)
 
@@ -1609,7 +1607,7 @@ class MarkovChain(_BaseClass):
             cutoff_type = _validate_enumerator(cutoff_type, ['natural', 'traditional'])
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         cutoff = 0.25 if cutoff_type == 'traditional' else 1.0 / (2.0 * _np_exp(1.0))
         value = _mixing_time(self, initial_distribution, jump, cutoff)
@@ -1639,7 +1637,7 @@ class MarkovChain(_BaseClass):
             output_index = _validate_boolean(output_index)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _walk(self, 1, initial_state, None, rng)[-1]
 
@@ -1670,7 +1668,7 @@ class MarkovChain(_BaseClass):
             output_indices = _validate_boolean(output_indices)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _predict(self, steps, initial_state)
 
@@ -1697,7 +1695,7 @@ class MarkovChain(_BaseClass):
             output_last = _validate_boolean(output_last)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _redistribute(self, steps, initial_status, output_last)
 
@@ -1721,7 +1719,7 @@ class MarkovChain(_BaseClass):
             state = _validate_state(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _sensitivity(self, state)
 
@@ -1755,7 +1753,7 @@ class MarkovChain(_BaseClass):
             time_points = _validate_time_points(time_points)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _time_correlations(self, self.__rdl_decomposition, walk1, walk2, time_points)
 
@@ -1786,7 +1784,7 @@ class MarkovChain(_BaseClass):
             time_points = _validate_time_points(time_points)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _time_relaxations(self, self.__rdl_decomposition, walk, initial_distribution, time_points)
 
@@ -1813,7 +1811,7 @@ class MarkovChain(_BaseClass):
             boundary_condition = _validate_boundary_condition(boundary_condition)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p, _ = _bounded(self.__p, boundary_condition)
         mc = MarkovChain(p, self.__states)
@@ -1864,7 +1862,7 @@ class MarkovChain(_BaseClass):
             file_path, file_extension = _validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], True)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         d = self.to_dictionary()
 
@@ -1906,22 +1904,22 @@ class MarkovChain(_BaseClass):
             inertial_weights = _validate_vector(inertial_weights, 'unconstrained', True, self.__size)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p, _ = _lazy(self.__p, inertial_weights)
         mc = MarkovChain(p, self.__states)
 
         return mc
 
-    def to_matrices(self) -> _tlist_array:
+    def to_matrix(self) -> _tarray:
 
         """
-        The method returns a list whose only element represents the transition matrix of the Markov chain.
+        The method returns the transition matrix of the Markov chain.
         """
 
-        matrices = [_np_copy(self.__p)]
+        m = _np_copy(self.__p)
 
-        return matrices
+        return m
 
     # noinspection GrazieInspection
     @_object_mark(aliases=['to_nth'], instance_generator=True)
@@ -1943,7 +1941,7 @@ class MarkovChain(_BaseClass):
             order = _validate_integer(order, lower_limit=(2, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p = _npl_matrix_power(self.__p, order)
         mc = MarkovChain(p, self.__states)
@@ -1970,7 +1968,7 @@ class MarkovChain(_BaseClass):
             states = _validate_states(states, self.__states, True, 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p, states_out, error_message = _sub(self.__p, self.__states, self.adjacency_matrix, states)
 
@@ -1997,7 +1995,7 @@ class MarkovChain(_BaseClass):
             state_origin = _validate_state(state_origin, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = self.__p[state_origin, state_target]
 
@@ -2026,7 +2024,7 @@ class MarkovChain(_BaseClass):
             output_indices = _validate_boolean(output_indices)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _walk(self, steps, initial_state, final_state, rng)
 
@@ -2049,7 +2047,7 @@ class MarkovChain(_BaseClass):
             walk = _validate_walk(walk, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         value = _walk_probability(self, walk)
 
@@ -2095,7 +2093,7 @@ class MarkovChain(_BaseClass):
                 k = ((0.5 + (rho / 4.0)) * sigma) + ((1 - (0.5 + (rho / 4.0))) * (sigma / _np_sqrt(1.0 - rho**2.0))) if k is None else _validate_float(k, lower_limit=(0.0, True))
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p, states, error_message = _approximation(size, approximation_type, alpha, sigma, rho, k)
 
@@ -2125,10 +2123,10 @@ class MarkovChain(_BaseClass):
             q = _validate_vector(q, 'annihilation', False)
 
             p_size, q_size = p.shape[0], q.shape[0]
-            states = [str(i) for i in range(1, {p_size, q_size}.pop() + 1)] if states is None else _validate_state_names(states, {p_size, q_size}.pop())
+            states = _create_labels({p_size, q_size}.pop()) if states is None else _validate_labels_input(states, {p_size, q_size}.pop())
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         if p.shape[0] != q.shape[0]:  # pragma: no cover
             raise _ValidationError('The vector of annihilation probabilities and the vector of creation probabilities must have the same size.')
@@ -2164,10 +2162,10 @@ class MarkovChain(_BaseClass):
             diffusion_factor = _validate_integer(diffusion_factor, lower_limit=(1, False), upper_limit=(size, False))
             diagonal_bias_factor = None if diagonal_bias_factor is None else _validate_float(diagonal_bias_factor, lower_limit=(0.0, True))
             shift_concentration = _validate_boolean(shift_concentration)
-            states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
+            states = _create_labels(size) if states is None else _validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p, _ = _dirichlet_process(rng, size, float(diffusion_factor), diagonal_bias_factor, shift_concentration)
         mc = MarkovChain(p, states)
@@ -2176,7 +2174,7 @@ class MarkovChain(_BaseClass):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def fit_function(quadrature_type: str, f: _ttfunc, possible_states: _tlist_str, quadrature_interval: _ointerval = None) -> _tmc:
+    def fit_function(possible_states: _tlist_str, f: _ttfunc, quadrature_type: str, quadrature_interval: _ointerval = None) -> _tmc:
 
         """
         The method fits a Markov chain using the given transition function and the given quadrature type for the computation of nodes and weights.
@@ -2190,6 +2188,8 @@ class MarkovChain(_BaseClass):
           - **y_index** an integer value representing the index of the j-th quadrature node;
           - **y_value** a float value representing the value of the j-th quadrature node.
 
+        :param possible_states: the possible states of the process.
+        :param f: the transition function of the process.
         :param quadrature_type:
          - **gauss-chebyshev** for the Gauss-Chebyshev quadrature;
          - **gauss-legendre** for the Gauss-Legendre quadrature;
@@ -2197,8 +2197,6 @@ class MarkovChain(_BaseClass):
          - **newton-cotes** for the Newton-Cotes quadrature;
          - **simpson-rule** for the Simpson rule;
          - **trapezoid-rule** for the Trapezoid rule.
-        :param f: the transition function of the process.
-        :param possible_states: the possible states of the process.
         :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (*if omitted, the interval [0, 1] is used*).
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Gauss-Legendre quadrature fails to converge.
@@ -2208,11 +2206,11 @@ class MarkovChain(_BaseClass):
 
             quadrature_type = _validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'niederreiter', 'newton-cotes', 'simpson-rule', 'trapezoid-rule'])
             f = _validate_transition_function(f)
-            possible_states = _validate_state_names(possible_states)
+            possible_states = _validate_labels_input(possible_states)
             quadrature_interval = (0.0, 1.0) if quadrature_interval is None else _validate_interval(quadrature_interval)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         if quadrature_type == 'simpson-rule' and (len(possible_states) % 2) == 0:  # pragma: no cover
             raise _ValidationError('The quadrature based on the Simpson rule requires an odd number of possible states.')
@@ -2228,39 +2226,45 @@ class MarkovChain(_BaseClass):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def fit_walk(fitting_type: str, walk: _twalk, k: _tany = None, possible_states: _olist_str = None) -> _tmc:
+    def fit_walk(possible_states: _tlist_str, walk: _twalk, fitting_type: str, fitting_param: _tany = None) -> _tmc:
 
         """
         The method fits a Markov chain from an observed sequence of states using the specified fitting approach.
 
+        :param possible_states: the possible states of the process.
+        :param walk: the observed sequence of states.
         :param fitting_type:
          - **map** for the maximum a posteriori fitting;
          - **mle** for the maximum likelihood fitting.
-        :param walk: the observed sequence of states.
-        :param k:
+        :param fitting_param:
          | - In the maximum a posteriori fitting, the matrix for the a priori distribution (*if omitted, a default value of 1 is assigned to each matrix element*).
          | - In the maximum likelihood fitting, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (*if omitted, the value is set to True*).
-        :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequence of states*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            possible_states = _generate_state_names(walk) if possible_states is None else _validate_state_names(possible_states)
+            possible_states = _validate_labels_input(possible_states)
             walk = _validate_walk(walk, possible_states)
-
             fitting_type = _validate_enumerator(fitting_type, ['map', 'mle'])
 
-            if fitting_type == 'map':
-                possible_states_length = len(possible_states)
-                k = _np_ones((possible_states_length, possible_states_length), dtype=float) if k is None else _validate_hyperparameter(k, len(possible_states))
-            else:
-                k = False if k is None else _validate_boolean(k)
+            if fitting_param is not None:
+                if fitting_type == 'map':
+                    fitting_param = _validate_hyperparameter(fitting_param, len(possible_states))
+                else:
+                    fitting_param = _validate_boolean(fitting_param)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
-        p, _ = _fit_walk(fitting_type, k, possible_states, walk)
+        if fitting_param is None:
+            if fitting_type == 'map':
+                possible_states_length = len(possible_states)
+                fitting_param = _np_ones((possible_states_length, possible_states_length), dtype=float)
+            else:
+                fitting_param = False
+
+        p, _ = _fit_walk(fitting_type, fitting_param, possible_states, walk)
         mc = MarkovChain(p, possible_states)
 
         return mc
@@ -2282,7 +2286,7 @@ class MarkovChain(_BaseClass):
             d = _validate_dictionary(d)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         states = [key[0] for key in d.keys() if key[0] == key[1]]
         size = len(states)
@@ -2296,7 +2300,7 @@ class MarkovChain(_BaseClass):
             p[states.index(state_from), states.index(state_to)] = probability
 
         if not _np_allclose(_np_sum(p, axis=1), _np_ones(size, dtype=float)):  # pragma: no cover
-            raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.')
+            raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.0.')
 
         mc = MarkovChain(p, states)
 
@@ -2350,7 +2354,7 @@ class MarkovChain(_BaseClass):
             file_path, file_extension = _validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], False)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         if file_extension == '.csv':
             d = _read_csv(True, file_path)
@@ -2361,7 +2365,7 @@ class MarkovChain(_BaseClass):
         else:
             d = _read_xml(True, file_path)
 
-        states = [key[0] for key in d.keys() if key[0] == key[1]]
+        states = [key[0] for key in d if key[0] == key[1]]
         size = len(states)
 
         if size < 2:  # pragma: no cover
@@ -2373,7 +2377,7 @@ class MarkovChain(_BaseClass):
             p[states.index(state_from), states.index(state_to)] = probability
 
         if not _np_allclose(_np_sum(p, axis=1), _np_ones(size, dtype=float)):  # pragma: no cover
-            raise ValueError('The rows of the transition matrix defined by the file must sum to 1.')
+            raise ValueError('The rows of the transition matrix defined by the file must sum to 1.0.')
 
         mc = MarkovChain(p, states)
 
@@ -2395,7 +2399,7 @@ class MarkovChain(_BaseClass):
             graph = _validate_graph(graph)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         states = list(graph.nodes)
         size = len(states)
@@ -2426,10 +2430,10 @@ class MarkovChain(_BaseClass):
     # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True)
-    def from_matrices(m: _tnumeric, states: _olist_str = None) -> _tmc:
+    def from_matrix(m: _tnumeric, states: _olist_str = None) -> _tmc:
 
         """
-        The method generates a Markov chain with the given state names, whose transition matrix is obtained through the normalization of the given matrix.
+        The method generates a Markov chain whose transition matrix is obtained through the normalization of the given matrix.
 
         :param m: the matrix to transform into the transition matrix.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
@@ -2439,15 +2443,15 @@ class MarkovChain(_BaseClass):
         try:
 
             m = _validate_matrix(m)
-            states = [str(i) for i in range(1, m.shape[0] + 1)] if states is None else _validate_state_names(states, m.shape[0])
+            states = _create_labels(m.shape[1]) if states is None else _validate_labels_input(states, m.shape[1])
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p = _np_copy(m)
         p_sums = _np_sum(p, axis=1)
 
-        size = p.shape[0]
+        size = p.shape[1]
 
         for i in range(size):
 
@@ -2479,10 +2483,10 @@ class MarkovChain(_BaseClass):
 
             size = _validate_integer(size, lower_limit=(3, False))
             w = _validate_float(w, lower_limit=(0.0, True), upper_limit=(1.0, True))
-            states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
+            states = _create_labels(size) if states is None else _validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p, _ = _gamblers_ruin(size, w)
         mc = MarkovChain(p, states)
@@ -2504,10 +2508,10 @@ class MarkovChain(_BaseClass):
         try:
 
             size = _validate_integer(size, lower_limit=(2, False))
-            states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
+            states = _create_labels(size) if states is None else _validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p = _np_eye(size)
         mc = MarkovChain(p, states)
@@ -2538,12 +2542,12 @@ class MarkovChain(_BaseClass):
 
             rng = _create_rng(seed)
             size = _validate_integer(size, lower_limit=(2, False))
-            states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
+            states = _create_labels(size) if states is None else _validate_labels_input(states, size)
             zeros = _validate_integer(zeros, lower_limit=(0, False))
             mask = _np_full((size, size), _np_nan, dtype=float) if mask is None else _validate_mask(mask, size, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p, error_message = _random(rng, size, zeros, mask)
 
@@ -2586,14 +2590,14 @@ class MarkovChain(_BaseClass):
             rng = _create_rng(seed)
             size = _validate_integer(size, lower_limit=(2, False))
             f = _validate_random_distribution(f, rng, MarkovChain.__random_distributions)
-            states = [str(i) for i in range(1, size + 1)] if states is None else _validate_state_names(states, size)
+            states = _create_labels(size) if states is None else _validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p = f(size=(size, size), **kwargs).astype(float)
         p = _np_clip(_np_nan_to_num(p, copy=False), 0.0, None)
-        p[_np_where(~p.any(axis=1)), :] = _np_ones(p.shape[0], dtype=float)
+        p[_np_where(~p.any(axis=1)), :] = _np_ones(p.shape[1], dtype=float)
         p /= _np_sum(p, axis=1, keepdims=True)
 
         mc = MarkovChain(p, states)
@@ -2620,7 +2624,7 @@ class MarkovChain(_BaseClass):
             model = _validate_enumerator(model, ['bernoulli-laplace', 'ehrenfest'])
 
         except Exception as ex:  # pragma: no cover
-            raise _generate_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins_trace()) from None
 
         p, states, _ = _urn_model(n, model)
         mc = MarkovChain(p, states)

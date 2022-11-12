@@ -168,7 +168,7 @@ def fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible
     return p, None
 
 
-def fit_walk(fitting_type: str, k: _tany, possible_states: _tlist_str, walk: _tlist_int) -> _tfitting_res:
+def fit_walk(fitting_type: str, fitting_param: _tany, possible_states: _tlist_str, walk: _tlist_int) -> _tfitting_res:
 
     size = len(possible_states)
     p = _np_zeros((size, size), dtype=float)
@@ -183,7 +183,7 @@ def fit_walk(fitting_type: str, k: _tany, possible_states: _tlist_str, walk: _tl
 
         for i in range(size):
 
-            rt = _np_sum(f[i, :]) + _np_sum(k[i, :])
+            rt = _np_sum(f[i, :]) + _np_sum(fitting_param[i, :])
 
             if rt == size:
 
@@ -195,7 +195,7 @@ def fit_walk(fitting_type: str, k: _tany, possible_states: _tlist_str, walk: _tl
                 rt_delta = rt - size
 
                 for j in range(size):
-                    ct = f[i, j] + k[i, j]
+                    ct = f[i, j] + fitting_param[i, j]
                     p[i, j] = (ct - 1.0) / rt_delta
 
     else:
@@ -203,7 +203,7 @@ def fit_walk(fitting_type: str, k: _tany, possible_states: _tlist_str, walk: _tl
         for i, j in zip(walk[:-1], walk[1:]):
             p[i, j] += 1.0
 
-        if k:
+        if fitting_param:
             p += 0.001
 
     p[_np_where(~p.any(axis=1)), :] = _np_ones(size, dtype=float)

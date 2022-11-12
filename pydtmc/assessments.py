@@ -55,7 +55,6 @@ from .computations import (
 )
 
 from .custom_types import (
-    olist_str as _olist_str,
     tlist_str as _tlist_str,
     tmc as _tmc,
     ttest as _ttest,
@@ -63,24 +62,19 @@ from .custom_types import (
     twalks as _twalks
 )
 
-from .exceptions import (
-    ValidationError as _ValidationError
-)
-
 from .fitting import (
     fit_walk as _fit_walk
 )
 
 from .utilities import (
-    generate_state_names as _generate_state_names,
-    generate_validation_error as _generate_validation_error
+    create_validation_error as _create_validation_error
 )
 
 from .validation import (
     validate_float as _validate_float,
     validate_integer as _validate_integer,
+    validate_labels_input as _validate_labels_input,
     validate_markov_chain as _validate_markov_chain,
-    validate_state_names as _validate_state_names,
     validate_walk as _validate_walk,
     validate_walks as _validate_walks
 )
@@ -91,25 +85,25 @@ from .validation import (
 
 
 # noinspection DuplicatedCode, PyBroadException
-def assess_first_order(walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
+def assess_first_order(possible_states: _tlist_str, walk: _twalk, significance: float = 0.05) -> _ttest:
 
     """
     The function verifies whether the given sequence can be associated to a first-order Markov process.
 
+    :param possible_states: the possible states of the process.
     :param walk: the observed sequence of states.
-    :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequence of states*).
     :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
 
     try:
 
-        possible_states = _generate_state_names(walk) if possible_states is None else _validate_state_names(possible_states)
+        possible_states = _validate_labels_input(possible_states)
         walk = _validate_walk(walk, possible_states)
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _generate_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins_trace()) from None
 
     k, n = len(walk) - 2, len(possible_states)
     sequence = [possible_states[state] for state in walk]
@@ -144,25 +138,25 @@ def assess_first_order(walk: _twalk, possible_states: _olist_str = None, signifi
 
 
 # noinspection DuplicatedCode
-def assess_homogeneity(walks: _twalks, possible_states: _tlist_str, significance: float = 0.05) -> _ttest:
+def assess_homogeneity(possible_states: _tlist_str, walks: _twalks, significance: float = 0.05) -> _ttest:
 
     """
     The function verifies whether the given sequences belong to the same Markov process.
 
-    :param walks: the observed sequences of states.
     :param possible_states: the possible states of the process.
+    :param walks: the observed sequences of states.
     :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
 
     try:
 
-        possible_states = _validate_state_names(possible_states)
+        possible_states = _validate_labels_input(possible_states)
         walks = _validate_walks(walks, possible_states)
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _generate_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins_trace()) from None
 
     k, n = len(walks), len(possible_states)
 
@@ -221,13 +215,13 @@ def assess_homogeneity(walks: _twalks, possible_states: _tlist_str, significance
 
 
 # noinspection DuplicatedCode
-def assess_markov_property(walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
+def assess_markov_property(possible_states: _tlist_str, walk: _twalk, significance: float = 0.05) -> _ttest:
 
     """
     The function verifies whether the given sequence holds the Markov property.
 
+    :param possible_states: the possible states of the process.
     :param walk: the observed sequence of states.
-    :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequence of states*).
     :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -271,12 +265,12 @@ def assess_markov_property(walk: _twalk, possible_states: _olist_str = None, sig
 
     try:
 
-        possible_states = _generate_state_names(walk) if possible_states is None else _validate_state_names(possible_states)
+        possible_states = _validate_labels_input(possible_states)
         walk = _validate_walk(walk, possible_states)
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _generate_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins_trace()) from None
 
     sequence = [possible_states[state] for state in walk]
     p, _ = _fit_walk('mle', False, possible_states, walk)
@@ -311,14 +305,14 @@ def assess_markov_property(walk: _twalk, possible_states: _olist_str = None, sig
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
 
 
-def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks: int = 1, significance: float = 0.05) -> _ttest:
+def assess_stationarity(possible_states: _tlist_str, walk: _twalk, blocks: int = 1, significance: float = 0.05) -> _ttest:
 
     """
     The function verifies whether the given sequence is stationary.
 
+    :param possible_states: the possible states of the process.
     :param walk: the observed sequence of states.
     :param blocks: the number of blocks in which the sequence is divided.
-    :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequence of states*).
     :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -345,13 +339,13 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
 
     try:
 
-        possible_states = _generate_state_names(walk) if possible_states is None else _validate_state_names(possible_states)
+        possible_states = _validate_labels_input(possible_states)
         walk = _validate_walk(walk, possible_states)
         blocks = _validate_integer(blocks, lower_limit=(1, False))
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _generate_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins_trace()) from None
 
     k, n = len(walk), len(possible_states)
     sequence = [possible_states[state] for state in walk]
@@ -391,30 +385,25 @@ def assess_stationarity(walk: _twalk, possible_states: _olist_str = None, blocks
 
 
 # noinspection DuplicatedCode
-def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, possible_states: _olist_str = None, significance: float = 0.05) -> _ttest:
+def assess_theoretical_compatibility(mc: _tmc, walk: _twalk, significance: float = 0.05) -> _ttest:
 
     """
     The function verifies whether the given empirical sequence is statistically compatible with the given theoretical Markov process.
 
     :param mc: a Markov chain representing the theoretical process.
     :param walk: the observed sequence of states.
-    :param possible_states: the possible states of the process (*if omitted, they are inferred from the observed sequence of states*).
     :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
 
     try:
 
-        possible_states = _generate_state_names(walk) if possible_states is None else _validate_state_names(possible_states)
-        walk = _validate_walk(walk, possible_states)
         mc = _validate_markov_chain(mc)
+        walk = _validate_walk(walk, mc.states)
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _generate_validation_error(ex, _ins_trace()) from None
-
-    if mc.states != possible_states:  # pragma: no cover
-        raise _ValidationError('The states of the Markov chain and the possible states must be equal.')
+        raise _create_validation_error(ex, _ins_trace()) from None
 
     p, n = mc.p, mc.size
     f = _np_zeros((n, n), dtype=int)

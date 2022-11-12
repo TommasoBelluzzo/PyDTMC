@@ -3,9 +3,10 @@
 __all__ = [
     'build_hmm_graph',
     'build_mc_graph',
+    'create_labels',
+    'create_labels_from_data',
     'create_rng',
-    'generate_state_names',
-    'generate_validation_error',
+    'create_validation_error',
     'get_caller',
     'get_file_extension',
     'get_full_name',
@@ -166,80 +167,51 @@ def build_mc_graph(p: _tarray, states: _tlist_str) -> _tgraph:
     return graph
 
 
+def create_labels(count: int, prefix: str = '') -> _tlist_str:
+
+    labels = [f'{prefix}{i:d}' for i in range(1, count + 1)]
+
+    return labels
+
+
+def create_labels_from_data(data: _tany, prefix: str = '') -> _olist_str:
+
+    if not is_list(data):
+        return None
+
+    if all(is_integer(state) for state in data):
+        labels = [f'{prefix}{i:d}' for i in range(1, len(set(data)) + 1)]
+    elif all(is_string(state) for state in data):
+        labels = [f'{prefix}_{item}' if len(prefix) > 0 else f'{item}' for item in sorted(set(data))]
+    else:
+        return None
+
+    labels_length = len(labels)
+
+    if labels_length < 2:
+        return None
+
+    labels_unique_length = len(set(data))
+
+    if labels_unique_length < labels_length:
+        return None
+
+    return labels
+
+
 def create_rng(seed: _oint) -> _trand:
 
     if seed is None:
-        return _nprm_rand
-
-    if isinstance(seed, (int, _np_integer)):
-        return _npr_RandomState(int(seed))
-
-    raise TypeError('The specified seed is not a valid RNG initializer.')
-
-
-def extract_data_generic(data: _tany) -> _tlist_any:
-
-    if is_list(data):
-        result = _cp_deepcopy(data)
-    elif is_dictionary(data):
-        result = list(data.values())
-    elif is_iterable(data):
-        result = list(data)
+        rng = _nprm_rand
+    elif is_integer(seed):
+        rng = _npr_RandomState(int(seed))
     else:
-        raise TypeError('The data type is not supported.')
+        raise TypeError('The specified seed is not a valid RNG initializer.')
 
-    return result
-
-
-def extract_data_numeric(data: _tany) -> _tarray:
-
-    if is_list(data):
-        result = _np_array(data)
-    elif is_dictionary(data):
-        result = _np_array(list(data.values()))
-    elif is_array(data):
-        result = _np_copy(data)
-    elif is_spmatrix(data):
-        result = _np_array(data.todense())
-    elif is_pandas(data):
-        result = data.to_numpy(copy=True)
-    elif is_iterable(data):
-        result = _np_array(list(data))
-    else:
-        result = None
-
-    if result is None or not _np_issubdtype(result.dtype, _np_number):
-        raise TypeError('The data type is not supported.')
-
-    return result
+    return rng
 
 
-def generate_state_names(source: _tany) -> _olist_str:
-
-    if is_iterable(source):
-        source = list(source)
-
-    if all(is_integer(state) for state in source):
-        state_names = [str(i) for i in range(1, len(set(source)) + 1)]
-    elif all(is_string(state) for state in source):
-        state_names = sorted(set(source))
-    else:
-        return None
-
-    state_names_length = len(state_names)
-
-    if state_names_length < 2:
-        return None
-
-    state_names_unique = len(set(source))
-
-    if state_names_unique < state_names_length:
-        return None
-
-    return state_names
-
-
-def generate_validation_error(ex: _texception, trace: _tany) -> _ValidationError:
+def create_validation_error(ex: _texception, trace: _tany) -> _ValidationError:
 
     arguments = ''.join(trace[0][4]).split('=', 1)[0].strip()
 
@@ -252,49 +224,88 @@ def generate_validation_error(ex: _texception, trace: _tany) -> _ValidationError
     return validation_error
 
 
+def extract_data_generic(data: _tany) -> _tlist_any:
+
+    if is_list(data):
+        output = _cp_deepcopy(data)
+    elif is_dictionary(data):
+        output = list(data.values())
+    elif is_iterable(data):
+        output = list(data)
+    else:
+        raise TypeError('The data type is not supported.')
+
+    return output
+
+
+def extract_data_numeric(data: _tany) -> _tarray:
+
+    if is_list(data):
+        output = _np_array(data)
+    elif is_dictionary(data):
+        output = _np_array(list(data.values()))
+    elif is_array(data):
+        output = _np_copy(data)
+    elif is_spmatrix(data):
+        output = _np_array(data.todense())
+    elif is_pandas(data):
+        output = data.to_numpy(copy=True)
+    elif is_iterable(data):
+        output = _np_array(list(data))
+    else:
+        output = None
+
+    if output is None or not _np_issubdtype(output.dtype, _np_number):
+        raise TypeError('The data type is not supported.')
+
+    return output
+
+
 def get_caller(stack: _tstack) -> str:
 
-    result = stack[1][3]
+    caller = stack[1][3]
 
-    return result
+    return caller
 
 
 def get_file_extension(file_path: str) -> str:
 
-    result = ''.join(_pl_Path(file_path).suffixes).lower()
+    file_extension = ''.join(_pl_Path(file_path).suffixes).lower()
 
-    return result
+    return file_extension
 
 
 def get_instance_generators(cls: _tany) -> _tlist_str:
 
-    result = []
+    instance_generators = []
 
     if cls is not None:
         for member_name, member in _ins_getmembers(cls, predicate=_ins_isfunction):
             if member_name[0] != '_' and hasattr(member, '_instance_generator'):
-                result.append(member_name)
+                instance_generators.append(member_name)
 
-    return result
+    return instance_generators
 
 
 # noinspection PyBroadException
-def get_full_name(o: _tany) -> str:
+def get_full_name(obj: _tany) -> str:
 
     try:
-        module = o.__module__
+        module = obj.__module__
     except Exception:
-        module = o.__class__.__module__
+        module = obj.__class__.__module__
 
     try:
-        name = o.__qualname__
+        name = obj.__qualname__
     except Exception:
-        name = o.__class__.__qualname__
+        name = obj.__class__.__qualname__
 
     if module is None or module == 'builtins':
-        return name
+        full_name = name
+    else:
+        full_name = f'{module}.{name}'
 
-    return f'{module}.{name}'
+    return full_name
 
 
 def get_numpy_random_distributions() -> _tlist_str:
@@ -307,7 +318,7 @@ def get_numpy_random_distributions() -> _tlist_str:
     excluded_funcs = ('dirichlet', 'multinomial', 'multivariate_normal')
     valid_summaries = ('DRAW RANDOM SAMPLES', 'DRAW SAMPLES', 'DRAWS SAMPLES')
 
-    result = []
+    random_distributions = []
 
     for func_name in dir(_npr_RandomState):
 
@@ -330,53 +341,50 @@ def get_numpy_random_distributions() -> _tlist_str:
 
         for valid_summary in valid_summaries:
             if doc_summary_first.startswith(valid_summary):
-                result.append(func_name)
+                random_distributions.append(func_name)
                 break
 
-    return result
+    return random_distributions
 
 
 def is_array(value: _tany) -> bool:
 
-    return value is not None and isinstance(value, _np_ndarray)
+    return isinstance(value, _np_ndarray)
 
 
 def is_bool(value: _tany) -> bool:
 
-    return value is not None and isinstance(value, bool)
+    return isinstance(value, bool)
 
 
 def is_dictionary(value: _tany) -> bool:
 
-    return value is not None and isinstance(value, dict)
+    return isinstance(value, dict)
 
 
 def is_float(value: _tany) -> bool:
 
-    return value is not None and isinstance(value, (float, _np_floating))
+    return isinstance(value, (float, _np_floating))
 
 
 def is_graph(value: _tany, multi: bool) -> bool:
 
-    if multi:
-        return value is not None and isinstance(value, _nx_MultiDiGraph)
-
-    return value is not None and isinstance(value, _nx_DiGraph)
+    return isinstance(value, _nx_MultiDiGraph) if multi else isinstance(value, _nx_DiGraph)
 
 
 def is_integer(value: _tany) -> bool:
 
-    return value is not None and isinstance(value, (int, _np_integer)) and not isinstance(value, bool)
+    return isinstance(value, (int, _np_integer)) and not isinstance(value, bool)
 
 
 def is_iterable(value: _tany) -> bool:
 
-    return value is not None and isinstance(value, _tp_Iterable) and not isinstance(value, (bytearray, bytes, str))
+    return isinstance(value, _tp_Iterable) and not isinstance(value, (bytearray, bytes, str))
 
 
 def is_list(value: _tany) -> bool:
 
-    return value is not None and isinstance(value, list)
+    return isinstance(value, list)
 
 
 def is_number(value: _tany) -> bool:
@@ -386,22 +394,19 @@ def is_number(value: _tany) -> bool:
 
 def is_pandas(value: _tany) -> bool:
 
-    if not _pandas_found:  # pragma: no cover
-        return False
-
-    return value is not None and isinstance(value, (_pd_DataFrame, _pd_Series))
+    return _pandas_found and isinstance(value, (_pd_DataFrame, _pd_Series))
 
 
 def is_spmatrix(value: _tany) -> bool:
 
-    return value is not None and isinstance(value, _spsp_spmatrix)
+    return isinstance(value, _spsp_spmatrix)
 
 
 def is_string(value: _tany) -> bool:
 
-    return value is not None and isinstance(value, str) and len(value) > 0
+    return isinstance(value, str) and len(value) > 0
 
 
 def is_tuple(value: _tany) -> bool:
 
-    return value is not None and isinstance(value, tuple)
+    return isinstance(value, tuple)

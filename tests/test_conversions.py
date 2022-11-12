@@ -31,8 +31,7 @@ from networkx import (
 )
 
 from numpy.random import (
-    randint as _npr_randint,
-    seed as _npr_seed
+    RandomState as _npr_RandomState
 )
 
 from numpy.testing import (
@@ -56,33 +55,44 @@ from pydtmc import (
 #############
 
 def _generate_objects(seed, runs, maximum_size):
-
     random_state = _rd_getstate()
     _rd_seed(seed)
+
+    rng = _npr_RandomState(seed)
 
     objects = []
 
     for _ in range(runs):
 
         obj_mc = _rd_random() < 0.5
+        obj_from_matrix = _rd_random() < 0.5
         size = _rd_randint(2, maximum_size)
-        zeros = _rd_randint(0, size)
 
         if obj_mc:
 
-            size = _rd_randint(2, maximum_size)
-            zeros = _rd_randint(0, size)
+            if obj_from_matrix:
+                m = rng.randint(101, size=(size, size))
+                obj = _MarkovChain.from_matrix(m)
+            else:
+                zeros = _rd_randint(0, size)
+                obj = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
-            objects.append(_MarkovChain.random(size, zeros=zeros, seed=seed))
+            objects.append((obj, lambda x: [x.to_matrix()]))
 
         else:
 
             size_multiplier = _rd_randint(1, 3)
-
             n, k = size, size * size_multiplier
-            p_zeros, e_zeros = zeros, zeros * size_multiplier
 
-            objects.append(_HiddenMarkovModel.random(n, k, p_zeros=p_zeros, e_zeros=e_zeros, seed=seed))
+            if obj_from_matrix:
+                mp, me = rng.randint(101, size=(n, n)), rng.randint(101, size=(n, k))
+                obj = _HiddenMarkovModel.from_matrices(mp, me)
+            else:
+                zeros = _rd_randint(0, size)
+                p_zeros, e_zeros = zeros, zeros * size_multiplier
+                obj = _HiddenMarkovModel.random(n, k, p_zeros=p_zeros, e_zeros=e_zeros, seed=seed)
+
+            objects.append((obj, lambda x: x.to_matrices()))
 
     _rd_setstate(random_state)
 
@@ -94,17 +104,16 @@ def _generate_objects(seed, runs, maximum_size):
 #########
 
 def test_dictionary(seed, runs, maximum_size):
-
     objects = _generate_objects(seed, runs, maximum_size)
 
-    for obj in objects:
+    for obj, to_matrices in objects:
 
-        obj_matrices = obj.to_matrices()
+        obj_matrices = to_matrices(obj)
 
         d = obj.to_dictionary()
 
         obj_from = obj.from_dictionary(d)
-        obj_from_matrices = obj_from.to_matrices()
+        obj_from_matrices = to_matrices(obj_from)
 
         for index, obj_matrix in enumerate(obj_matrices):
             obj_from_matrix = obj_from_matrices[index]
@@ -113,17 +122,16 @@ def test_dictionary(seed, runs, maximum_size):
 
 @_pt_mark.slow
 def test_graph(seed, runs, maximum_size):
-
     objects = _generate_objects(seed, runs, maximum_size)
 
-    for obj in objects:
+    for obj, to_matrices in objects:
 
-        obj_matrices = obj.to_matrices()
+        obj_matrices = to_matrices(obj)
 
         graph = obj.to_graph()
 
         obj_from = obj.from_graph(graph)
-        obj_from_matrices = obj_from.to_matrices()
+        obj_from_matrices = to_matrices(obj_from)
 
         for index, obj_matrix in enumerate(obj_matrices):
             obj_from_matrix = obj_from_matrices[index]
@@ -132,7 +140,7 @@ def test_graph(seed, runs, maximum_size):
         graph = _nx_MultiDiGraph(graph)
 
         obj_from = obj.from_graph(graph)
-        obj_from_matrices = obj_from.to_matrices()
+        obj_from_matrices = to_matrices(obj_from)
 
         for index, obj_matrix in enumerate(obj_matrices):
             obj_from_matrix = obj_from_matrices[index]
@@ -142,12 +150,11 @@ def test_graph(seed, runs, maximum_size):
 # noinspection PyBroadException
 @_pt_mark.slow
 def test_file(seed, runs, maximum_size, file_extension):
-
     objects = _generate_objects(seed, runs, maximum_size)
 
-    for obj in objects:
+    for obj, to_matrices in objects:
 
-        obj_matrices = obj.to_matrices()
+        obj_matrices = to_matrices(obj)
 
         file_handler, file_path = _tf_mkstemp(suffix=file_extension)
         _os_close(file_handler)
@@ -167,25 +174,8 @@ def test_file(seed, runs, maximum_size, file_extension):
 
         assert exception is False
 
-        obj_from_matrices = obj_from.to_matrices()
+        obj_from_matrices = to_matrices(obj_from)
 
         for index, obj_matrix in enumerate(obj_matrices):
             obj_from_matrix = obj_from_matrices[index]
             _npt_assert_allclose(obj_from_matrix, obj_matrix, rtol=1e-5, atol=1e-8)
-
-
-def test_matrices(seed, runs, maximum_size):
-
-    _npr_seed(seed)
-
-    for _ in range(runs):
-
-        size = _rd_randint(2, maximum_size)
-
-        m = _npr_randint(101, size=(size, size))
-        mc1 = _MarkovChain.from_matrix(m)
-
-        m = mc1.to_matrix()
-        mc2 = _MarkovChain.from_matrix(m)
-
-        _npt_assert_allclose(mc1.p, mc2.p, rtol=1e-5, atol=1e-8)
