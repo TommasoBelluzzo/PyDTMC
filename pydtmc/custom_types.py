@@ -35,7 +35,7 @@ __all__ = [
     'tlists_float', 'olists_float',
     'tlists_int', 'olists_int',
     'tlists_str', 'olists_str',
-    # Composite Types - Generic
+    # Compound Types - Generic
     'tcache', 'ocache',
     'tdtype', 'odtype',
     'tfile', 'ofile',
@@ -50,7 +50,7 @@ __all__ = [
     'trdl', 'ordl',
     'ttest', 'otest',
     'ttest_chi2', 'otest_chi2',
-    # Composite Types - Specific
+    # Compound Types - Specific
     'tbcond', 'obcond',
     'tdists_flex', 'odists_flex',
     'tfitting_res', 'ofitting_res',
@@ -103,7 +103,6 @@ from typing import (
     Any as _tp_Any,
     Callable as _tp_Callable,
     Dict as _tp_Dict,
-    Iterable as _tp_Iterable,
     List as _tp_List,
     Optional as _tp_Optional,
     Tuple as _tp_Tuple,
@@ -250,7 +249,7 @@ olists_int = _tp_Optional[tlists_int]
 tlists_str = _tp_List[tlist_str]
 olists_str = _tp_Optional[tlists_str]
 
-# Composite Types - Generic
+# Compound Types - Generic
 
 tcache = _tp_Dict[str, tany]
 ocache = _tp_Optional[tcache]
@@ -294,7 +293,7 @@ otest = _tp_Optional[ttest]
 ttest_chi2 = _tp_Tuple[float, float]
 otest_chi2 = _tp_Optional[ttest_chi2]
 
-# Composite Types - Specific
+# Compound Types - Specific
 
 tbcond = _tp_Union[float, int, str]
 obcond = _tp_Optional[tbcond]
