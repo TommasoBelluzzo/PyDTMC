@@ -15,11 +15,10 @@ __all__ = [
     'validate_hmm_dictionary',
     'validate_hmm_graph',
     'validate_hmm_emission',
-    'validate_hmm_sequence',
-    'validate_hmm_symbols',
     'validate_hyperparameter',
     'validate_integer',
     'validate_interval',
+    'validate_label',
     'validate_labels_current',
     'validate_labels_input',
     'validate_markov_chain',
@@ -32,7 +31,6 @@ __all__ = [
     'validate_rewards',
     'validate_sequence',
     'validate_sequences',
-    'validate_state',
     'validate_status',
     'validate_strings',
     'validate_time_points',
@@ -113,8 +111,6 @@ from .custom_types import (
     tgraphs as _tgraphs,
     thmm as _thmm,
     thmm_dict as _thmm_dict,
-    thmm_sequence as _thmm_sequence,
-    thmm_symbols_out as _thmm_symbols_out,
     tinterval as _tinterval,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
@@ -130,8 +126,7 @@ from .custom_types import (
 )
 
 from .utilities import (
-    extract_data_generic as _extract_data_generic,
-    extract_data_numeric as _extract_data_numeric,
+    extract_numeric as _extract_numeric,
     get_file_extension as _get_file_extension,
     get_full_name as _get_full_name,
     is_array as _is_array,
@@ -154,7 +149,10 @@ from .utilities import (
 def _validate_limits(value: _tscalar, value_type: str, lower_limit: _olimit_scalar, upper_limit: _olimit_scalar):
 
     def _get_limit_text(gly_value_type, glt_limit_value):
-        return f'{glt_limit_value:d}' if gly_value_type == 'integer' else f'{glt_limit_value:f}'
+
+        text = f'{glt_limit_value:d}' if gly_value_type == 'integer' else f'{glt_limit_value:f}'
+
+        return text
 
     if lower_limit is not None:
 
@@ -494,7 +492,7 @@ def validate_hmm_dictionary(value: _tany) -> _thmm_dict:
 def validate_hmm_emission(value: _tany, size: int) -> _tarray:
 
     try:
-        value = _extract_data_numeric(value, float)
+        value = _extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -562,67 +560,10 @@ def validate_hmm_graph(value: _tany) -> _tgraphs:
     return value
 
 
-def validate_hmm_sequence(value: _tany, possible_states: _tlist_str, possible_symbols: _tlist_str) -> _thmm_sequence:
-
-    if not _is_list(value):
-        raise ValueError('The "@arg@" parameter must be a list.')
-
-    if len(value) != 2:
-        raise ValueError('The "@arg@" parameter must contain two elements.')
-
-    value_states, value_symbols = value[0], value[1]
-
-    try:
-        value_states = validate_sequence(value_states, possible_states)
-    except Exception as ex:
-        raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
-
-    try:
-        value_symbols = validate_sequence(value_symbols, possible_symbols)
-    except Exception as ex:
-        raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
-
-    if len(value_states) != len(value_symbols):
-        raise ValueError('The "@arg@" parameter must contain two elements of equal length.')
-
-    value = (value_states, value_symbols)
-
-    return value
-
-
-def validate_hmm_symbols(value: _tany, possible_symbols: _tlist_str, allow_lists: bool) -> _thmm_symbols_out:
-
-    if not _is_list(value):
-        raise ValueError('The "@arg@" parameter must be a list.')
-
-    if all(_is_integer(v) for v in value) or all(_is_string(v) for v in value):
-
-        try:
-            value = validate_sequence(value, possible_symbols)
-        except Exception as ex:
-            raise ValueError('The "@arg@" parameter contains invalid values.') from ex
-
-        if allow_lists:
-            value = [value]
-
-    elif allow_lists and all(_is_list(state) for state in value):
-
-        for i, value_i in enumerate(value):
-            try:
-                value[i] = validate_sequence(value_i, possible_symbols)
-            except Exception as ex:
-                raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
-
-    else:
-        raise TypeError('The "@arg@" parameter is wrongly typed.')
-
-    return value
-
-
 def validate_hyperparameter(value: _tany, size: int) -> _tarray:
 
     try:
-        value = _extract_data_numeric(value, float)
+        value = _extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -671,12 +612,36 @@ def validate_interval(value: _tany) -> _tinterval:
     return a, b
 
 
-def validate_labels_current(value: _tany, current_labels: _tlist_str, subset: bool, minimum_length: _oint = None) -> _tlist_int:
+def validate_label(value: _tany, labels: _tlist_str) -> int:
+
+    if _is_integer(value):
+
+        label = int(value)
+        limit = len(labels) - 1
+
+        if label < 0 or label > limit:
+            raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and {limit:d}.')
+
+        return label
+
+    if _is_string(value):
+
+        if value not in labels:
+            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(labels)}.')
+
+        label = labels.index(value)
+
+        return label
+
+    raise TypeError('The "@arg@" parameter must be either an integer or a non-empty string.')
+
+
+def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, minimum_length: _oint = None) -> _tlist_int:
 
     if _is_integer(value):
 
         value = int(value)
-        limit = len(current_labels) - 1
+        limit = len(labels) - 1
 
         if value < 0 or value > limit:
             raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and {limit:d}.')
@@ -685,69 +650,68 @@ def validate_labels_current(value: _tany, current_labels: _tlist_str, subset: bo
 
         return value
 
-    if _is_string(value):
+    if _is_list(value):
 
-        if value not in current_labels:
-            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(current_labels)}.')
+        if all(_is_integer(state) for state in value):
+            value_type = 'integer'
+        elif all(_is_string(state) for state in value):
+            value_type = 'string'
+        else:
+            raise TypeError('The "@arg@" parameter contains invalid elements.')
 
-        value = [current_labels.index(value)]
+        labels_length = len(labels)
+
+        if value_type == 'integer':
+
+            value = [int(state) for state in value]
+
+            if any(state < 0 or state >= labels_length for state in value):
+                raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {labels_length - 1:d}.')
+
+        else:
+
+            value = [labels.index(state) if state in labels else -1 for state in value]
+
+            if any(label == -1 for label in value):
+                raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the following strings: {", ".join(labels)}.')
+
+        value_length = len(value)
+
+        if len(set(value)) < value_length:
+            raise ValueError('The "@arg@" parameter must contain only unique values.')
+
+        if value_length == 0:
+            raise ValueError('The "@arg@" parameter must contain at least one element.')
+
+        maximum_length = labels_length - 1 if subset else labels_length
+
+        if minimum_length is None or minimum_length == 1:
+            if value_length > maximum_length:
+                raise ValueError(f'The "@arg@" parameter must contain no more than {maximum_length:d} elements.')
+        else:
+
+            if value_length < minimum_length or value_length > maximum_length:
+
+                if minimum_length == maximum_length:
+                    length = {minimum_length, maximum_length}.pop()
+                    raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {length:d}.')
+
+                raise ValueError(f'The "@arg@" parameter must contain a number of elements between {minimum_length:d} and {maximum_length:d}.')
+
+        value = sorted(value)
 
         return value
 
-    try:
-        value = _extract_data_generic(value)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+    if _is_string(value):
 
-    if all(_is_integer(state) for state in value):
-        value_type = 'integer'
-    elif all(_is_string(state) for state in value):
-        value_type = 'string'
-    else:
-        raise TypeError('The "@arg@" parameter must be either an integer, a non-empty string, a list of integers or a list of non-empty strings.')
+        if value not in labels:
+            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(labels)}.')
 
-    current_labels_length = len(current_labels)
+        value = [labels.index(value)]
 
-    if value_type == 'integer':
+        return value
 
-        value = [int(state) for state in value]
-
-        if any(state < 0 or state >= current_labels_length for state in value):
-            raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {current_labels_length - 1:d}.')
-
-    else:
-
-        value = [current_labels.index(state) if state in current_labels else -1 for state in value]
-
-        if any(label == -1 for label in value):
-            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the following strings: {", ".join(current_labels)}.')
-
-    value_length = len(value)
-
-    if len(set(value)) < value_length:
-        raise ValueError('The "@arg@" parameter must contain only unique values.')
-
-    if value_length == 0:
-        raise ValueError('The "@arg@" parameter must contain at least one element.')
-
-    maximum_length = current_labels_length - 1 if subset else current_labels_length
-
-    if minimum_length is None or minimum_length == 1:
-        if value_length > maximum_length:
-            raise ValueError(f'The "@arg@" parameter must contain no more than {maximum_length:d} elements.')
-    else:
-
-        if value_length < minimum_length or value_length > maximum_length:
-
-            if minimum_length == maximum_length:
-                length = {minimum_length, maximum_length}.pop()
-                raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {length:d}.')
-
-            raise ValueError(f'The "@arg@" parameter must contain a number of elements between {minimum_length:d} and {maximum_length:d}.')
-
-    value = sorted(value)
-
-    return value
+    raise TypeError('The "@arg@" parameter must be either an integer, a non-empty string, a list of integers or a list of non-empty strings.')
 
 
 def validate_labels_input(value: _tany, size: _oint = None) -> _tlist_str:
@@ -755,20 +719,20 @@ def validate_labels_input(value: _tany, size: _oint = None) -> _tlist_str:
     if not _is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
-    if not all(_is_string(state) for state in value):
+    if not all(_is_string(label) for label in value):
         raise TypeError('The "@arg@" parameter must contain only non-empty strings.')
 
-    states_length = len(value)
+    labels_length = len(value)
 
-    if states_length < 2:
+    if labels_length < 2:
         raise ValueError('The "@arg@" parameter must contain at least two elements.')
 
-    states_unique = len(set(value))
+    states_unique_length = len(set(value))
 
-    if states_unique < states_length:
+    if states_unique_length < labels_length:
         raise ValueError('The "@arg@" parameter must contain only unique values.')
 
-    if size is not None and states_length != size:
+    if size is not None and labels_length != size:
         raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {size:d}.')
 
     return value
@@ -804,7 +768,7 @@ def validate_markov_chains(value: _tany) -> _tmc:
 def validate_mask(value: _tany, rows: int, columns: int) -> _tarray:
 
     try:
-        value = _extract_data_numeric(value, float)
+        value = _extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -828,7 +792,7 @@ def validate_mask(value: _tany, rows: int, columns: int) -> _tarray:
 def validate_matrix(value: _tany, rows: _oint = None, columns: _oint = None) -> _tarray:
 
     try:
-        value = _extract_data_numeric(value, float)
+        value = _extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -975,7 +939,7 @@ def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tl
 def validate_rewards(value: _tany, size: int) -> _tarray:
 
     try:
-        value = _extract_data_numeric(value, float)
+        value = _extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -993,33 +957,74 @@ def validate_rewards(value: _tany, size: int) -> _tarray:
     return value
 
 
-def validate_state(value: _tany, labels: _tlist_str) -> int:
+def validate_sequence(value: _tany, labels: _tlist_str) -> _tlist_int:
 
-    if _is_integer(value):
+    if not _is_list(value):
+        raise ValueError('The "@arg@" parameter must be a list.')
 
-        label = int(value)
-        limit = len(labels) - 1
+    if len(value) < 2:
+        raise ValueError('The "@arg@" parameter must contain at least two elements.')
 
-        if label < 0 or label > limit:
-            raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and {limit:d}.')
+    if all(_is_integer(label) for label in value):
+        value_type = 'integer'
+    elif all(_is_string(label) for label in value):
+        value_type = 'string'
+    else:
+        raise TypeError('The "@arg@" parameter must be either a list of integers or a list of non-empty strings.')
 
-        return label
+    if value_type == 'integer':
 
-    if _is_string(value):
+        labels_length = len(labels)
 
-        if value not in labels:
-            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(labels)}.')
+        if any(label < 0 or label >= labels_length for label in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {labels_length - 1:d}.')
 
-        label = labels.index(value)
+    else:
 
-        return label
+        value = [labels.index(label) if label in labels else -1 for label in value]
 
-    raise TypeError('The "@arg@" parameter must be either an integer or a non-empty string.')
+        if any(label == -1 for label in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the following strings: {", ".join(labels)}.')
+
+    return value
 
 
-def validate_status(value: _tany, current_labels: _tlist_str) -> _tarray:
+def validate_sequences(value: _tany, labels: _tlist_str, flex: bool) -> _tlists_int:
 
-    size = len(current_labels)
+    if not _is_list(value):
+        raise ValueError('The "@arg@" parameter must be a list.')
+
+    if len(value) < 2:
+        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
+
+    if all(_is_list(state) for state in value):
+        value_type = 'list'
+    elif flex and all(_is_integer(label) for label in value):
+        value_type = 'integer'
+    elif flex and all(_is_string(label) for label in value):
+        value_type = 'string'
+    else:
+
+        if flex:
+            raise TypeError('The "@arg@" parameter must be either a list of integers, a list of non-empty strings, a list of lists of integers or a list of lists of non-empty strings.')
+
+        raise TypeError('The "@arg@" parameter must be either a list of lists of integers or a list of lists of non-empty strings.')
+
+    if value_type in ['integer', 'string']:
+        value = [value]
+
+    for index, value_current in enumerate(value):
+        try:
+            value[index] = validate_sequence(value_current, labels)
+        except Exception as ex:
+            raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
+
+    return value
+
+
+def validate_status(value: _tany, labels: _tlist_str) -> _tarray:
+
+    size = len(labels)
 
     if _is_integer(value):
 
@@ -1036,10 +1041,10 @@ def validate_status(value: _tany, current_labels: _tlist_str) -> _tarray:
 
     if _is_string(value):
 
-        if value not in current_labels:
-            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(current_labels)}.')
+        if value not in labels:
+            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(labels)}.')
 
-        value = current_labels.index(value)
+        value = labels.index(value)
 
         result = _np_zeros(size, dtype=float)
         result[value] = 1.0
@@ -1047,7 +1052,7 @@ def validate_status(value: _tany, current_labels: _tlist_str) -> _tarray:
         return result
 
     try:
-        value = _extract_data_numeric(value, float)
+        value = _extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -1057,7 +1062,7 @@ def validate_status(value: _tany, current_labels: _tlist_str) -> _tarray:
     value = _np_ravel(value)
 
     if value.size != size:
-        raise ValueError(f'The "@arg@" parameter length must be equal to the number of states ({size:d}).')
+        raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
 
     if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
@@ -1161,7 +1166,7 @@ def validate_transition_function(value: _tany) -> _ttfunc:
 def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
 
     try:
-        value = _extract_data_numeric(value, float)
+        value = _extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -1195,14 +1200,14 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
     else:
 
         try:
-            value = _extract_data_numeric(value, float)
+            value = _extract_numeric(value, float)
         except Exception as ex:
             raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
         if value.ndim > 2 or (value.ndim == 2 and value.shape[0] != 1) or (value.ndim == 1 and value.shape[0] == 0):
             raise ValueError('The "@arg@" parameter must be a valid vector.')
 
-        value = _np_ravel(value)\
+        value = _np_ravel(value)
 
         if size is not None and value.size != size:
             raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
@@ -1218,63 +1223,5 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
 
     if vector_type == 'stochastic' and not _np_isclose(_np_sum(value), 1.0):
         raise ValueError('The "@arg@" parameter values must sum to 1.0.')
-
-    return value
-
-
-def validate_sequence(value: _tany, possible_states: _tlist_str) -> _tlist_int:
-
-    try:
-        value = _extract_data_generic(value)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-    if len(value) < 2:
-        raise ValueError('The "@arg@" parameter must contain at least two elements.')
-
-    if all(_is_integer(state) for state in value):
-        value_type = 'integer'
-    elif all(_is_string(state) for state in value):
-        value_type = 'string'
-    else:
-        raise TypeError('The "@arg@" parameter must be either a list of integers or a list of non-empty strings.')
-
-    if value_type == 'integer':
-
-        possible_states_length = len(possible_states)
-
-        if any(state < 0 or state >= possible_states_length for state in value):
-            raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and the number of existing states minus one ({possible_states_length - 1:d}).')
-
-    else:
-
-        value = [possible_states.index(state) if state in possible_states else -1 for state in value]
-
-        if any(state == -1 for state in value):
-            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the names of the existing states ({", ".join(possible_states)}).')
-
-    return value
-
-
-def validate_sequences(value: _tany, possible_states: _tlist_str) -> _tlists_int:
-
-    if possible_states is None:
-        raise ValueError('The "@arg@" parameter must be validated against a proper list of possible states.')
-
-    try:
-        value = _extract_data_generic(value)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-    value_length = len(value)
-
-    if value_length < 2:
-        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
-
-    for i in range(value_length):
-        try:
-            value[i] = validate_sequence(value[i], possible_states)
-        except Exception as ex:
-            raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
 
     return value

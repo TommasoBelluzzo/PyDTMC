@@ -141,15 +141,14 @@ def decode(p: _tarray, e: _tarray, symbols: _tlist_int, use_scaling: bool) -> _o
 
 
 # noinspection DuplicatedCode
-def estimate(n: int, k: int, sequence: _thmm_sequence, handle_nulls: bool) -> _thmm_params:
+def estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: _tlist_int, handle_nulls: bool) -> _thmm_params:
 
     p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
-    states, symbols = sequence
 
-    for i, j in zip(states[:-1], states[1:]):
+    for i, j in zip(sequence_states[:-1], sequence_states[1:]):
         p[i, j] += 1.0
 
-    for i, j in zip(states, symbols):
+    for i, j in zip(sequence_states, sequence_symbols):
         e[i, j] += 1.0
 
     if handle_nulls:
@@ -387,7 +386,7 @@ def train(algorithm: str, p_guess: _tarray, e_guess: _tarray, symbols: _tlists_i
                 log_prob_i, states_i = viterbi(p_guess, e_guess, initial_distribution, symbols_i)
                 ll += log_prob_i
 
-                p_i, e_i = estimate(n, k, (states_i, symbols_i), False)
+                p_i, e_i = estimate(n, k, states_i, symbols_i, False)
                 p += p_i
                 e += e_i
 

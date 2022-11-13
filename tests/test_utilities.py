@@ -25,7 +25,7 @@ from pytest import (
 # Internal
 
 from pydtmc.utilities import (
-    extract_data_numeric as _extract_data_numeric
+    extract_numeric as _extract_numeric
 )
 
 from .utilities import (
@@ -45,7 +45,7 @@ _base_directory = _osp_abspath(_osp_dirname(__file__))
 #########
 
 # noinspection PyBroadException
-def test_extract_data_numeric(value, evaluate, is_valid):
+def test_extract_numeric(value, evaluate, is_valid):
 
     if evaluate and isinstance(value, str):
         value, skip = _evaluate(value)
@@ -57,7 +57,7 @@ def test_extract_data_numeric(value, evaluate, is_valid):
     else:
 
         try:
-            result = _extract_data_numeric(value)
+            result = _extract_numeric(value)
             result_is_valid = True
         except Exception:
             result = None
@@ -69,8 +69,5 @@ def test_extract_data_numeric(value, evaluate, is_valid):
         assert actual == expected
 
         if result_is_valid:
-
-            actual = isinstance(result, _np_ndarray)
-            expected = True
-
-            assert actual == expected
+            result_check = isinstance(result, _np_ndarray)
+            assert result_check is True

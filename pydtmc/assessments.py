@@ -156,7 +156,7 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, sign
     try:
 
         possible_states = _validate_labels_input(possible_states)
-        sequences = _validate_sequences(sequences, possible_states)
+        sequences = _validate_sequences(sequences, possible_states, False)
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover

@@ -80,9 +80,9 @@ def test_decode(p, e, symbols, use_scaling, value):
 
 
 # noinspection DuplicatedCode
-def test_estimate(possible_states, possible_symbols, sequence, value):
+def test_estimate(possible_states, possible_symbols, sequence_states, sequence_symbols, value):
 
-    hmm = _HiddenMarkovModel.estimate(possible_states, possible_symbols, sequence)
+    hmm = _HiddenMarkovModel.estimate(possible_states, possible_symbols, sequence_states, sequence_symbols)
 
     actual = hmm.p
     expected = _np_array(value[0])

@@ -61,13 +61,13 @@ from .custom_types import (
     thmm_dict_flex as _thmm_dict_flex,
     thmm_sequence_ext as _thmm_sequence_ext,
     thmm_step as _thmm_step,
-    thmm_symbols as _thmm_symbols,
     thmm_symbols_ext as _thmm_symbols_ext,
     thmm_viterbi_ext as _thmm_viterbi_ext,
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
     tpair_array as _tpair_array,
     tpair_int as _tpair_int,
+    tsequence as _tsequence,
     tstate as _tstate
 )
 
@@ -121,14 +121,14 @@ from .validation import (
     validate_hmm_dictionary as _validate_hmm_dictionary,
     validate_hmm_graph as _validate_hmm_graph,
     validate_hmm_emission as _validate_hmm_emission,
-    validate_hmm_sequence as _validate_hmm_sequence,
-    validate_hmm_symbols as _validate_hmm_symbols,
     validate_integer as _validate_integer,
+    validate_label as _validate_label,
     validate_labels_current as _validate_labels_current,
     validate_labels_input as _validate_labels_input,
-    validate_state as _validate_state,
     validate_mask as _validate_mask,
     validate_matrix as _validate_matrix,
+    validate_sequence as _validate_sequence,
+    validate_sequences as _validate_sequences,
     validate_status as _validate_status,
     validate_transition_matrix as _validate_transition_matrix,
 )
@@ -296,7 +296,7 @@ class HiddenMarkovModel(_BaseClass):
 
         return self.__symbols
 
-    def decode(self, symbols: _thmm_symbols, use_scaling: bool = True) -> _ohmm_decoding:
+    def decode(self, symbols: _tsequence, use_scaling: bool = True) -> _ohmm_decoding:
 
         """
         The method calculates the log probability, the posterior probabilities, the backward probabilities and the forward probabilities of an observed sequence of symbols.
@@ -312,7 +312,7 @@ class HiddenMarkovModel(_BaseClass):
 
         try:
 
-            symbols = _validate_hmm_symbols(symbols, self.__symbols, False)
+            symbols = _validate_sequence(symbols, self.__symbols)
             use_scaling = _validate_boolean(use_scaling)
 
         except Exception as ex:  # pragma: no cover
@@ -334,8 +334,8 @@ class HiddenMarkovModel(_BaseClass):
 
         try:
 
-            symbol = _validate_state(symbol, self.__symbols)
-            state = _validate_state(state, self.__states)
+            symbol = _validate_label(symbol, self.__symbols)
+            state = _validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -364,7 +364,7 @@ class HiddenMarkovModel(_BaseClass):
 
             rng = _create_rng(seed)
             target = _validate_enumerator(target, ['both', 'state', 'symbol'])
-            initial_state = _validate_state(initial_state, self.__states)
+            initial_state = _validate_label(initial_state, self.__states)
             output_index = _validate_boolean(output_index)
 
         except Exception as ex:  # pragma: no cover
@@ -435,9 +435,9 @@ class HiddenMarkovModel(_BaseClass):
 
             rng = _create_rng(seed)
             steps = _validate_integer(steps, lower_limit=(1, False))
-            initial_state = rng.randint(0, self.__size[0]) if initial_state is None else _validate_state(initial_state, self.__states)
-            final_state = None if final_state is None else _validate_state(final_state, self.__states)
-            final_symbol = None if final_symbol is None else _validate_state(final_symbol, self.__symbols)
+            initial_state = rng.randint(0, self.__size[0]) if initial_state is None else _validate_label(initial_state, self.__states)
+            final_state = None if final_state is None else _validate_label(final_state, self.__states)
+            final_symbol = None if final_symbol is None else _validate_label(final_symbol, self.__symbols)
             output_indices = _validate_boolean(output_indices)
 
         except Exception as ex:  # pragma: no cover
@@ -534,8 +534,8 @@ class HiddenMarkovModel(_BaseClass):
 
         try:
 
-            state_target = _validate_state(state_target, self.__states)
-            state_origin = _validate_state(state_origin, self.__states)
+            state_target = _validate_label(state_target, self.__states)
+            state_origin = _validate_label(state_origin, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -544,7 +544,7 @@ class HiddenMarkovModel(_BaseClass):
 
         return value
 
-    def viterbi(self, symbols: _thmm_symbols, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_viterbi_ext:
+    def viterbi(self, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_viterbi_ext:
 
         """
         The method calculates the log probability and the most probable states path of an observed sequence of symbols.
@@ -558,7 +558,7 @@ class HiddenMarkovModel(_BaseClass):
 
         try:
 
-            symbols = _validate_hmm_symbols(symbols, self.__symbols, False)
+            symbols = _validate_sequence(symbols, self.__symbols)
             initial_status = _np_full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
 
         except Exception as ex:  # pragma: no cover
@@ -576,14 +576,15 @@ class HiddenMarkovModel(_BaseClass):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def estimate(possible_states: _tlist_str, possible_symbols: _tlist_str, sequence: _thmm_sequence_ext) -> _thmm:
+    def estimate(possible_states: _tlist_str, possible_symbols: _tlist_str, sequence_states: _tsequence, sequence_symbols: _tsequence) -> _thmm:
 
         """
         The method performs the maximum likelihood estimation of transition and emission probabilities from an observed sequence of states and symbols.
 
         :param possible_states: the possible states of the model.
         :param possible_symbols: the possible symbols of the model.
-        :param sequence: the observed sequence of states and symbols.
+        :param sequence_states: the observed sequence of states.
+        :param sequence_symbols: the observed sequence of symbols.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -591,7 +592,8 @@ class HiddenMarkovModel(_BaseClass):
 
             possible_states = _validate_labels_input(possible_states)
             possible_symbols = _validate_labels_input(possible_symbols)
-            sequence = _validate_hmm_sequence(sequence, possible_states, possible_symbols)
+            sequence_states = _validate_sequence(sequence_states, possible_states)
+            sequence_symbols = _validate_sequence(sequence_symbols, possible_symbols)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -599,7 +601,10 @@ class HiddenMarkovModel(_BaseClass):
         if len(list(set(possible_states) & set(possible_symbols))) > 0:
             raise _ValidationError('State names and symbol names must be different.')
 
-        p, e = _estimate(len(possible_states), len(possible_symbols), sequence, True)
+        if len(sequence_states) != len(sequence_symbols):
+            raise ValueError('The observed sequence of states and the observed sequence of symbols must have the same length.')
+
+        p, e = _estimate(len(possible_states), len(possible_symbols), sequence_states, sequence_symbols, True)
         hmm = HiddenMarkovModel(p, e, possible_states, possible_symbols)
 
         return hmm
@@ -945,7 +950,7 @@ class HiddenMarkovModel(_BaseClass):
 
             possible_states = _validate_labels_input(possible_states)
             possible_symbols = _validate_labels_input(possible_symbols)
-            symbols = _validate_hmm_symbols(symbols, possible_symbols, True)
+            symbols = _validate_sequences(symbols, possible_symbols, True)
             algorithm = _validate_enumerator(algorithm, ['baum-welch', 'viterbi'])
             p_guess = _validate_transition_matrix(p_guess, len(possible_states))
             e_guess = _validate_hmm_emission(e_guess, p_guess.shape[0])

@@ -147,11 +147,11 @@ from .validation import (
     validate_dpi as _validate_dpi,
     validate_enumerator as _validate_enumerator,
     validate_integer as _validate_integer,
+    validate_label as _validate_label,
     validate_markov_chain as _validate_markov_chain,
     validate_markov_chains as _validate_markov_chains,
     validate_object as _validate_object,
     validate_sequence as _validate_sequence,
-    validate_state as _validate_state,
     validate_status as _validate_status,
     validate_strings as _validate_strings
 )
@@ -985,7 +985,7 @@ def plot_sequence(mc: _tmc, sequence: _tsequence_flex, initial_state: _ostate = 
             sequence = _validate_sequence(sequence, mc.states)
 
         if initial_state is not None:
-            initial_state = _validate_state(initial_state, mc.states)
+            initial_state = _validate_label(initial_state, mc.states)
 
         plot_type = _validate_enumerator(plot_type, ['histogram', 'matrix', 'transitions'])
         dpi = _validate_dpi(dpi)

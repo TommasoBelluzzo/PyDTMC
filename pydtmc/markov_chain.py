@@ -220,6 +220,7 @@ from .validation import (
     validate_hyperparameter as _validate_hyperparameter,
     validate_integer as _validate_integer,
     validate_interval as _validate_interval,
+    validate_label as _validate_label,
     validate_labels_current as _validate_labels_current,
     validate_labels_input as _validate_labels_input,
     validate_mask as _validate_mask,
@@ -228,7 +229,6 @@ from .validation import (
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
     validate_sequence as _validate_sequence,
-    validate_state as _validate_state,
     validate_status as _validate_status,
     validate_time_points as _validate_time_points,
     validate_transition_function as _validate_transition_function,
@@ -1043,8 +1043,8 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            state1 = _validate_state(state1, self.__states)
-            state2 = _validate_state(state2, self.__states)
+            state1 = _validate_label(state1, self.__states)
+            state2 = _validate_label(state2, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1153,7 +1153,7 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            state = _validate_state(state, self.__states)
+            state = _validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1235,7 +1235,7 @@ class MarkovChain(_BaseClass):
         try:
 
             steps = _validate_integer(steps, lower_limit=(0, True))
-            initial_state = _validate_state(initial_state, self.__states)
+            initial_state = _validate_label(initial_state, self.__states)
 
             if first_passage_states is not None:
                 first_passage_states = _validate_labels_current(first_passage_states, self.__states, False)
@@ -1267,7 +1267,7 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            initial_state = _validate_state(initial_state, self.__states)
+            initial_state = _validate_label(initial_state, self.__states)
             first_passage_states = _validate_labels_current(first_passage_states, self.__states, True)
             rewards = _validate_rewards(rewards, self.__size)
             steps = _validate_integer(steps, lower_limit=(0, True))
@@ -1355,7 +1355,7 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            state = _validate_state(state, self.__states)
+            state = _validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1376,8 +1376,8 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            state_target = _validate_state(state_target, self.__states)
-            state_origin = _validate_state(state_origin, self.__states)
+            state_target = _validate_label(state_target, self.__states)
+            state_origin = _validate_label(state_origin, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1397,7 +1397,7 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            state = _validate_state(state, self.__states)
+            state = _validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1417,7 +1417,7 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            state = _validate_state(state, self.__states)
+            state = _validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1437,7 +1437,7 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            state = _validate_state(state, self.__states)
+            state = _validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1633,7 +1633,7 @@ class MarkovChain(_BaseClass):
         try:
 
             rng = _create_rng(seed)
-            initial_state = _validate_state(initial_state, self.__states)
+            initial_state = _validate_label(initial_state, self.__states)
             output_index = _validate_boolean(output_index)
 
         except Exception as ex:  # pragma: no cover
@@ -1664,7 +1664,7 @@ class MarkovChain(_BaseClass):
         try:
 
             steps = _validate_integer(steps, lower_limit=(0, True))
-            initial_state = _validate_state(initial_state, self.__states)
+            initial_state = _validate_label(initial_state, self.__states)
             output_indices = _validate_boolean(output_indices)
 
         except Exception as ex:  # pragma: no cover
@@ -1716,7 +1716,7 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            state = _validate_state(state, self.__states)
+            state = _validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1763,8 +1763,8 @@ class MarkovChain(_BaseClass):
 
             rng = _create_rng(seed)
             steps = _validate_integer(steps, lower_limit=(1, False))
-            initial_state = rng.randint(0, self.__size) if initial_state is None else _validate_state(initial_state, self.__states)
-            final_state = None if final_state is None else _validate_state(final_state, self.__states)
+            initial_state = rng.randint(0, self.__size) if initial_state is None else _validate_label(initial_state, self.__states)
+            final_state = None if final_state is None else _validate_label(final_state, self.__states)
             output_indices = _validate_boolean(output_indices)
 
         except Exception as ex:  # pragma: no cover
@@ -2043,8 +2043,8 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            state_target = _validate_state(state_target, self.__states)
-            state_origin = _validate_state(state_origin, self.__states)
+            state_target = _validate_label(state_target, self.__states)
+            state_origin = _validate_label(state_origin, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None

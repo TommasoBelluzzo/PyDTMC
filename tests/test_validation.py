@@ -54,11 +54,10 @@ from pydtmc.validation import (
     validate_graph as _validate_graph,
     validate_hidden_markov_model as _validate_hidden_markov_model,
     validate_hmm_emission as _validate_hmm_emission,
-    validate_hmm_sequence as _validate_hmm_sequence,
-    validate_hmm_symbols as _validate_hmm_symbols,
     validate_integer as _validate_integer,
     validate_hyperparameter as _validate_hyperparameter,
     validate_interval as _validate_interval,
+    validate_label as _validate_label,
     validate_labels_current as _validate_labels_current,
     validate_labels_input as _validate_labels_input,
     validate_markov_chain as _validate_markov_chain,
@@ -71,7 +70,6 @@ from pydtmc.validation import (
     validate_rewards as _validate_rewards,
     validate_sequence as _validate_sequence,
     validate_sequences as _validate_sequences,
-    validate_state as _validate_state,
     validate_status as _validate_status,
     validate_strings as _validate_strings,
     validate_time_points as _validate_time_points,
@@ -365,51 +363,6 @@ def test_validate_hmm_emission(value, size, is_valid):
         assert result_check is True
 
 
-# noinspection DuplicatedCode, PyBroadException
-def test_validate_hmm_sequence(value, possible_states, possible_symbols, is_valid):
-
-    try:
-        result = _validate_hmm_sequence(value, possible_states, possible_symbols)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-        result_check = isinstance(result, tuple) and all(isinstance(v, list) and all(isinstance(s, int) for s in v) for v in result)
-        assert result_check is True
-
-
-# noinspection PyBroadException
-def test_validate_hmm_symbols(value, possible_symbols, allow_lists, is_valid):
-
-    try:
-        result = _validate_hmm_symbols(value, possible_symbols, allow_lists)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-
-        if allow_lists:
-            result_check = isinstance(result, list) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
-        else:
-            result_check = isinstance(result, list) and all(isinstance(v, int) for v in result)
-
-        assert result_check is True
-
-
 # noinspection PyBroadException
 def test_validate_hyperparameter(value, size, is_valid):
 
@@ -476,10 +429,30 @@ def test_validate_interval(value, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_labels_current(value, current_states, subset, minimum_length, is_valid):
+def test_validate_label(value, labels, is_valid):
 
     try:
-        result = _validate_labels_current(value, current_states, subset, minimum_length)
+        result = _validate_label(value, labels)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+        assert isinstance(result, int) is True
+        assert result == (labels.index(value) if isinstance(value, str) else labels.index(labels[value]))
+
+
+# noinspection PyBroadException
+def test_validate_labels_current(value, labels, subset, minimum_length, is_valid):
+
+    try:
+        result = _validate_labels_current(value, labels, subset, minimum_length)
         result_is_valid = True
     except Exception:
         result = None
@@ -647,10 +620,10 @@ def test_validate_object(value, is_valid):
 
 
 # noinspection DuplicatedCode, PyBroadException
-def test_validate_partitions(value, current_states, is_valid):
+def test_validate_partitions(value, labels, is_valid):
 
     try:
-        result = _validate_partitions(value, current_states)
+        result = _validate_partitions(value, labels)
         result_is_valid = True
     except Exception:
         result = None
@@ -715,11 +688,11 @@ def test_validate_rewards(value, size, is_valid):
         assert actual == expected
 
 
-# noinspection PyBroadException
-def test_validate_sequence(value, possible_states, is_valid):
+# noinspection DuplicatedCode, PyBroadException
+def test_validate_sequence(value, labels, is_valid):
 
     try:
-        result = _validate_sequence(value, possible_states)
+        result = _validate_sequence(value, labels)
         result_is_valid = True
     except Exception:
         result = None
@@ -736,10 +709,10 @@ def test_validate_sequence(value, possible_states, is_valid):
 
 
 # noinspection DuplicatedCode, PyBroadException
-def test_validate_sequences(value, possible_states, is_valid):
+def test_validate_sequences(value, labels, flex, is_valid):
 
     try:
-        result = _validate_sequences(value, possible_states)
+        result = _validate_sequences(value, labels, flex)
         result_is_valid = True
     except Exception:
         result = None
@@ -756,38 +729,10 @@ def test_validate_sequences(value, possible_states, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_state(value, current_states, is_valid):
+def test_validate_status(value, labels, is_valid):
 
     try:
-        result = _validate_state(value, current_states)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-
-        actual = isinstance(result, int)
-        expected = True
-
-        assert actual == expected
-
-        actual = result
-        expected = current_states.index(value) if isinstance(value, str) else current_states.index(current_states[value])
-
-        assert actual == expected
-
-
-# noinspection PyBroadException
-def test_validate_status(value, current_states, is_valid):
-
-    try:
-        result = _validate_status(value, current_states)
+        result = _validate_status(value, labels)
         result_is_valid = True
     except Exception:
         result = None

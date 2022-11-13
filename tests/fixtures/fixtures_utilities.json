@@ -1,7 +1,12 @@
 {
-  "extract_data_numeric_data": [
+  "extract_numeric_data": [
     {
       "value": [],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [0.4],
       "evaluate": false,
       "is_valid": true
     },
@@ -11,7 +16,22 @@
       "is_valid": true
     },
     {
+      "value": [[], [], [3]],
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": [[3], [0], [3]],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
       "value": [0.81, 0.84, 0.46, 0.73],
+      "evaluate": false,
+      "is_valid": true
+    },
+    {
+      "value": [7, 7, 7],
       "evaluate": false,
       "is_valid": true
     },
@@ -28,27 +48,27 @@
     {
       "value": {"V1": 0.0, "V2": 0.0, "V3": 7.5, "V4": 0.0},
       "evaluate": false,
-      "is_valid": true
+      "is_valid": false
     },
     {
       "value": "tuple([5, 8, 0])",
       "evaluate": true,
-      "is_valid": true
+      "is_valid": false
     },
     {
       "value": "set([-4, -4, 1, 6, -4, 0])",
       "evaluate": true,
-      "is_valid": true
+      "is_valid": false
     },
     {
       "value": "frozenset([10, 100, 1000, float('inf')])",
       "evaluate": true,
-      "is_valid": true
+      "is_valid": false
     },
     {
       "value": "range(25)",
       "evaluate": true,
-      "is_valid": true
+      "is_valid": false
     },
     {
       "value": "np.array([[2, 3], [3, 2], [2, 3]])",
