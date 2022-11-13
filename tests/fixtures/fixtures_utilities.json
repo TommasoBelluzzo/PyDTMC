@@ -1,106 +1,4 @@
 {
-  "extract_data_generic_data": [
-    {
-      "value": [],
-      "evaluate": false,
-      "is_valid": true
-    },
-    {
-      "value": [null, null, null],
-      "evaluate": false,
-      "is_valid": true
-    },
-    {
-      "value": [0.33, 0.97, 0.13],
-      "evaluate": false,
-      "is_valid": true
-    },
-    {
-      "value": [-5, 0, -5],
-      "evaluate": false,
-      "is_valid": true
-    },
-    {
-      "value": [true, false, true],
-      "evaluate": false,
-      "is_valid": true
-    },
-    {
-      "value": [[], [], []],
-      "evaluate": false,
-      "is_valid": true
-    },
-    {
-      "value": [["NaN"], ["Infinity"], ["NaN"]],
-      "evaluate": false,
-      "is_valid": true
-    },
-    {
-      "value": [["A", "B"], ["C", "D"], ["E", "F"]],
-      "evaluate": false,
-      "is_valid": true
-    },
-    {
-      "value": {"V1": 0.0, "V2": 0.0, "V3": 7.5, "V4": 0.0},
-      "evaluate": false,
-      "is_valid": true
-    },
-    {
-      "value": "tuple(['A', 'B', 'C'])",
-      "evaluate": true,
-      "is_valid": true
-    },
-    {
-      "value": "set([2, 4, 6, 6])",
-      "evaluate": true,
-      "is_valid": true
-    },
-    {
-      "value": "frozenset([2, 4, 6, 6])",
-      "evaluate": true,
-      "is_valid": true
-    },
-    {
-      "value": "range(10)",
-      "evaluate": true,
-      "is_valid": true
-    },
-    {
-      "value": "(i**3.0 for i in range(1,10,2))",
-      "evaluate": true,
-      "is_valid": true
-    },
-    {
-      "value": null,
-      "evaluate": false,
-      "is_valid": false
-    },
-    {
-      "value": "abcdefg",
-      "evaluate": false,
-      "is_valid": false
-    },
-    {
-      "value": 345.72,
-      "evaluate": false,
-      "is_valid": false
-    },
-    {
-      "value": "bytes.fromhex('2EF0 F1F2')",
-      "evaluate": true,
-      "is_valid": false
-    },
-    {
-      "value": "bytearray.fromhex('2EF0 F1F2')",
-      "evaluate": true,
-      "is_valid": false
-    },
-    {
-      "value": "lambda x, y, z: x + (y * z)",
-      "evaluate": true,
-      "is_valid": false
-    }
-  ],
   "extract_data_numeric_data": [
     {
       "value": [],
@@ -183,7 +81,17 @@
       "is_valid": false
     },
     {
+      "value": false,
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
       "value": 12.26668000,
+      "evaluate": false,
+      "is_valid": false
+    },
+    {
+      "value": 42,
       "evaluate": false,
       "is_valid": false
     },

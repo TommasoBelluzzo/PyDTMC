@@ -255,11 +255,11 @@ def test_sensitivity(p, state, value):
         assert actual == expected
 
 
-def test_time_correlations(p, walk1, walk2, time_points, value):
+def test_time_correlations(p, sequence1, sequence2, time_points, value):
 
     mc = _MarkovChain(p)
 
-    actual = _np_array(mc.time_correlations(walk1, walk2, time_points))
+    actual = _np_array(mc.time_correlations(sequence1, sequence2, time_points))
     expected = value
 
     if actual is not None and expected is not None:
@@ -269,11 +269,11 @@ def test_time_correlations(p, walk1, walk2, time_points, value):
         assert actual == expected
 
 
-def test_time_relaxations(p, walk, initial_distribution, time_points, value):
+def test_time_relaxations(p, sequence, initial_distribution, time_points, value):
 
     mc = _MarkovChain(p)
 
-    actual = _np_array(mc.time_relaxations(walk, initial_distribution, time_points))
+    actual = _np_array(mc.time_relaxations(sequence, initial_distribution, time_points))
     expected = value
 
     if actual is not None and expected is not None:

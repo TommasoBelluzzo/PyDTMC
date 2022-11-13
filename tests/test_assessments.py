@@ -48,43 +48,43 @@ def _extract_data_chi2(result, value):
     return actual, expected
 
 
-def test_assess_first_order(walk, possible_states, significance, value):
+def test_assess_first_order(sequence, possible_states, significance, value):
 
-    result = _assess_first_order(possible_states, walk, significance)
+    result = _assess_first_order(possible_states, sequence, significance)
     actual, expected = _extract_data_chi2(result, value)
 
     assert actual == expected
 
 
-def test_assess_homogeneity(walks, possible_states, significance, value):
+def test_assess_homogeneity(sequences, possible_states, significance, value):
 
-    result = _assess_homogeneity(possible_states, walks, significance)
+    result = _assess_homogeneity(possible_states, sequences, significance)
     actual, expected = _extract_data_chi2(result, value)
 
     assert actual == expected
 
 
-def test_assess_markov_property(walk, possible_states, significance, value):
+def test_assess_markov_property(sequence, possible_states, significance, value):
 
-    result = _assess_markov_property(possible_states, walk, significance)
+    result = _assess_markov_property(possible_states, sequence, significance)
     actual, expected = _extract_data_chi2(result, value)
 
     assert actual == expected
 
 
-def test_assess_stationarity(walk, possible_states, blocks, significance, value):
+def test_assess_stationarity(sequence, possible_states, blocks, significance, value):
 
-    result = _assess_stationarity(possible_states, walk, blocks, significance)
+    result = _assess_stationarity(possible_states, sequence, blocks, significance)
     actual, expected = _extract_data_chi2(result, value)
 
     assert actual == expected
 
 
-def test_assess_theoretical_compatibility(p, states, walk, significance, value):
+def test_assess_theoretical_compatibility(p, states, sequence, significance, value):
 
     mc = _MarkovChain(p, states)
 
-    result = _assess_theoretical_compatibility(mc, walk, significance)
+    result = _assess_theoretical_compatibility(mc, sequence, significance)
     actual, expected = _extract_data_chi2(result, value)
 
     assert actual == expected

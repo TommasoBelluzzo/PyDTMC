@@ -76,15 +76,15 @@ from .custom_types import (
     oarray as _oarray,
     oint as _oint,
     olist_int as _olist_int,
+    osequence as _osequence,
     otimes_out as _otimes_out,
-    owalk as _owalk,
     tany as _tany,
     tarray as _tarray,
     tmc as _tmc,
     tlist_int as _tlist_int,
     trdl as _trdl,
-    ttimes_in as _ttimes_in,
-    twalk as _twalk
+    tsequence as _tsequence,
+    ttimes_in as _ttimes_in
 )
 
 
@@ -495,7 +495,7 @@ def sensitivity(mc: _tmc, state: int) -> _oarray:
     return s
 
 
-def time_correlations(mc: _tmc, rdl: _trdl, walk1: _twalk, walk2: _owalk, time_points: _ttimes_in) -> _otimes_out:
+def time_correlations(mc: _tmc, rdl: _trdl, sequence1: _tsequence, sequence2: _osequence, time_points: _ttimes_in) -> _otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 
@@ -506,16 +506,16 @@ def time_correlations(mc: _tmc, rdl: _trdl, walk1: _twalk, walk2: _owalk, time_p
 
     observations1 = _np_zeros(size, dtype=float)
 
-    for state in walk1:
+    for state in sequence1:
         observations1[state] += 1.0
 
-    if walk2 is None:
+    if sequence2 is None:
         observations2 = _np_copy(observations1)
     else:
 
         observations2 = _np_zeros(size, dtype=int)
 
-        for state in walk2:
+        for state in sequence2:
             observations2[state] += 1.0
 
     if isinstance(time_points, int):
@@ -587,7 +587,7 @@ def time_correlations(mc: _tmc, rdl: _trdl, walk1: _twalk, walk2: _owalk, time_p
     return tcs
 
 
-def time_relaxations(mc: _tmc, rdl: _trdl, walk: _twalk, initial_distribution: _tarray, time_points: _ttimes_in) -> _otimes_out:
+def time_relaxations(mc: _tmc, rdl: _trdl, sequence: _tsequence, initial_distribution: _tarray, time_points: _ttimes_in) -> _otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 
@@ -596,7 +596,7 @@ def time_relaxations(mc: _tmc, rdl: _trdl, walk: _twalk, initial_distribution: _
 
     observations = _np_zeros(size, dtype=float)
 
-    for state in walk:
+    for state in sequence:
         observations[state] += 1.0
 
     if isinstance(time_points, int):

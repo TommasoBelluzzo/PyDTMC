@@ -96,11 +96,11 @@ from .custom_types import (
     ointerval as _ointerval,
     olist_str as _olist_str,
     onumeric as _onumeric,
+    osequence as _osequence,
     ostate as _ostate,
     ostates as _ostates,
     ostatus as _ostatus,
     otimes_out as _otimes_out,
-    owalk as _owalk,
     tany as _tany,
     tarray as _tarray,
     tbcond as _tbcond,
@@ -121,11 +121,11 @@ from .custom_types import (
     trandfunc_flex as _trandfunc_flex,
     trdl as _trdl,
     tredists as _tredists,
+    tsequence as _tsequence,
     tstate as _tstate,
     tstates as _tstates,
     ttfunc as _ttfunc,
     ttimes_in as _ttimes_in,
-    twalk as _twalk,
     tweights as _tweights
 )
 
@@ -152,7 +152,7 @@ from .files_io import (
 
 from .fitting import (
     fit_function as _fit_function,
-    fit_walk as _fit_walk
+    fit_sequence as _fit_sequence
 )
 
 from .generators import (
@@ -195,8 +195,8 @@ from .measures import (
 from .simulations import (
     predict as _predict,
     redistribute as _redistribute,
-    walk as _walk,
-    walk_probability as _walk_probability
+    sequence_probability as _sequence_probability,
+    simulate as _simulate
 )
 
 from .utilities import (
@@ -220,20 +220,20 @@ from .validation import (
     validate_hyperparameter as _validate_hyperparameter,
     validate_integer as _validate_integer,
     validate_interval as _validate_interval,
+    validate_labels_current as _validate_labels_current,
     validate_labels_input as _validate_labels_input,
     validate_mask as _validate_mask,
     validate_matrix as _validate_matrix,
     validate_partitions as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
+    validate_sequence as _validate_sequence,
     validate_state as _validate_state,
-    validate_states as _validate_states,
     validate_status as _validate_status,
     validate_time_points as _validate_time_points,
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
-    validate_vector as _validate_vector,
-    validate_walk as _validate_walk
+    validate_vector as _validate_vector
 )
 
 
@@ -1122,8 +1122,8 @@ class MarkovChain(_BaseClass):
         try:
 
             committor_type = _validate_enumerator(committor_type, ['backward', 'forward'])
-            states1 = _validate_states(states1, self.__states, True, 1)
-            states2 = _validate_states(states2, self.__states, True, 1)
+            states1 = _validate_labels_current(states1, self.__states, True)
+            states2 = _validate_labels_current(states2, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1238,7 +1238,7 @@ class MarkovChain(_BaseClass):
             initial_state = _validate_state(initial_state, self.__states)
 
             if first_passage_states is not None:
-                first_passage_states = _validate_states(first_passage_states, self.__states, False, 1)
+                first_passage_states = _validate_labels_current(first_passage_states, self.__states, False)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1268,7 +1268,7 @@ class MarkovChain(_BaseClass):
         try:
 
             initial_state = _validate_state(initial_state, self.__states)
-            first_passage_states = _validate_states(first_passage_states, self.__states, True, 1)
+            first_passage_states = _validate_labels_current(first_passage_states, self.__states, True)
             rewards = _validate_rewards(rewards, self.__size)
             steps = _validate_integer(steps, lower_limit=(0, True))
 
@@ -1307,7 +1307,7 @@ class MarkovChain(_BaseClass):
             if targets is None:
                 targets = self.__states_indices.copy()
             else:
-                targets = _validate_states(targets, self.__states, False, 1)
+                targets = _validate_labels_current(targets, self.__states, False)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1335,7 +1335,7 @@ class MarkovChain(_BaseClass):
             if targets is None:
                 targets = self.__states_indices.copy()
             else:
-                targets = _validate_states(targets, self.__states, False, 1)
+                targets = _validate_labels_current(targets, self.__states, False)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1511,8 +1511,8 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            origins = _validate_states(origins, self.__states, True, 1)
-            targets = _validate_states(targets, self.__states, True, 1)
+            origins = _validate_labels_current(origins, self.__states, True)
+            targets = _validate_labels_current(targets, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1539,7 +1539,7 @@ class MarkovChain(_BaseClass):
         try:
 
             if targets is not None:
-                targets = _validate_states(targets, self.__states, False, 1)
+                targets = _validate_labels_current(targets, self.__states, False)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1618,7 +1618,7 @@ class MarkovChain(_BaseClass):
     def next_state(self, initial_state: _tstate, output_index: bool = False, seed: _oint = None) -> _tstate:
 
         """
-        The method simulates a single random step.
+        The method simulates a single step in a random walk.
 
         | **Notes:**
 
@@ -1639,14 +1639,14 @@ class MarkovChain(_BaseClass):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
 
-        value = _walk(self, 1, initial_state, None, rng)[-1]
+        value = _simulate(self, 1, initial_state, None, rng)[-1]
 
         if not output_index:
             value = self.__states[value]
 
         return value
 
-    def predict(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _owalk:
+    def predict(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _osequence:
 
         """
         The method computes the most probable sequence of states produced by a random walk of *N* steps, given the initial state.
@@ -1725,8 +1725,60 @@ class MarkovChain(_BaseClass):
 
         return value
 
+    def sequence_probability(self, sequence: _tsequence) -> float:
+
+        """
+        The method computes the probability of a given sequence of states.
+
+        :param sequence: the observed sequence of states.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            sequence = _validate_sequence(sequence, self.__states)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins_trace()) from None
+
+        value = _sequence_probability(self, sequence)
+
+        return value
+
+    @_object_mark(random_output=True)
+    def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _tsequence:
+
+        """
+        The method simulates a random walk of the given number of steps.
+
+        :param steps: the number of steps.
+        :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
+        :param final_state: the final state of the walk (*if specified, the simulation stops as soon as it is reached even if not all the steps have been performed*).
+        :param output_indices: a boolean indicating whether to output the state indices.
+        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            rng = _create_rng(seed)
+            steps = _validate_integer(steps, lower_limit=(1, False))
+            initial_state = rng.randint(0, self.__size) if initial_state is None else _validate_state(initial_state, self.__states)
+            final_state = None if final_state is None else _validate_state(final_state, self.__states)
+            output_indices = _validate_boolean(output_indices)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins_trace()) from None
+
+        value = _simulate(self, steps, initial_state, final_state, rng)
+
+        if not output_indices:
+            value = [*map(self.__states.__getitem__, value)]
+
+        return value
+
     @_object_mark(aliases=['tc'])
-    def time_correlations(self, walk1: _twalk, walk2: _owalk = None, time_points: _ttimes_in = 1) -> _otimes_out:
+    def time_correlations(self, sequence1: _tsequence, sequence2: _osequence = None, time_points: _ttimes_in = 1) -> _otimes_out:
 
         """
         The method computes the time autocorrelations of a single observed sequence of states or the time cross-correlations of two observed sequences of states.
@@ -1737,30 +1789,30 @@ class MarkovChain(_BaseClass):
         - If a single time point is provided, then a :py:class:`float` is returned.
         - The method can be accessed through the following aliases: **tc**.
 
-        :param walk1: the first observed sequence of states.
-        :param walk2: the second observed sequence of states.
+        :param sequence1: the first observed sequence of states.
+        :param sequence2: the second observed sequence of states.
         :param time_points: the time point or a list of time points at which the computation is performed.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            walk1 = _validate_walk(walk1, self.__states)
+            sequence1 = _validate_sequence(sequence1, self.__states)
 
-            if walk2 is not None:
-                walk2 = _validate_walk(walk2, self.__states)
+            if sequence2 is not None:
+                sequence2 = _validate_sequence(sequence2, self.__states)
 
             time_points = _validate_time_points(time_points)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
 
-        value = _time_correlations(self, self.__rdl_decomposition, walk1, walk2, time_points)
+        value = _time_correlations(self, self.__rdl_decomposition, sequence1, sequence2, time_points)
 
         return value
 
     @_object_mark(aliases=['tr'])
-    def time_relaxations(self, walk: _twalk, initial_distribution: _onumeric = None, time_points: _ttimes_in = 1) -> _otimes_out:
+    def time_relaxations(self, sequence: _tsequence, initial_distribution: _onumeric = None, time_points: _ttimes_in = 1) -> _otimes_out:
 
         """
         The method computes the time relaxations of an observed sequence of states with respect to the given initial distribution of the states.
@@ -1771,7 +1823,7 @@ class MarkovChain(_BaseClass):
         - If a single time point is provided, then a :py:class:`float` is returned.
         - The method can be accessed through the following aliases: **tr**.
 
-        :param walk: the observed sequence of states.
+        :param sequence: the observed sequence of states.
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param time_points: the time point or a list of time points at which the computation is performed.
         :raises ValidationError: if any input argument is not compliant.
@@ -1779,14 +1831,14 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            walk = _validate_walk(walk, self.__states)
+            sequence = _validate_sequence(sequence, self.__states)
             initial_distribution = _np_full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
             time_points = _validate_time_points(time_points)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
 
-        value = _time_relaxations(self, self.__rdl_decomposition, walk, initial_distribution, time_points)
+        value = _time_relaxations(self, self.__rdl_decomposition, sequence, initial_distribution, time_points)
 
         return value
 
@@ -1965,7 +2017,7 @@ class MarkovChain(_BaseClass):
 
         try:
 
-            states = _validate_states(states, self.__states, True, 1)
+            states = _validate_labels_current(states, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -1998,58 +2050,6 @@ class MarkovChain(_BaseClass):
             raise _create_validation_error(ex, _ins_trace()) from None
 
         value = self.__p[state_origin, state_target]
-
-        return value
-
-    @_object_mark(random_output=True)
-    def walk(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _twalk:
-
-        """
-        The method simulates a random walk of the given number of steps.
-
-        :param steps: the number of steps.
-        :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
-        :param final_state: the final state of the walk (*if specified, the simulation stops as soon as it is reached even if not all the steps have been performed*).
-        :param output_indices: a boolean indicating whether to output the state indices.
-        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            rng = _create_rng(seed)
-            steps = _validate_integer(steps, lower_limit=(1, False))
-            initial_state = rng.randint(0, self.__size) if initial_state is None else _validate_state(initial_state, self.__states)
-            final_state = None if final_state is None else _validate_state(final_state, self.__states)
-            output_indices = _validate_boolean(output_indices)
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
-
-        value = _walk(self, steps, initial_state, final_state, rng)
-
-        if not output_indices:
-            value = [*map(self.__states.__getitem__, value)]
-
-        return value
-
-    def walk_probability(self, walk: _twalk) -> float:
-
-        """
-        The method computes the probability of a given sequence of states.
-
-        :param walk: the observed sequence of states.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            walk = _validate_walk(walk, self.__states)
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
-
-        value = _walk_probability(self, walk)
 
         return value
 
@@ -2226,13 +2226,13 @@ class MarkovChain(_BaseClass):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def fit_walk(possible_states: _tlist_str, walk: _twalk, fitting_type: str, fitting_param: _tany = None) -> _tmc:
+    def fit_sequence(possible_states: _tlist_str, sequence: _tsequence, fitting_type: str, fitting_param: _tany = None) -> _tmc:
 
         """
         The method fits a Markov chain from an observed sequence of states using the specified fitting approach.
 
         :param possible_states: the possible states of the process.
-        :param walk: the observed sequence of states.
+        :param sequence: the observed sequence of states.
         :param fitting_type:
          - **map** for the maximum a posteriori fitting;
          - **mle** for the maximum likelihood fitting.
@@ -2245,7 +2245,7 @@ class MarkovChain(_BaseClass):
         try:
 
             possible_states = _validate_labels_input(possible_states)
-            walk = _validate_walk(walk, possible_states)
+            sequence = _validate_sequence(sequence, possible_states)
             fitting_type = _validate_enumerator(fitting_type, ['map', 'mle'])
 
             if fitting_param is not None:
@@ -2264,7 +2264,7 @@ class MarkovChain(_BaseClass):
             else:
                 fitting_param = False
 
-        p, _ = _fit_walk(fitting_type, fitting_param, possible_states, walk)
+        p, _ = _fit_sequence(fitting_type, fitting_param, possible_states, sequence)
         mc = MarkovChain(p, possible_states)
 
         return mc

@@ -34,6 +34,8 @@ Instance Methods
 		predict,
 		redistribute,
 		sensitivity,
+		sequence_probability,
+		simulate,
 		time_correlations,
 		time_relaxations,
 		to_bounded_chain,
@@ -44,6 +46,4 @@ Instance Methods
 		to_lazy_chain,
 		to_matrix,
 		to_subchain,
-		transition_probability,
-		walk,
-		walk_probability
+		transition_probability

@@ -11,6 +11,7 @@ __all__ = [
     'titerable',
     # Generic Types
     'tcache', 'ocache',
+    'tdtype', 'odtype',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
     'thmm', 'ohmm',
@@ -29,6 +30,12 @@ __all__ = [
     'tstack', 'ostack',
     'ttest', 'otest',
     'ttest_chi2', 'otest_chi2',
+    # Pairs
+    'tpair_array', 'opair_array',
+    'tpair_bool', 'opair_bool',
+    'tpair_float', 'opair_float',
+    'tpair_int', 'opair_int',
+    'tpair_str', 'opair_str',
     # Lists
     'tlist_any', 'olist_any',
     'tlist_array', 'olist_array',
@@ -51,9 +58,6 @@ __all__ = [
     'thmm_dict_flex', 'ohmm_dict_flex',
     'thmm_generation', 'ohmm_generation',
     'thmm_generation_ext', 'ohmm_generation_ext',
-    'thmm_pair_array', 'ohmm_pair_array',
-    'thmm_pair_float', 'ohmm_pair_float',
-    'thmm_pair_int', 'ohmm_pair_int',
     'thmm_params', 'ohmm_params',
     'thmm_params_res', 'ohmm_params_res',
     'thmm_sequence', 'ohmm_sequence',
@@ -72,6 +76,9 @@ __all__ = [
     'tpart', 'opart',
     'tparts', 'oparts',
     'tredists', 'oredists',
+    'tsequence', 'osequence',
+    'tsequence_flex', 'osequence_flex',
+    'tsequences', 'osequences',
     'tstate', 'ostate',
     'tstates', 'ostates',
     'tstatus', 'ostatus',
@@ -79,9 +86,6 @@ __all__ = [
     'ttimes_in', 'otimes_in',
     'ttimes_out', 'otimes_out',
     'tvalid_states', 'ovalid_states',
-    'twalk', 'owalk',
-    'twalk_flex', 'owalk_flex',
-    'twalks', 'owalks',
     'tweights', 'oweights'
 ]
 
@@ -173,6 +177,9 @@ titerable = _tp_Iterable
 tcache = _tp_Dict[str, tany]
 ocache = _tp_Optional[tcache]
 
+tdtype = _tp_Union[object, str]
+odtype = _tp_Optional[tdtype]
+
 tfile = _tp_Tuple[str, str]
 ofile = _tp_Optional[tfile]
 
@@ -228,6 +235,23 @@ otest = _tp_Optional[ttest]
 
 ttest_chi2 = _tp_Tuple[float, float]
 otest_chi2 = _tp_Optional[ttest_chi2]
+
+# Pairs
+
+tpair_array = _tp_Tuple[tarray, tarray]
+opair_array = _tp_Optional[tpair_array]
+
+tpair_bool = _tp_Tuple[bool, bool]
+opair_bool = _tp_Optional[tpair_bool]
+
+tpair_float = _tp_Tuple[float, float]
+opair_float = _tp_Optional[tpair_float]
+
+tpair_int = _tp_Tuple[int, int]
+opair_int = _tp_Optional[tpair_int]
+
+tpair_str = _tp_Tuple[str, str]
+opair_str = _tp_Optional[tpair_str]
 
 # Lists
 
@@ -291,15 +315,6 @@ ohmm_generation = _tp_Optional[thmm_generation]
 
 thmm_generation_ext = _tp_Tuple[oarray, oarray, olist_str, olist_str, ostr]
 ohmm_generation_ext = _tp_Optional[thmm_generation_ext]
-
-thmm_pair_array = _tp_Tuple[tarray, tarray]
-ohmm_pair_array = _tp_Optional[thmm_pair_array]
-
-thmm_pair_float = _tp_Tuple[float, float]
-ohmm_pair_float = _tp_Optional[thmm_pair_float]
-
-thmm_pair_int = _tp_Tuple[int, int]
-ohmm_pair_int = _tp_Optional[thmm_pair_int]
 
 thmm_params = _tp_Tuple[tarray, tarray]
 ohmm_params = _tp_Optional[thmm_params]
@@ -367,6 +382,15 @@ ostatus = _tp_Optional[tstatus]
 ttfunc = _tp_Callable[[int, float, int, float], float]
 otfunc = _tp_Optional[ttfunc]
 
+tsequence = _tp_Union[tlist_int, tlist_str]
+osequence = _tp_Optional[tsequence]
+
+tsequence_flex = _tp_Union[int, tsequence]
+osequence_flex = _tp_Optional[tsequence_flex]
+
+tsequences = _tp_List[tsequence]
+osequences = _tp_Optional[tsequences]
+
 ttimes_in = _tp_Union[int, tlist_int]
 otimes_in = _tp_Optional[ttimes_in]
 
@@ -375,15 +399,6 @@ otimes_out = _tp_Optional[ttimes_out]
 
 tvalid_states = _tp_Tuple[tlist_int, tlist_str]
 ovalid_states = _tp_Optional[tvalid_states]
-
-twalk = _tp_Union[tlist_int, tlist_str]
-owalk = _tp_Optional[twalk]
-
-twalk_flex = _tp_Union[int, twalk]
-owalk_flex = _tp_Optional[twalk_flex]
-
-twalks = _tp_List[twalk]
-owalks = _tp_Optional[twalks]
 
 tweights = _tp_Union[float, int, tnumeric]
 oweights = _tp_Optional[tweights]

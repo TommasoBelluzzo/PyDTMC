@@ -2,7 +2,7 @@
 
 __all__ = [
     'fit_function',
-    'fit_walk'
+    'fit_sequence'
 ]
 
 
@@ -168,7 +168,7 @@ def fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible
     return p, None
 
 
-def fit_walk(fitting_type: str, fitting_param: _tany, possible_states: _tlist_str, walk: _tlist_int) -> _tfitting_res:
+def fit_sequence(fitting_type: str, fitting_param: _tany, possible_states: _tlist_str, sequence: _tlist_int) -> _tfitting_res:
 
     size = len(possible_states)
     p = _np_zeros((size, size), dtype=float)
@@ -178,7 +178,7 @@ def fit_walk(fitting_type: str, fitting_param: _tany, possible_states: _tlist_st
         f = _np_zeros((size, size), dtype=int)
         eq_prob = 1.0 / size
 
-        for i, j in zip(walk[:-1], walk[1:]):
+        for i, j in zip(sequence[:-1], sequence[1:]):
             f[i, j] += 1
 
         for i in range(size):
@@ -200,7 +200,7 @@ def fit_walk(fitting_type: str, fitting_param: _tany, possible_states: _tlist_st
 
     else:
 
-        for i, j in zip(walk[:-1], walk[1:]):
+        for i, j in zip(sequence[:-1], sequence[1:]):
             p[i, j] += 1.0
 
         if fitting_param:

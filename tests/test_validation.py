@@ -59,6 +59,7 @@ from pydtmc.validation import (
     validate_integer as _validate_integer,
     validate_hyperparameter as _validate_hyperparameter,
     validate_interval as _validate_interval,
+    validate_labels_current as _validate_labels_current,
     validate_labels_input as _validate_labels_input,
     validate_markov_chain as _validate_markov_chain,
     validate_markov_chains as _validate_markov_chains,
@@ -68,16 +69,15 @@ from pydtmc.validation import (
     validate_partitions as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
+    validate_sequence as _validate_sequence,
+    validate_sequences as _validate_sequences,
     validate_state as _validate_state,
-    validate_states as _validate_states,
     validate_status as _validate_status,
     validate_strings as _validate_strings,
     validate_time_points as _validate_time_points,
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
     validate_vector as _validate_vector,
-    validate_walk as _validate_walk,
-    validate_walks as _validate_walks
 )
 
 from .utilities import (
@@ -476,6 +476,26 @@ def test_validate_interval(value, is_valid):
 
 
 # noinspection PyBroadException
+def test_validate_labels_current(value, current_states, subset, minimum_length, is_valid):
+
+    try:
+        result = _validate_labels_current(value, current_states, subset, minimum_length)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+        result_check = isinstance(result, list) and all(isinstance(v, int) for v in result)
+        assert result_check is True
+
+
+# noinspection PyBroadException
 def test_validate_labels_input(value, size, is_valid):
 
     try:
@@ -491,11 +511,8 @@ def test_validate_labels_input(value, size, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, list) and all(isinstance(v, str) for v in result)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, list) and all(isinstance(v, str) for v in result)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -523,11 +540,8 @@ def test_validate_markov_chain(value, is_valid):
         assert actual == expected
 
         if result_is_valid:
-
-            actual = isinstance(result, _MarkovChain)
-            expected = True
-
-            assert actual == expected
+            result_check = isinstance(result, _MarkovChain)
+            assert result_check is True
 
 
 # noinspection PyBroadException
@@ -555,11 +569,8 @@ def test_validate_markov_chains(value, is_valid):
         assert actual == expected
 
         if result_is_valid:
-
-            actual = isinstance(result, list) and all(isinstance(v, _MarkovChain) for v in result)
-            expected = True
-
-            assert actual == expected
+            result_check = isinstance(result, list) and all(isinstance(v, _MarkovChain) for v in result)
+            assert result_check is True
 
 
 # noinspection PyBroadException
@@ -580,20 +591,17 @@ def test_validate_mask(value, rows, columns, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, _np_ndarray)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, _np_ndarray)
+        assert result_check is True
 
 
 # noinspection PyBroadException
-def test_validate_matrix(value, columns, rows, is_valid):
+def test_validate_matrix(value, rows, columns, is_valid):
 
     value = _np_array(value)
 
     try:
-        result = _validate_matrix(value, columns, rows)
+        result = _validate_matrix(value, rows, columns)
         result_is_valid = True
     except Exception:
         result = None
@@ -622,15 +630,20 @@ def test_validate_object(value, is_valid):
     else:
 
         try:
-            _validate_object(value)
+            result = _validate_object(value)
             result_is_valid = True
         except Exception:
+            result = None
             result_is_valid = False
 
         actual = result_is_valid
         expected = is_valid
 
         assert actual == expected
+
+        if result_is_valid:
+            result_check = isinstance(result, (_HiddenMarkovModel, _MarkovChain))
+            assert result_check is True
 
 
 # noinspection DuplicatedCode, PyBroadException
@@ -703,6 +716,46 @@ def test_validate_rewards(value, size, is_valid):
 
 
 # noinspection PyBroadException
+def test_validate_sequence(value, possible_states, is_valid):
+
+    try:
+        result = _validate_sequence(value, possible_states)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+        result_check = isinstance(result, list) and all(isinstance(v, int) for v in result)
+        assert result_check is True
+
+
+# noinspection DuplicatedCode, PyBroadException
+def test_validate_sequences(value, possible_states, is_valid):
+
+    try:
+        result = _validate_sequences(value, possible_states)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+        result_check = isinstance(result, list) and all(isinstance(v, list) and all(isinstance(s, int) for s in v) for v in result)
+        assert result_check is True
+
+
+# noinspection PyBroadException
 def test_validate_state(value, current_states, is_valid):
 
     try:
@@ -726,29 +779,6 @@ def test_validate_state(value, current_states, is_valid):
 
         actual = result
         expected = current_states.index(value) if isinstance(value, str) else current_states.index(current_states[value])
-
-        assert actual == expected
-
-
-# noinspection PyBroadException
-def test_validate_states(value, possible_states, subset, length_limit, is_valid):
-
-    try:
-        result = _validate_states(value, possible_states, subset, length_limit)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-
-        actual = isinstance(result, list) and all(isinstance(v, int) for v in result)
-        expected = True
 
         assert actual == expected
 
@@ -892,52 +922,6 @@ def test_validate_vector(value, vector_type, flex, size, is_valid):
     if result_is_valid:
 
         actual = isinstance(result, _np_ndarray)
-        expected = True
-
-        assert actual == expected
-
-
-# noinspection PyBroadException
-def test_validate_walk(value, possible_states, is_valid):
-
-    try:
-        result = _validate_walk(value, possible_states)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-
-        actual = isinstance(result, list) and all(isinstance(v, int) for v in result)
-        expected = True
-
-        assert actual == expected
-
-
-# noinspection DuplicatedCode, PyBroadException
-def test_validate_walks(value, possible_states, is_valid):
-
-    try:
-        result = _validate_walks(value, possible_states)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-
-        actual = isinstance(result, list) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
         expected = True
 
         assert actual == expected

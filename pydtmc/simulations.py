@@ -3,8 +3,8 @@
 __all__ = [
     'predict',
     'redistribute',
-    'walk',
-    'walk_probability'
+    'sequence_probability',
+    'simulate'
 ]
 
 
@@ -83,7 +83,26 @@ def redistribute(mc: _tmc, steps: int, initial_distribution: _tarray, output_las
     return value
 
 
-def walk(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rng: _trand) -> _tlist_int:
+def sequence_probability(mc: _tmc, walk_param: _tlist_int) -> float:
+
+    p = mc.p
+
+    wp = 0.0
+
+    for i, j in zip(walk_param[:-1], walk_param[1:]):
+
+        if p[i, j] > 0.0:
+            wp += _np_log(p[i, j])
+        else:
+            wp = -_np_inf
+            break
+
+    value = _np_exp(wp)
+
+    return value
+
+
+def simulate(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rng: _trand) -> _tlist_int:
 
     p, size = mc.p, mc.size
     check_final_state = final_state is not None
@@ -99,24 +118,5 @@ def walk(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rng: _tra
 
         if check_final_state and current_state == final_state:
             break
-
-    return value
-
-
-def walk_probability(mc: _tmc, walk_param: _tlist_int) -> float:
-
-    p = mc.p
-
-    wp = 0.0
-
-    for i, j in zip(walk_param[:-1], walk_param[1:]):
-
-        if p[i, j] > 0.0:
-            wp += _np_log(p[i, j])
-        else:
-            wp = -_np_inf
-            break
-
-    value = _np_exp(wp)
 
     return value

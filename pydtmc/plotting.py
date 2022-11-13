@@ -5,7 +5,7 @@ __all__ = [
     'plot_eigenvalues',
     'plot_graph',
     'plot_redistributions',
-    'plot_walk'
+    'plot_sequence'
 ]
 
 
@@ -134,7 +134,7 @@ from .custom_types import (
     tlist_mc as _tlist_mc,
     tmc as _tmc,
     tobject as _tobject,
-    twalk_flex as _twalk_flex
+    tsequence_flex as _tsequence_flex
 )
 
 from .utilities import (
@@ -150,10 +150,10 @@ from .validation import (
     validate_markov_chain as _validate_markov_chain,
     validate_markov_chains as _validate_markov_chains,
     validate_object as _validate_object,
+    validate_sequence as _validate_sequence,
     validate_state as _validate_state,
     validate_status as _validate_status,
-    validate_strings as _validate_strings,
-    validate_walk as _validate_walk
+    validate_strings as _validate_strings
 )
 
 
@@ -953,7 +953,7 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
 
 
 # noinspection DuplicatedCode
-def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _oplot:
+def plot_sequence(mc: _tmc, sequence: _tsequence_flex, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _oplot:
 
     """
     The function plots a random walk on the given Markov chain.
@@ -963,90 +963,90 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
     :param mc: the Markov chain.
-    :param walk: a sequence of states or the number of simulations to perform.
-    :param initial_state: the initial state of the walk (*if omitted, it is chosen uniformly at random*).
+    :param sequence: a sequence of states or the number of simulations to perform.
+    :param initial_state: the initial state of the sequence (*if omitted, it is chosen uniformly at random*).
     :param plot_type:
      - **histogram** for displaying an histogram plot;
-     - **sequence** for displaying a sequence plot;
+     - **matrix** for displaying a matrix plot;
      - **transitions** for displaying a transitions plot.
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
-    :raises ValueError: if the "walk" parameter represents a sequence of states and the "initial_state" parameter does not match its first element.
+    :raises ValueError: if the "sequence" parameter represents a sequence of states and the "initial_state" parameter does not match its first element.
     """
 
     try:
 
         mc = _validate_markov_chain(mc)
 
-        if isinstance(walk, (int, _np_integer)):
-            walk = _validate_integer(walk, lower_limit=(2, False))
+        if isinstance(sequence, (int, _np_integer)):
+            sequence = _validate_integer(sequence, lower_limit=(2, False))
         else:
-            walk = _validate_walk(walk, mc.states)
+            sequence = _validate_sequence(sequence, mc.states)
 
         if initial_state is not None:
             initial_state = _validate_state(initial_state, mc.states)
 
-        plot_type = _validate_enumerator(plot_type, ['histogram', 'sequence', 'transitions'])
+        plot_type = _validate_enumerator(plot_type, ['histogram', 'matrix', 'transitions'])
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
         raise _create_validation_error(ex, _ins_trace()) from None
 
-    if isinstance(walk, int):
-        walk = mc.walk(walk, initial_state=initial_state, output_indices=True, seed=seed)
+    if isinstance(sequence, int):
+        sequence = mc.simulate(sequence, initial_state=initial_state, output_indices=True, seed=seed)
 
-    if initial_state is not None and walk[0] != initial_state:  # pragma: no cover
-        raise ValueError('The "initial_state" parameter, if specified when the "walk" parameter represents a sequence of states, must match the first element.')
+    if initial_state is not None and sequence[0] != initial_state:  # pragma: no cover
+        raise ValueError('The "initial_state" parameter, if specified when the "sequence" parameter represents a sequence of states, must match the first element.')
 
-    walk_length = len(walk)
+    sequence_length = len(sequence)
 
     figure, ax = _mplp_subplots(dpi=dpi)
 
     if plot_type == 'histogram':
 
-        walk_histogram = _np_zeros((mc.size, walk_length), dtype=float)
+        sequence_histogram = _np_zeros((mc.size, sequence_length), dtype=float)
 
-        for index, state in enumerate(walk):
-            walk_histogram[state, index] = 1.0
+        for index, state in enumerate(sequence):
+            sequence_histogram[state, index] = 1.0
 
-        walk_histogram = _np_sum(walk_histogram, axis=1) / _np_sum(walk_histogram)
+        sequence_histogram = _np_sum(sequence_histogram, axis=1) / _np_sum(sequence_histogram)
 
-        ax.bar(_np_arange(0.0, mc.size, 1.0), walk_histogram, edgecolor=_color_black, facecolor=_colors[0])
+        ax.bar(_np_arange(0.0, mc.size, 1.0), sequence_histogram, edgecolor=_color_black, facecolor=_colors[0])
 
         _xticks_states(ax, mc, True, False)
         _yticks_frequency(ax, 0.0, 1.0)
 
-        ax.set_title('Walk Plot (Histogram)', fontsize=15.0, fontweight='bold')
+        ax.set_title('Sequence Plot (Histogram)', fontsize=15.0, fontweight='bold')
 
-    elif plot_type == 'sequence':
+    elif plot_type == 'matrix':
 
-        walk_sequence = _np_zeros((mc.size, walk_length), dtype=float)
+        sequence_matrix = _np_zeros((mc.size, sequence_length), dtype=float)
 
-        for index, state in enumerate(walk):
-            walk_sequence[state, index] = 1.0
+        for index, state in enumerate(sequence):
+            sequence_matrix[state, index] = 1.0
 
         color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 2)
-        ax.imshow(walk_sequence, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+        ax.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
-        _xticks_steps(ax, walk_length)
+        _xticks_steps(ax, sequence_length)
         _yticks_states(ax, mc, True)
 
         ax.grid(which='minor', color='k')
 
-        ax.set_title('Walk Plot (Sequence)', fontsize=15.0, fontweight='bold')
+        ax.set_title('Sequence Plot (Matrix)', fontsize=15.0, fontweight='bold')
 
     else:
 
-        walk_transitions = _np_zeros((mc.size, mc.size), dtype=float)
+        sequence_matrix = _np_zeros((mc.size, mc.size), dtype=float)
 
-        for i in range(1, walk_length):
-            walk_transitions[walk[i - 1], walk[i]] += 1.0
+        for i in range(1, sequence_length):
+            sequence_matrix[sequence[i - 1], sequence[i]] += 1.0
 
-        walk_transitions /= _np_sum(walk_transitions)
+        sequence_matrix /= _np_sum(sequence_matrix)
 
         color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
-        ax_is = ax.imshow(walk_transitions, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+        ax_is = ax.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         _xticks_states(ax, mc, False, True)
         _yticks_states(ax, mc, False)
@@ -1056,7 +1056,7 @@ def plot_walk(mc: _tmc, walk: _twalk_flex, initial_state: _ostate = None, plot_t
         cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
         cb.ax.set_xticklabels([0.0, 0.25, 0.5, 0.75, 1.0])
 
-        ax.set_title('Walk Plot (Transitions)', fontsize=15.0, fontweight='bold')
+        ax.set_title('Sequence Plot (Transitions)', fontsize=15.0, fontweight='bold')
 
     if _mplp_isinteractive():  # pragma: no cover
         _mplp_show(block=False)

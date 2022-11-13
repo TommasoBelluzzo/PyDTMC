@@ -96,6 +96,7 @@ except ImportError:  # pragma: no cover
 # Internal
 
 from .custom_types import (
+    odtype as _odtype,
     oint as _oint,
     olist_str as _olist_str,
     tany as _tany,
@@ -104,6 +105,7 @@ from .custom_types import (
     tgraph as _tgraph,
     tlist_any as _tlist_any,
     tlist_str as _tlist_str,
+    tpair_bool as _tpair_bool,
     trand as _trand,
     tstack as _tstack
 )
@@ -238,7 +240,7 @@ def extract_data_generic(data: _tany) -> _tlist_any:
     return output
 
 
-def extract_data_numeric(data: _tany) -> _tarray:
+def extract_data_numeric(data: _tany, dtype: _odtype = None) -> _tarray:
 
     if is_list(data):
         output = _np_array(data)
@@ -257,6 +259,9 @@ def extract_data_numeric(data: _tany) -> _tarray:
 
     if output is None or not _np_issubdtype(output.dtype, _np_number):
         raise TypeError('The data type is not supported.')
+
+    if dtype is not None:
+        output = output.astype(dtype)
 
     return output
 
@@ -367,9 +372,15 @@ def is_float(value: _tany) -> bool:
     return isinstance(value, (float, _np_floating))
 
 
-def is_graph(value: _tany, multi: bool) -> bool:
+def is_graph(value: _tany) -> _tpair_bool:
 
-    return isinstance(value, _nx_MultiDiGraph) if multi else isinstance(value, _nx_DiGraph)
+    if isinstance(value, _nx_DiGraph):
+        return True, False
+
+    if isinstance(value, _nx_MultiDiGraph):
+        return True, True
+
+    return False, False
 
 
 def is_integer(value: _tany) -> bool:

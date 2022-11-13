@@ -73,15 +73,25 @@ def test_redistribute(p, steps, initial_status, output_last, value):
         _npt_assert_allclose(actual, expected)
 
 
-def test_walk(p, seed, steps, initial_state, final_state, output_indices, value):
+def test_sequence_probability(p, sequence, value):
 
     mc = _MarkovChain(p)
 
-    actual_walk = mc.walk(steps, initial_state, final_state, output_indices, seed)
-    expected_walk = value
+    actual = mc.sequence_probability(sequence)
+    expected = value
 
-    actual = actual_walk
-    expected = expected_walk
+    assert _np_isclose(actual, expected)
+
+
+def test_sequence(p, seed, steps, initial_state, final_state, output_indices, value):
+
+    mc = _MarkovChain(p)
+
+    actual_sequence = mc.simulate(steps, initial_state, final_state, output_indices, seed)
+    expected_sequence = value
+
+    actual = actual_sequence
+    expected = expected_sequence
 
     assert actual == expected
 
@@ -94,17 +104,7 @@ def test_walk(p, seed, steps, initial_state, final_state, output_indices, value)
 
     if final_state is None:
 
-        actual = len(actual_walk)
-        expected = len(expected_walk)
+        actual = len(actual_sequence)
+        expected = len(expected_sequence)
 
         assert actual == expected
-
-
-def test_walk_probability(p, walk, value):
-
-    mc = _MarkovChain(p)
-
-    actual = mc.walk_probability(walk)
-    expected = value
-
-    assert _np_isclose(actual, expected)

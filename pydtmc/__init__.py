@@ -8,7 +8,7 @@ __all__ = [
     'ValidationError',
     'MarkovChain', 'HiddenMarkovModel',
     'assess_first_order', 'assess_homogeneity', 'assess_markov_property', 'assess_stationarity', 'assess_theoretical_compatibility',
-    'plot_comparison', 'plot_eigenvalues', 'plot_graph', 'plot_redistributions', 'plot_walk'
+    'plot_comparison', 'plot_eigenvalues', 'plot_graph', 'plot_redistributions', 'plot_sequence'
 ]
 
 from pydtmc.exceptions import (
@@ -36,5 +36,5 @@ from pydtmc.plotting import (
     plot_eigenvalues,
     plot_graph,
     plot_redistributions,
-    plot_walk
+    plot_sequence
 )

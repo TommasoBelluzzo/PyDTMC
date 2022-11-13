@@ -25,7 +25,7 @@ from abc import (
 class BaseClass(_abc_ABC):
 
     """
-    Defines an abstract base class used by package classes.
+    Defines an abstract base class used by package models.
     """
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=W0613

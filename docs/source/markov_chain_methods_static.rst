@@ -10,7 +10,7 @@ Static Methods
 		birth_death,
 		dirichlet_process
 		fit_function,
-		fit_walk,
+		fit_sequence,
 		from_dictionary,
 		from_graph,
 		from_file,

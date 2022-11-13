@@ -7,4 +7,4 @@ Plotting Functions
 .. autofunction:: plot_eigenvalues
 .. autofunction:: plot_graph
 .. autofunction:: plot_redistributions
-.. autofunction:: plot_walk
+.. autofunction:: plot_sequence

@@ -59,8 +59,6 @@ from .custom_types import (
     thmm as _thmm,
     thmm_dict as _thmm_dict,
     thmm_dict_flex as _thmm_dict_flex,
-    thmm_pair_array as _thmm_pair_array,
-    thmm_pair_int as _thmm_pair_int,
     thmm_sequence_ext as _thmm_sequence_ext,
     thmm_step as _thmm_step,
     thmm_symbols as _thmm_symbols,
@@ -68,6 +66,8 @@ from .custom_types import (
     thmm_viterbi_ext as _thmm_viterbi_ext,
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
+    tpair_array as _tpair_array,
+    tpair_int as _tpair_int,
     tstate as _tstate
 )
 
@@ -124,11 +124,11 @@ from .validation import (
     validate_hmm_sequence as _validate_hmm_sequence,
     validate_hmm_symbols as _validate_hmm_symbols,
     validate_integer as _validate_integer,
+    validate_labels_current as _validate_labels_current,
     validate_labels_input as _validate_labels_input,
     validate_state as _validate_state,
     validate_mask as _validate_mask,
     validate_matrix as _validate_matrix,
-    validate_states as _validate_states,
     validate_status as _validate_status,
     validate_transition_matrix as _validate_transition_matrix,
 )
@@ -177,7 +177,7 @@ class HiddenMarkovModel(_BaseClass):
         self.__digraph: _tgraph = _build_hmm_graph(p, e, states, symbols)
         self.__e: _tarray = e
         self.__p: _tarray = p
-        self.__size: _thmm_pair_int = (p.shape[1], e.shape[1])
+        self.__size: _tpair_int = (p.shape[1], e.shape[1])
         self.__states: _tlist_str = states
         self.__symbols: _tlist_str = symbols
 
@@ -269,7 +269,7 @@ class HiddenMarkovModel(_BaseClass):
         return self.__p
 
     @property
-    def size(self) -> _thmm_pair_int:
+    def size(self) -> _tpair_int:
 
         """
         | A property representing the size of the hidden Markov model.
@@ -348,7 +348,7 @@ class HiddenMarkovModel(_BaseClass):
     def next(self, initial_state: _tstate, target: str = 'both', output_index: bool = False, seed: _oint = None) -> _thmm_step:
 
         """
-        The method simulates a single random step.
+        The method simulates a single step in a random walk.
 
         :param initial_state: the initial state.
         :param target:
@@ -404,8 +404,8 @@ class HiddenMarkovModel(_BaseClass):
 
         try:
 
-            states = list(range(self.__size[0])) if states is None else _validate_states(states, self.__states, True, 2)
-            symbols = list(range(self.__size[1])) if symbols is None else _validate_states(symbols, self.__symbols, True, 2)
+            states = list(range(self.__size[0])) if states is None else _validate_labels_current(states, self.__states, True, 2)
+            symbols = list(range(self.__size[1])) if symbols is None else _validate_labels_current(symbols, self.__symbols, True, 2)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -511,7 +511,7 @@ class HiddenMarkovModel(_BaseClass):
 
         return graph
 
-    def to_matrices(self) -> _thmm_pair_array:
+    def to_matrices(self) -> _tpair_array:
 
         """
         | The method returns a tuple of two items representing the underlying matrices of the hidden Markov model.

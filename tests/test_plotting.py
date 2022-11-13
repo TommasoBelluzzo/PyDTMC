@@ -35,7 +35,7 @@ from pydtmc import (
     plot_eigenvalues as _plot_eigenvalues,
     plot_graph as _plot_graph,
     plot_redistributions as _plot_redistributions,
-    plot_walk as _plot_walk
+    plot_sequence as _plot_sequence
 )
 
 
@@ -219,39 +219,39 @@ def test_plot_redistributions(seed, runs, maximum_size, maximum_distributions):
 
 # noinspection PyBroadException
 @_pt_mark.slow
-def test_plot_walk(seed, runs, maximum_size, maximum_simulations):
+def test_plot_sequence(seed, runs, maximum_size, maximum_simulations):
 
     def _params_generator():
 
         p_steps = _rd_randint(2, maximum_simulations)
-        p_walk_check = _rd_random() < 0.5
+        p_sequence_check = _rd_random() < 0.5
         p_initial_state_check = _rd_random() < 0.5
-        p_plot_type = _rd_choice(('histogram', 'sequence', 'transitions'))
+        p_plot_type = _rd_choice(('histogram', 'matrix', 'transitions'))
 
-        yield from [p_steps, p_walk_check, p_initial_state_check, p_plot_type]
+        yield from [p_steps, p_sequence_check, p_initial_state_check, p_plot_type]
 
     configs_base = _generate_configs(seed, runs, maximum_size, params_generator=_params_generator)
     configs_plot, mcs = [], []
 
     for i in range(runs):
 
-        size, zeros, steps, walk_check, initial_state_check, plot_type = configs_base[i]
+        size, zeros, steps, sequence_check, initial_state_check, plot_type = configs_base[i]
         mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
 
-        walk = steps if walk_check else mc.walk(steps, output_indices=True)
-        initial_state = None if isinstance(walk, int) or initial_state_check else walk[0]
+        sequence = steps if sequence_check else mc.simulate(steps, output_indices=True)
+        initial_state = None if isinstance(sequence, int) or initial_state_check else sequence[0]
 
         mcs.append(mc)
-        configs_plot.append((walk, initial_state, plot_type))
+        configs_plot.append((sequence, initial_state, plot_type))
 
     for i in range(runs):
 
         mc = mcs[i]
-        walk, initial_state, plot_type = configs_plot[i]
+        sequence, initial_state, plot_type = configs_plot[i]
 
         try:
 
-            figure, _ = _plot_walk(mc, walk, initial_state, plot_type)
+            figure, _ = _plot_sequence(mc, sequence, initial_state, plot_type)
             _mplp_close(figure)
 
             exception = False

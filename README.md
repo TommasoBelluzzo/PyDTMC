@@ -176,17 +176,17 @@ Below a few examples of `MarkovChain` methods:
  [0.00000000, 0.00000000, inf, 0.00000000]
  [0.75471698, 1.32075472, inf, 0.20754717]]
  
->>> print(mc.walk(10, seed=32))
+>>> print(mc.simulate(10, seed=32))
 ['D', 'A', 'B', 'B', 'C', 'C', 'C', 'C', 'C', 'C', 'C']
 ```
 
 ```console
->>> walk = ["A"]
+>>> sequence = ["A"]
 >>> for i in range(1, 11):
-...     current_state = walk[-1]
+...     current_state = sequence[-1]
 ...     next_state = mc.next_state(current_state, seed=32)
 ...     print(f'{i:02} {current_state} -> {next_state}')
-...     walk.append(next_state)
+...     sequence.append(next_state)
  1) A -> B
  2) B -> C
  3) C -> C
@@ -204,9 +204,9 @@ Plotting functions can provide a visual representation of `MarkovChain` instance
 ```console
 >>> plot_eigenvalues(mc)
 >>> plot_graph(mc)
->>> plot_walk(mc, 10, plot_type='histogram', dpi=300)
->>> plot_walk(mc, 10, plot_type='sequence', dpi=300)
->>> plot_walk(mc, 10, plot_type='transitions', dpi=300)
+>>> plot_sequence(mc, 10, plot_type='histogram', dpi=300)
+>>> plot_sequence(mc, 10, plot_type='sequence', dpi=300)
+>>> plot_sequence(mc, 10, plot_type='transitions', dpi=300)
 >>> plot_redistributions(mc, 10, plot_type='heatmap', dpi=300)
 >>> plot_redistributions(mc, 10, plot_type='projection', dpi=300)
 ```
