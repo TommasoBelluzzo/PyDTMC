@@ -12,15 +12,13 @@ __all__ = [
     'get_full_name',
     'get_instance_generators',
     'get_numpy_random_distributions',
-    'extract_data_generic',
-    'extract_data_numeric',
+    'extract_numeric',
     'is_array',
     'is_bool',
     'is_dictionary',
     'is_float',
     'is_graph',
     'is_integer',
-    'is_iterable',
     'is_list',
     'is_number',
     'is_pandas',
@@ -36,10 +34,6 @@ __all__ = [
 
 # Standard
 
-from copy import (
-    deepcopy as _cp_deepcopy
-)
-
 from inspect import (
     getmembers as _ins_getmembers,
     isfunction as _ins_isfunction
@@ -47,10 +41,6 @@ from inspect import (
 
 from pathlib import (
     Path as _pl_Path
-)
-
-from typing import (
-    Iterable as _tp_Iterable
 )
 
 # Libraries
@@ -103,7 +93,6 @@ from .custom_types import (
     tarray as _tarray,
     texception as _texception,
     tgraph as _tgraph,
-    tlist_any as _tlist_any,
     tlist_str as _tlist_str,
     tpair_bool as _tpair_bool,
     trand as _trand,
@@ -226,34 +215,16 @@ def create_validation_error(ex: _texception, trace: _tany) -> _ValidationError:
     return validation_error
 
 
-def extract_data_generic(data: _tany) -> _tlist_any:
-
-    if is_list(data):
-        output = _cp_deepcopy(data)
-    elif is_dictionary(data):
-        output = list(data.values())
-    elif is_iterable(data):
-        output = list(data)
-    else:
-        raise TypeError('The data type is not supported.')
-
-    return output
-
-
-def extract_data_numeric(data: _tany, dtype: _odtype = None) -> _tarray:
+def extract_numeric(data: _tany, dtype: _odtype = None) -> _tarray:
 
     if is_list(data):
         output = _np_array(data)
-    elif is_dictionary(data):
-        output = _np_array(list(data.values()))
     elif is_array(data):
         output = _np_copy(data)
     elif is_spmatrix(data):
         output = _np_array(data.todense())
     elif is_pandas(data):
         output = data.to_numpy(copy=True)
-    elif is_iterable(data):
-        output = _np_array(list(data))
     else:
         output = None
 
@@ -386,11 +357,6 @@ def is_graph(value: _tany) -> _tpair_bool:
 def is_integer(value: _tany) -> bool:
 
     return isinstance(value, (int, _np_integer)) and not isinstance(value, bool)
-
-
-def is_iterable(value: _tany) -> bool:
-
-    return isinstance(value, _tp_Iterable) and not isinstance(value, (bytearray, bytes, str))
 
 
 def is_list(value: _tany) -> bool:
