@@ -49,6 +49,11 @@
     margin-bottom: 24px !important;
 }
 
+.toctree-l2.current
+{
+    display: none !important;
+}
+
 #instance-methods dl.method,
 #properties dl.property,
 #static-methods dl.method

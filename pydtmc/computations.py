@@ -83,7 +83,7 @@ from .custom_types import (
     tgraph as _tgraph,
     tlist_int as _tlist_int,
     tlists_int as _tlists_int,
-    tparts as _tparts,
+    tpartitions as _tpartitions,
     trdl as _trdl,
     ttest_chi2 as _ttest_chi2
 )
@@ -264,7 +264,7 @@ def find_cyclic_classes(p: _tarray) -> _tlists_int:
 
 
 # noinspection PyBroadException
-def find_lumping_partitions(p: _tarray) -> _tparts:
+def find_lumping_partitions(p: _tarray) -> _tpartitions:
 
     size = p.shape[0]
 

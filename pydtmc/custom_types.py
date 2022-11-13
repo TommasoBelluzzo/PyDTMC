@@ -7,29 +7,15 @@ __all__ = [
     'tscalar', 'oscalar',
     'tarray', 'oarray',
     'tnumeric', 'onumeric',
-    'texception',
-    'titerable',
-    # Generic Types
-    'tcache', 'ocache',
-    'tdtype', 'odtype',
+    'texception', 'oexception',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
-    'thmm', 'ohmm',
-    'tfile', 'ofile',
-    'tinterval', 'ointerval',
-    'tlimit_float', 'olimit_float',
-    'tlimit_int', 'olimit_int',
-    'tlimit_scalar', 'olimit_scalar',
-    'tmc', 'omc',
-    'tobject', 'oobject',
     'tplot', 'oplot',
     'trand', 'orand',
-    'trandfunc', 'orandfunc',
-    'trandfunc_flex', 'orandfunc_flex',
-    'trdl', 'ordl',
     'tstack', 'ostack',
-    'ttest', 'otest',
-    'ttest_chi2', 'otest_chi2',
+    'thmm', 'ohmm',
+    'tmc', 'omc',
+    'tobject', 'oobject',
     # Pairs
     'tpair_array', 'opair_array',
     'tpair_bool', 'opair_bool',
@@ -49,7 +35,22 @@ __all__ = [
     'tlists_float', 'olists_float',
     'tlists_int', 'olists_int',
     'tlists_str', 'olists_str',
-    # Specific
+    # Composite Types - Generic
+    'tcache', 'ocache',
+    'tdtype', 'odtype',
+    'tfile', 'ofile',
+    'tinterval', 'ointerval',
+    'tlimit_float', 'olimit_float',
+    'tlimit_int', 'olimit_int',
+    'tlimit_scalar', 'olimit_scalar',
+    'tpartition', 'opartition',
+    'tpartitions', 'opartitions',
+    'trandfunc', 'orandfunc',
+    'trandfunc_flex', 'orandfunc_flex',
+    'trdl', 'ordl',
+    'ttest', 'otest',
+    'ttest_chi2', 'otest_chi2',
+    # Composite Types - Specific
     'tbcond', 'obcond',
     'tdists_flex', 'odists_flex',
     'tfitting_res', 'ofitting_res',
@@ -73,8 +74,6 @@ __all__ = [
     'tmc_generation', 'omc_generation',
     'tmc_generation_ext', 'omc_generation_ext',
     'tobj_dict', 'oobj_dict',
-    'tpart', 'opart',
-    'tparts', 'oparts',
     'tredists', 'oredists',
     'tsequence', 'osequence',
     'tsequence_flex', 'osequence_flex',
@@ -169,19 +168,7 @@ tnumeric = _tp_Union[_np_ndarray, _spsp_matrix] if not _pandas_found else _tp_Un
 onumeric = _tp_Optional[tnumeric]
 
 texception = Exception
-
-titerable = _tp_Iterable
-
-# Generic Types
-
-tcache = _tp_Dict[str, tany]
-ocache = _tp_Optional[tcache]
-
-tdtype = _tp_Union[object, str]
-odtype = _tp_Optional[tdtype]
-
-tfile = _tp_Tuple[str, str]
-ofile = _tp_Optional[tfile]
+oexception = _tp_Optional[texception]
 
 tgraph = _nx_DiGraph
 ograph = _tp_Optional[tgraph]
@@ -189,21 +176,18 @@ ograph = _tp_Optional[tgraph]
 tgraphs = _tp_Union[tgraph, _nx_MultiDiGraph]
 ographs = _tp_Optional[tgraphs]
 
-tinterval = _tp_Tuple[tscalar, tscalar]
-ointerval = _tp_Optional[tinterval]
+tplot = _tp_Tuple[_mplp_Figure, _tp_Union[_mplp_Axes, _tp_List[_mplp_Axes]]]
+oplot = _tp_Optional[tplot]
+
+trand = _npr_RandomState
+orand = _tp_Optional[trand]
+
+tstack = _tp_List[_ins_FrameInfo]
+ostack = _tp_Optional[tstack]
 
 # noinspection PyTypeHints
 thmm = _tp_TypeVar('HiddenMarkovModel')
 ohmm = _tp_Optional[thmm]
-
-tlimit_float = _tp_Tuple[float, bool]
-olimit_float = _tp_Optional[tlimit_float]
-
-tlimit_int = _tp_Tuple[int, bool]
-olimit_int = _tp_Optional[tlimit_int]
-
-tlimit_scalar = _tp_Tuple[tscalar, bool]
-olimit_scalar = _tp_Optional[tlimit_scalar]
 
 # noinspection PyTypeHints
 tmc = _tp_TypeVar('MarkovChain')
@@ -211,30 +195,6 @@ omc = _tp_Optional[tmc]
 
 tobject = _tp_Union[tmc, thmm]
 oobject = _tp_Optional[tobject]
-
-tplot = _tp_Tuple[_mplp_Figure, _tp_Union[_mplp_Axes, _tp_List[_mplp_Axes]]]
-oplot = _tp_Optional[tplot]
-
-trand = _npr_RandomState
-orand = _tp_Optional[trand]
-
-trandfunc = _tp_Callable
-orandfunc = _tp_Optional[trandfunc]
-
-trandfunc_flex = _tp_Union[_tp_Callable, str]
-orandfunc_flex = _tp_Optional[trandfunc_flex]
-
-trdl = _tp_Tuple[tarray, tarray, tarray]
-ordl = _tp_Optional[trdl]
-
-tstack = _tp_List[_ins_FrameInfo]
-ostack = _tp_Optional[tstack]
-
-ttest = _tp_Tuple[obool, float, _tp_Dict[str, tany]]
-otest = _tp_Optional[ttest]
-
-ttest_chi2 = _tp_Tuple[float, float]
-otest_chi2 = _tp_Optional[ttest_chi2]
 
 # Pairs
 
@@ -290,7 +250,51 @@ olists_int = _tp_Optional[tlists_int]
 tlists_str = _tp_List[tlist_str]
 olists_str = _tp_Optional[tlists_str]
 
-# Specific
+# Composite Types - Generic
+
+tcache = _tp_Dict[str, tany]
+ocache = _tp_Optional[tcache]
+
+tdtype = _tp_Union[object, str]
+odtype = _tp_Optional[tdtype]
+
+tfile = _tp_Tuple[str, str]
+ofile = _tp_Optional[tfile]
+
+tinterval = _tp_Tuple[tscalar, tscalar]
+ointerval = _tp_Optional[tinterval]
+
+tlimit_float = _tp_Tuple[float, bool]
+olimit_float = _tp_Optional[tlimit_float]
+
+tlimit_int = _tp_Tuple[int, bool]
+olimit_int = _tp_Optional[tlimit_int]
+
+tlimit_scalar = _tp_Tuple[tscalar, bool]
+olimit_scalar = _tp_Optional[tlimit_scalar]
+
+tpartition = _tp_Union[tlists_int, tlists_str]
+opartition = _tp_Optional[tpartition]
+
+tpartitions = _tp_List[tpartition]
+opartitions = _tp_Optional[tpartitions]
+
+trandfunc = _tp_Callable
+orandfunc = _tp_Optional[trandfunc]
+
+trandfunc_flex = _tp_Union[_tp_Callable, str]
+orandfunc_flex = _tp_Optional[trandfunc_flex]
+
+trdl = _tp_Tuple[tarray, tarray, tarray]
+ordl = _tp_Optional[trdl]
+
+ttest = _tp_Tuple[obool, float, _tp_Dict[str, tany]]
+otest = _tp_Optional[ttest]
+
+ttest_chi2 = _tp_Tuple[float, float]
+otest_chi2 = _tp_Optional[ttest_chi2]
+
+# Composite Types - Specific
 
 tbcond = _tp_Union[float, int, str]
 obcond = _tp_Optional[tbcond]
@@ -360,12 +364,6 @@ omc_generation_ext = _tp_Optional[tmc_generation_ext]
 
 tobj_dict = _tp_Union[thmm_dict, tmc_dict]
 oobj_dict = _tp_Optional[tobj_dict]
-
-tpart = _tp_List[_tp_Union[tlist_int, tlist_str]]
-opart = _tp_Optional[tpart]
-
-tparts = _tp_List[tpart]
-oparts = _tp_Optional[tparts]
 
 tredists = _tp_Union[tarray, tlist_array]
 oredists = _tp_Optional[tredists]

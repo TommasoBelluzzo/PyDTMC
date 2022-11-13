@@ -670,7 +670,7 @@ class HiddenMarkovModel(_BaseClass):
         - *Delimiter:* **comma**
         - *Quoting:* **minimal**
         - *Quote Character:* **double quote**
-        - *Header Row:* state names (prefixed with "P_") and symbol names (prefixed with "E_")
+        - *Header Row:* state names (prefixed with "P\_") and symbol names (prefixed with "E\_")
         - *Data Rows:* **probabilities**
 
         | In **json** files, data must be structured as an array of objects with the following properties:
@@ -835,6 +835,9 @@ class HiddenMarkovModel(_BaseClass):
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
+
+        if len(list(set(states) & set(symbols))) > 0:
+            raise _ValidationError('State names and symbol names must be different.')
 
         n, k = mp.shape[0], me.shape[1]
         p, e = _np_copy(mp), _np_copy(me)

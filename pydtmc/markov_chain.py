@@ -116,8 +116,8 @@ from .custom_types import (
     tmc_dict as _tmc_dict,
     tmc_dict_flex as _tmc_dict_flex,
     tnumeric as _tnumeric,
-    tpart as _tpart,
-    tparts as _tparts,
+    tpartition as _tpartition,
+    tpartitions as _tpartitions,
     trandfunc_flex as _trandfunc_flex,
     trdl as _trdl,
     tredists as _tredists,
@@ -768,7 +768,7 @@ class MarkovChain(_BaseClass):
         return kc
 
     @_cached_property
-    def lumping_partitions(self) -> _tparts:
+    def lumping_partitions(self) -> _tpartitions:
 
         """
         A property representing all the partitions of the Markov chain that satisfy the ordinary lumpability criterion.
@@ -1447,7 +1447,7 @@ class MarkovChain(_BaseClass):
         return result
 
     @_object_mark(instance_generator=True)
-    def lump(self, partitions: _tpart) -> _tmc:
+    def lump(self, partitions: _tpartition) -> _tmc:
 
         """
         The method attempts to reduce the state space of the Markov chain with respect to the given partitions following the ordinary lumpability criterion.

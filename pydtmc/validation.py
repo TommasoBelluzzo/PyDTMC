@@ -671,12 +671,12 @@ def validate_interval(value: _tany) -> _tinterval:
     return a, b
 
 
-def validate_labels_current(value: _tany, current_states: _tlist_str, subset: bool, minimum_length: _oint = None) -> _tlist_int:
+def validate_labels_current(value: _tany, current_labels: _tlist_str, subset: bool, minimum_length: _oint = None) -> _tlist_int:
 
     if _is_integer(value):
 
         value = int(value)
-        limit = len(current_states) - 1
+        limit = len(current_labels) - 1
 
         if value < 0 or value > limit:
             raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and {limit:d}.')
@@ -687,10 +687,10 @@ def validate_labels_current(value: _tany, current_states: _tlist_str, subset: bo
 
     if _is_string(value):
 
-        if value not in current_states:
-            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(current_states)}.')
+        if value not in current_labels:
+            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(current_labels)}.')
 
-        value = [current_states.index(value)]
+        value = [current_labels.index(value)]
 
         return value
 
@@ -706,21 +706,21 @@ def validate_labels_current(value: _tany, current_states: _tlist_str, subset: bo
     else:
         raise TypeError('The "@arg@" parameter must be either an integer, a non-empty string, a list of integers or a list of non-empty strings.')
 
-    current_states_length = len(current_states)
+    current_labels_length = len(current_labels)
 
     if value_type == 'integer':
 
         value = [int(state) for state in value]
 
-        if any(state < 0 or state >= current_states_length for state in value):
-            raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {current_states_length - 1:d}.')
+        if any(state < 0 or state >= current_labels_length for state in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {current_labels_length - 1:d}.')
 
     else:
 
-        value = [current_states.index(state) if state in current_states else -1 for state in value]
+        value = [current_labels.index(state) if state in current_labels else -1 for state in value]
 
-        if any(state == -1 for state in value):
-            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the following strings: {", ".join(current_states)}.')
+        if any(label == -1 for label in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the following strings: {", ".join(current_labels)}.')
 
     value_length = len(value)
 
@@ -730,13 +730,19 @@ def validate_labels_current(value: _tany, current_states: _tlist_str, subset: bo
     if value_length == 0:
         raise ValueError('The "@arg@" parameter must contain at least one element.')
 
-    maximum_length = current_states_length - 1 if subset else current_states_length
+    maximum_length = current_labels_length - 1 if subset else current_labels_length
 
     if minimum_length is None or minimum_length == 1:
         if value_length > maximum_length:
             raise ValueError(f'The "@arg@" parameter must contain no more than {maximum_length:d} elements.')
     else:
+
         if value_length < minimum_length or value_length > maximum_length:
+
+            if minimum_length == maximum_length:
+                length = {minimum_length, maximum_length}.pop()
+                raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {length:d}.')
+
             raise ValueError(f'The "@arg@" parameter must contain a number of elements between {minimum_length:d} and {maximum_length:d}.')
 
     value = sorted(value)
@@ -803,11 +809,12 @@ def validate_mask(value: _tany, rows: int, columns: int) -> _tarray:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     if value.ndim != 2 or value.shape[0] != rows or value.shape[1] != columns:
+
         if rows == columns:
             size = {rows, columns}.pop()
             raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
-        else:
-            raise ValueError(f'The "@arg@" parameter must be a 2d matrix with {rows:d} rows and {columns:d} columns.')
+
+        raise ValueError(f'The "@arg@" parameter must be a 2d matrix with {rows:d} rows and {columns:d} columns.')
 
     if not all(_np_isnan(x) or (_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0) for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter can contain only NaNs and finite real values between 0.0 and 1.0.')
@@ -867,16 +874,20 @@ def validate_object(value: _tany) -> _tobject:
     return value
 
 
-def validate_partitions(value: _tany, current_states: _tlist_str) -> _tlists_int:
+def validate_partitions(value: _tany, labels: _tlist_str) -> _tlists_int:
 
     if not _is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
     partitions_length = len(value)
-    current_states_length = len(current_states)
+    labels_length = len(labels)
 
-    if partitions_length < 2 or partitions_length >= current_states_length:
-        raise ValueError(f'The "@arg@" parameter must contain a number of elements between 2 and the number of existing states minus one ({current_states_length - 1:d}).')
+    if partitions_length < 2 or partitions_length >= labels_length:
+
+        if labels_length == 2:
+            raise ValueError('The "@arg@" parameter must contain a number of elements equal to 2.')
+
+        raise ValueError(f'The "@arg@" parameter must contain a number of elements between 2 and {labels_length - 1:d}.')
 
     partitions_flat = []
     partitions_groups = []
@@ -895,23 +906,23 @@ def validate_partitions(value: _tany, current_states: _tlist_str) -> _tlists_int
 
         partitions_flat = [int(state) for state in partitions_flat]
 
-        if any(state < 0 or state >= current_states_length for state in partitions_flat):
-            raise ValueError(f'The "@arg@" parameter subelements, when specified as integers, must be values between 0 and the number of existing states minus one ({current_states_length - 1:d}).')
+        if any(label < 0 or label >= labels_length for label in partitions_flat):
+            raise ValueError(f'The "@arg@" parameter subelements, when specified as integers, must be values between 0 and {labels_length - 1:d}.')
 
     elif all(_is_string(partition_flat) for partition_flat in partitions_flat):
 
-        partitions_flat = [current_states.index(state) if state in current_states else -1 for state in partitions_flat]
+        partitions_flat = [labels.index(state) if state in labels else -1 for state in partitions_flat]
 
-        if any(state == -1 for state in partitions_flat):
-            raise ValueError(f'The "@arg@" parameter subelements, when specified as strings, must contain only values matching the names of the existing states ({", ".join(current_states)}).')
+        if any(label == -1 for label in partitions_flat):
+            raise ValueError(f'The "@arg@" parameter subelements, when specified as strings, must be only values matching the following strings: {", ".join(labels)}.')
 
     else:
         raise TypeError('The "@arg@" parameter must contain only lists of integers or lists of non-empty strings.')
 
     partitions_flat_length = len(partitions_flat)
 
-    if len(set(partitions_flat)) < partitions_flat_length or partitions_flat_length != current_states_length or partitions_flat != list(range(current_states_length)):
-        raise ValueError('The "@arg@" parameter subelements must be unique, include all the existing states and follow a sequential order.')
+    if len(set(partitions_flat)) < partitions_flat_length or partitions_flat_length != labels_length or partitions_flat != list(range(labels_length)):
+        raise ValueError('The "@arg@" parameter subelements must be unique, include all the existing labels and follow a sequential order.')
 
     result = []
     offset = 0
@@ -982,31 +993,33 @@ def validate_rewards(value: _tany, size: int) -> _tarray:
     return value
 
 
-def validate_state(value: _tany, current_states: _tlist_str) -> int:
+def validate_state(value: _tany, labels: _tlist_str) -> int:
 
     if _is_integer(value):
 
-        state = int(value)
-        limit = len(current_states) - 1
+        label = int(value)
+        limit = len(labels) - 1
 
-        if state < 0 or state > limit:
-            raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and the number of existing states minus one ({limit:d}).')
+        if label < 0 or label > limit:
+            raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and {limit:d}.')
 
-        return state
+        return label
 
     if _is_string(value):
 
-        if value not in current_states:
-            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(current_states)}).')
+        if value not in labels:
+            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(labels)}.')
 
-        return current_states.index(value)
+        label = labels.index(value)
+
+        return label
 
     raise TypeError('The "@arg@" parameter must be either an integer or a non-empty string.')
 
 
-def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
+def validate_status(value: _tany, current_labels: _tlist_str) -> _tarray:
 
-    size = len(current_states)
+    size = len(current_labels)
 
     if _is_integer(value):
 
@@ -1014,7 +1027,7 @@ def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
         limit = size - 1
 
         if value < 0 or value > limit:
-            raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and the number of existing states minus one ({limit:d}).')
+            raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and {limit:d}.')
 
         result = _np_zeros(size, dtype=float)
         result[value] = 1.0
@@ -1023,10 +1036,10 @@ def validate_status(value: _tany, current_states: _tlist_str) -> _tarray:
 
     if _is_string(value):
 
-        if value not in current_states:
-            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match the name of an existing state ({", ".join(current_states)}).')
+        if value not in current_labels:
+            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(current_labels)}.')
 
-        value = current_states.index(value)
+        value = current_labels.index(value)
 
         result = _np_zeros(size, dtype=float)
         result[value] = 1.0
@@ -1210,9 +1223,6 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
 
 
 def validate_sequence(value: _tany, possible_states: _tlist_str) -> _tlist_int:
-
-    if possible_states is None:
-        raise ValueError('The "@arg@" parameter must be validated against a proper list of possible states.')
 
     try:
         value = _extract_data_generic(value)
