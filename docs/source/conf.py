@@ -334,10 +334,6 @@ def _process_intersphinx_aliases(app):
                 continue
 
 
-def _process_missing_reference(app, env, node, contnode):
-    pass
-
-
 #########
 # SETUP #
 #########
@@ -349,5 +345,6 @@ def setup(app):
     app.add_post_transform(_SphinxPostTransformLists)
 
     app.add_config_value('intersphinx_aliases', {}, 'env')
+
     app.connect('builder-inited', _process_intersphinx_aliases)
     app.connect('missing-reference', _process_missing_reference)
