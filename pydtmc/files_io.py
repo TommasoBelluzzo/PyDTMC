@@ -100,7 +100,7 @@ def read_csv(mc: bool, file_path: str) -> _tobj_dict:
 
                 for label in row:
 
-                    if not isinstance(label, str) or len(label) < 3:
+                    if not isinstance(label, str) or len(label) < 3:  # pragma: no cover
                         raise ValueError('The file header is invalid.')
 
                     label = label.strip()
@@ -114,7 +114,7 @@ def read_csv(mc: bool, file_path: str) -> _tobj_dict:
                         label_value = label[2:]
                         states.append(label_value)
                         labels.append((label_prefix[:1], label_value))
-                    else:
+                    else:  # pragma: no cover
                         raise ValueError('The file header is invalid.')
 
                 n, k = len(states), len(symbols)
@@ -122,7 +122,7 @@ def read_csv(mc: bool, file_path: str) -> _tobj_dict:
                 if len(set(states)) < n or len(set(symbols)) < k:  # pragma: no cover
                     raise ValueError('The file header is invalid.')
 
-                if n != len(rch_data) - 1:
+                if n != len(rch_data) - 1:  # pragma: no cover
                     raise ValueError('The file contains an invalid number of rows.')
 
                 nk = n + k
@@ -167,7 +167,7 @@ def read_csv(mc: bool, file_path: str) -> _tobj_dict:
                 if len(set(states)) < n:  # pragma: no cover
                     raise ValueError('The file header is invalid.')
 
-                if n != len(rcm_data) - 1:
+                if n != len(rcm_data) - 1:  # pragma: no cover
                     raise ValueError('The file contains an invalid number of rows.')
 
             else:
@@ -241,7 +241,7 @@ def read_json(mc: bool, file_path: str) -> _tobj_dict:
                 if not isinstance(value, str) or len(value) == 0:  # pragma: no cover
                     raise ValueError('The file contains invalid elements.')
 
-            if len(param_possible_values) > 0 and value not in param_possible_values:
+            if len(param_possible_values) > 0 and value not in param_possible_values:  # pragma: no cover
                 raise ValueError('The file contains invalid elements.')
 
             values.append(value)
@@ -281,7 +281,7 @@ def read_txt(mc: bool, file_path: str) -> _tobj_dict:
                 except Exception as ex:  # pragma: no cover
                     raise ValueError('The file contains invalid lines.') from ex
 
-            if len(param_possible_values) > 0 and value not in param_possible_values:
+            if len(param_possible_values) > 0 and value not in param_possible_values:  # pragma: no cover
                 raise ValueError('The file contains invalid lines.')
 
             values.append(value)
