@@ -83,7 +83,7 @@ def test_sequence_probability(p, sequence, value):
     assert _np_isclose(actual, expected)
 
 
-def test_sequence(p, seed, steps, initial_state, final_state, output_indices, value):
+def test_simulate(p, seed, steps, initial_state, final_state, output_indices, value):
 
     mc = _MarkovChain(p)
 

@@ -51,21 +51,15 @@ def test_decode(p, e, symbols, use_scaling, value):
         actual = decoding[1]
         expected = _np_array(value[1])
 
-        print(actual)
-
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         actual = decoding[2]
         expected = _np_array(value[2])
 
-        print(actual)
-
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         actual = decoding[3]
         expected = _np_array(value[3])
-
-        print(actual)
 
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -73,8 +67,6 @@ def test_decode(p, e, symbols, use_scaling, value):
 
             actual = decoding[4]
             expected = _np_array(value[4])
-
-            print(actual)
 
             _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
