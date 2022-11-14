@@ -133,9 +133,7 @@ intersphinx_aliases = {
     ('py:class', 'networkx.classes.digraph.DiGraph'): ('py:class', 'networkx.DiGraph'),
     ('py:class', 'networkx.classes.digraph.MultiDiGraph'): ('py:class', 'networkx.MultiDiGraph'),
     ('py:class', 'networkx.classes.multidigraph.MultiDiGraph'): ('py:class', 'networkx.MultiDiGraph'),
-    ('py:class', 'scipy.sparse.base.spmatrix'): ('py:class', 'scipy.sparse.spmatrix'),
-    ('py:class', '~HiddenMarkovModel'): ('py:class', 'pydtmc.HiddenMarkovModel'),
-    ('py:class', '~MarkovChain'): ('py:class', 'pydtmc.MarkovChain')
+    ('py:class', 'scipy.sparse.base.spmatrix'): ('py:class', 'scipy.sparse.spmatrix')
 }
 
 intersphinx_mapping = {
@@ -336,6 +334,13 @@ def _process_intersphinx_aliases(app):
                 continue
 
 
+def _process_missing_reference(app, env, node, contnode):
+
+    z = 1
+
+    return
+
+
 #########
 # SETUP #
 #########
@@ -348,3 +353,4 @@ def setup(app):
 
     app.add_config_value('intersphinx_aliases', {}, 'env')
     app.connect('builder-inited', _process_intersphinx_aliases)
+    app.connect('missing-reference', _process_missing_reference)

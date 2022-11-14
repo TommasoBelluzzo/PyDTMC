@@ -10,6 +10,6 @@ Static Methods
 		from_dictionary,
 		from_graph,
 		from_file,
-		from_matrix,
+		from_matrices,
 		random,
 		train

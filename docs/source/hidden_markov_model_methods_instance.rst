@@ -14,6 +14,6 @@ Instance Methods
 		to_dictionary,
 		to_graph,
 		to_file,
-		to_matrix,
+		to_matrices,
 		transition_probability,
 		viterbi
