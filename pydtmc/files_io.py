@@ -345,7 +345,7 @@ def read_xml(mc: bool, file_path: str) -> _tobj_dict:
                 except Exception as ex:  # pragma: no cover
                     raise ValueError('The file contains invalid elements.') from ex
 
-            if len(param_possible_values) > 0 and value not in param_possible_values:
+            if len(param_possible_values) > 0 and value not in param_possible_values:  # pragma: no cover
                 raise ValueError('The file contains invalid elements.')
 
             values.append(value)
