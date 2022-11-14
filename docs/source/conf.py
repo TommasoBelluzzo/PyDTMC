@@ -335,10 +335,7 @@ def _process_intersphinx_aliases(app):
 
 
 def _process_missing_reference(app, env, node, contnode):
-
-    z = 1
-
-    return
+    pass
 
 
 #########
