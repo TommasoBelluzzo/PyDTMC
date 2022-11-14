@@ -53,6 +53,7 @@ from pydtmc.validation import (
     validate_float as _validate_float,
     validate_graph as _validate_graph,
     validate_hidden_markov_model as _validate_hidden_markov_model,
+    validate_hidden_markov_models as _validate_hidden_markov_models,
     validate_hmm_emission as _validate_hmm_emission,
     validate_integer as _validate_integer,
     validate_hyperparameter as _validate_hyperparameter,
@@ -340,6 +341,35 @@ def test_validate_hidden_markov_model(value, is_valid):
 
         if result_is_valid:
             result_check = isinstance(result, _HiddenMarkovModel)
+            assert result_check is True
+
+
+# noinspection PyBroadException
+def test_validate_hidden_markov_models(value, is_valid):
+
+    if isinstance(value, str):
+        value, skip = _evaluate(value)
+    else:
+        skip = False
+
+    if skip:
+        _pt_skip('Pandas library could not be imported.')
+    else:
+
+        try:
+            result = _validate_hidden_markov_models(value)
+            result_is_valid = True
+        except Exception:
+            result = None
+            result_is_valid = False
+
+        actual = result_is_valid
+        expected = is_valid
+
+        assert actual == expected
+
+        if result_is_valid:
+            result_check = isinstance(result, list) and all(isinstance(v, _HiddenMarkovModel) for v in result)
             assert result_check is True
 
 

@@ -55,7 +55,8 @@ except ImportError:  # pragma: no cover
 # noinspection PyUnresolvedReferences
 from pydtmc import (  # noqa
     HiddenMarkovModel as _HiddenMarkovModel,
-    MarkovChain as _MarkovChain
+    MarkovChain as _MarkovChain,
+    ValidationError as _ValidationError
 )
 
 
@@ -77,6 +78,7 @@ def evaluate(value):
         value = value.replace('spsp.', '_spsp_')
         value = value.replace('HiddenMarkovModel', '_HiddenMarkovModel')
         value = value.replace('MarkovChain', '_MarkovChain')
+        value = value.replace('ValidationError', '_ValidationError')
         value = eval(value)
 
     return value, skip

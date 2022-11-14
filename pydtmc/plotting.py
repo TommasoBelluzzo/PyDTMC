@@ -216,7 +216,7 @@ def _yticks_states(ax, mc: _tmc, label: bool):
     ax.set_yticklabels(mc.states)
 
 
-def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_layout: bool = False, dark_colormap: bool = False, dpi: int = 100) -> _oplot:
+def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_layout: bool = False, dpi: int = 100) -> _oplot:
 
     """
     The function plots the transition matrix of every Markov chain in the form of a heatmap.
@@ -228,7 +228,6 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
     :param mcs: the Markov chains.
     :param mcs_names: the name of each Markov chain subplot (*if omitted, a standard name is given to each subplot*).
     :param constrained_layout: a boolean indicating whether to use a constrained layout.
-    :param dark_colormap: a boolean indicating whether to use a dark colormap instead of the default one.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -238,7 +237,6 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
         mcs = _validate_markov_chains(mcs)
         mcs_names = [f'MC{index + 1} Size={mc.size:d}' for index, mc in enumerate(mcs)] if mcs_names is None else _validate_strings(mcs_names, len(mcs))
         constrained_layout = _validate_boolean(constrained_layout)
-        dark_colormap = _validate_boolean(dark_colormap)
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
@@ -252,24 +250,17 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
     axes = list(axes.flat)
     ax_is = None
 
-    if dark_colormap:
+    color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
 
-        for ax, mc, mc_name in zip(axes, mcs, mcs_names):
-            ax_is = ax.imshow(mc.p, aspect='auto', cmap='hot', vmin=0.0, vmax=1.0)
-            ax.set_title(mc_name, fontsize=9.0, fontweight='normal', pad=1)
-            ax.set_axis_off()
+    for ax, mc, mc_name in zip(axes, mcs, mcs_names):
 
-    else:
+        ax_is = ax.imshow(mc.p, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+        ax.set_title(mc_name, fontsize=9.0, fontweight='normal', pad=1)
 
-        color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
-
-        for ax, mc, mc_name in zip(axes, mcs, mcs_names):
-            ax_is = ax.imshow(mc.p, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
-            ax.set_title(mc_name, fontsize=9.0, fontweight='normal', pad=1)
-            ax.set_xticks([])
-            ax.set_xticks([], minor=True)
-            ax.set_yticks([])
-            ax.set_yticks([], minor=True)
+        ax.set_xticks([])
+        ax.set_xticks([], minor=True)
+        ax.set_yticks([])
+        ax.set_yticks([], minor=True)
 
     figure.suptitle('Comparison Plot', fontsize=15.0, fontweight='bold')
 

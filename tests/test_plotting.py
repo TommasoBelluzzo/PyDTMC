@@ -85,11 +85,9 @@ def test_plot_comparison(seed, runs, maximum_size, maximum_elements):
             size = _rd_randint(2, maximum_size)
             mcs.append(_MarkovChain.random(size, seed=seed))
 
-        dark = _rd_random() < 0.5
-
         try:
 
-            figure, _ = _plot_comparison(mcs, dark_colormap=dark)
+            figure, _ = _plot_comparison(mcs)
             _mplp_close(figure)
 
             exception = False
