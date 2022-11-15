@@ -1,6 +1,6 @@
 # PyDTMC
 
-PyDTMC is a full-featured, lightweight library for discrete-time Markov chains analysis. It provides classes and functions for creating, manipulating, simulating and visualizing Markov processes.
+PyDTMC is a full-featured and lightweight library for discrete-time Markov chains analysis. It provides classes and functions for creating, manipulating, simulating and visualizing Markov processes.
 
 <table>
   <tr>

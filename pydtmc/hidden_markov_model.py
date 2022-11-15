@@ -41,8 +41,8 @@ from numpy.linalg import (
 
 # Internal
 
-from .base_class import (
-    BaseClass as _BaseClass
+from .base_classes import (
+    Model as _Model
 )
 
 from .custom_types import (
@@ -138,7 +138,7 @@ from .validation import (
 # CLASSES #
 ###########
 
-class HiddenMarkovModel(_BaseClass):
+class HiddenMarkovModel(_Model):
 
     """
     Defines a hidden Markov model with the given transition and emission matrices.

@@ -75,8 +75,8 @@ from numpy.linalg import (
 
 # Internal
 
-from .base_class import (
-    BaseClass as _BaseClass
+from .base_classes import (
+    Model as _Model
 )
 
 from .computations import (
@@ -242,7 +242,7 @@ from .validation import (
 ###########
 
 @_aliased
-class MarkovChain(_BaseClass):
+class MarkovChain(_Model):
 
     """
     Defines a Markov chain with the given transition matrix.

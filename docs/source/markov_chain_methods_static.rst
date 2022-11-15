@@ -8,7 +8,7 @@ Static Methods
 	:members:
 		approximation,
 		birth_death,
-		dirichlet_process
+		dirichlet_process,
 		fit_function,
 		fit_sequence,
 		from_dictionary,

@@ -6,13 +6,17 @@ __author__ = 'Tommaso Belluzzo'
 
 __all__ = [
     'ValidationError',
-    'MarkovChain', 'HiddenMarkovModel',
+    'Model', 'HiddenMarkovModel', 'MarkovChain',
     'assess_first_order', 'assess_homogeneity', 'assess_markov_property', 'assess_stationarity', 'assess_theoretical_compatibility',
     'plot_comparison', 'plot_eigenvalues', 'plot_graph', 'plot_redistributions', 'plot_sequence'
 ]
 
 from pydtmc.exceptions import (
     ValidationError
+)
+
+from pydtmc.base_classes import (
+    Model
 )
 
 from pydtmc.markov_chain import (

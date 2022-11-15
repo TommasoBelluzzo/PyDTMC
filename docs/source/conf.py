@@ -153,12 +153,15 @@ autodoc_default_options = {
     'no-undoc-members': True,
     'member-order': 'bysource'
 }
+
 autoclass_content = 'both'
 
 # Autodoc Typehints
 
 set_type_checking_flag = True
+simplify_optional_unions = False
 typehints_fully_qualified = False
+typehints_use_rtype = False
 
 
 #####################
@@ -195,7 +198,7 @@ man_pages = [(master_doc, _title.lower(), project_title, [author], 1)]
 
 # Texinfo
 
-texinfo_documents = [(master_doc, project, project_title, author, project, 'A framework for discrete-time Markov chains analysis.', 'Miscellaneous')]
+texinfo_documents = [(master_doc, project, project_title, author, project, 'A full-featured and lightweight library for discrete-time Markov chains analysis.', 'Miscellaneous')]
 
 
 ###########
@@ -205,14 +208,14 @@ texinfo_documents = [(master_doc, project, project_title, author, project, 'A fr
 class _SphinxPostTransformConstructor(_sppt_SphinxPostTransform):
 
     """
-    A class decorator used for applying constructor post-transforms.
+    A class used for applying post-transforms on constructors.
     """
 
     default_priority = 799
 
     def run(self, **kwargs):
 
-        if not _re_search(r'markov_chain_[A-Z_]+\.rst$', self.document['source'], flags=_re_ignorecase):
+        if not _re_search(r'(?:hidden_markov_model|markov_chain)_[A-Z_]+\.rst$', self.document['source'], flags=_re_ignorecase):
             return
 
         for node in self.document.findall(_span_desc):
@@ -247,7 +250,7 @@ class _SphinxPostTransformConstructor(_sppt_SphinxPostTransform):
 class _SphinxPostTransformLists(_sppt_SphinxPostTransform):
 
     """
-    A class decorator used for applying lists post-transforms.
+    A class used for applying post-transforms on lists.
     """
 
     default_priority = 799
@@ -270,7 +273,7 @@ class _SphinxPostTransformLists(_sppt_SphinxPostTransform):
 class _SphinxPostTransformProperties(_sppt_SphinxPostTransform):
 
     """
-    A class decorator used for applying properties post-transforms.
+    A class used for applying post-transforms on properties.
     """
 
     default_priority = 799
@@ -288,8 +291,10 @@ class _SphinxPostTransformProperties(_sppt_SphinxPostTransform):
                 continue
 
             parent_objtype = parent['objtype']
+            parent_is_method = parent_objtype == 'method'
+            parent_is_property = parent_objtype == 'property'
 
-            if parent_objtype not in ['method', 'property']:
+            if not parent_is_method and not parent_is_property:
                 continue
 
             nodes_to_remove = []
@@ -300,9 +305,9 @@ class _SphinxPostTransformProperties(_sppt_SphinxPostTransform):
 
                     node_child_text = node_child.astext().strip()
 
-                    if parent_objtype == 'method' and node_child_text == 'static':
+                    if parent_is_method and node_child_text == 'static':
                         nodes_to_remove.append(node_child)
-                    elif parent_objtype == 'property' and (node_child_text.startswith(':') or node_child_text == 'property'):
+                    elif parent_is_property and (node_child_text.startswith(':') or node_child_text == 'property'):
                         nodes_to_remove.append(node_child)
 
             for node_child in nodes_to_remove:

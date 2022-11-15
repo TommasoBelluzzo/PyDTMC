@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'BaseClass'
+    'Model'
 ]
 
 
@@ -22,15 +22,15 @@ from abc import (
 # CLASSES #
 ###########
 
-class BaseClass(_abc_ABC):
+class Model(_abc_ABC):
 
     """
-    Defines an abstract base class used by package models.
+    Defines an abstract base class used to implement package models.
     """
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=W0613
 
-        if cls is BaseClass:
+        if cls is Model:
             raise TypeError('The base class cannot be instantiated.')
 
         return super().__new__(cls)
