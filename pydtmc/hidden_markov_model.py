@@ -118,8 +118,8 @@ from .validation import (
     validate_boolean as _validate_boolean,
     validate_enumerator as _validate_enumerator,
     validate_file_path as _validate_file_path,
+    validate_graph as _validate_graph,
     validate_hmm_dictionary as _validate_hmm_dictionary,
-    validate_hmm_graph as _validate_hmm_graph,
     validate_hmm_emission as _validate_hmm_emission,
     validate_integer as _validate_integer,
     validate_label as _validate_label,
@@ -765,7 +765,7 @@ class HiddenMarkovModel(_Model):
 
         try:
 
-            graph = _validate_hmm_graph(graph)
+            graph = _validate_graph(graph, 2, [('type', ('E', 'P'))])
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None

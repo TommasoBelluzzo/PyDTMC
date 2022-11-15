@@ -65,7 +65,7 @@ from pydtmc.validation import (
     validate_markov_chains as _validate_markov_chains,
     validate_mask as _validate_mask,
     validate_matrix as _validate_matrix,
-    validate_object as _validate_object,
+    validate_model as _validate_model,
     validate_partitions as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
@@ -621,7 +621,7 @@ def test_validate_matrix(value, rows, columns, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_object(value, is_valid):
+def test_validate_model(value, is_valid):
 
     if isinstance(value, str):
         value, skip = _evaluate(value)
@@ -633,7 +633,7 @@ def test_validate_object(value, is_valid):
     else:
 
         try:
-            result = _validate_object(value)
+            result = _validate_model(value)
             result_is_valid = True
         except Exception:
             result = None

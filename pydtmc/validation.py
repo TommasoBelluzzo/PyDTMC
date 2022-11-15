@@ -13,7 +13,6 @@ __all__ = [
     'validate_hidden_markov_model',
     'validate_hidden_markov_models',
     'validate_hmm_dictionary',
-    'validate_hmm_graph',
     'validate_hmm_emission',
     'validate_hyperparameter',
     'validate_integer',
@@ -25,7 +24,7 @@ __all__ = [
     'validate_markov_chains',
     'validate_mask',
     'validate_matrix',
-    'validate_object',
+    'validate_model',
     'validate_partitions',
     'validate_random_distribution',
     'validate_rewards',
@@ -107,6 +106,7 @@ from .custom_types import (
     tarray as _tarray,
     tbcond as _tbcond,
     tdists_flex as _tdists_flex,
+    oedge_attributes as _oedge_attributes,
     tfile as _tfile,
     tgraphs as _tgraphs,
     thmm as _thmm,
@@ -117,7 +117,7 @@ from .custom_types import (
     tlists_int as _tlists_int,
     tmc as _tmc,
     tmc_dict as _tmc_dict,
-    tobject as _tobject,
+    tmodel as _tmodel,
     trand as _trand,
     trandfunc as _trandfunc,
     tscalar as _tscalar,
@@ -382,29 +382,73 @@ def validate_float(value: _tany, lower_limit: _olimit_float = None, upper_limit:
     return value
 
 
-def validate_graph(value: _tany) -> _tgraphs:
+def validate_graph(value: _tany, layers: _oint = None, edge_attributes: _oedge_attributes = None) -> _tgraphs:
 
-    result, is_multi = _is_graph(value)
+    result, multi = _is_graph(value)
 
     if not result:
         raise ValueError('The "@arg@" parameter must be a directed graph.')
 
-    if is_multi:
+    if multi:
         value = _nx_DiGraph(value)
 
-    nodes = list(value.nodes)
-    nodes_length = len(nodes)
+    if layers is not None:
 
-    if nodes_length < 2:
-        raise ValueError('The "@arg@" parameter must contain a number of nodes greater than or equal to 2.')
+        layers = tuple(range(layers))
 
-    if not all(_is_string(node) for node in nodes):
-        raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
+        nodes = list(value.nodes(data='layer', default=-1))
+        nodes_all = []
+        nodes_by_layer = {layer: [] for layer in layers}
+
+        for node in nodes:
+
+            node_label, node_layer = node[0], node[1]
+
+            if not _is_integer(node_layer) or node_layer not in layers:
+                raise ValueError(
+                    f'The "@arg@" parameter must define node layer attributes as integers matching one of the following values: {", ".join(str(layer) for layer in layers)}.')
+
+            nodes_all.append(node_label)
+            nodes_by_layer[node_layer].append(node_label)
+
+        if not all(_is_string(node) for node in nodes_all):
+            raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
+
+        if any(len(nodes) < 2 for nodes in nodes_by_layer.values()):
+            raise ValueError('The "@arg@" parameter must define at least 2 nodes for each layer.')
+
+        nodes_length = len(nodes_all)
+
+        if len(set(nodes_all)) < nodes_length:
+            raise ValueError('The "@arg@" parameter must define unique node labels.')
+
+    else:
+
+        nodes = list(value.nodes)
+        nodes_length = len(nodes)
+
+        if nodes_length < 2:
+            raise ValueError('The "@arg@" parameter must contain at least 2 nodes.')
+
+        if len(set(nodes)) < nodes_length:
+            raise ValueError('The "@arg@" parameter must define unique node labels.')
+
+        if not all(_is_string(node) for node in nodes):
+            raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
 
     edge_weights = list(value.edges(data='weight', default=0.0))
 
     if not all(_is_number(edge_weight[2]) and float(edge_weight[2]) > 0.0 for edge_weight in edge_weights):
         raise ValueError('The "@arg@" parameter must define edge weight attributes as non-negative numbers.')
+
+    if edge_attributes is not None:
+        for edge_attribute, edge_attribute_values in edge_attributes:
+
+            edges = list(value.edges(data=edge_attribute, default=''))
+
+            if not all(_is_string(edge[2]) and edge[2] in edge_attribute_values for edge in edges):
+                raise ValueError(
+                    f'The "@arg@" parameter must define edge {edge_attribute} attributes as strings matching one of the following values: {", ".join(edge_attribute_values)}.')
 
     return value
 
@@ -425,7 +469,7 @@ def validate_hidden_markov_models(value: _tany) -> _tmc:
     value_length = len(value)
 
     if value_length < 2:
-        raise ValueError('The "@arg@" parameter must contain at least two elements.')
+        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
 
     for i in range(value_length):
         try:
@@ -497,65 +541,13 @@ def validate_hmm_emission(value: _tany, size: int) -> _tarray:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
     if value.ndim != 2 or value.shape[0] != size or value.shape[1] < 2:
-        raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least two columns and a number of rows equal to {size:d}.')
+        raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least 2 columns and {size:d} rows.')
 
     if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
     if not _np_allclose(_np_sum(value, axis=1), _np_ones(value.shape[0], dtype=float)):
         raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
-
-    return value
-
-
-def validate_hmm_graph(value: _tany) -> _tgraphs:
-
-    result, is_multi = _is_graph(value)
-
-    if not result:
-        raise ValueError('The "@arg@" parameter must be a directed graph.')
-
-    if is_multi:
-        value = _nx_DiGraph(value)
-
-    nodes = list(value.nodes(data='layer', default=-1))
-    nodes_state, nodes_symbol = [], []
-
-    for node in nodes:
-
-        node_layer = node[1]
-
-        if not _is_integer(node_layer) or node_layer not in (0, 1):
-            raise ValueError('The "@arg@" parameter must define node layer attributes as integers whose value is either 0 or 1.')
-
-        if node_layer == 0:
-            nodes_symbol.append(node[0])
-        else:
-            nodes_state.append(node[0])
-
-    if not all(_is_string(node) for node in nodes_state + nodes_symbol):
-        raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
-
-    if len(list(set(nodes_state) & set(nodes_symbol))) > 0:
-        raise ValueError('The "@arg@" parameter node labels must be unique.')
-
-    n, k = len(nodes_state), len(nodes_symbol)
-
-    if n < 2:
-        raise ValueError('The "@arg@" parameter must contain a number of state nodes greater than or equal to 2.')
-
-    if k < 2:
-        raise ValueError('The "@arg@" parameter must contain a number of symbol nodes greater than or equal to 2.')
-
-    edge_types = list(value.edges(data='type', default=''))
-
-    if not all(_is_string(edge_type[2]) and edge_type[2] in ('E', 'P') for edge_type in edge_types):
-        raise ValueError('The "@arg@" parameter must define edge type attributes as strings whose value is either "E" or "P".')
-
-    edge_weights = list(value.edges(data='weight', default=0.0))
-
-    if not all(_is_number(edge_weight[2]) and float(edge_weight[2]) > 0.0 for edge_weight in edge_weights):
-        raise ValueError('The "@arg@" parameter must define edge weight attributes as non-negative numbers.')
 
     return value
 
@@ -681,7 +673,7 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
             raise ValueError('The "@arg@" parameter must contain only unique values.')
 
         if value_length == 0:
-            raise ValueError('The "@arg@" parameter must contain at least one element.')
+            raise ValueError('The "@arg@" parameter must contain at least an element.')
 
         maximum_length = labels_length - 1 if subset else labels_length
 
@@ -725,7 +717,7 @@ def validate_labels_input(value: _tany, size: _oint = None) -> _tlist_str:
     labels_length = len(value)
 
     if labels_length < 2:
-        raise ValueError('The "@arg@" parameter must contain at least two elements.')
+        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
 
     states_unique_length = len(set(value))
 
@@ -754,7 +746,7 @@ def validate_markov_chains(value: _tany) -> _tmc:
     value_length = len(value)
 
     if value_length < 2:
-        raise ValueError('The "@arg@" parameter must contain at least two elements.')
+        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
 
     for i in range(value_length):
         try:
@@ -816,7 +808,7 @@ def validate_matrix(value: _tany, rows: _oint = None, columns: _oint = None) -> 
 
 
 # noinspection PyBroadException
-def validate_object(value: _tany) -> _tobject:
+def validate_model(value: _tany) -> _tmodel:
 
     if value is None:
         raise TypeError('The "@arg@" parameter is null.')
@@ -832,7 +824,7 @@ def validate_object(value: _tany) -> _tobject:
     value_bases = value.__class__.__bases__ or ()
     value_base = None if len(value_bases) == 0 else _get_full_name(value_bases[0])
 
-    if value_base is None or value_base != 'pydtmc.base_class.BaseClass':
+    if value_base is None or value_base != 'pydtmc.base_classes.Model':
         raise TypeError('The "@arg@" parameter is wrongly typed.')
 
     return value
@@ -963,7 +955,7 @@ def validate_sequence(value: _tany, labels: _tlist_str) -> _tlist_int:
         raise ValueError('The "@arg@" parameter must be a list.')
 
     if len(value) < 2:
-        raise ValueError('The "@arg@" parameter must contain at least two elements.')
+        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
 
     if all(_is_integer(label) for label in value):
         value_type = 'integer'
@@ -1084,7 +1076,7 @@ def validate_strings(value: _tany, size: _oint = None) -> _tlist_str:
     value_length = len(value)
 
     if value_length == 0:
-        raise ValueError('The "@arg@" parameter must contain at least one element.')
+        raise ValueError('The "@arg@" parameter must contain at least an element.')
 
     if size is not None and value_length != size:
         raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {size:d}.')
@@ -1116,7 +1108,7 @@ def validate_time_points(value: _tany) -> _ttimes_in:
         time_points_length = len(value)
 
         if time_points_length < 1:
-            raise ValueError('The "@arg@" parameter must contain at least one element.')
+            raise ValueError('The "@arg@" parameter must contain at least an element.')
 
         time_points_unique = len(set(value))
 

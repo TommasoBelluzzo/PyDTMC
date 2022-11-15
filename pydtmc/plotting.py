@@ -133,7 +133,7 @@ from .custom_types import (
     tdists_flex as _tdists_flex,
     tlist_mc as _tlist_mc,
     tmc as _tmc,
-    tobject as _tobject,
+    tmodel as _tmodel,
     tsequence_flex as _tsequence_flex
 )
 
@@ -150,7 +150,7 @@ from .validation import (
     validate_label as _validate_label,
     validate_markov_chain as _validate_markov_chain,
     validate_markov_chains as _validate_markov_chains,
-    validate_object as _validate_object,
+    validate_model as _validate_model,
     validate_sequence as _validate_sequence,
     validate_status as _validate_status,
     validate_strings as _validate_strings
@@ -364,10 +364,10 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
 
 
 # noinspection PyBroadException
-def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _oplot:
+def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the directed graph of the given object, which can be either a Markov chain or a hidden Markov model.
+    The function plots the directed graph of the given model, which can be either a Markov chain or a hidden Markov model.
 
     | **Notes:**
 
@@ -377,7 +377,7 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_shape: bool = True
     * For Markov chains, the color of nodes is based on communicating classes; for hidden Markov models, every state node has a different color and symbol nodes are gray.
     * For Markov chains, recurrent nodes have an elliptical shape and transient nodes have a rectangular shape; for hidden Markov models, state nodes have an elliptical shape and symbol nodes have a hexagonal shape.
 
-    :param obj: the object to be converted into a graph.
+    :param model: the model to be converted into a graph.
     :param nodes_color: a boolean indicating whether to use a different color for every type of node.
     :param nodes_shape: a boolean indicating whether to use a different shape for every type of node.
     :param edges_label: a boolean indicating whether to display the probability of every edge as text.
@@ -817,7 +817,7 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_shape: bool = True
 
     try:
 
-        obj = _validate_object(obj)
+        model = _validate_model(model)
         nodes_color = _validate_boolean(nodes_color)
         nodes_shape = _validate_boolean(nodes_shape)
         edges_label = _validate_boolean(edges_label)
@@ -835,14 +835,14 @@ def plot_graph(obj: _tobject, nodes_color: bool = True, nodes_shape: bool = True
         except Exception:  # pragma: no cover
             extended_graph = False
 
-    obj_mc = obj.__class__.__name__ == 'MarkovChain'
+    obj_mc = model.__class__.__name__ == 'MarkovChain'
 
     if extended_graph:
         func = _plot_mc_extended if obj_mc else _plot_hmm_extended
     else:
         func = _plot_mc_standard if obj_mc else _plot_hmm_standard
 
-    figure, ax = func(obj, nodes_color, nodes_shape, edges_label, dpi)
+    figure, ax = func(model, nodes_color, nodes_shape, edges_label, dpi)
 
     if _mplp_isinteractive():  # pragma: no cover
         _mplp_show(block=False)

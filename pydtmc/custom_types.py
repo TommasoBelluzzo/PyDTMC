@@ -15,7 +15,7 @@ __all__ = [
     'tstack', 'ostack',
     'thmm', 'ohmm',
     'tmc', 'omc',
-    'tobject', 'oobject',
+    'tmodel', 'omodel',
     # Pairs
     'tpair_array', 'opair_array',
     'tpair_bool', 'opair_bool',
@@ -38,6 +38,7 @@ __all__ = [
     # Compound Types - Generic
     'tcache', 'ocache',
     'tdtype', 'odtype',
+    'tedge_attributes', 'oedge_attributes',
     'tfile', 'ofile',
     'tinterval', 'ointerval',
     'tlimit_float', 'olimit_float',
@@ -192,8 +193,8 @@ ohmm = _tp_Optional[thmm]
 tmc = _tp_TypeVar('MarkovChain')
 omc = _tp_Optional[tmc]
 
-tobject = _tp_Union[tmc, thmm]
-oobject = _tp_Optional[tobject]
+tmodel = _tp_Union[tmc, thmm]
+omodel = _tp_Optional[tmodel]
 
 # Pairs
 
@@ -256,6 +257,9 @@ ocache = _tp_Optional[tcache]
 
 tdtype = _tp_Union[object, str]
 odtype = _tp_Optional[tdtype]
+
+tedge_attributes = _tp_List[_tp_Tuple[str, _tp_Tuple[str, ...]]]
+oedge_attributes = _tp_Optional[tedge_attributes]
 
 tfile = _tp_Tuple[str, str]
 ofile = _tp_Optional[tfile]
