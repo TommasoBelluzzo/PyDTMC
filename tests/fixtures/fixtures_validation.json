@@ -533,73 +533,143 @@
   ],
   "validate_graph_data": [
     {
-      "seed": 7331,
       "multi": false,
       "graph_nodes": ["A", "B", "C"],
       "layers": null,
+      "edge_attributes": null,
       "is_valid": true
     },
     {
-      "seed": 7331,
       "multi": true,
       "graph_nodes": ["A", "B", "C"],
       "layers": null,
+      "edge_attributes": null,
       "is_valid": true
     },
     {
-      "seed": 7331,
-      "multi": true,
+      "multi": false,
       "graph_nodes": ["A"],
       "layers": null,
+      "edge_attributes": null,
       "is_valid": false
     },
     {
-      "seed": 7331,
-      "multi": true,
+      "multi": false,
       "graph_nodes": ["A", "B", "C"],
       "layers": 2,
+      "edge_attributes": null,
       "is_valid": false
     },
     {
-      "seed": 7331,
-      "multi": true,
+      "multi": false,
       "graph_nodes": ["A", "B", "C"],
       "layers": 3,
+      "edge_attributes": null,
       "is_valid": false
     },
     {
-      "seed": 7331,
+      "multi": true,
+      "graph_nodes": ["A", "B", "C"],
+      "layers": null,
+      "edge_attributes": "[('type', ('E', 'P'))]",
+      "is_valid": true
+    },
+    {
+      "multi": true,
+      "graph_nodes": ["A", "B", "C"],
+      "layers": null,
+      "edge_attributes": "[('type', ('X', 'Y'))]",
+      "is_valid": false
+    },
+    {
       "multi": false,
       "graph_nodes": [["A", "B", "C"], ["1", "2", "3"]],
-      "layers": null,
+      "layers": 2,
+      "edge_attributes": null,
       "is_valid": true
     },
     {
-      "seed": 7331,
-      "multi": true,
-      "graph_nodes": [["A", "B", "C"], ["1", "2", "3"]],
-      "layers": null,
-      "is_valid": true
-    },
-    {
-      "seed": 7331,
       "multi": true,
       "graph_nodes": [["A", "B", "C"], ["1", "2", "3"]],
       "layers": 2,
+      "edge_attributes": null,
       "is_valid": true
     },
     {
-      "seed": 7331,
-      "multi": true,
-      "graph_nodes": [["A", "B", "C"], ["1", "2", "3"]],
-      "layers": 3,
+      "multi": false,
+      "graph_nodes": [["A"], ["1", "2", "3"]],
+      "layers": 2,
+      "edge_attributes": null,
       "is_valid": false
     },
     {
-      "seed": 7331,
+      "multi": false,
+      "graph_nodes": [["A", "B", "C"], ["1"]],
+      "layers": 2,
+      "edge_attributes": null,
+      "is_valid": false
+    },
+    {
+      "multi": false,
+      "graph_nodes": [["A", "B", "C"], ["A", "B", "C"]],
+      "layers": 2,
+      "edge_attributes": null,
+      "is_valid": false
+    },
+    {
+      "multi": false,
+      "graph_nodes": [["A", "B", "C"], ["1", "2", "3"]],
+      "layers": 2,
+      "edge_attributes": null,
+      "is_valid": true
+    },
+    {
+      "multi": false,
+      "graph_nodes": [["A", "B", "C"], ["1", "2", "3"]],
+      "layers": 3,
+      "edge_attributes": null,
+      "is_valid": false
+    },
+    {
+      "multi": true,
+      "graph_nodes": [["A", "B", "C"], ["1", "2", "3"]],
+      "layers": 2,
+      "edge_attributes": "[('type', ('E', 'P'))]",
+      "is_valid": true
+    },
+    {
+      "multi": true,
+      "graph_nodes": [["A", "B", "C"], ["1", "2", "3"]],
+      "layers": 2,
+      "edge_attributes": "[('type', ('X', 'Z'))]",
+      "is_valid": false
+    },
+    {
       "multi": false,
       "graph_nodes": null,
       "layers": null,
+      "edge_attributes": null,
+      "is_valid": false
+    },
+    {
+      "multi": false,
+      "graph_nodes": true,
+      "layers": null,
+      "edge_attributes": null,
+      "is_valid": false
+    },
+    {
+      "multi": false,
+      "graph_nodes": {},
+      "layers": null,
+      "edge_attributes": null,
+      "is_valid": false
+    },
+    {
+      "multi": false,
+      "graph_nodes": "X",
+      "layers": null,
+      "edge_attributes": null,
       "is_valid": false
     }
   ],

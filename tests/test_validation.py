@@ -13,6 +13,11 @@ from os.path import (
     join as _osp_join
 )
 
+from random import (
+    random as _rd_random,
+    uniform as _rd_uniform
+)
+
 # Libraries
 
 from networkx import (
@@ -279,10 +284,10 @@ def test_validate_float(value, lower_limit, upper_limit, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_graph(seed, multi, graph_nodes, layers, is_valid):
+def test_validate_graph(multi, graph_nodes, layers, edge_attributes, is_valid):
 
-    if graph_nodes is None:
-        graph = None
+    if not isinstance(graph_nodes, list):
+        graph = graph_nodes
     else:
 
         graph = _nx_MultiDiGraph() if multi else _nx_DiGraph()
@@ -298,18 +303,24 @@ def test_validate_graph(seed, multi, graph_nodes, layers, is_valid):
 
         nodes = graph.nodes
         size = len(nodes)**2
+        types, weights = [], []
 
-        rng = _npr_RandomState(seed)
-        weights = [max(1e-8, r) for r in list(rng.random(size))]
-        weights_offset = 0
+        for _ in range(size):
+            types.append('P' if _rd_random() < 0.5 else 'E')
+            weights.append(_rd_uniform(1e-10, 1.0))
+
+        offset = 0
 
         for node_i in nodes:
             for node_j in nodes:
-                graph.add_edge(node_i, node_j, type='P', weight=weights[weights_offset])
-                weights_offset += 1
+                graph.add_edge(node_i, node_j, type=types[offset], weight=weights[offset])
+                offset += 1
+
+    if isinstance(edge_attributes, str):
+        edge_attributes = eval(edge_attributes)
 
     try:
-        result = _validate_graph(graph, layers)
+        result = _validate_graph(graph, layers, edge_attributes)
         result_is_valid = True
     except Exception:
         result = None
