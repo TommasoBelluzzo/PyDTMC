@@ -17,8 +17,7 @@ from os.path import (
 
 from networkx import (
     DiGraph as _nx_DiGraph,
-    from_numpy_matrix as _nx_from_numpy_matrix,
-    relabel_nodes as _nx_relabel_nodes
+    MultiDiGraph as _nx_MultiDiGraph
 )
 
 from numpy import (
@@ -280,26 +279,37 @@ def test_validate_float(value, lower_limit, upper_limit, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_graph(graph_data, is_valid):
+def test_validate_graph(seed, multi, graph_nodes, layers, is_valid):
 
-    if graph_data is None:
-        g = None
+    if graph_nodes is None:
+        graph = None
     else:
 
-        if isinstance(graph_data, list) and all(isinstance(x, list) for x in graph_data):
+        graph = _nx_MultiDiGraph() if multi else _nx_DiGraph()
 
-            g = _nx_from_numpy_matrix(_np_array(graph_data), create_using=_nx_DiGraph()) if len(graph_data) > 0 else _nx_DiGraph()
-            g = _nx_relabel_nodes(g, dict(zip(range(len(g.nodes)), [str(i + 1) for i in range(len(g.nodes))])))
+        if isinstance(graph_nodes, list) and all(isinstance(x, list) for x in graph_nodes):
+
+            for index, nodes in enumerate(graph_nodes):
+                graph.add_nodes_from(nodes, layer=index)
 
         else:
 
-            g = _nx_DiGraph()
+            graph.add_nodes_from(graph_nodes)
 
-            for x in graph_data:
-                g.add_node(x)
+        nodes = graph.nodes
+        size = len(nodes)**2
+
+        rng = _npr_RandomState(seed)
+        weights = [max(1e-8, r) for r in list(rng.random(size))]
+        weights_offset = 0
+
+        for node_i in nodes:
+            for node_j in nodes:
+                graph.add_edge(node_i, node_j, type='P', weight=weights[weights_offset])
+                weights_offset += 1
 
     try:
-        result = _validate_graph(g)
+        result = _validate_graph(graph, layers)
         result_is_valid = True
     except Exception:
         result = None
