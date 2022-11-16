@@ -402,17 +402,18 @@ def validate_graph(value: _tany, layers: _oint = None, edge_attributes: _oedge_a
 
         for node in nodes:
 
-            node_label, node_layer = node[0], node[1]
+            node_label = node[0]
+
+            if not _is_string(node_label) or len(node_label.strip()) == 0:
+                raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
+
+            node_layer = node[1]
 
             if not _is_integer(node_layer) or node_layer not in layers:
-                raise ValueError(
-                    f'The "@arg@" parameter must define node layer attributes as integers matching one of the following values: {", ".join(str(layer) for layer in layers)}.')
+                raise ValueError(f'The "@arg@" parameter must define node layer attributes as integers matching one of the following values: {", ".join(str(layer) for layer in layers)}.')
 
             nodes_all.append(node_label)
             nodes_by_layer[node_layer].append(node_label)
-
-        if not all(_is_string(node) for node in nodes_all):
-            raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
 
         if any(len(nodes) < 2 for nodes in nodes_by_layer.values()):
             raise ValueError('The "@arg@" parameter must define at least 2 nodes for each layer.')
@@ -430,10 +431,7 @@ def validate_graph(value: _tany, layers: _oint = None, edge_attributes: _oedge_a
         if nodes_length < 2:
             raise ValueError('The "@arg@" parameter must contain at least 2 nodes.')
 
-        if len(set(nodes)) < nodes_length:
-            raise ValueError('The "@arg@" parameter must define unique node labels.')
-
-        if not all(_is_string(node) for node in nodes):
+        if not all(_is_string(node) for node in nodes):  # pragma: no cover
             raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
 
     edge_weights = list(value.edges(data='weight', default=0.0))
