@@ -257,7 +257,7 @@ class _SphinxPostTransformInternals(_sppt_SphinxPostTransform):
     A class used for applying post-transforms on properties.
     """
 
-    default_priority = 799
+    default_priority = 299
 
     @staticmethod
     def _create_node(cn_node_text):
