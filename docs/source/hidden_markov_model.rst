@@ -13,4 +13,3 @@ Hidden Markov Model
 .. currentmodule:: pydtmc
 
 .. autoclass:: HiddenMarkovModel
-	:show-inheritance:

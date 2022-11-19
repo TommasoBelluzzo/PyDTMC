@@ -13,4 +13,3 @@ Markov Chain
 .. currentmodule:: pydtmc
 
 .. autoclass:: MarkovChain
-	:show-inheritance:
