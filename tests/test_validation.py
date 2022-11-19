@@ -14,6 +14,10 @@ from os.path import (
     sep as _osp_sep
 )
 
+from pathlib import (
+    Path as _pl_Path
+)
+
 from random import (
     random as _rd_random,
     uniform as _rd_uniform
@@ -242,7 +246,11 @@ def test_validate_enumerator(value, possible_values, is_valid):
 def test_validate_file_path(value, accepted_extensions, write_permission, is_valid):
 
     if isinstance(value, str) and value.startswith('file_'):
+
         value = _osp_join(_base_directory, f'files{_osp_sep}{value}')
+
+        if _rd_random() < 0.5:
+            value = _pl_Path(value)
 
     try:
         _validate_file_path(value, accepted_extensions, write_permission)
