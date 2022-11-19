@@ -22,7 +22,7 @@ from abc import (
 # CLASSES #
 ###########
 
-class Model(_abc_ABC):
+class Model(_abc_ABC):  # pragma: no cover
 
     """
     Defines an abstract base class used to implement package models.
