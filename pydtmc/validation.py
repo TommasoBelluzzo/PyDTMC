@@ -6,14 +6,13 @@ __all__ = [
     'validate_dictionary',
     'validate_distribution',
     'validate_dpi',
+    'validate_emission_matrix',
     'validate_enumerator',
     'validate_file_path',
     'validate_float',
     'validate_graph',
     'validate_hidden_markov_model',
     'validate_hidden_markov_models',
-    'validate_hmm_dictionary',
-    'validate_hmm_emission',
     'validate_hyperparameter',
     'validate_integer',
     'validate_interval',
@@ -114,7 +113,6 @@ from .custom_types import (
     tfile as _tfile,
     tgraphs as _tgraphs,
     thmm as _thmm,
-    thmm_dict as _thmm_dict,
     tinterval as _tinterval,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
@@ -213,40 +211,64 @@ def validate_boundary_condition(value: _tany) -> _tbcond:
 
 
 # noinspection DuplicatedCode
-def validate_dictionary(value: _tany) -> _tmc_dict:
+def validate_dictionary(value: _tany, attributes: _olist_str = None) -> _tmc_dict:
 
-    if not _is_dictionary(value):
-        raise ValueError('The "@arg@" parameter must be a dictionary.')
+    if not _is_dictionary(value) or len(value) == 0:
+        raise ValueError('The "@arg@" parameter must be a non-empty dictionary.')
 
-    d_keys = value.keys()
+    keys_length = 2 if attributes is None else 3
+    keys = value.keys()
 
-    if not all(_is_tuple(d_key) and len(d_key) == 2 and _is_string(d_key[0]) and _is_string(d_key[1]) for d_key in d_keys):
-        raise ValueError('The "@arg@" parameter keys must be tuples containing two non-empty strings.')
+    if not all(_is_tuple(k) and len(k) == keys_length and all(_is_string(x) for x in k) for k in keys):
+        raise ValueError(f'The "@arg@" parameter keys must be defined as tuples of {keys_length:d} non-empty strings.')
 
-    states = set()
+    labels = set()
 
-    for d_key in d_keys:
-        states.add(d_key[0])
-        states.add(d_key[1])
+    if attributes is not None:
 
-    if not all(combination in value for combination in _it_product(states, repeat=2)):
-        raise ValueError('The "@arg@" parameter keys must contain all the possible combinations of states.')
+        attribute_first = attributes[0]
+        labels_by_attribute = {attribute: set() for attribute in attributes}
 
-    d_values = value.values()
+        for k in keys:
 
-    if not all(_is_number(d_value) for d_value in d_values):
+            key_attribute = k[0]
+
+            if key_attribute not in attributes:
+                raise ValueError(f'The "@arg@" parameter keys must be defined as tuples of non-empty strings whose first item matches one of the following values: {", ".join(attributes)}.')
+
+            labels_by_attribute[attribute_first].add(k[1])
+            labels_by_attribute[key_attribute].add(k[2])
+
+        labels_first = labels_by_attribute[attribute_first]
+
+        for attribute, labels in labels_by_attribute.items():
+            if not all((attribute,) + combination in value for combination in _it_product(labels_first, labels)):
+                raise ValueError(f'The "@arg@" parameter keys must contain all the possible combinations of labels {attribute_first} and {attribute}.')
+
+    else:
+
+        for key in keys:
+            labels.add(key[0])
+            labels.add(key[1])
+
+        if not all(combination in value for combination in _it_product(labels, repeat=2)):
+            raise ValueError('The "@arg@" parameter keys must contain all the possible combinations of labels.')
+
+    values = value.values()
+
+    if not all(_is_number(v) for v in values):
         raise ValueError('The "@arg@" parameter values must be float or integer numbers.')
 
     result = {}
 
-    for d_key, d_value in value.items():
+    for k, v in value.items():
 
-        d_value = float(d_value)
+        v = float(v)
 
-        if _np_isfinite(d_value) and _np_isreal(d_value) and 0.0 <= d_value <= 1.0:
-            result[d_key] = d_value
+        if _np_isfinite(v) and _np_isreal(v) and 0.0 <= v <= 1.0:
+            result[k] = v
         else:
-            raise ValueError('The "@arg@" parameter values can contain only finite real numbers between 0 and 1.')
+            raise ValueError('The "@arg@" parameter values can contain only finite real numbers between 0.0 and 1.0.')
 
     return result
 
@@ -303,6 +325,26 @@ def validate_dpi(value: _tany) -> int:
     if value not in possible_values:
         possible_values = [str(possible_value) for possible_value in possible_values]
         raise ValueError(f'The "@arg@" parameter must have one of the following values: {", ".join(possible_values)}.')
+
+    return value
+
+
+# noinspection DuplicatedCode
+def validate_emission_matrix(value: _tany, size: int) -> _tarray:
+
+    try:
+        value = _extract_numeric(value, float)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+    if value.ndim != 2 or value.shape[0] != size or value.shape[1] < 2:
+        raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least 2 columns and {size:d} rows.')
+
+    if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
+
+    if not _np_allclose(_np_sum(value, axis=1), _np_ones(value.shape[0], dtype=float)):
+        raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
 
     return value
 
@@ -407,7 +449,7 @@ def validate_graph(value: _tany, layers: _oint = None, edge_attributes: _oedge_a
 
             node_label = node[0]
 
-            if not _is_string(node_label) or len(node_label.strip()) == 0:  # pragma: no cover
+            if not _is_string(node_label):  # pragma: no cover
                 raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
 
             node_layer = node[1]
@@ -437,6 +479,7 @@ def validate_graph(value: _tany, layers: _oint = None, edge_attributes: _oedge_a
         raise ValueError('The "@arg@" parameter must define edge weight attributes as non-negative numbers.')
 
     if edge_attributes is not None:
+
         for edge_attribute, edge_attribute_values in edge_attributes:
 
             edges = list(value.edges(data=edge_attribute, default=''))
@@ -470,78 +513,6 @@ def validate_hidden_markov_models(value: _tany) -> _tmc:
             validate_hidden_markov_model(value[i])
         except Exception as ex:
             raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
-
-    return value
-
-
-# noinspection DuplicatedCode
-def validate_hmm_dictionary(value: _tany) -> _thmm_dict:
-
-    if not _is_dictionary(value):
-        raise ValueError('The "@arg@" parameter must be a dictionary.')
-
-    d_keys = value.keys()
-
-    if not all(_is_tuple(d_key) and len(d_key) == 3 and _is_string(d_key[0]) and _is_string(d_key[1]) and _is_string(d_key[2]) for d_key in d_keys):
-        raise ValueError('The "@arg@" parameter keys must be tuples containing three non-empty strings.')
-
-    states = set()
-    symbols = set()
-
-    for d_key in d_keys:
-
-        key_type = d_key[0]
-
-        if key_type == 'E':
-            states.add(d_key[1])
-            symbols.add(d_key[2])
-        elif key_type == 'P':
-            states.add(d_key[1])
-            states.add(d_key[2])
-        else:
-            raise ValueError('The "@arg@" parameter must contain only keys whose first value is either "E" or "P".')
-
-    if not all(('P',) + combination in value for combination in _it_product(states, repeat=2)):
-        raise ValueError('The "@arg@" parameter keys must contain all the possible combinations of states with states.')
-
-    if not all(('E',) + combination in value for combination in _it_product(states, symbols)):
-        raise ValueError('The "@arg@" parameter keys must contain all the possible combinations of states with symbols.')
-
-    d_values = value.values()
-
-    if not all(_is_number(d_value) for d_value in d_values):
-        raise ValueError('The "@arg@" parameter values must be float or integer numbers.')
-
-    result = {}
-
-    for d_key, d_value in value.items():
-
-        d_value = float(d_value)
-
-        if _np_isfinite(d_value) and _np_isreal(d_value) and 0.0 <= d_value <= 1.0:
-            result[d_key] = d_value
-        else:
-            raise ValueError('The "@arg@" parameter values can contain only finite real numbers between 0 and 1.')
-
-    return result
-
-
-# noinspection DuplicatedCode
-def validate_hmm_emission(value: _tany, size: int) -> _tarray:
-
-    try:
-        value = _extract_numeric(value, float)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-    if value.ndim != 2 or value.shape[0] != size or value.shape[1] < 2:
-        raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least 2 columns and {size:d} rows.')
-
-    if not all(_np_isfinite(x) and _np_isreal(x) and 0.0 <= x <= 1.0 for _, x in _np_ndenumerate(value)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
-
-    if not _np_allclose(_np_sum(value, axis=1), _np_ones(value.shape[0], dtype=float)):
-        raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
 
     return value
 
@@ -638,9 +609,9 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
 
     if _is_list(value):
 
-        if all(_is_integer(state) for state in value):
+        if all(_is_integer(label) for label in value):
             value_type = 'integer'
-        elif all(_is_string(state) for state in value):
+        elif all(_is_string(label) for label in value):
             value_type = 'string'
         else:
             raise TypeError('The "@arg@" parameter contains invalid elements.')
@@ -649,14 +620,14 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
 
         if value_type == 'integer':
 
-            value = [int(state) for state in value]
+            value = [int(label) for label in value]
 
-            if any(state < 0 or state >= labels_length for state in value):
+            if any(label < 0 or label >= labels_length for label in value):
                 raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {labels_length - 1:d}.')
 
         else:
 
-            value = [labels.index(state) if state in labels else -1 for state in value]
+            value = [labels.index(label) if label in labels else -1 for label in value]
 
             if any(label == -1 for label in value):
                 raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the following strings: {", ".join(labels)}.')
@@ -682,7 +653,7 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
                     length = {minimum_length, maximum_length}.pop()
                     raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {length:d}.')
 
-                raise ValueError(f'The "@arg@" parameter must contain a number of elements between {minimum_length:d} and {maximum_length:d}.')
+                raise ValueError(f'The "@arg@" parameter must contain a number of elements between {minimum_length:d} and {maximum_length:d}.')  # pragma: no cover
 
         value = sorted(value)
 
@@ -713,9 +684,9 @@ def validate_labels_input(value: _tany, size: _oint = None) -> _tlist_str:
     if labels_length < 2:
         raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
 
-    states_unique_length = len(set(value))
+    labels_unique_length = len(set(value))
 
-    if states_unique_length < labels_length:
+    if labels_unique_length < labels_length:
         raise ValueError('The "@arg@" parameter must contain only unique values.')
 
     if size is not None and labels_length != size:
@@ -834,7 +805,7 @@ def validate_partitions(value: _tany, labels: _tlist_str) -> _tlists_int:
 
     if partitions_length < 2 or partitions_length >= labels_length:
 
-        if labels_length == 2:
+        if labels_length == 2:  # pragma: no cover
             raise ValueError('The "@arg@" parameter must contain a number of elements equal to 2.')
 
         raise ValueError(f'The "@arg@" parameter must contain a number of elements between 2 and {labels_length - 1:d}.')

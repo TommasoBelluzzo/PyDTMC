@@ -117,11 +117,11 @@ from .utilities import (
 
 from .validation import (
     validate_boolean as _validate_boolean,
+    validate_dictionary as _validate_dictionary,
+    validate_emission_matrix as _validate_emission_matrix,
     validate_enumerator as _validate_enumerator,
     validate_file_path as _validate_file_path,
     validate_graph as _validate_graph,
-    validate_hmm_dictionary as _validate_hmm_dictionary,
-    validate_hmm_emission as _validate_hmm_emission,
     validate_integer as _validate_integer,
     validate_label as _validate_label,
     validate_labels_current as _validate_labels_current,
@@ -165,7 +165,7 @@ class HiddenMarkovModel(_Model):
             try:
 
                 p = _validate_transition_matrix(p)
-                e = _validate_hmm_emission(e, p.shape[1])
+                e = _validate_emission_matrix(e, p.shape[1])
                 states = _create_labels(p.shape[1], 'P') if states is None else _validate_labels_input(states, p.shape[1])
                 symbols = _create_labels(e.shape[1], 'E') if symbols is None else _validate_labels_input(symbols, e.shape[1])
 
@@ -627,7 +627,7 @@ class HiddenMarkovModel(_Model):
 
         try:
 
-            d = _validate_hmm_dictionary(d)
+            d = _validate_dictionary(d, ['P', 'E'])
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
@@ -956,7 +956,7 @@ class HiddenMarkovModel(_Model):
             symbols = _validate_sequences(symbols, possible_symbols, True)
             algorithm = _validate_enumerator(algorithm, ['baum-welch', 'viterbi'])
             p_guess = _validate_transition_matrix(p_guess, len(possible_states))
-            e_guess = _validate_hmm_emission(e_guess, p_guess.shape[0])
+            e_guess = _validate_emission_matrix(e_guess, p_guess.shape[1])
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None

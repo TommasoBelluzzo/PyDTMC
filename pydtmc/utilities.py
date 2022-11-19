@@ -385,7 +385,7 @@ def is_spmatrix(value: _tany) -> bool:
 
 def is_string(value: _tany) -> bool:
 
-    return isinstance(value, str) and len(value) > 0
+    return isinstance(value, str) and len(value.strip()) > 0
 
 
 def is_tuple(value: _tany) -> bool:
