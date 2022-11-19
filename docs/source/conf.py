@@ -129,6 +129,8 @@ templates_path = ['_templates']
 pygments_style = 'sphinx'
 nitpick_ignore = []
 
+linkcheck_ignore = [r'hidden_markov_model\.html', r'markov_chain\.html']
+
 # InterSphinx
 
 intersphinx_aliases = {
@@ -264,9 +266,9 @@ class _SphinxPostTransformInternals(_sppt_SphinxPostTransform):
 
         title = f'pydtmc.{cn_node_text}'
         uri = f'{_re_sub("(?<!^)(?=[A-Z])", "_", cn_node_text).lower()}.html#pydtmc.{cn_node_text}'
-        node = _dun_reference(internal=True, reftitle=title, refuri=uri)
+        node = _dun_reference(text=cn_node_text, internal=True, reftitle=title, refuri=uri)
 
-        child = _dun_literal(text=cn_node_text, classes=['xref', 'py', 'py-class'])
+        child = _dun_literal(text=cn_node_text)
         node.append(child)
 
         return node
