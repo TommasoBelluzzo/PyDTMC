@@ -67,6 +67,7 @@ from .custom_types import (
     tnumeric as _tnumeric,
     tpair_array as _tpair_array,
     tpair_int as _tpair_int,
+    tpath as _tpath,
     tsequence as _tsequence,
     tstate as _tstate
 )
@@ -201,8 +202,10 @@ class HiddenMarkovModel(_Model):
 
         lines = ['']
         lines.append('HIDDEN MARKOV MODEL')
-        lines.append(f' STATES:  {self.size[0]:d}')
-        lines.append(f' SYMBOLS: {self.size[1]:d}')
+        lines.append(f' STATES:  {self.n:d}')
+        lines.append(f' SYMBOLS: {self.k:d}')
+        lines.append(f' ERGODIC: {("YES" if self.is_ergodic else "NO")}')
+        lines.append(f' REGULAR: {("YES" if self.is_regular else "NO")}')
         lines.append('')
 
         value = '\n'.join(lines)
@@ -471,7 +474,7 @@ class HiddenMarkovModel(_Model):
 
         return d
 
-    def to_file(self, file_path: str):
+    def to_file(self, file_path: _tpath):
 
         """
         The method writes a hidden Markov model to the given file.
@@ -662,7 +665,7 @@ class HiddenMarkovModel(_Model):
     # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True)
-    def from_file(file_path: str) -> _thmm:
+    def from_file(file_path: _tpath) -> _thmm:
 
         r"""
         The method reads a hidden Markov model from the given file.

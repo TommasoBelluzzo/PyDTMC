@@ -58,6 +58,10 @@ from os.path import (
     isfile as _osp_isfile
 )
 
+from pathlib import (
+    Path as _pl_Path
+)
+
 # Libraries
 
 from networkx import (
@@ -316,13 +320,12 @@ def validate_enumerator(value: _tany, possible_values: _tlist_str) -> str:
 
 def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_permission: bool) -> _tfile:
 
-    if not _is_string(value):
-        raise TypeError('The "@arg@" parameter must be a non-empty string.')
-
-    if len(value.strip()) == 0:
-        raise ValueError('The "@arg@" parameter must not be a non-empty string.')
-
-    file_path = value
+    if isinstance(value, _pl_Path):
+        file_path = value
+    elif _is_string(value):
+        file_path = _pl_Path(value)
+    else:
+        raise TypeError('The "@arg@" parameter must be a non-empty string or a path object.')
 
     if not _osp_isfile(file_path):
         raise ValueError('The "@arg@" parameter defines an invalid file path.')

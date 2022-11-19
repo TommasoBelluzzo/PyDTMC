@@ -118,6 +118,7 @@ from .custom_types import (
     tnumeric as _tnumeric,
     tpartition as _tpartition,
     tpartitions as _tpartitions,
+    tpath as _tpath,
     trandfunc_flex as _trandfunc_flex,
     trdl as _trdl,
     tredists as _tredists,
@@ -992,6 +993,10 @@ class MarkovChain(_Model):
         """
         The method attempts to reduce the state space of the Markov chain to the given number of states through a Kullback-Leibler divergence minimization approach.
 
+        | **Notes:**
+
+        - The spectral theory based aggregation is described in `Optimal Kullback-Leibler Aggregation via Spectral Theory of Markov Chains (Deng et al., 2011) <https://doi.org/10.1109/TAC.2011.2141350>`_.
+
         :param s: the number of states of the reduced Markov chain.
         :param method:
          - **spectral-bottom-up** for a spectral theory based aggregation, bottom-up (more suitable for reducing a large number of states).
@@ -1063,7 +1068,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The algorithm is described in `Computing the nearest reversible Markov chain (Nielsen & Weber, 2015) <https://doi.org/10.1002/nla.1967>`_.
+        - The algorithm is described in `Computing the Nearest Reversible Markov chain (Nielsen & Weber, 2015) <https://doi.org/10.1002/nla.1967>`_.
 
         :param initial_distribution: the distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param weighted: a boolean indicating whether to use the weighted Frobenius norm.
@@ -1897,7 +1902,7 @@ class MarkovChain(_Model):
 
         return d
 
-    def to_file(self, file_path: str):
+    def to_file(self, file_path: _tpath):
 
         """
         The method writes a Markov chain to the given file.
@@ -2308,7 +2313,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def from_file(file_path: str) -> _tmc:
+    def from_file(file_path: _tpath) -> _tmc:
 
         r"""
         The method reads a Markov chain from the given file.

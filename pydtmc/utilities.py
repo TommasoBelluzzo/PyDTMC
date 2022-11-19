@@ -95,6 +95,7 @@ from .custom_types import (
     tgraph as _tgraph,
     tlist_str as _tlist_str,
     tpair_bool as _tpair_bool,
+    tpath as _tpath,
     trand as _trand,
     tstack as _tstack
 )
@@ -244,9 +245,12 @@ def get_caller(stack: _tstack) -> str:
     return caller
 
 
-def get_file_extension(file_path: str) -> str:
+def get_file_extension(file_path: _tpath) -> str:
 
-    file_extension = ''.join(_pl_Path(file_path).suffixes).lower()
+    if isinstance(file_path, str):
+        file_path = _pl_Path(file_path)
+
+    file_extension = ''.join(file_path.suffixes).lower()
 
     return file_extension
 
@@ -345,11 +349,11 @@ def is_float(value: _tany) -> bool:
 
 def is_graph(value: _tany) -> _tpair_bool:
 
-    if isinstance(value, _nx_DiGraph):
-        return True, False
-
     if isinstance(value, _nx_MultiDiGraph):
         return True, True
+
+    if isinstance(value, _nx_DiGraph):
+        return True, False
 
     return False, False
 

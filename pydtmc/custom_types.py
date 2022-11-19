@@ -10,6 +10,7 @@ __all__ = [
     'texception', 'oexception',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
+    'tpath', 'opath',
     'tplot', 'oplot',
     'trand', 'orand',
     'tstack', 'ostack',
@@ -96,8 +97,13 @@ __all__ = [
 
 # Standard
 
+
 from inspect import (
     FrameInfo as _ins_FrameInfo
+)
+
+from pathlib import (
+    Path as _pl_Path
 )
 
 from typing import (
@@ -145,6 +151,7 @@ except ImportError:  # pragma: no cover
     _pd_DataFrame, _pd_Series = None, None
     _pandas_found = False
 
+
 #########
 # TYPES #
 #########
@@ -175,6 +182,9 @@ ograph = _tp_Optional[tgraph]
 
 tgraphs = _tp_Union[tgraph, _nx_MultiDiGraph]
 ographs = _tp_Optional[tgraphs]
+
+tpath = _tp_Union[str, _pl_Path]
+opath = _tp_Optional[tpath]
 
 tplot = _tp_Tuple[_mplp_Figure, _tp_Union[_mplp_Axes, _tp_List[_mplp_Axes]]]
 oplot = _tp_Optional[tplot]
@@ -261,7 +271,7 @@ odtype = _tp_Optional[tdtype]
 tedge_attributes = _tp_List[_tp_Tuple[str, _tp_Tuple[str, ...]]]
 oedge_attributes = _tp_Optional[tedge_attributes]
 
-tfile = _tp_Tuple[str, str]
+tfile = _tp_Tuple[tpath, str]
 ofile = _tp_Optional[tfile]
 
 tinterval = _tp_Tuple[tscalar, tscalar]

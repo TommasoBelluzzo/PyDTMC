@@ -21,7 +21,8 @@ from os.path import (
 from re import (
     IGNORECASE as _re_ignorecase,
     MULTILINE as _re_multiline,
-    search as _re_search
+    search as _re_search,
+    sub as _re_sub
 )
 
 from sys import (
@@ -31,10 +32,12 @@ from sys import (
 # Libraries
 
 from docutils.nodes import (
+    Text as _dun_Text,
     bullet_list as _dun_bullet_list,
     field_list as _dun_field_list,
+    literal as _dun_literal,
     paragraph as _dun_paragraph,
-    Text as _dun_Text
+    reference as _dun_reference
 )
 
 from sphinx.addnodes import (
@@ -42,7 +45,7 @@ from sphinx.addnodes import (
     desc_annotation as _span_desc_annotation,
     desc_content as _span_desc_content,
     desc_parameterlist as _span_desc_parameterlist,
-    desc_signature as _span_desc_signature
+    desc_signature as _span_desc_signature,
 )
 
 from sphinx.ext.intersphinx import (
@@ -133,7 +136,9 @@ intersphinx_aliases = {
     ('py:class', 'networkx.classes.digraph.DiGraph'): ('py:class', 'networkx.DiGraph'),
     ('py:class', 'networkx.classes.digraph.MultiDiGraph'): ('py:class', 'networkx.MultiDiGraph'),
     ('py:class', 'networkx.classes.multidigraph.MultiDiGraph'): ('py:class', 'networkx.MultiDiGraph'),
-    ('py:class', 'scipy.sparse.base.spmatrix'): ('py:class', 'scipy.sparse.spmatrix')
+    ('py:class', 'scipy.sparse.base.spmatrix'): ('py:class', 'scipy.sparse.spmatrix'),
+    ('py:class', 'pydtmc.custom_types.HiddenMarkovModel'): ('py:class', 'pydtmc.HiddenMarkovModel'),
+    ('py:class', 'pydtmc.custom_types.MarkovChain'): ('py:class', 'pydtmc.MarkovChain'),
 }
 
 intersphinx_mapping = {
@@ -155,6 +160,7 @@ autodoc_default_options = {
 }
 
 autoclass_content = 'both'
+autodoc_class_signature = 'mixed'
 
 # Autodoc Typehints
 
@@ -245,6 +251,73 @@ class _SphinxPostTransformConstructor(_sppt_SphinxPostTransform):
 
             for parent, child in nodes_to_remove:
                 parent.remove(child)
+
+
+class _SphinxPostTransformInternals(_sppt_SphinxPostTransform):
+
+    """
+    A class used for applying post-transforms on properties.
+    """
+
+    default_priority = 799
+
+    @staticmethod
+    def _create_node(cn_node_text):
+
+        node = _dun_reference()
+        node['internal'] = True
+        node['reftitle'] = f'pydtmc.{cn_node_text}'
+        node['refuri'] = f'{_re_sub("(?<!^)(?=[A-Z])", "_", cn_node_text).lower()}.html#pydtmc.{cn_node_text}'
+
+        child = _dun_literal(text=cn_node_text, classes=['xref', 'py', 'py-class'])
+        node.append(child)
+
+        return node
+
+    def run(self, **kwargs):
+
+        for node in self.document.findall(_dun_literal):
+
+            node_text = node.astext()
+
+            if node_text not in ['HiddenMarkovModel', 'MarkovChain']:
+                continue
+
+            node_parent = node.parent
+
+            if not isinstance(node_parent, _dun_paragraph):
+                continue
+
+            nodes = [n for n in node_parent]
+            node_index = nodes.index(node)
+
+            node_reference = nodes[node_index - 2]
+
+            if not isinstance(node_reference, _dun_reference) or node_reference.astext() != 'TypeVar':
+                continue
+
+            node_beginning = nodes[node_index - 1]
+
+            if not isinstance(node_beginning, _dun_Text) or node_beginning.astext() != '(':
+                continue
+
+            node_end = nodes[node_index + 1]
+            node_end_text = node_end.astext()
+
+            if not isinstance(node_end, _dun_Text) or node_end_text[0] != ')':
+                continue
+
+            node_parent.remove(node_beginning)
+            node_parent.remove(node)
+
+            if len(node_end_text) > 1:
+                node_end_new = _dun_Text(node_end_text[1:])
+                node_parent.replace(node_end, node_end_new)
+            else:
+                node_parent.remove(node_end)
+
+            node_reference_new = _SphinxPostTransformInternals._create_node(node_text)
+            node_parent.replace(node_reference, node_reference_new)
 
 
 class _SphinxPostTransformLists(_sppt_SphinxPostTransform):
@@ -346,6 +419,7 @@ def _process_intersphinx_aliases(app):
 def setup(app):
 
     app.add_post_transform(_SphinxPostTransformConstructor)
+    app.add_post_transform(_SphinxPostTransformInternals)
     app.add_post_transform(_SphinxPostTransformProperties)
     app.add_post_transform(_SphinxPostTransformLists)
 

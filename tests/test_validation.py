@@ -10,7 +10,8 @@
 from os.path import (
     abspath as _osp_abspath,
     dirname as _osp_dirname,
-    join as _osp_join
+    join as _osp_join,
+    sep as _osp_sep
 )
 
 from random import (
@@ -241,23 +242,18 @@ def test_validate_enumerator(value, possible_values, is_valid):
 def test_validate_file_path(value, accepted_extensions, write_permission, is_valid):
 
     if isinstance(value, str) and value.startswith('file_'):
-        value = _osp_join(_base_directory, f'files/{value}')
+        value = _osp_join(_base_directory, f'files{_osp_sep}{value}')
 
     try:
-        result = _validate_file_path(value, accepted_extensions, write_permission)
+        _validate_file_path(value, accepted_extensions, write_permission)
         result_is_valid = True
     except Exception:
-        result = None
         result_is_valid = False
 
     actual = result_is_valid
     expected = is_valid
 
     assert actual == expected
-
-    if result_is_valid:
-        result_check = result[0] == value
-        assert result_check is True
 
 
 # noinspection PyBroadException

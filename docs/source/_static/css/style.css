@@ -38,15 +38,25 @@
 
 /* Customs */
 
-.rst-content .section:not([id='pydtmc']):not([id='static-methods']) .line-block
+.rst-content section ul li>p:last-child
+{
+    margin-bottom: 0 !important;
+}
+
+.rst-content section:not([id='pydtmc']):not([id='static-methods']) .line-block
 {
     margin-bottom: 4px !important;
 }
 
-.rst-content .section[id='pydtmc'] .line-block,
-.rst-content .section[id='static-methods'] .line-block
+.rst-content section[id='pydtmc'] .line-block,
+.rst-content section[id='static-methods'] .line-block
 {
     margin-bottom: 24px !important;
+}
+
+.rst-content a.reference.internal code
+{
+    color: #2980b9 !important;
 }
 
 #instance-methods dl.method,
