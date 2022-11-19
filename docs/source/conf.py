@@ -288,7 +288,7 @@ class _SphinxPostTransformInternals(_sppt_SphinxPostTransform):
             if not isinstance(node_parent, _dun_paragraph):
                 continue
 
-            nodes = [n for n in node_parent]
+            nodes = list(node_parent)
             node_index = nodes.index(node)
 
             node_reference = nodes[node_index - 2]
