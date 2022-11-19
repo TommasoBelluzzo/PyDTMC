@@ -136,9 +136,7 @@ intersphinx_aliases = {
     ('py:class', 'networkx.classes.digraph.DiGraph'): ('py:class', 'networkx.DiGraph'),
     ('py:class', 'networkx.classes.digraph.MultiDiGraph'): ('py:class', 'networkx.MultiDiGraph'),
     ('py:class', 'networkx.classes.multidigraph.MultiDiGraph'): ('py:class', 'networkx.MultiDiGraph'),
-    ('py:class', 'scipy.sparse.base.spmatrix'): ('py:class', 'scipy.sparse.spmatrix'),
-    ('py:class', 'pydtmc.custom_types.HiddenMarkovModel'): ('py:class', 'pydtmc.HiddenMarkovModel'),
-    ('py:class', 'pydtmc.custom_types.MarkovChain'): ('py:class', 'pydtmc.MarkovChain'),
+    ('py:class', 'scipy.sparse.base.spmatrix'): ('py:class', 'scipy.sparse.spmatrix')
 }
 
 intersphinx_mapping = {
@@ -264,10 +262,9 @@ class _SphinxPostTransformInternals(_sppt_SphinxPostTransform):
     @staticmethod
     def _create_node(cn_node_text):
 
-        node = _dun_reference()
-        node['internal'] = True
-        node['reftitle'] = f'pydtmc.{cn_node_text}'
-        node['refuri'] = f'{_re_sub("(?<!^)(?=[A-Z])", "_", cn_node_text).lower()}.html#pydtmc.{cn_node_text}'
+        title = f'pydtmc.{cn_node_text}'
+        uri = f'{_re_sub("(?<!^)(?=[A-Z])", "_", cn_node_text).lower()}.html#pydtmc.{cn_node_text}'
+        node = _dun_reference(internal=True, reftitle=title, refuri=uri)
 
         child = _dun_literal(text=cn_node_text, classes=['xref', 'py', 'py-class'])
         node.append(child)
