@@ -39,11 +39,11 @@ def test_predict(p, steps, initial_state, output_indices, value):
     assert actual == expected
 
 
-def test_next_state(p, seed, initial_state, output_index, value):
+def test_next(p, seed, initial_state, output_index, value):
 
     mc = _MarkovChain(p)
 
-    actual = mc.next_state(initial_state, output_index, seed)
+    actual = mc.next(initial_state, output_index, seed)
     expected = value
 
     assert actual == expected

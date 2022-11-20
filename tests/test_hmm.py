@@ -87,6 +87,16 @@ def test_estimate(possible_states, possible_symbols, sequence_states, sequence_s
     _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_next(p, e, seed, initial_state, target, output_index, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.next(initial_state, target, output_index, seed)
+    expected = tuple(value) if target == 'both' else value
+
+    assert actual == expected
+
+
 def test_probabilities(p, e):
 
     hmm = _HiddenMarkovModel(p, e)

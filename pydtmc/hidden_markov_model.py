@@ -378,10 +378,10 @@ class HiddenMarkovModel(_Model):
         if target == 'state':
             value = simulation[0][-1] if output_index else self.__states[simulation[0][-1]]
         elif target == 'symbol':
-            value = simulation[1][-1] if output_index else self.__states[simulation[1][-1]]
+            value = simulation[1][-1] if output_index else self.__symbols[simulation[1][-1]]
         else:
             v0 = simulation[0][-1] if output_index else self.__states[simulation[0][-1]]
-            v1 = simulation[1][-1] if output_index else self.__states[simulation[1][-1]]
+            v1 = simulation[1][-1] if output_index else self.__symbols[simulation[1][-1]]
             value = (v0, v1)
 
         return value

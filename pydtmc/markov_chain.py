@@ -1619,15 +1619,11 @@ class MarkovChain(_Model):
 
         return value
 
-    @_object_mark(aliases=['next'], random_output=True)
-    def next_state(self, initial_state: _tstate, output_index: bool = False, seed: _oint = None) -> _tstate:
+    @_object_mark(random_output=True)
+    def next(self, initial_state: _tstate, output_index: bool = False, seed: _oint = None) -> _tstate:
 
         """
         The method simulates a single step in a random walk.
-
-        | **Notes:**
-
-        - The method can be accessed through the following aliases: **next**.
 
         :param initial_state: the initial state.
         :param output_index: a boolean indicating whether to output the state index.

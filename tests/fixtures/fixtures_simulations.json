@@ -17,7 +17,7 @@
         "value": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
       }
     ],
-    "next_state_data": [
+    "next_data": [
       {
         "initial_state": 0,
         "output_index": false,
@@ -105,7 +105,7 @@
         "value": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
       }
     ],
-    "next_state_data": [
+    "next_data": [
       {
         "initial_state": 0,
         "output_index": false,
@@ -193,7 +193,7 @@
         "value": [2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0]
       }
     ],
-    "next_state_data": [
+    "next_data": [
       {
         "initial_state": 0,
         "output_index": false,
@@ -281,7 +281,7 @@
         "value": null
       }
     ],
-    "next_state_data": [
+    "next_data": [
       {
         "initial_state": 1,
         "output_index": false,
@@ -369,7 +369,7 @@
         "value": [2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1]
       }
     ],
-    "next_state_data": [
+    "next_data": [
       {
         "initial_state": 0,
         "output_index": false,
@@ -457,7 +457,7 @@
         "value": [2, 1, 0, 2, 1, 0, 2, 1, 0, 2, 1, 0]
       }
     ],
-    "next_state_data": [
+    "next_data": [
       {
         "initial_state": 1,
         "output_index": false,
@@ -545,7 +545,7 @@
         "value": null
       }
     ],
-    "next_state_data": [
+    "next_data": [
       {
         "initial_state": 2,
         "output_index": false,
@@ -633,7 +633,7 @@
         "value": null
       }
     ],
-    "next_state_data": [
+    "next_data": [
       {
         "initial_state": 0,
         "output_index": false,
@@ -721,7 +721,7 @@
         "value": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
       }
     ],
-    "next_state_data": [
+    "next_data": [
       {
         "initial_state": 3,
         "output_index": false,
@@ -809,7 +809,7 @@
         "value": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
       }
     ],
-    "next_state_data": [
+    "next_data": [
       {
         "initial_state": 2,
         "output_index": false,

@@ -30,7 +30,7 @@ Instance Methods
 		mean_number_visits,
 		mean_recurrence_times,
 		mixing_time,
-		next_state,
+		next,
 		predict,
 		redistribute,
 		sensitivity,
