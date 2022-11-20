@@ -172,7 +172,7 @@ class HiddenMarkovModel(_Model):
             except Exception as ex:  # pragma: no cover
                 raise _create_validation_error(ex, _ins_trace()) from None
 
-        if len(list(set(states) & set(symbols))) > 0:
+        if len(list(set(states) & set(symbols))) > 0:  # pragma: no cover
             raise _ValidationError('State names and symbol names must be different.')
 
         self.__digraph: _tgraph = _build_hmm_graph(p, e, states, symbols)
@@ -601,7 +601,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
 
-        if len(list(set(possible_states) & set(possible_symbols))) > 0:
+        if len(list(set(possible_states) & set(possible_symbols))) > 0:  # pragma: no cover
             raise _ValidationError('State names and symbol names must be different.')
 
         if len(sequence_states) != len(sequence_symbols):
@@ -844,7 +844,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
 
-        if len(list(set(states) & set(symbols))) > 0:
+        if len(list(set(states) & set(symbols))) > 0:  # pragma: no cover
             raise _ValidationError('State names and symbol names must be different.')
 
         n, k = mp.shape[0], me.shape[1]
@@ -923,7 +923,7 @@ class HiddenMarkovModel(_Model):
         states = states_out if states is None else states
         symbols = symbols_out if symbols is None else symbols
 
-        if len(list(set(states) & set(symbols))) > 0:
+        if len(list(set(states) & set(symbols))) > 0:  # pragma: no cover
             raise _ValidationError('State names and symbol names must be different.')
 
         hmm = HiddenMarkovModel(p, e, states, symbols)
@@ -961,7 +961,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
 
-        if len(list(set(possible_states) & set(possible_symbols))) > 0:
+        if len(list(set(possible_states) & set(possible_symbols))) > 0:  # pragma: no cover
             raise _ValidationError('State names and symbol names must be different.')
 
         p, e, error_message = _train(algorithm, p_guess, e_guess, symbols)
