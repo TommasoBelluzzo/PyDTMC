@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'aggregate_spectral_bottom_up',
-    'aggregate_spectral_top_down',
-    'approximation',
-    'birth_death',
-    'bounded',
-    'canonical',
-    'closest_reversible',
-    'dirichlet_process',
-    'gamblers_ruin',
-    'lazy',
-    'lump',
-    'random',
-    'sub',
-    'urn_model'
+    'hmm_random',
+    'mc_aggregate_spectral_bottom_up',
+    'mc_aggregate_spectral_top_down',
+    'mc_approximation',
+    'mc_birth_death',
+    'mc_bounded',
+    'mc_canonical',
+    'mc_closest_reversible',
+    'mc_dirichlet_process',
+    'mc_gamblers_ruin',
+    'mc_lazy',
+    'mc_lump',
+    'mc_random',
+    'mc_sub',
+    'mc_urn_model'
 ]
 
 
@@ -100,6 +101,7 @@ from .custom_types import (
     ofloat as _ofloat,
     tarray as _tarray,
     tbcond as _tbcond,
+    thmm_generation_ext as _thmm_generation_ext,
     tmc_generation as _tmc_generation,
     tmc_generation_ext as _tmc_generation_ext,
     tlist_int as _tlist_int,
@@ -114,7 +116,82 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
-def aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation_ext:
+def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: int, e_mask: _tarray) -> _thmm_generation_ext:
+
+    # noinspection DuplicatedCode
+    def process_matrix(pm_rows, pm_columns, pm_mask, pm_full_rows, pm_mask_unassigned, pm_zeros, pm_zeros_required):
+
+        pm_mask_internal = _np_copy(pm_mask)
+        rows_range = _np_arange(pm_rows)
+
+        for i in rows_range:
+            if not pm_full_rows[i]:
+                row = pm_mask_unassigned[i, :]
+                columns = _np_flatnonzero(row)
+                j = columns[rng.randint(0, _np_sum(row).item())]
+                pm_mask_internal[i, j] = _np_inf
+
+        pm_mask_unassigned = _np_isnan(pm_mask_internal)
+        indices_unassigned = _np_flatnonzero(pm_mask_unassigned)
+
+        r = rng.permutation(pm_zeros_required)
+        indices_zero = indices_unassigned[r[0:pm_zeros]]
+        indices_rows, indices_columns = _np_unravel_index(indices_zero, (pm_rows, pm_columns))
+
+        pm_mask_internal[indices_rows, indices_columns] = 0.0
+        pm_mask_internal[_np_isinf(pm_mask_internal)] = _np_nan
+
+        m = _np_copy(pm_mask_internal)
+        m_unassigned = _np_isnan(pm_mask_internal)
+        m[m_unassigned] = _np_ravel(rng.rand(1, _np_sum(m_unassigned, dtype=int).item()))
+
+        for i in rows_range:
+
+            assigned_columns = _np_isnan(pm_mask_internal[i, :])
+            s = _np_sum(m[i, assigned_columns])
+
+            if s > 0.0:
+                si = _np_sum(m[i, ~assigned_columns])
+                m[i, assigned_columns] *= (1.0 - si) / s
+
+        return m
+
+    # noinspection DuplicatedCode
+    def process_zeros(pz_columns, pz_zeros, pz_mask):
+
+        pz_mask_internal = _np_copy(pz_mask)
+
+        full_rows = _np_isclose(_np_nansum(pz_mask_internal, axis=1, dtype=float), 1.0)
+
+        mask_full = _np_transpose(_np_array([full_rows] * pz_columns))
+        pz_mask_internal[_np_isnan(pz_mask_internal) & mask_full] = 0.0
+
+        mask_unassigned = _np_isnan(pz_mask_internal)
+        zeros_required = (_np_sum(mask_unassigned) - _np_sum(~full_rows)).item()
+        result = pz_zeros > zeros_required
+
+        return full_rows, mask_unassigned, zeros_required, result
+
+    p_full_rows, p_mask_unassigned, p_zeros_required, p_result = process_zeros(n, p_zeros, p_mask)
+
+    if p_result:  # pragma: no cover
+        return None, None, None, None, f'The number of null transition probabilities exceeds the maximum threshold of {p_zeros_required:d}.'
+
+    e_full_rows, e_mask_unassigned, e_zeros_required, e_result = process_zeros(k, e_zeros, e_mask)
+
+    if e_result:  # pragma: no cover
+        return None, None, None, None, f'The number of null emission probabilities exceeds the maximum threshold of {e_zeros_required:d}.'
+
+    p = process_matrix(n, n, p_mask, p_full_rows, p_mask_unassigned, p_zeros, p_zeros_required)
+    states = [f'P{i:d}' for i in range(1, n + 1)]
+
+    e = process_matrix(n, k, e_mask, e_full_rows, e_mask_unassigned, e_zeros, e_zeros_required)
+    symbols = [f'E{i:d}' for i in range(1, k + 1)]
+
+    return p, e, states, symbols, None
+
+
+def mc_aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation_ext:
 
     # noinspection DuplicatedCode
     def _calculate_q(cq_p, cq_pi, cq_phi):
@@ -200,7 +277,7 @@ def aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_genera
     return q, states, None
 
 
-def aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generation_ext:
+def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generation_ext:
 
     def _calculate_invariant(ci_q):
 
@@ -306,7 +383,7 @@ def aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generat
     return q, states, None
 
 
-def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tmc_generation_ext:
+def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tmc_generation_ext:
 
     def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
 
@@ -479,7 +556,7 @@ def approximation(size: int, approximation_type: str, alpha: float, sigma: float
     return p, states, None
 
 
-def birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
+def mc_birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
 
     r = 1.0 - q - p
 
@@ -491,7 +568,7 @@ def birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
     return p, None
 
 
-def bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
+def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
 
     size = p.shape[0]
 
@@ -521,7 +598,7 @@ def bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
     return p_adjusted, None
 
 
-def canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tlist_int) -> _tmc_generation:
+def mc_canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tlist_int) -> _tmc_generation:
 
     p = _np_copy(p)
 
@@ -540,7 +617,7 @@ def canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tli
     return p, None
 
 
-def closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tmc_generation:
+def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tmc_generation:
 
     def _jacobian(xj, hj, fj):
 
@@ -709,7 +786,7 @@ def closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bo
     return p, None
 
 
-def dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool):
+def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool):
 
     def _gem_allocation(ga_draws):
 
@@ -740,7 +817,7 @@ def dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_
     return p, None
 
 
-def gamblers_ruin(size: int, w: float) -> _tmc_generation:
+def mc_gamblers_ruin(size: int, w: float) -> _tmc_generation:
 
     wc = 1.0 - w
 
@@ -755,7 +832,7 @@ def gamblers_ruin(size: int, w: float) -> _tmc_generation:
     return p, None
 
 
-def lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
+def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
 
     size = p.shape[0]
 
@@ -767,7 +844,7 @@ def lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
 
 
 # noinspection PyBroadException
-def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_generation_ext:
+def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_generation_ext:
 
     size = p.shape[0]
 
@@ -798,7 +875,7 @@ def lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_genera
 
 
 # noinspection DuplicatedCode
-def random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generation:
+def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generation:
 
     full_rows = _np_isclose(_np_nansum(mask, axis=1, dtype=float), 1.0)
 
@@ -846,7 +923,7 @@ def random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generation
     return p, None
 
 
-def sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_generation_ext:
+def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_generation_ext:
 
     size = p.shape[0]
 
@@ -880,7 +957,7 @@ def sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _
     return p, state_names, None
 
 
-def urn_model(n: int, model: str) -> _tmc_generation_ext:
+def mc_urn_model(n: int, model: str) -> _tmc_generation_ext:
 
     dn = n * 2
     size = dn + 1

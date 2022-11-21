@@ -157,20 +157,20 @@ from .fitting import (
 )
 
 from .generators import (
-    aggregate_spectral_bottom_up as _aggregate_spectral_bottom_up,
-    aggregate_spectral_top_down as _aggregate_spectral_top_down,
-    approximation as _approximation,
-    birth_death as _birth_death,
-    bounded as _bounded,
-    canonical as _canonical,
-    closest_reversible as _closest_reversible,
-    dirichlet_process as _dirichlet_process,
-    gamblers_ruin as _gamblers_ruin,
-    lazy as _lazy,
-    lump as _lump,
-    random as _random,
-    sub as _sub,
-    urn_model as _urn_model
+    mc_aggregate_spectral_bottom_up as _aggregate_spectral_bottom_up,
+    mc_aggregate_spectral_top_down as _aggregate_spectral_top_down,
+    mc_approximation as _approximation,
+    mc_birth_death as _birth_death,
+    mc_bounded as _bounded,
+    mc_canonical as _canonical,
+    mc_closest_reversible as _closest_reversible,
+    mc_dirichlet_process as _dirichlet_process,
+    mc_gamblers_ruin as _gamblers_ruin,
+    mc_lazy as _lazy,
+    mc_lump as _lump,
+    mc_random as _random,
+    mc_sub as _sub,
+    mc_urn_model as _urn_model
 )
 
 from .measures import (
@@ -194,10 +194,10 @@ from .measures import (
 )
 
 from .simulations import (
-    predict as _predict,
-    redistribute as _redistribute,
-    sequence_probability as _sequence_probability,
-    simulate as _simulate
+    mc_predict as _predict,
+    mc_redistribute as _redistribute,
+    mc_sequence_probability as _sequence_probability,
+    mc_simulate as _simulate
 )
 
 from .utilities import (

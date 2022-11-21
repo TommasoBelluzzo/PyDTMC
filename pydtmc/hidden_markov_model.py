@@ -92,18 +92,24 @@ from .files_io import (
     write_xml as _write_xml
 )
 
+from .generators import (
+    hmm_random as _random
+)
+
 from .hmm import (
     decode as _decode,
     estimate as _estimate,
-    random as _random,
+    predict as _predict,
     restrict as _restrict,
-    simulate as _simulate,
-    train as _train,
-    viterbi as _viterbi
+    train as _train
 )
 
 from .markov_chain import (
     MarkovChain as _MarkovChain
+)
+
+from .simulations import (
+    hmm_simulate as _simulate
 )
 
 from .utilities import (
@@ -386,6 +392,40 @@ class HiddenMarkovModel(_Model):
 
         return value
 
+    def predict(self, algorithm: str, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_viterbi_ext:
+
+        """
+        The method calculates the log probability and the most probable states path of an observed sequence of symbols.
+
+        :param algorithm:
+         - **map** for the maximum a posteriori algorithm;
+         - **viterbi** for the Viterbi algorithm.
+        :param symbols: the observed sequence of symbols.
+        :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+        :param output_indices: a boolean indicating whether to output the state indices.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the observed sequence of symbols produced one or more null transition probabilities.
+        """
+
+        try:
+
+            algorithm = _validate_enumerator(algorithm, ['map', 'viterbi'])
+            symbols = _validate_sequence(symbols, self.__symbols)
+            initial_status = _np_full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins_trace()) from None
+
+        value = _predict(algorithm, self.__p, self.__e, initial_status, symbols)
+
+        if value is None:  # pragma: no cover
+            raise ValueError('The observed sequence of symbols produced one or more null transition probabilities; more data is required.')
+
+        if not output_indices:
+            value = (value[0], [*map(self.__states.__getitem__, value[1])])
+
+        return value
+
     @_object_mark(instance_generator=True)
     def restrict(self, states: _ostates = None, symbols: _ostates = None) -> _thmm:
 
@@ -544,36 +584,6 @@ class HiddenMarkovModel(_Model):
             raise _create_validation_error(ex, _ins_trace()) from None
 
         value = self.__p[state_origin, state_target]
-
-        return value
-
-    def viterbi(self, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_viterbi_ext:
-
-        """
-        The method calculates the log probability and the most probable states path of an observed sequence of symbols.
-
-        :param symbols: the observed sequence of symbols.
-        :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
-        :param output_indices: a boolean indicating whether to output the state indices.
-        :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the observed sequence of symbols produced one or more null transition probabilities.
-        """
-
-        try:
-
-            symbols = _validate_sequence(symbols, self.__symbols)
-            initial_status = _np_full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
-
-        value = _viterbi(self.__p, self.__e, initial_status, symbols)
-
-        if value is None:  # pragma: no cover
-            raise ValueError('The observed sequence of symbols produced one or more null transition probabilities; more data is required.')
-
-        if not output_indices:
-            value = (value[0], [*map(self.__states.__getitem__, value[1])])
 
         return value
 
