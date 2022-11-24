@@ -38,7 +38,12 @@
 
 /* Customs */
 
-.rst-content section ul li>p:last-child
+.rst-content a.reference.internal code
+{
+    color: #2980b9 !important;
+}
+
+.rst-content section ul li > p:last-child
 {
     margin-bottom: 0 !important;
 }
@@ -52,11 +57,6 @@
 .rst-content section[id='static-methods'] .line-block
 {
     margin-bottom: 24px !important;
-}
-
-.rst-content a.reference.internal code
-{
-    color: #2980b9 !important;
 }
 
 #instance-methods dl.method,

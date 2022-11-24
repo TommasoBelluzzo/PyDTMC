@@ -48,7 +48,7 @@ from numpy.linalg import (
 
 from .custom_types import (
     ohmm_decoding as _ohmm_decoding,
-    ohmm_viterbi as _ohmm_viterbi,
+    ohmm_prediction as _ohmm_prediction,
     tarray as _tarray,
     thmm_generation as _thmm_generation,
     thmm_params as _thmm_params,
@@ -63,18 +63,18 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
-def decode(p: _tarray, e: _tarray, symbols: _tlist_int, use_scaling: bool) -> _ohmm_decoding:
+def decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int, use_scaling: bool) -> _ohmm_decoding:
 
     n, k = p.shape[1], e.shape[1]
 
     symbols = [k] + symbols
     f = len(symbols)
 
-    s = _np_zeros(f)
-    s[0] = 1.0
+    scaling_factors = _np_zeros(f)
+    scaling_factors[0] = 1.0
 
     forward = _np_zeros((n, f), dtype=float)
-    forward[0, 0] = 1.0
+    forward[:, 0] = initial_distribution
 
     for i in range(1, f):
 
@@ -84,13 +84,13 @@ def decode(p: _tarray, e: _tarray, symbols: _tlist_int, use_scaling: bool) -> _o
         for state in range(n):
             forward[state, i] = e[state, symbol] * _np_sum(_np_multiply(forward_i, p[:, state]))
 
-        s_i = _np_sum(forward[:, i])
+        scaling_factor = _np_sum(forward[:, i])
 
-        if s_i == 0.0:
+        if scaling_factor < 1e-300:
             return None
 
-        s[i] = s_i
-        forward[:, i] /= s_i
+        scaling_factors[i] = scaling_factor
+        forward[:, i] /= scaling_factor
 
     backward = _np_ones((n, f), dtype=float)
 
@@ -98,27 +98,28 @@ def decode(p: _tarray, e: _tarray, symbols: _tlist_int, use_scaling: bool) -> _o
 
         symbol = symbols[i + 1]
         e_i = e[:, symbol]
-        s_i = 1.0 / s[i + 1]
+        scaling_factor = 1.0 / scaling_factors[i + 1]
         backward_i = backward[:, i + 1]
 
         for state in range(n):
-            backward[state, i] = s_i * _np_sum(_np_multiply(_np_multiply(p[state, :], backward_i), e_i))
+            backward[state, i] = scaling_factor * _np_sum(_np_multiply(_np_multiply(p[state, :], backward_i), e_i))
 
     posterior = _np_multiply(backward, forward)
     posterior = posterior[:, 1:]
 
-    log_prob = _np_sum(_np_log(s)).item()
+    log_prob = _np_sum(_np_log(scaling_factors)).item()
 
-    if use_scaling:
-        return log_prob, posterior, backward, forward, s
+    if not use_scaling:
 
-    backward_scale = _np_tile(_np_fliplr(_np_hstack((_np_ones((1, 1)), _np_cumprod(s[_np_newaxis, ::-1], axis=1)[:, :-1]))), (n, 1))
-    backward = _np_multiply(backward, backward_scale)
+        backward_scale = _np_fliplr(_np_hstack((_np_ones((1, 1), dtype=float), _np_cumprod(scaling_factors[_np_newaxis, :0:-1], axis=1))))
+        backward = _np_multiply(backward, _np_tile(backward_scale, (n, 1)))
 
-    forward_scale = _np_tile(_np_cumprod(s[_np_newaxis, :], axis=1), (n, 1))
-    forward = _np_multiply(forward, forward_scale)
+        forward_scale = _np_cumprod(scaling_factors[_np_newaxis, :], axis=1)
+        forward = _np_multiply(forward, _np_tile(forward_scale, (n, 1)))
 
-    return log_prob, posterior, backward, forward
+        scaling_factors = None
+
+    return log_prob, posterior, backward, forward, scaling_factors
 
 
 # noinspection DuplicatedCode
@@ -153,11 +154,19 @@ def estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: _tli
     return p, e
 
 
-def predict(algorithm: str, p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int) -> _ohmm_viterbi:
+def predict(algorithm: str, p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int) -> _ohmm_prediction:
 
     def _predict_map(pv_p, pv_e, pv_initial_distribution, pv_symbols):
 
-        return None
+        result = decode(pv_p, pv_e, pv_initial_distribution, pv_symbols, True)
+
+        if result is None:
+            return None
+
+        log_prob, posterior = result[0], result[1]
+        states = list(_np_argmax(posterior, axis=0))
+
+        return log_prob, states
 
     def _predict_viterbi(pv_p, pv_e, pv_initial_distribution, pv_symbols):
 
@@ -178,7 +187,7 @@ def predict(algorithm: str, p: _tarray, e: _tarray, initial_distribution: _tarra
             symbol_i = pv_symbols[i]
             omega_im1 = omega[im1]
 
-            for j in range(n):
+            for j in range(n):\
 
                 prob = _np_round(omega_im1 + p_log[:, j] + e_log[j, symbol_i], 12)
                 max_index = _np_argmax(prob)
@@ -189,18 +198,17 @@ def predict(algorithm: str, p: _tarray, e: _tarray, initial_distribution: _tarra
             if _np_all(omega[i, :] == -_np_inf):  # pragma: no cover
                 return None
 
-        last_state = _np_argmax(omega[f - 1, :]).item()
-        index = 1
+        last_state, index = _np_argmax(omega[f - 1, :]).item(), 1
 
-        lp = omega[f - 1, last_state].item()
-        s = [last_state] + ([0] * (f - 1))
+        log_prob = omega[f - 1, last_state].item()
+        states = [last_state] + ([0] * (f - 1))
 
         for i in range(f - 2, -1, -1):
-            s[index] = path[i, last_state].item()
+            states[index] = path[i, last_state].item()
             last_state = path[i, last_state].item()
             index += 1
 
-        return lp, s
+        return log_prob, states
 
     if algorithm == 'map':
         prediction = _predict_map(p, e, initial_distribution, symbols)
@@ -275,7 +283,7 @@ def train(algorithm: str, p_guess: _tarray, e_guess: _tarray, symbols: _tlists_i
                 symbols_i = symbols[i]
                 f_i = len(symbols_i)
 
-                log_prob_i, _, backward_i, forward_i, s_i = decode(p_guess, e_guess, symbols_i, True)
+                log_prob_i, _, backward_i, forward_i, s_i = decode(p_guess, e_guess, 0, symbols_i, True)
                 ll += log_prob_i
 
                 lb, lf, lp, le = _np_log(backward_i), _np_log(forward_i), _np_log(p_guess), _np_log(e_guess)

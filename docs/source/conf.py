@@ -45,7 +45,7 @@ from sphinx.addnodes import (
     desc_annotation as _span_desc_annotation,
     desc_content as _span_desc_content,
     desc_parameterlist as _span_desc_parameterlist,
-    desc_signature as _span_desc_signature,
+    desc_signature as _span_desc_signature
 )
 
 from sphinx.ext.intersphinx import (
@@ -155,12 +155,15 @@ intersphinx_mapping = {
 
 autodoc_default_options = {
     'inherited-members': False,
-    'no-undoc-members': True,
-    'member-order': 'bysource'
+    'no-undoc-members': True
 }
 
 autoclass_content = 'both'
 autodoc_class_signature = 'mixed'
+autodoc_member_order = 'bysource'
+autodoc_docstring_signature = True
+autodoc_typehints = 'signature'
+autodoc_typehints_format = 'short'
 
 # Autodoc Typehints
 

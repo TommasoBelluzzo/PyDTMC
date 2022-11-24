@@ -29,10 +29,12 @@ from pydtmc import (
 # TESTS #
 #########
 
-def test_decode(p, e, symbols, use_scaling, value):
+def test_decode(p, e, symbols, initial_status, use_scaling, value):
 
     hmm = _HiddenMarkovModel(p, e)
-    decoding = hmm.decode(symbols, use_scaling)
+    initial_status = _np_array(initial_status) if isinstance(initial_status, list) else initial_status
+
+    decoding = hmm.decode(symbols, initial_status, use_scaling)
 
     if decoding is None:
 
@@ -51,15 +53,21 @@ def test_decode(p, e, symbols, use_scaling, value):
         actual = decoding[1]
         expected = _np_array(value[1])
 
+        print(actual)
+
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         actual = decoding[2]
         expected = _np_array(value[2])
 
+        print(actual)
+
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         actual = decoding[3]
         expected = _np_array(value[3])
+
+        print(actual)
 
         _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -67,6 +75,8 @@ def test_decode(p, e, symbols, use_scaling, value):
 
             actual = decoding[4]
             expected = _np_array(value[4])
+
+            print(actual)
 
             _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -102,13 +112,15 @@ def test_predict(p, e, algorithm, symbols, initial_distribution, output_indices,
 
     hmm = _HiddenMarkovModel(p, e)
 
-    try:
-        actual = hmm.predict(algorithm, symbols, initial_distribution, output_indices)
-        actual = (round(actual[0], 8), actual[1])
-    except ValueError:
-        actual = None
+    actual = hmm.predict(algorithm, symbols, initial_distribution, output_indices)
 
-    expected = value if value is None else tuple(value)
+    if actual is not None:
+        actual = (round(actual[0], 8), actual[1])
+
+    expected = value
+
+    if expected is not None:
+        expected = tuple(expected)
 
     assert actual == expected
 

@@ -59,10 +59,10 @@ from .custom_types import (
     thmm as _thmm,
     thmm_dict as _thmm_dict,
     thmm_dict_flex as _thmm_dict_flex,
+    thmm_prediction as _thmm_prediction,
     thmm_sequence_ext as _thmm_sequence_ext,
     thmm_step as _thmm_step,
     thmm_symbols_ext as _thmm_symbols_ext,
-    thmm_viterbi_ext as _thmm_viterbi_ext,
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
     tpair_array as _tpair_array,
@@ -305,7 +305,7 @@ class HiddenMarkovModel(_Model):
 
         return self.__symbols
 
-    def decode(self, symbols: _tsequence, use_scaling: bool = True) -> _ohmm_decoding:
+    def decode(self, symbols: _tsequence, initial_status: _ostatus = None, use_scaling: bool = True) -> _ohmm_decoding:
 
         """
         The method calculates the log probability, the posterior probabilities, the backward probabilities and the forward probabilities of an observed sequence of symbols.
@@ -315,6 +315,7 @@ class HiddenMarkovModel(_Model):
         - If the observed sequence of symbols cannot be decoded, then :py:class:`None` is returned.
 
         :param symbols: the observed sequence of symbols.
+        :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param use_scaling: a boolean indicating whether to return scaled backward and forward probabilities together with their scaling factors.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -322,12 +323,13 @@ class HiddenMarkovModel(_Model):
         try:
 
             symbols = _validate_sequence(symbols, self.__symbols)
+            initial_status = _np_full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
             use_scaling = _validate_boolean(use_scaling)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins_trace()) from None
 
-        value = _decode(self.__p, self.__e, symbols, use_scaling)
+        value = _decode(self.__p, self.__e, initial_status, symbols, use_scaling)
 
         return value
 
@@ -392,24 +394,28 @@ class HiddenMarkovModel(_Model):
 
         return value
 
-    def predict(self, algorithm: str, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_viterbi_ext:
+    def predict(self, algorithm: str, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_prediction:
 
         """
         The method calculates the log probability and the most probable states path of an observed sequence of symbols.
 
+        | **Notes:**
+
+        - If the maximum a posteriori algorithm is used and the observed sequence of symbols cannot be decoded, then :py:class:`None` is returned.
+        - If the maximum likelihood algorithm is used and the observed sequence of symbols produces null transition probabilities, then :py:class:`None` is returned.
+
         :param algorithm:
          - **map** for the maximum a posteriori algorithm;
-         - **viterbi** for the Viterbi algorithm.
+         - **mle** or **viterbi** for the maximum likelihood algorithm.
         :param symbols: the observed sequence of symbols.
         :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param output_indices: a boolean indicating whether to output the state indices.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the observed sequence of symbols produced one or more null transition probabilities.
         """
 
         try:
 
-            algorithm = _validate_enumerator(algorithm, ['map', 'viterbi'])
+            algorithm = _validate_enumerator(algorithm, ['map', 'mle', 'viterbi'])
             symbols = _validate_sequence(symbols, self.__symbols)
             initial_status = _np_full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
 
@@ -418,10 +424,7 @@ class HiddenMarkovModel(_Model):
 
         value = _predict(algorithm, self.__p, self.__e, initial_status, symbols)
 
-        if value is None:  # pragma: no cover
-            raise ValueError('The observed sequence of symbols produced one or more null transition probabilities; more data is required.')
-
-        if not output_indices:
+        if value is not None and not output_indices:
             value = (value[0], [*map(self.__states.__getitem__, value[1])])
 
         return value

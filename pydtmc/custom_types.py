@@ -63,13 +63,12 @@ __all__ = [
     'thmm_generation_ext', 'ohmm_generation_ext',
     'thmm_params', 'ohmm_params',
     'thmm_params_res', 'ohmm_params_res',
+    'thmm_prediction', 'ohmm_prediction',
     'thmm_sequence', 'ohmm_sequence',
     'thmm_sequence_ext', 'ohmm_sequence_ext',
     'thmm_step', 'ohmm_step',
     'thmm_symbols', 'ohmm_symbols',
     'thmm_symbols_ext', 'ohmm_symbols_ext',
-    'thmm_viterbi', 'ohmm_viterbi',
-    'thmm_viterbi_ext', 'ohmm_viterbi_ext',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
     'tmc_generation', 'omc_generation',
@@ -317,7 +316,7 @@ odists_flex = _tp_Optional[tdists_flex]
 tfitting_res = _tp_Tuple[oarray, ostr]
 ofitting_res = _tp_Optional[tfitting_res]
 
-thmm_decoding = _tp_Union[_tp_Tuple[float, tarray, tarray, tarray, tarray], _tp_Tuple[float, tarray, tarray, tarray]]
+thmm_decoding = _tp_Tuple[float, tarray, tarray, tarray, oarray]
 ohmm_decoding = _tp_Optional[thmm_decoding]
 
 thmm_dict = _tp_Dict[_tp_Tuple[str, str, str], float]
@@ -338,6 +337,9 @@ ohmm_params = _tp_Optional[thmm_params]
 thmm_params_res = _tp_Tuple[oarray, oarray, ostr]
 ohmm_params_res = _tp_Optional[thmm_params_res]
 
+thmm_prediction = _tp_Tuple[float, _tp_Union[tlist_int, tlist_str]]
+ohmm_prediction = _tp_Optional[thmm_prediction]
+
 thmm_sequence = _tp_Tuple[tlist_int, tlist_int]
 ohmm_sequence = _tp_Optional[thmm_sequence]
 
@@ -352,12 +354,6 @@ ohmm_symbols = _tp_Optional[thmm_symbols]
 
 thmm_symbols_ext = _tp_Union[tlist_int, tlist_str, tlists_int, tlists_str]
 ohmm_symbols_ext = _tp_Optional[thmm_symbols_ext]
-
-thmm_viterbi = _tp_Tuple[float, tlist_int]
-ohmm_viterbi = _tp_Optional[thmm_viterbi]
-
-thmm_viterbi_ext = _tp_Tuple[float, _tp_Union[tlist_int, tlist_str]]
-ohmm_viterbi_ext = _tp_Optional[thmm_viterbi_ext]
 
 tmc_dict = _tp_Dict[_tp_Tuple[str, str], float]
 omc_dict = _tp_Optional[tmc_dict]
