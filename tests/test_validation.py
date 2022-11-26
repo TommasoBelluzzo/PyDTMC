@@ -7,42 +7,16 @@
 
 # Standard
 
-from os.path import (
-    abspath as _osp_abspath,
-    dirname as _osp_dirname,
-    join as _osp_join,
-    sep as _osp_sep
-)
-
-from pathlib import (
-    Path as _pl_Path
-)
-
-from random import (
-    random as _rd_random,
-    uniform as _rd_uniform
-)
+import os.path as _osp
+import pathlib as _pl
+import random as _rd
 
 # Libraries
 
-from networkx import (
-    DiGraph as _nx_DiGraph,
-    MultiDiGraph as _nx_MultiDiGraph
-)
-
-from numpy import (
-    array as _np_array,
-    ndarray as _np_ndarray
-)
-
-from numpy.random import (
-    RandomState as _npr_RandomState
-)
-
-from pytest import (
-    mark as _pt_mark,
-    skip as _pt_skip
-)
+import networkx as _nx
+import numpy as _np
+import numpy.random as _npr
+import pytest as _pt
 
 # Internal
 
@@ -98,7 +72,7 @@ from .utilities import (
 # CONSTANTS #
 #############
 
-_base_directory = _osp_abspath(_osp_dirname(__file__))
+_base_directory = _osp.abspath(_osp.dirname(__file__))
 
 
 #########
@@ -182,7 +156,7 @@ def test_validate_distribution(value, size, is_valid):
 
     if isinstance(value, list):
         for index, v in enumerate(value):
-            value[index] = _np_array(v)
+            value[index] = _np.array(v)
 
     try:
         result = _validate_distribution(value, size)
@@ -197,7 +171,7 @@ def test_validate_distribution(value, size, is_valid):
     assert actual == expected
 
     if result_is_valid:
-        result_check = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, _np_ndarray) for v in result))
+        result_check = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, _np.ndarray) for v in result))
         assert result_check is True
 
 
@@ -237,7 +211,7 @@ def test_validate_emission_matrix(value, size, is_valid):
     assert actual == expected
 
     if result_is_valid:
-        result_check = isinstance(result, _np_ndarray)
+        result_check = isinstance(result, _np.ndarray)
         assert result_check is True
 
 
@@ -262,15 +236,15 @@ def test_validate_enumerator(value, possible_values, is_valid):
 
 
 # noinspection PyBroadException
-@_pt_mark.slow
+@_pt.mark.slow
 def test_validate_file_path(value, accepted_extensions, write_permission, is_valid):
 
     if isinstance(value, str) and value.startswith('file_'):
 
-        value = _osp_join(_base_directory, f'files{_osp_sep}{value}')
+        value = _osp.join(_base_directory, f'files{_osp.sep}{value}')
 
-        if _rd_random() < 0.5:
-            value = _pl_Path(value)
+        if _rd.random() < 0.5:
+            value = _pl.Path(value)
 
     try:
         _validate_file_path(value, accepted_extensions, write_permission)
@@ -314,7 +288,7 @@ def test_validate_graph(multi, graph_nodes, layers, edge_attributes, is_valid):
         graph = graph_nodes
     else:
 
-        graph = _nx_MultiDiGraph() if multi else _nx_DiGraph()
+        graph = _nx.MultiDiGraph() if multi else _nx.DiGraph()
 
         if isinstance(graph_nodes, list) and all(isinstance(x, list) for x in graph_nodes):
 
@@ -330,8 +304,8 @@ def test_validate_graph(multi, graph_nodes, layers, edge_attributes, is_valid):
         types, weights = [], []
 
         for _ in range(size):
-            types.append('P' if _rd_random() < 0.5 else 'E')
-            weights.append(_rd_uniform(1e-10, 1.0))
+            types.append('P' if _rd.random() < 0.5 else 'E')
+            weights.append(_rd.uniform(1e-10, 1.0))
 
         offset = 0
 
@@ -356,7 +330,7 @@ def test_validate_graph(multi, graph_nodes, layers, edge_attributes, is_valid):
     assert actual == expected
 
     if result_is_valid:
-        result_check = isinstance(result, _nx_DiGraph)
+        result_check = isinstance(result, _nx.DiGraph)
         assert result_check is True
 
 
@@ -369,7 +343,7 @@ def test_validate_hidden_markov_model(value, is_valid):
         skip = False
 
     if skip:
-        _pt_skip('Pandas library could not be imported.')
+        _pt.skip('Pandas library could not be imported.')
     else:
 
         try:
@@ -398,7 +372,7 @@ def test_validate_hidden_markov_models(value, is_valid):
         skip = False
 
     if skip:
-        _pt_skip('Pandas library could not be imported.')
+        _pt.skip('Pandas library could not be imported.')
     else:
 
         try:
@@ -434,7 +408,7 @@ def test_validate_hyperparameter(value, size, is_valid):
     assert actual == expected
 
     if result_is_valid:
-        result_check = isinstance(result, _np_ndarray)
+        result_check = isinstance(result, _np.ndarray)
         assert result_check is True
 
 
@@ -552,7 +526,7 @@ def test_validate_markov_chain(value, is_valid):
         skip = False
 
     if skip:
-        _pt_skip('Pandas library could not be imported.')
+        _pt.skip('Pandas library could not be imported.')
     else:
 
         try:
@@ -581,7 +555,7 @@ def test_validate_markov_chains(value, is_valid):
         skip = False
 
     if skip:
-        _pt_skip('Pandas library could not be imported.')
+        _pt.skip('Pandas library could not be imported.')
     else:
 
         try:
@@ -604,7 +578,7 @@ def test_validate_markov_chains(value, is_valid):
 # noinspection PyBroadException
 def test_validate_mask(value, rows, columns, is_valid):
 
-    value = _np_array(value)
+    value = _np.array(value)
 
     try:
         result = _validate_mask(value, rows, columns)
@@ -619,14 +593,14 @@ def test_validate_mask(value, rows, columns, is_valid):
     assert actual == expected
 
     if result_is_valid:
-        result_check = isinstance(result, _np_ndarray)
+        result_check = isinstance(result, _np.ndarray)
         assert result_check is True
 
 
 # noinspection PyBroadException
 def test_validate_matrix(value, rows, columns, is_valid):
 
-    value = _np_array(value)
+    value = _np.array(value)
 
     try:
         result = _validate_matrix(value, rows, columns)
@@ -641,7 +615,7 @@ def test_validate_matrix(value, rows, columns, is_valid):
     assert actual == expected
 
     if result_is_valid:
-        result_check = isinstance(result, _np_ndarray)
+        result_check = isinstance(result, _np.ndarray)
         assert result_check is True
 
 
@@ -654,7 +628,7 @@ def test_validate_model(value, is_valid):
         skip = False
 
     if skip:
-        _pt_skip('Pandas library could not be imported.')
+        _pt.skip('Pandas library could not be imported.')
     else:
 
         try:
@@ -701,7 +675,7 @@ def test_validate_partitions(value, labels, is_valid):
 def test_validate_random_distribution(value, accepted_values, is_valid):
 
     try:
-        result = _validate_random_distribution(value, _npr_RandomState(0), accepted_values)
+        result = _validate_random_distribution(value, _npr.RandomState(0), accepted_values)
         result_is_valid = True
     except Exception:
         result = None
@@ -737,7 +711,7 @@ def test_validate_rewards(value, size, is_valid):
 
     if result_is_valid:
 
-        actual = isinstance(result, _np_ndarray)
+        actual = isinstance(result, _np.ndarray)
         expected = True
 
         assert actual == expected
@@ -800,7 +774,7 @@ def test_validate_status(value, labels, is_valid):
 
     if result_is_valid:
 
-        actual = isinstance(result, _np_ndarray)
+        actual = isinstance(result, _np.ndarray)
         expected = True
 
         assert actual == expected
@@ -898,7 +872,7 @@ def test_validate_transition_matrix(value, size, is_valid):
 
     if result_is_valid:
 
-        actual = isinstance(result, _np_ndarray)
+        actual = isinstance(result, _np.ndarray)
         expected = True
 
         assert actual == expected
@@ -921,7 +895,7 @@ def test_validate_vector(value, vector_type, flex, size, is_valid):
 
     if result_is_valid:
 
-        actual = isinstance(result, _np_ndarray)
+        actual = isinstance(result, _np.ndarray)
         expected = True
 
         assert actual == expected

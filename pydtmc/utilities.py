@@ -291,7 +291,7 @@ def get_full_name(obj: _tany) -> str:
 def get_numpy_random_distributions() -> _tlist_str:
 
     try:
-        from numpydoc.docscrape import NumpyDocString as _NumpyDocString  # noqa
+        from numpydoc.docscrape import NumpyDocString
     except ImportError:  # pragma: no cover
         return []
 
@@ -307,7 +307,7 @@ def get_numpy_random_distributions() -> _tlist_str:
         if not callable(func) or func_name.startswith('_') or func_name.startswith('standard_') or func_name in excluded_funcs:
             continue
 
-        doc = _NumpyDocString(func.__doc__)
+        doc = NumpyDocString(func.__doc__)
 
         if 'Summary' not in doc:
             continue

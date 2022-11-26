@@ -7,13 +7,8 @@
 
 # Libraries
 
-from numpy import (
-    array as _np_array
-)
-
-from numpy.testing import (
-    assert_allclose as _npt_assert_allclose
-)
+import numpy as _np
+import numpy.testing as _npt
 
 # Internal
 
@@ -34,9 +29,9 @@ def test_fit_function(f, possible_states, quadrature_type, quadrature_interval, 
     mc = _MarkovChain.fit_function(possible_states, f, quadrature_type, quadrature_interval)
 
     actual = mc.p
-    expected = _np_array(value)
+    expected = _np.array(value)
 
-    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_fit_sequence(possible_states, sequence, fitting_type, fitting_param, value):
@@ -44,6 +39,6 @@ def test_fit_sequence(possible_states, sequence, fitting_type, fitting_param, va
     mc = _MarkovChain.fit_sequence(possible_states, sequence, fitting_type, fitting_param)
 
     actual = mc.p
-    expected = _np_array(value)
+    expected = _np.array(value)
 
-    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

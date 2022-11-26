@@ -7,36 +7,22 @@
 
 # Standard
 
-from importlib import (
-    import_module as _il_import_module
-)
-
-from json import (
-    load as _json_load
-)
-
-from os.path import (
-    abspath as _osp_abspath,
-    dirname as _osp_dirname,
-    isfile as _osp_isfile,
-    join as _osp_join
-)
+import importlib as _il
+import json as _json
+import os.path as _osp
 
 # Libraries
 
-from numpy import (
-    get_printoptions as _np_get_printoptions,
-    set_printoptions as _np_set_printoptions,
-)
+import numpy as _np
 
 
 #############
 # CONSTANTS #
 #############
 
-_base_directory = _osp_abspath(_osp_dirname(__file__))
+_base_directory = _osp.abspath(_osp.dirname(__file__))
 _benchmark_exclusions = ('benchmark', 'request')
-_numpy_formatting_options = _np_get_printoptions()
+_numpy_formatting_options = _np.get_printoptions()
 _json_replacements = (
     ('NaN', float('nan')),
     ('-Infinity', float('-inf')),
@@ -57,13 +43,13 @@ _fixtures = {}
 
 def _extract_fixtures(fixtures_file):
 
-    fixtures_path = _osp_join(_base_directory, f'fixtures/fixtures_{fixtures_file}.json')
+    fixtures_path = _osp.join(_base_directory, f'fixtures/fixtures_{fixtures_file}.json')
 
-    if not _osp_isfile(fixtures_path):
+    if not _osp.isfile(fixtures_path):
         return None
 
     with open(fixtures_path, 'r') as file:
-        fixtures = _json_load(file)
+        fixtures = _json.load(file)
 
     fixtures = _sanitize_fixtures_recursive(fixtures)
 
@@ -77,7 +63,7 @@ def _parse_fixtures_benchmark(fixtures, func):
 
     try:
         module_name = func.split('_')[2]
-        module = _il_import_module(f'pydtmc.{module_name}')
+        module = _il.import_module(f'pydtmc.{module_name}')
     except Exception:
         return values, ids
 
@@ -213,7 +199,7 @@ def pytest_configure(config):
 
     config.addinivalue_line('markers', 'slow:  mark tests as slow (exclude them with \'-m "not slow"\').')
 
-    _np_set_printoptions(floatmode='fixed', precision=8)
+    _np.set_printoptions(floatmode='fixed', precision=8)
 
 
 def pytest_generate_tests(metafunc):
@@ -255,7 +241,7 @@ def pytest_generate_tests(metafunc):
 def pytest_unconfigure():
 
     if 'floatmode' in _numpy_formatting_options:
-        _np_set_printoptions(floatmode=_numpy_formatting_options['floatmode'])
+        _np.set_printoptions(floatmode=_numpy_formatting_options['floatmode'])
 
     if 'precision' in _numpy_formatting_options:
-        _np_set_printoptions(precision=_numpy_formatting_options['precision'])
+        _np.set_printoptions(precision=_numpy_formatting_options['precision'])

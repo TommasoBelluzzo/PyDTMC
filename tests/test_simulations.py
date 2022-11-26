@@ -7,16 +7,8 @@
 
 # Libraries
 
-from numpy import (
-    array as _np_array,
-    eye as _np_eye,
-    isclose as _np_isclose,
-    vstack as _np_vstack
-)
-
-from numpy.testing import (
-    assert_allclose as _npt_assert_allclose
-)
+import numpy as _np
+import numpy.testing as _npt
 
 # Internal
 
@@ -56,21 +48,21 @@ def test_redistribute(p, steps, initial_status, output_last, value):
     r = mc.redistribute(steps, initial_status, output_last)
     r = r if isinstance(r, list) else [r]
 
-    actual = _np_vstack(r)
-    expected = _np_array(value)
+    actual = _np.vstack(r)
+    expected = _np.array(value)
 
-    _npt_assert_allclose(actual, expected)
+    _npt.assert_allclose(actual, expected)
 
     if initial_status is not None:
 
         actual = r[0]
 
         if isinstance(initial_status, int):
-            expected = _np_eye(mc.size)[initial_status]
+            expected = _np.eye(mc.size)[initial_status]
         else:
             expected = initial_status
 
-        _npt_assert_allclose(actual, expected)
+        _npt.assert_allclose(actual, expected)
 
 
 def test_sequence_probability(p, sequence, value):
@@ -80,7 +72,7 @@ def test_sequence_probability(p, sequence, value):
     actual = mc.sequence_probability(sequence)
     expected = value
 
-    assert _np_isclose(actual, expected)
+    assert _np.isclose(actual, expected)
 
 
 def test_simulate(p, seed, steps, initial_state, final_state, output_indices, value):

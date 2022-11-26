@@ -7,16 +7,8 @@
 
 # Libraries
 
-from numpy import (
-    array as _np_array,
-    count_nonzero as _np_count_nonzero,
-    isclose as _np_isclose,
-    isnan as _np_isnan
-)
-
-from numpy.testing import (
-    assert_allclose as _npt_assert_allclose
-)
+import numpy as _np
+import numpy.testing as _npt
 
 # Internal
 
@@ -32,7 +24,7 @@ from pydtmc import (
 def test_decode(p, e, symbols, initial_status, use_scaling, value):
 
     hmm = _HiddenMarkovModel(p, e)
-    initial_status = _np_array(initial_status) if isinstance(initial_status, list) else initial_status
+    initial_status = _np.array(initial_status) if isinstance(initial_status, list) else initial_status
 
     decoding = hmm.decode(symbols, initial_status, use_scaling)
 
@@ -51,34 +43,26 @@ def test_decode(p, e, symbols, initial_status, use_scaling, value):
         assert actual == expected
 
         actual = decoding[1]
-        expected = _np_array(value[1])
+        expected = _np.array(value[1])
 
-        print(actual)
-
-        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         actual = decoding[2]
-        expected = _np_array(value[2])
+        expected = _np.array(value[2])
 
-        print(actual)
-
-        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         actual = decoding[3]
-        expected = _np_array(value[3])
+        expected = _np.array(value[3])
 
-        print(actual)
-
-        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         if use_scaling:
 
             actual = decoding[4]
-            expected = _np_array(value[4])
+            expected = _np.array(value[4])
 
-            print(actual)
-
-            _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+            _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 # noinspection DuplicatedCode
@@ -87,14 +71,14 @@ def test_estimate(possible_states, possible_symbols, sequence_states, sequence_s
     hmm = _HiddenMarkovModel.estimate(possible_states, possible_symbols, sequence_states, sequence_symbols)
 
     actual = hmm.p
-    expected = _np_array(value[0])
+    expected = _np.array(value[0])
 
-    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     actual = hmm.e
-    expected = _np_array(value[1])
+    expected = _np.array(value[1])
 
-    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_next(p, e, seed, initial_state, target, output_index, value):
@@ -138,7 +122,7 @@ def test_probabilities(p, e):
             actual = hmm.transition_probability(state1, state2)
             expected = transition_matrix[index2, index1]
 
-            assert _np_isclose(actual, expected)
+            assert _np.isclose(actual, expected)
 
     emission_matrix = hmm.e
     symbols = hmm.symbols
@@ -149,7 +133,7 @@ def test_probabilities(p, e):
             actual = hmm.emission_probability(symbol, state)
             expected = emission_matrix[index1, index2]
 
-            assert _np_isclose(actual, expected)
+            assert _np.isclose(actual, expected)
 
 
 def test_properties(p, e, value):
@@ -173,46 +157,46 @@ def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
     hmm = _HiddenMarkovModel.random(n, k, None, p_zeros, p_mask, None, e_zeros, e_mask, seed)
 
     actual = hmm.p
-    expected = _np_array(value[0])
+    expected = _np.array(value[0])
 
-    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     if p_zeros > 0 and p_mask is None:
 
-        actual = n**2 - _np_count_nonzero(hmm.p)
+        actual = n**2 - _np.count_nonzero(hmm.p)
         expected = p_zeros
 
         assert actual == expected
 
     if p_mask is not None:
 
-        indices = ~_np_isnan(_np_array(p_mask))
+        indices = ~_np.isnan(_np.array(p_mask))
 
         actual = hmm.p[indices]
-        expected = _np_array(value[0])[indices]
+        expected = _np.array(value[0])[indices]
 
-        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     actual = hmm.e
-    expected = _np_array(value[1])
+    expected = _np.array(value[1])
 
-    _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     if e_zeros > 0 and e_mask is None:
 
-        actual = (n * k) - _np_count_nonzero(hmm.e)
+        actual = (n * k) - _np.count_nonzero(hmm.e)
         expected = e_zeros
 
         assert actual == expected
 
     if e_mask is not None:
 
-        indices = ~_np_isnan(_np_array(e_mask))
+        indices = ~_np.isnan(_np.array(e_mask))
 
         actual = hmm.e[indices]
-        expected = _np_array(value[1])[indices]
+        expected = _np.array(value[1])[indices]
 
-        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 # noinspection DuplicatedCode, PyBroadException
@@ -235,14 +219,14 @@ def test_restrict(p, e, states, symbols, value):
     else:
 
         actual = hmm_restricted.p
-        expected = _np_array(value[0])
+        expected = _np.array(value[0])
 
-        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         actual = hmm_restricted.e
-        expected = _np_array(value[1])
+        expected = _np.array(value[1])
 
-        _npt_assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_simulate(p, e, seed, steps, initial_state, final_state, final_symbol, output_indices, value):

@@ -963,7 +963,7 @@ def plot_sequence(mc: _tmc, sequence: _tsequence_flex, initial_state: _ostate = 
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
-    :raises ValueError: if the "sequence" parameter represents a sequence of states and the "initial_state" parameter does not match its first element.
+    :raises ValueError: if the "sequence" parameter represents a sequence of states and the "initial_state" parameter is defined and does not match its first element.
     """
 
     try:

@@ -7,9 +7,7 @@
 
 # Libraries
 
-from pytest import (
-    mark as _pt_mark
-)
+import pytest as _pt
 
 
 #############
@@ -28,7 +26,7 @@ _benchmark_options = {
 ##############
 
 
-@_pt_mark.benchmark
+@_pt.mark.benchmark
 def test_benchmark_generators(benchmark, func_name, func_obj, func_args):
 
     benchmark.group = func_name
@@ -37,7 +35,7 @@ def test_benchmark_generators(benchmark, func_name, func_obj, func_args):
     assert True
 
 
-@_pt_mark.benchmark
+@_pt.mark.benchmark
 def test_benchmark_measures(benchmark, func_name, func_obj, func_args):
 
     benchmark.group = func_name

@@ -14,13 +14,8 @@ from os.path import (
 
 # Libraries
 
-from numpy import (
-    ndarray as _np_ndarray
-)
-
-from pytest import (
-    skip as _pt_skip
-)
+import numpy as _np
+import pytest as _pt
 
 # Internal
 
@@ -53,7 +48,7 @@ def test_extract_numeric(value, evaluate, is_valid):
         skip = False
 
     if skip:
-        _pt_skip('Pandas library could not be imported.')
+        _pt.skip('Pandas library could not be imported.')
     else:
 
         try:
@@ -69,5 +64,5 @@ def test_extract_numeric(value, evaluate, is_valid):
         assert actual == expected
 
         if result_is_valid:
-            result_check = isinstance(result, _np_ndarray)
+            result_check = isinstance(result, _np.ndarray)
             assert result_check is True

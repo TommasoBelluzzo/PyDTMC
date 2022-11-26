@@ -7,15 +7,8 @@
 
 # Libraries
 
-from numpy import (
-    array_equal as _np_array_equal,
-    eye as _np_eye,
-    transpose as _np_transpose
-)
-
-from numpy.testing import (
-    assert_array_equal as _npt_assert_array_equal
-)
+import numpy as _np
+import numpy.testing as _npt
 
 # Internal
 
@@ -39,9 +32,9 @@ def test_classes_communicating(p, communicating_classes):
 
     if len(communicating_classes) > 1:
 
-        _npt_assert_array_equal(mc.communication_matrix, _np_transpose(mc.communication_matrix))
+        _npt.assert_array_equal(mc.communication_matrix, _np.transpose(mc.communication_matrix))
 
-    if _np_array_equal(mc.p, _np_eye(mc.size)):
+    if _np.array_equal(mc.p, _np.eye(mc.size)):
 
         actual = [state for states in mc.communicating_classes for state in states]
         expected = mc.states
@@ -90,7 +83,7 @@ def test_classes_cyclic(p, cyclic_classes):
 
     assert actual == expected
 
-    if _np_array_equal(mc.p, _np_eye(mc.size)):
+    if _np.array_equal(mc.p, _np.eye(mc.size)):
 
         actual = mc.recurrent_states
         expected = mc.states

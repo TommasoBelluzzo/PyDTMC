@@ -201,7 +201,7 @@ ohmm = _tp_Optional[thmm]
 tmc = _tp_TypeVar('MarkovChain')
 omc = _tp_Optional[tmc]
 
-tmodel = _tp_Union[tmc, thmm]
+tmodel = _tp_Union[thmm, tmc]
 omodel = _tp_Optional[tmodel]
 
 # Pairs

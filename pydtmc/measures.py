@@ -164,7 +164,7 @@ def expected_transitions(p: _tarray, rdl: _trdl, steps: int, initial_distributio
 
     else:
 
-        r, d, l = rdl  # noqa
+        r, d, l = rdl  # noqa: E741
 
         q = _np_array(_np_diag(d))
         q_indices = (q == 1.0)
@@ -530,7 +530,7 @@ def time_correlations(mc: _tmc, rdl: _trdl, sequence1: _tsequence, sequence2: _o
 
     if time_points[-1] > size:
 
-        r, d, l = rdl  # noqa
+        r, d, l = rdl  # noqa: E741
 
         for i in range(time_points_length):
 
@@ -611,7 +611,7 @@ def time_relaxations(mc: _tmc, rdl: _trdl, sequence: _tsequence, initial_distrib
 
     if time_points[-1] > size:
 
-        r, d, l = rdl  # noqa
+        r, d, l = rdl  # noqa: E741
 
         for i in range(time_points_length):
 

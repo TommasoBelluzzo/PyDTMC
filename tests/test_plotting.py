@@ -7,24 +7,12 @@
 
 # Standard
 
-from random import (
-    choice as _rd_choice,
-    getstate as _rd_getstate,
-    randint as _rd_randint,
-    random as _rd_random,
-    seed as _rd_seed,
-    setstate as _rd_setstate
-)
+import random as _rd
 
 # Libraries
 
-from matplotlib.pyplot import (
-    close as _mplp_close
-)
-
-from pytest import (
-    mark as _pt_mark
-)
+import matplotlib.pyplot as _mplp
+import pytest as _pt
 
 # Internal
 
@@ -45,16 +33,16 @@ from pydtmc import (
 
 def _generate_configs(seed, runs, maximum_size, params_generator=None):
 
-    random_state = _rd_getstate()
-    _rd_seed(seed)
+    random_state = _rd.getstate()
+    _rd.seed(seed)
 
     params_generator_defined = params_generator is not None
     configs = []
 
     for _ in range(runs):
 
-        size = _rd_randint(2, maximum_size)
-        zeros = _rd_randint(0, size)
+        size = _rd.randint(2, maximum_size)
+        zeros = _rd.randint(0, size)
         config = [size, zeros]
 
         if params_generator_defined:
@@ -63,7 +51,7 @@ def _generate_configs(seed, runs, maximum_size, params_generator=None):
 
         configs.append(tuple(config))
 
-    _rd_setstate(random_state)
+    _rd.setstate(random_state)
 
     return configs
 
@@ -73,22 +61,22 @@ def _generate_configs(seed, runs, maximum_size, params_generator=None):
 #########
 
 # noinspection PyBroadException
-@_pt_mark.slow
+@_pt.mark.slow
 def test_plot_comparison(seed, runs, maximum_size, maximum_elements):
 
     for _ in range(runs):
 
-        mcs_count = _rd_randint(2, maximum_elements)
+        mcs_count = _rd.randint(2, maximum_elements)
         mcs = []
 
         for _ in range(mcs_count):
-            size = _rd_randint(2, maximum_size)
+            size = _rd.randint(2, maximum_size)
             mcs.append(_MarkovChain.random(size, seed=seed))
 
         try:
 
             figure, _ = _plot_comparison(mcs)
-            _mplp_close(figure)
+            _mplp.close(figure)
 
             exception = False
 
@@ -99,7 +87,7 @@ def test_plot_comparison(seed, runs, maximum_size, maximum_elements):
 
 
 # noinspection PyBroadException
-@_pt_mark.slow
+@_pt.mark.slow
 def test_plot_eigenvalues(seed, runs, maximum_size):
 
     configs = _generate_configs(seed, runs, maximum_size)
@@ -112,7 +100,7 @@ def test_plot_eigenvalues(seed, runs, maximum_size):
         try:
 
             figure, _ = _plot_eigenvalues(mc)
-            _mplp_close(figure)
+            _mplp.close(figure)
 
             exception = False
 
@@ -123,16 +111,16 @@ def test_plot_eigenvalues(seed, runs, maximum_size):
 
 
 # noinspection PyArgumentEqualDefault, PyBroadException
-@_pt_mark.slow
+@_pt.mark.slow
 def test_plot_graph(seed, runs, maximum_size):
 
     def _params_generator():
 
-        p_obj_mc = _rd_random() < 0.5
-        p_size_multiplier = 1 if p_obj_mc else _rd_randint(1, 3)
-        p_nodes_color = _rd_random() < 0.5
-        p_nodes_shape = _rd_random() < 0.5
-        p_edges_label = _rd_random() < 0.5
+        p_obj_mc = _rd.random() < 0.5
+        p_size_multiplier = 1 if p_obj_mc else _rd.randint(1, 3)
+        p_nodes_color = _rd.random() < 0.5
+        p_nodes_shape = _rd.random() < 0.5
+        p_edges_label = _rd.random() < 0.5
 
         yield from [p_obj_mc, p_size_multiplier, p_nodes_color, p_nodes_shape, p_edges_label]
 
@@ -152,10 +140,10 @@ def test_plot_graph(seed, runs, maximum_size):
         try:
 
             figure, _ = _plot_graph(obj, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label, force_standard=True)
-            _mplp_close(figure)
+            _mplp.close(figure)
 
             figure, _ = _plot_graph(obj, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label, force_standard=False)
-            _mplp_close(figure)
+            _mplp.close(figure)
 
             exception = False
 
@@ -166,15 +154,15 @@ def test_plot_graph(seed, runs, maximum_size):
 
 
 # noinspection PyBroadException
-@_pt_mark.slow
+@_pt.mark.slow
 def test_plot_redistributions(seed, runs, maximum_size, maximum_distributions):
 
     def _params_generator():
 
-        p_steps = _rd_randint(1, maximum_distributions)
-        p_distributions_check = _rd_random() < 0.5
-        p_initial_status_check = _rd_random() < 0.5
-        p_plot_type = _rd_choice(('heatmap', 'projection'))
+        p_steps = _rd.randint(1, maximum_distributions)
+        p_distributions_check = _rd.random() < 0.5
+        p_initial_status_check = _rd.random() < 0.5
+        p_plot_type = _rd.choice(('heatmap', 'projection'))
 
         yield from [p_steps, p_distributions_check, p_initial_status_check, p_plot_type]
 
@@ -205,7 +193,7 @@ def test_plot_redistributions(seed, runs, maximum_size, maximum_distributions):
         try:
 
             figure, _ = _plot_redistributions(mc, distributions, initial_status, plot_type)
-            _mplp_close(figure)
+            _mplp.close(figure)
 
             exception = False
 
@@ -216,15 +204,15 @@ def test_plot_redistributions(seed, runs, maximum_size, maximum_distributions):
 
 
 # noinspection PyBroadException
-@_pt_mark.slow
+@_pt.mark.slow
 def test_plot_sequence(seed, runs, maximum_size, maximum_simulations):
 
     def _params_generator():
 
-        p_steps = _rd_randint(2, maximum_simulations)
-        p_sequence_check = _rd_random() < 0.5
-        p_initial_state_check = _rd_random() < 0.5
-        p_plot_type = _rd_choice(('histogram', 'matrix', 'transitions'))
+        p_steps = _rd.randint(2, maximum_simulations)
+        p_sequence_check = _rd.random() < 0.5
+        p_initial_state_check = _rd.random() < 0.5
+        p_plot_type = _rd.choice(('histogram', 'matrix', 'transitions'))
 
         yield from [p_steps, p_sequence_check, p_initial_state_check, p_plot_type]
 
@@ -250,7 +238,7 @@ def test_plot_sequence(seed, runs, maximum_size, maximum_simulations):
         try:
 
             figure, _ = _plot_sequence(mc, sequence, initial_state, plot_type)
-            _mplp_close(figure)
+            _mplp.close(figure)
 
             exception = False
 

@@ -7,9 +7,7 @@
 
 # Standard
 
-from math import (
-    isnan as _math_isnan
-)
+import math as _mt
 
 # Internal
 
@@ -33,14 +31,14 @@ from pydtmc.markov_chain import (
 def _extract_data_chi2(result, value):
 
     actual_rejection, actual_p_value, stats = result
-    actual_p_value = 'NaN' if _math_isnan(actual_p_value) else round(actual_p_value, 8)
-    actual_chi2 = 'NaN' if _math_isnan(stats['chi2']) else round(stats['chi2'], 8)
-    actual_dof = 'NaN' if _math_isnan(stats['dof']) else stats['dof']
+    actual_p_value = 'NaN' if _mt.isnan(actual_p_value) else round(actual_p_value, 8)
+    actual_chi2 = 'NaN' if _mt.isnan(stats['chi2']) else round(stats['chi2'], 8)
+    actual_dof = 'NaN' if _mt.isnan(stats['dof']) else stats['dof']
 
     expected_rejection, expected_p_value, expected_chi2, expected_dof = tuple(value)
-    expected_p_value = 'NaN' if _math_isnan(expected_p_value) else expected_p_value
-    expected_chi2 = 'NaN' if _math_isnan(expected_chi2) else expected_chi2
-    expected_dof = 'NaN' if _math_isnan(expected_dof) else expected_dof
+    expected_p_value = 'NaN' if _mt.isnan(expected_p_value) else expected_p_value
+    expected_chi2 = 'NaN' if _mt.isnan(expected_chi2) else expected_chi2
+    expected_dof = 'NaN' if _mt.isnan(expected_dof) else expected_dof
 
     actual = (actual_rejection, actual_p_value, actual_chi2, actual_dof)
     expected = (expected_rejection, expected_p_value, expected_chi2, expected_dof)

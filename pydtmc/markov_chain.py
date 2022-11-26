@@ -368,7 +368,7 @@ class MarkovChain(_Model):
     @_cached_property
     def __rdl_decomposition(self) -> _trdl:
 
-        r, d, l = _rdl_decomposition(self.__p)  # noqa
+        r, d, l = _rdl_decomposition(self.__p)  # noqa: E741
 
         return r, d, l
 

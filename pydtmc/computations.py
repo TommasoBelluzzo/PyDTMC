@@ -375,7 +375,7 @@ def rdl_decomposition(p: _tarray) -> _trdl:
 
     r = _np_copy(vectors)
     d = _np_diag(evalues)
-    l = _npl_solve(_np_transpose(r), _np_eye(p.shape[0], dtype=float))  # noqa
+    l = _npl_solve(_np_transpose(r), _np_eye(p.shape[0]))  # noqa: E741
 
     k = _np_sum(l[:, 0])
 
@@ -385,7 +385,7 @@ def rdl_decomposition(p: _tarray) -> _trdl:
 
     r = _np_real(r)
     d = _np_real(d)
-    l = _np_transpose(_np_real(l))  # noqa
+    l = _np_transpose(_np_real(l))  # noqa: E741
 
     return r, d, l
 
