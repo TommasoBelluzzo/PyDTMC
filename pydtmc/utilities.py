@@ -34,53 +34,22 @@ __all__ = [
 
 # Standard
 
-from inspect import (
-    getmembers as _ins_getmembers,
-    isfunction as _ins_isfunction
-)
-
-from pathlib import (
-    Path as _pl_Path
-)
+import inspect as _ins
+import pathlib as _pl
 
 # Libraries
 
-from networkx import (
-    DiGraph as _nx_DiGraph,
-    MultiDiGraph as _nx_MultiDiGraph
-)
-
-from numpy import (
-    array as _np_array,
-    copy as _np_copy,
-    floating as _np_floating,
-    integer as _np_integer,
-    issubdtype as _np_issubdtype,
-    ndarray as _np_ndarray,
-    number as _np_number
-)
-
-from numpy.random import (
-    RandomState as _npr_RandomState
-)
-
-# noinspection PyProtectedMember
-from numpy.random.mtrand import (
-    _rand as _nprm_rand
-)
-
-from scipy.sparse import (
-    spmatrix as _spsp_spmatrix
-)
+import networkx as _nx
+import numpy as _np
+import numpy.random as _npr
+import numpy.random.mtrand as _nprm
+import scipy.sparse as _spsp
 
 try:
-    from pandas import (
-        DataFrame as _pd_DataFrame,
-        Series as _pd_Series
-    )
+    import pandas as _pd
     _pandas_found = True
 except ImportError:  # pragma: no cover
-    _pd_DataFrame, _pd_Series = None, None
+    _pd = None
     _pandas_found = False
 
 # Internal
@@ -113,7 +82,7 @@ def build_hmm_graph(p, e, states, symbols):
 
     n, k = len(states), len(symbols)
 
-    graph = _nx_DiGraph()
+    graph = _nx.DiGraph()
     graph.add_nodes_from(states, layer=1)
     graph.add_nodes_from(symbols, layer=0)
 
@@ -142,7 +111,7 @@ def build_mc_graph(p: _tarray, states: _tlist_str) -> _tgraph:
 
     n = len(states)
 
-    graph = _nx_DiGraph()
+    graph = _nx.DiGraph()
     graph.add_nodes_from(states)
 
     for i in range(n):
@@ -191,12 +160,13 @@ def create_labels_from_data(data: _tany, prefix: str = '') -> _olist_str:
     return labels
 
 
+# noinspection PyProtectedMember
 def create_rng(seed: _oint) -> _trand:
 
     if seed is None:
-        rng = _nprm_rand
+        rng = _nprm._rand  # pylint: disable=no-member
     elif is_integer(seed):
-        rng = _npr_RandomState(int(seed))
+        rng = _npr.RandomState(int(seed))  # pylint: disable=no-member
     else:
         raise TypeError('The specified seed is not a valid RNG initializer.')
 
@@ -219,17 +189,17 @@ def create_validation_error(ex: _texception, trace: _tany) -> _ValidationError:
 def extract_numeric(data: _tany, dtype: _odtype = None) -> _tarray:
 
     if is_list(data):
-        output = _np_array(data)
+        output = _np.array(data)
     elif is_array(data):
-        output = _np_copy(data)
+        output = _np.copy(data)
     elif is_spmatrix(data):
-        output = _np_array(data.todense())
+        output = _np.array(data.todense())
     elif is_pandas(data):
         output = data.to_numpy(copy=True)
     else:
         output = None
 
-    if output is None or not _np_issubdtype(output.dtype, _np_number):
+    if output is None or not _np.issubdtype(output.dtype, _np.number):
         raise TypeError('The data type is not supported.')
 
     if dtype is not None:
@@ -248,7 +218,7 @@ def get_caller(stack: _tstack) -> str:
 def get_file_extension(file_path: _tpath) -> str:
 
     if isinstance(file_path, str):
-        file_path = _pl_Path(file_path)
+        file_path = _pl.Path(file_path)
 
     file_extension = ''.join(file_path.suffixes).lower()
 
@@ -260,7 +230,7 @@ def get_instance_generators(cls: _tany) -> _tlist_str:
     instance_generators = []
 
     if cls is not None:
-        for member_name, member in _ins_getmembers(cls, predicate=_ins_isfunction):
+        for member_name, member in _ins.getmembers(cls, predicate=_ins.isfunction):
             if member_name[0] != '_' and hasattr(member, '_instance_generator'):
                 instance_generators.append(member_name)
 
@@ -300,9 +270,9 @@ def get_numpy_random_distributions() -> _tlist_str:
 
     random_distributions = []
 
-    for func_name in dir(_npr_RandomState):
+    for func_name in dir(_npr.RandomState):  # pylint: disable=no-member
 
-        func = getattr(_npr_RandomState, func_name)
+        func = getattr(_npr.RandomState, func_name)  # pylint: disable=no-member
 
         if not callable(func) or func_name.startswith('_') or func_name.startswith('standard_') or func_name in excluded_funcs:
             continue
@@ -329,7 +299,7 @@ def get_numpy_random_distributions() -> _tlist_str:
 
 def is_array(value: _tany) -> bool:
 
-    return isinstance(value, _np_ndarray)
+    return isinstance(value, _np.ndarray)
 
 
 def is_bool(value: _tany) -> bool:
@@ -344,15 +314,15 @@ def is_dictionary(value: _tany) -> bool:
 
 def is_float(value: _tany) -> bool:
 
-    return isinstance(value, (float, _np_floating))
+    return isinstance(value, (float, _np.floating))
 
 
 def is_graph(value: _tany) -> _tpair_bool:
 
-    if isinstance(value, _nx_MultiDiGraph):
+    if isinstance(value, _nx.MultiDiGraph):
         return True, True
 
-    if isinstance(value, _nx_DiGraph):
+    if isinstance(value, _nx.DiGraph):
         return True, False
 
     return False, False
@@ -360,7 +330,7 @@ def is_graph(value: _tany) -> _tpair_bool:
 
 def is_integer(value: _tany) -> bool:
 
-    return isinstance(value, (int, _np_integer)) and not isinstance(value, bool)
+    return isinstance(value, (int, _np.integer)) and not isinstance(value, bool)
 
 
 def is_list(value: _tany) -> bool:
@@ -375,12 +345,12 @@ def is_number(value: _tany) -> bool:
 
 def is_pandas(value: _tany) -> bool:
 
-    return _pandas_found and isinstance(value, (_pd_DataFrame, _pd_Series))
+    return _pandas_found and isinstance(value, (_pd.DataFrame, _pd.Series))
 
 
 def is_spmatrix(value: _tany) -> bool:
 
-    return isinstance(value, _spsp_spmatrix)
+    return isinstance(value, _spsp.spmatrix)
 
 
 def is_string(value: _tany) -> bool:

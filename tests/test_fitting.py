@@ -26,7 +26,7 @@ def test_fit_function(f, possible_states, quadrature_type, quadrature_interval, 
     f = eval('lambda x_index, x_value, y_index, y_value: ' + f)
     quadrature_interval = None if quadrature_interval is None else tuple(quadrature_interval)
 
-    mc = _MarkovChain.fit_function(possible_states, f, quadrature_type, quadrature_interval)
+    mc = _MarkovChain.fit_function(quadrature_type, possible_states, f, quadrature_interval)
 
     actual = mc.p
     expected = _np.array(value)
@@ -36,7 +36,7 @@ def test_fit_function(f, possible_states, quadrature_type, quadrature_interval, 
 
 def test_fit_sequence(possible_states, sequence, fitting_type, fitting_param, value):
 
-    mc = _MarkovChain.fit_sequence(possible_states, sequence, fitting_type, fitting_param)
+    mc = _MarkovChain.fit_sequence(fitting_type, possible_states, sequence, fitting_param)
 
     actual = mc.p
     expected = _np.array(value)

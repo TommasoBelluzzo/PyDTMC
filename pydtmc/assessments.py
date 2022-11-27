@@ -15,42 +15,14 @@ __all__ = [
 
 # Standard
 
-from copy import (
-    deepcopy as _cp_deepcopy
-)
-
-from inspect import (
-    trace as _ins_trace
-)
-
-from math import (
-    ceil as _math_ceil,
-    isnan as _math_isnan
-)
+import copy as _cp
+import inspect as _ins
+import math as _mt
 
 # Libraries
 
-from numpy import (
-    all as _np_all,
-    arange as _np_arange,
-    argwhere as _np_argwhere,
-    array as _np_array,
-    concatenate as _np_concatenate,
-    count_nonzero as _np_count_nonzero,
-    fliplr as _np_fliplr,
-    log as _np_log,
-    ravel as _np_ravel,
-    setdiff1d as _np_setdiff1d,
-    sum as _np_sum,
-    transpose as _np_transpose,
-    unique as _np_unique,
-    zeros as _np_zeros
-)
-
-from scipy.stats import (
-    chi2 as _sps_chi2,
-    chisquare as _sps_chisquare
-)
+import numpy as _np
+import scipy.stats as _sps
 
 # Internal
 
@@ -67,7 +39,7 @@ from .custom_types import (
 )
 
 from .fitting import (
-    fit_sequence as _fit_sequence
+    mc_fit_sequence as _fit_sequence
 )
 
 from .utilities import (
@@ -107,16 +79,16 @@ def assess_first_order(possible_states: _tlist_str, sequence: _tsequence, signif
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins.trace()) from None
 
-    sequence_indices, sequence_labels = _cp_deepcopy(sequence), [possible_states[state] for state in sequence]
+    sequence_indices, sequence_labels = _cp.deepcopy(sequence), [possible_states[state] for state in sequence]
     k, n = len(sequence) - 2, len(possible_states)
 
     chi2 = 0.0
 
     for state in possible_states:
 
-        ct = _np_zeros((n, n), dtype=float)
+        ct = _np.zeros((n, n), dtype=float)
 
         for i in range(k):
             if state == sequence_labels[i + 1]:
@@ -129,13 +101,13 @@ def assess_first_order(possible_states: _tlist_str, sequence: _tsequence, signif
         except Exception:
             ct_chi2 = float('nan')
 
-        if _math_isnan(ct_chi2):
+        if _mt.isnan(ct_chi2):
             return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
 
         chi2 += ct_chi2
 
     dof = n * (n - 1)**2
-    p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
+    p_value = 1.0 - _sps.chi2.cdf(chi2, dof)
     rejection = p_value < significance
 
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
@@ -160,7 +132,7 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, sign
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins.trace()) from None
 
     k, n = len(sequences), len(possible_states)
 
@@ -181,11 +153,11 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, sign
         return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
 
     fs = []
-    f_pooled = _np_zeros((n, n), dtype=float)
+    f_pooled = _np.zeros((n, n), dtype=float)
 
     for sequence in sequences:
 
-        f = _np_zeros((n, n), dtype=float)
+        f = _np.zeros((n, n), dtype=float)
 
         for i, j in zip(sequence[:-1], sequence[1:]):
             f[i, j] += 1.0
@@ -193,13 +165,13 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, sign
         fs.append(f)
         f_pooled += f
 
-    f_pooled_transitions = _np_sum(f_pooled)
+    f_pooled_transitions = _np.sum(f_pooled)
 
     chi2 = 0.0
 
     for f in fs:
 
-        f_transitions = _np_sum(f)
+        f_transitions = _np.sum(f)
 
         for i in range(n):
             for j in range(n):
@@ -208,11 +180,11 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, sign
                 f_pooled_ij = f_pooled[i, j]
 
                 if f_ij > 0.0 and f_pooled_ij > 0.0:
-                    chi2 += f_ij * _np_log((f_pooled_transitions * f_ij) / (f_transitions * f_pooled_ij))
+                    chi2 += f_ij * _np.log((f_pooled_transitions * f_ij) / (f_transitions * f_pooled_ij))
 
     chi2 *= 2.0
     dof = (n * (n - 1)) * (k - 1)
-    p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
+    p_value = 1.0 - _sps.chi2.cdf(chi2, dof)
     rejection = p_value < significance
 
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
@@ -238,11 +210,11 @@ def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, si
 
         p_jk = fnp_p[b, c]
 
-        m1 = _np_argwhere(fnp_n2[:, 0] == a) + 1
-        m2 = _np_argwhere(fnp_n2[:, 1] == b) + 1
-        m = _np_ravel(_np_concatenate([m1, m2]))
+        m1 = _np.argwhere(fnp_n2[:, 0] == a) + 1
+        m2 = _np.argwhere(fnp_n2[:, 1] == b) + 1
+        m = _np.ravel(_np.concatenate([m1, m2]))
 
-        k = _np_setdiff1d(_np_arange(m.size), _np_unique(m, return_index=True)[1]).item()
+        k = _np.setdiff1d(_np.arange(m.size), _np.unique(m, return_index=True)[1]).item()
         m_k = m[k]
 
         result = fnp_c[m_k - 1] * p_jk
@@ -251,8 +223,8 @@ def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, si
 
     def _sorted_counts(sc_set):
 
-        sf = _np_fliplr(sc_set)
-        sfu = _np_unique(sf, axis=0)
+        sf = _np.fliplr(sc_set)
+        sfu = _np.unique(sf, axis=0)
 
         a = [".".join(item) for item in (sf + 1).astype(str)]
         b = sorted([".".join(item) for item in (sfu + 1).astype(str)])
@@ -260,10 +232,10 @@ def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, si
         indices_length = len(indices)
 
         sts = sc_set[indices, :]
-        so = _np_zeros(indices_length, dtype=int)
+        so = _np.zeros(indices_length, dtype=int)
 
         for k in range(indices_length):
-            so[k] = _np_sum(_np_all(sc_set == sts[k, :], axis=1))
+            so[k] = _np.sum(_np.all(sc_set == sts[k, :], axis=1))
 
         return sts, so
 
@@ -274,11 +246,11 @@ def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, si
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins.trace()) from None
 
     p, _ = _fit_sequence('mle', False, possible_states, sequence)
 
-    sequence_indices, sequence_labels = _cp_deepcopy(sequence), [possible_states[state] for state in sequence]
+    sequence_indices, sequence_labels = _cp.deepcopy(sequence), [possible_states[state] for state in sequence]
     sequence_length = len(sequence)
 
     sample_length = sequence_length - (sequence_length % 3)
@@ -287,10 +259,10 @@ def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, si
     c2 = sample[1:(sample_length - 1)]
     c3 = sample[2:sample_length]
 
-    set3 = _np_transpose(_np_array([c1, c2, c3]))
+    set3 = _np.transpose(_np.array([c1, c2, c3]))
     sts3, so3 = _sorted_counts(set3)
 
-    set2 = _np_transpose(_np_array([c1, c2]))
+    set2 = _np.transpose(_np.array([c1, c2]))
     sts2, s02 = _sorted_counts(set2)
 
     chi2 = 0.0
@@ -303,7 +275,7 @@ def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, si
     triples = [f'{sequence_labels[i]}{sequence_labels[i + 1]}{sequence_labels[i + 2]}' for i in range(sequence_length - 2)]
     dof = len(set(triples)) - len(set(doubles)) + len(set(sequence_labels)) - 1
 
-    p_value = 0.0 if dof == 0 else 1.0 - _sps_chi2.cdf(chi2, dof)
+    p_value = 0.0 if dof == 0 else 1.0 - _sps.chi2.cdf(chi2, dof)
     rejection = p_value < significance
 
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
@@ -335,7 +307,7 @@ def assess_stationarity(possible_states: _tlist_str, sequence: _tsequence, block
     def _chi2_standard_inner(cs_ct):  # pragma: no cover
 
         try:
-            v, _ = _sps_chisquare(_np_ravel(cs_ct))
+            v, _ = _sps.chisquare(_np.ravel(cs_ct))
         except Exception:
             v = float('nan')
 
@@ -349,9 +321,9 @@ def assess_stationarity(possible_states: _tlist_str, sequence: _tsequence, block
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins.trace()) from None
 
-    sequence_indices, sequence_labels = _cp_deepcopy(sequence), [possible_states[state] for state in sequence]
+    sequence_indices, sequence_labels = _cp.deepcopy(sequence), [possible_states[state] for state in sequence]
     k, n = len(sequence), len(possible_states)
 
     iters = k - 1
@@ -363,26 +335,26 @@ def assess_stationarity(possible_states: _tlist_str, sequence: _tsequence, block
 
     for state in possible_states:
 
-        ct = _np_zeros((blocks, n), dtype=float)
+        ct = _np.zeros((blocks, n), dtype=float)
 
         for i in range(iters):
             if sequence_labels[i] == state:
-                p = _math_ceil((i + 1) / block_size) - 1
+                p = _mt.ceil((i + 1) / block_size) - 1
                 f = sequence_indices[i + 1]
                 ct[p, f] += 1.0
 
-        ct[_np_argwhere(_np_sum(ct, axis=1) == 0.0), :] = adjustment
-        ct /= _np_sum(ct, axis=1, keepdims=True)
+        ct[_np.argwhere(_np.sum(ct, axis=1) == 0.0), :] = adjustment
+        ct /= _np.sum(ct, axis=1, keepdims=True)
 
         ct_chi2 = chi2_func(ct)
 
-        if _math_isnan(ct_chi2):
+        if _mt.isnan(ct_chi2):
             return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
 
         chi2 += ct_chi2
 
     dof = n * (n - 1) * (blocks - 1)
-    p_value = 0.0 if dof == 0 else 1.0 - _sps_chi2.cdf(chi2, dof)
+    p_value = 0.0 if dof == 0 else 1.0 - _sps.chi2.cdf(chi2, dof)
     rejection = p_value < significance
 
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
@@ -407,21 +379,21 @@ def assess_theoretical_compatibility(mc: _tmc, sequence: _tsequence, significanc
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins.trace()) from None
 
     p, n = mc.p, mc.size
-    f = _np_zeros((n, n), dtype=int)
+    f = _np.zeros((n, n), dtype=int)
 
     for i, j in zip(sequence[:-1], sequence[1:]):
         f[i, j] += 1
 
-    if _np_all(f[p == 0.0] == 0):
+    if _np.all(f[p == 0.0] == 0):
 
         chi2 = 0.0
 
         for i in range(n):
 
-            f_i = _np_sum(f[:, i])
+            f_i = _np.sum(f[:, i])
 
             for j in range(n):
 
@@ -429,11 +401,11 @@ def assess_theoretical_compatibility(mc: _tmc, sequence: _tsequence, significanc
                 f_ij = f[i, j]
 
                 if p_ij > 0.0 and f_ij > 0:
-                    chi2 += f_ij * _np_log(f_ij / (f_i * p_ij))
+                    chi2 += f_ij * _np.log(f_ij / (f_i * p_ij))
 
         chi2 *= 2.0
-        dof = (n * (n - 1)) - (n**2 - _np_count_nonzero(p))
-        p_value = 1.0 - _sps_chi2.cdf(chi2, dof)
+        dof = (n * (n - 1)) - (n**2 - _np.count_nonzero(p))
+        p_value = 1.0 - _sps.chi2.cdf(chi2, dof)
         rejection = p_value < significance
 
         return rejection, p_value, {'chi2': chi2, 'dof': dof}

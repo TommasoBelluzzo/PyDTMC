@@ -13,18 +13,9 @@ __all__ = [
 
 # Standard
 
-from functools import (
-    update_wrapper as _ft_update_wrapper,
-    wraps as _ft_wraps
-)
-
-from re import (
-    search as _re_search
-)
-
-from threading import (
-    RLock as _th_RLock
-)
+import functools as _ft
+import re as _re
+import threading as _th
 
 
 ###########
@@ -50,9 +41,9 @@ class cached_property(property):
 
         self._func = fget
         self._func_name = None
-        self._lock = _th_RLock()
+        self._lock = _th.RLock()
 
-        _ft_update_wrapper(self, fget)
+        _ft.update_wrapper(self, fget)
 
     def __set_name__(self, owner, name):
 
@@ -144,7 +135,7 @@ def aliased(aliased_class):
 
     def wrapper(func):
 
-        @_ft_wraps(func)
+        @_ft.wraps(func)
         def inner(self, *args, **kwargs):
             return func(self, *args, **kwargs)
 
@@ -174,7 +165,7 @@ def aliased(aliased_class):
         if len(set(aliases_flat)) < len(aliases_flat):
             raise AttributeError('Aliases must be unique and cannot be shared among different class members.')
 
-        if any(not _re_search(r'^[a-z][\da-z]*(?:_[\da-z]+)*$', a) for a in aliases_flat):
+        if any(not _re.search(r'^[a-z][\da-z]*(?:_[\da-z]+)*$', a) for a in aliases_flat):
             raise ValueError('Aliases cannot start with an underscore character and must be compliant with PEP8 naming conventions.')
 
         if any(a in member_names for a in aliases_flat):

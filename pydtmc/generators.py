@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'hmm_restrict',
     'hmm_random',
     'mc_aggregate_spectral_bottom_up',
     'mc_aggregate_spectral_top_down',
@@ -25,71 +26,11 @@ __all__ = [
 
 # Libraries
 
-from numpy import (
-    abs as _np_abs,
-    amax as _np_amax,
-    any as _np_any,
-    apply_along_axis as _np_apply_along_axis,
-    arange as _np_arange,
-    argsort as _np_argsort,
-    argwhere as _np_argwhere,
-    array as _np_array,
-    array_equal as _np_array_equal,
-    copy as _np_copy,
-    count_nonzero as _np_count_nonzero,
-    diag as _np_diag,
-    diagflat as _np_diagflat,
-    dot as _np_dot,
-    exp as _np_exp,
-    eye as _np_eye,
-    fill_diagonal as _np_fill_diagonal,
-    fix as _np_fix,
-    flatnonzero as _np_flatnonzero,
-    fliplr as _np_fliplr,
-    full as _np_full,
-    hstack as _np_hstack,
-    inf as _np_inf,
-    isclose as _np_isclose,
-    isinf as _np_isinf,
-    isnan as _np_isnan,
-    ix_ as _np_ix,
-    linspace as _np_linspace,
-    nan as _np_nan,
-    nansum as _np_nansum,
-    newaxis as _np_newaxis,
-    ones as _np_ones,
-    pi as _np_pi,
-    ravel as _np_ravel,
-    repeat as _np_repeat,
-    sqrt as _np_sqrt,
-    stack as _np_stack,
-    sum as _np_sum,
-    take as _np_take,
-    trace as _np_trace,
-    transpose as _np_transpose,
-    unravel_index as _np_unravel_index,
-    where as _np_where,
-    zeros as _np_zeros
-)
-
-from numpy.linalg import (
-    eig as _npl_eig,
-    inv as _npl_inv,
-    multi_dot as _npl_multi_dot,
-    solve as _npl_solve
-)
-
-from scipy.integrate import (
-    quad as _spi_quad
-)
-
-from scipy.optimize import (
-    minimize as _spo_minimize
-)
-
-from scipy.stats import (
-    norm as _sps_norm
-)
+import numpy as _np
+import numpy.linalg as _npl
+import scipy.integrate as _spi
+import scipy.optimize as _spo
+import scipy.stats as _sps
 
 # Internal
 
@@ -101,6 +42,7 @@ from .custom_types import (
     ofloat as _ofloat,
     tarray as _tarray,
     tbcond as _tbcond,
+    thmm_generation as _thmm_generation,
     thmm_generation_ext as _thmm_generation_ext,
     tmc_generation as _tmc_generation,
     tmc_generation_ext as _tmc_generation_ext,
@@ -121,37 +63,37 @@ def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zer
     # noinspection DuplicatedCode
     def process_matrix(pm_rows, pm_columns, pm_mask, pm_full_rows, pm_mask_unassigned, pm_zeros, pm_zeros_required):
 
-        pm_mask_internal = _np_copy(pm_mask)
-        rows_range = _np_arange(pm_rows)
+        pm_mask_internal = _np.copy(pm_mask)
+        rows_range = _np.arange(pm_rows)
 
         for i in rows_range:
             if not pm_full_rows[i]:
                 row = pm_mask_unassigned[i, :]
-                columns = _np_flatnonzero(row)
-                j = columns[rng.randint(0, _np_sum(row).item())]
-                pm_mask_internal[i, j] = _np_inf
+                columns = _np.flatnonzero(row)
+                j = columns[rng.randint(0, _np.sum(row).item())]
+                pm_mask_internal[i, j] = _np.inf
 
-        pm_mask_unassigned = _np_isnan(pm_mask_internal)
-        indices_unassigned = _np_flatnonzero(pm_mask_unassigned)
+        pm_mask_unassigned = _np.isnan(pm_mask_internal)
+        indices_unassigned = _np.flatnonzero(pm_mask_unassigned)
 
         r = rng.permutation(pm_zeros_required)
         indices_zero = indices_unassigned[r[0:pm_zeros]]
-        indices_rows, indices_columns = _np_unravel_index(indices_zero, (pm_rows, pm_columns))
+        indices_rows, indices_columns = _np.unravel_index(indices_zero, (pm_rows, pm_columns))
 
         pm_mask_internal[indices_rows, indices_columns] = 0.0
-        pm_mask_internal[_np_isinf(pm_mask_internal)] = _np_nan
+        pm_mask_internal[_np.isinf(pm_mask_internal)] = _np.nan
 
-        m = _np_copy(pm_mask_internal)
-        m_unassigned = _np_isnan(pm_mask_internal)
-        m[m_unassigned] = _np_ravel(rng.rand(1, _np_sum(m_unassigned, dtype=int).item()))
+        m = _np.copy(pm_mask_internal)
+        m_unassigned = _np.isnan(pm_mask_internal)
+        m[m_unassigned] = _np.ravel(rng.rand(1, _np.sum(m_unassigned, dtype=int).item()))
 
         for i in rows_range:
 
-            assigned_columns = _np_isnan(pm_mask_internal[i, :])
-            s = _np_sum(m[i, assigned_columns])
+            assigned_columns = _np.isnan(pm_mask_internal[i, :])
+            s = _np.sum(m[i, assigned_columns])
 
             if s > 0.0:
-                si = _np_sum(m[i, ~assigned_columns])
+                si = _np.sum(m[i, ~assigned_columns])
                 m[i, assigned_columns] *= (1.0 - si) / s
 
         return m
@@ -159,15 +101,15 @@ def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zer
     # noinspection DuplicatedCode
     def process_zeros(pz_columns, pz_zeros, pz_mask):
 
-        pz_mask_internal = _np_copy(pz_mask)
+        pz_mask_internal = _np.copy(pz_mask)
 
-        full_rows = _np_isclose(_np_nansum(pz_mask_internal, axis=1, dtype=float), 1.0)
+        full_rows = _np.isclose(_np.nansum(pz_mask_internal, axis=1, dtype=float), 1.0)
 
-        mask_full = _np_transpose(_np_array([full_rows] * pz_columns))
-        pz_mask_internal[_np_isnan(pz_mask_internal) & mask_full] = 0.0
+        mask_full = _np.transpose(_np.array([full_rows] * pz_columns))
+        pz_mask_internal[_np.isnan(pz_mask_internal) & mask_full] = 0.0
 
-        mask_unassigned = _np_isnan(pz_mask_internal)
-        zeros_required = (_np_sum(mask_unassigned) - _np_sum(~full_rows)).item()
+        mask_unassigned = _np.isnan(pz_mask_internal)
+        zeros_required = (_np.sum(mask_unassigned) - _np.sum(~full_rows)).item()
         result = pz_zeros > zeros_required
 
         return full_rows, mask_unassigned, zeros_required, result
@@ -191,22 +133,45 @@ def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zer
     return p, e, states, symbols, None
 
 
+def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str, sub_states: _tlist_int, sub_symbols: _tlist_int) -> _thmm_generation:
+
+    p, e = _np.copy(p), _np.copy(e)
+
+    p_decrease = len(sub_states) < p.shape[0]
+    e_decrease = p_decrease or len(sub_symbols) < e.shape[0]
+
+    if p_decrease:
+        p = p[_np.ix_(sub_states, sub_states)]
+        p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[1], dtype=float)
+        p /= _np.sum(p, axis=1, keepdims=True)
+
+    if e_decrease:
+        e = e[_np.ix_(sub_states, sub_symbols)]
+        e[_np.where(~e.any(axis=1)), :] = _np.ones(e.shape[1], dtype=float)
+        e /= _np.sum(e, axis=1, keepdims=True)
+
+    state_names = [*map(states.__getitem__, sub_states)]
+    symbol_names = [*map(symbols.__getitem__, sub_symbols)]
+
+    return p, e, state_names, symbol_names
+
+
 def mc_aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation_ext:
 
     # noinspection DuplicatedCode
     def _calculate_q(cq_p, cq_pi, cq_phi):
 
-        cq_pi = _np_diag(cq_pi)
+        cq_pi = _np.diag(cq_pi)
         z = cq_phi.shape[1]
 
-        q_num = _np_dot(_np_dot(_np_dot(_np_transpose(cq_phi), cq_pi), cq_p), cq_phi)
-        q_den = _np_zeros((z, 1), dtype=float)
+        q_num = _np.dot(_np.dot(_np.dot(_np.transpose(cq_phi), cq_pi), cq_p), cq_phi)
+        q_den = _np.zeros((z, 1), dtype=float)
 
         for zi in range(z):
             cq_phi_zi = cq_phi[:, zi]
-            q_den[zi] = _np_dot(_np_dot(_np_transpose(cq_phi_zi), cq_pi), cq_phi_zi)
+            q_den[zi] = _np.dot(_np.dot(_np.transpose(cq_phi_zi), cq_pi), cq_phi_zi)
 
-        q_den = _np_repeat(q_den, z, 1)
+        q_den = _np.repeat(q_den, z, 1)
 
         q_value = q_num / q_den
 
@@ -217,42 +182,42 @@ def mc_aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen
 
         v = cbc_phi[:, cbc_index]
 
-        if _np_sum(v) <= 1.0:  # pragma: no cover
+        if _np.sum(v) <= 1.0:  # pragma: no cover
             return None
 
         indices = v > 0.0
-        p_sub = cbc_p[_np_ix(indices, indices)]
-        pi_sub = _np_diag(cbc_pi[indices])
+        p_sub = cbc_p[_np.ix_(indices, indices)]
+        pi_sub = _np.diag(cbc_pi[indices])
 
-        ar = 0.5 * (p_sub + _np_dot(_npl_solve(pi_sub, _np_transpose(p_sub)), pi_sub))
+        ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
 
-        evalues, evectors = _npl_eig(ar)
-        index = _np_argsort(_np_abs(evalues))[-2]
+        evalues, evectors = _npl.eig(ar)
+        index = _np.argsort(_np.abs(evalues))[-2]
 
         evector = evectors[:, index]
-        evector = _np_transpose(evector[_np_newaxis, :])
+        evector = _np.transpose(evector[_np.newaxis, :])
 
-        vt = _np_transpose(v[_np_newaxis, :])
+        vt = _np.transpose(v[_np.newaxis, :])
 
-        v1 = _np_copy(vt)
+        v1 = _np.copy(vt)
         v1[indices] = evector >= 0.0
 
-        v2 = _np_copy(vt)
+        v2 = _np.copy(vt)
         v2[indices] = evector < 0.0
 
-        bc_stack = _np_hstack((cbc_phi[:, :cbc_index], v1, v2, cbc_phi[:, (cbc_index + 1):]))
+        bc_stack = _np.hstack((cbc_phi[:, :cbc_index], v1, v2, cbc_phi[:, (cbc_index + 1):]))
 
         return bc_stack
 
     size = p.shape[0]
 
-    phi = _np_ones((size, 1), dtype=float)
-    q = _np_full((size, size), 1.0 / size, dtype=float)
+    phi = _np.ones((size, 1), dtype=float)
+    q = _np.full((size, size), 1.0 / size, dtype=float)
     k = 1
 
     while k < s:
 
-        phi_k, r_k = phi, _np_inf
+        phi_k, r_k = phi, _np.inf
 
         for i in range(phi.shape[1]):
 
@@ -270,7 +235,7 @@ def mc_aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen
         phi = phi_k
         k += 1
 
-    q /= _np_sum(q, axis=1, keepdims=True)
+    q /= _np.sum(q, axis=1, keepdims=True)
 
     states = [f'ASBU{i:d}' for i in range(1, q.shape[0] + 1)]
 
@@ -283,14 +248,14 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
 
         size = q.shape[0]
 
-        kappa = _np_ones(size, dtype=float) / size
-        theta = _np_dot(kappa, ci_q)
+        kappa = _np.ones(size, dtype=float) / size
+        theta = _np.dot(kappa, ci_q)
 
         z = 0
 
-        while _np_amax(_np_abs(kappa - theta)) > 1e-8 and z < 1000:
+        while _np.amax(_np.abs(kappa - theta)) > 1e-8 and z < 1000:
             kappa = (kappa + theta) / 2.0
-            theta = _np_dot(kappa, ci_q)
+            theta = _np.dot(kappa, ci_q)
             z += 1
 
         return theta
@@ -298,22 +263,22 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
     # noinspection DuplicatedCode
     def _calculate_q(cq_p, cq_pi, cq_phi, cq_eta, cq_index):
 
-        cq_pi = _np_diag(cq_pi)
+        cq_pi = _np.diag(cq_pi)
 
-        vi = _np_ravel(_np_argwhere(cq_phi[:, cq_index] == 1.0))
+        vi = _np.ravel(_np.argwhere(cq_phi[:, cq_index] == 1.0))
         vi0, vi1 = vi[0], vi[1]
-        phi_i = _np_hstack((cq_eta[:, :vi0], _np_amax(_np_take(cq_eta, vi, 1), axis=1, keepdims=True), cq_eta[:, (vi0 + 1):(vi1 - 1)], cq_eta[:, (vi1 + 1):]))
+        phi_i = _np.hstack((cq_eta[:, :vi0], _np.amax(_np.take(cq_eta, vi, 1), axis=1, keepdims=True), cq_eta[:, (vi0 + 1):(vi1 - 1)], cq_eta[:, (vi1 + 1):]))
 
         z = phi_i.shape[1]
 
-        q_num = _np_dot(_np_dot(_np_dot(_np_transpose(phi_i), cq_pi), cq_p), phi_i)
-        q_den = _np_zeros((z, 1), dtype=float)
+        q_num = _np.dot(_np.dot(_np.dot(_np.transpose(phi_i), cq_pi), cq_p), phi_i)
+        q_den = _np.zeros((z, 1), dtype=float)
 
         for zi in range(z):
             q_eta_zi = phi_i[:, zi]
-            q_den[zi] = _np_dot(_np_dot(_np_transpose(q_eta_zi), cq_pi), q_eta_zi)
+            q_den[zi] = _np.dot(_np.dot(_np.transpose(q_eta_zi), cq_pi), q_eta_zi)
 
-        q_den = _np_repeat(q_den, z, 1)
+        q_den = _np.repeat(q_den, z, 1)
 
         q_value = q_num / q_den
 
@@ -326,46 +291,46 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
         v = cbc_phi[:, last_index]
 
         indices = v > 0.0
-        p_sub = cbc_q[_np_ix(indices, indices)]
-        pi_sub = _np_diag(cbc_pi[indices])
+        p_sub = cbc_q[_np.ix_(indices, indices)]
+        pi_sub = _np.diag(cbc_pi[indices])
 
-        ar = 0.5 * (p_sub + _np_dot(_npl_solve(pi_sub, _np_transpose(p_sub)), pi_sub))
+        ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
 
-        evalues, evectors = _npl_eig(ar)
-        index = _np_argsort(_np_abs(evalues))[-2]
+        evalues, evectors = _npl.eig(ar)
+        index = _np.argsort(_np.abs(evalues))[-2]
 
         evector = evectors[:, index]
-        evector = _np_transpose(evector[_np_newaxis, :])
+        evector = _np.transpose(evector[_np.newaxis, :])
 
-        vt = _np_transpose(v[_np_newaxis, :])
+        vt = _np.transpose(v[_np.newaxis, :])
 
-        v1 = _np_copy(vt)
+        v1 = _np.copy(vt)
         v1[indices] = evector >= 0.0
 
-        v2 = _np_copy(vt)
+        v2 = _np.copy(vt)
         v2[indices] = evector < 0.0
 
         cbc_phi = cbc_phi[:, :-1]
 
-        if _np_sum(v1) > 1.0:
-            cbc_phi = _np_hstack((cbc_phi[:, :last_index], v1, cbc_phi[:, (last_index + 1):]))
+        if _np.sum(v1) > 1.0:
+            cbc_phi = _np.hstack((cbc_phi[:, :last_index], v1, cbc_phi[:, (last_index + 1):]))
             last_index += 1
 
-        if _np_sum(v2) > 1.0:
-            cbc_phi = _np_hstack((cbc_phi[:, :last_index], v2, cbc_phi[:, (last_index + 1):]))
+        if _np.sum(v2) > 1.0:
+            cbc_phi = _np.hstack((cbc_phi[:, :last_index], v2, cbc_phi[:, (last_index + 1):]))
 
         return cbc_phi
 
-    q = _np_copy(p)
+    q = _np.copy(p)
     k = q.shape[0]
-    eta = _np_eye(k)
+    eta = _np.eye(k)
 
     for i in range(k - s):
 
         q_pi = pi if i == 0 else _calculate_invariant(q)
-        phi = _np_ones((q.shape[0], 1), dtype=float)
+        phi = _np.ones((q.shape[0], 1), dtype=float)
 
-        while _np_any(_np_sum(phi, axis=0) > 2.0):
+        while _np.any(_np.sum(phi, axis=0) > 2.0):
             phi = _update_bipartition_candidates(q, q_pi, phi)
 
         u = []
@@ -377,7 +342,7 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
 
         _, q, eta = sorted(u, key=lambda x: x[0], reverse=True).pop()
 
-    q /= _np_sum(q, axis=1, keepdims=True)
+    q /= _np.sum(q, axis=1, keepdims=True)
     states = [f'ASTD{i:d}' for i in range(1, q.shape[0] + 1)]
 
     return q, states, None
@@ -387,9 +352,9 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
 
     def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
 
-        t1 = _np_exp((-1.0 * (aci_x - aci_alpha)**2.0) / (2.0 * aci_sigma_z**2.0))
-        t2 = _sps_norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
-        t3 = _sps_norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
+        t1 = _np.exp((-1.0 * (aci_x - aci_alpha)**2.0) / (2.0 * aci_sigma_z**2.0))
+        t2 = _sps.norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
+        t3 = _sps.norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
         output = t1 * (t2 - t3)
 
         return output
@@ -397,13 +362,13 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
     def _rouwenhorst_matrix(rm_size, rm_z):
 
         if rm_size == 2:
-            output = _np_array([[rm_z, 1 - rm_z], [1 - rm_z, rm_z]])
+            output = _np.array([[rm_z, 1 - rm_z], [1 - rm_z, rm_z]])
         else:
 
-            t1 = _np_zeros((rm_size, rm_size))
-            t2 = _np_zeros((rm_size, rm_size))
-            t3 = _np_zeros((rm_size, rm_size))
-            t4 = _np_zeros((rm_size, rm_size))
+            t1 = _np.zeros((rm_size, rm_size))
+            t2 = _np.zeros((rm_size, rm_size))
+            t3 = _np.zeros((rm_size, rm_size))
+            t4 = _np.zeros((rm_size, rm_size))
 
             theta_inner = _rouwenhorst_matrix(rm_size - 1, rm_z)
 
@@ -420,11 +385,11 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
     if approximation_type == 'adda-cooper':
 
         z_sigma = sigma / (1.0 - rho**2.0)**0.5
-        z_sigma_factor = size / _np_sqrt(2.0 * _np_pi * z_sigma**2.0)
+        z_sigma_factor = size / _np.sqrt(2.0 * _np.pi * z_sigma**2.0)
 
-        z = (z_sigma * _sps_norm.ppf(_np_arange(size + 1) / size)) + alpha
+        z = (z_sigma * _sps.norm.ppf(_np.arange(size + 1) / size)) + alpha
 
-        p = _np_zeros((size, size), dtype=float)
+        p = _np.zeros((size, size), dtype=float)
 
         for i in range(size):
 
@@ -432,7 +397,7 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
             z_ip = z[i + 1]
 
             for j in range(size):
-                iq = _spi_quad(_adda_cooper_integrand, z_i, z_ip, args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
+                iq = _spi.quad(_adda_cooper_integrand, z_i, z_ip, args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
                 p[i, j] = z_sigma_factor * iq[0]
 
     elif approximation_type == 'rouwenhorst':
@@ -445,17 +410,17 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
         size_m1 = size - 1
         size_p1 = size + 1
 
-        n = int(_np_fix(size_p1 / 2))
+        n = int(_np.fix(size_p1 / 2))
 
-        p1_const = 1.0 / _np_pi**0.25
+        p1_const = 1.0 / _np.pi**0.25
         p2_const = 0.0
-        pp_base = _np_sqrt(2.0 * size)
+        pp_base = _np.sqrt(2.0 * size)
 
-        k_factor = _np_sqrt(2.0) * _np_sqrt(2.0 * k**2.0)
-        w_factor = _np_sqrt(_np_pi)**2.0
+        k_factor = _np.sqrt(2.0) * _np.sqrt(2.0 * k**2.0)
+        w_factor = _np.sqrt(_np.pi)**2.0
 
-        nodes = _np_zeros(size, dtype=float)
-        weights = _np_zeros(size, dtype=float)
+        nodes = _np.zeros(size, dtype=float)
+        weights = _np.zeros(size, dtype=float)
 
         pp = 0.0
         z = 0.0
@@ -464,7 +429,7 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
 
             if i == 0:
                 sf = (2.0 * size) + 1.0
-                z = _np_sqrt(sf) - (1.85575 * sf**-0.16393)
+                z = _np.sqrt(sf) - (1.85575 * sf**-0.16393)
             elif i == 1:
                 z = z - ((1.14 * size**0.426) / z)
             elif i == 2:
@@ -486,14 +451,14 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
                 for j in range(1, size_p1):
                     p3 = p2
                     p2 = p1
-                    p1 = (z * _np_sqrt(2.0 / j) * p2) - (_np_sqrt((j - 1.0) / j) * p3)
+                    p1 = (z * _np.sqrt(2.0 / j) * p2) - (_np.sqrt((j - 1.0) / j) * p3)
 
                 pp = pp_base * p2
 
                 z1 = z
                 z = z1 - p1 / pp
 
-                if _np_abs(z - z1) < 1e-14:
+                if _np.abs(z - z1) < 1e-14:
                     break
 
             if iterations == 100:  # pragma: no cover
@@ -511,45 +476,45 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
         weights = weights / w_factor
 
         prime_left = (1.0 - rho) * alpha
-        p = _np_zeros((size, size), dtype=float)
+        p = _np.zeros((size, size), dtype=float)
 
         for i in range(size):
             prime_right = rho * nodes[i]
             prime = prime_left + prime_right
 
             for j in range(size):
-                p[i, j] = (weights[j] * _sps_norm.pdf(nodes[j], prime, sigma) / _sps_norm.pdf(nodes[j], alpha, k))
+                p[i, j] = (weights[j] * _sps.norm.pdf(nodes[j], prime, sigma) / _sps.norm.pdf(nodes[j], alpha, k))
 
-        p /= _np_sum(p, axis=1, keepdims=True)
+        p /= _np.sum(p, axis=1, keepdims=True)
 
     else:
 
         size_m1 = size - 1
 
-        if _np_isclose(rho, 1.0):
+        if _np.isclose(rho, 1.0):
             rho = 1.0 - 1e-8
 
-        y_std = _np_sqrt(sigma**2.0 / (1.0 - rho**2.0))
+        y_std = _np.sqrt(sigma**2.0 / (1.0 - rho**2.0))
 
         x_max = y_std * k
         x_min = -x_max
-        x = _np_linspace(x_min, x_max, size)
+        x = _np.linspace(x_min, x_max, size)
 
         x_0 = x[0]
         x_sm1 = x[size_m1]
 
         step = 0.5 * ((x_max - x_min) / size_m1)
-        p = _np_zeros((size, size), dtype=float)
+        p = _np.zeros((size, size), dtype=float)
 
         for i in range(size):
             rx = rho * x[i]
 
-            p[i, 0] = _sps_norm.cdf((x_0 - rx + step) / sigma)
-            p[i, size_m1] = 1.0 - _sps_norm.cdf((x_sm1 - rx - step) / sigma)
+            p[i, 0] = _sps.norm.cdf((x_0 - rx + step) / sigma)
+            p[i, size_m1] = 1.0 - _sps.norm.cdf((x_sm1 - rx - step) / sigma)
 
             for j in range(1, size_m1):
                 z = x[j] - rx
-                p[i, j] = _sps_norm.cdf((z + step) / sigma) - _sps_norm.cdf((z - step) / sigma)
+                p[i, j] = _sps.norm.cdf((z + step) / sigma) - _sps.norm.cdf((z - step) / sigma)
 
     states = [f'A{i:d}' for i in range(1, p.shape[0] + 1)]
 
@@ -560,10 +525,10 @@ def mc_birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
 
     r = 1.0 - q - p
 
-    p = _np_diag(r) + _np_diag(p[0:-1], k=1) + _np_diag(q[1:], k=-1)
-    p[_np_isclose(p, 0.0)] = 0.0
-    p[_np_where(~p.any(axis=1)), :] = _np_ones(p.shape[0], dtype=float)
-    p /= _np_sum(p, axis=1, keepdims=True)
+    p = _np.diag(r) + _np.diag(p[0:-1], k=1) + _np.diag(q[1:], k=-1)
+    p[_np.isclose(p, 0.0)] = 0.0
+    p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[0], dtype=float)
+    p /= _np.sum(p, axis=1, keepdims=True)
 
     return p, None
 
@@ -572,8 +537,8 @@ def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
 
     size = p.shape[0]
 
-    first = _np_zeros(size, dtype=float)
-    last = _np_zeros(size, dtype=float)
+    first = _np.zeros(size, dtype=float)
+    last = _np.zeros(size, dtype=float)
 
     if isinstance(boundary_condition, float):
 
@@ -591,7 +556,7 @@ def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
             first[1] = 1.0
             last[-2] = 1.0
 
-    p_adjusted = _np_copy(p)
+    p_adjusted = _np.copy(p)
     p_adjusted[0] = first
     p_adjusted[-1] = last
 
@@ -600,7 +565,7 @@ def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
 
 def mc_canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tlist_int) -> _tmc_generation:
 
-    p = _np_copy(p)
+    p = _np.copy(p)
 
     if len(recurrent_indices) == 0 or len(transient_indices) == 0:
         return p, None
@@ -612,7 +577,7 @@ def mc_canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _
 
     indices = transient_indices + recurrent_indices
 
-    p = p[_np_ix(indices, indices)]
+    p = p[_np.ix_(indices, indices)]
 
     return p, None
 
@@ -621,20 +586,20 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
 
     def _jacobian(xj, hj, fj):
 
-        output = _np_dot(_np_transpose(xj), hj) + fj
+        output = _np.dot(_np.transpose(xj), hj) + fj
 
         return output
 
     def _objective(xo, ho, fo):
 
-        output = (0.5 * _npl_multi_dot([_np_transpose(xo), ho, xo])) + _np_dot(_np_transpose(fo), xo)
+        output = (0.5 * _npl.multi_dot([_np.transpose(xo), ho, xo])) + _np.dot(_np.transpose(fo), xo)
 
         return output
 
     size = p.shape[0]
     size_m1 = size - 1
 
-    zeros = len(initial_distribution) - _np_count_nonzero(initial_distribution)
+    zeros = len(initial_distribution) - _np.count_nonzero(initial_distribution)
 
     m = int(((size_m1 * size) / 2) + (((zeros - 1) * zeros) / 2) + 1)
     mm1 = m - 1
@@ -655,12 +620,12 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
 
             if dr_zero and ds_zero:
 
-                bv = _np_eye(size)
+                bv = _np.eye(size)
                 bv[r, r] = 0.0
                 bv[r, s] = 1.0
                 basis_vectors.append(bv)
 
-                bv = _np_eye(size)
+                bv = _np.eye(size)
                 bv[r, r] = 1.0
                 bv[r, s] = 0.0
                 bv[s, s] = 0.0
@@ -669,34 +634,34 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
 
             else:
 
-                bv = _np_eye(size)
+                bv = _np.eye(size)
                 bv[r, r] = dsc
                 bv[r, s] = ds
                 bv[s, s] = drc
                 bv[s, r] = dr
                 basis_vectors.append(bv)
 
-    basis_vectors.append(_np_eye(size))
+    basis_vectors.append(_np.eye(size))
 
-    h = _np_zeros((m, m), dtype=float)
-    f = _np_zeros(m, dtype=float)
+    h = _np.zeros((m, m), dtype=float)
+    f = _np.zeros(m, dtype=float)
 
     if weighted:
 
-        d = _np_diag(initial_distribution)
-        di = _npl_inv(d)
+        d = _np.diag(initial_distribution)
+        di = _npl.inv(d)
 
         for i in range(m):
 
             bv_i = basis_vectors[i]
-            z = _npl_multi_dot([d, bv_i, di])
+            z = _npl.multi_dot([d, bv_i, di])
 
-            f[i] = -2.0 * _np_trace(_np_dot(z, _np_transpose(p)))
+            f[i] = -2.0 * _np.trace(_np.dot(z, _np.transpose(p)))
 
             for j in range(m):
                 bv_j = basis_vectors[j]
 
-                tau = 2.0 * _np_trace(_np_dot(_np_transpose(z), bv_j))
+                tau = 2.0 * _np.trace(_np.dot(_np.transpose(z), bv_j))
                 h[i, j] = tau
                 h[j, i] = tau
 
@@ -705,17 +670,17 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
         for i in range(m):
 
             bv_i = basis_vectors[i]
-            f[i] = -2.0 * _np_trace(_np_dot(_np_transpose(bv_i), p))
+            f[i] = -2.0 * _np.trace(_np.dot(_np.transpose(bv_i), p))
 
             for j in range(m):
                 bv_j = basis_vectors[j]
 
-                tau = 2.0 * _np_trace(_np_dot(_np_transpose(bv_i), bv_j))
+                tau = 2.0 * _np.trace(_np.dot(_np.transpose(bv_i), bv_j))
                 h[i, j] = tau
                 h[j, i] = tau
 
-    a = _np_zeros((m + size_m1, m), dtype=float)
-    _np_fill_diagonal(a, -1.0)
+    a = _np.zeros((m + size_m1, m), dtype=float)
+    _np.fill_diagonal(a, -1.0)
     a[mm1, mm1] = 0.0
 
     for i in range(size):
@@ -760,28 +725,28 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
 
         a[m + i - 1, mm1] = -1.0
 
-    b = _np_zeros(m + size_m1, dtype=float)
-    x0 = _np_zeros(m, dtype=float)
+    b = _np.zeros(m + size_m1, dtype=float)
+    x0 = _np.zeros(m, dtype=float)
 
     constraints = (
-        {'type': 'eq', 'fun': lambda x: _np_sum(x) - 1.0},
-        {'type': 'ineq', 'fun': lambda x: b - _np_dot(a, x), 'jac': lambda x: -a}
+        {'type': 'eq', 'fun': lambda x: _np.sum(x) - 1.0},
+        {'type': 'ineq', 'fun': lambda x: b - _np.dot(a, x), 'jac': lambda x: -a}
     )
 
     # noinspection PyTypeChecker
-    solution = _spo_minimize(_objective, x0, jac=_jacobian, args=(h, f), constraints=constraints, method='SLSQP', options={'disp': False})
+    solution = _spo.minimize(_objective, x0, jac=_jacobian, args=(h, f), constraints=constraints, method='SLSQP', options={'disp': False})
 
     if not solution['success']:  # pragma: no cover
         return None, 'The closest reversible could not be computed.'
 
-    p = _np_zeros((size, size), dtype=float)
+    p = _np.zeros((size, size), dtype=float)
     solution = solution['x']
 
     for i in range(m):
         p += solution[i] * basis_vectors[i]
 
-    p[_np_where(~p.any(axis=1)), :] = _np_ones(size, dtype=float)
-    p /= _np_sum(p, axis=1, keepdims=True)
+    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
+    p /= _np.sum(p, axis=1, keepdims=True)
 
     return p, None
 
@@ -798,21 +763,21 @@ def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagon
             allocated_probability += weight
             weights.append(weight)
 
-        weights = _np_stack(weights)
-        weights /= _np_sum(weights)
+        weights = _np.stack(weights)
+        weights /= _np.sum(weights)
 
         return weights
 
     draws = rng.beta(1.0, diffusion_factor, (size, size))
-    p = _np_apply_along_axis(_gem_allocation, axis=1, arr=draws)
+    p = _np.apply_along_axis(_gem_allocation, axis=1, arr=draws)
 
     if shift_concentration:
-        p = _np_fliplr(p)
+        p = _np.fliplr(p)
 
     if diagonal_bias_factor is not None:
         diagonal = rng.beta(diagonal_bias_factor, 1.0, size)
-        p += + _np_diagflat(diagonal)
-        p /= _np_sum(p, axis=1, keepdims=True)
+        p += + _np.diagflat(diagonal)
+        p /= _np.sum(p, axis=1, keepdims=True)
 
     return p, None
 
@@ -821,7 +786,7 @@ def mc_gamblers_ruin(size: int, w: float) -> _tmc_generation:
 
     wc = 1.0 - w
 
-    p = _np_zeros((size, size), dtype=float)
+    p = _np.zeros((size, size), dtype=float)
     p[0, 0] = 1.0
     p[-1, -1] = 1.0
 
@@ -836,8 +801,8 @@ def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
 
     size = p.shape[0]
 
-    p1 = (1.0 - inertial_weights)[:, _np_newaxis] * p
-    p2 = _np_eye(size) * inertial_weights
+    p1 = (1.0 - inertial_weights)[:, _np.newaxis] * p
+    p2 = _np.eye(size) * inertial_weights
     p = p1 + p2
 
     return p, None
@@ -848,27 +813,27 @@ def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen
 
     size = p.shape[0]
 
-    r = _np_zeros((size, len(partitions)), dtype=float)
+    r = _np.zeros((size, len(partitions)), dtype=float)
 
     for index, partition in enumerate(partitions):
         for state in partition:
             r[state, index] = 1.0
 
-    rt = _np_transpose(r)
+    rt = _np.transpose(r)
 
     try:
-        k = _np_dot(_npl_inv(_np_dot(rt, r)), rt)
+        k = _np.dot(_npl.inv(_np.dot(rt, r)), rt)
     except Exception:  # pragma: no cover
         return None, None, 'The Markov chain is not lumpable with respect to the given partitions.'
 
-    left = _np_dot(_np_dot(_np_dot(r, k), p), r)
-    right = _np_dot(p, r)
-    is_lumpable = _np_array_equal(left, right)
+    left = _np.dot(_np.dot(_np.dot(r, k), p), r)
+    right = _np.dot(p, r)
+    is_lumpable = _np.array_equal(left, right)
 
     if not is_lumpable:  # pragma: no cover
         return None, None, 'The Markov chain is not lumpable with respect to the given partitions.'
 
-    p_lump = _np_dot(_np_dot(k, p), r)
+    p_lump = _np.dot(_np.dot(k, p), r)
     state_names = [','.join(list(map(states.__getitem__, partition))) for partition in partitions]
 
     return p_lump, state_names, None
@@ -877,47 +842,47 @@ def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen
 # noinspection DuplicatedCode
 def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generation:
 
-    full_rows = _np_isclose(_np_nansum(mask, axis=1, dtype=float), 1.0)
+    full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0)
 
-    mask_full = _np_transpose(_np_array([full_rows] * size))
-    mask[_np_isnan(mask) & mask_full] = 0.0
+    mask_full = _np.transpose(_np.array([full_rows] * size))
+    mask[_np.isnan(mask) & mask_full] = 0.0
 
-    mask_unassigned = _np_isnan(mask)
-    zeros_required = (_np_sum(mask_unassigned) - _np_sum(~full_rows)).item()
+    mask_unassigned = _np.isnan(mask)
+    zeros_required = (_np.sum(mask_unassigned) - _np.sum(~full_rows)).item()
 
     if zeros > zeros_required:  # pragma: no cover
         return None, f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.'
 
-    n = _np_arange(size)
+    n = _np.arange(size)
 
     for i in n:
         if not full_rows[i]:
             row = mask_unassigned[i, :]
-            columns = _np_flatnonzero(row)
-            j = columns[rng.randint(0, _np_sum(row).item())]
-            mask[i, j] = _np_inf
+            columns = _np.flatnonzero(row)
+            j = columns[rng.randint(0, _np.sum(row).item())]
+            mask[i, j] = _np.inf
 
-    mask_unassigned = _np_isnan(mask)
-    indices_unassigned = _np_flatnonzero(mask_unassigned)
+    mask_unassigned = _np.isnan(mask)
+    indices_unassigned = _np.flatnonzero(mask_unassigned)
 
     r = rng.permutation(zeros_required)
     indices_zero = indices_unassigned[r[0:zeros]]
-    indices_rows, indices_columns = _np_unravel_index(indices_zero, (size, size))
+    indices_rows, indices_columns = _np.unravel_index(indices_zero, (size, size))
 
     mask[indices_rows, indices_columns] = 0.0
-    mask[_np_isinf(mask)] = _np_nan
+    mask[_np.isinf(mask)] = _np.nan
 
-    p = _np_copy(mask)
-    p_unassigned = _np_isnan(mask)
-    p[p_unassigned] = _np_ravel(rng.rand(1, _np_sum(p_unassigned, dtype=int).item()))
+    p = _np.copy(mask)
+    p_unassigned = _np.isnan(mask)
+    p[p_unassigned] = _np.ravel(rng.rand(1, _np.sum(p_unassigned, dtype=int).item()))
 
     for i in n:
 
-        assigned_columns = _np_isnan(mask[i, :])
-        s = _np_sum(p[i, assigned_columns])
+        assigned_columns = _np.isnan(mask[i, :])
+        s = _np.sum(p[i, assigned_columns])
 
         if s > 0.0:
-            si = _np_sum(p[i, ~assigned_columns])
+            si = _np.sum(p[i, ~assigned_columns])
             p[i, assigned_columns] = p[i, assigned_columns] * ((1.0 - si) / s)
 
     return p, None
@@ -927,7 +892,7 @@ def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states
 
     size = p.shape[0]
 
-    closure = _np_copy(adjacency_matrix)
+    closure = _np.copy(adjacency_matrix)
 
     for i in range(size):
         for j in range(size):
@@ -938,16 +903,16 @@ def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states
                 closure[j, x] = closure_jx or (closure_ji and closure_ix)
 
     for state in sub_states:
-        state_closures = _np_ravel([_np_where(closure[state, :] == 1.0)])
+        state_closures = _np.ravel([_np.where(closure[state, :] == 1.0)])
         for state_closure in state_closures:
             if state_closure not in sub_states:
                 sub_states.append(state_closure)
 
     sub_states = sorted(sub_states)
 
-    p = _np_copy(p)
-    p = p[_np_ix(sub_states, sub_states)]
-    p /= _np_sum(p, axis=1, keepdims=True)
+    p = _np.copy(p)
+    p = p[_np.ix_(sub_states, sub_states)]
+    p /= _np.sum(p, axis=1, keepdims=True)
 
     if p.size == 1:  # pragma: no cover
         return None, None, 'The subchain is not a valid Markov chain.'
@@ -962,14 +927,14 @@ def mc_urn_model(n: int, model: str) -> _tmc_generation_ext:
     dn = n * 2
     size = dn + 1
 
-    p = _np_zeros((size, size), dtype=float)
-    p_row = _np_repeat(0.0, size)
+    p = _np.zeros((size, size), dtype=float)
+    p_row = _np.repeat(0.0, size)
 
     if model == 'bernoulli-laplace':
 
         for i in range(size):
 
-            r = _np_copy(p_row)
+            r = _np.copy(p_row)
 
             if i == 0:
                 r[1] = 1.0
@@ -986,7 +951,7 @@ def mc_urn_model(n: int, model: str) -> _tmc_generation_ext:
 
         for i in range(size):
 
-            r = _np_copy(p_row)
+            r = _np.copy(p_row)
 
             if i == 0:
                 r[1] = 1.0

@@ -11,33 +11,13 @@ __all__ = [
 
 # Standard
 
-from copy import (
-    deepcopy as _cp_deepcopy
-)
-
-from inspect import (
-    stack as _ins_stack,
-    trace as _ins_trace
-)
+import copy as _cp
+import inspect as _ins
 
 # Libraries
 
-from numpy import (
-    all as _np_all,
-    allclose as _np_allclose,
-    array_equal as _np_array_equal,
-    copy as _np_copy,
-    full as _np_full,
-    isclose as _np_isclose,
-    nan as _np_nan,
-    ones as _np_ones,
-    sum as _np_sum,
-    zeros as _np_zeros
-)
-
-from numpy.linalg import (
-    matrix_rank as _npl_matrix_rank
-)
+import numpy as _np
+import numpy.linalg as _npl
 
 # Internal
 
@@ -92,16 +72,19 @@ from .files_io import (
     write_xml as _write_xml
 )
 
+from .fitting import (
+    hmm_fit as _fit,
+)
+
 from .generators import (
-    hmm_random as _random
+    hmm_random as _random,
+    hmm_restrict as _restrict
 )
 
 from .hmm import (
     decode as _decode,
     estimate as _estimate,
-    predict as _predict,
-    restrict as _restrict,
-    train as _train
+    predict as _predict
 )
 
 from .markov_chain import (
@@ -164,7 +147,7 @@ class HiddenMarkovModel(_Model):
         if HiddenMarkovModel.__instance_generators is None:
             HiddenMarkovModel.__instance_generators = _get_instance_generators(self.__class__)
 
-        caller = _get_caller(_ins_stack())
+        caller = _get_caller(_ins.stack())
 
         if caller not in HiddenMarkovModel.__instance_generators:
 
@@ -176,7 +159,7 @@ class HiddenMarkovModel(_Model):
                 symbols = _create_labels(e.shape[1], 'E') if symbols is None else _validate_labels_input(symbols, e.shape[1])
 
             except Exception as ex:  # pragma: no cover
-                raise _create_validation_error(ex, _ins_trace()) from None
+                raise _create_validation_error(ex, _ins.trace()) from None
 
         if len(list(set(states) & set(symbols))) > 0:  # pragma: no cover
             raise _ValidationError('State names and symbol names must be different.')
@@ -191,7 +174,7 @@ class HiddenMarkovModel(_Model):
     def __eq__(self, other) -> bool:
 
         if isinstance(other, HiddenMarkovModel):
-            return _np_array_equal(self.p, other.p) and _np_array_equal(self.e, other.e) and self.states == other.states and self.symbols == other.symbols
+            return _np.array_equal(self.p, other.p) and _np.array_equal(self.e, other.e) and self.states == other.states and self.symbols == other.symbols
 
         return False
 
@@ -235,7 +218,7 @@ class HiddenMarkovModel(_Model):
         """
 
         mc = _MarkovChain(self.__p, self.__states)
-        result = mc.is_ergodic and _np_all(self.__e > 0.0)
+        result = mc.is_ergodic and _np.all(self.__e > 0.0)
 
         return result
 
@@ -246,7 +229,7 @@ class HiddenMarkovModel(_Model):
         A property indicating whether the hidden Markov model is regular.
         """
 
-        result = _npl_matrix_rank(self.__e) == self.__size[1]
+        result = _npl.matrix_rank(self.__e) == self.__size[1]
 
         return result
 
@@ -323,11 +306,11 @@ class HiddenMarkovModel(_Model):
         try:
 
             symbols = _validate_sequence(symbols, self.__symbols)
-            initial_status = _np_full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
+            initial_status = _np.full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
             use_scaling = _validate_boolean(use_scaling)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         value = _decode(self.__p, self.__e, initial_status, symbols, use_scaling)
 
@@ -349,7 +332,7 @@ class HiddenMarkovModel(_Model):
             state = _validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         value = self.__e[state, symbol]
 
@@ -379,7 +362,7 @@ class HiddenMarkovModel(_Model):
             output_index = _validate_boolean(output_index)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         simulation = _simulate(self, 1, initial_state, None, None, rng)
 
@@ -394,19 +377,19 @@ class HiddenMarkovModel(_Model):
 
         return value
 
-    def predict(self, algorithm: str, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_prediction:
+    def predict(self, prediction_type: str, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_prediction:
 
         """
         The method calculates the log probability and the most probable states path of an observed sequence of symbols.
 
         | **Notes:**
 
-        - If the maximum a posteriori algorithm is used and the observed sequence of symbols cannot be decoded, then :py:class:`None` is returned.
-        - If the maximum likelihood algorithm is used and the observed sequence of symbols produces null transition probabilities, then :py:class:`None` is returned.
+        - If the maximum a posteriori prediction is used and the observed sequence of symbols cannot be decoded, then :py:class:`None` is returned.
+        - If the maximum likelihood prediction is used and the observed sequence of symbols produces null transition probabilities, then :py:class:`None` is returned.
 
-        :param algorithm:
-         - **map** for the maximum a posteriori algorithm;
-         - **mle** or **viterbi** for the maximum likelihood algorithm.
+        :param prediction_type:
+         - **map** for the maximum a posteriori prediction;
+         - **mle** or **viterbi** for the maximum likelihood prediction.
         :param symbols: the observed sequence of symbols.
         :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param output_indices: a boolean indicating whether to output the state indices.
@@ -415,14 +398,14 @@ class HiddenMarkovModel(_Model):
 
         try:
 
-            algorithm = _validate_enumerator(algorithm, ['map', 'mle', 'viterbi'])
+            prediction_type = _validate_enumerator(prediction_type, ['map', 'mle', 'viterbi'])
             symbols = _validate_sequence(symbols, self.__symbols)
-            initial_status = _np_full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
+            initial_status = _np.full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _predict(algorithm, self.__p, self.__e, initial_status, symbols)
+        value = _predict(prediction_type, self.__p, self.__e, initial_status, symbols)
 
         if value is not None and not output_indices:
             value = (value[0], [*map(self.__states.__getitem__, value[1])])
@@ -454,7 +437,7 @@ class HiddenMarkovModel(_Model):
             symbols = list(range(self.__size[1])) if symbols is None else _validate_labels_current(symbols, self.__symbols, True, 2)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         p, e, states_out, symbols_out = _restrict(self.__p, self.__e, self.__states, self.__symbols, states, symbols)
 
@@ -487,7 +470,7 @@ class HiddenMarkovModel(_Model):
             output_indices = _validate_boolean(output_indices)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         value = _simulate(self, steps, initial_state, final_state, final_symbol, rng)
 
@@ -534,7 +517,7 @@ class HiddenMarkovModel(_Model):
             file_path, file_extension = _validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         d = self.to_dictionary()
 
@@ -553,7 +536,7 @@ class HiddenMarkovModel(_Model):
         The method returns a directed graph representing the hidden Markov model.
         """
 
-        graph = _cp_deepcopy(self.__digraph)
+        graph = _cp.deepcopy(self.__digraph)
 
         return graph
 
@@ -564,7 +547,7 @@ class HiddenMarkovModel(_Model):
         | The first item is the transition matrix and the second item is the emission matrix.
         """
 
-        m = (_np_copy(self.__p), _np_copy(self.__e))
+        m = (_np.copy(self.__p), _np.copy(self.__e))
 
         return m
 
@@ -584,7 +567,7 @@ class HiddenMarkovModel(_Model):
             state_origin = _validate_label(state_origin, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         value = self.__p[state_origin, state_target]
 
@@ -612,7 +595,7 @@ class HiddenMarkovModel(_Model):
             sequence_symbols = _validate_sequence(sequence_symbols, possible_symbols)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         if len(list(set(possible_states) & set(possible_symbols))) > 0:  # pragma: no cover
             raise _ValidationError('State names and symbol names must be different.')
@@ -621,6 +604,52 @@ class HiddenMarkovModel(_Model):
             raise ValueError('The observed sequence of states and the observed sequence of symbols must have the same length.')
 
         p, e = _estimate(len(possible_states), len(possible_symbols), sequence_states, sequence_symbols, True)
+        hmm = HiddenMarkovModel(p, e, possible_states, possible_symbols)
+
+        return hmm
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def fit(fitting_type: str, possible_states: _tlist_str, possible_symbols: _tlist_str, p_guess: _tarray, e_guess: _tarray, symbols: _thmm_symbols_ext, initial_status: _ostatus = None) -> _thmm:
+
+        """
+        The method fits a hidden Markov model from an initial guess and one or more observed sequences of symbols.
+
+        :param fitting_type:.
+         - **baum-welch** for the Baum-Welch fitting;
+         - **map** for the maximum a posteriori fitting;
+         - **mle** or **viterbi** for the maximum likelihood fitting.
+        :param possible_states: the possible states of the model.
+        :param possible_symbols: the possible symbols of the model.
+        :param p_guess: the initial transition matrix guess.
+        :param e_guess: the initial emission matrix guess.
+        :param symbols: the observed sequence(s) of symbols.
+        :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the fitting algorithm fails to converge.
+        """
+
+        try:
+
+            fitting_type = _validate_enumerator(fitting_type, ['baum-welch', 'map', 'mle', 'viterbi'])
+            possible_states = _validate_labels_input(possible_states)
+            possible_symbols = _validate_labels_input(possible_symbols)
+            p_guess = _validate_transition_matrix(p_guess, len(possible_states))
+            e_guess = _validate_emission_matrix(e_guess, p_guess.shape[1])
+            symbols = _validate_sequences(symbols, possible_symbols, True)
+            initial_status = _np.full(len(possible_states), 1.0 / len(possible_states), dtype=float) if initial_status is None else _validate_status(initial_status, possible_states)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if len(list(set(possible_states) & set(possible_symbols))) > 0:  # pragma: no cover
+            raise _ValidationError('State names and symbol names must be different.')
+
+        p, e, error_message = _fit(fitting_type, p_guess, e_guess, initial_status, symbols)
+
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
+
         hmm = HiddenMarkovModel(p, e, possible_states, possible_symbols)
 
         return hmm
@@ -643,7 +672,7 @@ class HiddenMarkovModel(_Model):
             d = _validate_dictionary(d, ['P', 'E'])
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         states = [key[1] for key in d.keys() if key[0] == 'P' and key[1] == key[2]]
         n = len(states)
@@ -657,7 +686,7 @@ class HiddenMarkovModel(_Model):
         if k < 2:  # pragma: no cover
             raise ValueError('The size of the emission matrix defined by the dictionary must be greater than or equal to 2.')
 
-        p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
+        p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
 
         for (reference, element_from, element_to), probability in d.items():
             if reference == 'E':
@@ -665,10 +694,10 @@ class HiddenMarkovModel(_Model):
             else:
                 p[states.index(element_from), states.index(element_to)] = probability
 
-        if not _np_allclose(_np_sum(p, axis=1), _np_ones(n, dtype=float)):  # pragma: no cover
+        if not _np.allclose(_np.sum(p, axis=1), _np.ones(n, dtype=float)):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.0.')
 
-        if not _np_allclose(_np_sum(e, axis=1), _np_ones(n, dtype=float)):  # pragma: no cover
+        if not _np.allclose(_np.sum(e, axis=1), _np.ones(n, dtype=float)):  # pragma: no cover
             raise ValueError('The rows of the emission matrix defined by the dictionary must sum to 1.0.')
 
         hmm = HiddenMarkovModel(p, e, states, symbols)
@@ -727,7 +756,7 @@ class HiddenMarkovModel(_Model):
             file_path, file_extension = _validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], False)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         if file_extension == '.csv':
             d = _read_csv(False, file_path)
@@ -750,7 +779,7 @@ class HiddenMarkovModel(_Model):
         if k < 2:  # pragma: no cover
             raise ValueError('The size of the emission matrix defined by the dictionary must be greater than or equal to 2.')
 
-        p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
+        p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
 
         for (reference, element_from, element_to), probability in d.items():
             if reference == 'E':
@@ -758,10 +787,10 @@ class HiddenMarkovModel(_Model):
             else:
                 p[states.index(element_from), states.index(element_to)] = probability
 
-        if not _np_allclose(_np_sum(p, axis=1), _np_ones(n, dtype=float)):  # pragma: no cover
+        if not _np.allclose(_np.sum(p, axis=1), _np.ones(n, dtype=float)):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.0.')
 
-        if not _np_allclose(_np_sum(e, axis=1), _np_ones(n, dtype=float)):  # pragma: no cover
+        if not _np.allclose(_np.sum(e, axis=1), _np.ones(n, dtype=float)):  # pragma: no cover
             raise ValueError('The rows of the emission matrix defined by the dictionary must sum to 1.0.')
 
         hmm = HiddenMarkovModel(p, e, states, symbols)
@@ -784,14 +813,14 @@ class HiddenMarkovModel(_Model):
             graph = _validate_graph(graph, 2, [('type', ('E', 'P'))])
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         nodes = graph.nodes(data='layer', default=-1)
         states = [node[0] for node in nodes if node[1] == 1]
         symbols = [node[0] for node in nodes if node[1] == 0]
 
         n, k = len(states), len(symbols)
-        p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
+        p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
 
         edge_types = graph.edges(data='type', default='')
         edge_weights = graph.edges(data='weight', default=0.0)
@@ -810,21 +839,21 @@ class HiddenMarkovModel(_Model):
                 j = states.index(edge[1])
                 p[i, j] = float(edge_weight)
 
-        p_sums, e_sums = _np_sum(p, axis=1), _np_sum(e, axis=1)
+        p_sums, e_sums = _np.sum(p, axis=1), _np.sum(e, axis=1)
 
         for i in range(n):
 
             p_sums_i = p_sums[i]
 
-            if _np_isclose(p_sums_i, 0.0):  # pragma: no cover
-                p[i, :] = _np_ones(n, dtype=float) / n
+            if _np.isclose(p_sums_i, 0.0):  # pragma: no cover
+                p[i, :] = _np.ones(n, dtype=float) / n
             else:
                 p[i, :] /= p_sums_i
 
             e_sums_i = e_sums[i]
 
-            if _np_isclose(e_sums_i, 0.0):  # pragma: no cover
-                e[i, :] = _np_ones(k, dtype=float) / k
+            if _np.isclose(e_sums_i, 0.0):  # pragma: no cover
+                e[i, :] = _np.ones(k, dtype=float) / k
             else:
                 e[i, :] /= e_sums_i
 
@@ -855,28 +884,28 @@ class HiddenMarkovModel(_Model):
             symbols = _create_labels(me.shape[1], 'E') if symbols is None else _validate_labels_input(symbols, me.shape[1])
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         if len(list(set(states) & set(symbols))) > 0:  # pragma: no cover
             raise _ValidationError('State names and symbol names must be different.')
 
         n, k = mp.shape[0], me.shape[1]
-        p, e = _np_copy(mp), _np_copy(me)
-        p_sums, e_sums = _np_sum(p, axis=1), _np_sum(e, axis=1)
+        p, e = _np.copy(mp), _np.copy(me)
+        p_sums, e_sums = _np.sum(p, axis=1), _np.sum(e, axis=1)
 
         for i in range(n):
 
             p_sums_i = p_sums[i]
 
-            if _np_isclose(p_sums_i, 0.0):  # pragma: no cover
-                p[i, :] = _np_ones(n, dtype=float) / n
+            if _np.isclose(p_sums_i, 0.0):  # pragma: no cover
+                p[i, :] = _np.ones(n, dtype=float) / n
             else:
                 p[i, :] /= p_sums_i
 
             e_sums_i = e_sums[i]
 
-            if _np_isclose(e_sums_i, 0.0):  # pragma: no cover
-                e[i, :] = _np_ones(k, dtype=float) / k
+            if _np.isclose(e_sums_i, 0.0):  # pragma: no cover
+                e[i, :] = _np.ones(k, dtype=float) / k
             else:
                 e[i, :] /= e_sums_i
 
@@ -917,16 +946,16 @@ class HiddenMarkovModel(_Model):
                 states = _validate_labels_input(states, n)
 
             p_zeros = _validate_integer(p_zeros, lower_limit=(0, False))
-            p_mask = _np_full((n, n), _np_nan, dtype=float) if p_mask is None else _validate_mask(p_mask, n, n)
+            p_mask = _np.full((n, n), _np.nan, dtype=float) if p_mask is None else _validate_mask(p_mask, n, n)
 
             if symbols is not None:
                 symbols = _validate_labels_input(symbols, k)
 
             e_zeros = _validate_integer(e_zeros, lower_limit=(0, False))
-            e_mask = _np_full((n, k), _np_nan, dtype=float) if e_mask is None else _validate_mask(e_mask, n, k)
+            e_mask = _np.full((n, k), _np.nan, dtype=float) if e_mask is None else _validate_mask(e_mask, n, k)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
+            raise _create_validation_error(ex, _ins.trace()) from None
 
         p, e, states_out, symbols_out, error_message = _random(rng, n, k, p_zeros, p_mask, e_zeros, e_mask)
 
@@ -940,48 +969,5 @@ class HiddenMarkovModel(_Model):
             raise _ValidationError('State names and symbol names must be different.')
 
         hmm = HiddenMarkovModel(p, e, states, symbols)
-
-        return hmm
-
-    @staticmethod
-    @_object_mark(instance_generator=True)
-    def train(algorithm: str, symbols: _thmm_symbols_ext, possible_states: _tlist_str, p_guess: _tarray, possible_symbols: _tlist_str, e_guess: _tarray) -> _thmm:
-
-        """
-        The method performs the algorithmic estimation of transition and emission probabilities from an initial guess and one or more observed sequences of symbols.
-
-        :param algorithm:
-         - **baum-welch** for the Baum-Welch algorithm;
-         - **viterbi** for the Viterbi algorithm.
-        :param symbols: the observed sequence(s) of symbols.
-        :param p_guess: the initial transition matrix guess.
-        :param possible_states: the possible states of the model.
-        :param e_guess: the initial emission matrix guess.
-        :param possible_symbols: the possible symbols of the model.
-        :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the algorithm fails to converge.
-        """
-
-        try:
-
-            possible_states = _validate_labels_input(possible_states)
-            possible_symbols = _validate_labels_input(possible_symbols)
-            symbols = _validate_sequences(symbols, possible_symbols, True)
-            algorithm = _validate_enumerator(algorithm, ['baum-welch', 'viterbi'])
-            p_guess = _validate_transition_matrix(p_guess, len(possible_states))
-            e_guess = _validate_emission_matrix(e_guess, p_guess.shape[1])
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins_trace()) from None
-
-        if len(list(set(possible_states) & set(possible_symbols))) > 0:  # pragma: no cover
-            raise _ValidationError('State names and symbol names must be different.')
-
-        p, e, error_message = _train(algorithm, p_guess, e_guess, symbols)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
-        hmm = HiddenMarkovModel(p, e, possible_states, possible_symbols)
 
         return hmm

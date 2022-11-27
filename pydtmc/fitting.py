@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'fit_function',
-    'fit_sequence'
+    'hmm_fit',
+    'mc_fit_function',
+    'mc_fit_sequence'
 ]
 
 
@@ -12,38 +13,27 @@ __all__ = [
 
 # Libraries
 
-from numpy import (
-    allclose as _np_allclose,
-    arange as _np_arange,
-    array as _np_array,
-    concatenate as _np_concatenate,
-    copy as _np_copy,
-    cos as _np_cos,
-    fix as _np_fix,
-    isfinite as _np_isfinite,
-    isreal as _np_isreal,
-    kron as _np_kron,
-    linspace as _np_linspace,
-    ones as _np_ones,
-    ones_like as _np_ones_like,
-    outer as _np_outer,
-    pi as _np_pi,
-    repeat as _np_repeat,
-    sum as _np_sum,
-    where as _np_where,
-    zeros as _np_zeros,
-    zeros_like as _np_zeros_like
-)
+import numpy as _np
+import numpy.linalg as _npl
 
 # Internal
 
 from .custom_types import (
     tany as _tany,
+    tarray as _tarray,
     tfitting_res as _tfitting_res,
+    thmm_params_res as _thmm_params_res,
     tinterval as _tinterval,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
+    tlists_int as _tlists_int,
     ttfunc as _ttfunc
+)
+
+from .hmm import (
+    decode as _hmm_decode,
+    estimate as _hmm_estimate,
+    predict as _hmm_predict
 )
 
 
@@ -51,8 +41,136 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
+def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distribution: _tarray, symbols: _tlists_int) -> _thmm_params_res:
+
+    def _check_convergence(cc_ll, cc_ll_previous, cc_p_guess, cc_p_guess_previous, cc_e_guess, cc_e_guess_previous):
+
+        delta = abs(cc_ll - cc_ll_previous) / (1.0 + abs(cc_ll_previous))
+
+        if delta >= 1e-6:
+            return False
+
+        delta = _npl.norm(cc_p_guess - cc_p_guess_previous, ord=_np.inf) / cc_p_guess.shape[1]
+
+        if delta >= 1e-6:
+            return False
+
+        delta = _npl.norm(cc_e_guess - cc_e_guess_previous, ord=_np.inf) / cc_e_guess.shape[1]
+
+        if delta >= 1e-6:
+            return False
+
+        return True
+
+    # noinspection PyUnusedLocal
+    def _fit_baum_welch(fbw_fitting_type, fwb_p_guess, fwb_e_guess, fwb_initial_distribution, fbw_symbols):  # pylint: disable=unused-argument
+
+        decoding = _hmm_decode(fwb_p_guess, fwb_e_guess, fwb_initial_distribution, fbw_symbols, True)
+
+        if decoding is None:
+            return None
+
+        log_prob, _, backward, forward, s = decoding
+        lb, lf, lp, le = _np.log(backward), _np.log(forward), _np.log(fwb_p_guess), _np.log(fwb_e_guess)
+
+        z = len(fbw_symbols)
+        symbols_all = [-1] + fbw_symbols
+
+        pc, ec = _np.zeros_like(fwb_p_guess), _np.zeros_like(fwb_e_guess)
+
+        for u in range(n):
+            for v in range(n):
+                lp_uv = lp[u, v]
+                for w in range(z):
+                    wp1 = w + 1
+                    pc[u, v] += _np.exp(lb[v, wp1] + lf[u, w] + lp_uv + le[v, symbols_all[wp1]]) / s[wp1]
+
+        for u in range(n):
+            for v in range(k):
+                indices = [s == v for s in symbols_all]
+                ec[u, v] += _np.sum(_np.exp(lb[u, indices] + lf[u, indices]))
+
+        return log_prob, pc, ec
+
+    def _fit_prediction(fp_fitting_type, fp_p_guess, fp_e_guess, fp_initial_distribution, fp_symbols):
+
+        prediction = _hmm_predict(fp_fitting_type, fp_p_guess, fp_e_guess, fp_initial_distribution, fp_symbols)
+
+        if prediction is None:
+            return None
+
+        log_prob, states = prediction
+        pc, ec = _hmm_estimate(n, k, states, fp_symbols, False)
+
+        return log_prob, pc, ec
+
+    n, k = p_guess.shape[1], e_guess.shape[1]
+    p, e = _np.zeros_like(p_guess), _np.zeros_like(e_guess)
+    ll, iterations = 1.0, 0
+
+    if fitting_type == 'baum-welch':
+        fitting_func = _fit_baum_welch
+    else:
+        fitting_func = _fit_prediction
+
+    while iterations < 500:
+
+        ll_previous, p_guess_previous, e_guess_previous = ll, _np.copy(p_guess), _np.copy(e_guess)
+        ll = 0.0
+
+        for symbols_current in symbols:
+
+            result = fitting_func(fitting_type, p_guess, e_guess, initial_distribution, symbols_current)
+
+            if result is None:
+                continue
+
+            log_prob_current, p_current, e_current = result
+            ll += log_prob_current
+            p += p_current
+            e += e_current
+
+            print('P', p)
+
+        total_transitions = _np.sum(p, axis=1, keepdims=True)
+
+        if _np.any(total_transitions == 0.0):
+            return None, None, 'The fitting algorithm produced null transition probabilities.'
+
+        p_guess = p / total_transitions
+
+        total_emissions = _np.sum(e, axis=1, keepdims=True)
+
+        if _np.any(total_transitions == 0.0):
+            return None, None, 'The fitting algorithm produced null emission probabilities.'
+
+        e_guess = e / total_emissions
+
+        zero_indices = _np.where(total_transitions == 0.0)[0]
+
+        if zero_indices.size > 0:
+            p_guess[zero_indices, :] = 0.0
+            p_guess[_np.ix_(zero_indices, zero_indices)] = 1.0
+
+        p_guess[_np.isnan(p_guess)] = 0.0
+        e_guess[_np.isnan(e_guess)] = 0.0
+
+        converged = _check_convergence(ll, ll_previous, p_guess, p_guess_previous, e_guess, e_guess_previous)
+
+        if converged:
+            p, e = _np.copy(p_guess), _np.copy(e_guess)
+            return p, e, None
+
+        p = _np.zeros((n, n), dtype=float)
+        e = _np.zeros((n, k), dtype=float)
+
+        iterations += 1
+
+    return None, None, 'The fitting algorithm failed to converge.'
+
+
 # noinspection PyBroadException
-def fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible_states: _tlist_str, f: _ttfunc) -> _tfitting_res:
+def mc_fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible_states: _tlist_str, f: _ttfunc) -> _tfitting_res:
 
     size = len(possible_states)
 
@@ -61,29 +179,29 @@ def fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible
 
     if quadrature_type == 'gauss-chebyshev':
 
-        t1 = _np_arange(size) + 0.5
-        t2 = _np_arange(0.0, size, 2.0)
-        t3 = _np_concatenate((_np_array([1.0]), -2.0 / (_np_arange(1.0, size - 1.0, 2) * _np_arange(3.0, size + 1.0, 2))))
+        t1 = _np.arange(size) + 0.5
+        t2 = _np.arange(0.0, size, 2.0)
+        t3 = _np.concatenate((_np.array([1.0]), -2.0 / (_np.arange(1.0, size - 1.0, 2) * _np.arange(3.0, size + 1.0, 2))))
 
-        nodes = ((b + a) / 2.0) - ((b - a) / 2.0) * _np_cos((_np_pi / size) * t1)
-        weights = ((b - a) / size) * _np_cos((_np_pi / size) * _np_outer(t1, t2)) @ t3
+        nodes = ((b + a) / 2.0) - ((b - a) / 2.0) * _np.cos((_np.pi / size) * t1)
+        weights = ((b - a) / size) * _np.cos((_np.pi / size) * _np.outer(t1, t2)) @ t3
 
     elif quadrature_type == 'gauss-legendre':
 
-        nodes = _np_zeros(size, dtype=float)
-        weights = _np_zeros(size, dtype=float)
+        nodes = _np.zeros(size, dtype=float)
+        weights = _np.zeros(size, dtype=float)
 
         iterations = 0
-        i = _np_arange(int(_np_fix((size + 1.0) / 2.0)))
+        i = _np.arange(int(_np.fix((size + 1.0) / 2.0)))
         pp = 0.0
-        z = _np_cos(_np_pi * ((i + 1.0) - 0.25) / (size + 0.5))
+        z = _np.cos(_np.pi * ((i + 1.0) - 0.25) / (size + 0.5))
 
         while iterations < 100:
 
             iterations += 1
 
-            p1 = _np_ones_like(z, dtype=float)
-            p2 = _np_zeros_like(z, dtype=float)
+            p1 = _np.ones_like(z, dtype=float)
+            p2 = _np.zeros_like(z, dtype=float)
 
             for j in range(1, size + 1):
                 p3 = p2
@@ -92,10 +210,10 @@ def fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible
 
             pp = size * (((z * p1) - p2) / (z**2.0 - 1.0))
 
-            z1 = _np_copy(z)
+            z1 = _np.copy(z)
             z = z1 - (p1 / pp)
 
-            if _np_allclose(abs(z - z1), 0.0):
+            if _np.allclose(abs(z - z1), 0.0):
                 break
 
         if iterations == 100:  # pragma: no cover
@@ -114,26 +232,26 @@ def fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible
 
         r = b - a
 
-        nodes = _np_arange(1.0, size + 1.0) * 2.0**0.5
-        nodes -= _np_fix(nodes)
+        nodes = _np.arange(1.0, size + 1.0) * 2.0**0.5
+        nodes -= _np.fix(nodes)
         nodes = a + (nodes * r)
 
-        weights = (r / size) * _np_ones(size, dtype=float)
+        weights = (r / size) * _np.ones(size, dtype=float)
 
     elif quadrature_type == 'simpson-rule':
 
-        nodes = _np_linspace(a, b, size)
+        nodes = _np.linspace(a, b, size)
 
-        weights = _np_kron(_np_ones((size + 1) // 2, dtype=float), _np_array([2.0, 4.0]))
+        weights = _np.kron(_np.ones((size + 1) // 2, dtype=float), _np.array([2.0, 4.0]))
         weights = weights[:size]
         weights[0] = weights[-1] = 1
         weights = ((nodes[1] - nodes[0]) / 3.0) * weights
 
     elif quadrature_type == 'trapezoid-rule':
 
-        nodes = _np_linspace(a, b, size)
+        nodes = _np.linspace(a, b, size)
 
-        weights = (nodes[1] - nodes[0]) * _np_ones(size)
+        weights = (nodes[1] - nodes[0]) * _np.ones(size)
         weights[0] *= 0.5
         weights[-1] *= 0.5
 
@@ -141,10 +259,10 @@ def fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible
 
         bandwidth = (b - a) / size
 
-        nodes = (_np_arange(size) + 0.5) * bandwidth
-        weights = _np_repeat(bandwidth, size)
+        nodes = (_np.arange(size) + 0.5) * bandwidth
+        weights = _np.repeat(bandwidth, size)
 
-    p = _np_zeros((size, size), dtype=float)
+    p = _np.zeros((size, size), dtype=float)
 
     for i in range(size):
 
@@ -157,25 +275,25 @@ def fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible
             except Exception:  # pragma: no cover
                 return None, 'The transition function returned an invalid value.'
 
-            if not _np_isfinite(f_result) or not _np_isreal(f_result):  # pragma: no cover
+            if not _np.isfinite(f_result) or not _np.isreal(f_result):  # pragma: no cover
                 return None, 'The transition function returned an invalid value.'
 
             p[i, j] = f_result * weights[j]
 
-    p[_np_where(~p.any(axis=1)), :] = _np_ones(size, dtype=float)
-    p /= _np_sum(p, axis=1, keepdims=True)
+    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
+    p /= _np.sum(p, axis=1, keepdims=True)
 
     return p, None
 
 
-def fit_sequence(fitting_type: str, fitting_param: _tany, possible_states: _tlist_str, sequence: _tlist_int) -> _tfitting_res:
+def mc_fit_sequence(fitting_type: str, fitting_param: _tany, possible_states: _tlist_str, sequence: _tlist_int) -> _tfitting_res:
 
     size = len(possible_states)
-    p = _np_zeros((size, size), dtype=float)
+    p = _np.zeros((size, size), dtype=float)
 
     if fitting_type == 'map':
 
-        f = _np_zeros((size, size), dtype=int)
+        f = _np.zeros((size, size), dtype=int)
         eq_prob = 1.0 / size
 
         for i, j in zip(sequence[:-1], sequence[1:]):
@@ -183,7 +301,7 @@ def fit_sequence(fitting_type: str, fitting_param: _tany, possible_states: _tlis
 
         for i in range(size):
 
-            rt = _np_sum(f[i, :]) + _np_sum(fitting_param[i, :])
+            rt = _np.sum(f[i, :]) + _np.sum(fitting_param[i, :])
 
             if rt == size:
 
@@ -206,7 +324,7 @@ def fit_sequence(fitting_type: str, fitting_param: _tany, possible_states: _tlis
         if fitting_param:
             p += 0.001
 
-    p[_np_where(~p.any(axis=1)), :] = _np_ones(size, dtype=float)
-    p /= _np_sum(p, axis=1, keepdims=True)
+    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
+    p /= _np.sum(p, axis=1, keepdims=True)
 
     return p, None

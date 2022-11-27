@@ -11,18 +11,14 @@ __all__ = [
 
 # Standard
 
-# noinspection PyPep8Naming
-from abc import (
-    ABC as _abc_ABC,
-    abstractmethod as _abc_abstractmethod
-)
+import abc as _abc
 
 
 ###########
 # CLASSES #
 ###########
 
-class Model(_abc_ABC):  # pragma: no cover
+class Model(_abc.ABC):  # pragma: no cover
 
     """
     Defines an abstract base class used to implement package models.
@@ -35,29 +31,29 @@ class Model(_abc_ABC):  # pragma: no cover
 
         return super().__new__(cls)
 
-    @_abc_abstractmethod
+    @_abc.abstractmethod
     def to_dictionary(self):
         pass
 
-    @_abc_abstractmethod
+    @_abc.abstractmethod
     def to_file(self, file_path):
         pass
 
-    @_abc_abstractmethod
+    @_abc.abstractmethod
     def to_graph(self):
         pass
 
     @staticmethod
-    @_abc_abstractmethod
+    @_abc.abstractmethod
     def from_dictionary(d):
         pass
 
     @staticmethod
-    @_abc_abstractmethod
+    @_abc.abstractmethod
     def from_file(file_path):
         pass
 
     @staticmethod
-    @_abc_abstractmethod
+    @_abc.abstractmethod
     def from_graph(graph):
         pass

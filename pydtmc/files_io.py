@@ -18,30 +18,11 @@ __all__ = [
 
 # Standard
 
-# noinspection PyPep8Naming
-from csv import (
-    QUOTE_MINIMAL as _csv_QUOTE_MINIMAL,
-    reader as _csv_reader,
-    writer as _csv_writer
-)
-
-from io import (
-    BytesIO as _io_BytesIO
-)
-
-from json import (
-    dump as _json_dump,
-    load as _json_load
-)
-
-from xml.etree import (
-    ElementTree as _xml_ElementTree
-)
-
-from xml.etree.ElementTree import (
-    Element as _xml_Element,
-    SubElement as _xml_SubElement
-)
+import csv as _csv
+import io as _io
+import json as _json
+import xml.etree as _xmle
+import xml.etree.ElementTree as _xmlet
 
 try:
     from defusedxml.ElementTree import parse as _xml_parse
@@ -50,11 +31,7 @@ except ImportError:  # pragma: no cover
 
 # Libraries
 
-from numpy import (
-    floating as _np_floating,
-    integer as _np_integer,
-    zeros as _np_zeros
-)
+import numpy as _np
 
 # Internal
 
@@ -193,7 +170,7 @@ def read_csv(mc: bool, file_path: _tpath) -> _tobj_dict:
 
     with open(file_path, mode='r', newline='') as file:
         file.seek(0)
-        reader = _csv_reader(file)
+        reader = _csv.reader(file)
         data = [row for _, row in enumerate(reader)]
 
     d = _read_csv_mc(data) if mc else _read_csv_hmm(data)
@@ -206,7 +183,7 @@ def read_json(mc: bool, file_path: _tpath) -> _tobj_dict:
 
     with open(file_path, mode='r') as file:
         file.seek(0)
-        data = _json_load(file)
+        data = _json.load(file)
 
     if not isinstance(data, list):  # pragma: no cover
         raise ValueError('The file format is not compliant.')
@@ -232,7 +209,7 @@ def read_json(mc: bool, file_path: _tpath) -> _tobj_dict:
 
             if param_type == 'number':
 
-                if not isinstance(value, (float, int, _np_floating, _np_integer)):  # pragma: no cover
+                if not isinstance(value, (float, int, _np.floating, _np.integer)):  # pragma: no cover
                     raise ValueError('The file contains invalid elements.')
 
                 value = float(value)
@@ -363,7 +340,7 @@ def write_csv(mc: bool, d: _tobj_dict, file_path: _tpath):
         states = [key[1] for key in wch_d.keys() if key[0] == 'P' and key[1] == key[2]]
         symbols = [key[2] for key in wch_d.keys() if key[0] == 'E' and key[1] == states[0]]
         n, k = len(states), len(symbols)
-        p, e = _np_zeros((n, n), dtype=float), _np_zeros((n, k), dtype=float)
+        p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
 
         for (reference, element_from, element_to), probability in d.items():
             if reference == 'E':
@@ -384,7 +361,7 @@ def write_csv(mc: bool, d: _tobj_dict, file_path: _tpath):
         states = [key[0] for key in wcm_d.keys() if key[0] == key[1]]
         size = len(states)
 
-        p = _np_zeros((size, size), dtype=float)
+        p = _np.zeros((size, size), dtype=float)
 
         for (state_from, state_to), probability in d.items():
             p[states.index(state_from), states.index(state_to)] = probability
@@ -401,7 +378,7 @@ def write_csv(mc: bool, d: _tobj_dict, file_path: _tpath):
 
     with open(file_path, mode='w', newline='') as file:
 
-        writer = _csv_writer(file, delimiter=',', quoting=_csv_QUOTE_MINIMAL, quotechar='"')
+        writer = _csv.writer(file, delimiter=',', quoting=_csv.QUOTE_MINIMAL, quotechar='"')
 
         writer.writerow(header_out)
 
@@ -427,7 +404,7 @@ def write_json(mc: bool, d: _tobj_dict, file_path: _tpath):
         data.append(item)
 
     with open(file_path, mode='w') as file:
-        _json_dump(data, file)
+        _json.dump(data, file)
 
 
 def write_txt(d: _tobj_dict, file_path: _tpath):
@@ -451,20 +428,20 @@ def write_xml(mc: bool, d: _tobj_dict, file_path: _tpath):
     valid_params_keys = tuple((_valid_params_mc if mc else _valid_params_hmm).keys())
     root_tag = 'MarkovChain' if mc else 'HiddenMarkovModel'
 
-    root = _xml_Element(root_tag)
+    root = _xmlet.Element(root_tag)
 
     for key, value in d.items():
 
-        item = _xml_SubElement(root, 'Item')
+        item = _xmlet.SubElement(root, 'Item')
 
         for index, attribute in enumerate(key):
             item.set(valid_params_keys[index], attribute)
 
         item.set(valid_params_keys[-1], str(value))
 
-    document = _xml_ElementTree.ElementTree(root)
+    document = _xmle.ElementTree.ElementTree(root)
 
-    with _io_BytesIO() as buffer:
+    with _io.BytesIO() as buffer:
         document.write(buffer, 'utf-8', True)
         xml_content = str(buffer.getvalue(), 'utf-8')
 

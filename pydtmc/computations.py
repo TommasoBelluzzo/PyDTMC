@@ -19,61 +19,15 @@ __all__ = [
 
 # Standard
 
-from itertools import (
-    chain as _it_chain
-)
-
-from math import (
-    gcd as _math_gcd
-)
+import itertools as _it
+import math as _mt
 
 # Libraries
 
-from numpy import (
-    abs as _np_abs,
-    any as _np_any,
-    append as _np_append,
-    apply_over_axes as _np_apply_over_axes,
-    argsort as _np_argsort,
-    argwhere as _np_argwhere,
-    array as _np_array,
-    array_equal as _np_array_equal,
-    copy as _np_copy,
-    delete as _np_delete,
-    diag as _np_diag,
-    dot as _np_dot,
-    eye as _np_eye,
-    isclose as _np_isclose,
-    log2 as _np_log2,
-    minimum as _np_minimum,
-    nan_to_num as _np_nan_to_num,
-    newaxis as _np_newaxis,
-    prod as _np_prod,
-    real as _np_real,
-    remainder as _np_remainder,
-    sign as _np_sign,
-    sort as _np_sort,
-    sum as _np_sum,
-    transpose as _np_transpose,
-    unique as _np_unique,
-    zeros as _np_zeros
-)
-
-from numpy.linalg import (
-    eig as _npl_eig,
-    eigvals as _npl_eigvals,
-    inv as _npl_inv,
-    solve as _npl_solve
-)
-
-from networkx import (
-    shortest_path_length as _nx_shortest_path_length,
-    strongly_connected_components as _nx_strongly_connected_components
-)
-
-from scipy.stats import (
-    chi2 as _sps_chi2
-)
+import networkx as _nx
+import numpy as _np
+import numpy.linalg as _npl
+import scipy.stats as _sps
 
 # Internal
 
@@ -95,7 +49,7 @@ from .custom_types import (
 
 def _calculate_period(graph):
 
-    sccs = list(_nx_strongly_connected_components(graph))
+    sccs = list(_nx.strongly_connected_components(graph))
 
     g = 0
 
@@ -126,7 +80,7 @@ def _calculate_period(graph):
 
                     if level is not None:
 
-                        g = _math_gcd(g, previous_level - level)
+                        g = _mt.gcd(g, previous_level - level)
 
                         if g == 1:
                             return 1
@@ -144,7 +98,7 @@ def _calculate_period(graph):
 
 def calculate_periods(graph: _tgraph) -> _tlist_int:
 
-    sccs = list(_nx_strongly_connected_components(graph))
+    sccs = list(_nx.strongly_connected_components(graph))
 
     classes = [sorted(scc) for scc in sccs]
     indices = sorted(classes, key=lambda x: (-len(x), x[0]))
@@ -156,7 +110,7 @@ def calculate_periods(graph: _tgraph) -> _tlist_int:
         scc_reachable = scc.copy()
 
         for c in scc_reachable:
-            spl = _nx_shortest_path_length(graph, c).keys()
+            spl = _nx.shortest_path_length(graph, c).keys()
             scc_reachable = scc_reachable.union(spl)
 
         index = indices.index(sorted(scc))
@@ -173,7 +127,7 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
 
     observed = observed.astype(float)
 
-    if _np_any(observed < 0.0):  # pragma: no cover
+    if _np.any(observed < 0.0):  # pragma: no cover
         raise ValueError("The table of observed frequencies must contain only non-negative values.")
 
     d = observed.ndim
@@ -182,12 +136,12 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
     marginals = []
 
     for k in d_range:
-        marginal = _np_apply_over_axes(_np_sum, observed, [j for j in d_range if j != k])
+        marginal = _np.apply_over_axes(_np.sum, observed, [j for j in d_range if j != k])
         marginals.append(marginal)
 
-    expected = _np_prod(marginals) / (_np_sum(observed) ** (d - 1))
+    expected = _np.prod(marginals) / (_np.sum(observed) ** (d - 1))
 
-    if _np_any(expected == 0.0):  # pragma: no cover
+    if _np.any(expected == 0.0):  # pragma: no cover
         raise ValueError("The internally computed table of expected frequencies contains null elements.")
 
     dof = expected.size - sum(expected.shape) + d - 1
@@ -198,20 +152,20 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
 
         if correction and dof == 1:
             diff = expected - observed
-            direction = _np_sign(diff)
-            magnitude = _np_minimum(0.5, _np_abs(diff))
+            direction = _np.sign(diff)
+            magnitude = _np.minimum(0.5, _np.abs(diff))
             observed = observed + (magnitude * direction)
 
-        chi2 = _np_sum((observed - expected)**2.0 / expected)
-        p_value = _sps_chi2.sf(chi2, dof - 2)
+        chi2 = _np.sum((observed - expected)**2.0 / expected)
+        p_value = _sps.chi2.sf(chi2, dof - 2)
 
     return chi2, p_value
 
 
 def eigenvalues_sorted(m: _tarray) -> _tarray:
 
-    evalues = _npl_eigvals(m)
-    evalues = _np_sort(_np_abs(evalues))
+    evalues = _npl.eigvals(m)
+    evalues = _np.sort(_np.abs(evalues))
 
     return evalues
 
@@ -220,11 +174,11 @@ def find_cyclic_classes(p: _tarray) -> _tlists_int:
 
     size = p.shape[0]
 
-    v = _np_zeros(size, dtype=int)
+    v = _np.zeros(size, dtype=int)
     v[0] = 1
 
-    w = _np_array([], dtype=int)
-    t = _np_array([0], dtype=int)
+    w = _np.array([], dtype=int)
+    t = _np.array([0], dtype=int)
 
     d = 0
     m = 1
@@ -234,31 +188,31 @@ def find_cyclic_classes(p: _tarray) -> _tlists_int:
         i = t[0]
         j = 0
 
-        t = _np_delete(t, 0)
-        w = _np_append(w, i)
+        t = _np.delete(t, 0)
+        w = _np.append(w, i)
         v_ip = v[i] + 1
 
         while j < size:
 
             if p[i, j] > 0.0:
 
-                r = _np_append(w, t)
-                k = _np_sum(r == j)
+                r = _np.append(w, t)
+                k = _np.sum(r == j)
 
                 if k > 0:
                     b = v_ip - v[j]
-                    d = _math_gcd(d, b)
+                    d = _mt.gcd(d, b)
                 else:
-                    t = _np_append(t, j)
+                    t = _np.append(t, j)
                     v[j] = v_ip
 
             j += 1
 
         m = t.size
 
-    v = _np_remainder(v, d)
+    v = _np.remainder(v, d)
 
-    indices = [list(_it_chain.from_iterable(_np_argwhere(v == u))) for u in _np_unique(v)]
+    indices = [list(_it.chain.from_iterable(_np.argwhere(v == u))) for u in _np.unique(v)]
 
     return indices
 
@@ -298,22 +252,22 @@ def find_lumping_partitions(p: _tarray) -> _tpartitions:
 
     for partition in possible_partitions:
 
-        r = _np_zeros((size, len(partition)), dtype=float)
+        r = _np.zeros((size, len(partition)), dtype=float)
 
         for index, lumping in enumerate(partition):
             for state in lumping:
                 r[state, index] = 1.0
 
-        rt = _np_transpose(r)
+        rt = _np.transpose(r)
 
         try:
-            k = _np_dot(_npl_inv(_np_dot(rt, r)), rt)
+            k = _np.dot(_npl.inv(_np.dot(rt, r)), rt)
         except Exception:  # pragma: no cover
             continue
 
-        left = _np_dot(_np_dot(_np_dot(r, k), p), r)
-        right = _np_dot(p, r)
-        is_lumpable = _np_array_equal(left, right)
+        left = _np.dot(_np.dot(_np.dot(r, k), p), r)
+        right = _np.dot(p, r)
+        is_lumpable = _np.array_equal(left, right)
 
         if is_lumpable:
             partitions.append(partition)
@@ -323,42 +277,42 @@ def find_lumping_partitions(p: _tarray) -> _tpartitions:
 
 def gth_solve(p: _tarray) -> _tarray:
 
-    a = _np_copy(p)
+    a = _np.copy(p)
     n = a.shape[0]
 
     for i in range(n - 1):
 
-        scale = _np_sum(a[i, i + 1:n])
+        scale = _np.sum(a[i, i + 1:n])
 
         if scale <= 0.0:  # pragma: no cover
             n = i + 1
             break
 
         a[i + 1:n, i] /= scale
-        a[i + 1:n, i + 1:n] += _np_dot(a[i + 1:n, i:i + 1], a[i:i + 1, i + 1:n])
+        a[i + 1:n, i + 1:n] += _np.dot(a[i + 1:n, i:i + 1], a[i:i + 1, i + 1:n])
 
-    x = _np_zeros(n, dtype=float)
+    x = _np.zeros(n, dtype=float)
     x[n - 1] = 1.0
 
     for i in range(n - 2, -1, -1):
-        x[i] = _np_dot(x[i + 1:n], a[i + 1:n, i])
+        x[i] = _np.dot(x[i + 1:n], a[i + 1:n, i])
 
-    x /= _np_sum(x)
+    x /= _np.sum(x)
 
     return x
 
 
 def kullback_leibler_divergence(p, pi, phi, q):
 
-    pi = pi[_np_newaxis, :]
+    pi = pi[_np.newaxis, :]
 
-    super_q = _np_dot(_np_dot(phi, q), _np_transpose(phi))
-    theta = _np_sum(p * _np_nan_to_num(_np_log2(p / super_q), copy=False), axis=1)
-    t = _np_sum(pi * theta)
+    super_q = _np.dot(_np.dot(phi, q), _np.transpose(phi))
+    theta = _np.sum(p * _np.nan_to_num(_np.log2(p / super_q), copy=False), axis=1)
+    t = _np.sum(pi * theta)
 
-    super_pi = _np_dot(_np_dot(pi, phi), _np_transpose(phi))
-    psi = _np_nan_to_num(_np_log2(pi / super_pi), copy=False)
-    u = _np_sum(pi * psi)
+    super_pi = _np.dot(_np.dot(pi, phi), _np.transpose(phi))
+    psi = _np.nan_to_num(_np.log2(pi / super_pi), copy=False)
+    u = _np.sum(pi * psi)
 
     kld = t - u
 
@@ -367,25 +321,25 @@ def kullback_leibler_divergence(p, pi, phi, q):
 
 def rdl_decomposition(p: _tarray) -> _trdl:
 
-    evalues, evectors = _npl_eig(p)
+    evalues, evectors = _npl.eig(p)
 
-    indices = _np_argsort(_np_abs(evalues))[::-1]
+    indices = _np.argsort(_np.abs(evalues))[::-1]
     evalues = evalues[indices]
     vectors = evectors[:, indices]
 
-    r = _np_copy(vectors)
-    d = _np_diag(evalues)
-    l = _npl_solve(_np_transpose(r), _np_eye(p.shape[0]))  # noqa: E741
+    r = _np.copy(vectors)
+    d = _np.diag(evalues)
+    l = _npl.solve(_np.transpose(r), _np.eye(p.shape[0]))  # noqa: E741
 
-    k = _np_sum(l[:, 0])
+    k = _np.sum(l[:, 0])
 
-    if not _np_isclose(k, 0.0):
+    if not _np.isclose(k, 0.0):
         r[:, 0] *= k
         l[:, 0] /= k
 
-    r = _np_real(r)
-    d = _np_real(d)
-    l = _np_transpose(_np_real(l))  # noqa: E741
+    r = _np.real(r)
+    d = _np.real(d)
+    l = _np.transpose(_np.real(l))  # noqa: E741
 
     return r, d, l
 
@@ -393,9 +347,9 @@ def rdl_decomposition(p: _tarray) -> _trdl:
 def slem(m: _tarray) -> _ofloat:
 
     ev = eigenvalues_sorted(m)
-    value = ev[~_np_isclose(ev, 1.0)][-1]
+    value = ev[~_np.isclose(ev, 1.0)][-1]
 
-    if _np_isclose(value, 0.0):
+    if _np.isclose(value, 0.0):
         return None
 
     return value

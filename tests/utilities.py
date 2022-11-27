@@ -18,13 +18,13 @@ import types as _tp
 # Libraries
 
 # noinspection PyUnresolvedReferences
-import networkx as _nx
+import networkx as _nx  # noqa: F401
 
 # noinspection PyUnresolvedReferences
-import numpy as _np
+import numpy as _np  # noqa: F401
 
 # noinspection PyUnresolvedReferences
-import scipy.sparse as _spsp
+import scipy.sparse as _spsp  # noqa: F401
 
 try:
     import pandas as _pd

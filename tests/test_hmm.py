@@ -81,6 +81,41 @@ def test_estimate(possible_states, possible_symbols, sequence_states, sequence_s
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+# noinspection DuplicatedCode, PyBroadException
+def test_fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, symbols, initial_status, value):
+
+    p_guess = _np.array(p_guess)
+    e_guess = _np.array(e_guess)
+
+    try:
+        hmm_fit = _HiddenMarkovModel.fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, symbols, initial_status)
+    except Exception:
+        hmm_fit = None
+
+    if hmm_fit is None:
+
+        actual = hmm_fit
+        expected = value
+
+        assert actual == expected
+
+    else:
+
+        actual = hmm_fit.p
+        expected = _np.array(value[0])
+
+        print(hmm_fit.p)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = hmm_fit.e
+        expected = _np.array(value[1])
+
+        print(hmm_fit.e)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_next(p, e, seed, initial_state, target, output_index, value):
 
     hmm = _HiddenMarkovModel(p, e)
