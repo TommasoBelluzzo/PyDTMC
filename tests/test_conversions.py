@@ -35,7 +35,7 @@ def _generate_objects(seed, runs, maximum_size):
     random_state = _rd.getstate()
     _rd.seed(seed)
 
-    rng = _npr.RandomState(seed)
+    rng = _npr.RandomState(seed)  # pylint: disable=no-member
 
     objects = []
 

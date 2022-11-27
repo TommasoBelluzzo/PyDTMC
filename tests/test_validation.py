@@ -675,7 +675,7 @@ def test_validate_partitions(value, labels, is_valid):
 def test_validate_random_distribution(value, accepted_values, is_valid):
 
     try:
-        result = _validate_random_distribution(value, _npr.RandomState(0), accepted_values)
+        result = _validate_random_distribution(value, _npr.RandomState(0), accepted_values)  # pylint: disable=no-member
         result_is_valid = True
     except Exception:
         result = None

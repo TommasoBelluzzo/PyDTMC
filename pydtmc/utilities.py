@@ -164,7 +164,7 @@ def create_labels_from_data(data: _tany, prefix: str = '') -> _olist_str:
 def create_rng(seed: _oint) -> _trand:
 
     if seed is None:
-        rng = _nprm._rand  # pylint: disable=no-member
+        rng = _nprm._rand  # pylint: disable=c-extension-no-member
     elif is_integer(seed):
         rng = _npr.RandomState(int(seed))  # pylint: disable=no-member
     else:
