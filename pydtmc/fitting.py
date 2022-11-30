@@ -130,8 +130,6 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
             p += p_current
             e += e_current
 
-            print('P', p)
-
         total_transitions = _np.sum(p, axis=1, keepdims=True)
 
         if _np.any(total_transitions == 0.0):

@@ -145,35 +145,32 @@ def predict(prediction_type: str, p: _tarray, e: _tarray, initial_distribution: 
         if _np.all(omega_0 == -_np.inf):
             return None
 
-        omega = _np.vstack((omega_0, _np.zeros((f - 1, n), dtype=float)))
-        path = _np.zeros((f - 1, n), dtype=int)
+        omega = _np.vstack((omega_0, _np.zeros((f, n), dtype=float)))
+        path = _np.full((f, n), -1, dtype=int)
 
-        for i in range(1, f):
-
+        for i in range(1, f + 1):
             im1 = i - 1
-            symbol_i = pv_symbols[i]
-            omega_im1 = omega[im1]
+            omega_prev = omega[im1, :]
+            symbol = pv_symbols[im1]
 
-            for j in range(n):\
+            for j in range(n):
 
-                prob = _np.round(omega_im1 + p_log[:, j] + e_log[j, symbol_i], 12)
-                max_index = _np.argmax(prob)
+                prob = _np.round(omega_prev + p_log[:, j], 12)
+                prob_index = _np.argmax(prob)
 
-                omega[i, j] = prob[max_index]
-                path[im1, j] = max_index
+                omega[i, j] = prob[prob_index] + e_log[j, symbol]
+                path[im1, j] = prob_index
 
             if _np.all(omega[i, :] == -_np.inf):  # pragma: no cover
                 return None
 
-        last_state, index = _np.argmax(omega[f - 1, :]).item(), 1
+        last_state = _np.argmax(omega[-1, :]).item()
 
-        log_prob = omega[f - 1, last_state].item()
-        states = [last_state] + ([0] * (f - 1))
+        log_prob = omega[-1, last_state].item()
+        states = ([0] * (f - 1)) + [last_state]
 
-        for i in range(f - 2, -1, -1):
-            states[index] = path[i, last_state].item()
-            last_state = path[i, last_state].item()
-            index += 1
+        for i in reversed(range(1, f)):
+            states[i - 1] = path[i, states[i]].item()
 
         return log_prob, states
 
