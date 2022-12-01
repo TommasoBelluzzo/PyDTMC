@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'hmm_estimate',
     'hmm_restrict',
     'hmm_random',
     'mc_aggregate_spectral_bottom_up',
@@ -44,6 +45,7 @@ from .custom_types import (
     tbcond as _tbcond,
     thmm_generation as _thmm_generation,
     thmm_generation_ext as _thmm_generation_ext,
+    thmm_params as _thmm_params,
     tmc_generation as _tmc_generation,
     tmc_generation_ext as _tmc_generation_ext,
     tlist_int as _tlist_int,
@@ -57,6 +59,38 @@ from .custom_types import (
 #############
 # FUNCTIONS #
 #############
+
+# noinspection DuplicatedCode
+def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: _tlist_int, handle_nulls: bool) -> _thmm_params:
+
+    p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
+
+    for i, j in zip(sequence_states[:-1], sequence_states[1:]):
+        p[i, j] += 1.0
+
+    for i, j in zip(sequence_states, sequence_symbols):
+        e[i, j] += 1.0
+
+    if handle_nulls:
+
+        p[_np.where(~p.any(axis=1)), :] = _np.ones(n, dtype=float)
+        p /= _np.sum(p, axis=1, keepdims=True)
+
+        e[_np.where(~e.any(axis=1)), :] = _np.ones(k, dtype=float)
+        e /= _np.sum(e, axis=1, keepdims=True)
+
+    else:
+
+        p_rows = _np.sum(p, axis=1, keepdims=True)
+        p_rows[p_rows == 0.0] = -_np.inf
+        p = _np.abs(p / p_rows)
+
+        e_rows = _np.sum(e, axis=1, keepdims=True)
+        e_rows[e_rows == 0.0] = -_np.inf
+        e = _np.abs(e / e_rows)
+
+    return p, e
+
 
 def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: int, e_mask: _tarray) -> _thmm_generation_ext:
 

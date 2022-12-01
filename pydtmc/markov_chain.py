@@ -123,23 +123,23 @@ from .generators import (
 )
 
 from .measures import (
-    absorption_probabilities as _absorption_probabilities,
-    committor_probabilities as _committor_probabilities,
-    expected_rewards as _expected_rewards,
-    expected_transitions as _expected_transitions,
-    first_passage_reward as _first_passage_reward,
-    first_passage_probabilities as _first_passage_probabilities,
-    hitting_probabilities as _hitting_probabilities,
-    hitting_times as _hitting_times,
-    mean_absorption_times as _mean_absorption_times,
-    mean_first_passage_times_between as _mean_first_passage_times_between,
-    mean_first_passage_times_to as _mean_first_passage_times_to,
-    mean_number_visits as _mean_number_visits,
-    mean_recurrence_times as _mean_recurrence_times,
-    mixing_time as _mixing_time,
-    sensitivity as _sensitivity,
-    time_correlations as _time_correlations,
-    time_relaxations as _time_relaxations
+    mc_absorption_probabilities as _absorption_probabilities,
+    mc_committor_probabilities as _committor_probabilities,
+    mc_expected_rewards as _expected_rewards,
+    mc_expected_transitions as _expected_transitions,
+    mc_first_passage_reward as _first_passage_reward,
+    mc_first_passage_probabilities as _first_passage_probabilities,
+    mc_hitting_probabilities as _hitting_probabilities,
+    mc_hitting_times as _hitting_times,
+    mc_mean_absorption_times as _mean_absorption_times,
+    mc_mean_first_passage_times_between as _mean_first_passage_times_between,
+    mc_mean_first_passage_times_to as _mean_first_passage_times_to,
+    mc_mean_number_visits as _mean_number_visits,
+    mc_mean_recurrence_times as _mean_recurrence_times,
+    mc_mixing_time as _mixing_time,
+    mc_sensitivity as _sensitivity,
+    mc_time_correlations as _time_correlations,
+    mc_time_relaxations as _time_relaxations
 )
 
 from .simulations import (

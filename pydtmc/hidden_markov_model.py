@@ -77,21 +77,21 @@ from .fitting import (
 )
 
 from .generators import (
+    hmm_estimate as _estimate,
     hmm_random as _random,
     hmm_restrict as _restrict
-)
-
-from .hmm import (
-    decode as _decode,
-    estimate as _estimate,
-    predict as _predict
 )
 
 from .markov_chain import (
     MarkovChain as _MarkovChain
 )
 
+from .measures import (
+    hmm_decode as _decode
+)
+
 from .simulations import (
+    hmm_predict as _predict,
     hmm_simulate as _simulate
 )
 

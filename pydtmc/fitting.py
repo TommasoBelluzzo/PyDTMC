@@ -30,10 +30,16 @@ from .custom_types import (
     ttfunc as _ttfunc
 )
 
-from .hmm import (
-    decode as _hmm_decode,
-    estimate as _hmm_estimate,
-    predict as _hmm_predict
+from .generators import (
+    hmm_estimate as _hmm_estimate
+)
+
+from .measures import (
+    hmm_decode as _hmm_decode
+)
+
+from .simulations import (
+    hmm_predict as _hmm_predict
 )
 
 

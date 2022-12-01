@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'absorption_probabilities',
-    'committor_probabilities',
-    'expected_rewards',
-    'expected_transitions',
-    'first_passage_probabilities',
-    'first_passage_reward',
-    'hitting_probabilities',
-    'hitting_times',
-    'mean_absorption_times',
-    'mean_first_passage_times_between',
-    'mean_first_passage_times_to',
-    'mean_number_visits',
-    'mean_recurrence_times',
-    'mixing_time',
-    'sensitivity',
-    'time_correlations',
-    'time_relaxations'
+    'hmm_decode',
+    'mc_absorption_probabilities',
+    'mc_committor_probabilities',
+    'mc_expected_rewards',
+    'mc_expected_transitions',
+    'mc_first_passage_probabilities',
+    'mc_first_passage_reward',
+    'mc_hitting_probabilities',
+    'mc_hitting_times',
+    'mc_mean_absorption_times',
+    'mc_mean_first_passage_times_between',
+    'mc_mean_first_passage_times_to',
+    'mc_mean_number_visits',
+    'mc_mean_recurrence_times',
+    'mc_mixing_time',
+    'mc_sensitivity',
+    'mc_time_correlations',
+    'mc_time_relaxations'
 ]
 
 
@@ -35,6 +36,7 @@ import scipy.optimize as _spo
 
 from .custom_types import (
     oarray as _oarray,
+    ohmm_decoding as _ohmm_decoding,
     oint as _oint,
     olist_int as _olist_int,
     osequence as _osequence,
@@ -53,7 +55,66 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
-def absorption_probabilities(mc: _tmc) -> _oarray:
+def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int, use_scaling: bool) -> _ohmm_decoding:
+
+    n, k = p.shape[1], e.shape[1]
+
+    symbols = [k] + symbols
+    f = len(symbols)
+
+    scaling_factors = _np.zeros(f)
+    scaling_factors[0] = 1.0
+
+    forward = _np.zeros((n, f), dtype=float)
+    forward[:, 0] = initial_distribution
+
+    for i in range(1, f):
+
+        symbol = symbols[i]
+        forward_i = forward[:, i - 1]
+
+        for state in range(n):
+            forward[state, i] = e[state, symbol] * _np.sum(_np.multiply(forward_i, p[:, state]))
+
+        scaling_factor = _np.sum(forward[:, i])
+
+        if scaling_factor < 1e-300:
+            return None
+
+        scaling_factors[i] = scaling_factor
+        forward[:, i] /= scaling_factor
+
+    backward = _np.ones((n, f), dtype=float)
+
+    for i in range(f - 2, -1, -1):
+
+        symbol = symbols[i + 1]
+        e_i = e[:, symbol]
+        scaling_factor = 1.0 / scaling_factors[i + 1]
+        backward_i = backward[:, i + 1]
+
+        for state in range(n):
+            backward[state, i] = scaling_factor * _np.sum(_np.multiply(_np.multiply(p[state, :], backward_i), e_i))
+
+    posterior = _np.multiply(backward, forward)
+    posterior = posterior[:, 1:]
+
+    log_prob = _np.sum(_np.log(scaling_factors)).item()
+
+    if not use_scaling:
+
+        backward_scale = _np.fliplr(_np.hstack((_np.ones((1, 1), dtype=float), _np.cumprod(scaling_factors[_np.newaxis, :0:-1], axis=1))))
+        backward = _np.multiply(backward, _np.tile(backward_scale, (n, 1)))
+
+        forward_scale = _np.cumprod(scaling_factors[_np.newaxis, :], axis=1)
+        forward = _np.multiply(forward, _np.tile(forward_scale, (n, 1)))
+
+        scaling_factors = None
+
+    return log_prob, posterior, backward, forward, scaling_factors
+
+
+def mc_absorption_probabilities(mc: _tmc) -> _oarray:
 
     if not mc.is_absorbing or len(mc.transient_states) == 0:
         return None
@@ -69,7 +130,7 @@ def absorption_probabilities(mc: _tmc) -> _oarray:
     return ap
 
 
-def committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_int, states2: _tlist_int) -> _oarray:
+def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_int, states2: _tlist_int) -> _oarray:
 
     if not mc.is_ergodic:
         return None
@@ -99,7 +160,7 @@ def committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_int, 
     return cp
 
 
-def expected_rewards(p: _tarray, steps: int, rewards: _tarray) -> _tany:
+def mc_expected_rewards(p: _tarray, steps: int, rewards: _tarray) -> _tany:
 
     original_rewards = _np.copy(rewards)
     er = _np.copy(rewards)
@@ -110,7 +171,7 @@ def expected_rewards(p: _tarray, steps: int, rewards: _tarray) -> _tany:
     return er
 
 
-def expected_transitions(p: _tarray, rdl: _trdl, steps: int, initial_distribution: _tarray) -> _tarray:
+def mc_expected_transitions(p: _tarray, rdl: _trdl, steps: int, initial_distribution: _tarray) -> _tarray:
 
     if steps <= p.shape[0]:
 
@@ -143,7 +204,7 @@ def expected_transitions(p: _tarray, rdl: _trdl, steps: int, initial_distributio
     return et
 
 
-def first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, first_passage_states: _olist_int) -> _tarray:
+def mc_first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, first_passage_states: _olist_int) -> _tarray:
 
     p, size = mc.p, mc.size
 
@@ -171,7 +232,7 @@ def first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, first_
     return z
 
 
-def first_passage_reward(mc: _tmc, steps: int, initial_state: int, first_passage_states: _tlist_int, rewards: _tarray) -> float:
+def mc_first_passage_reward(mc: _tmc, steps: int, initial_state: int, first_passage_states: _tlist_int, rewards: _tarray) -> float:
 
     p, size = mc.p, mc.size
 
@@ -206,7 +267,7 @@ def first_passage_reward(mc: _tmc, steps: int, initial_state: int, first_passage
     return reward
 
 
-def hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
+def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
 
     p, size = mc.p, mc.size
 
@@ -224,13 +285,13 @@ def hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
     return hp
 
 
-def hitting_times(mc: _tmc, targets: _tlist_int) -> _tarray:
+def mc_hitting_times(mc: _tmc, targets: _tlist_int) -> _tarray:
 
     p, size = mc.p, mc.size
 
     target = _np.array(targets)
 
-    hp = hitting_probabilities(mc, targets)
+    hp = mc_hitting_probabilities(mc, targets)
     ht = _np.zeros(size, dtype=float)
 
     infinity = _np.flatnonzero(_np.isclose(hp, 0.0))
@@ -256,7 +317,7 @@ def hitting_times(mc: _tmc, targets: _tlist_int) -> _tarray:
     return ht
 
 
-def mean_absorption_times(mc: _tmc) -> _oarray:
+def mc_mean_absorption_times(mc: _tmc) -> _oarray:
 
     if not mc.is_absorbing or len(mc.transient_states) == 0:
         return None
@@ -267,14 +328,14 @@ def mean_absorption_times(mc: _tmc) -> _oarray:
     return mat
 
 
-def mean_first_passage_times_between(mc: _tmc, origins: _tlist_int, targets: _tlist_int) -> _oarray:
+def mc_mean_first_passage_times_between(mc: _tmc, origins: _tlist_int, targets: _tlist_int) -> _oarray:
 
     if not mc.is_ergodic:
         return None
 
     pi = mc.pi[0]
 
-    mfptt = mean_first_passage_times_to(mc, targets)
+    mfptt = mc_mean_first_passage_times_to(mc, targets)
 
     pi_origins = pi[origins]
     mu = pi_origins / _np.sum(pi_origins)
@@ -284,7 +345,7 @@ def mean_first_passage_times_between(mc: _tmc, origins: _tlist_int, targets: _tl
     return mfptb
 
 
-def mean_first_passage_times_to(mc: _tmc, targets: _olist_int) -> _oarray:
+def mc_mean_first_passage_times_to(mc: _tmc, targets: _olist_int) -> _oarray:
 
     if not mc.is_ergodic:
         return None
@@ -317,7 +378,7 @@ def mean_first_passage_times_to(mc: _tmc, targets: _olist_int) -> _oarray:
     return mfptt
 
 
-def mean_number_visits(mc: _tmc) -> _oarray:
+def mc_mean_number_visits(mc: _tmc) -> _oarray:
 
     p, size, states, cm = mc.p, mc.size, mc.states, mc.communication_matrix
 
@@ -393,7 +454,7 @@ def mean_number_visits(mc: _tmc) -> _oarray:
     return mnv
 
 
-def mean_recurrence_times(mc: _tmc) -> _oarray:
+def mc_mean_recurrence_times(mc: _tmc) -> _oarray:
 
     if not mc.is_ergodic:
         return None
@@ -405,7 +466,7 @@ def mean_recurrence_times(mc: _tmc) -> _oarray:
     return mrt
 
 
-def mixing_time(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: float) -> _oint:
+def mc_mixing_time(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: float) -> _oint:
 
     if not mc.is_ergodic:
         return None
@@ -432,7 +493,7 @@ def mixing_time(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: floa
     return mt
 
 
-def sensitivity(mc: _tmc, state: int) -> _oarray:
+def mc_sensitivity(mc: _tmc, state: int) -> _oarray:
 
     if not mc.is_irreducible:
         return None
@@ -456,7 +517,7 @@ def sensitivity(mc: _tmc, state: int) -> _oarray:
     return s
 
 
-def time_correlations(mc: _tmc, rdl: _trdl, sequence1: _tsequence, sequence2: _osequence, time_points: _ttimes_in) -> _otimes_out:
+def mc_time_correlations(mc: _tmc, rdl: _trdl, sequence1: _tsequence, sequence2: _osequence, time_points: _ttimes_in) -> _otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 
@@ -548,7 +609,7 @@ def time_correlations(mc: _tmc, rdl: _trdl, sequence1: _tsequence, sequence2: _o
     return tcs
 
 
-def time_relaxations(mc: _tmc, rdl: _trdl, sequence: _tsequence, initial_distribution: _tarray, time_points: _ttimes_in) -> _otimes_out:
+def mc_time_relaxations(mc: _tmc, rdl: _trdl, sequence: _tsequence, initial_distribution: _tarray, time_points: _ttimes_in) -> _otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 
