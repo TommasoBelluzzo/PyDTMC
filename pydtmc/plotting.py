@@ -15,111 +15,28 @@ __all__ = [
 
 # Standard
 
-from copy import (
-    deepcopy as _cp_deepcopy
-)
-
-from inspect import (
-    trace as _ins_trace
-)
-
-from io import (
-    BytesIO as _io_BytesIO
-)
-
-from math import (
-    ceil as _math_ceil,
-    floor as _math_floor,
-    log10 as _math_log10,
-    sqrt as _math_sqrt
-)
-
-# noinspection PyPep8Naming
-from subprocess import (
-    call as _sp_call,
-    PIPE as _sp_pipe
-)
+import copy as _cp
+import inspect as _ins
+import io as _io
+import math as _mt
+import subprocess as _sub
 
 # Libraries
 
-from matplotlib.colorbar import (
-    make_axes as _mplcb_make_axes
-)
-
-from matplotlib.colors import (
-    LinearSegmentedColormap as _mplcr_LinearSegmentedColormap
-)
-
-from matplotlib.image import (
-    imread as _mpli_imread
-)
-
-from matplotlib.pyplot import (
-    interactive as _mplp_interactive,
-    isinteractive as _mplp_isinteractive,
-    figure as _mplp_figure,
-    Rectangle as _mplp_Rectangle,
-    show as _mplp_show,
-    subplots as _mplp_subplots,
-    subplots_adjust as _mplp_subplots_adjust
-)
-
-from matplotlib.ticker import (
-    FormatStrFormatter as _mplt_FormatStrFormatter
-)
-
-from networkx import (
-    draw_networkx_edge_labels as _nx_draw_networkx_edge_labels,
-    draw_networkx_edges as _nx_draw_networkx_edges,
-    draw_networkx_labels as _nx_draw_networkx_labels,
-    draw_networkx_nodes as _nx_draw_networkx_nodes,
-    multipartite_layout as _nx_multipartite_layout,
-    spring_layout as _nx_spring_layout
-)
-
-from numpy import (
-    abs as _np_abs,
-    all as _np_all,
-    allclose as _np_allclose,
-    append as _np_append,
-    arange as _np_arange,
-    arctan2 as _np_arctan2,
-    array as _np_array,
-    array_equal as _np_array_equal,
-    dot as _np_dot,
-    cos as _np_cos,
-    imag as _np_imag,
-    integer as _np_integer,
-    isclose as _np_isclose,
-    linspace as _np_linspace,
-    meshgrid as _np_meshgrid,
-    min as _np_min,
-    ndarray as _np_ndarray,
-    ones as _np_ones,
-    pi as _np_pi,
-    real as _np_real,
-    sin as _np_sin,
-    sort as _np_sort,
-    sum as _np_sum,
-    transpose as _np_transpose,
-    unique as _np_unique,
-    zeros as _np_zeros
-)
-
-from numpy.linalg import (
-    eigvals as _npl_eigvals
-)
+import matplotlib.colorbar as _mplcb
+import matplotlib.colors as _mplcr
+import matplotlib.image as _mpli
+import matplotlib.pyplot as _mplp
+import matplotlib.ticker as _mplt
+import networkx as _nx
+import numpy as _np
+import numpy.linalg as _npl
 
 try:
-    from pydot import (
-        Dot as _pyd_Dot,
-        Edge as _pyd_Edge,
-        Node as _pyd_Node,
-        Subgraph as _pyd_Subgraph
-    )
+    import pydot as _pyd
     _pydot_found = True
 except ImportError:  # pragma: no cover
-    _pyd_Dot, _pyd_Edge, _pyd_Node, _pyd_Subgraph = None, None, None, None
+    _pyd = None
     _pydot_found = False
 
 # Internal
@@ -182,10 +99,10 @@ def _xticks_states(ax, mc: _tmc, label: bool, minor_major: bool):
         ax.set_xlabel('States', fontsize=13.0)
 
     if minor_major:
-        ax.set_xticks(_np_arange(0.0, mc.size, 1.0), minor=False)
-        ax.set_xticks(_np_arange(-0.5, mc.size, 1.0), minor=True)
+        ax.set_xticks(_np.arange(0.0, mc.size, 1.0), minor=False)
+        ax.set_xticks(_np.arange(-0.5, mc.size, 1.0), minor=True)
     else:
-        ax.set_xticks(_np_arange(0.0, mc.size, 1.0))
+        ax.set_xticks(_np.arange(0.0, mc.size, 1.0))
 
     ax.set_xticklabels(mc.states)
 
@@ -193,16 +110,16 @@ def _xticks_states(ax, mc: _tmc, label: bool, minor_major: bool):
 def _xticks_steps(ax, length: int):
 
     ax.set_xlabel('Steps', fontsize=13.0)
-    ax.set_xticks(_np_arange(0.0, length + 1.0, 1.0 if length <= 11 else 10.0), minor=False)
-    ax.set_xticks(_np_arange(-0.5, length, 1.0), minor=True)
-    ax.set_xticklabels(_np_arange(0, length + 1, 1 if length <= 11 else 10))
+    ax.set_xticks(_np.arange(0.0, length + 1.0, 1.0 if length <= 11 else 10.0), minor=False)
+    ax.set_xticks(_np.arange(-0.5, length, 1.0), minor=True)
+    ax.set_xticklabels(_np.arange(0, length + 1, 1 if length <= 11 else 10))
     ax.set_xlim(-0.5, length - 0.5)
 
 
 def _yticks_frequency(ax, bottom: float, top: float):
 
     ax.set_ylabel('Frequency', fontsize=13.0)
-    ax.set_yticks(_np_linspace(0.0, 1.0, 11))
+    ax.set_yticks(_np.linspace(0.0, 1.0, 11))
     ax.set_ylim(bottom, top)
 
 
@@ -211,8 +128,8 @@ def _yticks_states(ax, mc: _tmc, label: bool):
     if label:
         ax.set_ylabel('States', fontsize=13.0)
 
-    ax.set_yticks(_np_arange(0.0, mc.size, 1.0), minor=False)
-    ax.set_yticks(_np_arange(-0.5, mc.size, 1.0), minor=True)
+    ax.set_yticks(_np.arange(0.0, mc.size, 1.0), minor=False)
+    ax.set_yticks(_np.arange(-0.5, mc.size, 1.0), minor=True)
     ax.set_yticklabels(mc.states)
 
 
@@ -240,17 +157,17 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins.trace()) from None
 
     n = len(mcs)
-    rows = int(_math_sqrt(n))
-    columns = int(_math_ceil(n / float(rows)))
+    rows = int(_mt.sqrt(n))
+    columns = int(_mt.ceil(n / float(rows)))
 
-    figure, axes = _mplp_subplots(rows, columns, constrained_layout=constrained_layout, dpi=dpi)
+    figure, axes = _mplp.subplots(rows, columns, constrained_layout=constrained_layout, dpi=dpi)
     axes = list(axes.flat)
     ax_is = None
 
-    color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
+    color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
 
     for ax, mc, mc_name in zip(axes, mcs, mcs_names):
 
@@ -264,12 +181,12 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
 
     figure.suptitle('Comparison Plot', fontsize=15.0, fontweight='bold')
 
-    color_map_ax, color_map_ax_kwargs = _mplcb_make_axes(axes, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
+    color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(axes, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
     figure.colorbar(ax_is, cax=color_map_ax, **color_map_ax_kwargs)
     color_map_ax.set_xticklabels([0.0, 0.25, 0.5, 0.75, 1.0])
 
-    if _mplp_isinteractive():  # pragma: no cover
-        _mplp_show(block=False)
+    if _mplp.isinteractive():  # pragma: no cover
+        _mplp.show(block=False)
         return None
 
     return figure, axes
@@ -295,47 +212,47 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins.trace()) from None
 
-    figure, ax = _mplp_subplots(dpi=dpi)
+    figure, ax = _mplp.subplots(dpi=dpi)
 
     handles, labels = [], []
 
-    theta = _np_linspace(0.0, 2.0 * _np_pi, 200)
+    theta = _np.linspace(0.0, 2.0 * _np.pi, 200)
 
-    evalues = _npl_eigvals(mc.p).astype(complex)
-    evalues_final = _np_unique(_np_append(evalues, _np_array([1.0]).astype(complex)))
+    evalues = _npl.eigvals(mc.p).astype(complex)
+    evalues_final = _np.unique(_np.append(evalues, _np.array([1.0]).astype(complex)))
 
-    x_unit_circle = _np_cos(theta)
-    y_unit_circle = _np_sin(theta)
+    x_unit_circle = _np.cos(theta)
+    y_unit_circle = _np.sin(theta)
 
     if mc.is_ergodic:
 
-        values_abs = _np_sort(_np_abs(evalues))
-        values_ct1 = _np_isclose(values_abs, 1.0)
+        values_abs = _np.sort(_np.abs(evalues))
+        values_ct1 = _np.isclose(values_abs, 1.0)
 
-        if not _np_all(values_ct1):
+        if not _np.all(values_ct1):
 
             mu = values_abs[~values_ct1][-1]
 
-            if not _np_isclose(mu, 0.0):
+            if not _np.isclose(mu, 0.0):
 
                 x_slem_circle = mu * x_unit_circle
                 y_slem_circle = mu * y_unit_circle
 
-                cs = _np_linspace(-1.1, 1.1, 201)
-                x_spectral_gap, y_spectral_gap = _np_meshgrid(cs, cs)
+                cs = _np.linspace(-1.1, 1.1, 201)
+                x_spectral_gap, y_spectral_gap = _np.meshgrid(cs, cs)
                 z_spectral_gap = x_spectral_gap**2.0 + y_spectral_gap**2.0
 
                 h = ax.contourf(x_spectral_gap, y_spectral_gap, z_spectral_gap, alpha=0.2, colors='r', levels=[mu**2.0, 1.0])
-                handles.append(_mplp_Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.collections[0].get_facecolor()[0]))
+                handles.append(_mplp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.collections[0].get_facecolor()[0]))
                 labels.append('Spectral Gap')
 
                 ax.plot(x_slem_circle, y_slem_circle, color='red', linestyle='--', linewidth=1.5)
 
     ax.plot(x_unit_circle, y_unit_circle, color='red', linestyle='-', linewidth=3.0)
 
-    h, = ax.plot(_np_real(evalues_final), _np_imag(evalues_final), color='blue', linestyle='None', marker='*', markersize=12.5)
+    h, = ax.plot(_np.real(evalues_final), _np.imag(evalues_final), color='blue', linestyle='None', marker='*', markersize=12.5)
     handles.append(h)
     labels.append('Eigenvalues')
 
@@ -343,21 +260,21 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
     ax.set_ylim(-1.1, 1.1)
     ax.set_aspect('equal')
 
-    formatter = _mplt_FormatStrFormatter('%g')
+    formatter = _mplt.FormatStrFormatter('%g')
     ax.xaxis.set_major_formatter(formatter)
     ax.yaxis.set_major_formatter(formatter)
-    ax.set_xticks(_np_linspace(-1.0, 1.0, 9))
-    ax.set_yticks(_np_linspace(-1.0, 1.0, 9))
+    ax.set_xticks(_np.linspace(-1.0, 1.0, 9))
+    ax.set_yticks(_np.linspace(-1.0, 1.0, 9))
 
     ax.grid(which='major')
 
     ax.legend(handles[::-1], labels[::-1], bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=len(handles))
     ax.set_title('Eigenvalues Plot', fontsize=15.0, fontweight='bold')
 
-    _mplp_subplots_adjust(bottom=0.2)
+    _mplp.subplots_adjust(bottom=0.2)
 
-    if _mplp_isinteractive():  # pragma: no cover
-        _mplp_show(block=False)
+    if _mplp.isinteractive():  # pragma: no cover
+        _mplp.show(block=False)
         return None
 
     return figure, ax
@@ -391,8 +308,8 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
         magnitudes = []
 
         for element in cm_elements:
-            element_minimum = _np_min(element).item()
-            element_magnitude = 0 if element_minimum == 0.0 else int(-_math_floor(_math_log10(abs(element_minimum))))
+            element_minimum = _np.min(element).item()
+            element_magnitude = 0 if element_minimum == 0.0 else int(-_mt.floor(_mt.log10(abs(element_minimum))))
             magnitudes.append(element_magnitude)
 
         magnitude = max(1, min(max(magnitudes), 4))
@@ -401,11 +318,11 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
     def _decode_image(di_g, di_dpi):
 
-        buffer = _io_BytesIO()
+        buffer = _io.BytesIO()
         buffer.write(di_g.create(format='png'))
         buffer.seek(0)
 
-        img = _mpli_imread(buffer)
+        img = _mpli.imread(buffer)
         img_x = img.shape[0] / di_dpi
         img_xi = img_x * 1.1
         img_xo = ((img_xi - img_x) / 2.0) * di_dpi
@@ -421,19 +338,19 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
             (x1, y1) = delc_positions[n1]
             (x2, y2) = delc_positions[n2]
-            p1 = delc_ax.transData.transform(_np_array(delc_positions[n1]))
-            p2 = delc_ax.transData.transform(_np_array(delc_positions[n2]))
+            p1 = delc_ax.transData.transform(_np.array(delc_positions[n1]))
+            p2 = delc_ax.transData.transform(_np.array(delc_positions[n2]))
 
             linear_mid = (0.5 * p1) + (0.5 * p2)
-            cp_mid = linear_mid + (rad * _np_dot(_np_array([(0, 1), (-1, 0)]), p2 - p1))
+            cp_mid = linear_mid + (rad * _np.dot(_np.array([(0, 1), (-1, 0)]), p2 - p1))
             cp1 = (0.5 * p1) + (0.5 * cp_mid)
             cp2 = (0.5 * p2) + (0.5 * cp_mid)
             bezier_mid = (0.5 * cp1) + (0.5 * cp2)
 
             (x, y) = delc_ax.transData.inverted().transform(bezier_mid)
-            xy = _np_array((x, y))
+            xy = _np.array((x, y))
 
-            angle = (_np_arctan2(y2 - y1, x2 - x1) / (2.0 * _np_pi)) * 360.0
+            angle = (_np.arctan2(y2 - y1, x2 - x1) / (2.0 * _np.pi)) * 360.0
 
             if angle > 90.0:
                 angle -= 180.0
@@ -441,7 +358,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
             if angle < -90.0:
                 angle += 180.0
 
-            rotation = delc_ax.transData.transform_angles(_np_array((angle,)), xy.reshape((1, 2)))[0]
+            rotation = delc_ax.transData.transform_angles(_np.array((angle,)), xy.reshape((1, 2)))[0]
             transform = delc_ax.transData
             bbox = dict(boxstyle='round', ec=(1.0, 1.0, 1.0), fc=(1.0, 1.0, 1.0))
 
@@ -460,7 +377,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
     def _node_colors(nc_count):
 
-        colors = _cp_deepcopy(_colors)
+        colors = _cp.deepcopy(_colors)
         colors_limit = len(colors) - 1
         colors_offset = 0
 
@@ -484,14 +401,14 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
         magnitude = _calculate_magnitude(phe_hmm.p, phe_hmm.e)
 
         node_colors = _node_colors(phe_hmm.n) if phe_nodes_color else []
-        edge_colors = _cp_deepcopy(node_colors) if phe_nodes_color else []
+        edge_colors = _cp.deepcopy(node_colors) if phe_nodes_color else []
 
-        g = _pyd_Dot(graph_type='digraph')
+        g = _pyd.Dot(graph_type='digraph')
 
-        g_sub1 = _pyd_Subgraph(rank='same')
+        g_sub1 = _pyd.Subgraph(rank='same')
         g.add_subgraph(g_sub1)
 
-        g_sub2 = _pyd_Subgraph(rank='same')
+        g_sub2 = _pyd.Subgraph(rank='same')
         g.add_subgraph(g_sub2)
 
         for i in range(phe_hmm.n):
@@ -507,7 +424,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
             if phe_nodes_type:
                 node_attributes['shape'] = 'ellipse'
 
-            g_sub1.add_node(_pyd_Node(state, **node_attributes))
+            g_sub1.add_node(_pyd.Node(state, **node_attributes))
 
         for symbol in phe_hmm.symbols:
 
@@ -520,7 +437,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
             if phe_nodes_type:
                 node_attributes['shape'] = 'hexagon'
 
-            g_sub2.add_node(_pyd_Node(symbol, **node_attributes))
+            g_sub2.add_node(_pyd.Node(symbol, **node_attributes))
 
         for i in range(phe_hmm.n):
 
@@ -547,7 +464,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
                         edge_attributes['headport'] = 'n'
                         edge_attributes['tailport'] = 'n'
 
-                    g.add_edge(_pyd_Edge(state_i, state_j, **edge_attributes))
+                    g.add_edge(_pyd.Edge(state_i, state_j, **edge_attributes))
 
             for j in range(phe_hmm.k):
 
@@ -566,11 +483,11 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
                         edge_attributes['label'] = f' {round(ep, magnitude):.{magnitude}f} '
                         edge_attributes['fontsize'] = 9
 
-                    g.add_edge(_pyd_Edge(state_i, symbol, **edge_attributes))
+                    g.add_edge(_pyd.Edge(state_i, symbol, **edge_attributes))
 
         img, img_x, img_xo, img_y, img_yo = _decode_image(g, phe_dpi)
 
-        f = _mplp_figure(figsize=(img_y * 1.1, img_x * 1.1), dpi=phe_dpi)
+        f = _mplp.figure(figsize=(img_y * 1.1, img_x * 1.1), dpi=phe_dpi)
         f.figimage(img, yo=img_yo, xo=img_xo)
 
         a = f.gca()
@@ -581,16 +498,16 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
     def _plot_hmm_standard(phs_hmm, phs_nodes_color, phs_nodes_shape, phe_edges_label, phs_dpi):
 
         g = phs_hmm.to_graph()
-        positions = _nx_multipartite_layout(g, align='horizontal', subset_key='layer')
+        positions = _nx.multipartite_layout(g, align='horizontal', subset_key='layer')
         magnitude = _calculate_magnitude(phs_hmm.p, phs_hmm.e)
 
         node_colors = _node_colors(phs_hmm.n) if phs_nodes_color else []
-        edge_colors = _cp_deepcopy(node_colors) if phs_nodes_color else []
+        edge_colors = _cp.deepcopy(node_colors) if phs_nodes_color else []
 
-        mpi = _mplp_isinteractive()
-        _mplp_interactive(False)
+        mpi = _mplp.isinteractive()
+        _mplp.interactive(False)
 
-        f, a = _mplp_subplots(dpi=phs_dpi)
+        f, a = _mplp.subplots(dpi=phs_dpi)
 
         for i, node in enumerate(g.nodes):
 
@@ -610,9 +527,9 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
             else:
                 node_shape = 'o'
 
-            _nx_draw_networkx_nodes(g, positions, ax=a, nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_node_size, edgecolors='k')
+            _nx.draw_networkx_nodes(g, positions, ax=a, nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_node_size, edgecolors='k')
 
-        _nx_draw_networkx_labels(g, positions, ax=a)
+        _nx.draw_networkx_labels(g, positions, ax=a)
 
         edge_labels_curved, edge_labels_straight_state, edge_labels_straight_symbol = {}, {}, {}
 
@@ -647,7 +564,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
                         if phe_edges_label:
                             edge_labels_straight_state[edge] = f' {round(tp, magnitude):.{magnitude}f} '
 
-                    _nx_draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True, connectionstyle=edge_connection)
+                    _nx.draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True, connectionstyle=edge_connection)
 
             for j in range(phs_hmm.k):
 
@@ -663,18 +580,18 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
                     if phe_edges_label:
                         edge_labels_straight_symbol[edge] = f' {round(ep, magnitude):.{magnitude}f} '
 
-                    _nx_draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True, style='dashed')
+                    _nx.draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True, style='dashed')
 
         if len(edge_labels_straight_state) > 0:
-            _nx_draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edge_labels_straight_state)
+            _nx.draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edge_labels_straight_state)
 
         if len(edge_labels_straight_symbol) > 0:
-            _nx_draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edge_labels_straight_symbol, label_pos=0.25)
+            _nx.draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edge_labels_straight_symbol, label_pos=0.25)
 
         if len(edge_labels_curved) > 0:
             _draw_edge_labels_curved(a, positions, edge_labels_curved)
 
-        _mplp_interactive(mpi)
+        _mplp.interactive(mpi)
 
         return f, a
 
@@ -685,7 +602,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
         node_colors = _node_colors(len(pme_mc.communicating_classes)) if pme_nodes_color else []
 
-        g = _pyd_Dot(graph_type='digraph')
+        g = _pyd.Dot(graph_type='digraph')
 
         for i in range(pme_mc.size):
 
@@ -706,7 +623,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
                 else:
                     node_attributes['shape'] = 'ellipse'
 
-            g.add_node(_pyd_Node(state_i, **node_attributes))
+            g.add_node(_pyd.Node(state_i, **node_attributes))
 
             for j in range(pme_mc.size):
 
@@ -725,11 +642,11 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
                         edge_attributes['label'] = f' {round(tp, magnitude):.{magnitude}f} '
                         edge_attributes['fontsize'] = 9
 
-                    g.add_edge(_pyd_Edge(state_i, state_j, **edge_attributes))
+                    g.add_edge(_pyd.Edge(state_i, state_j, **edge_attributes))
 
         img, img_x, img_xo, img_y, img_yo = _decode_image(g, pme_dpi)
 
-        f = _mplp_figure(figsize=(img_y * 1.1, img_x * 1.1), dpi=pme_dpi)
+        f = _mplp.figure(figsize=(img_y * 1.1, img_x * 1.1), dpi=pme_dpi)
         f.figimage(img, yo=img_yo, xo=img_xo)
 
         a = f.gca()
@@ -740,15 +657,15 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
     def _plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_shape, phe_edges_label, pms_dpi):
 
         g = pms_mc.to_graph()
-        positions = _nx_spring_layout(g)
+        positions = _nx.spring_layout(g)
         magnitude = _calculate_magnitude(pms_mc.p)
 
         node_colors = _node_colors(len(pms_mc.communicating_classes)) if pms_nodes_color else []
 
-        mpi = _mplp_isinteractive()
-        _mplp_interactive(False)
+        mpi = _mplp.isinteractive()
+        _mplp.interactive(False)
 
-        f, a = _mplp_subplots(dpi=pms_dpi)
+        f, a = _mplp.subplots(dpi=pms_dpi)
 
         for node in g.nodes:
 
@@ -768,9 +685,9 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
             else:
                 node_shape = 'o'
 
-            _nx_draw_networkx_nodes(g, positions, ax=a, nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_node_size, edgecolors='k')
+            _nx.draw_networkx_nodes(g, positions, ax=a, nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_node_size, edgecolors='k')
 
-        _nx_draw_networkx_labels(g, positions, ax=a)
+        _nx.draw_networkx_labels(g, positions, ax=a)
 
         edge_labels_curved, edge_labels_straight = {}, {}
 
@@ -803,15 +720,15 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
                         if phe_edges_label:
                             edge_labels_straight[edge] = f' {round(tp, magnitude):.{magnitude}f} '
 
-                    _nx_draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True, connectionstyle=edge_connection)
+                    _nx.draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True, connectionstyle=edge_connection)
 
         if len(edge_labels_straight) > 0:
-            _nx_draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edge_labels_straight)
+            _nx.draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edge_labels_straight)
 
         if len(edge_labels_curved) > 0:
             _draw_edge_labels_curved(a, positions, edge_labels_curved)
 
-        _mplp_interactive(mpi)
+        _mplp.interactive(mpi)
 
         return f, a
 
@@ -825,13 +742,13 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins.trace()) from None
 
     extended_graph = not force_standard and _pydot_found
 
     if extended_graph:
         try:
-            _sp_call(['dot', '-V'], stdout=_sp_pipe, stderr=_sp_pipe)
+            _sub.call(['dot', '-V'], stdout=_sub.PIPE, stderr=_sub.PIPE)
         except Exception:  # pragma: no cover
             extended_graph = False
 
@@ -844,8 +761,8 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
     figure, ax = func(model, nodes_color, nodes_shape, edges_label, dpi)
 
-    if _mplp_isinteractive():  # pragma: no cover
-        _mplp_show(block=False)
+    if _mplp.isinteractive():  # pragma: no cover
+        _mplp.show(block=False)
         return None
 
     return figure, ax
@@ -881,23 +798,23 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins.trace()) from None
 
     if isinstance(distributions, int):
         distributions = mc.redistribute(distributions, initial_status=initial_status, output_last=False)
 
-    if initial_status is not None and not _np_array_equal(distributions[0], initial_status):  # pragma: no cover
+    if initial_status is not None and not _np.array_equal(distributions[0], initial_status):  # pragma: no cover
         raise ValueError('The "initial_status" parameter, if specified when the "distributions" parameter represents a sequence of redistributions, must match the first element.')
 
-    distributions_length = 1 if isinstance(distributions, _np_ndarray) else len(distributions)
-    distributions = _np_array([distributions]) if isinstance(distributions, _np_ndarray) else _np_array(distributions)
+    distributions_length = 1 if isinstance(distributions, _np.ndarray) else len(distributions)
+    distributions = _np.array([distributions]) if isinstance(distributions, _np.ndarray) else _np.array(distributions)
 
-    figure, ax = _mplp_subplots(dpi=dpi)
+    figure, ax = _mplp.subplots(dpi=dpi)
 
     if plot_type == 'heatmap':
 
-        color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
-        ax_is = ax.imshow(_np_transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
+        ax_is = ax.imshow(_np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         _xticks_steps(ax, distributions_length)
         _yticks_states(ax, mc, False)
@@ -915,12 +832,12 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
 
         if distributions_length == 2:
             for i in range(mc.size):
-                ax.plot(_np_arange(0.0, distributions_length, 1.0), distributions[:, i], label=mc.states[i], marker='o')
+                ax.plot(_np.arange(0.0, distributions_length, 1.0), distributions[:, i], label=mc.states[i], marker='o')
         else:
             for i in range(mc.size):
-                ax.plot(_np_arange(0.0, distributions_length, 1.0), distributions[:, i], label=mc.states[i])
+                ax.plot(_np.arange(0.0, distributions_length, 1.0), distributions[:, i], label=mc.states[i])
 
-        if _np_allclose(distributions[0, :], _np_ones(mc.size, dtype=float) / mc.size):
+        if _np.allclose(distributions[0, :], _np.ones(mc.size, dtype=float) / mc.size):
             ax.plot(0.0, distributions[0, 0], color=_color_black, label="Start", marker='o', markeredgecolor=_color_black, markerfacecolor=_color_black)
             legend_size = mc.size + 1
         else:  # pragma: no cover
@@ -934,10 +851,10 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
         ax.legend(bbox_to_anchor=(0.5, -0.15), loc='upper center', ncol=legend_size)
         ax.set_title('Redistributions Plot (Projection)', fontsize=15.0, fontweight='bold')
 
-        _mplp_subplots_adjust(bottom=0.2)
+        _mplp.subplots_adjust(bottom=0.2)
 
-    if _mplp_isinteractive():  # pragma: no cover
-        _mplp_show(block=False)
+    if _mplp.isinteractive():  # pragma: no cover
+        _mplp.show(block=False)
         return None
 
     return figure, ax
@@ -970,7 +887,7 @@ def plot_sequence(mc: _tmc, sequence: _tsequence_flex, initial_state: _ostate = 
 
         mc = _validate_markov_chain(mc)
 
-        if isinstance(sequence, (int, _np_integer)):
+        if isinstance(sequence, (int, _np.integer)):
             sequence = _validate_integer(sequence, lower_limit=(2, False))
         else:
             sequence = _validate_sequence(sequence, mc.states)
@@ -982,7 +899,7 @@ def plot_sequence(mc: _tmc, sequence: _tsequence_flex, initial_state: _ostate = 
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins_trace()) from None
+        raise _create_validation_error(ex, _ins.trace()) from None
 
     if isinstance(sequence, int):
         sequence = mc.simulate(sequence, initial_state=initial_state, output_indices=True, seed=seed)
@@ -992,18 +909,18 @@ def plot_sequence(mc: _tmc, sequence: _tsequence_flex, initial_state: _ostate = 
 
     sequence_length = len(sequence)
 
-    figure, ax = _mplp_subplots(dpi=dpi)
+    figure, ax = _mplp.subplots(dpi=dpi)
 
     if plot_type == 'histogram':
 
-        sequence_histogram = _np_zeros((mc.size, sequence_length), dtype=float)
+        sequence_histogram = _np.zeros((mc.size, sequence_length), dtype=float)
 
         for index, state in enumerate(sequence):
             sequence_histogram[state, index] = 1.0
 
-        sequence_histogram = _np_sum(sequence_histogram, axis=1) / _np_sum(sequence_histogram)
+        sequence_histogram = _np.sum(sequence_histogram, axis=1) / _np.sum(sequence_histogram)
 
-        ax.bar(_np_arange(0.0, mc.size, 1.0), sequence_histogram, edgecolor=_color_black, facecolor=_colors[0])
+        ax.bar(_np.arange(0.0, mc.size, 1.0), sequence_histogram, edgecolor=_color_black, facecolor=_colors[0])
 
         _xticks_states(ax, mc, True, False)
         _yticks_frequency(ax, 0.0, 1.0)
@@ -1012,12 +929,12 @@ def plot_sequence(mc: _tmc, sequence: _tsequence_flex, initial_state: _ostate = 
 
     elif plot_type == 'matrix':
 
-        sequence_matrix = _np_zeros((mc.size, sequence_length), dtype=float)
+        sequence_matrix = _np.zeros((mc.size, sequence_length), dtype=float)
 
         for index, state in enumerate(sequence):
             sequence_matrix[state, index] = 1.0
 
-        color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 2)
+        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 2)
         ax.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         _xticks_steps(ax, sequence_length)
@@ -1029,14 +946,14 @@ def plot_sequence(mc: _tmc, sequence: _tsequence_flex, initial_state: _ostate = 
 
     else:
 
-        sequence_matrix = _np_zeros((mc.size, mc.size), dtype=float)
+        sequence_matrix = _np.zeros((mc.size, mc.size), dtype=float)
 
         for i in range(1, sequence_length):
             sequence_matrix[sequence[i - 1], sequence[i]] += 1.0
 
-        sequence_matrix /= _np_sum(sequence_matrix)
+        sequence_matrix /= _np.sum(sequence_matrix)
 
-        color_map = _mplcr_LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
+        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
         ax_is = ax.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         _xticks_states(ax, mc, False, True)
@@ -1049,8 +966,8 @@ def plot_sequence(mc: _tmc, sequence: _tsequence_flex, initial_state: _ostate = 
 
         ax.set_title('Sequence Plot (Transitions)', fontsize=15.0, fontweight='bold')
 
-    if _mplp_isinteractive():  # pragma: no cover
-        _mplp_show(block=False)
+    if _mplp.isinteractive():  # pragma: no cover
+        _mplp.show(block=False)
         return None
 
     return figure, ax

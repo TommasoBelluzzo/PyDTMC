@@ -95,58 +95,23 @@ __all__ = [
 
 # Standard
 
-
-from inspect import (
-    FrameInfo as _ins_FrameInfo
-)
-
-from pathlib import (
-    Path as _pl_Path
-)
-
-from typing import (
-    Any as _tp_Any,
-    Callable as _tp_Callable,
-    Dict as _tp_Dict,
-    List as _tp_List,
-    Optional as _tp_Optional,
-    Tuple as _tp_Tuple,
-    TypeVar as _tp_TypeVar,
-    Union as _tp_Union
-)
+import inspect as _ins
+import pathlib as _pl
+import typing as _tp
 
 # Libraries
 
-from matplotlib.pyplot import (
-    Axes as _mplp_Axes,
-    Figure as _mplp_Figure
-)
-
-from networkx import (
-    DiGraph as _nx_DiGraph,
-    MultiDiGraph as _nx_MultiDiGraph
-)
-
-from numpy import (
-    ndarray as _np_ndarray
-)
-
-from numpy.random import (
-    RandomState as _npr_RandomState
-)
-
-from scipy.sparse import (
-    spmatrix as _spsp_matrix
-)
+import matplotlib.pyplot as _mplp
+import networkx as _nx
+import numpy as _np
+import numpy.random as _npr
+import scipy.sparse as _spsp
 
 try:
-    from pandas import (
-        DataFrame as _pd_DataFrame,
-        Series as _pd_Series
-    )
+    import pandas as _pd
     _pandas_found = True
 except ImportError:  # pragma: no cover
-    _pd_DataFrame, _pd_Series = None, None
+    _pd = None
     _pandas_found = False
 
 
@@ -156,252 +121,252 @@ except ImportError:  # pragma: no cover
 
 # Base Types
 
-tany = _tp_Any
+tany = _tp.Any
 
-obool = _tp_Optional[bool]
-ofloat = _tp_Optional[float]
-oint = _tp_Optional[int]
-ostr = _tp_Optional[str]
+obool = _tp.Optional[bool]
+ofloat = _tp.Optional[float]
+oint = _tp.Optional[int]
+ostr = _tp.Optional[str]
 
-tscalar = _tp_Union[float, int]
-oscalar = _tp_Optional[tscalar]
+tscalar = _tp.Union[float, int]
+oscalar = _tp.Optional[tscalar]
 
-tarray = _np_ndarray
-oarray = _tp_Optional[tarray]
+tarray = _np.ndarray
+oarray = _tp.Optional[tarray]
 
-tnumeric = _tp_Union[_np_ndarray, _spsp_matrix] if not _pandas_found else _tp_Union[_np_ndarray, _spsp_matrix, _pd_DataFrame, _pd_Series]
-onumeric = _tp_Optional[tnumeric]
+tnumeric = _tp.Union[_np.ndarray, _spsp.spmatrix] if not _pandas_found else _tp.Union[_np.ndarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
+onumeric = _tp.Optional[tnumeric]
 
 texception = Exception
-oexception = _tp_Optional[texception]
+oexception = _tp.Optional[texception]
 
-tgraph = _nx_DiGraph
-ograph = _tp_Optional[tgraph]
+tgraph = _nx.DiGraph
+ograph = _tp.Optional[tgraph]
 
-tgraphs = _tp_Union[tgraph, _nx_MultiDiGraph]
-ographs = _tp_Optional[tgraphs]
+tgraphs = _tp.Union[tgraph, _nx.MultiDiGraph]
+ographs = _tp.Optional[tgraphs]
 
-tpath = _tp_Union[str, _pl_Path]
-opath = _tp_Optional[tpath]
+tpath = _tp.Union[str, _pl.Path]
+opath = _tp.Optional[tpath]
 
-tplot = _tp_Tuple[_mplp_Figure, _tp_Union[_mplp_Axes, _tp_List[_mplp_Axes]]]
-oplot = _tp_Optional[tplot]
+tplot = _tp.Tuple[_mplp.Figure, _tp.Union[_mplp.Axes, _tp.List[_mplp.Axes]]]
+oplot = _tp.Optional[tplot]
 
-trand = _npr_RandomState
-orand = _tp_Optional[trand]
+trand = _npr.RandomState
+orand = _tp.Optional[trand]
 
-tstack = _tp_List[_ins_FrameInfo]
-ostack = _tp_Optional[tstack]
-
-# noinspection PyTypeHints
-thmm = _tp_TypeVar('HiddenMarkovModel')
-ohmm = _tp_Optional[thmm]
+tstack = _tp.List[_ins.FrameInfo]
+ostack = _tp.Optional[tstack]
 
 # noinspection PyTypeHints
-tmc = _tp_TypeVar('MarkovChain')
-omc = _tp_Optional[tmc]
+thmm = _tp.TypeVar('HiddenMarkovModel')
+ohmm = _tp.Optional[thmm]
 
-tmodel = _tp_Union[thmm, tmc]
-omodel = _tp_Optional[tmodel]
+# noinspection PyTypeHints
+tmc = _tp.TypeVar('MarkovChain')
+omc = _tp.Optional[tmc]
+
+tmodel = _tp.Union[thmm, tmc]
+omodel = _tp.Optional[tmodel]
 
 # Pairs
 
-tpair_array = _tp_Tuple[tarray, tarray]
-opair_array = _tp_Optional[tpair_array]
+tpair_array = _tp.Tuple[tarray, tarray]
+opair_array = _tp.Optional[tpair_array]
 
-tpair_bool = _tp_Tuple[bool, bool]
-opair_bool = _tp_Optional[tpair_bool]
+tpair_bool = _tp.Tuple[bool, bool]
+opair_bool = _tp.Optional[tpair_bool]
 
-tpair_float = _tp_Tuple[float, float]
-opair_float = _tp_Optional[tpair_float]
+tpair_float = _tp.Tuple[float, float]
+opair_float = _tp.Optional[tpair_float]
 
-tpair_int = _tp_Tuple[int, int]
-opair_int = _tp_Optional[tpair_int]
+tpair_int = _tp.Tuple[int, int]
+opair_int = _tp.Optional[tpair_int]
 
-tpair_str = _tp_Tuple[str, str]
-opair_str = _tp_Optional[tpair_str]
+tpair_str = _tp.Tuple[str, str]
+opair_str = _tp.Optional[tpair_str]
 
 # Lists
 
-tlist_any = _tp_List[tany]
-olist_any = _tp_Optional[tlist_any]
+tlist_any = _tp.List[tany]
+olist_any = _tp.Optional[tlist_any]
 
-tlist_array = _tp_List[tarray]
-olist_array = _tp_Optional[tlist_array]
+tlist_array = _tp.List[tarray]
+olist_array = _tp.Optional[tlist_array]
 
-tlist_float = _tp_List[float]
-olist_float = _tp_Optional[tlist_float]
+tlist_float = _tp.List[float]
+olist_float = _tp.Optional[tlist_float]
 
-tlist_int = _tp_List[int]
-olist_int = _tp_Optional[tlist_int]
+tlist_int = _tp.List[int]
+olist_int = _tp.Optional[tlist_int]
 
-tlist_mc = _tp_List[tmc]
-olist_mc = _tp_Optional[tlist_mc]
+tlist_mc = _tp.List[tmc]
+olist_mc = _tp.Optional[tlist_mc]
 
-tlist_str = _tp_List[str]
-olist_str = _tp_Optional[tlist_str]
+tlist_str = _tp.List[str]
+olist_str = _tp.Optional[tlist_str]
 
 # Lists of Lists
 
-tlists_any = _tp_List[tlist_any]
-olists_any = _tp_Optional[tlists_any]
+tlists_any = _tp.List[tlist_any]
+olists_any = _tp.Optional[tlists_any]
 
-tlists_array = _tp_List[tlist_array]
-olists_array = _tp_Optional[tlists_array]
+tlists_array = _tp.List[tlist_array]
+olists_array = _tp.Optional[tlists_array]
 
-tlists_float = _tp_List[tlist_float]
-olists_float = _tp_Optional[tlists_float]
+tlists_float = _tp.List[tlist_float]
+olists_float = _tp.Optional[tlists_float]
 
-tlists_int = _tp_List[tlist_int]
-olists_int = _tp_Optional[tlists_int]
+tlists_int = _tp.List[tlist_int]
+olists_int = _tp.Optional[tlists_int]
 
-tlists_str = _tp_List[tlist_str]
-olists_str = _tp_Optional[tlists_str]
+tlists_str = _tp.List[tlist_str]
+olists_str = _tp.Optional[tlists_str]
 
 # Compound Types - Generic
 
-tcache = _tp_Dict[str, tany]
-ocache = _tp_Optional[tcache]
+tcache = _tp.Dict[str, tany]
+ocache = _tp.Optional[tcache]
 
-tdtype = _tp_Union[object, str]
-odtype = _tp_Optional[tdtype]
+tdtype = _tp.Union[object, str]
+odtype = _tp.Optional[tdtype]
 
-tedge_attributes = _tp_List[_tp_Tuple[str, _tp_Tuple[str, ...]]]
-oedge_attributes = _tp_Optional[tedge_attributes]
+tedge_attributes = _tp.List[_tp.Tuple[str, _tp.Tuple[str, ...]]]
+oedge_attributes = _tp.Optional[tedge_attributes]
 
-tfile = _tp_Tuple[tpath, str]
-ofile = _tp_Optional[tfile]
+tfile = _tp.Tuple[tpath, str]
+ofile = _tp.Optional[tfile]
 
-tinterval = _tp_Tuple[tscalar, tscalar]
-ointerval = _tp_Optional[tinterval]
+tinterval = _tp.Tuple[tscalar, tscalar]
+ointerval = _tp.Optional[tinterval]
 
-tlimit_float = _tp_Tuple[float, bool]
-olimit_float = _tp_Optional[tlimit_float]
+tlimit_float = _tp.Tuple[float, bool]
+olimit_float = _tp.Optional[tlimit_float]
 
-tlimit_int = _tp_Tuple[int, bool]
-olimit_int = _tp_Optional[tlimit_int]
+tlimit_int = _tp.Tuple[int, bool]
+olimit_int = _tp.Optional[tlimit_int]
 
-tlimit_scalar = _tp_Tuple[tscalar, bool]
-olimit_scalar = _tp_Optional[tlimit_scalar]
+tlimit_scalar = _tp.Tuple[tscalar, bool]
+olimit_scalar = _tp.Optional[tlimit_scalar]
 
-tpartition = _tp_Union[tlists_int, tlists_str]
-opartition = _tp_Optional[tpartition]
+tpartition = _tp.Union[tlists_int, tlists_str]
+opartition = _tp.Optional[tpartition]
 
-tpartitions = _tp_List[tpartition]
-opartitions = _tp_Optional[tpartitions]
+tpartitions = _tp.List[tpartition]
+opartitions = _tp.Optional[tpartitions]
 
-trandfunc = _tp_Callable
-orandfunc = _tp_Optional[trandfunc]
+trandfunc = _tp.Callable
+orandfunc = _tp.Optional[trandfunc]
 
-trandfunc_flex = _tp_Union[_tp_Callable, str]
-orandfunc_flex = _tp_Optional[trandfunc_flex]
+trandfunc_flex = _tp.Union[_tp.Callable, str]
+orandfunc_flex = _tp.Optional[trandfunc_flex]
 
-trdl = _tp_Tuple[tarray, tarray, tarray]
-ordl = _tp_Optional[trdl]
+trdl = _tp.Tuple[tarray, tarray, tarray]
+ordl = _tp.Optional[trdl]
 
-ttest = _tp_Tuple[obool, float, _tp_Dict[str, tany]]
-otest = _tp_Optional[ttest]
+ttest = _tp.Tuple[obool, float, _tp.Dict[str, tany]]
+otest = _tp.Optional[ttest]
 
-ttest_chi2 = _tp_Tuple[float, float]
-otest_chi2 = _tp_Optional[ttest_chi2]
+ttest_chi2 = _tp.Tuple[float, float]
+otest_chi2 = _tp.Optional[ttest_chi2]
 
 # Compound Types - Specific
 
-tbcond = _tp_Union[float, int, str]
-obcond = _tp_Optional[tbcond]
+tbcond = _tp.Union[float, int, str]
+obcond = _tp.Optional[tbcond]
 
-tdists_flex = _tp_Union[int, tlist_array]
-odists_flex = _tp_Optional[tdists_flex]
+tdists_flex = _tp.Union[int, tlist_array]
+odists_flex = _tp.Optional[tdists_flex]
 
-tfitting_res = _tp_Tuple[oarray, ostr]
-ofitting_res = _tp_Optional[tfitting_res]
+tfitting_res = _tp.Tuple[oarray, ostr]
+ofitting_res = _tp.Optional[tfitting_res]
 
-thmm_decoding = _tp_Tuple[float, tarray, tarray, tarray, oarray]
-ohmm_decoding = _tp_Optional[thmm_decoding]
+thmm_decoding = _tp.Tuple[float, tarray, tarray, tarray, oarray]
+ohmm_decoding = _tp.Optional[thmm_decoding]
 
-thmm_dict = _tp_Dict[_tp_Tuple[str, str, str], float]
-ohmm_dict = _tp_Optional[thmm_dict]
+thmm_dict = _tp.Dict[_tp.Tuple[str, str, str], float]
+ohmm_dict = _tp.Optional[thmm_dict]
 
-thmm_dict_flex = _tp_Dict[_tp_Tuple[str, str, str], tscalar]
-ohmm_dict_flex = _tp_Optional[thmm_dict_flex]
+thmm_dict_flex = _tp.Dict[_tp.Tuple[str, str, str], tscalar]
+ohmm_dict_flex = _tp.Optional[thmm_dict_flex]
 
-thmm_generation = _tp_Tuple[tarray, tarray, tlist_str, tlist_str]
-ohmm_generation = _tp_Optional[thmm_generation]
+thmm_generation = _tp.Tuple[tarray, tarray, tlist_str, tlist_str]
+ohmm_generation = _tp.Optional[thmm_generation]
 
-thmm_generation_ext = _tp_Tuple[oarray, oarray, olist_str, olist_str, ostr]
-ohmm_generation_ext = _tp_Optional[thmm_generation_ext]
+thmm_generation_ext = _tp.Tuple[oarray, oarray, olist_str, olist_str, ostr]
+ohmm_generation_ext = _tp.Optional[thmm_generation_ext]
 
-thmm_params = _tp_Tuple[tarray, tarray]
-ohmm_params = _tp_Optional[thmm_params]
+thmm_params = _tp.Tuple[tarray, tarray]
+ohmm_params = _tp.Optional[thmm_params]
 
-thmm_params_res = _tp_Tuple[oarray, oarray, ostr]
-ohmm_params_res = _tp_Optional[thmm_params_res]
+thmm_params_res = _tp.Tuple[oarray, oarray, ostr]
+ohmm_params_res = _tp.Optional[thmm_params_res]
 
-thmm_prediction = _tp_Tuple[float, _tp_Union[tlist_int, tlist_str]]
-ohmm_prediction = _tp_Optional[thmm_prediction]
+thmm_prediction = _tp.Tuple[float, _tp.Union[tlist_int, tlist_str]]
+ohmm_prediction = _tp.Optional[thmm_prediction]
 
-thmm_sequence = _tp_Tuple[tlist_int, tlist_int]
-ohmm_sequence = _tp_Optional[thmm_sequence]
+thmm_sequence = _tp.Tuple[tlist_int, tlist_int]
+ohmm_sequence = _tp.Optional[thmm_sequence]
 
-thmm_sequence_ext = _tp_Union[_tp_Tuple[tlist_int, tlist_int], _tp_Tuple[tlist_str, tlist_str]]
-ohmm_sequence_ext = _tp_Optional[thmm_sequence_ext]
+thmm_sequence_ext = _tp.Union[_tp.Tuple[tlist_int, tlist_int], _tp.Tuple[tlist_str, tlist_str]]
+ohmm_sequence_ext = _tp.Optional[thmm_sequence_ext]
 
-thmm_step = _tp_Union[int, str, _tp_Tuple[int, int], _tp_Tuple[str, str]]
-ohmm_step = _tp_Optional[thmm_step]
+thmm_step = _tp.Union[int, str, _tp.Tuple[int, int], _tp.Tuple[str, str]]
+ohmm_step = _tp.Optional[thmm_step]
 
-thmm_symbols = _tp_Union[tlist_int, tlist_str]
-ohmm_symbols = _tp_Optional[thmm_symbols]
+thmm_symbols = _tp.Union[tlist_int, tlist_str]
+ohmm_symbols = _tp.Optional[thmm_symbols]
 
-thmm_symbols_ext = _tp_Union[tlist_int, tlist_str, tlists_int, tlists_str]
-ohmm_symbols_ext = _tp_Optional[thmm_symbols_ext]
+thmm_symbols_ext = _tp.Union[tlist_int, tlist_str, tlists_int, tlists_str]
+ohmm_symbols_ext = _tp.Optional[thmm_symbols_ext]
 
-tmc_dict = _tp_Dict[_tp_Tuple[str, str], float]
-omc_dict = _tp_Optional[tmc_dict]
+tmc_dict = _tp.Dict[_tp.Tuple[str, str], float]
+omc_dict = _tp.Optional[tmc_dict]
 
-tmc_dict_flex = _tp_Dict[_tp_Tuple[str, str], tscalar]
-omc_dict_flex = _tp_Optional[tmc_dict_flex]
+tmc_dict_flex = _tp.Dict[_tp.Tuple[str, str], tscalar]
+omc_dict_flex = _tp.Optional[tmc_dict_flex]
 
-tmc_generation = _tp_Tuple[oarray, ostr]
-omc_generation = _tp_Optional[tmc_generation]
+tmc_generation = _tp.Tuple[oarray, ostr]
+omc_generation = _tp.Optional[tmc_generation]
 
-tmc_generation_ext = _tp_Tuple[oarray, olist_str, ostr]
-omc_generation_ext = _tp_Optional[tmc_generation_ext]
+tmc_generation_ext = _tp.Tuple[oarray, olist_str, ostr]
+omc_generation_ext = _tp.Optional[tmc_generation_ext]
 
-tobj_dict = _tp_Union[thmm_dict, tmc_dict]
-oobj_dict = _tp_Optional[tobj_dict]
+tobj_dict = _tp.Union[thmm_dict, tmc_dict]
+oobj_dict = _tp.Optional[tobj_dict]
 
-tredists = _tp_Union[tarray, tlist_array]
-oredists = _tp_Optional[tredists]
+tredists = _tp.Union[tarray, tlist_array]
+oredists = _tp.Optional[tredists]
 
-tstate = _tp_Union[int, str]
-ostate = _tp_Optional[tstate]
+tstate = _tp.Union[int, str]
+ostate = _tp.Optional[tstate]
 
-tstates = _tp_Union[tstate, tlist_int, tlist_str]
-ostates = _tp_Optional[tstates]
+tstates = _tp.Union[tstate, tlist_int, tlist_str]
+ostates = _tp.Optional[tstates]
 
-tstatus = _tp_Union[int, str, tnumeric]
-ostatus = _tp_Optional[tstatus]
+tstatus = _tp.Union[int, str, tnumeric]
+ostatus = _tp.Optional[tstatus]
 
-ttfunc = _tp_Callable[[int, float, int, float], float]
-otfunc = _tp_Optional[ttfunc]
+ttfunc = _tp.Callable[[int, float, int, float], float]
+otfunc = _tp.Optional[ttfunc]
 
-tsequence = _tp_Union[tlist_int, tlist_str]
-osequence = _tp_Optional[tsequence]
+tsequence = _tp.Union[tlist_int, tlist_str]
+osequence = _tp.Optional[tsequence]
 
-tsequence_flex = _tp_Union[int, tsequence]
-osequence_flex = _tp_Optional[tsequence_flex]
+tsequence_flex = _tp.Union[int, tsequence]
+osequence_flex = _tp.Optional[tsequence_flex]
 
-tsequences = _tp_List[tsequence]
-osequences = _tp_Optional[tsequences]
+tsequences = _tp.List[tsequence]
+osequences = _tp.Optional[tsequences]
 
-ttimes_in = _tp_Union[int, tlist_int]
-otimes_in = _tp_Optional[ttimes_in]
+ttimes_in = _tp.Union[int, tlist_int]
+otimes_in = _tp.Optional[ttimes_in]
 
-ttimes_out = _tp_Union[float, tlist_float]
-otimes_out = _tp_Optional[ttimes_out]
+ttimes_out = _tp.Union[float, tlist_float]
+otimes_out = _tp.Optional[ttimes_out]
 
-tvalid_states = _tp_Tuple[tlist_int, tlist_str]
-ovalid_states = _tp_Optional[tvalid_states]
+tvalid_states = _tp.Tuple[tlist_int, tlist_str]
+ovalid_states = _tp.Optional[tvalid_states]
 
-tweights = _tp_Union[float, int, tnumeric]
-oweights = _tp_Optional[tweights]
+tweights = _tp.Union[float, int, tnumeric]
+oweights = _tp.Optional[tweights]
