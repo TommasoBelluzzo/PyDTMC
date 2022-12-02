@@ -31,10 +31,12 @@ class Model(_abc.ABC):  # pragma: no cover
 
         return super().__new__(cls)
 
+    @property
     @_abc.abstractmethod
     def n(self):
         pass
 
+    @property
     @_abc.abstractmethod
     def states(self):
         pass
