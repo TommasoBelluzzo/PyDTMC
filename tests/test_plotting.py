@@ -62,20 +62,28 @@ def _generate_configs(seed, runs, maximum_size, params_generator=None):
 
 # noinspection PyBroadException
 @_pt.mark.slow
-def test_plot_comparison(seed, runs, maximum_size, maximum_elements):
+def test_plot_comparison(seed, runs, maximum_size, maximum_models):
 
     for _ in range(runs):
 
-        mcs_count = _rd.randint(2, maximum_elements)
-        mcs = []
+        models_count = _rd.randint(2, maximum_models)
+        models = []
 
-        for _ in range(mcs_count):
+        for _ in range(models_count):
+
+            model_mc = _rd.random() < 0.5
             size = _rd.randint(2, maximum_size)
-            mcs.append(_MarkovChain.random(size, seed=seed))
+
+            if model_mc:
+                models.append(_MarkovChain.random(size, seed=seed))
+            else:
+                size_multiplier = _rd.randint(1, 3)
+                n, k = size, size * size_multiplier
+                models.append(_HiddenMarkovModel.random(n, k, seed=seed))
 
         try:
 
-            figure, _ = _plot_comparison(mcs)
+            figure, _ = _plot_comparison(models)
             _mplp.close(figure)
 
             exception = False
@@ -90,16 +98,27 @@ def test_plot_comparison(seed, runs, maximum_size, maximum_elements):
 @_pt.mark.slow
 def test_plot_eigenvalues(seed, runs, maximum_size):
 
-    configs = _generate_configs(seed, runs, maximum_size)
+    def _params_generator():
+
+        p_model_mc = _rd.random() < 0.5
+        p_size_multiplier = 1 if p_model_mc else _rd.randint(1, 3)
+
+        yield from [p_model_mc, p_size_multiplier]
+
+    configs = _generate_configs(seed, runs, maximum_size, params_generator=_params_generator)
 
     for i in range(runs):
 
-        size, zeros = configs[i]
-        mc = _MarkovChain.random(size, zeros=zeros, seed=seed)
+        size, zeros, model_mc, size_multiplier = configs[i]
+
+        if model_mc:
+            model = _MarkovChain.random(size, zeros=zeros, seed=seed)
+        else:
+            model = _HiddenMarkovModel.random(size, size * size_multiplier, p_zeros=zeros, e_zeros=zeros * size_multiplier, seed=seed)
 
         try:
 
-            figure, _ = _plot_eigenvalues(mc)
+            figure, _ = _plot_eigenvalues(model)
             _mplp.close(figure)
 
             exception = False
@@ -116,33 +135,31 @@ def test_plot_graph(seed, runs, maximum_size):
 
     def _params_generator():
 
-        p_obj_mc = _rd.random() < 0.5
-        p_size_multiplier = 1 if p_obj_mc else _rd.randint(1, 3)
+        p_model_pc = _rd.random() < 0.5
+        p_size_multiplier = 1 if p_model_pc else _rd.randint(1, 3)
         p_nodes_color = _rd.random() < 0.5
         p_nodes_shape = _rd.random() < 0.5
         p_edges_label = _rd.random() < 0.5
 
-        yield from [p_obj_mc, p_size_multiplier, p_nodes_color, p_nodes_shape, p_edges_label]
+        yield from [p_model_pc, p_size_multiplier, p_nodes_color, p_nodes_shape, p_edges_label]
 
     configs = _generate_configs(seed, runs, maximum_size, params_generator=_params_generator)
 
     for i in range(runs):
 
-        size, zeros, obj_mc, size_multiplier, nodes_color, nodes_shape, edges_label = configs[i]
+        size, zeros, model_pc, size_multiplier, nodes_color, nodes_shape, edges_label = configs[i]
 
-        if obj_mc:
-            obj = _MarkovChain.random(size, zeros=zeros, seed=seed)
+        if model_pc:
+            model = _MarkovChain.random(size, zeros=zeros, seed=seed)
         else:
-            n, k = size, size * size_multiplier
-            p_zeros, e_zeros = zeros, zeros * size_multiplier
-            obj = _HiddenMarkovModel.random(n, k, p_zeros=p_zeros, e_zeros=e_zeros, seed=seed)
+            model = _HiddenMarkovModel.random(size, size * size_multiplier, p_zeros=zeros, e_zeros=zeros * size_multiplier, seed=seed)
 
         try:
 
-            figure, _ = _plot_graph(obj, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label, force_standard=True)
+            figure, _ = _plot_graph(model, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label, force_standard=True)
             _mplp.close(figure)
 
-            figure, _ = _plot_graph(obj, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label, force_standard=False)
+            figure, _ = _plot_graph(model, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label, force_standard=False)
             _mplp.close(figure)
 
             exception = False

@@ -49,6 +49,7 @@ from pydtmc.validation import (
     validate_mask as _validate_mask,
     validate_matrix as _validate_matrix,
     validate_model as _validate_model,
+    validate_models as _validate_models,
     validate_partitions as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
@@ -648,6 +649,35 @@ def test_validate_model(value, is_valid):
             assert result_check is True
 
 
+# noinspection PyBroadException
+def test_validate_models(value, is_valid):
+
+    if isinstance(value, str):
+        value, skip = _evaluate(value)
+    else:
+        skip = False
+
+    if skip:
+        _pt.skip('Pandas library could not be imported.')
+    else:
+
+        try:
+            result = _validate_models(value)
+            result_is_valid = True
+        except Exception:
+            result = None
+            result_is_valid = False
+
+        actual = result_is_valid
+        expected = is_valid
+
+        assert actual == expected
+
+        if result_is_valid:
+            result_check = isinstance(result, list) and all(isinstance(v, _HiddenMarkovModel) or isinstance(v, _MarkovChain) for v in result)
+            assert result_check is True
+
+
 # noinspection DuplicatedCode, PyBroadException
 def test_validate_partitions(value, labels, is_valid):
 
@@ -664,11 +694,8 @@ def test_validate_partitions(value, labels, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, list) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, list) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -687,11 +714,8 @@ def test_validate_random_distribution(value, accepted_values, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = callable(result)
-        expected = True
-
-        assert actual == expected
+        result_check = callable(result)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -710,11 +734,8 @@ def test_validate_rewards(value, size, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, _np.ndarray)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, _np.ndarray)
+        assert result_check is True
 
 
 # noinspection DuplicatedCode, PyBroadException
@@ -773,11 +794,8 @@ def test_validate_status(value, labels, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, _np.ndarray)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, _np.ndarray)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -796,11 +814,8 @@ def test_validate_strings(value, size, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, list) and all(isinstance(v, str) for v in result)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, list) and all(isinstance(v, str) for v in result)
+        assert result_check is True
 
 
 # noinspection DuplicatedCode, PyBroadException
@@ -819,11 +834,8 @@ def test_validate_time_points(value, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, int) for v in result))
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, int) for v in result))
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -848,11 +860,8 @@ def test_validate_transition_function(value, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = callable(result)
-        expected = True
-
-        assert actual == expected
+        result_check = callable(result)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -871,11 +880,8 @@ def test_validate_transition_matrix(value, size, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, _np.ndarray)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, _np.ndarray)
+        assert result_check is True
 
 
 # noinspection PyBroadException
@@ -894,8 +900,5 @@ def test_validate_vector(value, vector_type, flex, size, is_valid):
     assert actual == expected
 
     if result_is_valid:
-
-        actual = isinstance(result, _np.ndarray)
-        expected = True
-
-        assert actual == expected
+        result_check = isinstance(result, _np.ndarray)
+        assert result_check is True

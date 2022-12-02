@@ -744,6 +744,15 @@ class MarkovChain(_Model):
         return mr
 
     @property
+    def n(self) -> int:
+
+        """
+        A property representing the size of the Markov chain state space.
+        """
+
+        return self.__size
+
+    @property
     def p(self) -> _tarray:
 
         """

@@ -28,8 +28,10 @@ __all__ = [
     'tlist_array', 'olist_array',
     'tlist_float', 'olist_float',
     'tlist_int', 'olist_int',
-    'tlist_mc', 'olist_mc',
     'tlist_str', 'olist_str',
+    'tlist_hmm', 'olist_hmm',
+    'tlist_mc', 'olist_mc',
+    'tlist_model', 'olist_model',
     # Lists of Lists
     'tlists_any', 'olists_any',
     'tlists_array', 'olists_array',
@@ -152,7 +154,7 @@ opath = _tp.Optional[tpath]
 tplot = _tp.Tuple[_mplp.Figure, _tp.Union[_mplp.Axes, _tp.List[_mplp.Axes]]]
 oplot = _tp.Optional[tplot]
 
-trand = _npr.RandomState
+trand = _npr.RandomState  # pylint: disable=no-member
 orand = _tp.Optional[trand]
 
 tstack = _tp.List[_ins.FrameInfo]
@@ -200,11 +202,17 @@ olist_float = _tp.Optional[tlist_float]
 tlist_int = _tp.List[int]
 olist_int = _tp.Optional[tlist_int]
 
+tlist_str = _tp.List[str]
+olist_str = _tp.Optional[tlist_str]
+
+tlist_hmm = _tp.List[thmm]
+olist_hmm = _tp.Optional[tlist_hmm]
+
 tlist_mc = _tp.List[tmc]
 olist_mc = _tp.Optional[tlist_mc]
 
-tlist_str = _tp.List[str]
-olist_str = _tp.Optional[tlist_str]
+tlist_model = _tp.List[tmodel]
+olist_model = _tp.Optional[tlist_model]
 
 # Lists of Lists
 

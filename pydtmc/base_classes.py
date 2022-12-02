@@ -32,6 +32,14 @@ class Model(_abc.ABC):  # pragma: no cover
         return super().__new__(cls)
 
     @_abc.abstractmethod
+    def n(self):
+        pass
+
+    @_abc.abstractmethod
+    def states(self):
+        pass
+
+    @_abc.abstractmethod
     def to_dictionary(self):
         pass
 

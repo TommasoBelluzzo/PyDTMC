@@ -48,10 +48,14 @@ from .custom_types import (
     ostate as _ostate,
     ostatus as _ostatus,
     tdists_flex as _tdists_flex,
-    tlist_mc as _tlist_mc,
+    tlist_model as _tlist_model,
     tmc as _tmc,
     tmodel as _tmodel,
     tsequence_flex as _tsequence_flex
+)
+
+from .markov_chain import (
+    MarkovChain as _MarkovChain
 )
 
 from .utilities import (
@@ -66,8 +70,8 @@ from .validation import (
     validate_integer as _validate_integer,
     validate_label as _validate_label,
     validate_markov_chain as _validate_markov_chain,
-    validate_markov_chains as _validate_markov_chains,
     validate_model as _validate_model,
+    validate_models as _validate_models,
     validate_sequence as _validate_sequence,
     validate_status as _validate_status,
     validate_strings as _validate_strings
@@ -133,17 +137,17 @@ def _yticks_states(ax, mc: _tmc, label: bool):
     ax.set_yticklabels(mc.states)
 
 
-def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_layout: bool = False, dpi: int = 100) -> _oplot:
+def plot_comparison(models: _tlist_model, names: _olist_str = None, constrained_layout: bool = False, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the transition matrix of every Markov chain in the form of a heatmap.
+    The function plots the transition matrix of the given models in the form of a heatmap.
 
     | **Notes:**
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param mcs: the Markov chains.
-    :param mcs_names: the name of each Markov chain subplot (*if omitted, a standard name is given to each subplot*).
+    :param models: the models.
+    :param names: the name of each model subplot (*if omitted, a standard name is given to each subplot*).
     :param constrained_layout: a boolean indicating whether to use a constrained layout.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
@@ -151,15 +155,15 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
 
     try:
 
-        mcs = _validate_markov_chains(mcs)
-        mcs_names = [f'MC{index + 1} Size={mc.size:d}' for index, mc in enumerate(mcs)] if mcs_names is None else _validate_strings(mcs_names, len(mcs))
+        models = _validate_models(models)
+        names = [f'Model {index + 1}' for index, _ in enumerate(models)] if names is None else _validate_strings(names, len(models))
         constrained_layout = _validate_boolean(constrained_layout)
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
         raise _create_validation_error(ex, _ins.trace()) from None
 
-    n = len(mcs)
+    n = len(models)
     rows = int(_mt.sqrt(n))
     columns = int(_mt.ceil(n / float(rows)))
 
@@ -169,10 +173,10 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
 
     color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
 
-    for ax, mc, mc_name in zip(axes, mcs, mcs_names):
+    for ax, model, name in zip(axes, models, names):
 
-        ax_is = ax.imshow(mc.p, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
-        ax.set_title(mc_name, fontsize=9.0, fontweight='normal', pad=1)
+        ax_is = ax.imshow(model.p, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+        ax.set_title(name, fontsize=9.0, fontweight='normal', pad=1)
 
         ax.set_xticks([])
         ax.set_xticks([], minor=True)
@@ -192,27 +196,32 @@ def plot_comparison(mcs: _tlist_mc, mcs_names: _olist_str = None, constrained_la
     return figure, axes
 
 
-def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
+def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the eigenvalues of the Markov chain on the complex plane.
+    The function plots the eigenvalues of the transition matrix of the given model on the complex plane.
 
     | **Notes:**
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param mc: the Markov chain.
+    :param model: the model to be converted into a graph.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
 
     try:
 
-        mc = _validate_markov_chain(mc)
+        model = _validate_model(model)
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
         raise _create_validation_error(ex, _ins.trace()) from None
+
+    if model.__class__.__name__ == 'MarkovChain':
+        mc = model
+    else:
+        mc = _MarkovChain(model.p)
 
     figure, ax = _mplp.subplots(dpi=dpi)
 
@@ -220,7 +229,7 @@ def plot_eigenvalues(mc: _tmc, dpi: int = 100) -> _oplot:
 
     theta = _np.linspace(0.0, 2.0 * _np.pi, 200)
 
-    evalues = _npl.eigvals(mc.p).astype(complex)
+    evalues = _npl.eigvals(model.p).astype(complex)
     evalues_final = _np.unique(_np.append(evalues, _np.array([1.0]).astype(complex)))
 
     x_unit_circle = _np.cos(theta)
@@ -769,16 +778,16 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
 
 # noinspection DuplicatedCode
-def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
+def plot_redistributions(model: _tmodel, distributions: _tdists_flex, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
 
     """
-    The function plots a redistribution of states on the given Markov chain.
+    The function plots a redistribution of states on the given model.
 
     | **Notes:**
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param mc: the Markov chain.
+    :param model: the model to be converted into a graph.
     :param distributions: a sequence of redistributions or the number of redistributions to perform.
     :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
     :param plot_type:
@@ -791,14 +800,19 @@ def plot_redistributions(mc: _tmc, distributions: _tdists_flex, initial_status: 
 
     try:
 
-        mc = _validate_markov_chain(mc)
-        distributions = _validate_distribution(distributions, mc.size)
-        initial_status = None if initial_status is None else _validate_status(initial_status, mc.states)
+        model = _validate_model(model)
+        distributions = _validate_distribution(distributions, model.n)
+        initial_status = None if initial_status is None else _validate_status(initial_status, model.states)
         plot_type = _validate_enumerator(plot_type, ['heatmap', 'projection'])
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
         raise _create_validation_error(ex, _ins.trace()) from None
+
+    if model.__class__.__name__ == 'MarkovChain':
+        mc = model
+    else:
+        mc = _MarkovChain(model.p)
 
     if isinstance(distributions, int):
         distributions = mc.redistribute(distributions, initial_status=initial_status, output_last=False)

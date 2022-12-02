@@ -30,6 +30,7 @@ Properties
 		kemeny_constant,
 		lumping_partitions,
 		mixing_rate,
+		n,
 		p,
 		period,
 		periods,

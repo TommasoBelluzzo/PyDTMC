@@ -24,6 +24,7 @@ __all__ = [
     'validate_mask',
     'validate_matrix',
     'validate_model',
+    'validate_models',
     'validate_partitions',
     'validate_random_distribution',
     'validate_rewards',
@@ -61,6 +62,7 @@ from .custom_types import (
     olimit_float as _olimit_float,
     olimit_int as _olimit_int,
     olimit_scalar as _olimit_scalar,
+    tlist_model as _tlist_model,
     olist_str as _olist_str,
     tany as _tany,
     tarray as _tarray,
@@ -748,6 +750,25 @@ def validate_model(value: _tany) -> _tmodel:
 
     if value_base is None or value_base != 'pydtmc.base_classes.Model':
         raise TypeError('The "@arg@" parameter is wrongly typed.')
+
+    return value
+
+
+def validate_models(value: _tany) -> _tlist_model:
+
+    if not _is_list(value):
+        raise ValueError('The "@arg@" parameter must be a list.')
+
+    value_length = len(value)
+
+    if value_length < 2:
+        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
+
+    for i in range(value_length):
+        try:
+            validate_model(value[i])
+        except Exception as ex:
+            raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
 
     return value
 

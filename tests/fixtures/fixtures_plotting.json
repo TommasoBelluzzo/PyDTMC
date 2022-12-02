@@ -3,7 +3,7 @@
     "seed": 7331,
     "runs": 25,
     "maximum_size": 25,
-    "maximum_elements": 12
+    "maximum_models": 12
   },
   "plot_eigenvalues_data": {
     "seed": 7331,
