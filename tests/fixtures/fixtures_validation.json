@@ -851,7 +851,7 @@
       "is_valid": false
     },
     {
-      "value": "[HiddenMarkovModel([[0.1, 0.9], [0.4, 0.6]], [[0.7, 0.3], [0.7, 0.3]]), 1]",
+      "value": "[HiddenMarkovModel([[0.1, 0.9], [0.4, 0.6]], [[0.7, 0.3], [0.7, 0.3]]), 6.7]",
       "is_valid": false
     },
     {
@@ -1526,7 +1526,7 @@
       "is_valid": false
     },
     {
-      "value": "[1, MarkovChain([[0.1, 0.9], [0.4, 0.6]])]",
+      "value": "[0.22, MarkovChain([[0.1, 0.9], [0.4, 0.6]])]",
       "is_valid": false
     },
     {
@@ -1841,6 +1841,104 @@
     },
     {
       "value": 4,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "is_valid": false
+    },
+    {
+      "value": {},
+      "is_valid": false
+    }
+  ],
+  "validate_models_data": [
+    {
+      "value": "[HiddenMarkovModel([[0.1, 0.9], [0.4, 0.6]], [[0.5, 0.5], [0.5, 0.5]]), MarkovChain([[1.0, 0.0], [0.8, 0.2]])]",
+      "is_valid": true
+    },
+    {
+      "value": "[MarkovChain([[1.0, 0.0], [0.5, 0.5]]), HiddenMarkovModel([[0.6, 0.4], [0.1, 0.9]], [[0.6, 0.4], [0.0, 1.0]]), MarkovChain([[0.0, 1.0], [0.0, 1.0]])]",
+      "is_valid": true
+    },
+    {
+      "value": "[HiddenMarkovModel([[0.1, 0.9], [0.9, 0.1]], [[0.6, 0.4], [0.3, 0.7]]), HiddenMarkovModel([[0.5, 0.5], [1.0, 0.0]], [[0.7, 0.3], [0.1, 0.9]])]",
+      "is_valid": true
+    },
+    {
+      "value": "[MarkovChain([[0.4, 0.6], [0.5, 0.5]]), MarkovChain([[0.3, 0.7], [0.6, 0.4]])]",
+      "is_valid": true
+    },
+    {
+      "value": "[None, HiddenMarkovModel([[0.6, 0.4], [0.2, 0.8]], [[0.5, 0.5], [1.0, 0.0]])]",
+      "is_valid": false
+    },
+    {
+      "value": "[1, MarkovChain([[0.6, 0.4], [0.4, 0.6]])]",
+      "is_valid": false
+    },
+    {
+      "value": "[MarkovChain([[0.6, 0.4], [0.4, 0.6]]), 1877.3333]",
+      "is_valid": false
+    },
+    {
+      "value": "[HiddenMarkovModel([[0.3, 0.7], [0.8, 0.2]], [[0.3, 0.7], [0.8, 0.2]]), []]",
+      "is_valid": false
+    },
+    {
+      "value": "[MarkovChain([[0.5, 0.5], [1.0, 0.0]])]",
+      "is_valid": false
+    },
+    {
+      "value": "(MarkovChain([[0.1, 0.9], [0.5, 0.5]]),)",
+      "is_valid": false
+    },
+    {
+      "value": "MarkovChain([[0.2, 0.8], [0.9, 0.1]])",
+      "is_valid": false
+    },
+    {
+      "value": "HiddenMarkovModel([[0.4, 0.6], [0.7, 0.3]], [[0.5, 0.5], [0.5, 0.5]])",
+      "is_valid": false
+    },
+    {
+      "value": "ValidationError('TEST')",
+      "is_valid": false
+    },
+    {
+      "value": "object()",
+      "is_valid": false
+    },
+    {
+      "value": "range(42)",
+      "is_valid": false
+    },
+    {
+      "value": "TypeError()",
+      "is_valid": false
+    },
+    {
+      "value": "np.array([3, 1, 2, 1])",
+      "is_valid": false
+    },
+    {
+      "value": "nx.DiGraph()",
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "is_valid": false
+    },
+    {
+      "value": true,
+      "is_valid": false
+    },
+    {
+      "value": 0.05,
+      "is_valid": false
+    },
+    {
+      "value": 35,
       "is_valid": false
     },
     {
