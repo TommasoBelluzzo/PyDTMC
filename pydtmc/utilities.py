@@ -5,6 +5,7 @@ __all__ = [
     'build_mc_graph',
     'create_labels',
     'create_labels_from_data',
+    'create_models_names',
     'create_rng',
     'create_validation_error',
     'get_caller',
@@ -62,6 +63,7 @@ from .custom_types import (
     tarray as _tarray,
     texception as _texception,
     tgraph as _tgraph,
+    tlist_model as _tlist_model,
     tlist_str as _tlist_str,
     tpair_bool as _tpair_bool,
     tpath as _tpath,
@@ -158,6 +160,20 @@ def create_labels_from_data(data: _tany, prefix: str = '') -> _olist_str:
         return None
 
     return labels
+
+
+def create_models_names(models: _tlist_model) -> _tlist_str:
+
+    if all(model.__class__.__name__ == 'HiddenMarkovModel' for model in models):
+        models_label = 'HMM'
+    elif all(model.__class__.__name__ == 'MarkovChain' for model in models):
+        models_label = 'MC'
+    else:
+        models_label = 'MODEL'
+
+    models_names = [f'$\mathregular{{{models_label}_{index + 1}}}$' for index, model in enumerate(models)]
+
+    return models_names
 
 
 # noinspection PyProtectedMember

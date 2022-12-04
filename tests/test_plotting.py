@@ -104,7 +104,14 @@ def _generate_models_lists(seed, count, maximum_models, maximum_size):
 
             models_inner.append(model)
 
-        models.append(models_inner)
+        if all(isinstance(model, _HiddenMarkovModel) for model in models_inner):
+            models_inner_type = 'HiddenMarkovModel'
+        elif all(isinstance(model, _MarkovChain) for model in models_inner):
+            models_inner_type = 'MarkovChain'
+        else:
+            models_inner_type = None
+
+        models.append((models_inner_type, models_inner))
 
     _rd.setstate(random_state)
 
@@ -121,11 +128,13 @@ def test_plot_comparison(seed, runs, maximum_models, maximum_size):
 
     models_lists = _generate_models_lists(seed, runs, maximum_models, maximum_size)
 
-    for models_list in models_lists:
+    for models_list_type, models_list in models_lists:
+
+        underlying_matrices = 'emission' if models_list_type == 'HiddenMarkovModel' else 'transition'
 
         try:
 
-            figure, _ = _plot_comparison(models_list)
+            figure, _ = _plot_comparison(models_list, underlying_matrices=underlying_matrices)
             figure.clear()
             _mplp.close(figure)
 

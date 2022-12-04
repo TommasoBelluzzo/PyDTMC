@@ -51,12 +51,21 @@ from .custom_types import (
     tmodel as _tmodel
 )
 
+from .exceptions import (
+    ValidationError as _ValidationError
+)
+
+from .hidden_markov_model import (
+    HiddenMarkovModel as _HiddenMarkovModel
+)
+
 from .markov_chain import (
     MarkovChain as _MarkovChain
 )
 
 from .utilities import (
-    create_validation_error as _create_validation_error
+    create_validation_error as _create_validation_error,
+    create_models_names as _create_models_names
 )
 
 from .validation import (
@@ -91,7 +100,7 @@ _node_size = 500
 # FUNCTIONS #
 #############
 
-def _xticks_states(ax, size, labels_name, labels, minor_major):
+def _xticks_labels(ax, size, labels_name, labels, minor_major):
 
     if labels_name is not None:
         ax.set_xlabel(labels_name, fontsize=13.0)
@@ -121,7 +130,7 @@ def _yticks_frequency(ax, bottom, top):
     ax.set_ylim(bottom, top)
 
 
-def _yticks_states(ax, size, labels_name, labels):
+def _yticks_labels(ax, size, labels_name, labels):
 
     if labels_name is not None:
         ax.set_ylabel(labels_name, fontsize=13.0)
@@ -131,18 +140,20 @@ def _yticks_states(ax, size, labels_name, labels):
     ax.set_yticklabels(labels)
 
 
-def plot_comparison(models: _tlist_model, names: _olist_str = None, constrained_layout: bool = False, dpi: int = 100) -> _oplot:
+def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition', names: _olist_str = None, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the transition matrix of the given models in the form of a heatmap.
+    The function plots the underlying matrices of the given models in the form of a heatmap.
 
     | **Notes:**
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
     :param models: the models.
+    :param underlying_matrices:
+     - **emission** for comparing the emission matrices;
+     - **transition** for comparing the transition matrices.
     :param names: the name of each model subplot (*if omitted, a standard name is given to each subplot*).
-    :param constrained_layout: a boolean indicating whether to use a constrained layout.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -150,18 +161,21 @@ def plot_comparison(models: _tlist_model, names: _olist_str = None, constrained_
     try:
 
         models = _validate_models(models)
-        names = [f'Model {index + 1}' for index, _ in enumerate(models)] if names is None else _validate_strings(names, len(models))
-        constrained_layout = _validate_boolean(constrained_layout)
+        underlying_matrices = _validate_enumerator(underlying_matrices, ['emission', 'transition'])
+        names = _create_models_names(models) if names is None else _validate_strings(names, len(models))
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
         raise _create_validation_error(ex, _ins.trace()) from None
 
-    n = len(models)
-    rows = int(_mt.sqrt(n))
-    columns = int(_mt.ceil(n / float(rows)))
+    if underlying_matrices == 'emission' and not all(isinstance(model, _HiddenMarkovModel) for model in models):
+        raise _ValidationError('In order to compare emission matrices, the list must contain only hidden Markov models.')
 
-    figure, axes = _mplp.subplots(rows, columns, constrained_layout=constrained_layout, dpi=dpi)
+    space = len(models)
+    rows = int(_mt.sqrt(space))
+    columns = int(_mt.ceil(space / float(rows)))
+
+    figure, axes = _mplp.subplots(rows, columns, constrained_layout=True, dpi=dpi)
     axes = list(axes.flat)
     ax_is = None
 
@@ -169,7 +183,9 @@ def plot_comparison(models: _tlist_model, names: _olist_str = None, constrained_
 
     for ax, model, name in zip(axes, models, names):
 
-        ax_is = ax.imshow(model.p, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+        matrix = model.e if underlying_matrices == 'emission' else model.p
+
+        ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
         ax.set_title(name, fontsize=9.0, fontweight='normal', pad=1)
 
         ax.set_xticks([])
@@ -177,11 +193,11 @@ def plot_comparison(models: _tlist_model, names: _olist_str = None, constrained_
         ax.set_yticks([])
         ax.set_yticks([], minor=True)
 
-    figure.suptitle('Comparison Plot', fontsize=15.0, fontweight='bold')
-
     color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(axes, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
     figure.colorbar(ax_is, cax=color_map_ax, **color_map_ax_kwargs)
     color_map_ax.set_xticklabels([0.0, 0.25, 0.5, 0.75, 1.0])
+
+    figure.suptitle('Comparison Plot', fontsize=15.0, fontweight='bold')
 
     if _mplp.isinteractive():  # pragma: no cover
         _mplp.show(block=False)
@@ -266,8 +282,8 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
     formatter = _mplt.FormatStrFormatter('%g')
     ax.xaxis.set_major_formatter(formatter)
     ax.yaxis.set_major_formatter(formatter)
-    ax.set_xticks(_np.linspace(-1.0, 1.0, 9))
-    ax.set_yticks(_np.linspace(-1.0, 1.0, 9))
+    ax.set_xticks(_np.linspace(-1.0, 1.0, 9), minor=False)
+    ax.set_yticks(_np.linspace(-1.0, 1.0, 9), minor=False)
 
     ax.grid(which='major')
 
@@ -820,7 +836,7 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
         ax_is = ax.imshow(_np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         _xticks_steps(ax, distributions_length)
-        _yticks_states(ax, mc.size, None, mc.states)
+        _yticks_labels(ax, mc.size, None, mc.states)
 
         ax.grid(which='minor', color='k')
 
@@ -913,8 +929,8 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
             a_current_is = a_current.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
             is_axes.append(a_current_is)
 
-            _xticks_states(a_current, size, labels_name, labels, False)
-            _yticks_states(a_current, size, labels_name, labels)
+            _xticks_labels(a_current, size, labels_name, labels, False)
+            _yticks_labels(a_current, size, labels_name, labels)
 
             a_current.grid(which='minor', color='k')
 
@@ -952,7 +968,7 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
 
             a_current.bar(_np.arange(0.0, size, 1.0), sequence_histogram, edgecolor=_color_black, facecolor=_colors[0])
 
-            _xticks_states(a_current, size, labels_name, labels, False)
+            _xticks_labels(a_current, size, labels_name, labels, False)
             _yticks_frequency(a_current, 0.0, 1.0)
 
         f.suptitle('Sequence Plot (Histogram)', fontsize=15.0, fontweight='bold')
@@ -985,7 +1001,7 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
             a_current.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
             _xticks_steps(a_current, walk_steps)
-            _yticks_states(a_current, size, labels_name, labels)
+            _yticks_labels(a_current, size, labels_name, labels)
 
             a_current.grid(which='minor', color='k')
 
