@@ -47,11 +47,8 @@ from .custom_types import (
     oplot as _oplot,
     ostate as _ostate,
     ostatus as _ostatus,
-    tdists_flex as _tdists_flex,
     tlist_model as _tlist_model,
-    tmc as _tmc,
-    tmodel as _tmodel,
-    tsequence_flex as _tsequence_flex
+    tmodel as _tmodel
 )
 
 from .markov_chain import (
@@ -64,15 +61,12 @@ from .utilities import (
 
 from .validation import (
     validate_boolean as _validate_boolean,
-    validate_distribution as _validate_distribution,
     validate_dpi as _validate_dpi,
     validate_enumerator as _validate_enumerator,
     validate_integer as _validate_integer,
     validate_label as _validate_label,
-    validate_markov_chain as _validate_markov_chain,
     validate_model as _validate_model,
     validate_models as _validate_models,
-    validate_sequence as _validate_sequence,
     validate_status as _validate_status,
     validate_strings as _validate_strings
 )
@@ -97,21 +91,21 @@ _node_size = 500
 # FUNCTIONS #
 #############
 
-def _xticks_states(ax, mc: _tmc, label: bool, minor_major: bool):
+def _xticks_states(ax, size, labels_name, labels, minor_major):
 
-    if label:
-        ax.set_xlabel('States', fontsize=13.0)
+    if labels_name is not None:
+        ax.set_xlabel(labels_name, fontsize=13.0)
 
     if minor_major:
-        ax.set_xticks(_np.arange(0.0, mc.size, 1.0), minor=False)
-        ax.set_xticks(_np.arange(-0.5, mc.size, 1.0), minor=True)
+        ax.set_xticks(_np.arange(0.0, size, 1.0), minor=False)
+        ax.set_xticks(_np.arange(-0.5, size, 1.0), minor=True)
     else:
-        ax.set_xticks(_np.arange(0.0, mc.size, 1.0))
+        ax.set_xticks(_np.arange(0.0, size, 1.0))
 
-    ax.set_xticklabels(mc.states)
+    ax.set_xticklabels(labels)
 
 
-def _xticks_steps(ax, length: int):
+def _xticks_steps(ax, length):
 
     ax.set_xlabel('Steps', fontsize=13.0)
     ax.set_xticks(_np.arange(0.0, length + 1.0, 1.0 if length <= 11 else 10.0), minor=False)
@@ -120,21 +114,21 @@ def _xticks_steps(ax, length: int):
     ax.set_xlim(-0.5, length - 0.5)
 
 
-def _yticks_frequency(ax, bottom: float, top: float):
+def _yticks_frequency(ax, bottom, top):
 
     ax.set_ylabel('Frequency', fontsize=13.0)
     ax.set_yticks(_np.linspace(0.0, 1.0, 11))
     ax.set_ylim(bottom, top)
 
 
-def _yticks_states(ax, mc: _tmc, label: bool):
+def _yticks_states(ax, size, labels_name, labels):
 
-    if label:
-        ax.set_ylabel('States', fontsize=13.0)
+    if labels_name is not None:
+        ax.set_ylabel(labels_name, fontsize=13.0)
 
-    ax.set_yticks(_np.arange(0.0, mc.size, 1.0), minor=False)
-    ax.set_yticks(_np.arange(-0.5, mc.size, 1.0), minor=True)
-    ax.set_yticklabels(mc.states)
+    ax.set_yticks(_np.arange(0.0, size, 1.0), minor=False)
+    ax.set_yticks(_np.arange(-0.5, size, 1.0), minor=True)
+    ax.set_yticklabels(labels)
 
 
 def plot_comparison(models: _tlist_model, names: _olist_str = None, constrained_layout: bool = False, dpi: int = 100) -> _oplot:
@@ -205,7 +199,7 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param model: the model to be converted into a graph.
+    :param model: the model.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -303,7 +297,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
     * For Markov chains, the color of nodes is based on communicating classes; for hidden Markov models, every state node has a different color and symbol nodes are gray.
     * For Markov chains, recurrent nodes have an elliptical shape and transient nodes have a rectangular shape; for hidden Markov models, state nodes have an elliptical shape and symbol nodes have a hexagonal shape.
 
-    :param model: the model to be converted into a graph.
+    :param model: the model.
     :param nodes_color: a boolean indicating whether to use a different color for every type of node.
     :param nodes_shape: a boolean indicating whether to use a different shape for every type of node.
     :param edges_label: a boolean indicating whether to display the probability of every edge as text.
@@ -414,7 +408,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
         g = _pyd.Dot(graph_type='digraph')
 
-        g_sub1 = _pyd.Subgraph(rank='same')
+        g_sub1 = _pyd.Subgraph()
         g.add_subgraph(g_sub1)
 
         g_sub2 = _pyd.Subgraph(rank='same')
@@ -468,10 +462,6 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
                     if phe_edges_label:
                         edge_attributes['label'] = f' {round(tp, magnitude):.{magnitude}f} '
                         edge_attributes['fontsize'] = 9
-
-                    if i == j:
-                        edge_attributes['headport'] = 'n'
-                        edge_attributes['tailport'] = 'n'
 
                     g.add_edge(_pyd.Edge(state_i, state_j, **edge_attributes))
 
@@ -761,12 +751,12 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
         except Exception:  # pragma: no cover
             extended_graph = False
 
-    obj_mc = model.__class__.__name__ == 'MarkovChain'
+    model_mc = model.__class__.__name__ == 'MarkovChain'
 
     if extended_graph:
-        func = _plot_mc_extended if obj_mc else _plot_hmm_extended
+        func = _plot_mc_extended if model_mc else _plot_hmm_extended
     else:
-        func = _plot_mc_standard if obj_mc else _plot_hmm_standard
+        func = _plot_mc_standard if model_mc else _plot_hmm_standard
 
     figure, ax = func(model, nodes_color, nodes_shape, edges_label, dpi)
 
@@ -778,7 +768,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
 
 # noinspection DuplicatedCode
-def plot_redistributions(model: _tmodel, distributions: _tdists_flex, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
+def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
 
     """
     The function plots a redistribution of states on the given model.
@@ -788,7 +778,7 @@ def plot_redistributions(model: _tmodel, distributions: _tdists_flex, initial_st
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
     :param model: the model to be converted into a graph.
-    :param distributions: a sequence of redistributions or the number of redistributions to perform.
+    :param redistributions: the number of redistributions to perform.
     :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
     :param plot_type:
      - **heatmap** for displaying a heatmap plot;
@@ -801,7 +791,7 @@ def plot_redistributions(model: _tmodel, distributions: _tdists_flex, initial_st
     try:
 
         model = _validate_model(model)
-        distributions = _validate_distribution(distributions, model.n)
+        redistributions = _validate_integer(redistributions, lower_limit=(1, False))
         initial_status = None if initial_status is None else _validate_status(initial_status, model.states)
         plot_type = _validate_enumerator(plot_type, ['heatmap', 'projection'])
         dpi = _validate_dpi(dpi)
@@ -814,8 +804,7 @@ def plot_redistributions(model: _tmodel, distributions: _tdists_flex, initial_st
     else:
         mc = _MarkovChain(model.p)
 
-    if isinstance(distributions, int):
-        distributions = mc.redistribute(distributions, initial_status=initial_status, output_last=False)
+    distributions = mc.redistribute(redistributions, initial_status=initial_status, output_last=False)
 
     if initial_status is not None and not _np.array_equal(distributions[0], initial_status):  # pragma: no cover
         raise ValueError('The "initial_status" parameter, if specified when the "distributions" parameter represents a sequence of redistributions, must match the first element.')
@@ -831,7 +820,7 @@ def plot_redistributions(model: _tmodel, distributions: _tdists_flex, initial_st
         ax_is = ax.imshow(_np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
         _xticks_steps(ax, distributions_length)
-        _yticks_states(ax, mc, False)
+        _yticks_states(ax, mc.size, None, mc.states)
 
         ax.grid(which='minor', color='k')
 
@@ -875,110 +864,173 @@ def plot_redistributions(model: _tmodel, distributions: _tdists_flex, initial_st
 
 
 # noinspection DuplicatedCode
-def plot_sequence(mc: _tmc, sequence: _tsequence_flex, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _oplot:
+def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _oplot:
 
     """
-    The function plots a random walk on the given Markov chain.
+    The function plots a random walk of the given number of steps on the given model.
 
     | **Notes:**
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param mc: the Markov chain.
-    :param sequence: a sequence of states or the number of simulations to perform.
+    :param model: the model.
+    :param steps: the number of steps.
     :param initial_state: the initial state of the sequence (*if omitted, it is chosen uniformly at random*).
     :param plot_type:
-     - **histogram** for displaying an histogram plot;
-     - **matrix** for displaying a matrix plot;
-     - **transitions** for displaying a transitions plot.
+     - **heatmap** for displaying heatmap-like plots;
+     - **histogram** for displaying a histogram plots;
+     - **matrix** for displaying matrix plots.
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     :raises ValueError: if the "sequence" parameter represents a sequence of states and the "initial_state" parameter is defined and does not match its first element.
     """
 
+    # noinspection DuplicatedCode
+    def _plot_heatmap(phm_walk_data, phm_dpi):
+
+        walk_steps, walks = phm_walk_data
+        plots_count = len(walks)
+
+        mpi = _mplp.isinteractive()
+        _mplp.interactive(False)
+
+        f, a = _mplp.subplots(nrows=plots_count, constrained_layout=True, dpi=phm_dpi)
+        a = [a] if plots_count == 1 else list(a.flat)
+
+        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
+        is_axes = []
+
+        for a_current, (size, labels_name, labels, sequence) in zip(a, walks):
+
+            sequence_matrix = _np.zeros((size, size), dtype=float)
+
+            for i in range(1, walk_steps):
+                sequence_matrix[sequence[i - 1], sequence[i]] += 1.0
+
+            sequence_matrix /= _np.sum(sequence_matrix)
+
+            a_current_is = a_current.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+            is_axes.append(a_current_is)
+
+            _xticks_states(a_current, size, labels_name, labels, False)
+            _yticks_states(a_current, size, labels_name, labels)
+
+            a_current.grid(which='minor', color='k')
+
+        color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(a, drawedges=True, orientation='vertical', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
+
+        for is_ax in is_axes:
+            f.colorbar(is_ax, cax=color_map_ax, **color_map_ax_kwargs)
+
+        f.suptitle('Sequence Plot (Heatmap)', fontsize=15.0, fontweight='bold')
+
+        _mplp.interactive(mpi)
+
+        return f, a
+
+    # noinspection DuplicatedCode
+    def _plot_histogram(ph_walk_data, ph_dpi):
+
+        walk_steps, walks = ph_walk_data
+        plots_count = len(walks)
+
+        mpi = _mplp.isinteractive()
+        _mplp.interactive(False)
+
+        f, a = _mplp.subplots(nrows=plots_count, tight_layout=True, dpi=ph_dpi)
+        a = [a] if plots_count == 1 else list(a.flat)
+
+        for a_current, (size, labels_name, labels, sequence) in zip(a, walks):
+
+            sequence_histogram = _np.zeros((size, walk_steps), dtype=float)
+
+            for index, label in enumerate(sequence):
+                sequence_histogram[label, index] = 1.0
+
+            sequence_histogram = _np.sum(sequence_histogram, axis=1) / _np.sum(sequence_histogram)
+
+            a_current.bar(_np.arange(0.0, size, 1.0), sequence_histogram, edgecolor=_color_black, facecolor=_colors[0])
+
+            _xticks_states(a_current, size, labels_name, labels, False)
+            _yticks_frequency(a_current, 0.0, 1.0)
+
+        f.suptitle('Sequence Plot (Histogram)', fontsize=15.0, fontweight='bold')
+
+        _mplp.interactive(mpi)
+
+        return f, a
+
+    # noinspection DuplicatedCode
+    def _plot_matrix(pm_walk_data, pm_dpi):
+
+        walk_steps, walks = pm_walk_data
+        plots_count = len(walks)
+
+        mpi = _mplp.isinteractive()
+        _mplp.interactive(False)
+
+        f, a = _mplp.subplots(nrows=plots_count, tight_layout=True, dpi=pm_dpi)
+        a = [a] if plots_count == 1 else list(a.flat)
+
+        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 2)
+
+        for a_current, (size, labels_name, labels, sequence) in zip(a, walks):
+
+            sequence_matrix = _np.zeros((size, walk_steps), dtype=float)
+
+            for index, state in enumerate(sequence):
+                sequence_matrix[state, index] = 1.0
+
+            a_current.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+
+            _xticks_steps(a_current, walk_steps)
+            _yticks_states(a_current, size, labels_name, labels)
+
+            a_current.grid(which='minor', color='k')
+
+        f.suptitle('Sequence Plot (Matrix)', fontsize=15.0, fontweight='bold')
+
+        _mplp.interactive(mpi)
+
+        return f, a
+
     try:
 
-        mc = _validate_markov_chain(mc)
-
-        if isinstance(sequence, (int, _np.integer)):
-            sequence = _validate_integer(sequence, lower_limit=(2, False))
-        else:
-            sequence = _validate_sequence(sequence, mc.states)
-
-        if initial_state is not None:
-            initial_state = _validate_label(initial_state, mc.states)
-
-        plot_type = _validate_enumerator(plot_type, ['histogram', 'matrix', 'transitions'])
+        model = _validate_model(model)
+        steps = _validate_integer(steps, lower_limit=(2, False))
+        initial_state = None if initial_state is None else _validate_label(initial_state, model.states)
+        plot_type = _validate_enumerator(plot_type, ['heatmap', 'histogram', 'matrix'])
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
         raise _create_validation_error(ex, _ins.trace()) from None
 
-    if isinstance(sequence, int):
-        sequence = mc.simulate(sequence, initial_state=initial_state, output_indices=True, seed=seed)
+    model_mc = model.__class__.__name__ == 'MarkovChain'
+    model_sequence = model.simulate(steps, initial_state=initial_state, output_indices=True, seed=seed)
 
-    if initial_state is not None and sequence[0] != initial_state:  # pragma: no cover
-        raise ValueError('The "initial_state" parameter, if specified when the "sequence" parameter represents a sequence of states, must match the first element.')
-
-    sequence_length = len(sequence)
-
-    figure, ax = _mplp.subplots(dpi=dpi)
-
-    if plot_type == 'histogram':
-
-        sequence_histogram = _np.zeros((mc.size, sequence_length), dtype=float)
-
-        for index, state in enumerate(sequence):
-            sequence_histogram[state, index] = 1.0
-
-        sequence_histogram = _np.sum(sequence_histogram, axis=1) / _np.sum(sequence_histogram)
-
-        ax.bar(_np.arange(0.0, mc.size, 1.0), sequence_histogram, edgecolor=_color_black, facecolor=_colors[0])
-
-        _xticks_states(ax, mc, True, False)
-        _yticks_frequency(ax, 0.0, 1.0)
-
-        ax.set_title('Sequence Plot (Histogram)', fontsize=15.0, fontweight='bold')
-
-    elif plot_type == 'matrix':
-
-        sequence_matrix = _np.zeros((mc.size, sequence_length), dtype=float)
-
-        for index, state in enumerate(sequence):
-            sequence_matrix[state, index] = 1.0
-
-        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 2)
-        ax.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
-
-        _xticks_steps(ax, sequence_length)
-        _yticks_states(ax, mc, True)
-
-        ax.grid(which='minor', color='k')
-
-        ax.set_title('Sequence Plot (Matrix)', fontsize=15.0, fontweight='bold')
-
+    if model_mc:
+        walk_data = (
+            steps + 1,
+            [(model.n, 'States', model.states, model_sequence)]
+        )
     else:
+        walk_data = (
+            steps + 1,
+            [
+                (model.n, 'States', model.states, model_sequence[0]),
+                (model.k, 'Symbols', model.symbols, model_sequence[1])
+            ]
+        )
 
-        sequence_matrix = _np.zeros((mc.size, mc.size), dtype=float)
+    if plot_type == 'heatmap':
+        func = _plot_heatmap
+    elif plot_type == 'histogram':
+        func = _plot_histogram
+    else:
+        func = _plot_matrix
 
-        for i in range(1, sequence_length):
-            sequence_matrix[sequence[i - 1], sequence[i]] += 1.0
-
-        sequence_matrix /= _np.sum(sequence_matrix)
-
-        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
-        ax_is = ax.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
-
-        _xticks_states(ax, mc, False, True)
-        _yticks_states(ax, mc, False)
-
-        ax.grid(which='minor', color='k')
-
-        cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
-        cb.ax.set_xticklabels([0.0, 0.25, 0.5, 0.75, 1.0])
-
-        ax.set_title('Sequence Plot (Transitions)', fontsize=15.0, fontweight='bold')
+    figure, ax = func(walk_data, dpi)
 
     if _mplp.isinteractive():  # pragma: no cover
         _mplp.show(block=False)

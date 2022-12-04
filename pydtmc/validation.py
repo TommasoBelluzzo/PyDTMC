@@ -4,7 +4,6 @@ __all__ = [
     'validate_boolean',
     'validate_boundary_condition',
     'validate_dictionary',
-    'validate_distribution',
     'validate_dpi',
     'validate_emission_matrix',
     'validate_enumerator',
@@ -67,7 +66,6 @@ from .custom_types import (
     tany as _tany,
     tarray as _tarray,
     tbcond as _tbcond,
-    tdists_flex as _tdists_flex,
     oedge_attributes as _oedge_attributes,
     tfile as _tfile,
     tgraphs as _tgraphs,
@@ -90,7 +88,6 @@ from .utilities import (
     extract_numeric as _extract_numeric,
     get_file_extension as _get_file_extension,
     get_full_name as _get_full_name,
-    is_array as _is_array,
     is_bool as _is_bool,
     is_dictionary as _is_dictionary,
     is_float as _is_float,
@@ -230,46 +227,6 @@ def validate_dictionary(value: _tany, attributes: _olist_str = None) -> _tmc_dic
             raise ValueError('The "@arg@" parameter values can contain only finite real numbers between 0.0 and 1.0.')
 
     return result
-
-
-def validate_distribution(value: _tany, size: int) -> _tdists_flex:
-
-    if _is_integer(value):
-
-        value = int(value)
-
-        if value <= 0:
-            raise ValueError('The "@arg@" parameter, when specified as an integer, must be greater than or equal to 1.')
-
-        return value
-
-    if _is_list(value):
-
-        value_length = len(value)
-
-        if value_length <= 1:
-            raise ValueError('The "@arg@" parameter, when specified as a list of vectors, must contain at least 2 elements.')
-
-        for index, vector in enumerate(value):
-
-            if not _is_array(vector) or not _np.issubdtype(vector.dtype, _np.number):
-                raise TypeError('The "@arg@" parameter must contain only numeric vectors.')
-
-            vector = vector.astype(float)
-            value[index] = vector
-
-            if vector.ndim != 1 or vector.size != size:
-                raise ValueError('The "@arg@" parameter must contain only vectors of size {size:d}.')
-
-            if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for _, x in _np.ndenumerate(vector)):
-                raise ValueError('The "@arg@" parameter must contain only vectors consisting of finite real values between 0.0 and 1.0.')
-
-            if not _np.isclose(_np.sum(vector), 1.0):
-                raise ValueError('The "@arg@" parameter must contain only vectors consisting of values whose sum is 1.')
-
-        return value
-
-    raise TypeError('The "@arg@" parameter must be either an integer representing the number of redistributions to perform or a list of valid distributions.')
 
 
 def validate_dpi(value: _tany) -> int:

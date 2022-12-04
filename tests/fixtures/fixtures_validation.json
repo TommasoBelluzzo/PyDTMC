@@ -255,58 +255,6 @@
       "is_valid": false
     }
   ],
-  "validate_distribution_data": [
-    {
-      "value": 5,
-      "size": null,
-      "is_valid": true
-    },
-    {
-      "value": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-      "size": 3,
-      "is_valid": true
-    },
-    {
-      "value": [[0.45, 0.05, 0.50], [1.0, 0.0, 0.0], [0.3, 0.2, 0.5]],
-      "size": 3,
-      "is_valid": true
-    },
-    {
-      "value": [[0.3, 0.0, 0.0, 0.7], [0.0, 0.0, 1.0, 0.0], [0.5, 0.3, 0.1, 0.1], [0.2, 0.4, 0.2, 0.2]],
-      "size": 6,
-      "is_valid": false
-    },
-    {
-      "value": [["NaN", 0.6, 0.4], [0.33, 0.33, 0.34], [0.2, 0.6, 0.2]],
-      "size": 3,
-      "is_valid": false
-    },
-    {
-      "value": [[0.4, 0.4, 0.3], [0.30, 0.35, 0.35], [0.4, 0.7, 0.0]],
-      "size": 3,
-      "is_valid": false
-    },
-    {
-      "value": [["A", "J", "F"], ["N", "K", "D"], ["C", "E", "M"]],
-      "size": 3,
-      "is_valid": false
-    },
-    {
-      "value": null,
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": -1,
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": [],
-      "size": 0,
-      "is_valid": false
-    }
-  ],
   "validate_dpi_data": [
     {
       "value": 75,

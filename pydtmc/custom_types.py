@@ -56,7 +56,6 @@ __all__ = [
     'ttest_chi2', 'otest_chi2',
     # Compound Types - Specific
     'tbcond', 'obcond',
-    'tdists_flex', 'odists_flex',
     'tfitting_res', 'ofitting_res',
     'thmm_decoding', 'ohmm_decoding',
     'thmm_dict', 'ohmm_dict',
@@ -78,7 +77,6 @@ __all__ = [
     'tobj_dict', 'oobj_dict',
     'tredists', 'oredists',
     'tsequence', 'osequence',
-    'tsequence_flex', 'osequence_flex',
     'tsequences', 'osequences',
     'tstate', 'ostate',
     'tstates', 'ostates',
@@ -283,9 +281,6 @@ otest_chi2 = _tp.Optional[ttest_chi2]
 tbcond = _tp.Union[float, int, str]
 obcond = _tp.Optional[tbcond]
 
-tdists_flex = _tp.Union[int, tlist_array]
-odists_flex = _tp.Optional[tdists_flex]
-
 tfitting_res = _tp.Tuple[oarray, ostr]
 ofitting_res = _tp.Optional[tfitting_res]
 
@@ -360,9 +355,6 @@ otfunc = _tp.Optional[ttfunc]
 
 tsequence = _tp.Union[tlist_int, tlist_str]
 osequence = _tp.Optional[tsequence]
-
-tsequence_flex = _tp.Union[int, tsequence]
-osequence_flex = _tp.Optional[tsequence_flex]
 
 tsequences = _tp.List[tsequence]
 osequences = _tp.Optional[tsequences]

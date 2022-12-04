@@ -29,7 +29,6 @@ from pydtmc.validation import (
     validate_boolean as _validate_boolean,
     validate_boundary_condition as _validate_boundary_condition,
     validate_dictionary as _validate_dictionary,
-    validate_distribution as _validate_distribution,
     validate_dpi as _validate_dpi,
     validate_emission_matrix as _validate_emission_matrix,
     validate_enumerator as _validate_enumerator,
@@ -149,30 +148,6 @@ def test_validate_dictionary(dictionary_elements, attributes, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, dict) and all(isinstance(k, tuple) and all(isinstance(x, str) for x in k) and isinstance(v, float) for k, v in result.items())
-        assert result_check is True
-
-
-# noinspection DuplicatedCode, PyBroadException
-def test_validate_distribution(value, size, is_valid):
-
-    if isinstance(value, list):
-        for index, v in enumerate(value):
-            value[index] = _np.array(v)
-
-    try:
-        result = _validate_distribution(value, size)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-        result_check = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, _np.ndarray) for v in result))
         assert result_check is True
 
 
@@ -674,7 +649,7 @@ def test_validate_models(value, is_valid):
         assert actual == expected
 
         if result_is_valid:
-            result_check = isinstance(result, list) and all(isinstance(v, _HiddenMarkovModel) or isinstance(v, _MarkovChain) for v in result)
+            result_check = isinstance(result, list) and all(isinstance(v, (_HiddenMarkovModel, _MarkovChain)) for v in result)
             assert result_check is True
 
 

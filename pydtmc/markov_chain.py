@@ -1639,7 +1639,7 @@ class MarkovChain(_Model):
     def redistribute(self, steps: int, initial_status: _ostatus = None, output_last: bool = True) -> _tredists:
 
         """
-        The method simulates a redistribution of states of *N* steps.
+        The method performs a redistribution of states of *N* steps.
 
         :param steps: the number of steps.
         :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
@@ -1721,7 +1721,7 @@ class MarkovChain(_Model):
         try:
 
             rng = _create_rng(seed)
-            steps = _validate_integer(steps, lower_limit=(1, False))
+            steps = _validate_integer(steps, lower_limit=(2, False))
             initial_state = rng.randint(0, self.__size) if initial_state is None else _validate_label(initial_state, self.__states)
             final_state = None if final_state is None else _validate_label(final_state, self.__states)
             output_indices = _validate_boolean(output_indices)

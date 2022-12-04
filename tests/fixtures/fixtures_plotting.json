@@ -2,8 +2,8 @@
   "plot_comparison_data": {
     "seed": 7331,
     "runs": 25,
-    "maximum_size": 25,
-    "maximum_models": 12
+    "maximum_models": 12,
+    "maximum_size": 25
   },
   "plot_eigenvalues_data": {
     "seed": 7331,

@@ -463,7 +463,7 @@ class HiddenMarkovModel(_Model):
         try:
 
             rng = _create_rng(seed)
-            steps = _validate_integer(steps, lower_limit=(1, False))
+            steps = _validate_integer(steps, lower_limit=(2, False))
             initial_state = rng.randint(0, self.__size[0]) if initial_state is None else _validate_label(initial_state, self.__states)
             final_state = None if final_state is None else _validate_label(final_state, self.__states)
             final_symbol = None if final_symbol is None else _validate_label(final_symbol, self.__symbols)

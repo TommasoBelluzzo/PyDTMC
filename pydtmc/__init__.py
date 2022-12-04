@@ -38,3 +38,19 @@ from pydtmc.plotting import (
     plot_redistributions,
     plot_sequence
 )
+
+if __name__ == '__main__':
+
+    import matplotlib.pyplot as _mplp
+
+    p = [[0.2, 0.7, 0.0, 0.1], [0.0, 0.6, 0.3, 0.1], [0.0, 0.0, 1.0, 0.0], [0.5, 0.0, 0.5, 0.0]]
+    e = [[1.0, 0.0], [0.4, 0.6], [0.3, 0.7], [0.5, 0.5]]
+
+    mc = MarkovChain(p, ['A', 'B', 'C', 'D'])
+    hmm = HiddenMarkovModel(p, e, ['A', 'B', 'C', 'D'], ['X', 'Y'])
+
+    f, _ = plot_sequence(mc, 10, plot_type='histogram')
+    _mplp.show(block=False)
+
+    f, _ = plot_sequence(hmm, 10, plot_type='histogram')
+    _mplp.show(block=False)
