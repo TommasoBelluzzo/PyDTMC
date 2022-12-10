@@ -264,7 +264,7 @@ def test_plot_sequence(seed, runs, maximum_size, maximum_simulations):
         assert exception is False
 
 
-# noinspection PyBroadException
+# noinspection PyArgumentEqualDefault, PyBroadException
 @_pt.mark.slow
 def test_plot_trellis(seed, runs, maximum_size, maximum_simulations):
 
@@ -286,11 +286,11 @@ def test_plot_trellis(seed, runs, maximum_size, maximum_simulations):
 
         try:
 
-            figure, _ = _plot_trellis(hmm, steps, initial_state=initial_state, seed=seed)
+            figure, _ = _plot_trellis(hmm, steps, initial_state=initial_state, seed=seed, force_standard=True)
             figure.clear()
             _mplp.close(figure)
 
-            figure, _ = _plot_trellis(hmm, steps, initial_state=initial_state, seed=seed)
+            figure, _ = _plot_trellis(hmm, steps, initial_state=initial_state, seed=seed, force_standard=False)
             figure.clear()
             _mplp.close(figure)
 
