@@ -1071,7 +1071,8 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
 
     * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
     * `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are not required, but they provide access to extended mode with improved rendering and additional features.
-    * The rendering, especially in standard mode or for big graphs, is not granted to be high-quality.
+    * The rendering of large simulations is not granted to be high-quality.
+    * Red nodes and edges belong to the most probable states path calculated using the Viterbi algorithm.
 
     :param hmm: the hidden Markov model.
     :param steps: the number of steps.
