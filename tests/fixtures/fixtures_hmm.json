@@ -393,6 +393,20 @@
   ],
   "estimate_data": [
     {
+      "possible_states": ["P1", "P2"],
+      "possible_symbols": ["E1", "E2"],
+      "sequence_states": [0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0],
+      "sequence_symbols": [1, 1, 0, 0, 0, 1, 0, 1],
+      "value": null
+    },
+    {
+      "possible_states": ["P1", "P2"],
+      "possible_symbols": ["E1", "E2"],
+      "sequence_states": [1, 1, 0, 0, 0, 1, 0, 1],
+      "sequence_symbols": [0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0],
+      "value": null
+    },
+    {
       "possible_states": ["P1", "P2", "P3", "P4"],
       "possible_symbols": ["E1", "E2"],
       "sequence_states": [1, 2, 2, 3, 0, 2, 1, 3, 0, 1, 1, 0, 2, 3, 1, 0, 3, 3, 3, 0, 0, 1, 2],

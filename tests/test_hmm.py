@@ -65,20 +65,27 @@ def test_decode(p, e, symbols, initial_status, use_scaling, value):
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-# noinspection DuplicatedCode
+# noinspection DuplicatedCode, PyBroadException
 def test_estimate(possible_states, possible_symbols, sequence_states, sequence_symbols, value):
 
-    hmm = _HiddenMarkovModel.estimate(possible_states, possible_symbols, sequence_states, sequence_symbols)
+    try:
+        hmm = _HiddenMarkovModel.estimate(possible_states, possible_symbols, sequence_states, sequence_symbols)
+    except Exception:
+        hmm = None
 
-    actual = hmm.p
-    expected = _np.array(value[0])
+    if value is None:
+        assert hmm is None
+    else:
 
-    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        actual = hmm.p
+        expected = _np.array(value[0])
 
-    actual = hmm.e
-    expected = _np.array(value[1])
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        actual = hmm.e
+        expected = _np.array(value[1])
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 # noinspection DuplicatedCode, PyBroadException
@@ -189,7 +196,9 @@ def test_properties(p, e, value):
 # noinspection PyArgumentEqualDefault
 def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
 
-    hmm = _HiddenMarkovModel.random(n, k, None, p_zeros, p_mask, None, e_zeros, e_mask, seed)
+    states = [f'P{i:d}' for i in range(1, n + 1)]
+    symbols = [f'E{i:d}' for i in range(1, k + 1)]
+    hmm = _HiddenMarkovModel.random(n, k, states, p_zeros, p_mask, symbols, e_zeros, e_mask, seed)
 
     actual = hmm.p
     expected = _np.array(value[0])

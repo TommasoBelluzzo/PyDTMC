@@ -73,7 +73,7 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
 
         decoding = _hmm_decode(fwb_p_guess, fwb_e_guess, fwb_initial_distribution, fbw_symbols, True)
 
-        if decoding is None:
+        if decoding is None:  # pragma: no cover
             return None
 
         log_prob, _, backward, forward, s = decoding
@@ -145,16 +145,10 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
 
         total_emissions = _np.sum(e, axis=1, keepdims=True)
 
-        if _np.any(total_transitions == 0.0):
+        if _np.any(total_emissions == 0.0):
             return None, None, 'The fitting algorithm produced null emission probabilities.'
 
         e_guess = e / total_emissions
-
-        zero_indices = _np.where(total_transitions == 0.0)[0]
-
-        if zero_indices.size > 0:
-            p_guess[zero_indices, :] = 0.0
-            p_guess[_np.ix_(zero_indices, zero_indices)] = 1.0
 
         p_guess[_np.isnan(p_guess)] = 0.0
         e_guess[_np.isnan(e_guess)] = 0.0
