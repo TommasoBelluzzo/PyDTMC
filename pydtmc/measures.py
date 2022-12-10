@@ -86,7 +86,7 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
     backward = _np.ones((n, f), dtype=float)
 
-    for i in range(f - 2, -1, -1):
+    for i in reversed(range(f - 1)):
 
         symbol = symbols[i + 1]
         e_i = e[:, symbol]

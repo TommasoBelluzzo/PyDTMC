@@ -23,7 +23,8 @@ from pydtmc import (
     plot_eigenvalues as _plot_eigenvalues,
     plot_graph as _plot_graph,
     plot_redistributions as _plot_redistributions,
-    plot_sequence as _plot_sequence
+    plot_sequence as _plot_sequence,
+    plot_trellis as _plot_trellis
 )
 
 
@@ -205,11 +206,11 @@ def test_plot_graph(seed, runs, maximum_size):
 
 # noinspection PyBroadException
 @_pt.mark.slow
-def test_plot_redistributions(seed, runs, maximum_size, maximum_distributions):
+def test_plot_redistributions(seed, runs, maximum_size, maximum_redistributions):
 
     def _params_generator():
 
-        p_redistributions = _rd.randint(1, maximum_distributions)
+        p_redistributions = _rd.randint(1, maximum_redistributions)
         p_plot_type = _rd.choice(('heatmap', 'projection'))
 
         yield from [p_redistributions, p_plot_type]
@@ -251,7 +252,45 @@ def test_plot_sequence(seed, runs, maximum_size, maximum_simulations):
 
         try:
 
-            figure, _ = _plot_sequence(model, steps, plot_type=plot_type)
+            figure, _ = _plot_sequence(model, steps, plot_type=plot_type, seed=seed)
+            figure.clear()
+            _mplp.close(figure)
+
+            exception = False
+
+        except Exception:
+            exception = True
+
+        assert exception is False
+
+
+# noinspection PyBroadException
+@_pt.mark.slow
+def test_plot_trellis(seed, runs, maximum_size, maximum_simulations):
+
+    def _params_generator():
+
+        p_size = _rd.randint(2, maximum_size)
+        p_size_multiplier = _rd.randint(1, 3)
+        p_zeros = _rd.randint(0, p_size)
+        p_steps = _rd.randint(2, maximum_simulations)
+        p_initial_state = _rd.choice((None,) + tuple(range(p_size)))
+
+        yield from [p_size, p_size_multiplier, p_zeros, p_steps, p_initial_state]
+
+    configs = _generate_configs(seed, runs, _params_generator)
+
+    for size, size_multiplier, zeros, steps, initial_state in configs:
+
+        hmm = _HiddenMarkovModel.random(size, size * size_multiplier, p_zeros=zeros, e_zeros=zeros * size_multiplier, seed=seed)
+
+        try:
+
+            figure, _ = _plot_trellis(hmm, steps, initial_state=initial_state, seed=seed)
+            figure.clear()
+            _mplp.close(figure)
+
+            figure, _ = _plot_trellis(hmm, steps, initial_state=initial_state, seed=seed)
             figure.clear()
             _mplp.close(figure)
 

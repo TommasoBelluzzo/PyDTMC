@@ -61,7 +61,8 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
         n, f = pv_p.shape[1], len(pv_symbols)
         p_log, e_log = _np.log(pv_p), _np.log(pv_e)
 
-        omega_0 = _np.log(pv_initial_distribution * pv_e[:, pv_symbols[0]])
+        with _np.errstate(divide='ignore'):
+            omega_0 = _np.log(pv_initial_distribution * pv_e[:, pv_symbols[0]])
 
         if _np.all(omega_0 == -_np.inf):
             return None

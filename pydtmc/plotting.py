@@ -5,7 +5,8 @@ __all__ = [
     'plot_eigenvalues',
     'plot_graph',
     'plot_redistributions',
-    'plot_sequence'
+    'plot_sequence',
+    'plot_trellis'
 ]
 
 
@@ -47,6 +48,7 @@ from .custom_types import (
     oplot as _oplot,
     ostate as _ostate,
     ostatus as _ostatus,
+    thmm as _thmm,
     tlist_model as _tlist_model,
     tmodel as _tmodel
 )
@@ -72,6 +74,7 @@ from .validation import (
     validate_boolean as _validate_boolean,
     validate_dpi as _validate_dpi,
     validate_enumerator as _validate_enumerator,
+    validate_hidden_markov_model as _validate_hidden_markov_model,
     validate_integer as _validate_integer,
     validate_label as _validate_label,
     validate_model as _validate_model,
@@ -92,13 +95,33 @@ _colors = ('#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#F
 
 _default_color_edge = _color_black
 _default_color_node = _color_white
+_default_color_path = '#FB8072'
 _default_color_symbol = _color_gray
-_node_size = 500
+_default_node_size = 600
 
 
 #############
 # FUNCTIONS #
 #############
+
+def _decode_image(g, dpi):
+
+    buffer = _io.BytesIO()
+    buffer.write(g.create(format='png'))
+    buffer.seek(0)
+
+    img = _mpli.imread(buffer)
+
+    img_x = img.shape[0] / dpi
+    img_xi = img_x * 1.1
+    img_xo = ((img_xi - img_x) / 2.0) * dpi
+
+    img_y = img.shape[1] / dpi
+    img_yi = img_y * 1.1
+    img_yo = ((img_yi - img_y) / 2.0) * dpi
+
+    return img, img_x, img_xo, img_y, img_yo
+
 
 def _xticks_labels(ax, size, labels_name, labels, minor_major):
 
@@ -303,7 +326,7 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
 def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the directed graph of the given model, which can be either a Markov chain or a hidden Markov model.
+    The function plots the directed graph of the given model.
 
     | **Notes:**
 
@@ -334,22 +357,6 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
         magnitude = max(1, min(max(magnitudes), 4))
 
         return magnitude
-
-    def _decode_image(di_g, di_dpi):
-
-        buffer = _io.BytesIO()
-        buffer.write(di_g.create(format='png'))
-        buffer.seek(0)
-
-        img = _mpli.imread(buffer)
-        img_x = img.shape[0] / di_dpi
-        img_xi = img_x * 1.1
-        img_xo = ((img_xi - img_x) / 2.0) * di_dpi
-        img_y = img.shape[1] / di_dpi
-        img_yi = img_y * 1.1
-        img_yo = ((img_yi - img_y) / 2.0) * di_dpi
-
-        return img, img_x, img_xo, img_y, img_yo
 
     def _draw_edge_labels_curved(delc_ax, delc_positions, delc_edge_labels):
 
@@ -542,7 +549,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
             else:
                 node_shape = 'o'
 
-            _nx.draw_networkx_nodes(g, positions, ax=a, nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_node_size, edgecolors='k')
+            _nx.draw_networkx_nodes(g, positions, ax=a, nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_default_node_size, edgecolors=_color_black)
 
         _nx.draw_networkx_labels(g, positions, ax=a)
 
@@ -700,7 +707,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
             else:
                 node_shape = 'o'
 
-            _nx.draw_networkx_nodes(g, positions, ax=a, nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_node_size, edgecolors='k')
+            _nx.draw_networkx_nodes(g, positions, ax=a, nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_default_node_size, edgecolors=_color_black)
 
         _nx.draw_networkx_labels(g, positions, ax=a)
 
@@ -883,7 +890,7 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
 def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _oplot:
 
     """
-    The function plots a random walk of the given number of steps on the given model.
+    The function plots a random walk on the given model.
 
     | **Notes:**
 
@@ -891,7 +898,7 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
 
     :param model: the model.
     :param steps: the number of steps.
-    :param initial_state: the initial state of the sequence (*if omitted, it is chosen uniformly at random*).
+    :param initial_state: the initial state of the random walk (*if omitted, it is chosen uniformly at random*).
     :param plot_type:
      - **heatmap** for displaying heatmap-like plots;
      - **histogram** for displaying a histogram plots;
@@ -899,7 +906,6 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
-    :raises ValueError: if the "sequence" parameter represents a sequence of states and the "initial_state" parameter is defined and does not match its first element.
     """
 
     # noinspection DuplicatedCode
@@ -1047,6 +1053,285 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
         func = _plot_matrix
 
     figure, ax = func(walk_data, dpi)
+
+    if _mplp.isinteractive():  # pragma: no cover
+        _mplp.show(block=False)
+        return None
+
+    return figure, ax
+
+
+# noinspection PyBroadException
+def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _oint = None, force_standard: bool = False, dpi: int = 100) -> _oplot:
+
+    """
+    The function plots the trellis diagrams of a random walk on the given hidden Markov model.
+
+    | **Notes:**
+
+    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    * `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are not required, but they provide access to extended mode with improved rendering and additional features.
+    * The rendering, especially in standard mode or for big graphs, is not granted to be high-quality.
+
+    :param hmm: the hidden Markov model.
+    :param steps: the number of steps.
+    :param initial_state: the initial state of the random walk (*if omitted, it is chosen uniformly at random*).
+    :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+    :param force_standard: a boolean indicating whether to use standard mode even if extended mode is available.
+    :param dpi: the resolution of the plot expressed in dots per inch.
+    :raises ValidationError: if any input argument is not compliant.
+    :raises ValueError: if the computation of backward and forward probabilities fails or if the computation of the most probable states path fails.
+    """
+
+    def _generate_trellis_extended(gte_hmm, gte_initial_distribution, gte_symbols, gte_forward, gte_matrix, gte_states_path):
+
+        n, f = gte_hmm.n, len(gte_symbols)
+
+        g = _pyd.Dot(graph_type='digraph', compound='true', margin='0')
+
+        sub = _pyd.Subgraph('cluster_0', color='transparent')
+
+        for row in range(n):
+
+            sub_label = gte_hmm.states[row]
+            sub.add_node(_pyd.Node(f'state{row}', color='transparent', label=sub_label, shape='plaintext'))
+
+            if row > 0:
+                sub.add_edge(_pyd.Edge(f'state{row - 1}', f'state{row}', style='invis'))
+
+        g.add_subgraph(sub)
+
+        for col in range(f):
+
+            path_current = gte_states_path[col]
+
+            sub_label = "<T<FONT POINT-SIZE='8'><SUB>0</SUB></FONT>>" if col == 0 else gte_hmm.symbols[gte_symbols[col]]
+            sub = _pyd.Subgraph(f'cluster_{col + 1}', color='transparent', label=sub_label)
+
+            for row in range(n):
+
+                node_index = (row * f) + col
+                node_color = _default_color_path if path_current == row else _default_color_node
+                sub.add_node(_pyd.Node(f'node{node_index}', fillcolor=node_color, label=f'{round(gte_matrix[row, col], 2):.2f}', style='filled'))
+
+                if row > 0:
+                    sub.add_edge(_pyd.Edge(f'node{((row - 1) * f) + col}', f'node{node_index}', style='invis'))
+
+            g.add_subgraph(sub)
+
+        for row in range(n):
+
+            row_offset = row * f
+
+            for col in range(f - 1):
+
+                if col == 0 and not gte_initial_distribution[col] > 0.0:
+                    continue
+
+                for row_next in range(n):
+
+                    if hmm.p[row][row_next] > 0.0:
+
+                        if gte_forward:
+                            edge_from = f'node{row_offset + col}'
+                            edge_to = f'node{(row_next * f) + col + 1}'
+                        else:
+                            edge_from = f'node{(row_next * f) + col + 1}'
+                            edge_to = f'node{row_offset + col}'
+
+                        edge_color = _default_color_path if gte_states_path[col] == row and gte_states_path[col + 1] == row_next else _color_black
+
+                        g.add_edge(_pyd.Edge(edge_from, edge_to, color=edge_color, constraint='false'))
+
+        return g
+
+    def _generate_trellis_standard(gts_hmm, gts_initial_distribution, gts_symbols, gts_forward, gts_matrix, gts_states_path):
+
+        n, f = gts_hmm.n, len(gts_symbols)
+
+        trellis = _nx.DiGraph()
+        node_colors, node_edges, node_labels, node_positions = [], [], {}, {}
+
+        node_index = 0
+
+        for row in range(n):
+
+            row_offset = float(n - row)
+
+            for col in range(f):
+
+                trellis.add_node(node_index)
+
+                if gts_states_path[col] == row:
+                    node_colors.append(_default_color_path)
+                else:
+                    node_colors.append(_default_color_node)
+
+                node_edges.append(_color_black)
+                node_labels[node_index] = f'{round(gts_matrix[row, col], 2):.2f}'
+                node_positions[node_index] = (col + 1.0, row_offset)
+
+                node_index += 1
+
+        edge_colors = []
+
+        for row in range(n):
+
+            row_offset = row * f
+
+            for col in range(f - 1):
+
+                if col == 0 and not gts_initial_distribution[col] > 0.0:
+                    continue
+
+                for row_next in range(n):
+
+                    if hmm.p[row][row_next] > 0.0:
+
+                        if gts_forward:
+                            trellis.add_edge(row_offset + col, (row_next * f) + col + 1)
+                            on_path = gts_states_path[col] == row and gts_states_path[col + 1] == row_next
+                        else:
+                            trellis.add_edge((row_next * f) + col + 1, row_offset + col)
+                            on_path = gts_states_path[col] == row_next and gts_states_path[col + 1] == row
+
+                        if on_path:
+                            edge_colors.append(_default_color_path)
+                        else:
+                            edge_colors.append(_color_black)
+
+        for row in range(n):
+
+            trellis.add_node(node_index)
+
+            node_colors.append('none')
+            node_edges.append('none')
+            node_labels[node_index] = hmm.states[row]
+            node_positions[node_index] = (0.6, float(n - row))
+
+            node_index += 1
+
+        headers = ["$\mathregular{T_0}$"] + [hmm.symbols[symbol] for symbol in gts_symbols[1:]]
+
+        for col, header in enumerate(headers):
+
+            trellis.add_node(node_index)
+
+            node_colors.append('none')
+            node_edges.append('none')
+            node_labels[node_index] = header
+            node_positions[node_index] = (col + 1.0, n + 0.35)
+
+            node_index += 1
+
+        return trellis, node_colors, node_edges, node_labels, node_positions, edge_colors
+
+    def _plot_extended(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
+
+        mpi = _mplp.isinteractive()
+        _mplp.interactive(False)
+
+        f, a = _mplp.subplots(nrows=2, tight_layout=True, dpi=ps_dpi)
+        a = list(a.flat)
+
+        trellis = _generate_trellis_extended(ps_hmm, ps_initial_distribution, ps_symbols, False, ps_backward, ps_states_path)
+        img, _, _, _, _ = _decode_image(trellis, ps_dpi)
+
+        ax_current = a[0]
+        ax_current.imshow(img)
+        ax_current.axis('off')
+        ax_current.set_title('Backward Trellis', fontsize=15.0, fontweight='normal', pad=1)
+
+        trellis = _generate_trellis_extended(ps_hmm, ps_initial_distribution, ps_symbols, True, ps_forward, ps_states_path)
+        img, _, _, _, _ = _decode_image(trellis, ps_dpi)
+
+        ax_current = a[1]
+        ax_current.imshow(img)
+        ax_current.axis('off')
+        ax_current.set_title('Forward Trellis', fontsize=15.0, fontweight='normal', pad=1)
+
+        _mplp.interactive(mpi)
+
+        return f, a
+
+    def _plot_standard(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
+
+        y_top = ps_hmm.n + 0.5
+
+        mpi = _mplp.isinteractive()
+        _mplp.interactive(False)
+
+        f, a = _mplp.subplots(nrows=2, tight_layout=True, dpi=ps_dpi)
+        a = list(a.flat)
+
+        trellis, node_colors, node_edges, node_labels, node_positions, edge_colors = _generate_trellis_standard(ps_hmm, ps_initial_distribution, ps_symbols, False, ps_backward, ps_states_path)
+
+        ax_current = a[0]
+        _nx.draw_networkx(trellis, node_positions, ax=ax_current, edgecolors=node_edges, edge_color=edge_colors, font_size=9, labels=node_labels, node_color=node_colors, node_size=_default_node_size)
+        ax_current.set_ylim(0.5, y_top)
+        ax_current.axis('off')
+        ax_current.set_title('Backward Trellis', fontsize=15.0, fontweight='normal', pad=1)
+
+        trellis, node_colors, node_edges, node_labels, node_positions, edge_colors = _generate_trellis_standard(ps_hmm, ps_initial_distribution, ps_symbols, True, ps_forward, ps_states_path)
+
+        ax_current = a[1]
+        _nx.draw_networkx(trellis, node_positions, ax=ax_current, edgecolors=node_edges, edge_color=edge_colors, font_size=9, labels=node_labels, node_color=node_colors, node_size=_default_node_size)
+        ax_current.set_ylim(0.5, y_top)
+        ax_current.axis('off')
+        ax_current.set_title('Forward Trellis', fontsize=15.0, fontweight='normal', pad=1)
+
+        _mplp.interactive(mpi)
+
+        return f, a
+
+    try:
+
+        hmm = _validate_hidden_markov_model(hmm)
+        steps = _validate_integer(steps, lower_limit=(2, False))
+        initial_state = None if initial_state is None else _validate_label(initial_state, hmm.states)
+        force_standard = _validate_boolean(force_standard)
+        dpi = _validate_dpi(dpi)
+
+    except Exception as ex:  # pragma: no cover
+        raise _create_validation_error(ex, _ins.trace()) from None
+
+    if initial_state is None:
+        initial_distribution = _np.full(hmm.n, 1.0 / hmm.n, dtype=float)
+    else:
+        initial_distribution = _np.zeros(hmm.n, dtype=float)
+        initial_distribution[initial_state] = 1.0
+
+    _, symbols = hmm.simulate(steps, initial_state=initial_state, output_indices=True, seed=seed)
+
+    decoding = hmm.decode(symbols, initial_status=initial_distribution)
+
+    if decoding is None:
+        raise ValueError('The computation of backward and forward probabilities failed.')
+
+    _, _, backward, forward, _ = decoding
+
+    if decoding is None:
+        raise ValueError('')
+
+    prediction = hmm.predict('mle', symbols, initial_status=initial_distribution, output_indices=True)
+
+    if prediction is None:
+        raise ValueError('The computation of the most probable states path failed.')
+
+    _, states_path = prediction
+
+    extended_graph = not force_standard and _pydot_found
+
+    if extended_graph:
+        try:
+            _sub.call(['dot', '-V'], stdout=_sub.PIPE, stderr=_sub.PIPE)
+        except Exception:  # pragma: no cover
+            extended_graph = False
+
+    if extended_graph:
+        figure, ax = _plot_extended(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
+    else:
+        figure, ax = _plot_standard(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
 
     if _mplp.isinteractive():  # pragma: no cover
         _mplp.show(block=False)
