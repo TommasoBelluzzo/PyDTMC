@@ -47,19 +47,7 @@ jobs:
       run: |
         TARGET="${TARGET^^}"
         echo $TARGET
-        if [[ "$TARGET" != "MAJOR" ]] && [[ "$TARGET" != "MINOR" ]] && [[ "$TARGET" != "RELEASE" ]] && [[ "$TARGET" != "NONE" ]]; then
-          echo "INVALID INPUT (TARGET)"
-          exit 1
-        fi
         PYPI="${PYPI^^}"
         echo $PYPI
-        if [[ "$PYPI" != "YES" ]] && [[ "$PYPI" != "NO" ]]; then
-          echo "INVALID INPUT (PYPI)"
-          exit 1
-        fi
         CONDA="${CONDA^^}"
         echo $CONDA
-        if [[ "$CONDA" != "YES" ]] && [[ "$CONDA" != "NO" ]]; then
-          echo "INVALID INPUT (CONDA)"
-          exit 1
-        fi
