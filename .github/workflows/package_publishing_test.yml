@@ -1,4 +1,4 @@
-name: "Package Publishing"
+name: "Package Publishing TEST"
 
 on:
   workflow_dispatch:
@@ -25,8 +25,8 @@ on:
         default: true
 
 jobs:
-  package_publishing:
-    name: Package Publishing
+  package_publishing_test
+    name: Package Publishing TEST
     runs-on: ubuntu-latest
     steps:
     - name: Repository Checkout
