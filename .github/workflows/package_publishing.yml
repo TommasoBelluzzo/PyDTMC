@@ -14,21 +14,15 @@ on:
         - NONE
         default: 'MINOR'
       pypi:
-        type: choice
-        description: 'PyPI:'
+        type: boolean
+        description: 'PyPI'
         required: true
-        options:
-        - NO
-        - YES
-        default: 'YES'
+        default: true
       conda:
-        type: choice
-        description: 'Conda:'
+        type: boolean
+        description: 'Conda'
         required: true
-        options:
-        - NO
-        - YES
-        default: 'YES'
+        default: true
 
 jobs:
   package_publishing:
@@ -52,29 +46,17 @@ jobs:
         VERSION_FILE: pydtmc/__init__.py
       run: |
         TARGET="${TARGET^^}"
-        if [[ "$TARGET" != "MAJOR" ]] && [[ "$TARGET" != "MINOR" ]] && [[ "$TARGET" != "RELEASE" ]] && [[ "$TARGET" != "NONE" ]]; then
-          echo "INVALID INPUT (TARGET)"
-          exit 1
-        fi
         PYPI="${PYPI^^}"
-        if [[ "$PYPI" != "YES" ]] && [[ "$PYPI" != "NO" ]]; then
-          echo "INVALID INPUT (PYPI)"
-          exit 1
-        fi
         CONDA="${CONDA^^}"
-        if [[ "$CONDA" != "YES" ]] && [[ "$CONDA" != "NO" ]]; then
-          echo "INVALID INPUT (CONDA)"
-          exit 1
-        fi
-        if [[ "$PYPI" == "NO" ]] && [[ "$CONDA" == "NO" ]]; then
+        if [[ "$PYPI" == "FALSE" ]] && [[ "$CONDA" == "FALSE" ]]; then
           echo "INVALID INPUT (PYPI=NO && CONDA=NO)"
           exit 1
         fi
-        if [[ "$PYPI" == "YES" ]] && [[ "$TARGET" == "NONE" ]]; then
+        if [[ "$PYPI" == "TRUE" ]] && [[ "$TARGET" == "NONE" ]]; then
           echo "INVALID INPUT (PYPI=YES && TARGET=NONE)"
           exit 1
         fi
-        if [[ "$PYPI" == "NO" ]] && [[ "$CONDA" == "YES" ]] && [[ "$TARGET" != "NONE" ]]; then
+        if [[ "$PYPI" == "FALSE" ]] && [[ "$CONDA" == "TRUE" ]] && [[ "$TARGET" != "NONE" ]]; then
           echo "INVALID INPUT (PYPI=NO && CONDA=YES && TARGET!=NONE)"
           exit 1
         fi
