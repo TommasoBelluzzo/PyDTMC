@@ -4,16 +4,30 @@ on:
   workflow_dispatch:
     inputs:
       target:
+        type: choice
         description: 'Target:'
         required: true
+        options:
+        - MAJOR
+        - MINOR
+        - RELEASE
+        - NONE
         default: 'MINOR'
       pypi:
+        type: choice
         description: 'PyPI:'
         required: true
+        options:
+        - NO
+        - YES
         default: 'YES'
       conda:
+        type: choice
         description: 'Conda:'
         required: true
+        options:
+        - NO
+        - YES
         default: 'YES'
 
 jobs:
