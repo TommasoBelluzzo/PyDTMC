@@ -1,0 +1,65 @@
+name: "Package Publishing"
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        description: 'Target:'
+        required: true
+        options:
+        - MAJOR
+        - MINOR
+        - RELEASE
+        - NONE
+        default: 'MINOR'
+      pypi:
+        type: boolean
+        description: 'PyPI:'
+        required: true
+        default: true
+      conda:
+        type: boolean
+        description: 'Conda:'
+        required: true
+        default: true
+
+jobs:
+  package_publishing:
+    name: Package Publishing
+    runs-on: ubuntu-latest
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v3
+    - name: Python Setup
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        architecture: x64
+    - name: Version Bump
+      id: bump
+      env:
+        TARGET: ${{ github.event.inputs.target }}
+        PYPI: ${{ github.event.inputs.pypi }}
+        CONDA: ${{ github.event.inputs.conda }}
+        VERSION_REGEX: __version__ = '\d+\.\d+\.\d+'
+        VERSION_FILE: pydtmc/__init__.py
+      run: |
+        TARGET="${TARGET^^}"
+        echo $TARGET
+        if [[ "$TARGET" != "MAJOR" ]] && [[ "$TARGET" != "MINOR" ]] && [[ "$TARGET" != "RELEASE" ]] && [[ "$TARGET" != "NONE" ]]; then
+          echo "INVALID INPUT (TARGET)"
+          exit 1
+        fi
+        PYPI="${PYPI^^}"
+        echo $PYPI
+        if [[ "$PYPI" != "YES" ]] && [[ "$PYPI" != "NO" ]]; then
+          echo "INVALID INPUT (PYPI)"
+          exit 1
+        fi
+        CONDA="${CONDA^^}"
+        echo $CONDA
+        if [[ "$CONDA" != "YES" ]] && [[ "$CONDA" != "NO" ]]; then
+          echo "INVALID INPUT (CONDA)"
+          exit 1
+        fi
