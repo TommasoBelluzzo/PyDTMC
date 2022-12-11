@@ -65,7 +65,7 @@ jobs:
         VERSION_MAJOR=$(echo "$VERSION" | cut -d "." -f1)
         VERSION_MINOR=$(echo "$VERSION" | cut -d "." -f2)
         VERSION_RELEASE=$(echo "$VERSION" | cut -d "." -f3)
-        if [[ "$PYPI" == "YES" ]]; then
+        if [[ "$PYPI" == "TRUE" ]]; then
           if [[ "$TARGET" == "MAJOR" ]]; then
             VERSION_MAJOR=$(($VERSION_MAJOR+1))
             VERSION_MINOR=0
@@ -89,13 +89,13 @@ jobs:
       id: pypi_cache
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
-      if: ${{ env.PYPI == 'YES' }}
+      if: ${{ env.PYPI == 'TRUE' }}
       uses: actions/cache@v3
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-PP-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
-      if: ${{ env.PYPI == 'YES' }} && steps.pypi_cache.outputs.cache-hit != 'true'
+      if: ${{ env.PYPI == 'TRUE' }} && steps.pypi_cache.outputs.cache-hit != 'true'
       run: |
         pip install --quiet --upgrade pip
         pip install --quiet --upgrade -r requirements.txt
@@ -119,9 +119,9 @@ jobs:
         META_REGEX: 'sha256: [A-Fa-f0-9]{64}'
         META_FILE: meta.yaml
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
-      if: ${{ env.CONDA == 'YES' }}
+      if: ${{ env.CONDA == 'TRUE' }}
       run: |
-        if [[ "$PYPI" == "YES" ]]; then
+        if [[ "$PYPI" == "TRUE" ]]; then
           sleep 900
         fi
         conda clean --all
