@@ -19,7 +19,7 @@
     "seed": 7331,
     "runs": 20,
     "maximum_size": 10,
-    "maximum_distributions": 20
+    "maximum_redistributions": 20
   },
   "plot_sequence_data": {
     "seed": 7331,

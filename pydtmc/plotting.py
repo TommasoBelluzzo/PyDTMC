@@ -191,7 +191,7 @@ def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition
     except Exception as ex:  # pragma: no cover
         raise _create_validation_error(ex, _ins.trace()) from None
 
-    if underlying_matrices == 'emission' and not all(isinstance(model, _HiddenMarkovModel) for model in models):
+    if underlying_matrices == 'emission' and not all(isinstance(model, _HiddenMarkovModel) for model in models):  # pragma: no cover
         raise _ValidationError('In order to compare emission matrices, the list must contain only hidden Markov models.')
 
     space = len(models)
@@ -935,7 +935,7 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
             a_current_is = a_current.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
             is_axes.append(a_current_is)
 
-            _xticks_labels(a_current, size, labels_name, labels, False)
+            _xticks_labels(a_current, size, labels_name, labels, True)
             _yticks_labels(a_current, size, labels_name, labels)
 
             a_current.grid(which='minor', color='k')
@@ -1306,17 +1306,14 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
 
     decoding = hmm.decode(symbols, initial_status=initial_distribution)
 
-    if decoding is None:
+    if decoding is None:  # pragma: no cover
         raise ValueError('The computation of backward and forward probabilities failed.')
 
     _, _, backward, forward, _ = decoding
 
-    if decoding is None:
-        raise ValueError('')
-
     prediction = hmm.predict('mle', symbols, initial_status=initial_distribution, output_indices=True)
 
-    if prediction is None:
+    if prediction is None:  # pragma: no cover
         raise ValueError('The computation of the most probable states path failed.')
 
     _, states_path = prediction

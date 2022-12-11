@@ -138,14 +138,14 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
 
         total_transitions = _np.sum(p, axis=1, keepdims=True)
 
-        if _np.any(total_transitions == 0.0):
+        if _np.any(total_transitions == 0.0):  # pragma: no cover
             return None, None, 'The fitting algorithm produced null transition probabilities.'
 
         p_guess = p / total_transitions
 
         total_emissions = _np.sum(e, axis=1, keepdims=True)
 
-        if _np.any(total_emissions == 0.0):
+        if _np.any(total_emissions == 0.0):  # pragma: no cover
             return None, None, 'The fitting algorithm produced null emission probabilities.'
 
         e_guess = e / total_emissions
@@ -164,7 +164,7 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
 
         iterations += 1
 
-    return None, None, 'The fitting algorithm failed to converge.'
+    return None, None, 'The fitting algorithm failed to converge.'  # pragma: no cover
 
 
 # noinspection PyBroadException
