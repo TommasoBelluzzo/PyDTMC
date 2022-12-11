@@ -25,7 +25,7 @@ on:
         default: true
 
 jobs:
-  package_publishing_test
+  package_publishing_test:
     name: Package Publishing TEST
     runs-on: ubuntu-latest
     steps:
