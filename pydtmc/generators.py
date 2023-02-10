@@ -44,10 +44,8 @@ from .custom_types import (
     tarray as _tarray,
     tbcond as _tbcond,
     thmm_generation as _thmm_generation,
-    thmm_generation_ext as _thmm_generation_ext,
     thmm_params as _thmm_params,
     tmc_generation as _tmc_generation,
-    tmc_generation_ext as _tmc_generation_ext,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
@@ -92,7 +90,7 @@ def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: 
     return p, e
 
 
-def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: int, e_mask: _tarray) -> _thmm_generation_ext:
+def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: int, e_mask: _tarray) -> _thmm_generation:
 
     # noinspection DuplicatedCode
     def process_matrix(pm_rows, pm_columns, pm_mask, pm_full_rows, pm_mask_unassigned, pm_zeros, pm_zeros_required):
@@ -187,10 +185,10 @@ def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str
     state_names = [*map(states.__getitem__, sub_states)]
     symbol_names = [*map(symbols.__getitem__, sub_symbols)]
 
-    return p, e, state_names, symbol_names
+    return p, e, state_names, symbol_names, None
 
 
-def mc_aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation_ext:
+def mc_aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
 
     # noinspection DuplicatedCode
     def _calculate_q(cq_p, cq_pi, cq_phi):
@@ -276,7 +274,7 @@ def mc_aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen
     return q, states, None
 
 
-def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generation_ext:
+def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
 
     def _calculate_invariant(ci_q):
 
@@ -382,7 +380,7 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
     return q, states, None
 
 
-def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tmc_generation_ext:
+def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tmc_generation:
 
     def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
 
@@ -550,7 +548,7 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
                 z = x[j] - rx
                 p[i, j] = _sps.norm.cdf((z + step) / sigma) - _sps.norm.cdf((z - step) / sigma)
 
-    states = [f'A{i:d}' for i in range(1, p.shape[0] + 1)]
+    states = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
 
     return p, states, None
 
@@ -564,7 +562,10 @@ def mc_birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
     p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[0], dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)
 
-    return p, None
+    size = {p.shape[0], q.shape[0]}.pop()
+    state_names = [f'{i:d}' for i in range(1, size + 1)]
+
+    return p, state_names, None
 
 
 def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
@@ -594,7 +595,9 @@ def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
     p_adjusted[0] = first
     p_adjusted[-1] = last
 
-    return p_adjusted, None
+    state_names = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
+
+    return p_adjusted, state_names, None
 
 
 def mc_canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tlist_int) -> _tmc_generation:
@@ -602,18 +605,19 @@ def mc_canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _
     p = _np.copy(p)
 
     if len(recurrent_indices) == 0 or len(transient_indices) == 0:
-        return p, None
+        return p, None, None
 
     is_canonical = max(transient_indices) < min(recurrent_indices)
 
     if is_canonical:
-        return p, None
+        return p, None, None
 
     indices = transient_indices + recurrent_indices
 
     p = p[_np.ix_(indices, indices)]
+    state_names = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
 
-    return p, None
+    return p, state_names, None
 
 
 def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tmc_generation:
@@ -771,7 +775,7 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
     solution = _spo.minimize(_objective, x0, jac=_jacobian, args=(h, f), constraints=constraints, method='SLSQP', options={'disp': False})
 
     if not solution['success']:  # pragma: no cover
-        return None, 'The closest reversible could not be computed.'
+        return None, None, 'The closest reversible could not be computed.'
 
     p = _np.zeros((size, size), dtype=float)
     solution = solution['x']
@@ -782,10 +786,12 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
     p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)
 
-    return p, None
+    state_names = [f'{i:d}' for i in range(1, size + 1)]
+
+    return p, state_names, None
 
 
-def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool):
+def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool) -> _tmc_generation:
 
     def _gem_allocation(ga_draws):
 
@@ -813,7 +819,9 @@ def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagon
         p += + _np.diagflat(diagonal)
         p /= _np.sum(p, axis=1, keepdims=True)
 
-    return p, None
+    state_names = [f'{i:d}' for i in range(1, size + 1)]
+
+    return p, state_names, None
 
 
 def mc_gamblers_ruin(size: int, w: float) -> _tmc_generation:
@@ -828,7 +836,9 @@ def mc_gamblers_ruin(size: int, w: float) -> _tmc_generation:
         p[i, i - 1] = wc
         p[i, i + 1] = w
 
-    return p, None
+    state_names = [f'{i:d}' for i in range(1, size + 1)]
+
+    return p, state_names, None
 
 
 def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
@@ -839,11 +849,11 @@ def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
     p2 = _np.eye(size) * inertial_weights
     p = p1 + p2
 
-    return p, None
+    return p, None, None
 
 
 # noinspection PyBroadException
-def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_generation_ext:
+def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_generation:
 
     size = p.shape[0]
 
@@ -885,7 +895,7 @@ def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generat
     zeros_required = (_np.sum(mask_unassigned) - _np.sum(~full_rows)).item()
 
     if zeros > zeros_required:  # pragma: no cover
-        return None, f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.'
+        return None, None, f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.'
 
     n = _np.arange(size)
 
@@ -919,10 +929,12 @@ def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generat
             si = _np.sum(p[i, ~assigned_columns])
             p[i, assigned_columns] = p[i, assigned_columns] * ((1.0 - si) / s)
 
-    return p, None
+    state_names = [f'{i:d}' for i in range(1, size + 1)]
+
+    return p, state_names, None
 
 
-def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_generation_ext:
+def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_generation:
 
     size = p.shape[0]
 
@@ -956,7 +968,7 @@ def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states
     return p, state_names, None
 
 
-def mc_urn_model(n: int, model: str) -> _tmc_generation_ext:
+def mc_urn_model(n: int, model: str) -> _tmc_generation:
 
     dn = n * 2
     size = dn + 1
@@ -997,6 +1009,6 @@ def mc_urn_model(n: int, model: str) -> _tmc_generation_ext:
 
             p[i, :] = r
 
-    state_names = [f'U{i:d}' for i in range(1, (n * 2) + 2)]
+    state_names = [f'{i:d}' for i in range(1, size + 1)]
 
     return p, state_names, None

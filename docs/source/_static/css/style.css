@@ -18,6 +18,10 @@
     float: right !important;
 }
 
+.rst-content dl.field-list > dt:after {
+    content: '' !important;
+}
+
 .rst-content section ul li > p:last-child {
     margin-bottom: 0 !important;
 }
@@ -36,6 +40,14 @@
 .rst-content section[id='pydtmc'] .line-block,
 .rst-content section[id='static-methods'] .line-block {
     margin-bottom: 24px !important;
+}
+
+li.toctree-l2:has(a.reference.internal[href='#pydtmc.HiddenMarkovModel']) {
+    display: none;
+}
+
+li.toctree-l2:has(a.reference.internal[href='#pydtmc.MarkovChain']) {
+    display: none;
 }
 
 .wy-nav-content {

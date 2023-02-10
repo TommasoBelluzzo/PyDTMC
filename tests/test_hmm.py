@@ -193,7 +193,6 @@ def test_properties(p, e, value):
     assert actual == expected
 
 
-# noinspection PyArgumentEqualDefault
 def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
 
     states = [f'P{i:d}' for i in range(1, n + 1)]

@@ -89,9 +89,9 @@ $ conda install -c tommasobelluzzo pydtmc
 $ conda update -c tommasobelluzzo pydtmc
 ```
 
-## Usage
+## Usage: MarkovChain
 
-The core element of the library is the `MarkovChain` class, which can be instantiated as follows:
+The `MarkovChain` class can be instantiated as follows:
 
 ```console
 >>> p = [[0.2, 0.7, 0.0, 0.1], [0.0, 0.6, 0.3, 0.1], [0.0, 0.0, 1.0, 0.0], [0.5, 0.0, 0.5, 0.0]]
@@ -109,7 +109,8 @@ DISCRETE-TIME MARKOV CHAIN
   > IRREDUCIBLE: NO
  ABSORBING:      YES
  REGULAR:        NO
- REVERSIBLE:     NO
+ REVERSIBLE:     YES
+ SYMMETRIC:      NO
 ```
 
 Below a few examples of `MarkovChain` properties:
@@ -149,13 +150,13 @@ Below a few examples of `MarkovChain` methods:
 [1.0 1.0 1.0]
 
 >>> print(mc.expected_rewards(10, [2, -3, 8, -7]))
-[-2.76071635, -12.01665113, 23.23460025, -8.45723276]
+[44.96611926, 52.03057032, 88.00000000, 51.74779651]
 
 >>> print(mc.expected_transitions(2))
-[[0.085, 0.2975, 0.0000, 0.0425]
- [0.000, 0.3450, 0.1725, 0.0575]
- [0.000, 0.0000, 0.7000, 0.0000]
- [0.150, 0.0000, 0.1500, 0.0000]]
+[[0.0850, 0.2975, 0.0000, 0.0425]
+ [0.0000, 0.3450, 0.1725, 0.0575]
+ [0.0000, 0.0000, 0.7000, 0.0000]
+ [0.1500, 0.0000, 0.1500, 0.0000]]
 
 >>> print(mc.first_passage_probabilities(5, 3))
 [[0.5000, 0.0000, 0.5000, 0.0000]
@@ -171,10 +172,10 @@ Below a few examples of `MarkovChain` methods:
 [4.56603774, 3.32075472, 3.28301887]
 
 >>> print(mc.mean_number_visits())
-[[0.50943396, 2.64150943, inf, 0.41509434]
- [0.18867925, 1.83018868, inf, 0.30188679]
- [0.00000000, 0.00000000, inf, 0.00000000]
- [0.75471698, 1.32075472, inf, 0.20754717]]
+[[0.50943396, 2.64150943, INF, 0.41509434]
+ [0.18867925, 1.83018868, INF, 0.30188679]
+ [0.00000000, 0.00000000, INF, 0.00000000]
+ [0.75471698, 1.32075472, INF, 0.20754717]]
  
 >>> print(mc.simulate(10, seed=32))
 ['D', 'A', 'B', 'B', 'C', 'C', 'C', 'C', 'C', 'C', 'C']
@@ -184,8 +185,8 @@ Below a few examples of `MarkovChain` methods:
 >>> sequence = ["A"]
 >>> for i in range(1, 11):
 ...     current_state = sequence[-1]
-...     next_state = mc.next_state(current_state, seed=32)
-...     print(f'{i:02} {current_state} -> {next_state}')
+...     next_state = mc.next(current_state, seed=32)
+...     print((' ' if i < 10 else '') + f'{i}) {current_state} -> {next_state}')
 ...     sequence.append(next_state)
  1) A -> B
  2) B -> C
@@ -199,7 +200,7 @@ Below a few examples of `MarkovChain` methods:
 10) C -> C
 ```
 
-Plotting functions can provide a visual representation of `MarkovChain` instances; in order to display the output of plots immediately, the [interactive mode](https://matplotlib.org/stable/users/interactive.html#interactive-mode) of [Matplotlib](https://matplotlib.org/) must be turned on:
+Below a few examples of `MarkovChain` plotting functions; in order to display the output of plots immediately, the [interactive mode](https://matplotlib.org/stable/users/interactive.html#interactive-mode) of [Matplotlib](https://matplotlib.org/) must be turned on:
 
 ```console
 >>> plot_eigenvalues(mc)

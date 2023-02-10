@@ -58,7 +58,7 @@ _st.setup(
     version=_current_version,
     long_description=_long_description_text,
     long_description_content_type='text/markdown',
-    packages=_st.find_packages(exclude=['data', 'docs', 'tests']),
+    packages=_st.find_packages(exclude=['data', 'docs', 'images', 'tests']),
     include_package_data=True,
     package_data={'data': _package_data_files},
 )

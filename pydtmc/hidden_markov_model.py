@@ -439,8 +439,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, e, states_out, symbols_out = _restrict(self.__p, self.__e, self.__states, self.__symbols, states, symbols)
-
+        p, e, states_out, symbols_out, _ = _restrict(self.__p, self.__e, self.__states, self.__symbols, states, symbols)
         hmm = HiddenMarkovModel(p, e, states_out, symbols_out)
 
         return hmm

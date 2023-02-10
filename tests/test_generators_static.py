@@ -23,7 +23,7 @@ from pydtmc import (
 
 def test_approximation(size, approximation_type, alpha, sigma, rho, k, value):
 
-    mc = _MarkovChain.approximation(size, approximation_type, alpha, sigma, rho, k)
+    mc = _MarkovChain.approximation(size, approximation_type, alpha, sigma, rho, k=k)
 
     actual = mc.p
     expected = _np.array(value)
@@ -56,10 +56,9 @@ def test_closest_reversible(p, distribution, weighted, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-# noinspection PyArgumentEqualDefault
 def test_dirichlet_process(seed, size, diffusion_factor, diagonal_bias_factor, shift_concentration, value):
 
-    mc = _MarkovChain.dirichlet_process(size, diffusion_factor, None, diagonal_bias_factor, shift_concentration, seed)
+    mc = _MarkovChain.dirichlet_process(size, diffusion_factor, diagonal_bias_factor=diagonal_bias_factor, shift_concentration=shift_concentration, seed=seed)
 
     actual = mc.p
     expected = _np.array(value)
@@ -87,10 +86,9 @@ def test_identity(size, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-# noinspection PyArgumentEqualDefault
 def test_random(seed, size, zeros, mask, value):
 
-    mc = _MarkovChain.random(size, None, zeros, mask, seed)
+    mc = _MarkovChain.random(size, zeros=zeros, mask=mask, seed=seed)
 
     actual = mc.p
     expected = _np.array(value)
@@ -114,10 +112,9 @@ def test_random(seed, size, zeros, mask, value):
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-# noinspection PyArgumentEqualDefault
 def test_random_distribution(seed, size, f, args, value):
 
-    mc = _MarkovChain.random_distribution(size, f, None, seed, **args)
+    mc = _MarkovChain.random_distribution(size, f, seed=seed, **args)
 
     actual = mc.p
     expected = _np.array(value)
