@@ -99,6 +99,7 @@ def assess_first_order(possible_states: _tlist_str, sequence: _tsequence, signif
         try:
             ct_chi2, _ = _chi2_contingency(ct)
         except Exception:
+            print('EXCEPTION')
             ct_chi2 = float('nan')
 
         if _mt.isnan(ct_chi2):

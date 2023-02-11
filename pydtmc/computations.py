@@ -128,7 +128,9 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
     observed = observed.astype(float)
 
     if _np.any(observed < 0.0):  # pragma: no cover
-        raise ValueError("The table of observed frequencies must contain only non-negative values.")
+        print(observed)
+        print('observed < 0.0')
+        raise ValueError('The table of observed frequencies must contain only non-negative values.')
 
     d = observed.ndim
     d_range = list(range(d))
@@ -142,7 +144,9 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
     expected = _np.prod(marginals) / (_np.sum(observed) ** (d - 1))
 
     if _np.any(expected == 0.0):  # pragma: no cover
-        raise ValueError("The internally computed table of expected frequencies contains null elements.")
+        print(expected)
+        print('expected == 0.0')
+        raise ValueError('The internally computed table of expected frequencies contains null elements.')
 
     dof = expected.size - sum(expected.shape) + d - 1
 
