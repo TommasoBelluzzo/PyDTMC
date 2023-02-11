@@ -132,7 +132,7 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
 
     marginals_rows = _np.sum(observed, axis=1, keepdims=True)
     marginals_columns = _np.sum(observed, axis=0, keepdims=True)
-    expected = _np.dot(marginals_rows, marginals_columns) / (_np.sum(observed) ** (d - 1))
+    expected = _np.dot(marginals_rows, marginals_columns) / _np.sum(observed)
 
     if _np.any(expected == 0.0):  # pragma: no cover
         raise ValueError('The internally computed table of expected frequencies contains null elements.')
