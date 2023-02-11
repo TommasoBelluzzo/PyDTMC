@@ -111,14 +111,10 @@ def test_fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, 
         actual = hmm_fit.p
         expected = _np.array(value[0])
 
-        print(hmm_fit.p)
-
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
         actual = hmm_fit.e
         expected = _np.array(value[1])
-
-        print(hmm_fit.e)
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
