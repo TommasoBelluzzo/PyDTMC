@@ -111,6 +111,8 @@ def assess_first_order(possible_states: _tlist_str, sequence: _tsequence, signif
                 marginal = _np.apply_over_axes(_np.sum, ct, [j for j in d_range if j != k])
                 marginals.append(marginal)
 
+            print('marginals', marginals)
+
             expected = _np.prod(marginals) / (_np.sum(ct) ** (d - 1))
             print('expected', expected)
 
