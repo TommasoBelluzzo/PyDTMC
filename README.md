@@ -89,7 +89,7 @@ $ conda install -c tommasobelluzzo pydtmc
 $ conda update -c tommasobelluzzo pydtmc
 ```
 
-## Usage: MarkovChain
+## Usage: MarkovChain Class
 
 The `MarkovChain` class can be instantiated as follows:
 
@@ -214,7 +214,7 @@ Below a few examples of `MarkovChain` plotting functions; in order to display th
 
 ![Screenshots](https://i.imgur.com/bltMSi5.gif)
 
-## Usage: HiddenMarkovModel
+## Usage: HiddenMarkovModel Class
 
 The `HiddenMarkovModel` class can be instantiated as follows:
 
