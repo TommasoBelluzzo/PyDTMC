@@ -59,9 +59,10 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
     def _predict_viterbi(pv_p, pv_e, pv_initial_distribution, pv_symbols):
 
         n, f = pv_p.shape[1], len(pv_symbols)
-        p_log, e_log = _np.log(pv_p), _np.log(pv_e)
 
         with _np.errstate(divide='ignore'):
+            p_log = _np.log(pv_p)
+            e_log = _np.log(pv_e)
             omega_0 = _np.log(pv_initial_distribution * pv_e[:, pv_symbols[0]])
 
         if _np.all(omega_0 == -_np.inf):
