@@ -49,15 +49,15 @@ jobs:
         PYPI="${PYPI^^}"
         CONDA="${CONDA^^}"
         if [[ "$PYPI" == "FALSE" ]] && [[ "$CONDA" == "FALSE" ]]; then
-          echo "INVALID INPUT (PYPI=NO && CONDA=NO)"
+          echo "INVALID INPUT (PYPI=FALSE && CONDA=FALSE)"
           exit 1
         fi
         if [[ "$PYPI" == "TRUE" ]] && [[ "$TARGET" == "NONE" ]]; then
-          echo "INVALID INPUT (PYPI=YES && TARGET=NONE)"
+          echo "INVALID INPUT (PYPI=TRUE && TARGET=NONE)"
           exit 1
         fi
         if [[ "$PYPI" == "FALSE" ]] && [[ "$CONDA" == "TRUE" ]] && [[ "$TARGET" != "NONE" ]]; then
-          echo "INVALID INPUT (PYPI=NO && CONDA=YES && TARGET!=NONE)"
+          echo "INVALID INPUT (PYPI=FALSE && CONDA=TRUE && TARGET!=NONE)"
           exit 1
         fi
         grep -P "$VERSION_REGEX" "$VERSION_FILE"
@@ -108,7 +108,7 @@ jobs:
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      if: ${{ env.PYPI == 'YES' }}
+      if: ${{ env.PYPI == 'TRUE' }}
       run: |
         python setup.py sdist bdist_wheel
         twine upload dist/*
