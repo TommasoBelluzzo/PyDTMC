@@ -203,16 +203,16 @@ Below a few examples of `MarkovChain` methods:
 Below a few examples of `MarkovChain` plotting functions; in order to display the output of plots immediately, the [interactive mode](https://matplotlib.org/stable/users/interactive.html#interactive-mode) of [Matplotlib](https://matplotlib.org/) must be turned on:
 
 ```console
->>> plot_eigenvalues(mc)
->>> plot_graph(mc)
+>>> plot_eigenvalues(mc, dpi=300)
+>>> plot_graph(mc, dpi=300)
 >>> plot_sequence(mc, 10, plot_type='histogram', dpi=300)
->>> plot_sequence(mc, 10, plot_type='sequence', dpi=300)
->>> plot_sequence(mc, 10, plot_type='transitions', dpi=300)
+>>> plot_sequence(mc, 10, plot_type='heatmap', dpi=300)
+>>> plot_sequence(mc, 10, plot_type='matrix', dpi=300)
 >>> plot_redistributions(mc, 10, plot_type='heatmap', dpi=300)
 >>> plot_redistributions(mc, 10, plot_type='projection', dpi=300)
 ```
 
-![Screenshots](https://i.imgur.com/pRGO0Hc.gif)
+![Screenshots](https://i.imgur.com/bltMSi5.gif)
 
 ## Usage: HiddenMarkovModel
 
@@ -238,24 +238,46 @@ Below a few examples of `HiddenMarkovModel` methods:
 ```console
 >>> sim_states, sim_symbols = hmm.simulate(12, seed=1488)
 >>> print(sim_states)
-['B', 'A', 'A', 'A', 'B', 'A', 'A', 'B', 'B', 'B', 'A', 'B', 'A']
+['B', 'A', 'A', 'A', 'B', 'A', 'A']
 >>> print(sim_symbols)
-['H2', 'H1', 'H1', 'H4', 'H2', 'H4', 'H4', 'H1', 'H2', 'H1', 'H1', 'H3', 'H1']
+['H2', 'H4', 'H4', 'H4', 'H3', 'H4', 'H4']
+
+>>> est_hmm = hmm.estimate(states, symbols, sim_states, sim_symbols)
+>>> print(est_hmm.p)
+[[0.75, 0.25]
+ [1.00, 0.00]]
+>>> print(est_hmm.e)
+[[0.0, 0.0, 0.0, 1.0]
+ [0.0, 0.5, 0.5, 0.0]]
 
 >>> dec_lp, dec_posterior, dec_backward, dec_forward, _ = hmm.decode(sim_symbols)
 >>> print(dec_lp)
--17.59834873
+-8.77549587
 >>> print(dec_posterior)
-[[0.00000000, 0.89253996, 0.55950266, 0.81261101, 0.00000000, 0.85080148, 0.38840937, 0.91553637, 0.00000000, 0.85308057, 0.85308057, 0.00000000, 0.90909091]
- [1.00000000, 0.10746004, 0.44049734, 0.18738899, 1.00000000, 0.14919852, 0.61159063, 0.08446363, 1.00000000, 0.14691943, 0.14691943, 1.00000000, 0.09090909]]
+[[0.00000000, 0.84422968, 0.41785105, 0.84422968, 0.00000000, 0.82089552, 0.52238806]
+ [1.00000000, 0.15577032, 0.58214895, 0.15577032, 1.00000000, 0.17910448, 0.47761194]]
 >>> print(dec_backward)
-[[1.50000000, 0.76865009, 0.98179396, 0.84857904, 1.37477798, 0.87299630, 1.02096178, 0.74352651, 1.16892725, 0.86729858, 0.93838863, 1.29383886, 0.72727273, 1.00000000]
- [0.50000000, 1.00000000, 1.18206039, 1.29307282, 0.45825933, 1.00000000, 0.89519112, 1.28051788, 0.38964242, 1.00000000, 1.61611374, 0.43127962, 1.00000000, 1.00000000]]
+[[1.50000000, 0.88942581, 1.01307561, 0.79988630, 1.31154065, 0.94776119, 0.98507463, 1.00000000]
+ [0.50000000, 1.00000000, 0.93462194, 1.21887436, 0.43718022, 1.00000000, 1.07462687, 1.00000000]]
 >>> print(dec_forward)
-[[0.50000000, 0.00000000, 0.90909091, 0.65934066, 0.59108527, 0.00000000, 0.83333333, 0.52238806, 0.78322785, 0.00000000, 0.90909091, 0.65934066, 0.00000000, 0.90909091]
- [0.50000000, 1.00000000, 0.09090909, 0.34065934, 0.40891473, 1.00000000, 0.16666667, 0.47761194, 0.21677215, 1.00000000, 0.09090909, 0.34065934, 1.00000000, 0.09090909]]
+[[0.50000000, 0.00000000, 0.83333333, 0.52238806, 0.64369311, 0.00000000, 0.83333333 0.52238806]
+ [0.50000000, 1.00000000, 0.16666667, 0.47761194, 0.35630689, 1.00000000, 0.16666667 0.47761194]]
 
-
-
-
+>>> pre_lp, pre_states = hmm.predict('viterbi', sim_symbols)
+>>> print(pre_lp)
+-13.24482936
+>>> print(pre_states)
+['B', 'A', 'B', 'A', 'B', 'A', 'B']
 ```
+
+Below a few examples of `HiddenMarkovModel` plotting functions; in order to display the output of plots immediately, the [interactive mode](https://matplotlib.org/stable/users/interactive.html#interactive-mode) of [Matplotlib](https://matplotlib.org/) must be turned on:
+
+```console
+>>> plot_graph(hmm, dpi=300)
+>>> plot_sequence(hmm, 10, plot_type='histogram', dpi=300)
+>>> plot_sequence(hmm, 10, plot_type='heatmap', dpi=300)
+>>> plot_sequence(hmm, 10, plot_type='matrix', dpi=300)
+>>> plot_trellis(hmm, 10, dpi=300)
+```
+
+![Screenshots](https://i.imgur.com/pRGO0Hc.gif)
