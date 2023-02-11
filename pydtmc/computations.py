@@ -130,9 +130,6 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
     if _np.any(observed < 0.0):  # pragma: no cover
         raise ValueError('The table of observed frequencies must contain only non-negative values.')
 
-    d = observed.ndim
-    d_range = list(range(d))
-
     marginals_rows = _np.sum(observed, axis=1, keepdims=True)
     marginals_columns = _np.sum(observed, axis=0, keepdims=True)
     expected = _np.dot(marginals_rows, marginals_columns) / (_np.sum(observed) ** (d - 1))
