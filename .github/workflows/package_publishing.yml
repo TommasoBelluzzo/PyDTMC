@@ -95,6 +95,8 @@ jobs:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-PP-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
+      env:
+        PYPI: ${{ steps.bump.outputs.pypi }}
       if: ${{ env.PYPI == 'TRUE' }} && steps.pypi_cache.outputs.cache-hit != 'true'
       run: |
         pip install --quiet --upgrade pip
