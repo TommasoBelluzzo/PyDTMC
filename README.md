@@ -280,4 +280,4 @@ Below a few examples of `HiddenMarkovModel` plotting functions; in order to disp
 >>> plot_trellis(hmm, 10, dpi=300)
 ```
 
-![Screenshots](https://i.imgur.com/pRGO0Hc.gif)
+![Screenshots](https://i.imgur.com/rSNUbdX.gif)

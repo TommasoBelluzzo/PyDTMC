@@ -95,7 +95,7 @@ _colors = ('#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#F
 
 _default_color_edge = _color_black
 _default_color_node = _color_white
-_default_color_path = '#FB8072'
+_default_color_path = _colors[0]
 _default_color_symbol = _color_gray
 _default_node_size = 600
 
