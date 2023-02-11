@@ -386,7 +386,11 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
             rotation = delc_ax.transData.transform_angles(_np.array((angle,)), xy.reshape((1, 2)))[0]
             transform = delc_ax.transData
-            bbox = dict(boxstyle='round', ec=(1.0, 1.0, 1.0), fc=(1.0, 1.0, 1.0))
+            bbox = {
+                'boxstyle': 'round',
+                'ec': (1.0, 1.0, 1.0),
+                'fc': (1.0, 1.0, 1.0)
+            }
 
             delc_ax.text(
                 x, y,

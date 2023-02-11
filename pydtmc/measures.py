@@ -189,7 +189,7 @@ def mc_expected_transitions(p: _tarray, rdl: _trdl, steps: int, initial_distribu
         r, d, l = rdl  # noqa: E741
 
         q = _np.array(_np.diag(d))
-        q_indices = (q == 1.0)
+        q_indices = q == 1.0
 
         gs = _np.zeros(_np.shape(q), dtype=float)
         gs[q_indices] = steps
