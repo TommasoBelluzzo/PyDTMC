@@ -137,7 +137,7 @@ def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
     if _np.any(expected == 0.0):  # pragma: no cover
         raise ValueError('The internally computed table of expected frequencies contains null elements.')
 
-    dof = expected.size - sum(expected.shape) + d - 1
+    dof = expected.size - sum(expected.shape) + 1
 
     if dof == 0:  # pragma: no cover
         chi2, p_value = 0.0, 1.0
