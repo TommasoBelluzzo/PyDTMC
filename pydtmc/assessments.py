@@ -99,23 +99,6 @@ def assess_first_order(possible_states: _tlist_str, sequence: _tsequence, signif
         try:
             ct_chi2, _ = _chi2_contingency(ct)
         except Exception:
-            print('EXCEPTION')
-            print('observed', ct)
-
-            d = ct.ndim
-            d_range = list(range(d))
-
-            marginals = []
-
-            for k in d_range:
-                marginal = _np.apply_over_axes(_np.sum, ct, [j for j in d_range if j != k])
-                marginals.append(marginal)
-
-            print('marginals', marginals)
-
-            expected = _np.prod(marginals) / (_np.sum(ct) ** (d - 1))
-            print('expected', expected)
-
             ct_chi2 = float('nan')
 
         if _mt.isnan(ct_chi2):
