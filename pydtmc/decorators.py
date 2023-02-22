@@ -94,7 +94,7 @@ class object_mark:
     def __init__(self, aliases=None, instance_generator=False, random_output=False):
 
         if aliases is None and not instance_generator and not random_output:
-            raise AttributeError('Object mark must have at least one argument value different than the default one.')
+            raise AttributeError('Object mark decorator must have at least one argument value different than the default one.')
 
         self.mark_applied = False
         self.aliases = aliases
@@ -166,10 +166,10 @@ def aliased(aliased_class):
             raise AttributeError('Aliases must be unique and cannot be shared among different class members.')
 
         if any(not _re.search(r'^[a-z][\da-z]*(?:_[\da-z]+)*$', a) for a in aliases_flat):
-            raise ValueError('Aliases cannot start with an underscore character and must be compliant with PEP8 naming conventions.')
+            raise AttributeError('Aliases cannot start with an underscore character and must be compliant with PEP8 naming conventions.')
 
         if any(a in member_names for a in aliases_flat):
-            raise ValueError('Aliases cannot be equal to existing class members.')
+            raise AttributeError('Aliases cannot be equal to existing class members.')
 
         for member, member_aliases in aliases.items():
 

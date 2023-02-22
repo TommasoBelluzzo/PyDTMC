@@ -759,7 +759,7 @@ class MarkovChain(_Model):
         A property representing the transition matrix of the Markov chain.
         """
 
-        return self.__p
+        return _np.copy(self.__p)
 
     @_cached_property
     def period(self) -> int:

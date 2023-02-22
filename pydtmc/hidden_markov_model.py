@@ -208,7 +208,7 @@ class HiddenMarkovModel(_Model):
         A property representing the emission matrix of the hidden Markov model.
         """
 
-        return self.__e
+        return _np.copy(self.__e)
 
     @_cached_property
     def is_ergodic(self) -> bool:
@@ -258,7 +258,7 @@ class HiddenMarkovModel(_Model):
         A property representing the transition matrix of the hidden Markov model.
         """
 
-        return self.__p
+        return _np.copy(self.__p)
 
     @property
     def size(self) -> _tpair_int:
@@ -743,7 +743,7 @@ class HiddenMarkovModel(_Model):
           - **element_to** *(string)*
           - **probability** *(float or int)*
 
-        :param file_path: the location of the file that defines the Markov chain.
+        :param file_path: the location of the file that defines the hidden Markov model.
         :raises FileNotFoundError: if the file does not exist.
         :raises OSError: if the file cannot be read or is empty.
         :raises ValidationError: if any input argument is not compliant.

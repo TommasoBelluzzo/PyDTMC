@@ -34,7 +34,7 @@ __all__ = [
     'validate_time_points',
     'validate_transition_function',
     'validate_transition_matrix',
-    'validate_vector',
+    'validate_vector'
 ]
 
 
@@ -88,7 +88,7 @@ from .utilities import (
     extract_numeric as _extract_numeric,
     get_file_extension as _get_file_extension,
     get_full_name as _get_full_name,
-    is_bool as _is_bool,
+    is_boolean as _is_boolean,
     is_dictionary as _is_dictionary,
     is_float as _is_float,
     is_graph as _is_graph,
@@ -106,38 +106,38 @@ from .utilities import (
 
 def _validate_limits(value: _tscalar, value_type: str, lower_limit: _olimit_scalar, upper_limit: _olimit_scalar):
 
-    def _get_limit_text(gly_value_type, glt_limit_value):
+    def _get_limit_text(glt_value_type, glt_limit_value):
 
-        text = f'{glt_limit_value:d}' if gly_value_type == 'integer' else f'{glt_limit_value:f}'
+        text = f'{glt_limit_value:d}' if glt_value_type == 'integer' else f'{glt_limit_value:f}'
 
         return text
 
     if lower_limit is not None:
 
-        lower_limit_value = lower_limit[0]
-        lower_limit_included = lower_limit[1]
+        lower_limit_value, lower_limit_included = lower_limit
 
-        if lower_limit_included and value <= lower_limit_value:
-            raise ValueError(f'The "@arg@" parameter must be greater than {_get_limit_text(value_type, lower_limit_value)}.')
-
-        if not lower_limit_included and value < lower_limit_value:
-            raise ValueError(f'The "@arg@" parameter must be greater than or equal to {_get_limit_text(value_type, lower_limit_value)}.')
+        if lower_limit_included:
+            if value <= lower_limit_value:
+                raise ValueError(f'The "@arg@" parameter must be greater than {_get_limit_text(value_type, lower_limit_value)}.')
+        else:
+            if value < lower_limit_value:
+                raise ValueError(f'The "@arg@" parameter must be greater than or equal to {_get_limit_text(value_type, lower_limit_value)}.')
 
     if upper_limit is not None:
 
-        upper_limit_value = upper_limit[0]
-        upper_limit_included = upper_limit[1]
+        upper_limit_value, upper_limit_included = upper_limit
 
-        if upper_limit_included and value >= upper_limit_value:
-            raise ValueError(f'The "@arg@" parameter must be less than {_get_limit_text(value_type, upper_limit_value)}.')
-
-        if not upper_limit_included and value > upper_limit_value:
-            raise ValueError(f'The "@arg@" parameter must be less than or equal to {_get_limit_text(value_type, upper_limit_value)}.')
+        if upper_limit_included:
+            if value >= upper_limit_value:
+                raise ValueError(f'The "@arg@" parameter must be less than {_get_limit_text(value_type, upper_limit_value)}.')
+        else:
+            if value > upper_limit_value:
+                raise ValueError(f'The "@arg@" parameter must be less than or equal to {_get_limit_text(value_type, upper_limit_value)}.')
 
 
 def validate_boolean(value: _tany) -> bool:
 
-    if not _is_bool(value):
+    if not _is_boolean(value):
         raise TypeError('The "@arg@" parameter must be a boolean value.')
 
     return value
@@ -311,6 +311,7 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
         file_empty = False
 
         try:
+
             with open(file_path, mode='r') as file:
                 file.seek(0)
 
@@ -323,9 +324,7 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
         if file_empty:
             raise ValueError('The "@arg@" parameter defines the path to an empty file.')
 
-    value = (file_path, file_extension)
-
-    return value
+    return file_path, file_extension
 
 
 def validate_float(value: _tany, lower_limit: _olimit_float = None, upper_limit: _olimit_float = None) -> float:
@@ -1066,7 +1065,7 @@ def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
         raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
 
     if size is not None and value.shape[0] != size:
-        raise ValueError(f'The "@arg@" parameter must have a size greater than or equal to {size:d}.')
+        raise ValueError(f'The "@arg@" parameter must have a size equal to {size:d}.')
 
     if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for _, x in _np.ndenumerate(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')

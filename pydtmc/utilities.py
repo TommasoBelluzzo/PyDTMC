@@ -15,7 +15,7 @@ __all__ = [
     'get_numpy_random_distributions',
     'extract_numeric',
     'is_array',
-    'is_bool',
+    'is_boolean',
     'is_dictionary',
     'is_float',
     'is_graph',
@@ -318,7 +318,7 @@ def is_array(value: _tany) -> bool:
     return isinstance(value, _np.ndarray)
 
 
-def is_bool(value: _tany) -> bool:
+def is_boolean(value: _tany) -> bool:
 
     return isinstance(value, bool)
 
