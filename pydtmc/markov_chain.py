@@ -391,7 +391,7 @@ class MarkovChain(_Model):
         a = self.adjacency_matrix
         i = _np.eye(self.__size, dtype=int)
 
-        am = (i + a)**(self.__size - 1)
+        am = _npl.matrix_power(i + a, self.__size - 1)
         am = (am > 0).astype(int)
 
         return am
@@ -665,7 +665,7 @@ class MarkovChain(_Model):
         else:
             k = self.__size**self.__size - (2 * self.__size) + 2
 
-        result = _np.all(self.__p**k > 0.0)
+        result = _np.all(_npl.matrix_power(self.__p, k) > 0.0)
 
         return result
 
