@@ -543,8 +543,11 @@ class MarkovChain(_Model):
         if not self.is_ergodic:
             it = None
         else:
+
             ev = self.__eigenvalues_sorted[::-1]
-            it = _np.append(_np.inf, -1.0 / _np.log(ev[1:]))
+
+            with _np.errstate(divide='ignore'):
+                it = _np.append(_np.inf, -1.0 / _np.log(ev[1:]))
 
         return it
 
