@@ -92,7 +92,7 @@ templates_path = ['_templates']
 pygments_style = 'sphinx'
 nitpick_ignore = []
 
-linkcheck_ignore = [r'hidden_markov_model\.html', r'markov_chain\.html', r'10\.1002/nla\.1967']
+linkcheck_ignore = [r'hidden_markov_model\.html', r'markov_chain\.html', r'10\.1002\/nla\.1967']
 
 # InterSphinx
 

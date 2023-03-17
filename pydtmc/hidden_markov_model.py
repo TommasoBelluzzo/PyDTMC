@@ -120,7 +120,7 @@ from .validation import (
     validate_sequence as _validate_sequence,
     validate_sequences as _validate_sequences,
     validate_status as _validate_status,
-    validate_transition_matrix as _validate_transition_matrix,
+    validate_transition_matrix as _validate_transition_matrix
 )
 
 
