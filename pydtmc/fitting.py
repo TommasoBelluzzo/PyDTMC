@@ -77,7 +77,9 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
             return None
 
         log_prob, _, backward, forward, s = decoding
-        lb, lf, lp, le = _np.log(backward), _np.log(forward), _np.log(fwb_p_guess), _np.log(fwb_e_guess)
+
+        with _np.errstate(divide='ignore'):
+            lb, lf, lp, le = _np.log(backward), _np.log(forward), _np.log(fwb_p_guess), _np.log(fwb_e_guess)
 
         z = len(fbw_symbols)
         symbols_all = [-1] + fbw_symbols
