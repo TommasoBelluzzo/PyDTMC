@@ -614,7 +614,7 @@ class HiddenMarkovModel(_Model):
         """
         The method fits a hidden Markov model from an initial guess and one or more observed sequences of symbols.
 
-        :param fitting_type:.
+        :param fitting_type:
          - **baum-welch** for the Baum-Welch fitting;
          - **map** for the maximum a posteriori fitting;
          - **mle** or **viterbi** for the maximum likelihood fitting.
