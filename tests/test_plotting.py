@@ -12,7 +12,11 @@ import random as _rd
 # Libraries
 
 import matplotlib as _mpl
+_mpl.use('Agg')
+
 import matplotlib.pyplot as _mplp
+_mplp.interactive(False)
+
 import pytest as _pt
 
 # Internal
@@ -27,9 +31,6 @@ from pydtmc import (
     plot_sequence as _plot_sequence,
     plot_trellis as _plot_trellis
 )
-
-_mpl.use('TkAgg')
-_mplp.interactive(False)
 
 
 #############

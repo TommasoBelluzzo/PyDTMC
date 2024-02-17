@@ -21,8 +21,8 @@ import setuptools as _st
 # PYTHON CHECK #
 ################
 
-if _sys.version_info < (3, 6):
-    _sys.exit('Python 3.6 or greater is required.')
+if _sys.version_info < (3, 8):
+    _sys.exit('Python 3.8 or greater is required.')
 
 #################
 # DYNAMIC SETUP #
