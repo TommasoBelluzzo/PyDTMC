@@ -81,10 +81,11 @@ jobs:
         PATTERN=$(grep -Poh "$VERSION_REGEX" "$VERSION_FILE")
         sed -i "s/$PATTERN/__version__ = '$VERSION'/g" "$VERSION_FILE"
         grep -P "$VERSION_REGEX" "$VERSION_FILE"
-        echo "::set-output name=target::$TARGET"
-        echo "::set-output name=pypi::$PYPI"
-        echo "::set-output name=conda::$CONDA"
-        echo "::set-output name=version::$VERSION"
+        run: echo "::set-output name={name}::{value}"
+        echo "target=$TARGET" >> $GITHUB_OUTPUT
+        echo "pypi=$PYPI" >> $GITHUB_OUTPUT
+        echo "conda=$CONDA" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
     - name: Cache
       id: pypi_cache
       env:

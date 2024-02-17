@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+
 __all__ = [
     # Base Types
     'tany',
@@ -157,11 +159,11 @@ tstack = _tp.List[_ins.FrameInfo]
 ostack = _tp.Optional[tstack]
 
 # noinspection PyTypeHints
-thmm = _tp.TypeVar('HiddenMarkovModel')
+thmm = _tp.ForwardRef('HiddenMarkovModel')
 ohmm = _tp.Optional[thmm]
 
 # noinspection PyTypeHints
-tmc = _tp.TypeVar('MarkovChain')
+tmc = _tp.ForwardRef('MarkovChain')
 omc = _tp.Optional[tmc]
 
 tmodel = _tp.Union[thmm, tmc]

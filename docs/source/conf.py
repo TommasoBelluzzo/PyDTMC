@@ -321,16 +321,6 @@ class _SphinxPostTransformProperties(_sppt.SphinxPostTransform):
 # FUNCTIONS #
 #############
 
-# noinspection PyUnusedLocal
-def _process_docstring(app, what, name, obj, options, lines):  # pylint: disable=W0613
-
-    for index, line in enumerate(lines):
-        if 'TypeVar' in line:
-            lines[index] = _re.sub(r':py:class:`~typing\.TypeVar`\\\(``([A-Za-z]+)``\)', r':py:class:`~pydtmc.\1`', line)
-
-    return lines
-
-
 def _process_intersphinx_aliases(app):
 
     inventories = _spei.InventoryAdapter(app.builder.env)
@@ -366,4 +356,3 @@ def setup(app):
     app.add_post_transform(_SphinxPostTransformLists)
 
     app.connect('builder-inited', _process_intersphinx_aliases)
-    app.connect('autodoc-process-docstring', _process_docstring)
