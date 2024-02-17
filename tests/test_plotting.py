@@ -11,7 +11,6 @@ import random as _rd
 
 # Libraries
 
-import matplotlib as _mpl
 import matplotlib.pyplot as _mplp
 import pytest as _pt
 
