@@ -106,11 +106,13 @@ jobs:
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        TWINE_NON_INTERACTIVE: true
       if: ${{ env.PYPI == 'TRUE' }}
       run: |
         python setup.py sdist bdist_wheel
+        twine check --strict dist/*
         twine upload dist/*
     - name: Conda Publishing
       env:
