@@ -11,6 +11,7 @@ import random as _rd
 
 # Libraries
 
+import matplotlib as _mpl
 import matplotlib.pyplot as _mplp
 import pytest as _pt
 
@@ -26,6 +27,9 @@ from pydtmc import (
     plot_sequence as _plot_sequence,
     plot_trellis as _plot_trellis
 )
+
+_mpl.use('TkAgg')
+_mplp.interactive(False)
 
 
 #############

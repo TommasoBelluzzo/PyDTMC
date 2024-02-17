@@ -285,9 +285,6 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
     else:
         raise TypeError('The "@arg@" parameter must be a non-empty string or a path object.')
 
-    if not _osp.isfile(file_path):
-        raise ValueError('The "@arg@" parameter defines an invalid file path.')
-
     try:
         file_extension = _get_file_extension(file_path)
     except Exception as ex:  # pragma: no cover
@@ -298,6 +295,9 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
 
     if write_permission:
 
+        if not _osp.isdir(_osp.dirname(file_path)) and _osp.isabs(file_path):
+            raise ValueError('The "@arg@" parameter defines a non-existent parent directory.')
+
         try:
 
             with open(file_path, mode='w'):
@@ -307,6 +307,9 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
             raise ValueError('The "@arg@" parameter defines the path to an inaccessible file.') from ex
 
     else:
+
+        if not _osp.isfile(file_path):
+            raise ValueError('The "@arg@" parameter defines an invalid file path.')
 
         file_empty = False
 
