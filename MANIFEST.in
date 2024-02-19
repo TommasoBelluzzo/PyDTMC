@@ -1,15 +1,28 @@
-# Include Folders
+# Inclusions
+
 graft data
 graft docs
 graft tests
 
-# Include Files
 include README.md
 include LICENSE.md
 include requirements.txt
 include setup.py
 
-# Exclude Git Files
+# Exclusions
+
+prune .git
+prune .github
+prune .idea
+prune .run
+prune dist
+prune docs/.build
+prune images
+
+global-exclude *.py[cod]
+global-exclude *.so
+global-exclude .git*
+global-exclude __pycache__
 recursive-exclude * .gitattributes
 recursive-exclude * .gitignore
 recursive-exclude * .gitkeep
