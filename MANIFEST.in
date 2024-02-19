@@ -1,28 +1,8 @@
 # Inclusions
-
-graft data
-graft docs
-graft tests
-
-include README.md
-include LICENSE.md
-include requirements.txt
-include setup.py
+graft data docs tests
+include README.md LICENSE.md requirements.txt setup.py
 
 # Exclusions
-
-prune .git
-prune .github
-prune .idea
-prune .run
-prune dist
-prune docs/.build
-prune images
-
-global-exclude *.py[cod]
-global-exclude *.so
-global-exclude .git*
-global-exclude __pycache__
-recursive-exclude * .gitattributes
-recursive-exclude * .gitignore
-recursive-exclude * .gitkeep
+global-exclude *.py[cod] *.so .git* __pycache__ *~
+prune .idea .run dist docs/build images
+exclude .readthedocs.yaml CODE_OF_CONDUCT.md CONTRIBUTING.md
