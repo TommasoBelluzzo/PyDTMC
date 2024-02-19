@@ -7,7 +7,6 @@ __pycache__/
 *.so
 
 # Distribution / packaging
-.idea/
 .Python
 build/
 develop-eggs/
@@ -69,9 +68,6 @@ instance/
 
 # Scrapy stuff:
 .scrapy
-
-# Sphinx documentation
-docs/_build/
 
 # PyBuilder
 .pybuilder/
@@ -138,3 +134,21 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# PyCharm
+*.iws
+.idea/**/aws.xml
+.idea/**/shelf
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/workspace.xml
+.idea/**/contentModel.xml
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/dbnavigator.xml
+.idea/**/dynamic.xml
+.idea/**/httpRequests/
+.idea/**/sqlDataSources.xml
+.idea/**/uiDesigner.xml
+cmake-build-*/
