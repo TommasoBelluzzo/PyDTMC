@@ -8,8 +8,8 @@ PyDTMC
 
 	markov_chain
 	hidden_markov_model
-	assessment_functions
-	plotting_functions
+	other_assessment_functions
+	other_plotting_functions
 	custom_exceptions
 	genindex
 

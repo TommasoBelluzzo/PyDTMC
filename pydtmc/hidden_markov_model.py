@@ -542,7 +542,8 @@ class HiddenMarkovModel(_Model):
     def to_matrices(self) -> _tpair_array:
 
         """
-        | The method returns a tuple of two items representing the underlying matrices of the hidden Markov model.
+        The method returns a tuple of two items representing the underlying matrices of the hidden Markov model.
+
         | The first item is the transition matrix and the second item is the emission matrix.
         """
 

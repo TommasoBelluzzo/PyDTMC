@@ -15,7 +15,7 @@ import sys as _sys
 # Libraries
 
 import docutils.nodes as _dun
-import sphinx.addnodes as _spa
+import sphinx.addnodes as _san
 import sphinx.ext.intersphinx as _spei
 import sphinx.transforms.post_transforms as _sppt
 
@@ -181,65 +181,129 @@ texinfo_documents = [(master_doc, project, project_title, author, project, 'A fu
 # CLASSES #
 ###########
 
-class _SphinxPostTransformAdjustments(_sppt.SphinxPostTransform):
+class _SphinxPostTransformDocutilsFixes(_sppt.SphinxPostTransform):
 
     """
-    A class used for applying post-transforms on lists.
+    A class used for applying Docutils fixes.
     """
 
-    default_priority = 799
+    default_priority = 0
 
     def run(self, **kwargs):
 
-        for node in self.document.findall(_dun.field_name):
+        for node in self.document.findall(_san.desc):
 
-            node_text = node.astext()
+            if not node.hasattr('objtype'):
+                continue
 
-            if node_text == 'Return type':
-                node_new = _dun.field_name(text='Return Type')
-                node.parent.replace(node, node_new)
+            objtype = node['objtype'].upper()
 
-        for node in self.document.findall(_dun.strong):
+            if objtype != 'METHOD':
+                continue
 
-            node_text = node.astext()
+            node_desc_content = node[1]
 
-            if node_text.endswith('Error'):
-                node_new = _dun.literal(text=node_text, classes=['xref', 'py', 'py-class'])
-                node.parent.replace(node, node_new)
+            if not isinstance(node_desc_content, _san.desc_content):
+                continue
+
+            node_paragraph = node_desc_content[0]
+
+            if not isinstance(node_paragraph, _dun.paragraph) or ':rtype:' not in node_paragraph.astext():
+                continue
+
+            node_paragraph_text = node_paragraph.children[0]
+
+            if not isinstance(node_paragraph_text, _dun.Text):
+                continue
+
+            node_paragraph_text_value = node_paragraph_text.astext()
+            node_paragraph_inline = node_paragraph.children[1]
+
+            if ':rtype:' in node_paragraph_text_value and isinstance(node_paragraph_inline, _dun.inline):
+
+                node_paragraph_new = _dun.paragraph('', node_paragraph_text_value.replace(':rtype:', '',).strip())
+                node_desc_content.replace(node_paragraph, node_paragraph_new)
+
+                field_name = _dun.field_name('', 'Return type')
+                field_body = _dun.field_body('', _dun.paragraph('', '', node_paragraph_inline))
+                field = _dun.field('', field_name, field_body)
+                node_desc_content.append(_dun.field_list('', field))
+
+        for node in self.document.findall(_san.pending_xref):
+
+            if not node.hasattr('reftarget'):
+                continue
+
+            ref_target = node['reftarget']
+
+            if not ref_target.startswith('typing.Union`[:py:class:`'):
+                continue
+
+            node_parent = node.parent
+            node_index = node_parent.index(node)
+
+            other_type = ref_target.replace('typing.Union`[:py:class:`', '')
+
+            if other_type.startswith('~'):
+                other_type = other_type[1:]
+                other_text = other_type.split('.')[-1]
+            else:
+                other_text = other_type
+
+            pending_xref_new = node.deepcopy()
+            pending_xref_new['reftarget'] = 'typing.Union'
+            pending_xref_new['reftype'] = 'data'
+            pending_xref_new[0]['classes'] = ['xref', 'py', 'py-data']
+            pending_xref_new[0][0] = _dun.Text('Union')
+
+            pending_xref_other = node.deepcopy()
+            pending_xref_other['reftarget'] = other_type
+            pending_xref_other['reftype'] = 'class'
+            pending_xref_other[0]['classes'] = ['xref', 'py', 'py-class']
+            pending_xref_other[0][0] = _dun.Text(other_text)
+
+            node_parent.replace(node, pending_xref_new)
+            node_parent.insert(node_index + 1, _dun.Text('  ['))
+            node_parent.insert(node_index + 2, pending_xref_other)
 
 
-class _SphinxPostTransformConstructor(_sppt.SphinxPostTransform):
+class _SphinxPostTransformConstructors(_sppt.SphinxPostTransform):
 
     """
     A class used for applying post-transforms on constructors.
     """
 
-    default_priority = 799
+    default_priority = 700
 
     def run(self, **kwargs):
 
         if not _re.search(r'(?:hidden_markov_model|markov_chain)_[A-Z_]+\.rst$', self.document['source'], flags=_re.IGNORECASE):
             return
 
-        for node in self.document.findall(_spa.desc):
+        for node in self.document.findall(_san.desc):
 
-            if not node.hasattr('objtype') or node['objtype'] != 'class':
+            if not node.hasattr('objtype'):
+                continue
+
+            objtype = node['objtype'].upper()
+
+            if objtype != 'CLASS':
                 continue
 
             node_desc_signature = node[0]
 
-            if not isinstance(node_desc_signature, _spa.desc_signature):
+            if not isinstance(node_desc_signature, _san.desc_signature):
                 continue
 
             node_desc_content = node[1]
 
-            if not isinstance(node_desc_content, _spa.desc_content):
+            if not isinstance(node_desc_content, _san.desc_content):
                 continue
 
             nodes_to_remove = []
 
             for node_child in node_desc_signature:
-                if isinstance(node_child, _spa.desc_parameterlist):
+                if isinstance(node_child, _san.desc_parameterlist):
                     nodes_to_remove.append((node_desc_signature, node_child))
 
             for node_child in node_desc_content:
@@ -250,13 +314,32 @@ class _SphinxPostTransformConstructor(_sppt.SphinxPostTransform):
                 parent.remove(child)
 
 
+class _SphinxPostTransformExceptions(_sppt.SphinxPostTransform):
+
+    """
+    A class used for applying post-transforms on exceptions.
+    """
+
+    default_priority = 700
+
+    def run(self, **kwargs):
+
+        for node in self.document.findall(_dun.strong):
+
+            node_text = node.astext()
+
+            if node_text.endswith('Error'):
+                node_new = _dun.literal(text=node_text, classes=['xref', 'py', 'py-class'])
+                node.parent.replace(node, node_new)
+
+
 class _SphinxPostTransformLists(_sppt.SphinxPostTransform):
 
     """
     A class used for applying post-transforms on lists.
     """
 
-    default_priority = 799
+    default_priority = 900
 
     def run(self, **kwargs):
 
@@ -279,23 +362,23 @@ class _SphinxPostTransformProperties(_sppt.SphinxPostTransform):
     A class used for applying post-transforms on properties.
     """
 
-    default_priority = 799
+    default_priority = 900
 
     def run(self, **kwargs):
 
-        for node in self.document.findall(_spa.desc_signature):
+        for node in self.document.findall(_san.desc_signature):
 
             parent = node.parent
 
-            if parent is None or not isinstance(parent, _spa.desc):
+            if parent is None or not isinstance(parent, _san.desc):
                 continue
 
             if not parent.hasattr('objtype'):
                 continue
 
-            parent_objtype = parent['objtype']
-            parent_is_method = parent_objtype == 'method'
-            parent_is_property = parent_objtype == 'property'
+            parent_objtype = parent['objtype'].upper()
+            parent_is_method = parent_objtype == 'METHOD'
+            parent_is_property = parent_objtype == 'PROPERTY'
 
             if not parent_is_method and not parent_is_property:
                 continue
@@ -304,24 +387,43 @@ class _SphinxPostTransformProperties(_sppt.SphinxPostTransform):
 
             for node_child in node:
 
-                if isinstance(node_child, _spa.desc_annotation):
+                if isinstance(node_child, _san.desc_annotation):
 
-                    node_child_text = node_child.astext().strip()
+                    node_child_text = node_child.astext().strip().upper()
 
-                    if parent_is_method and node_child_text == 'static':
+                    if parent_is_method and node_child_text == 'STATIC':
                         nodes_to_remove.append(node_child)
-                    elif parent_is_property and (node_child_text.startswith(':') or node_child_text == 'property'):
+                    elif parent_is_property and node_child_text == 'PROPERTY':
                         nodes_to_remove.append(node_child)
 
             for node_child in nodes_to_remove:
                 node.remove(node_child)
 
 
+class _SphinxPostTransformReturnTypes(_sppt.SphinxPostTransform):
+
+    """
+    A class used for applying post-transforms on return types.
+    """
+
+    default_priority = 700
+
+    def run(self, **kwargs):
+
+        for node in self.document.findall(_dun.field_name):
+
+            node_text = node.astext().upper()
+
+            if node_text == 'RETURN TYPE':
+                node_new = _dun.field_name(text='Return Type')
+                node.parent.replace(node, node_new)
+
+
 #############
 # FUNCTIONS #
 #############
 
-def _process_intersphinx_aliases(app):
+def _hook_builder_inited(app):
 
     inventories = _spei.InventoryAdapter(app.builder.env)
 
@@ -350,9 +452,13 @@ def setup(app):
 
     app.add_config_value('intersphinx_aliases', {}, 'env')
 
-    app.add_post_transform(_SphinxPostTransformAdjustments)
-    app.add_post_transform(_SphinxPostTransformConstructor)
-    app.add_post_transform(_SphinxPostTransformProperties)
-    app.add_post_transform(_SphinxPostTransformLists)
+    app.add_post_transform(_SphinxPostTransformDocutilsFixes)
 
-    app.connect('builder-inited', _process_intersphinx_aliases)
+    app.add_post_transform(_SphinxPostTransformConstructors)
+    app.add_post_transform(_SphinxPostTransformExceptions)
+    app.add_post_transform(_SphinxPostTransformReturnTypes)
+
+    app.add_post_transform(_SphinxPostTransformLists)
+    app.add_post_transform(_SphinxPostTransformProperties)
+
+    app.connect('builder-inited', _hook_builder_inited)

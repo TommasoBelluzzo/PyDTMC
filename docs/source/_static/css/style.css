@@ -42,8 +42,11 @@
     margin-bottom: 24px !important;
 }
 
-li.toctree-l2:has(a.reference.internal[href='#pydtmc.HiddenMarkovModel']),
-li.toctree-l2:has(a.reference.internal[href='#pydtmc.MarkovChain']) {
+.wy-menu a[href='hidden_markov_model.html#pydtmc.HiddenMarkovModel'],
+.wy-menu a[href='markov_chain.html#pydtmc.MarkovChain'],
+.wy-menu a[href='#pydtmc.HiddenMarkovModel'],
+.wy-menu a[href='#pydtmc.MarkovChain']
+{
     display: none;
 }
 
