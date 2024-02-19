@@ -4,5 +4,5 @@ include README.md LICENSE.md requirements.txt setup.py
 
 # Exclusions
 global-exclude *.dll *.py[cdo] *.so .env .git* __pycache__ *~
-prune .git .github .idea .run dist docs/build images
+prune .git .github .idea dist docs/build images
 exclude .readthedocs.yaml CODE_OF_CONDUCT.md CONTRIBUTING.md
