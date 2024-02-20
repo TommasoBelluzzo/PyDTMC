@@ -27,7 +27,7 @@ from pydtmc import (
 # TESTS #
 #########
 
-def test_attributes(p, is_absorbing, is_canonical, is_doubly_stochastic, is_ergodic, is_reversible, is_symmetric):
+def test_attributes(p, is_absorbing, is_canonical, is_doubly_stochastic, is_ergodic, is_reversible, is_stochastically_monotone, is_symmetric):
 
     mc = _MarkovChain(p)
 
@@ -53,6 +53,11 @@ def test_attributes(p, is_absorbing, is_canonical, is_doubly_stochastic, is_ergo
 
     actual = mc.is_reversible
     expected = is_reversible
+
+    assert actual == expected
+
+    actual = mc.is_stochastically_monotone
+    expected = is_stochastically_monotone
 
     assert actual == expected
 

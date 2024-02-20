@@ -257,6 +257,7 @@ class MarkovChain(_Model):
         lines.append(f'  > APERIODIC:   {("YES" if self.is_aperiodic else "NO (" + str(self.period) + ")")}')
         lines.append(f'  > IRREDUCIBLE: {("YES" if self.is_irreducible else "NO")}')
         lines.append(f' ABSORBING:      {("YES" if self.is_absorbing else "NO")}')
+        lines.append(f' MONOTONE:       {("YES" if self.is_stochastically_monotone else "NO")}')
         lines.append(f' REGULAR:        {("YES" if self.is_regular else "NO")}')
         lines.append(f' REVERSIBLE:     {("YES" if self.is_reversible else "NO")}')
         lines.append(f' SYMMETRIC:      {("YES" if self.is_symmetric else "NO")}')
@@ -687,6 +688,31 @@ class MarkovChain(_Model):
         x = pi[:, _np.newaxis] * self.__p
 
         result = _np.allclose(x, _np.transpose(x))
+
+        return result
+
+    @_cached_property
+    @_object_mark(aliases=['is_monotone'])
+    def is_stochastically_monotone(self) -> bool:
+
+        """
+        A property indicating whether the Markov chain is stochastically monotone.
+        """
+
+        result = True
+
+        for m in range(self.__size):
+
+            sm = _np.sum(self.__p[:, m:], axis=1)
+
+            for k, l in zip(range(self.__size - 1), range(1, self.__size)):
+
+                sk = sm[k]
+                sl = sm[l]
+
+                if sl < sk:
+                    result = False
+                    break
 
         return result
 

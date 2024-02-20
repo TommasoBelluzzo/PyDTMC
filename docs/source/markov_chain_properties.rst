@@ -26,6 +26,7 @@ Properties
 		is_irreducible,
 		is_regular,
 		is_reversible,
+		is_stochastically_monotone,
 		is_symmetric,
 		kemeny_constant,
 		lumping_partitions,
