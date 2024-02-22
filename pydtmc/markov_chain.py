@@ -174,6 +174,7 @@ from .validation import (
     validate_labels_current as _validate_labels_current,
     validate_labels_input as _validate_labels_input,
     validate_mask as _validate_mask,
+    validate_markov_chain as _validate_markov_chain,
     validate_matrix as _validate_matrix,
     validate_partitions as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
@@ -701,7 +702,7 @@ class MarkovChain(_Model):
 
         result = True
 
-        for m in range(self.__size):
+        for m in range(1, self.__size):
 
             sm = _np.sum(self.__p[:, m:], axis=1)
 
@@ -1572,6 +1573,36 @@ class MarkovChain(_Model):
             self.__cache['mrt'] = _mean_recurrence_times(self)
 
         return self.__cache['mrt']
+
+    @_object_mark(instance_generator=True)
+    def merge_with(self, other: _tmc, gamma: float) -> _tmc:
+
+        """
+        The method returns a Markov chain whose transition matrix is defined below.
+
+        | :math:`p_{new} = (1 - \gamma) p_{current} + \gamma p_{other}`
+
+        :param other: the other Markov chain to be merged.
+        :param gamma: the merger blending factor.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            other = _validate_markov_chain(other)
+            gamma = _validate_float(gamma, lower_limit=(0.0, True), upper_limit=(1.0, True))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        p_current = self.__p
+        p_other = other.p
+
+        p = ((1.0 - gamma) * p_current) + (gamma * p_other)
+        states = _create_labels(self.__size, 'M')
+        mc = MarkovChain(p, states)
+
+        return mc
 
     @_object_mark(aliases=['mt'])
     def mixing_time(self, initial_distribution: _onumeric = None, jump: int = 1, cutoff_type: str = 'natural') -> _oint:

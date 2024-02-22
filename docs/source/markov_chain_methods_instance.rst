@@ -29,6 +29,7 @@ Instance Methods
 		mean_first_passage_times_to,
 		mean_number_visits,
 		mean_recurrence_times,
+		merge_with,
 		mixing_time,
 		next,
 		predict,

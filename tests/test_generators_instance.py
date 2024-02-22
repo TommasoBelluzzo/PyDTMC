@@ -89,6 +89,19 @@ def test_lump(p, partitions, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_merge_with(p, p_other, gamma, value):
+
+    mc_current = _MarkovChain(p)
+    mc_other = _MarkovChain(p_other)
+    mc = mc_current.merge_with(mc_other, gamma)
+
+    actual = mc.p
+    print(actual)
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_nth_order(p, order, value):
 
     mc = _MarkovChain(p)
