@@ -1473,42 +1473,62 @@
   "validate_markov_chain_data": [
     {
       "value": "MarkovChain([[0.33, 0.67], [0.61, 0.39]])",
+      "size": null,
+      "is_valid": true
+    },
+    {
+      "value": "MarkovChain([[0.5, 0.1, 0.4], [0.3, 0.3, 0.4], [0.3, 0.3, 0.4]])",
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": "MarkovChain([[0.2, 0.2, 0.6], [0.1, 0.1, 0.8], [0.3, 0.0, 0.7]])",
+      "size": 3,
       "is_valid": true
     },
     {
       "value": "range(14)",
+      "size": null,
       "is_valid": false
     },
     {
       "value": "TypeError()",
+      "size": null,
       "is_valid": false
     },
     {
       "value": "nx.DiGraph()",
+      "size": null,
       "is_valid": false
     },
     {
       "value": null,
+      "size": null,
       "is_valid": false
     },
     {
       "value": 22.3477,
+      "size": null,
       "is_valid": false
     },
     {
       "value": 6,
+      "size": null,
       "is_valid": false
     },
     {
       "value": false,
+      "size": null,
       "is_valid": false
     },
     {
       "value": [],
+      "size": null,
       "is_valid": false
     },
     {
       "value": {},
+      "size": null,
       "is_valid": false
     }
   ],

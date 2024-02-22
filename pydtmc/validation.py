@@ -613,10 +613,13 @@ def validate_labels_input(value: _tany, size: _oint = None) -> _tlist_str:
     return value
 
 
-def validate_markov_chain(value: _tany) -> _tmc:
+def validate_markov_chain(value: _tany, size: _oint = None) -> _tmc:
 
     if value is None or (f'{value.__module__}.{value.__class__.__name__}' != 'pydtmc.markov_chain.MarkovChain'):
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
+
+    if size is not None and value.size != size:
+        raise ValueError(f'The "@arg@" parameter must be a Markov chain with size equal to {size:d}.')
 
     return value
 

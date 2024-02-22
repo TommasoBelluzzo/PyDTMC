@@ -1589,7 +1589,7 @@ class MarkovChain(_Model):
 
         try:
 
-            other = _validate_markov_chain(other)
+            other = _validate_markov_chain(other, self.__size)
             gamma = _validate_float(gamma, lower_limit=(0.0, True), upper_limit=(1.0, True))
 
         except Exception as ex:  # pragma: no cover
@@ -2107,7 +2107,7 @@ class MarkovChain(_Model):
             sigma = _validate_float(sigma, lower_limit=(0.0, True))
             rho = _validate_float(rho, lower_limit=(-1.0, False), upper_limit=(1.0, False))
 
-            if states is not None:
+            if states is not None:  # pragma: no cover
                 states = _validate_labels_input(states, size)
 
             if approximation_type == 'tauchen':
@@ -2148,7 +2148,7 @@ class MarkovChain(_Model):
             p = _validate_vector(p, 'creation', False)
             q = _validate_vector(q, 'annihilation', False)
 
-            if states is not None:
+            if states is not None:  # pragma: no cover
                 states = _validate_labels_input(states, {p.shape[0], q.shape[0]}.pop())
 
         except Exception as ex:  # pragma: no cover
@@ -2193,7 +2193,7 @@ class MarkovChain(_Model):
             diagonal_bias_factor = None if diagonal_bias_factor is None else _validate_float(diagonal_bias_factor, lower_limit=(0.0, True))
             shift_concentration = _validate_boolean(shift_concentration)
 
-            if states is not None:
+            if states is not None:  # pragma: no cover
                 states = _validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
@@ -2520,7 +2520,7 @@ class MarkovChain(_Model):
             size = _validate_integer(size, lower_limit=(3, False))
             w = _validate_float(w, lower_limit=(0.0, True), upper_limit=(1.0, True))
 
-            if states is not None:
+            if states is not None:  # pragma: no cover
                 states = _validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
@@ -2585,7 +2585,7 @@ class MarkovChain(_Model):
             rng = _create_rng(seed)
             size = _validate_integer(size, lower_limit=(2, False))
 
-            if states is not None:
+            if states is not None:  # pragma: no cover
                 states = _validate_labels_input(states, size)
 
             zeros = _validate_integer(zeros, lower_limit=(0, False))
@@ -2672,7 +2672,7 @@ class MarkovChain(_Model):
             n = _validate_integer(n, lower_limit=(1, False))
             model = _validate_enumerator(model, ['bernoulli-laplace', 'ehrenfest'])
 
-            if states is not None:
+            if states is not None:  # pragma: no cover
                 states = _validate_labels_input(states, (2 * n) + 1)
 
         except Exception as ex:  # pragma: no cover

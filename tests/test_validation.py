@@ -494,7 +494,7 @@ def test_validate_labels_input(value, size, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_markov_chain(value, is_valid):
+def test_validate_markov_chain(value, size, is_valid):
 
     if isinstance(value, str):
         value, skip = _evaluate(value)
@@ -506,7 +506,7 @@ def test_validate_markov_chain(value, is_valid):
     else:
 
         try:
-            result = _validate_markov_chain(value)
+            result = _validate_markov_chain(value, size)
             result_is_valid = True
         except Exception:
             result = None
