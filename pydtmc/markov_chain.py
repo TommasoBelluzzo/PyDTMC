@@ -117,6 +117,7 @@ from .generators import (
     mc_gamblers_ruin as _gamblers_ruin,
     mc_lazy as _lazy,
     mc_lump as _lump,
+    mc_population_genetics_model as _population_genetics_model,
     mc_random as _random,
     mc_sub as _sub,
     mc_urn_model as _urn_model
@@ -2560,6 +2561,50 @@ class MarkovChain(_Model):
 
         return mc
 
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def population_genetics_model(model: str, n: int, s: float = 0.0, u: float = 1.0e-9, v: float = 1.0e-9, states: _olist_str = None) -> _tmc:
+
+        """
+        The method generates a Markov chain based on the specified population genetics model.
+
+        :param model:
+         - **moran** for the Moran model;
+         - **wright-fisher** for the Wright-Fisher model.
+        :param n: the number of individuals.
+        :param s: the selection intensity.
+        :param u: the backward mutation rate.
+        :param v: the forward mutation rate.
+        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            model = _validate_enumerator(model, ['moran', 'wright-fisher'])
+            n = _validate_integer(n, lower_limit=(2, False), upper_limit=(500, False))
+            s = _validate_float(s, lower_limit=(-1.0, False))
+            u = _validate_float(u, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            v = _validate_float(v, lower_limit=(0.0, False), upper_limit=(1.0, False))
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, n + 1)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if model == 'wright-fisher' and (4.0 * n * max(u, v)) > 1.0:
+            raise _ValidationError('The highest mutation rate specified is too high for the Wright-Fisher model.')
+
+        p, states_out, _ = _population_genetics_model(model, n, s, u, v)
+
+        if states is None:
+            states = states_out
+
+        mc = MarkovChain(p, states)
+
+        return mc
+
     # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True, random_output=True)
@@ -2654,23 +2699,23 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def urn_model(n: int, model: str, states: _olist_str = None) -> _tmc:
+    def urn_model(model: str, n: int, states: _olist_str = None) -> _tmc:
 
         """
         The method generates a Markov chain of size **2N + 1** based on the specified urn model.
 
-        :param n: the number of elements in each urn.
         :param model:
          - **bernoulli-laplace** for the Bernoulli-Laplace urn model;
          - **ehrenfest** for the Ehrenfest urn model.
+        :param n: the number of elements in each urn.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            n = _validate_integer(n, lower_limit=(1, False))
             model = _validate_enumerator(model, ['bernoulli-laplace', 'ehrenfest'])
+            n = _validate_integer(n, lower_limit=(1, False))
 
             if states is not None:  # pragma: no cover
                 states = _validate_labels_input(states, (2 * n) + 1)
@@ -2678,7 +2723,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, states_out, _ = _urn_model(n, model)
+        p, states_out, _ = _urn_model(model, n)
 
         if states is None:
             states = states_out

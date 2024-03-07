@@ -86,6 +86,18 @@ def test_identity(size, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_population_genetics_model(model, n, s, u, v, value):
+
+    mc = _MarkovChain.population_genetics_model(model, n, s, u, v)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    print(actual)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_random(seed, size, zeros, mask, value):
 
     mc = _MarkovChain.random(size, zeros=zeros, mask=mask, seed=seed)
@@ -122,9 +134,9 @@ def test_random_distribution(seed, size, f, args, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-def test_urn_model(n, model, value):
+def test_urn_model(model, n, value):
 
-    mc = _MarkovChain.urn_model(n, model)
+    mc = _MarkovChain.urn_model(model, n)
 
     actual = mc.p
     expected = _np.array(value)

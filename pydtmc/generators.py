@@ -15,6 +15,7 @@ __all__ = [
     'mc_gamblers_ruin',
     'mc_lazy',
     'mc_lump',
+    'mc_population_genetics_model',
     'mc_random',
     'mc_sub',
     'mc_urn_model'
@@ -883,6 +884,52 @@ def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen
     return p_lump, state_names, None
 
 
+def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _tmc_generation:
+
+    size = n + 1
+
+    p = _np.zeros((size, size), dtype=float)
+    p[0, 0] = 1.0
+    p[n, n] = 1.0
+
+    ui = 1.0 - u
+    vi = 1.0 - v
+
+    if model == 'moran':
+
+        r = 1.0 - s
+
+        for i in range(1, n):
+            nmi = n - i
+            ri = r * i
+
+            pm1 = (i / n) * (((ri * v) + (nmi * vi)) / (ri + nmi))
+            pp1 = (nmi / n) * (((ri * ui) + (nmi * v)) / (ri + nmi))
+
+            p[i, i - 1] = pm1
+            p[i, i] = 1.0 - pm1 - pp1
+            p[i, i + 1] = pp1
+
+    else:
+
+        q = _np.arange(0, size)
+
+        for i in range(1, n):
+
+            k = i / n
+
+            pm = (k * ui) + ((1.0 - k) * v)
+            ps = min((pm * (1.0 + s)) / ((pm * (1.0 + s)) - pm + 1.0), 1.0)
+
+            p[i, :] = _np.exp(_sps.binom.logpmf(q, n, ps))
+
+    p /= _np.sum(p, axis=1, keepdims=True)
+
+    state_names = [f'{i:d}' for i in range(1, size + 1)]
+
+    return p, state_names, None
+
+
 # noinspection DuplicatedCode
 def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generation:
 
@@ -968,7 +1015,7 @@ def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states
     return p, state_names, None
 
 
-def mc_urn_model(n: int, model: str) -> _tmc_generation:
+def mc_urn_model(model: str, n: int) -> _tmc_generation:
 
     dn = n * 2
     size = dn + 1

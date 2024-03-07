@@ -17,6 +17,7 @@ Static Methods
 		from_matrix,
 		gamblers_ruin,
 		identity,
+		population_genetics_model,
 		random,
 		random_distribution,
 		urn_model
