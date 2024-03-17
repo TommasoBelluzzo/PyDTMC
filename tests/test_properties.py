@@ -67,7 +67,7 @@ def test_attributes(p, is_absorbing, is_canonical, is_doubly_stochastic, is_ergo
     assert actual == expected
 
 
-def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communication_matrix):
+def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communication_matrix, incidence_matrix):
 
     mc = _MarkovChain(p)
 
@@ -99,6 +99,11 @@ def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communicatio
 
     assert _np.array_equal(actual, expected)
 
+    actual = mc.incidence_matrix
+    expected = _np.array(incidence_matrix)
+
+    assert _np.array_equal(actual, expected)
+
 
 def test_cached(p):
 
@@ -120,6 +125,16 @@ def test_cached(p):
         time2 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=lcl), 10)
 
         assert time1 > time2
+
+
+def test_connectivity(p, density):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.density
+    expected = density
+
+    assert _np.isclose(actual, expected)
 
 
 # noinspection DuplicatedCode

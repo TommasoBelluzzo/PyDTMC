@@ -3,6 +3,7 @@
     "id": "#1",
     "p": [[0.0, 1.0], [1.0, 0.0]],
     "determinant": -1.0,
+    "density": 1.0,
     "rank": 2,
     "is_absorbing": false,
     "is_canonical": true,
@@ -25,12 +26,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#2",
     "p": [[0.4, 0.6], [1.0, 0.0]],
     "determinant": -0.6,
+    "density": 1.0,
     "rank": 2,
     "is_absorbing": false,
     "is_canonical": true,
@@ -53,12 +56,14 @@
     "relaxation_rate": 2.5,
     "spectral_gap": 0.4,
     "implied_timescales": ["Infinity", 1.95761519],
+    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#3",
     "p": [[0.05, 0.95], [0.8, 0.2]],
     "determinant": -0.75,
+    "density": 1.0,
     "rank": 2,
     "is_absorbing": false,
     "is_canonical": true,
@@ -81,12 +86,14 @@
     "relaxation_rate": 4.0,
     "spectral_gap": 0.25,
     "implied_timescales": ["Infinity", 3.47605950],
+    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#4",
     "p": [[0.5, 0.5], [0.5, 0.5]],
     "determinant": 0.0,
+    "density": 1.0,
     "rank": 1,
     "is_absorbing": false,
     "is_canonical": true,
@@ -109,12 +116,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": ["Infinity", 0.02722066],
+    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#5",
     "p": [[1.0, 0.0], [0.1, 0.9]],
     "determinant": 0.9,
+    "density": 0.5,
     "rank": 2,
     "is_absorbing": true,
     "is_canonical": false,
@@ -137,12 +146,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#6",
     "p": [[0.1, 0.9], [0.1, 0.9]],
     "determinant": 0.0,
+    "density": 1.0,
     "rank": 1,
     "is_absorbing": false,
     "is_canonical": true,
@@ -165,12 +176,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": ["Infinity", 0.0],
+    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#7",
     "p": [[0.9, 0.1], [0.9, 0.1]],
     "determinant": 0.0,
+    "density": 1.0,
     "rank": 1,
     "is_absorbing": false,
     "is_canonical": true,
@@ -193,12 +206,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": ["Infinity", 0.0],
+    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#8",
     "p": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
     "determinant": 1.0,
+    "density": 0.0,
     "rank": 3,
     "is_absorbing": true,
     "is_canonical": true,
@@ -221,12 +236,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": [[[0], [1, 2]], [[0, 1], [2]]]
   },
   {
     "id": "#9",
     "p": [[0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0]],
     "determinant": 1.0,
+    "density": 0.5,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -249,12 +266,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#10",
     "p": [[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.5, 0.5]],
     "determinant": -0.5,
+    "density": 0.5,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": false,
@@ -277,12 +296,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": [[[0, 1], [2]]]
   },
   {
     "id": "#11",
     "p": [[0.0, 0.3, 0.7], [0.1, 0.5, 0.4], [0.1, 0.2, 0.7]],
     "determinant": -0.02999999,
+    "density": 1.0,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -305,12 +326,14 @@
     "relaxation_rate": 1.42857143,
     "spectral_gap": 0.7,
     "implied_timescales": ["Infinity", 0.83058355, 0.43429448],
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#12",
     "p": [[0.0, 1.0, 0.0], [0.3, 0.0, 0.7], [0.0, 1.0, 0.0]],
     "determinant": 0.0,
+    "density": 0.66666667,
     "rank": 2,
     "is_absorbing": false,
     "is_canonical": true,
@@ -333,12 +356,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#13",
     "p": [[0.4, 0.3, 0.3], [0.2, 0.6, 0.2], [0.3, 0.3, 0.4]],
     "determinant": 0.02999999,
+    "density": 1.0,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -361,12 +386,14 @@
     "relaxation_rate": 1.42857143,
     "spectral_gap": 0.7,
     "implied_timescales": ["Infinity", 0.830584, 0.434294],
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#14",
     "p": [[0.1, 0.1, 0.8], [0.3, 0.3, 0.4], [0.25, 0.50, 0.25]],
     "determinant": 0.05,
+    "density": 1.0,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -389,12 +416,14 @@
     "relaxation_rate": 1.28800716,
     "spectral_gap": 0.77639320,
     "implied_timescales": ["Infinity", 0.66761640, 0.66761640],
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#15",
     "p": [[0.05, 0.90, 0.05], [0.5, 0.4, 0.1], [0.3, 0.2, 0.5]],
     "determinant": -0.19,
+    "density": 1.0,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -417,12 +446,14 @@
     "relaxation_rate": 1.85737662,
     "spectral_gap": 0.53839377,
     "implied_timescales": ["Infinity", 1.29358899, 1.12652175],
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#16",
     "p": [[0.1, 0.1, 0.8], [0.3, 0.3, 0.4], [0.25, 0.50, 0.25]],
     "determinant": 0.05,
+    "density": 1.0,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -445,12 +476,14 @@
     "relaxation_rate": 1.28800716,
     "spectral_gap": 0.77639320,
     "implied_timescales": ["Infinity", 0.66761640, 0.66761640],
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#17",
     "p": [[0.78, 0.22, 0.00], [0.0, 0.1, 0.9], [0.45, 0.00, 0.55]],
     "determinant": 0.132,
+    "density": 0.5,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -473,12 +506,14 @@
     "relaxation_rate": 1.57064291,
     "spectral_gap": 0.63668196,
     "implied_timescales": ["Infinity", 0.98767707, 0.98767707],
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#18",
     "p": [[0.5, 0.5, 0.0], [0.50, 0.25, 0.25], [0.00, 0.33, 0.67]],
     "determinant": -0.125,
+    "density": 0.66666667,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -501,12 +536,14 @@
     "relaxation_rate": 2.64003891,
     "spectral_gap": 0.37878230,
     "implied_timescales": ["Infinity", 2.10051516, 0.62368720],
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#19",
     "p": [[0.0, 1.0, 0.0], [0.0, 0.5, 0.5], [0.1, 0.7, 0.2]],
     "determinant": 0.05,
+    "density": 0.66666667,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -529,12 +566,14 @@
     "relaxation_rate": 1.28800716,
     "spectral_gap": 0.77639320,
     "implied_timescales": ["Infinity", 0.66761640, 0.66761640],
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#20",
     "p": [[1.0, 0.0, 0.0], [0.2, 0.7, 0.1], [0.3, 0.3, 0.4]],
     "determinant": 0.25,
+    "density": 0.66666667,
     "rank": 3,
     "is_absorbing": true,
     "is_canonical": false,
@@ -557,12 +596,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#21",
     "p": [[0.7, 0.2, 0.1], [0.4, 0.6, 0.0], [0.0, 1.0, 0.0]],
     "determinant": 0.04,
+    "density": 0.66666667,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -585,12 +626,14 @@
     "relaxation_rate": 1.25,
     "spectral_gap": 0.8,
     "implied_timescales": ["Infinity", 0.62133493, 0.62133493],
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#22",
     "p": [[0.90, 0.05, 0.05], [0.05, 0.90, 0.05], [0.05, 0.05, 0.90]],
     "determinant": 0.7225,
+    "density": 1.0,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -613,12 +656,14 @@
     "relaxation_rate": 6.66666667,
     "spectral_gap": 0.14999999,
     "implied_timescales": ["Infinity", 6.15312938, 6.15312938],
+    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
     "lumping_partitions": [[[0], [1, 2]], [[0, 1], [2]]]
   },
   {
     "id": "#23",
     "p": [[0.0, 0.5, 0.5, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0, 0.0]],
     "determinant": 0.0,
+    "density": 0.33333333,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -641,12 +686,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]],
     "lumping_partitions": [[[0], [1, 2, 3]], [[0], [1], [2, 3]]]
   },
   {
     "id": "#24",
     "p": [[0.00, 0.90, 0.05, 0.05], [0.2, 0.8, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
     "determinant": -0.18,
+    "density": 0.33333333,
     "rank": 4,
     "is_absorbing": true,
     "is_canonical": true,
@@ -669,12 +716,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]],
     "lumping_partitions": [[[0], [1], [2, 3]]]
   },
   {
     "id": "#25",
     "p": [[0.0, 0.0, 0.5, 0.5], [1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]],
     "determinant": 0.0,
+    "density": 0.41666666,
     "rank": 3,
     "is_absorbing": false,
     "is_canonical": true,
@@ -697,12 +746,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]],
     "lumping_partitions": [[[0], [1], [2, 3]]]
   },
   {
     "id": "#26",
     "p": [[0.7, 0.1, 0.1, 0.1], [0.85, 0.05, 0.05, 0.05], [0.2, 0.2, 0.5, 0.1], [0.3, 0.3, 0.3, 0.1]],
     "determinant": 0.00299999,
+    "density": 1.0,
     "rank": 4,
     "is_absorbing": false,
     "is_canonical": true,
@@ -725,12 +776,14 @@
     "relaxation_rate": 1.62191225,
     "spectral_gap": 0.61655617,
     "implied_timescales": ["Infinity", 1.04322920, 0.41232175, 0.41232175],
+    "incidence_matrix": [[0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#27",
     "p": [[0.0, 1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0, 0.0], [0.5, 0.0, 0.0, 0.5, 0.0], [0.0, 0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0, 0.0, 0.0]],
     "determinant": 0.0,
+    "density": 0.3,
     "rank": 4,
     "is_absorbing": false,
     "is_canonical": true,
@@ -753,12 +806,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#28",
     "p": [[0.0, 1.0, 0.0, 0.0, 0.0, 0.0], [0.25, 0.75, 0.00, 0.00, 0.00, 0.00], [0.2, 0.0, 0.4, 0.2, 0.2, 0.0], [0.0, 0.0, 0.0, 0.4, 0.6, 0.0], [0.0, 0.0, 0.0, 0.5, 0.0, 0.5], [0.0, 0.0, 0.0, 0.4, 0.0, 0.6]],
     "determinant": 0.00599999,
+    "density": 0.3,
     "rank": 6,
     "is_absorbing": false,
     "is_canonical": false,
@@ -781,12 +836,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0]],
     "lumping_partitions": [[[0, 1], [2], [3, 4, 5]], [[0], [1], [2], [3, 4, 5]], [[0, 1], [2], [3], [4], [5]]]
   },
   {
     "id": "#29",
     "p": [[0.2, 0.2, 0.2, 0.2, 0.0, 0.2], [0.05, 0.75, 0.00, 0.10, 0.00, 0.10], [0.4, 0.6, 0.0, 0.0, 0.0, 0.0], [0.1, 0.1, 0.2, 0.3, 0.0, 0.3], [0.0, 0.0, 0.0, 0.0, 1.0, 0.0], [0.3, 0.0, 0.1, 0.1, 0.0, 0.5]],
     "determinant": -0.002,
+    "density": 0.53333333,
     "rank": 6,
     "is_absorbing": false,
     "is_canonical": true,
@@ -809,12 +866,14 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0]],
     "lumping_partitions": []
   },
   {
     "id": "#30",
     "p": [[1.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0, 0.0, 0.0], [0.6, 0.0, 0.0, 0.4, 0.0, 0.0], [0.0, 0.0, 0.6, 0.0, 0.4, 0.0], [0.0, 0.0, 0.0, 0.6, 0.0, 0.4], [0.0, 0.4, 0.0, 0.0, 0.6, 0.0]],
     "determinant": 0.0576,
+    "density": 0.26666667,
     "rank": 6,
     "is_absorbing": true,
     "is_canonical": false,
@@ -837,6 +896,7 @@
     "relaxation_rate": null,
     "spectral_gap": null,
     "implied_timescales": null,
+    "incidence_matrix": [[0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0]],
     "lumping_partitions": [[[0, 1], [2], [3], [4], [5]]]
   }
 ]

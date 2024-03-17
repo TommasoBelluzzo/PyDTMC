@@ -62,7 +62,7 @@ from pydtmc.validation import (
     validate_vector as _validate_vector,
 )
 
-from .utilities import (
+from tests.utilities import (
     evaluate as _evaluate,
     string_to_function as _string_to_function
 )

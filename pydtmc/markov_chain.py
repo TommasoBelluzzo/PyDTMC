@@ -458,6 +458,22 @@ class MarkovChain(_Model):
         return states
 
     @_cached_property
+    def density(self) -> float:
+
+        """
+        A property representing the density of the transition matrix of the Markov chain.
+        """
+
+        am = _np.copy(self.adjacency_matrix)
+        am[_np.diag_indices_from(am)] = 0
+
+        e = float(_np.sum(am))
+        n = float(self.__size)
+        d = e / (n * (n - 1.0))
+
+        return d
+
+    @_cached_property
     def determinant(self) -> float:
 
         """
@@ -553,6 +569,30 @@ class MarkovChain(_Model):
                 it = _np.append(_np.inf, -1.0 / _np.log(ev[1:]))
 
         return it
+
+    @_cached_property
+    def incidence_matrix(self) -> _tarray:
+
+        """
+        A property representing the incidence matrix of the Markov chain.
+        """
+
+        n = self.__size
+        k = n**2
+        im = _np.zeros((n, k), dtype=int)
+
+        us = _np.repeat(self.__states_indices, n)
+        vs = _np.tile(self.__states_indices, n)
+
+        for index, (u, v) in enumerate(zip(us, vs)):
+
+            if u == v:
+                continue
+
+            im[u, index] = 1
+            im[v, index] = 1
+
+        return im
 
     @_cached_property
     def is_absorbing(self) -> bool:
@@ -1094,7 +1134,7 @@ class MarkovChain(_Model):
 
         return mc
 
-    @_object_mark(aliases=['cp'])
+    @_object_mark(aliases=['crp'])
     def committor_probabilities(self, committor_type: str, states1: _tstates, states2: _tstates) -> _oarray:
 
         """
@@ -1103,7 +1143,7 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **cp**.
+        - The method can be accessed through the following aliases: **crp**.
 
         :param committor_type:
          - **backward** for the backward committor;
@@ -1131,7 +1171,7 @@ class MarkovChain(_Model):
 
         return value
 
-    @_object_mark(aliases=['conditional_distribution'])
+    @_object_mark(aliases=['conditional_distribution', 'cd', 'cp'])
     def conditional_probabilities(self, state: _tstate) -> _tarray:
 
         """
@@ -1139,7 +1179,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **conditional_distribution**.
+        - The method can be accessed through the following aliases: **conditional_distribution**, **cd**, **cp**.
 
         :param state: the current state.
         :raises ValidationError: if any input argument is not compliant.

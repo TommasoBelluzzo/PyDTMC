@@ -23,7 +23,7 @@ from pydtmc.utilities import (
     extract_numeric as _extract_numeric
 )
 
-from .utilities import (
+from tests.utilities import (
     evaluate as _evaluate
 )
 
