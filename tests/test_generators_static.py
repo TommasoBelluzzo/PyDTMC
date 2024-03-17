@@ -93,8 +93,6 @@ def test_population_genetics_model(model, n, s, u, v, value):
     actual = mc.p
     expected = _np.array(value)
 
-    print(actual)
-
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 

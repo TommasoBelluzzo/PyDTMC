@@ -96,7 +96,6 @@ def test_merge_with(p, p_other, gamma, value):
     mc = mc_current.merge_with(mc_other, gamma)
 
     actual = mc.p
-    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
