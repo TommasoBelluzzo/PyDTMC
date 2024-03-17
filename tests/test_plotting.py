@@ -21,6 +21,7 @@ from pydtmc import (
     MarkovChain as _MarkovChain,
     plot_comparison as _plot_comparison,
     plot_eigenvalues as _plot_eigenvalues,
+    plot_flow as _plot_flow,
     plot_graph as _plot_graph,
     plot_redistributions as _plot_redistributions,
     plot_sequence as _plot_sequence,
@@ -172,6 +173,36 @@ def test_plot_eigenvalues(seed, runs, maximum_size):
         assert exception is False
 
 
+# noinspection PyBroadException
+@_pt.mark.slow
+def test_plot_flow(seed, runs, maximum_size, maximum_steps):
+
+    def _params_generator():
+
+        p_steps = _rd.randint(1, maximum_steps)
+        p_interval = _rd.choice((1, 5, 10))
+
+        yield from [p_steps, p_interval]
+
+    models = _generate_models(seed, runs, maximum_size)
+    configs = _generate_configs(seed, runs, _params_generator)
+
+    for model, (steps, interval) in zip(models, configs):
+
+        try:
+
+            figure, _ = _plot_flow(model, steps, interval)
+            figure.clear()
+            _mplp.close(figure)
+
+            exception = False
+
+        except Exception:
+            exception = True
+
+        assert exception is False
+
+
 # noinspection PyArgumentEqualDefault, PyBroadException
 @_pt.mark.slow
 def test_plot_graph(seed, runs, maximum_size):
@@ -239,11 +270,11 @@ def test_plot_redistributions(seed, runs, maximum_size, maximum_redistributions)
 
 # noinspection PyBroadException
 @_pt.mark.slow
-def test_plot_sequence(seed, runs, maximum_size, maximum_simulations):
+def test_plot_sequence(seed, runs, maximum_size, maximum_steps):
 
     def _params_generator():
 
-        p_steps = _rd.randint(2, maximum_simulations)
+        p_steps = _rd.randint(2, maximum_steps)
         p_plot_type = _rd.choice(('heatmap', 'histogram', 'matrix'))
 
         yield from [p_steps, p_plot_type]
@@ -269,14 +300,14 @@ def test_plot_sequence(seed, runs, maximum_size, maximum_simulations):
 
 # noinspection PyArgumentEqualDefault, PyBroadException
 @_pt.mark.slow
-def test_plot_trellis(seed, runs, maximum_size, maximum_simulations):
+def test_plot_trellis(seed, runs, maximum_size, maximum_steps):
 
     def _params_generator():
 
         p_size = _rd.randint(2, maximum_size)
         p_size_multiplier = _rd.randint(1, 3)
         p_zeros = _rd.randint(0, p_size)
-        p_steps = _rd.randint(2, maximum_simulations)
+        p_steps = _rd.randint(2, maximum_steps)
         p_initial_state = _rd.choice((None,) + tuple(range(p_size)))
 
         yield from [p_size, p_size_multiplier, p_zeros, p_steps, p_initial_state]

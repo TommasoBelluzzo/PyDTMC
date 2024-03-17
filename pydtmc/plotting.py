@@ -371,7 +371,7 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
         ipf = _spip.interp1d(_np.linspace(0.0, 1.0, cm.shape[0]), cm, kind='linear', axis=0)
         ipv = ipf(_np.linspace(0.0, 1.0, 3 + ((i - 1) * 10)))
 
-        cm = ipv[1:-1:10,:]
+        cm = ipv[1:-1:10, :]
 
         return cm
 
@@ -387,7 +387,7 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
 
     def _get_legend(gl_mc, gl_c):
 
-        handles =  []
+        handles = []
         labels = gl_mc.states
 
         for i, label in enumerate(labels):
@@ -478,7 +478,7 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
 
     p = mc.p
 
-    indices = list(range(0, steps * interval, interval))
+    indices = list(range(0, (steps * interval) + 1, interval))
     distributions = mc.redistribute(indices[-1], initial_status=initial_status, output_last=False)
     distributions = _np.transpose(_np.stack([distribution for index, distribution in enumerate(distributions) if index in indices]))
 
@@ -1240,7 +1240,9 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
     if model_mc:
         walk_data = (
             steps + 1,
-            [(model.n, 'States', model.states, model_sequence)]
+            [
+                (model.n, 'States', model.states, model_sequence)
+            ]
         )
     else:
         walk_data = (

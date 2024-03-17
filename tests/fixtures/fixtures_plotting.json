@@ -10,6 +10,12 @@
     "runs": 20,
     "maximum_size": 10
   },
+  "plot_flow_data": {
+    "seed": 7331,
+    "runs": 20,
+    "maximum_size": 5,
+    "maximum_steps": 10
+  },
   "plot_graph_data": {
     "seed": 7331,
     "runs": 50,
@@ -25,12 +31,12 @@
     "seed": 7331,
     "runs": 20,
     "maximum_size": 10,
-    "maximum_simulations": 20
+    "maximum_steps": 20
   },
   "plot_trellis_data": {
     "seed": 7331,
     "runs": 10,
     "maximum_size": 5,
-    "maximum_simulations": 20
+    "maximum_steps": 20
   }
 }
