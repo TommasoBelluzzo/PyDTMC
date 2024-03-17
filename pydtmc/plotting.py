@@ -3,6 +3,7 @@
 __all__ = [
     'plot_comparison',
     'plot_eigenvalues',
+    'plot_flow',
     'plot_graph',
     'plot_redistributions',
     'plot_sequence',
@@ -27,11 +28,13 @@ import subprocess as _sub
 import matplotlib.colorbar as _mplcb
 import matplotlib.colors as _mplcr
 import matplotlib.image as _mpli
+import matplotlib.patches as _mplpc
 import matplotlib.pyplot as _mplp
 import matplotlib.ticker as _mplt
 import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
+import scipy.interpolate as _spip
 
 try:
     import pydot as _pyd
@@ -103,6 +106,7 @@ _default_node_size = 600
 #############
 # FUNCTIONS #
 #############
+
 
 def _decode_image(g, dpi):
 
@@ -198,7 +202,7 @@ def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition
     rows = int(_mt.sqrt(space))
     columns = int(_mt.ceil(space / float(rows)))
 
-    figure, axes = _mplp.subplots(rows, columns, constrained_layout=True, dpi=dpi)
+    figure, axes = _mplp.subplots(nrows=rows, ncols=columns, constrained_layout=True, dpi=dpi)
     axes = list(axes.flat)
     ax_is = None
 
@@ -254,7 +258,7 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
     if model.__class__.__name__ == 'MarkovChain':
         mc = model
     else:
-        mc = _MarkovChain(model.p)
+        mc = _MarkovChain(model.p, model.states)
 
     figure, ax = _mplp.subplots(dpi=dpi)
 
@@ -312,6 +316,204 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
 
     ax.legend(handles[::-1], labels[::-1], bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=len(handles))
     ax.set_title('Eigenvalues Plot', fontsize=15.0, fontweight='bold')
+
+    _mplp.subplots_adjust(bottom=0.2)
+
+    if _mplp.isinteractive():  # pragma: no cover
+        _mplp.show(block=False)
+        return None
+
+    return figure, ax
+
+
+def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatus = None, palette: str = 'viridis', dpi: int = 100) -> _oplot:
+
+    """
+    The function produces an alluvial diagram of the given model.
+
+    | **Notes:**
+
+    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+
+    :param model: the model.
+    :param steps: the number of steps.
+    :param interval: the interval between each step.
+    :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+    :param palette: the palette of the plot.
+    :param dpi: the resolution of the plot expressed in dots per inch.
+    :raises ValidationError: if any input argument is not compliant.
+    """
+
+    def _get_boundaries(gb_d):
+
+        i, j = gb_d.shape
+        k = 0.1 / (i - 1.0)
+
+        b = _np.zeros((i, j), dtype=float)
+        t = _np.zeros((i, j), dtype=float)
+
+        for o in range(j):
+            dj = d[:, o]
+            b[:, o] = _np.cumsum(dj + k) - dj - k
+            t[:, o] = _np.cumsum(dj + k) - k
+
+        b = _np.clip(b, 0.0, 1.0)
+        t = _np.clip(t, 0.0, 1.0)
+
+        return b, t
+
+    def _get_colors(gc_pn, gc_d):
+
+        i = gc_d.shape[0]
+
+        cm = _np.array(_mplp.get_cmap(gc_pn).colors)
+
+        ipf = _spip.interp1d(_np.linspace(0.0, 1.0, cm.shape[0]), cm, kind='linear', axis=0)
+        ipv = ipf(_np.linspace(0.0, 1.0, 3 + ((i - 1) * 10)))
+
+        cm = ipv[1:-1:10,:]
+
+        return cm
+
+    def _get_curves(gc_n, gc_x1, gc_y1, gc_x2, gc_y2):
+
+        tx = _np.reshape(_np.linspace(gc_x1, gc_x2, 15), (1, -1))
+        cx = _np.tile(_np.transpose(tx), (1, gc_n))
+
+        ty = (1.0 - _np.cos(_np.reshape(_np.linspace(0.0, _np.pi, 15), (1, -1)))) / 2.0
+        cy = _np.tile(gc_y1, (15, 1)) + (_np.tile(gc_y2 - gc_y1, (15, 1)) * _np.tile(_np.transpose(ty), (1, gc_n)))
+
+        return cx, cy
+
+    def _get_legend(gl_mc, gl_c):
+
+        handles =  []
+        labels = gl_mc.states
+
+        for i, label in enumerate(labels):
+            handles.append(_mplpc.Patch(color=gl_c[i, :], label=label))
+
+        return handles, labels
+
+    def _get_polygons_bars(gpb_d, gpb_bb, gpb_bt, gpb_c):
+
+        i, j = gpb_d.shape
+        w = j / 40.0
+
+        polygons = []
+
+        for oj in range(j):
+
+            xm = oj - w
+            xp = oj + w
+
+            for oi in range(i):
+
+                yb = gpb_bb[oi, oj]
+                yt = gpb_bt[oi, oj]
+
+                x = [xm, xp, xp, xm]
+                y = [yb, yb, yt, yt]
+
+                polygons.append(_mplpc.Polygon(list(zip(x, y)), edgecolor=None, facecolor=gpb_c[oi, :], alpha=0.8))
+
+        return polygons
+
+    def _get_polygons_flows(gpf_p, gpf_d, gpf_bb, gpf_c):
+
+        i, j = gpf_d.shape
+        w = j / 40.0
+
+        polygons = []
+
+        for oj in range(j - 1):
+
+            q = _npl.matrix_power(gpf_p, indices[oj + 1] - indices[oj])
+            bj = _np.copy(gpf_bb[:, oj + 1])
+
+            x_lo = oj + w
+            x_hi = oj - w + 1.0
+
+            for oi in range(i):
+
+                dij = gpf_d[oi, oj]
+                bij = bb[oi, oj]
+
+                qi = q[oi, :]
+                qis = _np.cumsum(qi)
+
+                tl = ((qis - qi) * dij) + bij
+                bl = (qis * dij) + bij
+                tr = _np.copy(bj)
+                br = tr + bl - tl
+
+                bj += bl - tl
+
+                [bottom_x, bottom_y] = _get_curves(i, x_lo, bl, x_hi, br)
+                [top_x, top_y] = _get_curves(i, x_hi, tr, x_lo, tl)
+                x = _np.concatenate([bottom_x, top_x], axis=0)
+                y = _np.concatenate([bottom_y, top_y], axis=0)
+
+                for z in range(x.shape[1]):
+                    polygons.append(_mplpc.Polygon(list(zip(x[:, z], y[:, z])), edgecolor=None, facecolor=gpf_c[oi, :], alpha=0.3))
+
+        return polygons
+
+    try:
+
+        model = _validate_model(model)
+        steps = _validate_integer(steps, lower_limit=(1, False))
+        interval = _validate_integer(interval, lower_limit=(1, False))
+        initial_status = None if initial_status is None else _validate_status(initial_status, model.states)
+        palette = _validate_enumerator(palette, list(_mplp.colormaps))
+        dpi = _validate_dpi(dpi)
+
+    except Exception as ex:  # pragma: no cover
+        raise _create_validation_error(ex, _ins.trace()) from None
+
+    if model.__class__.__name__ == 'MarkovChain':
+        mc = model
+    else:
+        mc = _MarkovChain(model.p, model.states)
+
+    p = mc.p
+
+    indices = list(range(0, steps * interval, interval))
+    distributions = mc.redistribute(indices[-1], initial_status=initial_status, output_last=False)
+    distributions = _np.transpose(_np.stack([distribution for index, distribution in enumerate(distributions) if index in indices]))
+
+    d = distributions * 0.9
+    bb, bt = _get_boundaries(d)
+    bm = (bb + bt) / 2.0
+    c = _get_colors(palette, d)
+    lh, ll = _get_legend(mc, c)
+
+    polygons_bars = _get_polygons_bars(d, bb, bt, c)
+    polygons_flows = _get_polygons_flows(p, d, bb, c)
+
+    figure, ax = _mplp.subplots(dpi=dpi)
+
+    for e in polygons_flows:
+        ax.add_patch(e)
+
+    for e in polygons_bars:
+        ax.add_patch(e)
+
+    for ai in range(distributions.shape[0]):
+        for aj in range(distributions.shape[1]):
+
+            dv = distributions[ai, aj]
+
+            if dv > 0.05:
+                ax.text(aj, bm[ai, aj], f'{dv:.3f}', horizontalalignment='center', verticalalignment='center')
+
+    _xticks_steps(ax, steps)
+
+    ax.set_ylim(0.0, 1.0)
+    ax.invert_yaxis()
+
+    ax.legend(lh, ll, bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=len(lh))
+    ax.set_title('Flow Plot', fontsize=15.0, fontweight='bold')
 
     _mplp.subplots_adjust(bottom=0.2)
 
@@ -829,7 +1031,7 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
     if model.__class__.__name__ == 'MarkovChain':
         mc = model
     else:
-        mc = _MarkovChain(model.p)
+        mc = _MarkovChain(model.p, model.states)
 
     distributions = mc.redistribute(redistributions, initial_status=initial_status, output_last=False)
 
@@ -878,7 +1080,7 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
 
         ax.grid()
 
-        ax.legend(bbox_to_anchor=(0.5, -0.15), loc='upper center', ncol=legend_size)
+        ax.legend(bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=legend_size)
         ax.set_title('Redistributions Plot (Projection)', fontsize=15.0, fontweight='bold')
 
         _mplp.subplots_adjust(bottom=0.2)
