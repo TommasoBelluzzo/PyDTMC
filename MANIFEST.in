@@ -1,8 +1,18 @@
 # Inclusions
-graft data docs tests
-include README.md LICENSE.md requirements.txt setup.py
+graft data
+graft docs
+graft tests
+include LICENSE.md README.md requirements.txt setup.cfg setup.py
 
 # Exclusions
-global-exclude *.dll *.py[cdo] *.so .env .git* __pycache__ *~
-prune .git .github .idea dist docs/build images
-exclude .readthedocs.yaml CODE_OF_CONDUCT.md CONTRIBUTING.md
+prune .git
+prune .github
+prune .idea
+prune dist
+prune docs/build
+prune images
+global-exclude .env .git* __pycache__ *.dll *.py[cdo] *.so *.yaml *~
+exclude CODE_OF_CONDUCT.md CONTRIBUTING.md
+
+# Empty Files
+global-include empty
