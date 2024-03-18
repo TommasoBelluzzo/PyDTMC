@@ -13,7 +13,14 @@ import os.path as _osp
 
 # Libraries
 
+import matplotlib as _mpl
 import numpy as _np
+
+# Internal
+
+from tests.utilities import (
+    hasattr_deep as _hasattr_deep
+)
 
 
 #############
@@ -190,14 +197,25 @@ def _sanitize_fixtures_recursive(element):
 # HOOKS #
 #########
 
+# noinspection PyBroadException
 def pytest_configure(config):
+
+    config.addinivalue_line('markers', 'slow: mark tests as slow (exclude them with \'-m "not slow"\')')
 
     config.addinivalue_line('filterwarnings', 'ignore::DeprecationWarning')
     config.addinivalue_line('filterwarnings', 'ignore::PendingDeprecationWarning')
-    config.addinivalue_line('filterwarnings', 'ignore::matplotlib.cbook.mplDeprecation')
-    config.addinivalue_line('filterwarnings', 'ignore::numpy.VisibleDeprecationWarning')
 
-    config.addinivalue_line('markers', 'slow:  mark tests as slow (exclude them with \'-m "not slow"\').')
+    try:
+        if _hasattr_deep(_mpl, 'cbook',  'mplDeprecation'):
+            config.addinivalue_line('filterwarnings', 'ignore::matplotlib.cbook.mplDeprecation')
+    except Exception:
+        pass
+
+    try:
+        if _hasattr_deep(_np, 'VisibleDeprecationWarning'):
+            config.addinivalue_line('filterwarnings', 'ignore::numpy.VisibleDeprecationWarning')
+    except Exception:
+        pass
 
     _np.set_printoptions(floatmode='fixed', precision=8)
 

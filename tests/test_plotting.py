@@ -28,6 +28,8 @@ from pydtmc import (
     plot_trellis as _plot_trellis
 )
 
+# Settings
+
 _mplp.switch_backend('Agg')
 _mplp.interactive(False)
 

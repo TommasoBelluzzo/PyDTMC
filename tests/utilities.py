@@ -2,6 +2,7 @@
 
 __all__ = [
     'evaluate',
+    'hasattr_deep',
     'string_to_function'
 ]
 
@@ -65,6 +66,17 @@ def evaluate(value):
         value = eval(value)
 
     return value, skip
+
+
+def hasattr_deep(obj, *names):
+    for name in names:
+
+        if not hasattr(obj, name):
+            return False
+
+        obj = getattr(obj, name)
+
+    return True
 
 
 def string_to_function(source):
