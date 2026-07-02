@@ -291,7 +291,7 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
                 z_spectral_gap = x_spectral_gap**2.0 + y_spectral_gap**2.0
 
                 h = ax.contourf(x_spectral_gap, y_spectral_gap, z_spectral_gap, alpha=0.2, colors='r', levels=[mu**2.0, 1.0])
-                handles.append(_mplp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.collections[0].get_facecolor()[0]))
+                handles.append(_mplp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.get_facecolor()[0]))
                 labels.append('Spectral Gap')
 
                 ax.plot(x_slem_circle, y_slem_circle, color='red', linestyle='--', linewidth=1.5)

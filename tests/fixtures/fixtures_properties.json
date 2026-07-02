@@ -678,7 +678,7 @@
     "communication_matrix": [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 1], [0, 0, 1, 1]],
     "fundamental_matrix": null,
     "kemeny_constant": null,
-    "period": 1,
+    "period": 2,
     "entropy_rate": null,
     "entropy_rate_normalized": null,
     "topological_entropy": 0.0,
