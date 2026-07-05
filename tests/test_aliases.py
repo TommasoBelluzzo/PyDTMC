@@ -99,11 +99,11 @@ def test_aliased_methods(p, params):
         if member_name not in params:
             raise KeyError(f'Undefined parameters for method "{member_name}".')
 
-        actual = eval('mc.' + member_name + '()') if params[member_name] is None else eval('mc.' + member_name + '(*params[member_name])')
+        actual = getattr(mc, member_name)() if params[member_name] is None else getattr(mc, member_name)(*params[member_name])
 
         for member_alias in member._aliases:
 
-            expected = eval('mc.' + member_alias + '()') if params[member_name] is None else eval('mc.' + member_alias + '(*params[member_name])')
+            expected = getattr(mc, member_alias)() if params[member_name] is None else getattr(mc, member_alias)(*params[member_name])
             assert _compare_values(actual, expected)
 
 
@@ -116,9 +116,9 @@ def test_aliased_properties(p):
         if not isinstance(member, property) or not hasattr(member.fget, '_aliases'):
             continue
 
-        actual = eval('mc.' + member_name)
+        actual = getattr(mc, member_name)
 
         for member_alias in getattr(member.fget, '_aliases'):
 
-            expected = eval('mc.' + member_alias)
+            expected = getattr(mc, member_alias)
             assert _compare_values(actual, expected)
