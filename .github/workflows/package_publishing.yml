@@ -155,7 +155,7 @@ jobs:
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
         git config --local user.email "${{ secrets.BOT_EMAIL }}"
         if ! git diff --quiet -- meta.yaml; then
-          git pull --rebase
+          git pull --rebase --autostash
           git add meta.yaml
           git commit -m "Conda Metadata $VERSION"
           git push
