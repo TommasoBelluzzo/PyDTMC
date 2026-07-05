@@ -145,7 +145,7 @@ jobs:
         conda config --set always_yes yes
         conda config --set anaconda_upload yes
         conda config --set changeps1 no
-        conda build --channel conda-forge --override-channels --use-local --output-folder /tmp/conda-build .
+        conda-build --channel conda-forge --override-channels --use-local --output-folder /tmp/conda-build .
     - name: Conda Metadata
       if: ${{ steps.bump.outputs.conda == 'TRUE' }}
       env:
