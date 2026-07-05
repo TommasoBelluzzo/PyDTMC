@@ -89,8 +89,7 @@ def _compare_values(actual, expected):
 
 def test_aliased_methods(p, params):
 
-    lcl = locals()
-    lcl['mc'] = _MarkovChain(p)
+    mc = _MarkovChain(p)
 
     for member_name, member in _MarkovChain.__dict__.items():
 
@@ -110,8 +109,7 @@ def test_aliased_methods(p, params):
 
 def test_aliased_properties(p):
 
-    lcl = locals()
-    lcl['mc'] = _MarkovChain(p)
+    mc = _MarkovChain(p)
 
     for member_name, member in _MarkovChain.__dict__.items():
 
@@ -123,4 +121,4 @@ def test_aliased_properties(p):
         for member_alias in getattr(member.fget, '_aliases'):
 
             expected = eval('mc.' + member_alias)
-            _compare_values(actual, expected)
+            assert _compare_values(actual, expected)

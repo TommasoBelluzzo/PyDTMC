@@ -171,7 +171,7 @@ def create_models_names(models: _tlist_model) -> _tlist_str:
     else:
         models_label = 'MODEL'
 
-    models_names = [f'$\mathregular{{{models_label}_{index + 1}}}$' for index, model in enumerate(models)]
+    models_names = [fr'$\mathregular{{{models_label}_{index + 1}}}$' for index, model in enumerate(models)]
 
     return models_names
 

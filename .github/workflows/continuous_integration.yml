@@ -17,9 +17,9 @@ jobs:
         python-version: [ '3.12', '3.13', '3.14' ]
     steps:
     - name: Repository Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - name: Python Setup
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: Python Cache
@@ -40,7 +40,7 @@ jobs:
         if [ "$RUNNER_OS" == "Linux" ]; then
           sudo apt update --quiet --yes
           sudo apt-get install --quiet --yes graphviz
-        elif [ "$RUNNER_OS" == "Windows" ]; then 
+        elif [ "$RUNNER_OS" == "Windows" ]; then
           choco upgrade --limitoutput --yes chocolatey
           choco install --limitoutput --yes graphviz
         else

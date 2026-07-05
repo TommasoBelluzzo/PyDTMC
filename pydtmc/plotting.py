@@ -1420,7 +1420,7 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
 
             node_index += 1
 
-        headers = ["$\mathregular{T_0}$"] + [hmm.symbols[symbol] for symbol in gts_symbols[1:]]
+        headers = [r"$\mathregular{T_0}$"] + [hmm.symbols[symbol] for symbol in gts_symbols[1:]]
 
         for col, header in enumerate(headers):
 

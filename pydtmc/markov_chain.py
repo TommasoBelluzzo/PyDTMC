@@ -1611,7 +1611,7 @@ class MarkovChain(_Model):
     @_object_mark(instance_generator=True)
     def merge_with(self, other: _tmc, gamma: float) -> _tmc:
 
-        """
+        r"""
         The method returns a Markov chain whose transition matrix is defined below.
 
         | :math:`p_{new} = (1 - \gamma) p_{current} + \gamma p_{other}`
