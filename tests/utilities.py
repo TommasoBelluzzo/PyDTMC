@@ -89,15 +89,17 @@ def string_to_function(source):
         raise ValueError('The source must contain exactly one function definition.')
 
     function_name = function_definitions[0].name
-
-    namespace = {}
     module_object = compile(ast_tree, '<ast>', 'exec')
 
-    exec(module_object, namespace)
+    code_objects = [
+        code_object
+        for code_object in module_object.co_consts
+        if isinstance(code_object, _tp.CodeType) and code_object.co_name == function_name
+    ]
 
-    func = namespace[function_name]
+    if len(code_objects) != 1:
+        raise ValueError(f'Unable to compile function "{function_name}".')
 
-    if not isinstance(func, _tp.FunctionType):
-        raise ValueError(f'The object "{function_name}" is not a function.')
+    func = _tp.FunctionType(code_objects[0], {})
 
     return func

@@ -54,6 +54,7 @@ jobs:
         python -m pylint pydtmc/
         python -m pylint tests/
     - name: Documentation
+      if: runner.os == 'Linux'
       run: |
         make -C docs/ doctest SPHINX_OPTS=-an
         make -C docs/ linkcheck SPHINX_OPTS=-an
