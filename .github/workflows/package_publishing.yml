@@ -87,50 +87,55 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
     - name: Cache
       id: pypi_cache
-      env:
-        PYPI: ${{ steps.bump.outputs.pypi }}
-      if: ${{ env.PYPI == 'TRUE' }}
-      uses: actions/cache@v3
+      if: ${{ steps.bump.outputs.pypi == 'TRUE' }}
+      uses: actions/cache@v6
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-PP-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
     - name: Dependencies Installation
-      env:
-        PYPI: ${{ steps.bump.outputs.pypi }}
-      if: ${{ env.PYPI == 'TRUE' && steps.pypi_cache.outputs.cache-hit != 'true' }}
+      if: ${{ steps.bump.outputs.pypi == 'TRUE' && steps.pypi_cache.outputs.cache-hit != 'true' }}
       run: |
-        pip install --quiet --upgrade pip
-        pip install --quiet --upgrade -r requirements.txt
-        pip install --quiet --upgrade -e .[build]
+        python -m pip install --quiet --upgrade pip
+        python -m pip install --quiet --upgrade -r requirements.txt
+        python -m pip install --quiet --upgrade -e ".[build]"
     - name: PyPI Publishing
+      if: ${{ steps.bump.outputs.pypi == 'TRUE' }}
       env:
-        PYPI: ${{ steps.bump.outputs.pypi }}
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         TWINE_NON_INTERACTIVE: true
-      if: ${{ env.PYPI == 'TRUE' }}
       run: |
         python setup.py sdist bdist_wheel
         python -m twine check --strict dist/*
         python -m twine upload dist/*
-    - name: Conda Publishing
+    - name: Version Commit
+      if: ${{ steps.bump.outputs.target != 'NONE' }}
       env:
-        TARGET: ${{ steps.bump.outputs.target }}
+        VERSION: ${{ steps.bump.outputs.version }}
+      run: |
+        git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+        git config --local user.name "${{ secrets.BOT_USERNAME }}"
+        git config --local user.email "${{ secrets.BOT_EMAIL }}"
+        git add pydtmc/__init__.py
+        git commit -m "Release $VERSION"
+        git push
+    - name: Conda Publishing
+      if: ${{ steps.bump.outputs.conda == 'TRUE' }}
+      env:
         PYPI: ${{ steps.bump.outputs.pypi }}
-        CONDA: ${{ steps.bump.outputs.conda }}
         VERSION: ${{ steps.bump.outputs.version }}
         META_REGEX: 'sha256: [A-Fa-f0-9]{64}'
         META_FILE: meta.yaml
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
-      if: ${{ env.CONDA == 'TRUE' }}
       run: |
         if [[ "$PYPI" == "TRUE" ]]; then
           sleep 900
         fi
         conda clean --all --yes
-        conda update --quiet --yes conda
-        conda install --quiet --yes conda-build anaconda-client
+        source "$(conda info --base)/etc/profile.d/conda.sh"
+        conda create --quiet --yes --name conda-build-env python=3.12 conda-build anaconda-client
+        conda activate conda-build-env
         wget "https://pypi.io/packages/source/P/PyDTMC/PyDTMC-${VERSION}.tar.gz" -O "/tmp/PyDTMC-${VERSION}.tar.gz"
         SHA256=$(openssl sha256 "/tmp/PyDTMC-${VERSION}.tar.gz" | awk '{print $2}')
         grep -P "$META_REGEX" "$META_FILE"
@@ -141,16 +146,17 @@ jobs:
         conda config --set anaconda_upload yes
         conda config --set changeps1 no
         conda build --channel conda-forge --override-channels --use-local --output-folder /tmp/conda-build .
-    - name: Version Commit
+    - name: Conda Metadata
+      if: ${{ steps.bump.outputs.conda == 'TRUE' }}
       env:
-        TARGET: ${{ steps.bump.outputs.target }}
-        PYPI: ${{ steps.bump.outputs.pypi }}
         VERSION: ${{ steps.bump.outputs.version }}
-      if: ${{ env.TARGET != 'NONE' }}
       run: |
         git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
         git config --local user.email "${{ secrets.BOT_EMAIL }}"
-        git add --a
-        git commit -m "Release $VERSION"
-        git push
+        if ! git diff --quiet -- meta.yaml; then
+          git pull --rebase
+          git add meta.yaml
+          git commit -m "Conda Metadata $VERSION"
+          git push
+        fi
