@@ -97,7 +97,7 @@ jobs:
     - name: Dependencies Installation
       env:
         PYPI: ${{ steps.bump.outputs.pypi }}
-      if: ${{ env.PYPI == 'TRUE' }} && steps.pypi_cache.outputs.cache-hit != 'true'
+      if: ${{ env.PYPI == 'TRUE' && steps.pypi_cache.outputs.cache-hit != 'true' }}
       run: |
         pip install --quiet --upgrade pip
         pip install --quiet --upgrade -r requirements.txt
@@ -112,8 +112,8 @@ jobs:
       if: ${{ env.PYPI == 'TRUE' }}
       run: |
         python setup.py sdist bdist_wheel
-        twine check --strict dist/*
-        twine upload dist/*
+        python -m twine check --strict dist/*
+        python -m twine upload dist/*
     - name: Conda Publishing
       env:
         TARGET: ${{ steps.bump.outputs.target }}
@@ -128,9 +128,9 @@ jobs:
         if [[ "$PYPI" == "TRUE" ]]; then
           sleep 900
         fi
-        conda clean --all
-        conda update --quiet conda
-        conda install --quiet conda-verify conda-build anaconda-client
+        conda clean --all --yes
+        conda update --quiet --yes conda
+        conda install --quiet --yes conda-build anaconda-client
         wget "https://pypi.io/packages/source/P/PyDTMC/PyDTMC-${VERSION}.tar.gz" -O "/tmp/PyDTMC-${VERSION}.tar.gz"
         SHA256=$(openssl sha256 "/tmp/PyDTMC-${VERSION}.tar.gz" | awk '{print $2}')
         grep -P "$META_REGEX" "$META_FILE"

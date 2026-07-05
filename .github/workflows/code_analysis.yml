@@ -14,10 +14,11 @@ jobs:
       security-events: write
     steps:
     - name: Repository Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - name: Analysis Initialization
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: python
+        queries: +security-and-quality
     - name: Analysis Execution
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
