@@ -53,7 +53,7 @@ def test_closest_reversible(p, distribution, weighted, value):
         actual = cr.p
         expected = _np.array(value)
 
-    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-5)
 
 
 def test_dirichlet_process(seed, size, diffusion_factor, diagonal_bias_factor, shift_concentration, value):

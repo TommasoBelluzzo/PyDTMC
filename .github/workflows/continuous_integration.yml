@@ -24,7 +24,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Python Cache
       id: cache
-      uses: actions/cache@v3
+      uses: actions/cache@v6
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ runner.os }}-CI-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
@@ -49,10 +49,10 @@ jobs:
         fi
     - name: Linting
       run: |
-        flake8 .
-        pylint docs/
-        pylint pydtmc/
-        pylint tests/
+        python -m flake8 .
+        python -m pylint docs/
+        python -m pylint pydtmc/
+        python -m pylint tests/
     - name: Documentation
       run: |
         make -C docs/ doctest SPHINX_OPTS=-an

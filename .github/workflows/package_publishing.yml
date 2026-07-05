@@ -30,11 +30,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Repository Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - name: Python Setup
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
-        python-version: '3.11'
+        python-version: '3.12'
         architecture: x64
     - name: Version Bump
       id: bump

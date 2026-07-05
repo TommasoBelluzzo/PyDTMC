@@ -82,9 +82,22 @@ def hasattr_deep(obj, *names):
 def string_to_function(source):
 
     ast_tree = _ast.parse(source)
-    module_object = compile(ast_tree, '<ast>', 'exec')
-    code_object = [c for c in module_object.co_consts if isinstance(c, _tp.CodeType)][0]
 
-    func = _tp.FunctionType(code_object, {})
+    function_definitions = [node for node in ast_tree.body if isinstance(node, _ast.FunctionDef)]
+
+    if len(function_definitions) != 1:
+        raise ValueError('The source must contain exactly one function definition.')
+
+    function_name = function_definitions[0].name
+
+    namespace = {}
+    module_object = compile(ast_tree, '<ast>', 'exec')
+
+    exec(module_object, namespace)
+
+    func = namespace[function_name]
+
+    if not isinstance(func, _tp.FunctionType):
+        raise ValueError(f'The object "{function_name}" is not a function.')
 
     return func
