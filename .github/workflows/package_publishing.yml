@@ -136,7 +136,7 @@ jobs:
         source "$(conda info --base)/etc/profile.d/conda.sh"
         conda create --quiet --yes --name conda-build-env python=3.12 conda-build anaconda-client
         conda activate conda-build-env
-        wget "https://pypi.io/packages/source/P/PyDTMC/pydtmc-${VERSION}.tar.gz" -O "/tmp/pydtmc-${VERSION}.tar.gz"
+        wget "https://pypi.io/packages/source/p/pydtmc/pydtmc-${VERSION}.tar.gz" -O "/tmp/pydtmc-${VERSION}.tar.gz"
         SHA256=$(openssl sha256 "/tmp/pydtmc-${VERSION}.tar.gz" | awk '{print $2}')
         grep -P "$META_REGEX" "$META_FILE"
         PATTERN=$(grep -Poh "$META_REGEX" "$META_FILE")
