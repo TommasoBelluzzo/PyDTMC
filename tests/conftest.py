@@ -206,7 +206,7 @@ def pytest_configure(config):
     config.addinivalue_line('filterwarnings', 'ignore::PendingDeprecationWarning')
 
     try:
-        if _hasattr_deep(_mpl, 'cbook',  'mplDeprecation'):
+        if _hasattr_deep(_mpl, 'cbook', 'mplDeprecation'):
             config.addinivalue_line('filterwarnings', 'ignore::matplotlib.cbook.mplDeprecation')
     except Exception:
         pass
