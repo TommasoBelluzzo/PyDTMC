@@ -632,19 +632,12 @@ class MarkovChain(_Model):
 
     @_cached_property
     def is_aperiodic(self) -> bool:
-
         """
         A property indicating whether the Markov chain is aperiodic.
         """
-
         if self.is_irreducible:
-            result = set(self.periods).pop() == 1
-        elif all(period == 1 for period in self.periods):
-            result = True
-        else:  # pragma: no cover
-            result = _nx.is_aperiodic(self.__digraph)
-
-        return result
+            return set(self.periods).pop() == 1
+        return all(period == 1 for period in self.periods)
 
     @_cached_property
     def is_canonical(self) -> bool:
