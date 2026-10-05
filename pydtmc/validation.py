@@ -300,7 +300,7 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
 
         try:
 
-            with open(file_path, mode='w'):
+            with open(file_path, mode='a'):
                 pass
 
         except Exception as ex:  # pragma: no cover
@@ -316,6 +316,7 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
         try:
 
             with open(file_path, mode='r') as file:
+
                 file.seek(0)
 
                 if not file.read(1):

@@ -958,7 +958,7 @@ class MarkovChain(_Model):
         A property representing the states of the Markov chain.
         """
 
-        return self.__states
+        return self.__states.copy()
 
     @_cached_property
     def topological_entropy(self) -> float:

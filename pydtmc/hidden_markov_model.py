@@ -277,7 +277,7 @@ class HiddenMarkovModel(_Model):
         A property representing the states of the hidden Markov model.
         """
 
-        return self.__states
+        return self.__states.copy()
 
     @property
     def symbols(self) -> _tlist_str:
@@ -286,7 +286,7 @@ class HiddenMarkovModel(_Model):
         A property representing the symbols of the hidden Markov model.
         """
 
-        return self.__symbols
+        return self.__symbols.copy()
 
     def decode(self, symbols: _tsequence, initial_status: _ostatus = None, use_scaling: bool = True) -> _ohmm_decoding:
 
@@ -334,7 +334,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = self.__e[state, symbol]
+        value = float(self.__e[state, symbol])
 
         return value
 
@@ -569,7 +569,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = self.__p[state_origin, state_target]
+        value = float(self.__p[state_origin, state_target])
 
         return value
 
