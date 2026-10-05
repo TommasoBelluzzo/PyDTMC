@@ -5,13 +5,6 @@
 # IMPORTS #
 ###########
 
-# Standard
-
-from os.path import (
-    abspath as _osp_abspath,
-    dirname as _osp_dirname
-)
-
 # Libraries
 
 import numpy as _np
@@ -26,13 +19,6 @@ from pydtmc.utilities import (
 from tests.utilities import (
     evaluate as _evaluate
 )
-
-
-#############
-# CONSTANTS #
-#############
-
-_base_directory = _osp_abspath(_osp_dirname(__file__))
 
 
 #########

@@ -214,7 +214,7 @@ class MarkovChain(_Model):
 
         caller = _get_caller(_ins.stack())
 
-        if caller not in MarkovChain.__instance_generators:
+        if caller not in MarkovChain.__instance_generators:  # pylint: disable=unsupported-membership-test
 
             try:
 

@@ -150,6 +150,7 @@ def test_file(seed, runs, maximum_size, file_extension):
         try:
             _os.remove(file_path)
         except Exception:
+            # Failure is intentionally ignored.
             pass
 
         assert exception is False

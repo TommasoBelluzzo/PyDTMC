@@ -209,12 +209,14 @@ def pytest_configure(config):
         if _hasattr_deep(_mpl, 'cbook', 'mplDeprecation'):
             config.addinivalue_line('filterwarnings', 'ignore::matplotlib.cbook.mplDeprecation')
     except Exception:
+        # Failure is intentionally ignored.
         pass
 
     try:
         if _hasattr_deep(_np, 'VisibleDeprecationWarning'):
             config.addinivalue_line('filterwarnings', 'ignore::numpy.VisibleDeprecationWarning')
     except Exception:
+        # Failure is intentionally ignored.
         pass
 
     _np.set_printoptions(floatmode='fixed', precision=8)
