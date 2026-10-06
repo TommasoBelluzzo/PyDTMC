@@ -533,7 +533,7 @@ class MarkovChain(_Model):
 
             h = -_np.dot(self.pi[0], _np.sum(contributions, axis=1))
 
-            if (-100.0 * _np.finfo(float).eps) < h < 0.0:
+            if (-100.0 * _np.finfo(_np.float64).eps) < h < 0.0:  # pylint: disable=no-member
                 h = 0.0
 
             if not _np.isfinite(h) or (h < 0.0):
