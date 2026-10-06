@@ -279,7 +279,7 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
 
     def _calculate_invariant(ci_q):
 
-        size = q.shape[0]
+        size = ci_q.shape[0]
 
         kappa = _np.ones(size, dtype=float) / size
         theta = _np.dot(kappa, ci_q)
@@ -300,7 +300,7 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
 
         vi = _np.ravel(_np.argwhere(cq_phi[:, cq_index] == 1.0))
         vi0, vi1 = vi[0], vi[1]
-        phi_i = _np.hstack((cq_eta[:, :vi0], _np.amax(_np.take(cq_eta, vi, 1), axis=1, keepdims=True), cq_eta[:, (vi0 + 1):(vi1 - 1)], cq_eta[:, (vi1 + 1):]))
+        phi_i = _np.hstack((cq_eta[:, :vi0], _np.amax(_np.take(cq_eta, vi, 1), axis=1, keepdims=True), cq_eta[:, (vi0 + 1):vi1], cq_eta[:, (vi1 + 1):]))
 
         z = phi_i.shape[1]
 
@@ -318,10 +318,14 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
         return q_value, phi_i
 
     # noinspection DuplicatedCode
+    # noinspection DuplicatedCode
     def _update_bipartition_candidates(cbc_q, cbc_pi, cbc_phi):
 
-        last_index = cbc_phi.shape[1] - 1
-        v = cbc_phi[:, last_index]
+        sizes = _np.sum(cbc_phi, axis=0)
+        split_indices = _np.ravel(_np.argwhere(sizes > 2.0))
+        split_index = split_indices[-1]
+
+        v = cbc_phi[:, split_index]
 
         indices = v > 0.0
         p_sub = cbc_q[_np.ix_(indices, indices)]
@@ -343,14 +347,13 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
         v2 = _np.copy(vt)
         v2[indices] = evector < 0.0
 
-        cbc_phi = cbc_phi[:, :-1]
+        cbc_phi = _np.hstack((cbc_phi[:, :split_index], cbc_phi[:, (split_index + 1):]))
 
         if _np.sum(v1) > 1.0:
-            cbc_phi = _np.hstack((cbc_phi[:, :last_index], v1, cbc_phi[:, (last_index + 1):]))
-            last_index += 1
+            cbc_phi = _np.hstack((cbc_phi, v1))
 
         if _np.sum(v2) > 1.0:
-            cbc_phi = _np.hstack((cbc_phi[:, :last_index], v2, cbc_phi[:, (last_index + 1):]))
+            cbc_phi = _np.hstack((cbc_phi, v2))
 
         return cbc_phi
 

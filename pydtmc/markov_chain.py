@@ -559,9 +559,9 @@ class MarkovChain(_Model):
         | If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
         """
 
-        if not self.is_ergodic:
-            it = None
-        else:
+        it = None
+
+        if self.is_ergodic:
 
             ev = self.__eigenvalues_sorted[::-1]
 

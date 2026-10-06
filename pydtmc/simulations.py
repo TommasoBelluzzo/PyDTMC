@@ -72,6 +72,7 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
         path = _np.full((f, n), -1, dtype=int)
 
         for i in range(1, f + 1):
+
             im1 = i - 1
             omega_prev = omega[im1, :]
             symbol = pv_symbols[im1]

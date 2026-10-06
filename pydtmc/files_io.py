@@ -22,7 +22,7 @@ import csv as _csv
 import io as _io
 import json as _json
 import xml.etree as _xmle
-import xml.etree.ElementTree as _xmlet
+import xml.etree.ElementTree as _xmle_ElementTree
 
 try:
     from defusedxml.ElementTree import parse as _xml_parse
@@ -428,11 +428,11 @@ def write_xml(mc: bool, d: _tobj_dict, file_path: _tpath):
     valid_params_keys = tuple((_valid_params_mc if mc else _valid_params_hmm).keys())
     root_tag = 'MarkovChain' if mc else 'HiddenMarkovModel'
 
-    root = _xmlet.Element(root_tag)
+    root = _xmle_ElementTree.Element(root_tag)
 
     for key, value in d.items():
 
-        item = _xmlet.SubElement(root, 'Item')
+        item = _xmle_ElementTree.SubElement(root, 'Item')
 
         for index, attribute in enumerate(key):
             item.set(valid_params_keys[index], attribute)
