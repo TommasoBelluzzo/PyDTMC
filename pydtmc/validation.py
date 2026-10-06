@@ -114,9 +114,9 @@ def _validate_limits(value: _tscalar, value_type: str, lower_limit: _olimit_scal
 
     if lower_limit is not None:
 
-        lower_limit_value, lower_limit_included = lower_limit
+        lower_limit_value, lower_limit_excluded = lower_limit
 
-        if lower_limit_included:
+        if lower_limit_excluded:
             if value <= lower_limit_value:
                 raise ValueError(f'The "@arg@" parameter must be greater than {_get_limit_text(value_type, lower_limit_value)}.')
         else:
@@ -125,9 +125,9 @@ def _validate_limits(value: _tscalar, value_type: str, lower_limit: _olimit_scal
 
     if upper_limit is not None:
 
-        upper_limit_value, upper_limit_included = upper_limit
+        upper_limit_value, upper_limit_excluded = upper_limit
 
-        if upper_limit_included:
+        if upper_limit_excluded:
             if value >= upper_limit_value:
                 raise ValueError(f'The "@arg@" parameter must be less than {_get_limit_text(value_type, upper_limit_value)}.')
         else:

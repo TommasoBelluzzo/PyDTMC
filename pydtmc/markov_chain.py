@@ -516,23 +516,28 @@ class MarkovChain(_Model):
 
         """
         | A property representing the entropy rate of the Markov chain.
-        | If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
+        | If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:class:`None` is returned.
         """
 
         if len(self.pi) > 1:
             h = None
         else:
 
-            pi = self.pi[0]
-            h = 0.0
+            p = self.__p
 
-            for i in range(self.__size):
-                pi_i = pi[i]
-                for j in range(self.__size):
-                    if self.__p[i, j] > 0.0:
-                        h += pi_i * self.__p[i, j] * _np.log(self.__p[i, j])
+            positive_mask = p > 0.0
+            contributions = _np.zeros_like(p)
 
-            h = h if _np.isclose(h, 0.0) else -h
+            _np.log(p, out=contributions, where=positive_mask)
+            contributions *= p
+
+            h = -_np.dot(self.pi[0], _np.sum(contributions, axis=1))
+
+            if (-100.0 * _np.finfo(float).eps) < h < 0.0:
+                h = 0.0
+
+            if not _np.isfinite(h) or (h < 0.0):
+                h = None
 
         return h
 
@@ -562,19 +567,18 @@ class MarkovChain(_Model):
 
         """
         | A property representing the fundamental matrix of the Markov chain.
-        | If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        | If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        if not self.is_absorbing or len(self.transient_states) == 0:
+        if not self.is_irreducible:
             fm = None
         else:
 
-            indices = self.__transient_states_indices
+            i = _np.eye(self.__size)
+            a = i - self.__p
+            a += self.pi[0]
 
-            q = self.__p[_np.ix_(indices, indices)]
-            i = _np.eye(len(indices))
-
-            fm = _npl.inv(i - q)
+            fm = _npl.solve(a, i)
 
         return fm
 
@@ -793,18 +797,20 @@ class MarkovChain(_Model):
     def kemeny_constant(self) -> _ofloat:
 
         """
-        | A property representing the Kemeny's constant of the fundamental matrix of the Markov chain.
-        | If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        | A property representing Kemeny's constant of the Markov chain.
+        | If the Markov chain is not **irreducible** or the value cannot be computed, then :py:class:`None` is returned.
         """
 
         fm = self.fundamental_matrix
 
         if fm is None:
             kc = None
-        elif fm.size == 1:
-            kc = fm[0].item()
         else:
-            kc = _np.trace(fm).item()
+
+            kc = float(_np.trace(fm)) - 1.0
+
+            if not _np.isfinite(kc):
+                kc = None
 
         return kc
 
@@ -842,6 +848,44 @@ class MarkovChain(_Model):
         """
 
         return self.__size
+
+    @_cached_property
+    def occupation_matrix(self) -> _oarray:
+
+        """
+        | A property representing the occupation matrix of the Markov chain.
+        | If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        """
+
+        if (not self.is_absorbing) or (len(self.transient_states) == 0):
+            om = None
+        else:
+
+            indices = self.__transient_states_indices
+
+            q = self.__p[_np.ix_(indices, indices)]
+            i = _np.eye(len(indices))
+
+            om = _npl.solve(i - q, i)
+
+        return om
+
+    @_cached_property
+    def occupation_trace(self) -> _ofloat:
+
+        """
+        | A property representing the trace of the occupation matrix of the Markov chain.
+        | If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        """
+
+        om = self.occupation_matrix
+
+        if om is None:
+            kc = None
+        else:
+            kc = float(_np.trace(om))
+
+        return kc
 
     @property
     def p(self) -> _tarray:
@@ -2141,13 +2185,14 @@ class MarkovChain(_Model):
 
         return mc
 
-    def transition_probability(self, state_target: _tstate, state_origin: _tstate) -> float:
+    def transition_probability(self, state_target: _tstate, state_origin: _tstate, steps: int = 1) -> float:
 
         """
         The method computes the probability of a given state, conditioned on the process being at a given state.
 
         :param state_target: the target state.
         :param state_origin: the origin state.
+        :param steps: the number of steps.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2155,11 +2200,13 @@ class MarkovChain(_Model):
 
             state_target = _validate_label(state_target, self.__states)
             state_origin = _validate_label(state_origin, self.__states)
+            steps = _validate_integer(steps, lower_limit=(1, False))
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = self.__p[state_origin, state_target]
+        p = self.__p if steps == 1 else _npl.matrix_power(self.__p, steps)
+        value = float(p[state_origin, state_target])
 
         return value
 

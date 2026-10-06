@@ -165,7 +165,7 @@ def test_entropy(p, entropy_rate, entropy_rate_normalized, topological_entropy):
     actual = mc.entropy_rate
     expected = entropy_rate
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         assert _np.isclose(actual, expected)
     else:
         assert actual == expected
@@ -173,7 +173,7 @@ def test_entropy(p, entropy_rate, entropy_rate_normalized, topological_entropy):
     actual = mc.entropy_rate_normalized
     expected = entropy_rate_normalized
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         assert _np.isclose(actual, expected)
     else:
         assert actual == expected
@@ -191,18 +191,22 @@ def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
     actual = mc.fundamental_matrix
     expected = fundamental_matrix
 
-    if actual is not None and expected is not None:
-        expected = _np.array(expected)
-        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    if (actual is not None) and (expected is not None):
+        assert mc.is_irreducible
+        _npt.assert_allclose(actual, _np.array(expected), rtol=1e-5, atol=1e-8)
     else:
+        if actual is not None:
+            print('FM', _np.round(actual, 7))
         assert actual == expected
 
     actual = mc.kemeny_constant
     expected = kemeny_constant
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
+        assert mc.is_irreducible
         assert _np.isclose(actual, expected)
     else:
+        print('KC', actual)
         assert actual == expected
 
 
@@ -254,6 +258,29 @@ def test_matrix(p, determinant, rank):
     expected = rank
 
     assert actual == expected
+
+
+def test_occupation_matrix(p, occupation_matrix, occupation_trace):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.occupation_matrix
+    expected = occupation_matrix
+
+    if (actual is not None) and (expected is not None):
+        assert mc.is_absorbing
+        _npt.assert_allclose(actual, _np.array(expected), rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+    actual = mc.occupation_trace
+    expected = occupation_trace
+
+    if (actual is not None) and (expected is not None):
+        assert mc.is_absorbing
+        assert _np.isclose(actual, expected)
+    else:
+        assert actual == expected
 
 
 def test_periodicity(p, period):
@@ -339,13 +366,17 @@ def test_transitions(p):
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-    for index1, state1 in enumerate(states):
-        for index2, state2 in enumerate(states):
+    for steps in [1, 2, 3]:
 
-            actual = mc.transition_probability(state1, state2)
-            expected = transition_matrix[index2, index1]
+        transition_matrix = _npl.matrix_power(mc.p, steps)
 
-            assert _np.isclose(actual, expected)
+        for index1, state1 in enumerate(states):
+            for index2, state2 in enumerate(states):
+
+                actual = mc.transition_probability(state1, state2, steps)
+                expected = transition_matrix[index2, index1]
+
+                assert _np.isclose(actual, expected)
 
 
 # noinspection DuplicatedCode
@@ -356,7 +387,7 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     actual = mc.mixing_rate
     expected = mixing_rate
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         assert _np.isclose(actual, expected)
     else:
         assert actual == expected
@@ -364,7 +395,7 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     actual = mc.relaxation_rate
     expected = relaxation_rate
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         assert _np.isclose(actual, expected)
     else:
         assert actual == expected
@@ -372,7 +403,7 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     actual = mc.spectral_gap
     expected = spectral_gap
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         assert _np.isclose(actual, expected)
     else:
         assert actual == expected
@@ -380,7 +411,7 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     actual = mc.implied_timescales
     expected = implied_timescales
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:

@@ -116,16 +116,16 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
 def mc_absorption_probabilities(mc: _tmc) -> _oarray:
 
-    if not mc.is_absorbing or len(mc.transient_states) == 0:
+    if (not mc.is_absorbing) or (len(mc.transient_states) == 0):
         return None
 
-    p, states, n = mc.p, mc.states, mc.fundamental_matrix
+    p, states, om = mc.p, mc.states, mc.occupation_matrix
 
     absorbing_indices = [states.index(state) for state in mc.absorbing_states]
     transient_indices = [states.index(state) for state in mc.transient_states]
     r = p[_np.ix_(transient_indices, absorbing_indices)]
 
-    ap = _np.transpose(_np.matmul(n, r))
+    ap = _np.transpose(_np.matmul(om, r))
 
     return ap
 
@@ -322,8 +322,8 @@ def mc_mean_absorption_times(mc: _tmc) -> _oarray:
     if not mc.is_absorbing or len(mc.transient_states) == 0:
         return None
 
-    n = mc.fundamental_matrix
-    mat = _np.transpose(_np.dot(n, _np.ones(n.shape[0], dtype=float)))
+    om = mc.occupation_matrix
+    mat = _np.transpose(_np.dot(om, _np.ones(om.shape[0], dtype=float)))
 
     return mat
 
