@@ -137,6 +137,26 @@ def test_connectivity(p, density):
     assert _np.isclose(actual, expected)
 
 
+def test_contraction_coefficients(p, dobrushin_coefficient, doeblin_coefficient):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.dobrushin_coefficient
+    expected = dobrushin_coefficient
+
+    assert _np.isclose(actual, expected)
+
+    actual = mc.doeblin_coefficient
+    expected = doeblin_coefficient
+
+    assert _np.isclose(actual, expected)
+
+    r1 = dobrushin_coefficient <= (1.0 - doeblin_coefficient)
+    r2 = _np.isclose(dobrushin_coefficient, 1.0 - doeblin_coefficient)
+
+    assert r1 or r2
+
+
 # noinspection DuplicatedCode
 def test_entropy(p, entropy_rate, entropy_rate_normalized, topological_entropy):
 

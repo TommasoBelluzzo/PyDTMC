@@ -485,6 +485,32 @@ class MarkovChain(_Model):
         return d
 
     @_cached_property
+    def dobrushin_coefficient(self) -> float:
+
+        """
+        A property representing the Dobrushin contraction coefficient of the Markov chain.
+        """
+
+        dc = 0.0
+
+        for i in range(self.__size - 1):
+            distances = 0.5 * _np.sum(_np.abs(self.__p[i + 1:, :] - self.__p[i, :]), axis=1)
+            dc = max(dc, float(_np.max(distances)))
+
+        return dc
+
+    @_cached_property
+    def doeblin_coefficient(self) -> float:
+
+        """
+        A property representing the Doeblin contraction coefficient of the Markov chain.
+        """
+
+        dc = float(_np.sum(_np.min(self.__p, axis=0)))
+
+        return dc
+
+    @_cached_property
     def entropy_rate(self) -> _ofloat:
 
         """

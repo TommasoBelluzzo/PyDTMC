@@ -219,7 +219,7 @@ def pytest_configure(config):
         # Failure is intentionally ignored.
         pass
 
-    _np.set_printoptions(floatmode='fixed', precision=8)
+    _np.set_printoptions(floatmode='fixed', precision=8, threshold=_np.inf, linewidth=300)
 
 
 def pytest_generate_tests(metafunc):
@@ -265,3 +265,9 @@ def pytest_unconfigure():
 
     if 'precision' in _numpy_formatting_options:
         _np.set_printoptions(precision=_numpy_formatting_options['precision'])
+
+    if 'threshold' in _numpy_formatting_options:
+        _np.set_printoptions(threshold=_numpy_formatting_options['threshold'])
+
+    if 'linewidth' in _numpy_formatting_options:
+        _np.set_printoptions(linewidth=_numpy_formatting_options['linewidth'])

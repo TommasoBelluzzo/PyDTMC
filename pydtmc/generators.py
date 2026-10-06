@@ -286,21 +286,64 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
 
         z = 0
 
-        while _np.amax(_np.abs(kappa - theta)) > 1e-8 and z < 1000:
+        while (_np.amax(_np.abs(kappa - theta)) > 1e-8) and (z < 1000):
             kappa = (kappa + theta) / 2.0
             theta = _np.dot(kappa, ci_q)
             z += 1
 
         return theta
 
+    def _build_pair_candidates(bpc_q, bpc_pi):
+
+        worklist = [_np.arange(bpc_q.shape[0])]
+        pair_candidates = []
+
+        while len(worklist) > 0:
+
+            indices = worklist.pop(0)
+
+            if indices.size <= 1:
+                continue
+
+            if indices.size == 2:
+                pair_candidates.append(_np.sort(indices))
+                continue
+
+            p_sub = bpc_q[_np.ix_(indices, indices)]
+            pi_sub = _np.diag(bpc_pi[indices])
+
+            ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
+
+            evalues, evectors = _npl.eig(ar)
+            index = _np.argsort(_np.abs(evalues))[-2]
+
+            evector = _np.real(evectors[:, index])
+
+            positions = evector >= 0.0
+
+            if _np.all(positions) or not _np.any(positions):
+                indices_order = _np.argsort(evector)
+                positions = _np.zeros(indices.size, dtype=bool)
+                positions[indices_order[:indices.size // 2]] = True
+
+            worklist.append(indices[positions])
+            worklist.append(indices[~positions])
+
+        return pair_candidates
+
     # noinspection DuplicatedCode
-    def _calculate_q(cq_p, cq_pi, cq_phi, cq_eta, cq_index):
+    def _calculate_q(cq_p, cq_pi, cq_eta, cq_vi0, cq_vi1):
 
         cq_pi = _np.diag(cq_pi)
 
-        vi = _np.ravel(_np.argwhere(cq_phi[:, cq_index] == 1.0))
-        vi0, vi1 = vi[0], vi[1]
-        phi_i = _np.hstack((cq_eta[:, :vi0], _np.amax(_np.take(cq_eta, vi, 1), axis=1, keepdims=True), cq_eta[:, (vi0 + 1):vi1], cq_eta[:, (vi1 + 1):]))
+        merged = _np.maximum(cq_eta[:, cq_vi0], cq_eta[:, cq_vi1])[:, _np.newaxis]
+
+        phi_i = _np.hstack((
+            cq_eta[:, :cq_vi0],
+            merged,
+            cq_eta[:, (cq_vi0 + 1):cq_vi1],
+            cq_eta[:, (cq_vi1 + 1):]
+        ))
 
         z = phi_i.shape[1]
 
@@ -317,46 +360,6 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
 
         return q_value, phi_i
 
-    # noinspection DuplicatedCode
-    # noinspection DuplicatedCode
-    def _update_bipartition_candidates(cbc_q, cbc_pi, cbc_phi):
-
-        sizes = _np.sum(cbc_phi, axis=0)
-        split_indices = _np.ravel(_np.argwhere(sizes > 2.0))
-        split_index = split_indices[-1]
-
-        v = cbc_phi[:, split_index]
-
-        indices = v > 0.0
-        p_sub = cbc_q[_np.ix_(indices, indices)]
-        pi_sub = _np.diag(cbc_pi[indices])
-
-        ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
-
-        evalues, evectors = _npl.eig(ar)
-        index = _np.argsort(_np.abs(evalues))[-2]
-
-        evector = evectors[:, index]
-        evector = _np.transpose(evector[_np.newaxis, :])
-
-        vt = _np.transpose(v[_np.newaxis, :])
-
-        v1 = _np.copy(vt)
-        v1[indices] = evector >= 0.0
-
-        v2 = _np.copy(vt)
-        v2[indices] = evector < 0.0
-
-        cbc_phi = _np.hstack((cbc_phi[:, :split_index], cbc_phi[:, (split_index + 1):]))
-
-        if _np.sum(v1) > 1.0:
-            cbc_phi = _np.hstack((cbc_phi, v1))
-
-        if _np.sum(v2) > 1.0:
-            cbc_phi = _np.hstack((cbc_phi, v2))
-
-        return cbc_phi
-
     q = _np.copy(p)
     k = q.shape[0]
     eta = _np.eye(k)
@@ -364,21 +367,23 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
     for i in range(k - s):
 
         q_pi = pi if i == 0 else _calculate_invariant(q)
-        phi = _np.ones((q.shape[0], 1), dtype=float)
-
-        while _np.any(_np.sum(phi, axis=0) > 2.0):
-            phi = _update_bipartition_candidates(q, q_pi, phi)
+        pairs = _build_pair_candidates(q, q_pi)
 
         u = []
 
-        for j in range(phi.shape[1]):
-            q_j, phi_j = _calculate_q(p, pi, phi, eta, j)
+        for vi in pairs:
+
+            vi0, vi1 = vi[0], vi[1]
+
+            q_j, phi_j = _calculate_q(p, pi, eta, vi0, vi1)
             r_j = _kullback_leibler_divergence(p, pi, phi_j, q_j)
+
             u.append((r_j, q_j, phi_j))
 
-        _, q, eta = sorted(u, key=lambda x: x[0], reverse=True).pop()
+        _, q, eta = min(u, key=lambda x: x[0])
 
     q /= _np.sum(q, axis=1, keepdims=True)
+
     states = [f'ASTD{i:d}' for i in range(1, q.shape[0] + 1)]
 
     return q, states, None
