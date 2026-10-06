@@ -614,21 +614,21 @@ def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
     return p_adjusted, state_names, None
 
 
-def mc_canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _tlist_int) -> _tmc_generation:
+def mc_canonical(p: _tarray, recurrent_classes_indices: _tlists_int, transient_indices: _tlist_int) -> _tmc_generation:
 
     p = _np.copy(p)
 
-    if len(recurrent_indices) == 0 or len(transient_indices) == 0:
-        return p, None, None
-
-    is_canonical = max(transient_indices) < min(recurrent_indices)
-
-    if is_canonical:
-        return p, None, None
+    recurrent_indices = [
+        index
+        for recurrent_class in recurrent_classes_indices
+        for index in recurrent_class
+    ]
 
     indices = transient_indices + recurrent_indices
 
-    p = p[_np.ix_(indices, indices)]
+    if indices != list(range(p.shape[0])):
+        p = p[_np.ix_(indices, indices)]
+
     state_names = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
 
     return p, state_names, None

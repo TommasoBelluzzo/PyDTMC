@@ -704,13 +704,15 @@ class MarkovChain(_Model):
         A property indicating whether the Markov chain has a canonical form.
         """
 
-        recurrent_indices = self.__recurrent_states_indices
         transient_indices = self.__transient_states_indices
 
-        if len(recurrent_indices) == 0 or len(transient_indices) == 0:
-            result = True
-        else:
-            result = max(transient_indices) < min(recurrent_indices)
+        if transient_indices != list(range(len(transient_indices))):
+            return False
+
+        recurrent_classes = sorted(self.__recurrent_classes_indices, key=lambda x: x[0])
+        recurrent_indices = list(_it.chain.from_iterable(recurrent_classes))
+
+        result = recurrent_indices == list(range(len(transient_indices), self.__size))
 
         return result
 
@@ -1107,7 +1109,7 @@ class MarkovChain(_Model):
     def absorption_probabilities(self) -> _oarray:
 
         """
-        The method computes the absorption probabilities of the Markov chain.
+        The method computes the absorption probabilities of the Markov chain into its recurrent classes.
 
         | **Notes:**
 
@@ -1657,11 +1659,12 @@ class MarkovChain(_Model):
     def mean_first_passage_times_between(self, origins: _tstates, targets: _tstates) -> _ofloat:
 
         """
-        The method computes the mean first passage times between the given subsets of the state space.
+        The method computes the mean first passage time between the given subsets of the state space.
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - The origin states are weighted according to the stationary distribution conditioned on the origin set.
         - The method can be accessed through the following aliases: **mfpt_between**, **mfptb**.
 
         :param origins: the origin states.
@@ -1689,7 +1692,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **mfpt_to**, **mfptt**.
 
         :param targets: the target states (*if omitted, all the states are targeted*).
@@ -2090,11 +2093,20 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
+        - Transient states are placed first, followed by the recurrent classes.
+        - States belonging to the same recurrent class are kept contiguous.
         - The method can be accessed through the following aliases: **to_canonical**.
         """
 
-        p, _, _ = _canonical(self.__p, self.__recurrent_states_indices, self.__transient_states_indices)
-        states = [*map(self.__states.__getitem__, self.__transient_states_indices + self.__recurrent_states_indices)]
+        p, _, error_message = _canonical(self.__p, self.__recurrent_classes_indices, self.__transient_states_indices)
+
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
+
+        recurrent_indices = list(_it.chain.from_iterable(self.__recurrent_classes_indices))
+        indices = self.__transient_states_indices + recurrent_indices
+        states = [*map(self.__states.__getitem__, indices)]
+
         mc = MarkovChain(p, states)
 
         return mc

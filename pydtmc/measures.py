@@ -117,16 +117,24 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
 def mc_absorption_probabilities(mc: _tmc) -> _oarray:
 
-    if (not mc.is_absorbing) or (len(mc.transient_states) == 0):
+    if len(mc.transient_states) == 0:
         return None
 
     p, states, om = mc.p, mc.states, mc.occupation_matrix
 
-    absorbing_indices = [states.index(state) for state in mc.absorbing_states]
     transient_indices = [states.index(state) for state in mc.transient_states]
-    r = p[_np.ix_(transient_indices, absorbing_indices)]
 
-    ap = _np.transpose(_np.matmul(om, r))
+    ap = _np.zeros(
+        (len(mc.recurrent_classes), len(transient_indices)),
+        dtype=float
+    )
+
+    for i, recurrent_class in enumerate(mc.recurrent_classes):
+
+        recurrent_indices = [states.index(state) for state in recurrent_class]
+        r = p[_np.ix_(transient_indices, recurrent_indices)]
+
+        ap[i, :] = _np.dot(om, _np.sum(r, axis=1))
 
     return ap
 
@@ -331,7 +339,7 @@ def mc_mean_absorption_times(mc: _tmc) -> _oarray:
 
 def mc_mean_first_passage_times_between(mc: _tmc, origins: _tlist_int, targets: _tlist_int) -> _oarray:
 
-    if not mc.is_ergodic:
+    if not mc.is_irreducible:
         return None
 
     pi = mc.pi[0]
@@ -348,33 +356,23 @@ def mc_mean_first_passage_times_between(mc: _tmc, origins: _tlist_int, targets: 
 
 def mc_mean_first_passage_times_to(mc: _tmc, targets: _olist_int) -> _oarray:
 
-    if not mc.is_ergodic:
+    if not mc.is_irreducible:
         return None
+
+    if targets is not None:
+        return mc_hitting_times(mc, targets)
 
     p, size, pi = mc.p, mc.size, mc.pi[0]
 
-    if targets is None:
+    a = _np.tile(pi, (size, 1))
+    i = _np.eye(size)
+    z = _npl.inv(i - p + a)
 
-        a = _np.tile(pi, (size, 1))
-        i = _np.eye(size)
-        z = _npl.inv(i - p + a)
+    e = _np.ones((size, size), dtype=float)
+    k = _np.dot(e, _np.diag(_np.diag(z)))
 
-        e = _np.ones((size, size), dtype=float)
-        k = _np.dot(e, _np.diag(_np.diag(z)))
-
-        mfptt = _np.dot(i - z + k, _np.diag(1.0 / _np.diag(a)))
-        _np.fill_diagonal(mfptt, 0.0)
-
-    else:
-
-        a = _np.eye(size) - p
-        a[targets, :] = 0.0
-        a[targets, targets] = 1.0
-
-        b = _np.ones(size, dtype=float)
-        b[targets] = 0.0
-
-        mfptt = _npl.solve(a, b)
+    mfptt = _np.dot(i - z + k, _np.diag(1.0 / _np.diag(a)))
+    _np.fill_diagonal(mfptt, 0.0)
 
     return mfptt
 

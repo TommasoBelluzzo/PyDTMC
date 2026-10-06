@@ -94,22 +94,22 @@
       {
         "origins": 0,
         "targets": 1,
-        "value": null
+        "value": 1.0
       },
       {
         "origins": 1,
         "targets": 0,
-        "value": null
+        "value": 1.0
       }
     ],
     "mean_first_passage_times_to_data": [
       {
         "targets": null,
-        "value": null
+        "value": [[0.0, 1.0], [1.0, 0.0]]
       },
       {
         "targets": 0,
-        "value": null
+        "value": [0.0, 1.0]
       }
     ],
     "mixing_time_data": [
@@ -1601,7 +1601,7 @@
         "sequence1": [5, 4, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         "sequence2": [2, 3, 2, 3, 2, 3, 2, 3, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         "time_points": [1, 2, 10, 25, 50, 100, 1000],
-        "value": [1.0, 1.0, "Infinity", "Infinity", "Infinity", "Infinity"]
+        "value": null
       }
     ],
     "time_relaxations_data": [

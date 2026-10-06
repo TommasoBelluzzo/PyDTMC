@@ -958,7 +958,7 @@
       "density": 0.53333333,
       "rank": 6,
       "is_absorbing": false,
-      "is_canonical": true,
+      "is_canonical": false,
       "is_doubly_stochastic": false,
       "is_ergodic": false,
       "is_reversible": false,

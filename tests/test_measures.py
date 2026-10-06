@@ -163,6 +163,7 @@ def test_mean_first_passage_times_to(p, targets, value):
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     else:
+        print(actual)
         assert actual == expected
 
 
