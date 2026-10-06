@@ -32,6 +32,7 @@ Instance Methods
 		mean_recurrence_times,
 		merge_with,
 		mixing_time,
+		mixing_time_from,
 		next,
 		predict,
 		redistribute,

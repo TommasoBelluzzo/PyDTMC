@@ -16,6 +16,7 @@ __all__ = [
     'mc_mean_number_visits',
     'mc_mean_recurrence_times',
     'mc_mixing_time',
+    'mc_mixing_time_from',
     'mc_sensitivity',
     'mc_time_correlations',
     'mc_time_relaxations'
@@ -466,28 +467,50 @@ def mc_mean_recurrence_times(mc: _tmc) -> _oarray:
     return mrt
 
 
-def mc_mixing_time(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: float) -> _oint:
+def mc_mixing_time(mc: _tmc, cutoff: float, maximum_iterations: int) -> _oint:
+
+    if not mc.is_ergodic:
+        return None
+
+    p, pi = mc.p, mc.pi[0]
+    pt = _np.copy(p)
+
+    for t in range(1, maximum_iterations + 1):
+
+        distances = 0.5 * _np.sum(_np.abs(pt - pi), axis=1)
+
+        if _np.max(distances) <= cutoff:
+            return t
+
+        pt = pt.dot(p)
+
+    return None
+
+
+def mc_mixing_time_from(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: float, maximum_iterations: int) -> _oint:
 
     if not mc.is_ergodic:
         return None
 
     p, pi = mc.p, mc.pi[0]
 
+    if jump > 1:
+        p = _npl.matrix_power(p, jump)
+
+    d = initial_distribution.dot(p)
+
+    tvd, mt = 1.0, 0
     iterations = 0
 
-    tvd = 1.0
-    d = initial_distribution.dot(p)
-    mt = 0
-
-    while iterations < 100 and tvd > cutoff:
+    while (iterations < maximum_iterations) and (tvd > cutoff):
 
         iterations += 1
 
-        tvd = _np.sum(_np.abs(d - pi))
+        tvd = 0.5 * _np.sum(_np.abs(d - pi))
         d = d.dot(p)
         mt += jump
 
-    if iterations == 100:  # pragma: no cover
+    if tvd > cutoff:  # pragma: no cover
         return None
 
     return mt

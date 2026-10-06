@@ -195,8 +195,6 @@ def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
         assert mc.is_irreducible
         _npt.assert_allclose(actual, _np.array(expected), rtol=1e-5, atol=1e-8)
     else:
-        if actual is not None:
-            print('FM', _np.round(actual, 7))
         assert actual == expected
 
     actual = mc.kemeny_constant
@@ -206,7 +204,6 @@ def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
         assert mc.is_irreducible
         assert _np.isclose(actual, expected)
     else:
-        print('KC', actual)
         assert actual == expected
 
 

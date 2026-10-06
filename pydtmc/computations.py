@@ -31,6 +31,10 @@ import scipy.stats as _sps
 
 # Internal
 
+from .constants import (
+    FTOL as _FTOL
+)
+
 from .custom_types import (
     ofloat as _ofloat,
     tarray as _tarray,
@@ -340,9 +344,9 @@ def rdl_decomposition(p: _tarray) -> _trdl:
 def slem(m: _tarray) -> _ofloat:
 
     ev = eigenvalues_sorted(m)
-    value = ev[~_np.isclose(ev, 1.0)][-1]
+    value = float(ev[-2])
 
-    if _np.isclose(value, 0.0):
-        return None
+    if value <= _FTOL:
+        value = 0.0
 
     return value

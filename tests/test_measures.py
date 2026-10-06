@@ -218,11 +218,21 @@ def test_mean_recurrence_times(p, mean_recurrence_times):
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-def test_mixing_time(p, initial_distribution, jump, cutoff_type, value):
+def test_mixing_time(p, cutoff, value):
 
     mc = _MarkovChain(p)
 
-    actual = mc.mixing_time(initial_distribution, jump, cutoff_type)
+    actual = mc.mixing_time(cutoff, 100)
+    expected = value
+
+    assert actual == expected
+
+
+def test_mixing_time_from(p, initial_distribution, jump, cutoff, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.mixing_time_from(initial_distribution, jump, cutoff, 100)
     expected = value
 
     assert actual == expected

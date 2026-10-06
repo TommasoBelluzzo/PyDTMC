@@ -24,6 +24,10 @@ import numpy.linalg as _npl
 
 # Internal
 
+from .constants import (
+    FTOL as _FTOL
+)
+
 from .base_classes import (
     Model as _Model
 )
@@ -139,6 +143,7 @@ from .measures import (
     mc_mean_number_visits as _mean_number_visits,
     mc_mean_recurrence_times as _mean_recurrence_times,
     mc_mixing_time as _mixing_time,
+    mc_mixing_time_from as _mixing_time_from,
     mc_sensitivity as _sensitivity,
     mc_time_correlations as _time_correlations,
     mc_time_relaxations as _time_relaxations
@@ -343,7 +348,7 @@ class MarkovChain(_Model):
     @_cached_property
     def __slem(self) -> _ofloat:
 
-        if not self.is_ergodic:
+        if not self.is_irreducible:
             value = None
         else:
             value = _slem(self.__p)
@@ -533,7 +538,7 @@ class MarkovChain(_Model):
 
             h = -_np.dot(self.pi[0], _np.sum(contributions, axis=1))
 
-            if (-100.0 * _np.finfo(_np.float64).eps) < h < 0.0:  # pylint: disable=no-member
+            if -_FTOL < h < 0.0:
                 h = 0.0
 
             if not _np.isfinite(h) or (h < 0.0):
@@ -553,12 +558,15 @@ class MarkovChain(_Model):
 
         if h is None:
             hn = None
-        elif _np.isclose(h, 0.0):
-            hn = 0.0
         else:
-            ev = _eigenvalues_sorted(self.adjacency_matrix)
-            hn = h / _np.log(ev[-1])
-            hn = min(1.0, max(0.0, hn))
+
+            ht = self.topological_entropy
+
+            if (h <= _FTOL) or (ht <= _FTOL):
+                hn = 0.0
+            else:
+                hn = h / ht
+                hn = min(1.0, max(0.0, hn))
 
         return hn
 
@@ -587,17 +595,27 @@ class MarkovChain(_Model):
 
         """
         | A property representing the implied timescales of the Markov chain.
-        | If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        | If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        it = None
-
-        if self.is_ergodic:
+        if not self.is_irreducible:
+            it = None
+        else:
 
             ev = self.__eigenvalues_sorted[::-1]
 
-            with _np.errstate(divide='ignore'):
-                it = _np.append(_np.inf, -1.0 / _np.log(ev[1:]))
+            remaining = ev[1:]
+            timescales = _np.empty_like(remaining, dtype=float)
+
+            infinite_mask = remaining >= (1.0 - _FTOL)
+            zero_mask = remaining <= _FTOL
+            finite_mask = ~(infinite_mask | zero_mask)
+
+            timescales[infinite_mask] = _np.inf
+            timescales[zero_mask] = 0.0
+            timescales[finite_mask] = -1.0 / _np.log(remaining[finite_mask])
+
+            it = _np.append(_np.inf, timescales)
 
         return it
 
@@ -830,13 +848,19 @@ class MarkovChain(_Model):
 
         """
         | A property representing the mixing rate of the Markov chain.
-        | If the Markov chain is not **ergodic** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
+        | If the Markov chain is not **irreducible** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
-        if self.__slem is None:
+        slem = self.__slem
+
+        if slem is None:
             mr = None
+        elif slem <= _FTOL:
+            mr = 0.0
+        elif slem >= (1.0 - _FTOL):
+            mr = _np.inf
         else:
-            mr = -1.0 / _np.log(self.__slem)
+            mr = -1.0 / _np.log(slem)
 
         return mr
 
@@ -988,13 +1012,17 @@ class MarkovChain(_Model):
 
         """
         | A property representing the relaxation rate of the Markov chain.
-        | If the Markov chain is not **ergodic** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
+        | If the Markov chain is not **irreducible** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
-        if self.__slem is None:
+        sg = self.spectral_gap
+
+        if sg is None:
             rr = None
+        elif sg <= _FTOL:
+            rr = _np.inf
         else:
-            rr = 1.0 / self.spectral_gap
+            rr = 1.0 / sg
 
         return rr
 
@@ -1012,13 +1040,19 @@ class MarkovChain(_Model):
 
         """
         | A property representing the spectral gap of the Markov chain.
-        | If the Markov chain is not **ergodic** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
+        | If the Markov chain is not **irreducible** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
-        if self.__slem is None:
+        slem = self.__slem
+
+        if slem is None:
             sg = None
         else:
-            sg = 1.0 - self.__slem
+
+            sg = 1.0 - slem
+
+            if -_FTOL < sg < 0.0:
+                sg = 0.0
 
         return sg
 
@@ -1039,9 +1073,12 @@ class MarkovChain(_Model):
         """
 
         ev = _eigenvalues_sorted(self.adjacency_matrix)
-        te = _np.log(ev[-1])
+        ht = float(_np.log(ev[-1]))
 
-        return te
+        if ht < _FTOL:  # pylint: disable=no-member
+            ht = 0.0
+
+        return ht
 
     @_cached_property
     def transient_classes(self) -> _tlists_str:
@@ -1740,35 +1777,62 @@ class MarkovChain(_Model):
         return mc
 
     @_object_mark(aliases=['mt'])
-    def mixing_time(self, initial_distribution: _onumeric = None, jump: int = 1, cutoff_type: str = 'natural') -> _oint:
+    def mixing_time(self, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
 
         """
-        The method computes the mixing time of the Markov chain, given the initial distribution of the states.
+        The method computes the mixing time of the Markov chain.
 
         | **Notes:**
 
         - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **mt**.
 
+        :param cutoff: the total variation distance threshold.
+        :param maximum_iterations: the maximum number of iterations.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            cutoff = _validate_float(cutoff, lower_limit=(0.0, True), upper_limit=(0.5, False))
+            maximum_iterations = _validate_integer(maximum_iterations, lower_limit=(10, False))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        value = _mixing_time(self, cutoff, maximum_iterations)
+
+        return value
+
+    @_object_mark(aliases=['mtf'])
+    def mixing_time_from(self, initial_distribution: _onumeric = None, jump: int = 1, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
+
+        """
+        The method computes the mixing time of the Markov chain from a given initial distribution.
+
+        | **Notes:**
+
+        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **mtf**.
+
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param jump: the number of steps in each iteration.
-        :param cutoff_type:
-         - **natural** for the natural cutoff;
-         - **traditional** for the traditional cutoff.
+        :param cutoff: the total variation distance threshold.
+        :param maximum_iterations: the maximum number of iterations.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
             initial_distribution = _np.full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
-            jump = _validate_integer(jump, lower_limit=(0, True))
-            cutoff_type = _validate_enumerator(cutoff_type, ['natural', 'traditional'])
+            jump = _validate_integer(jump, lower_limit=(1, False))
+            cutoff = _validate_float(cutoff, lower_limit=(0.0, True), upper_limit=(0.5, False))
+            maximum_iterations = _validate_integer(maximum_iterations, lower_limit=(10, False))
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        cutoff = 0.25 if cutoff_type == 'traditional' else 1.0 / (2.0 * _np.exp(1.0))
-        value = _mixing_time(self, initial_distribution, jump, cutoff)
+        value = _mixing_time_from(self, initial_distribution, jump, cutoff, maximum_iterations)
 
         return value
 

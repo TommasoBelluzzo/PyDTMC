@@ -114,15 +114,21 @@
     ],
     "mixing_time_data": [
       {
+        "cutoff": 0.25,
+        "value": null
+      }
+    ],
+    "mixing_time_from_data": [
+      {
         "initial_distribution": null,
         "jump": 1,
-        "cutoff_type": "natural",
+        "cutoff": 0.25,
         "value": null
       },
       {
         "initial_distribution": [0.2, 0.8],
         "jump": 3,
-        "cutoff_type": "natural",
+        "cutoff": 0.25,
         "value": null
       }
     ],
@@ -284,15 +290,29 @@
     ],
     "mixing_time_data": [
       {
+        "cutoff": 0.1,
+        "value": 1
+      },
+      {
+        "cutoff": 0.25,
+        "value": 1
+      },
+      {
+        "cutoff": 0.4,
+        "value": 1
+      }
+    ],
+    "mixing_time_from_data": [
+      {
         "initial_distribution": null,
         "jump": 8,
-        "cutoff_type": "natural",
+        "cutoff": 0.13,
         "value": 8
       },
       {
         "initial_distribution": [0.5, 0.5],
         "jump": 1,
-        "cutoff_type": "natural",
+        "cutoff": 0.22,
         "value": 1
       }
     ],
@@ -454,15 +474,21 @@
     ],
     "mixing_time_data": [
       {
+        "cutoff": 0.25,
+        "value": null
+      }
+    ],
+    "mixing_time_from_data": [
+      {
         "initial_distribution": null,
         "jump": 5,
-        "cutoff_type": "natural",
+        "cutoff": 0.25,
         "value": null
       },
       {
         "initial_distribution": [0.3, 0.2, 0.5],
         "jump": 1,
-        "cutoff_type": "natural",
+        "cutoff": 0.25,
         "value": null
       }
     ],
@@ -624,15 +650,29 @@
     ],
     "mixing_time_data": [
       {
+        "cutoff": 0.05,
+        "value": 3
+      },
+      {
+        "cutoff": 0.1,
+        "value": 2
+      },
+      {
+        "cutoff": 0.25,
+        "value": 1
+      }
+    ],
+    "mixing_time_from_data": [
+      {
         "initial_distribution": null,
         "jump": 3,
-        "cutoff_type": "natural",
+        "cutoff": 0.1,
         "value": 3
       },
       {
         "initial_distribution": [0.05, 0.90, 0.05],
         "jump": 1,
-        "cutoff_type": "traditional",
+        "cutoff": 0.15,
         "value": 2
       }
     ],
@@ -794,16 +834,26 @@
     ],
     "mixing_time_data": [
       {
+        "cutoff": 0.1,
+        "value": 2
+      },
+      {
+        "cutoff": 0.35,
+        "value": 1
+      }
+    ],
+    "mixing_time_from_data": [
+      {
         "initial_distribution": null,
         "jump": 1,
-        "cutoff_type": "natural",
+        "cutoff": 0.25,
         "value": 1
       },
       {
         "initial_distribution": [0.3, 0.6, 0.1],
         "jump": 5,
-        "cutoff_type": "natural",
-        "value": 10
+        "cutoff": 0.2,
+        "value": 5
       }
     ],
     "sensitivity_data": [
@@ -964,15 +1014,21 @@
     ],
     "mixing_time_data": [
       {
+        "cutoff": 0.25,
+        "value": null
+      }
+    ],
+    "mixing_time_from_data": [
+      {
         "initial_distribution": null,
         "jump": 4,
-        "cutoff_type": "natural",
+        "cutoff": 0.25,
         "value": null
       },
       {
         "initial_distribution": [0.1, 0.6, 0.1, 0.2],
         "jump": 2,
-        "cutoff_type": "traditional",
+        "cutoff": 0.25,
         "value": null
       }
     ],
@@ -1134,15 +1190,29 @@
     ],
     "mixing_time_data": [
       {
+        "cutoff": 0.01,
+        "value": 5
+      },
+      {
+        "cutoff": 0.2,
+        "value": 2
+      },
+      {
+        "cutoff": 0.45,
+        "value": 1
+      }
+    ],
+    "mixing_time_from_data": [
+      {
         "initial_distribution": null,
         "jump": 1,
-        "cutoff_type": "natural",
+        "cutoff": 0.15,
         "value": 1
       },
       {
         "initial_distribution": [0.4, 0.3, 0.0, 0.3],
         "jump": 1,
-        "cutoff_type": "traditional",
+        "cutoff": 0.2,
         "value": 1
       }
     ],
@@ -1304,16 +1374,34 @@
     ],
     "mixing_time_data": [
       {
+        "cutoff": 0.05,
+        "value": 15
+      },
+      {
+        "cutoff": 0.1,
+        "value": 12
+      },
+      {
+        "cutoff": 0.15,
+        "value": 9
+      },
+      {
+        "cutoff": 0.3,
+        "value": 6
+      }
+    ],
+    "mixing_time_from_data": [
+      {
         "initial_distribution": null,
         "jump": 2,
-        "cutoff_type": "natural",
+        "cutoff": 0.15,
         "value": 2
       },
       {
         "initial_distribution": [0.1, 0.4, 0.1, 0.2, 0.2],
         "jump": 4,
-        "cutoff_type": "natural",
-        "value": 16
+        "cutoff": 0.15,
+        "value": 4
       }
     ],
     "sensitivity_data": [
@@ -1474,15 +1562,21 @@
     ],
     "mixing_time_data": [
       {
+        "cutoff": 0.25,
+        "value": null
+      }
+    ],
+    "mixing_time_from_data": [
+      {
         "initial_distribution": null,
         "jump": 3,
-        "cutoff_type": "natural",
+        "cutoff": 0.25,
         "value": null
       },
       {
         "initial_distribution": [0.05, 0.05, 0.10, 0.20, 0.20, 0.40],
         "jump": 1,
-        "cutoff_type": "natural",
+        "cutoff": 0.25,
         "value": null
       }
     ],
@@ -1644,15 +1738,21 @@
     ],
     "mixing_time_data": [
       {
+        "cutoff": 0.25,
+        "value": null
+      }
+    ],
+    "mixing_time_from_data": [
+      {
         "initial_distribution": null,
         "jump": 2,
-        "cutoff_type": "natural",
+        "cutoff": 0.25,
         "value": null
       },
       {
         "initial_distribution": [0.05, 0.05, 0.40, 0.30, 0.10, 0.10],
         "jump": 5,
-        "cutoff_type": "traditional",
+        "cutoff": 0.25,
         "value": null
       }
     ],
