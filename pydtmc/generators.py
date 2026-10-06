@@ -10,6 +10,7 @@ __all__ = [
     'mc_birth_death',
     'mc_bounded',
     'mc_canonical',
+    'mc_censor',
     'mc_closest_reversible',
     'mc_dirichlet_process',
     'mc_gamblers_ruin',
@@ -627,6 +628,29 @@ def mc_canonical(p: _tarray, recurrent_indices: _tlist_int, transient_indices: _
     state_names = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
 
     return p, state_names, None
+
+
+def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _tmc_generation:
+
+    size = p.shape[0]
+    removed_states = [i for i in range(size) if i not in retained_states]
+
+    p_aa = p[_np.ix_(retained_states, retained_states)]
+    p_ab = p[_np.ix_(retained_states, removed_states)]
+    p_ba = p[_np.ix_(removed_states, retained_states)]
+    p_bb = p[_np.ix_(removed_states, removed_states)]
+
+    i = _np.eye(len(removed_states), dtype=float)
+
+    try:
+        x = _npl.solve(i - p_bb, p_ba)
+    except _npl.LinAlgError:  # pragma: no cover
+        return None, None, 'The Markov chain cannot be censored because the stochastic complement is not defined for the given states.'
+
+    p_censored = p_aa + _np.dot(p_ab, x)
+    state_names = [*map(states.__getitem__, retained_states)]
+
+    return p_censored, state_names, None
 
 
 def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tmc_generation:

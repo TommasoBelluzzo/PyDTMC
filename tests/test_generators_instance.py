@@ -26,7 +26,7 @@ def test_aggregate(p, method, s, value):
 
     mc = _MarkovChain(p)
 
-    if mc.size == 2 or not mc.is_ergodic:
+    if (mc.size == 2) or (not mc.is_ergodic):
         _pt.skip('The Markov chain cannot be aggregated.')
 
     mc_aggregated = mc.aggregate(s, method)
@@ -61,6 +61,25 @@ def test_canonical(p, canonical_form):
         expected = _np.array(canonical_form)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_censor(p, states, value):
+
+    mc = _MarkovChain(p)
+
+    if value is None:
+
+        with _pt.raises(ValueError):
+            mc.censor(states)
+
+    else:
+
+        mc_censored = mc.censor(states)
+
+        actual = mc_censored.p
+        expected = _np.array(value)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_lazy(p, inertial_weights, value):

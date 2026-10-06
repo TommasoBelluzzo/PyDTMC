@@ -112,6 +112,7 @@ from .generators import (
     mc_birth_death as _birth_death,
     mc_bounded as _bounded,
     mc_canonical as _canonical,
+    mc_censor as _censor,
     mc_closest_reversible as _closest_reversible,
     mc_dirichlet_process as _dirichlet_process,
     mc_gamblers_ruin as _gamblers_ruin,
@@ -1107,6 +1108,36 @@ class MarkovChain(_Model):
         result = a1 and a2
 
         return result
+
+    @_object_mark(instance_generator=True)
+    def censor(self, states: _tstates) -> _tmc:
+
+        """
+        The method returns the Markov chain censored to the given states.
+
+        :param states: the states to retain in the censored Markov chain.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the censored Markov chain cannot be computed.
+        """
+
+        try:
+
+            states = _validate_labels_current(states, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if len(states) < 2:  # pragma: no cover
+            raise _ValidationError('At least two states must be retained.')
+
+        p, states_out, error_message = _censor(self.__p, self.__states, states)
+
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
+
+        mc = MarkovChain(p, states_out)
+
+        return mc
 
     @_object_mark(instance_generator=True)
     def closest_reversible(self, initial_distribution: _onumeric = None, weighted: bool = False) -> _tmc:
