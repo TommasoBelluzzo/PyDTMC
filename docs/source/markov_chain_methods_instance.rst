@@ -9,6 +9,7 @@ Instance Methods
 		absorption_probabilities,
 		aggregate,
 		are_communicating,
+		censor,
 		closest_reversible,
 		committor_probabilities,
 		conditional_probabilities,

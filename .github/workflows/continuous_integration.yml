@@ -19,21 +19,18 @@ jobs:
     - name: Repository Checkout
       uses: actions/checkout@v7
     - name: Python Setup
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Python Cache
-      id: cache
-      uses: actions/cache@v6
-      with:
-        path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-CI-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
+        cache: pip
+        cache-dependency-path: |
+          requirements.txt
+          setup.cfg
     - name: Dependencies Installation
-      if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        pip install --quiet --upgrade pip
-        pip install --quiet --upgrade -r requirements.txt
-        pip install --quiet --upgrade -e ".[lint,docs,package,build,tests]"
+        python -m pip install --quiet --upgrade pip
+        python -m pip install --quiet --upgrade -r requirements.txt
+        python -m pip install --quiet --upgrade -e ".[lint,docs,package,build,tests]"
     - name: Libraries Installation
       shell: bash
       run: |
@@ -61,11 +58,11 @@ jobs:
         make -C docs/ coverage SPHINX_OPTS=-an
     - name: Build
       run: |
-        python setup.py sdist bdist_wheel
+        python -m build
     - name: Testing & Coverage
       env:
         COVERALLS_SERVICE_NAME: github-actions
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
       run: |
-        pytest --capture=no --benchmark-skip --cov=pydtmc tests/
-        coveralls
+        python -m pytest --capture=no --benchmark-skip --cov=pydtmc tests/
+        python -m coveralls
