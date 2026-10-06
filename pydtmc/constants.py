@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'ETOL',
     'FTOL'
 ]
 
@@ -18,4 +19,7 @@ import numpy as _np
 # VARIABLES #
 #############
 
-FTOL = 100.0 * _np.finfo(_np.float64).eps  # pylint: disable=no-member
+EPS = _np.finfo(_np.float64).eps  # pylint: disable=no-member
+
+ETOL = _np.sqrt(EPS)
+FTOL = 100.0 * EPS

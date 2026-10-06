@@ -25,6 +25,7 @@ import numpy.linalg as _npl
 # Internal
 
 from .constants import (
+    ETOL as _ETOL,
     FTOL as _FTOL
 )
 
@@ -607,8 +608,8 @@ class MarkovChain(_Model):
             remaining = ev[1:]
             timescales = _np.empty_like(remaining, dtype=float)
 
-            infinite_mask = remaining >= (1.0 - _FTOL)
-            zero_mask = remaining <= _FTOL
+            infinite_mask = remaining >= (1.0 - _ETOL)
+            zero_mask = remaining <= _ETOL
             finite_mask = ~(infinite_mask | zero_mask)
 
             timescales[infinite_mask] = _np.inf
@@ -681,12 +682,20 @@ class MarkovChain(_Model):
 
     @_cached_property
     def is_aperiodic(self) -> bool:
+
         """
         A property indicating whether the Markov chain is aperiodic.
         """
+
         if self.is_irreducible:
             return set(self.periods).pop() == 1
-        return all(period == 1 for period in self.periods)
+
+        recurrent_periods = [
+            self.periods[self.communicating_classes.index(recurrent_class)]
+            for recurrent_class in self.recurrent_classes
+        ]
+
+        return all(period == 1 for period in recurrent_periods)
 
     @_cached_property
     def is_canonical(self) -> bool:
@@ -745,15 +754,7 @@ class MarkovChain(_Model):
         A property indicating whether the Markov chain is regular.
         """
 
-        d = _np.diag(self.__p)
-        nz = _np.count_nonzero(d)
-
-        if nz > 0:
-            k = (2 * self.__size) - nz - 1
-        else:
-            k = self.__size**self.__size - (2 * self.__size) + 2
-
-        result = _np.all(_npl.matrix_power(self.__p, k) > 0.0)
+        result = self.is_irreducible and self.is_aperiodic
 
         return result
 
@@ -764,16 +765,17 @@ class MarkovChain(_Model):
         A property indicating whether the Markov chain is reversible.
         """
 
-        # noinspection PyTypeChecker
-        if len(self.pi) > 1:
-            return False
+        for indices in self.__recurrent_classes_indices:
 
-        pi = self.pi[0]
-        x = pi[:, _np.newaxis] * self.__p
+            p = self.__p[_np.ix_(indices, indices)]
+            pi = _gth_solve(p)
 
-        result = _np.allclose(x, _np.transpose(x))
+            flow = pi[:, _np.newaxis] * p
 
-        return result
+            if _np.max(_np.abs(flow - _np.transpose(flow))) > _ETOL:
+                return False
+
+        return True
 
     @_cached_property
     @_object_mark(aliases=['is_monotone'])
@@ -1246,22 +1248,15 @@ class MarkovChain(_Model):
 
         zeros = len(initial_distribution) - _np.count_nonzero(initial_distribution)
 
-        if weighted and zeros > 0:  # pragma: no cover
+        if weighted and (zeros > 0):  # pragma: no cover
             raise _ValidationError('If the weighted Frobenius norm is used, the initial distribution must not contain null probabilities.')
 
-        if self.is_reversible:
-            p = _np.copy(self.__p)
-        else:
+        p, _, error_message = _closest_reversible(self.__p, initial_distribution, weighted)
 
-            p, _, error_message = _closest_reversible(self.__p, initial_distribution, weighted)
-
-            if error_message is not None:  # pragma: no cover
-                raise ValueError(error_message)
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
 
         mc = MarkovChain(p, self.__states)
-
-        if not mc.is_reversible:  # pragma: no cover
-            raise ValueError('The closest reversible could not be computed.')
 
         return mc
 
@@ -1737,7 +1732,6 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **mrt**.
         """
 

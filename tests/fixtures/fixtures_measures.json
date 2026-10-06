@@ -173,7 +173,7 @@
     "absorption_probabilities": null,
     "mean_absorption_times": null,
     "mean_number_visits": [["Infinity", "Infinity"], ["Infinity", "Infinity"]],
-    "mean_recurrence_times": null
+    "mean_recurrence_times": [2.0, 2.0]
   },
   {
     "id": "#2",
@@ -533,7 +533,7 @@
     "absorption_probabilities": null,
     "mean_absorption_times": null,
     "mean_number_visits": [["Infinity", 0.0, 0.0], [0.0, "Infinity", 0.0], [0.0, 0.0, "Infinity"]],
-    "mean_recurrence_times": null
+    "mean_recurrence_times": [1.0, 1.0, 1.0]
   },
   {
     "id": "#4",
@@ -1073,7 +1073,7 @@
     "absorption_probabilities": [[0.66666667, 0.33333333], [0.33333333, 0.66666667]],
     "mean_absorption_times": [2.0, 2.0],
     "mean_number_visits": [["Infinity", 0.0, 0.0, 0.0], ["Infinity", 0.33333333, 0.66666667, "Infinity"], ["Infinity", 0.66666667, 0.33333333, "Infinity"], [0.0, 0.0, 0.0, "Infinity"]],
-    "mean_recurrence_times": null
+    "mean_recurrence_times": [1.0, "Infinity", "Infinity", 1.0]
   },
   {
     "id": "#7",
@@ -1601,7 +1601,7 @@
         "sequence1": [5, 4, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         "sequence2": [2, 3, 2, 3, 2, 3, 2, 3, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         "time_points": [1, 2, 10, 25, 50, 100, 1000],
-        "value": null
+        "value": [1.0, 1.0, "Infinity", "Infinity", "Infinity", "Infinity"]
       }
     ],
     "time_relaxations_data": [
@@ -1621,7 +1621,7 @@
     "absorption_probabilities": [[0.92417062, 0.81042654, 0.63981043, 0.38388626], [0.07582938, 0.18957346, 0.36018957, 0.61611374]],
     "mean_absorption_times": [3.10426540, 5.26066351, 5.99526066, 4.59715640],
     "mean_number_visits": [["Infinity", 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, "Infinity", 0.0, 0.0, 0.0, 0.0], ["Infinity", "Infinity", 0.54028440, 0.90047390, 0.47393360, 0.18957350], ["Infinity", "Infinity", 1.3507109, 1.25118483, 1.18483412, 0.47393365], ["Infinity", "Infinity", 1.06635071, 1.77725118, 1.25118483, 0.90047393], ["Infinity", "Infinity", 0.63981043, 1.06635071, 1.35071090, 0.54028436]],
-    "mean_recurrence_times": null
+    "mean_recurrence_times": [1.0, 1.0, "Infinity", "Infinity", "Infinity", "Infinity"]
   },
   {
     "id": "#10",
@@ -1797,6 +1797,6 @@
     "absorption_probabilities": [[0.92417100, 0.81042700, 0.63981000, 0.38388600], [0.07582900, 0.18957300, 0.36019000, 0.61611400]],
     "mean_absorption_times": [3.10426500, 5.26066400, 5.99526100, 4.59715600],
     "mean_number_visits": [["Infinity", 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, "Infinity", 0.0, 0.0, 0.0, 0.0], ["Infinity", "Infinity", 0.54028440, 0.90047390, 0.47393360, 0.18957350], ["Infinity", "Infinity", 1.35071090, 1.25118483, 1.18483412, 0.47393365], ["Infinity", "Infinity", 1.06635071, 1.77725118, 1.25118483, 0.90047393], ["Infinity", "Infinity", 0.63981043, 1.06635071, 1.35071090, 0.54028436]],
-    "mean_recurrence_times": null
+    "mean_recurrence_times": [1.0, 1.0, "Infinity", "Infinity", "Infinity", "Infinity"]
   }
 ]

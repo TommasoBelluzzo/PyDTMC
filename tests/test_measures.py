@@ -29,7 +29,7 @@ def test_absorption_probabilities(p, absorption_probabilities):
     actual = mc.absorption_probabilities()
     expected = absorption_probabilities
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
@@ -43,7 +43,7 @@ def test_committor_probabilities(p, states1, states2, value_backward, value_forw
     actual = mc.committor_probabilities('backward', states1, states2)
     expected = value_backward
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
@@ -52,7 +52,7 @@ def test_committor_probabilities(p, states1, states2, value_backward, value_forw
     actual = mc.committor_probabilities('forward', states1, states2)
     expected = value_forward
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
@@ -138,7 +138,7 @@ def test_mean_first_passage_times_between(p, origins, targets, value):
     actual = mc.mean_first_passage_times_between(origins, targets)
     expected = value
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
@@ -152,7 +152,7 @@ def test_mean_first_passage_times_to(p, targets, value):
     actual = mc.mean_first_passage_times_to(targets)
     expected = value
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
 
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -173,7 +173,7 @@ def test_mean_absorption_times(p, mean_absorption_times):
     actual = mc.mean_absorption_times()
     expected = mean_absorption_times
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
@@ -204,10 +204,11 @@ def test_mean_recurrence_times(p, mean_recurrence_times):
     actual = mc.mean_recurrence_times()
     expected = mean_recurrence_times
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
+        print(actual)
         assert actual == expected
 
     if mc.is_ergodic:
@@ -245,7 +246,7 @@ def test_sensitivity(p, state, value):
     actual = mc.sensitivity(state)
     expected = value
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
@@ -259,7 +260,7 @@ def test_time_correlations(p, sequence1, sequence2, time_points, value):
     actual = _np.array(mc.time_correlations(sequence1, sequence2, time_points))
     expected = value
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
@@ -273,7 +274,7 @@ def test_time_relaxations(p, sequence, initial_distribution, time_points, value)
     actual = _np.array(mc.time_relaxations(sequence, initial_distribution, time_points))
     expected = value
 
-    if actual is not None and expected is not None:
+    if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:

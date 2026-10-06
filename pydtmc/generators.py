@@ -41,6 +41,10 @@ from .computations import (
     kullback_leibler_divergence as _kullback_leibler_divergence
 )
 
+from .constants import (
+    ETOL as _ETOL
+)
+
 from .custom_types import (
     ofloat as _ofloat,
     tarray as _tarray,
@@ -655,6 +659,13 @@ def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _t
 
 def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tmc_generation:
 
+    def _is_reversible_with(irw_p, irw_d):
+
+        flow = irw_d[:, _np.newaxis] * irw_p
+        result = _np.max(_np.abs(flow - _np.transpose(flow))) <= _ETOL
+
+        return result
+
     def _jacobian(xj, hj, fj):
 
         output = _np.dot(_np.transpose(xj), hj) + fj
@@ -669,6 +680,11 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
 
     size = p.shape[0]
     size_m1 = size - 1
+
+    state_names = [f'{i:d}' for i in range(1, size + 1)]
+
+    if _is_reversible_with(p, initial_distribution):
+        return _np.copy(p), state_names, None
 
     zeros = len(initial_distribution) - _np.count_nonzero(initial_distribution)
 
@@ -730,8 +746,8 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
             f[i] = -2.0 * _np.trace(_np.dot(z, _np.transpose(p)))
 
             for j in range(m):
-                bv_j = basis_vectors[j]
 
+                bv_j = basis_vectors[j]
                 tau = 2.0 * _np.trace(_np.dot(_np.transpose(z), bv_j))
                 h[i, j] = tau
                 h[j, i] = tau
@@ -744,8 +760,8 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
             f[i] = -2.0 * _np.trace(_np.dot(_np.transpose(bv_i), p))
 
             for j in range(m):
-                bv_j = basis_vectors[j]
 
+                bv_j = basis_vectors[j]
                 tau = 2.0 * _np.trace(_np.dot(_np.transpose(bv_i), bv_j))
                 h[i, j] = tau
                 h[j, i] = tau
@@ -760,12 +776,14 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
         k = 0
 
         for r in range(size_m1):
+
             r_eq_i = r == i
             dr = initial_distribution[r]
             drc = -1.0 + dr
             dr_zero = dr == 0.0
 
             for s in range(r + 1, size):
+
                 s_eq_i = s == i
                 ds = initial_distribution[s]
                 dsc = -1.0 + ds
@@ -805,7 +823,14 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
     )
 
     # noinspection PyTypeChecker
-    solution = _spo.minimize(_objective, x0, jac=_jacobian, args=(h, f), constraints=constraints, method='SLSQP', options={'disp': False})
+    solution = _spo.minimize(
+        _objective, x0,
+        args=(h, f),
+        jac=_jacobian,
+        constraints=constraints,
+        method='SLSQP',
+        options={'disp': False}
+    )
 
     if not solution['success']:  # pragma: no cover
         return None, None, 'The closest reversible could not be computed.'
@@ -819,7 +844,8 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
     p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)
 
-    state_names = [f'{i:d}' for i in range(1, size + 1)]
+    if not _is_reversible_with(p, initial_distribution):  # pragma: no cover
+        return None, None, 'The closest reversible could not be computed.'
 
     return p, state_names, None
 

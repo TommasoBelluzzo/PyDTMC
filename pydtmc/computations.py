@@ -118,11 +118,7 @@ def calculate_periods(graph: _tgraph) -> _tlist_int:
             scc_reachable = scc_reachable.union(spl)
 
         index = indices.index(sorted(scc))
-
-        if (scc_reachable - scc) == set():
-            periods[index] = _calculate_period(graph.subgraph(scc))
-        else:
-            periods[index] = 1
+        periods[index] = _calculate_period(graph.subgraph(scc))
 
     return periods
 

@@ -46,14 +46,10 @@ def test_closest_reversible(p, distribution, weighted, value):
     mc = _MarkovChain(p)
     cr = mc.closest_reversible(distribution, weighted)
 
-    if mc.is_reversible:
-        actual = cr.p
-        expected = mc.p
-    else:
-        actual = cr.p
-        expected = _np.array(value)
+    actual = cr.p
+    expected = _np.array(value)
 
-    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-5)
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_dirichlet_process(seed, size, diffusion_factor, diagonal_bias_factor, shift_concentration, value):

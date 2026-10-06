@@ -457,12 +457,11 @@ def mc_mean_number_visits(mc: _tmc) -> _oarray:
 
 def mc_mean_recurrence_times(mc: _tmc) -> _oarray:
 
-    if not mc.is_ergodic:
-        return None
+    mrt = _np.full(mc.size, _np.inf, dtype=float)
 
-    pi = mc.pi[0]
-
-    mrt = _np.array([0.0 if _np.isclose(v, 0.0) else 1.0 / v for v in pi])
+    for pi in mc.pi:
+        mask = pi > 0.0
+        mrt[mask] = 1.0 / pi[mask]
 
     return mrt
 

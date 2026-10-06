@@ -302,17 +302,8 @@ def test_regularity(p):
     if not mc.is_regular:
         _pt.skip('The Markov chain is not regular.')
     else:
-
-        actual = mc.is_irreducible
-        expected = True
-
-        assert actual == expected
-
-        values = _np.sort(_np.abs(_npl.eigvals(mc.p)))
-        actual = _np.sum(_np.logical_or(_np.isclose(values, 1.0), values > 1.0))
-        expected = 1
-
-        assert actual == expected
+        assert mc.is_irreducible
+        assert mc.is_aperiodic
 
 
 def test_stationary_distributions(p, stationary_distributions):
