@@ -686,6 +686,18 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
     if _is_reversible_with(p, initial_distribution):
         return _np.copy(p), state_names, None
 
+    support = _np.flatnonzero(initial_distribution)
+
+    if (not weighted) and (support.size == 1):
+
+        index = support[0]
+
+        pcr = _np.copy(p)
+        pcr[index, :] = 0.0
+        pcr[index, index] = 1.0
+
+        return pcr, state_names, None
+
     zeros = len(initial_distribution) - _np.count_nonzero(initial_distribution)
 
     m = int(((size_m1 * size) / 2) + (((zeros - 1) * zeros) / 2) + 1)
@@ -835,19 +847,19 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
     if not solution['success']:  # pragma: no cover
         return None, None, 'The closest reversible could not be computed.'
 
-    p = _np.zeros((size, size), dtype=float)
+    pcr = _np.zeros((size, size), dtype=float)
     solution = solution['x']
 
     for i in range(m):
-        p += solution[i] * basis_vectors[i]
+        pcr += solution[i] * basis_vectors[i]
 
-    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
-    p /= _np.sum(p, axis=1, keepdims=True)
+    pcr[_np.where(~pcr.any(axis=1)), :] = _np.ones(size, dtype=float)
+    pcr /= _np.sum(pcr, axis=1, keepdims=True)
 
-    if not _is_reversible_with(p, initial_distribution):  # pragma: no cover
+    if not _is_reversible_with(pcr, initial_distribution):  # pragma: no cover
         return None, None, 'The closest reversible could not be computed.'
 
-    return p, state_names, None
+    return pcr, state_names, None
 
 
 def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool) -> _tmc_generation:
