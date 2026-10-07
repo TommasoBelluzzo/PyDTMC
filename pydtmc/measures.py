@@ -35,6 +35,10 @@ import scipy.optimize as _spo
 
 # Internal
 
+from .constants import (
+    ETOL as _ETOL
+)
+
 from .custom_types import (
     oarray as _oarray,
     ohmm_decoding as _ohmm_decoding,
@@ -121,13 +125,9 @@ def mc_absorption_probabilities(mc: _tmc) -> _oarray:
         return None
 
     p, states, om = mc.p, mc.states, mc.occupation_matrix
-
     transient_indices = [states.index(state) for state in mc.transient_states]
 
-    ap = _np.zeros(
-        (len(mc.recurrent_classes), len(transient_indices)),
-        dtype=float
-    )
+    ap = _np.zeros((len(mc.recurrent_classes), len(transient_indices)), dtype=float)
 
     for i, recurrent_class in enumerate(mc.recurrent_classes):
 
@@ -141,30 +141,63 @@ def mc_absorption_probabilities(mc: _tmc) -> _oarray:
 
 def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_int, states2: _tlist_int) -> _oarray:
 
-    if not mc.is_ergodic:
-        return None
+    def _solve_committor_probabilities(scp_p, scp_size, scp_states1, scp_states2):
 
-    p, size, pi = mc.p, mc.size, mc.pi[0]
+        output = _np.zeros(scp_size, dtype=float)
+        output[scp_states2] = 1.0
 
-    if committor_type == 'backward':
-        a = _np.transpose(pi[:, _np.newaxis] * (p - _np.eye(size)))
+        excluded = set(scp_states1)
+        predecessors = [[] for _ in range(scp_size)]
+
+        for i in range(scp_size):
+
+            if i in excluded:
+                continue
+
+            for j in range(scp_size):
+                if j not in excluded and scp_p[i, j] > 0.0:
+                    predecessors[j].append(i)
+
+        reachable = set(scp_states2)
+        stack = list(scp_states2)
+
+        while stack:
+
+            j = stack.pop()
+
+            for i in predecessors[j]:
+                if i not in reachable:
+                    reachable.add(i)
+                    stack.append(i)
+
+        s = sorted(reachable.difference(scp_states1).difference(scp_states2))
+
+        if len(s) > 0:
+            a = _np.eye(len(s)) - scp_p[_np.ix_(s, s)]
+            b = _np.sum(scp_p[_np.ix_(s, scp_states2)], axis=1)
+            output[s] = _npl.solve(a, b)
+
+        output = _np.clip(output, 0.0, 1.0)
+        output[_np.isclose(output, 0.0, rtol=0.0, atol=_ETOL)] = 0.0
+        output[_np.isclose(output, 1.0, rtol=0.0, atol=_ETOL)] = 1.0
+
+        return output
+
+    p, size = mc.p, mc.size
+
+    if committor_type == 'forward':
+        cp = _solve_committor_probabilities(p, size, states1, states2)
     else:
-        a = p - _np.eye(size)
 
-    a[states1, :] = 0.0
-    a[states1, states1] = 1.0
-    a[states2, :] = 0.0
-    a[states2, states2] = 1.0
+        if not mc.is_irreducible:
+            return None
 
-    b = _np.zeros(size, dtype=float)
+        pi = mc.pi[0]
 
-    if committor_type == 'backward':
-        b[states1] = 1.0
-    else:
-        b[states2] = 1.0
+        p = _np.transpose(p) * pi[_np.newaxis, :]
+        p /= pi[:, _np.newaxis]
 
-    cp = _npl.solve(a, b)
-    cp[_np.isclose(cp, 0.0)] = 0.0
+        cp = _solve_committor_probabilities(p, size, states2, states1)
 
     return cp
 
@@ -280,16 +313,25 @@ def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
 
     p, size = mc.p, mc.size
 
-    target = _np.array(targets)
+    target = _np.array(targets, dtype=int)
     non_target = _np.setdiff1d(_np.arange(size, dtype=int), target)
 
-    hp = _np.ones(size, dtype=float)
+    hp = _np.zeros(size, dtype=float)
+    hp[target] = 1.0
 
-    if non_target.size > 0:
-        a = p[non_target, :][:, non_target] - _np.eye(non_target.size)
-        b = _np.sum(-p[non_target, :][:, target], axis=1)
-        x = _spo.nnls(a, b)[0]
-        hp[non_target] = x
+    if non_target.size == 0:
+        return hp
+
+    reachable = _np.any(mc.accessibility_matrix[:, target] != 0, axis=1)
+    solve = non_target[reachable[non_target]]
+
+    if solve.size > 0:
+        a = _np.eye(solve.size) - p[_np.ix_(solve, solve)]
+        b = _np.sum(p[_np.ix_(solve, target)], axis=1)
+        hp[solve] = _npl.solve(a, b)
+
+    hp[_np.isclose(hp, 0.0, rtol=0.0, atol=_ETOL)] = 0.0
+    hp[_np.isclose(hp, 1.0, rtol=0.0, atol=_ETOL)] = 1.0
 
     return hp
 
@@ -298,41 +340,32 @@ def mc_hitting_times(mc: _tmc, targets: _tlist_int) -> _tarray:
 
     p, size = mc.p, mc.size
 
-    target = _np.array(targets)
+    target = _np.array(targets, dtype=int)
+    non_target = _np.setdiff1d(_np.arange(size, dtype=int), target)
 
     hp = mc_hitting_probabilities(mc, targets)
     ht = _np.zeros(size, dtype=float)
 
-    infinity = _np.flatnonzero(_np.isclose(hp, 0.0))
-    current_size = infinity.size
-    new_size = 0
+    finite = non_target[_np.isclose(hp[non_target], 1.0, rtol=0.0, atol=_ETOL)]
+    non_finite = _np.setdiff1d(non_target, finite)
 
-    while current_size != new_size:
-        x = _np.flatnonzero(_np.sum(p[:, infinity], axis=1))
-        infinity = _np.setdiff1d(_np.union1d(infinity, x), target)
-        new_size = current_size
-        current_size = infinity.size
+    ht[non_finite] = _np.inf
 
-    ht[infinity] = _np.inf
-
-    solve = _np.setdiff1d(list(range(size)), _np.union1d(target, infinity))
-
-    if solve.size > 0:
-        a = p[solve, :][:, solve] - _np.eye(solve.size)
-        b = -_np.ones(solve.size, dtype=float)
-        x = _spo.nnls(a, b)[0]
-        ht[solve] = x
+    if finite.size > 0:
+        a = _np.eye(finite.size) - p[_np.ix_(finite, finite)]
+        b = _np.ones(finite.size, dtype=float)
+        ht[finite] = _npl.solve(a, b)
 
     return ht
 
 
 def mc_mean_absorption_times(mc: _tmc) -> _oarray:
 
-    if not mc.is_absorbing or len(mc.transient_states) == 0:
+    if len(mc.transient_states) == 0:
         return None
 
     om = mc.occupation_matrix
-    mat = _np.transpose(_np.dot(om, _np.ones(om.shape[0], dtype=float)))
+    mat = _np.dot(om, _np.ones(om.shape[0], dtype=float))
 
     return mat
 

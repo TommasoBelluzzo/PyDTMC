@@ -1270,7 +1270,9 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
+        - For the **backward** committor, the probability is 1 on **states1** and 0 on **states2**.
+        - For the **forward** committor, the probability is 0 on **states1** and 1 on **states2**.
+        - The backward committor is defined only for **irreducible** Markov chains; otherwise, :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **crp**.
 
         :param committor_type:
@@ -1454,10 +1456,11 @@ class MarkovChain(_Model):
     def hitting_probabilities(self, targets: _ostates = None) -> _tarray:
 
         """
-        The method computes the hitting probability, for the states of the Markov chain, to the given set of states.
+        The method computes the probabilities of ever hitting the given set of states from each state of the Markov chain.
 
         | **Notes:**
 
+        - Target states have hitting probability equal to 1.
         - The method can be accessed through the following aliases: **hp**.
 
         :param targets: the target states (*if omitted, all the states are targeted*).
@@ -1482,10 +1485,12 @@ class MarkovChain(_Model):
     def hitting_times(self, targets: _ostates = None) -> _tarray:
 
         """
-        The method computes the hitting times, for all the states of the Markov chain, to the given set of states.
+        The method computes the expected hitting times of the given set of states from each state of the Markov chain.
 
         | **Notes:**
 
+        - Target states have hitting time equal to 0.
+        - Infinite values are returned for states from which there is a positive probability of never reaching the target set.
         - The method can be accessed through the following aliases: **ht**.
 
         :param targets: the target states (*if omitted, all the states are targeted*).
@@ -1642,11 +1647,11 @@ class MarkovChain(_Model):
     def mean_absorption_times(self) -> _oarray:
 
         """
-        The method computes the mean absorption times of the Markov chain.
+        The method computes the mean times required for the transient states to first enter a recurrent class of the Markov chain.
 
         | **Notes:**
 
-        - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        - If the Markov chain has no transient states, then :py:class:`None` is returned.
         - The method can be accessed through the following aliases: **mat**.
         """
 
