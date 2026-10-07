@@ -961,6 +961,7 @@ class MarkovChain(_Model):
 
         """
         | A property representing the stationary distributions of the Markov chain.
+        | For a reducible Markov chain, one stationary distribution is returned for each recurrent class.
         | **Aliases:** stationary_distributions, steady_states
         """
 
