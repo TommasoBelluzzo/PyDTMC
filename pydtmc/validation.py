@@ -56,6 +56,10 @@ import numpy as _np
 
 # Internal
 
+from .constants import (
+    ETOL as _ETOL
+)
+
 from .custom_types import (
     oint as _oint,
     olimit_float as _olimit_float,
@@ -221,7 +225,7 @@ def validate_dictionary(value: _tany, attributes: _olist_str = None) -> _tmc_dic
 
         v = float(v)
 
-        if _np.isfinite(v) and _np.isreal(v) and 0.0 <= v <= 1.0:
+        if _np.isfinite(v) and (0.0 <= v <= 1.0):
             result[k] = v
         else:
             raise ValueError('The "@arg@" parameter values can contain only finite real numbers between 0.0 and 1.0.')
@@ -256,10 +260,10 @@ def validate_emission_matrix(value: _tany, size: int) -> _tarray:
     if value.ndim != 2 or value.shape[0] != size or value.shape[1] < 2:
         raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least 2 columns and {size:d} rows.')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for _, x in _np.ndenumerate(value)):
+    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
-    if not _np.allclose(_np.sum(value, axis=1), _np.ones(value.shape[0], dtype=float)):
+    if not _np.allclose(_np.sum(value, axis=1), 1.0, rtol=0.0, atol=_ETOL):
         raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
 
     return value
@@ -338,7 +342,7 @@ def validate_float(value: _tany, lower_limit: _olimit_float = None, upper_limit:
 
     value = float(value)
 
-    if not _np.isfinite(value) or not _np.isreal(value):
+    if not _np.isfinite(value):
         raise ValueError('The "@arg@" parameter be a finite real value.')
 
     _validate_limits(value, 'float', lower_limit, upper_limit)
@@ -446,7 +450,7 @@ def validate_hyperparameter(value: _tany, size: int) -> _tarray:
     if value.ndim != 2 or value.shape[0] != size or value.shape[1] != size:
         raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and _np.equal(_np.mod(x, 1.0), 0.0) and x >= 1.0 for _, x in _np.ndenumerate(value)):
+    if not _np.all(_np.isfinite(value) & (value >= 1.0) & (value == _np.floor(value))):
         raise ValueError('The "@arg@" parameter must contain only integers greater than or equal to 1.')
 
     return value
@@ -479,7 +483,7 @@ def validate_interval(value: _tany) -> _tinterval:
 
     a, b = float(a), float(b)
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and x >= 0.0 for x in [a, b]):
+    if not (_np.isfinite(a) and _np.isfinite(b) and (a >= 0.0) and (b >= 0.0)):
         raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')
 
     if a >= b:
@@ -659,10 +663,10 @@ def validate_mask(value: _tany, rows: int, columns: int) -> _tarray:
 
         raise ValueError(f'The "@arg@" parameter must be a 2d matrix with {rows:d} rows and {columns:d} columns.')
 
-    if not all(_np.isnan(x) or (_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0) for _, x in _np.ndenumerate(value)):
+    if not _np.all(_np.isnan(value) | (_np.isfinite(value) & (value >= 0.0) & (value <= 1.0))):
         raise ValueError('The "@arg@" parameter can contain only NaNs and finite real values between 0.0 and 1.0.')
 
-    if _np.any(_np.nansum(value, axis=1, dtype=float) > 1.0):
+    if not _np.all(_np.nansum(value, axis=1, dtype=float) <= 1.0):
         raise ValueError('The "@arg@" parameter row sums must not exceed 1.')
 
     return value
@@ -688,7 +692,7 @@ def validate_matrix(value: _tany, rows: _oint = None, columns: _oint = None) -> 
         if value.ndim != 2 or value.shape[0] != rows or value.shape[1] != columns:
             raise ValueError(f'The "@arg@" parameter must be a 2d matrix with {rows:d} rows and {columns:d} columns.')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and x >= 0.0 for _, x in _np.ndenumerate(value)):
+    if not _np.all(_np.isfinite(value) & (value >= 0.0)):
         raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')
 
     return value
@@ -849,7 +853,7 @@ def validate_rewards(value: _tany, size: int) -> _tarray:
     if value.size != size:
         raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) for _, x in _np.ndenumerate(value)):
+    if not _np.all(_np.isfinite(value)):
         raise ValueError('The "@arg@" parameter must contain only finite real values.')
 
     return value
@@ -962,10 +966,10 @@ def validate_status(value: _tany, labels: _tlist_str) -> _tarray:
     if value.size != size:
         raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for _, x in _np.ndenumerate(value)):
+    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
-    if not _np.isclose(_np.sum(value), 1.0):
+    if not _np.isclose(_np.sum(value), 1.0, rtol=0.0, atol=_ETOL):
         raise ValueError('The "@arg@" parameter values must sum to 1.0.')
 
     return value
@@ -1054,7 +1058,7 @@ def validate_transition_function(value: _tany) -> _ttfunc:
 
     result = float(result)
 
-    if not _np.isfinite(result) or not _np.isreal(result):
+    if not _np.isfinite(result):
         raise ValueError('The "@arg@" parameter behavior is not compliant.')
 
     return value
@@ -1068,16 +1072,16 @@ def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
-    if value.ndim != 2 or value.shape[0] != value.shape[1] or value.shape[0] < 2:
+    if (value.ndim != 2) or (value.shape[0] != value.shape[1]) or (value.shape[0] < 2):
         raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
 
-    if size is not None and value.shape[0] != size:
+    if (size is not None) and (value.shape[0] != size):
         raise ValueError(f'The "@arg@" parameter must have a size equal to {size:d}.')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for _, x in _np.ndenumerate(value)):
+    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
-    if not _np.allclose(_np.sum(value, axis=1), _np.ones(value.shape[0], dtype=float)):
+    if not _np.allclose(_np.sum(value, axis=1), 1.0, rtol=0.0, atol=_ETOL):
         raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
 
     return value
@@ -1102,7 +1106,7 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
         except Exception as ex:
             raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
-        if value.ndim > 2 or (value.ndim == 2 and value.shape[0] != 1) or (value.ndim == 1 and value.shape[0] == 0):
+        if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)) or ((value.ndim == 1) and (value.shape[0] == 0)):
             raise ValueError('The "@arg@" parameter must be a valid vector.')
 
         value = _np.ravel(value)
@@ -1110,16 +1114,16 @@ def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = No
         if size is not None and value.size != size:
             raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
 
-    if not all(_np.isfinite(x) and _np.isreal(x) and 0.0 <= x <= 1.0 for _, x in _np.ndenumerate(value)):
+    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
-    if vector_type == 'annihilation' and not _np.isclose(value[0], 0.0):
+    if (vector_type == 'annihilation') and (not _np.isclose(value[0], 0.0, rtol=0.0, atol=_ETOL)):
         raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the first index.')
 
-    if vector_type == 'creation' and not _np.isclose(value[-1], 0.0):
+    if (vector_type == 'creation') and (not _np.isclose(value[-1], 0.0, rtol=0.0, atol=_ETOL)):
         raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the last index.')
 
-    if vector_type == 'stochastic' and not _np.isclose(_np.sum(value), 1.0):
+    if (vector_type == 'stochastic') and (not _np.isclose(_np.sum(value), 1.0, rtol=0.0, atol=_ETOL)):
         raise ValueError('The "@arg@" parameter values must sum to 1.0.')
 
     return value

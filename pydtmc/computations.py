@@ -19,7 +19,7 @@ __all__ = [
 
 # Standard
 
-import itertools as _it
+import collections as _cl
 import math as _mt
 
 # Libraries
@@ -107,17 +107,12 @@ def calculate_periods(graph: _tgraph) -> _tlist_int:
     classes = [sorted(scc) for scc in sccs]
     indices = sorted(classes, key=lambda x: (-len(x), x[0]))
 
+    indices_map = {tuple(scc): index for index, scc in enumerate(indices)}
+
     periods = [0] * len(indices)
 
     for scc in sccs:
-
-        scc_reachable = scc.copy()
-
-        for c in scc_reachable:
-            spl = _nx.shortest_path_length(graph, c).keys()
-            scc_reachable = scc_reachable.union(spl)
-
-        index = indices.index(sorted(scc))
+        index = indices_map[tuple(sorted(scc))]
         periods[index] = _calculate_period(graph.subgraph(scc))
 
     return periods
@@ -170,47 +165,40 @@ def find_cyclic_classes(p: _tarray) -> _tlists_int:
     v = _np.zeros(size, dtype=int)
     v[0] = 1
 
-    w = _np.array([], dtype=int)
-    t = _np.array([0], dtype=int)
+    visited = _np.zeros(size, dtype=bool)
+    visited[0] = True
+
+    queue = _cl.deque([0])
 
     d = 0
-    m = 1
 
-    while (m > 0) and (d != 1):
+    while queue and d != 1:
 
-        i = t[0]
-        j = 0
-
-        t = _np.delete(t, 0)
-        w = _np.append(w, i)
+        i = queue.popleft()
         v_ip = v[i] + 1
 
-        while j < size:
+        for j in _np.flatnonzero(p[i, :] > 0.0):
 
-            if p[i, j] > 0.0:
+            if visited[j]:
 
-                r = _np.append(w, t)
-                k = _np.sum(r == j)
+                d = _mt.gcd(d, v_ip - v[j])
 
-                if k > 0:
-                    b = v_ip - v[j]
-                    d = _mt.gcd(d, b)
-                else:
-                    t = _np.append(t, j)
-                    v[j] = v_ip
+                if d == 1:
+                    break
 
-            j += 1
+            else:
 
-        m = t.size
+                visited[j] = True
+                v[j] = v_ip
+                queue.append(j)
 
     v = _np.remainder(v, d)
 
-    indices = [list(_it.chain.from_iterable(_np.argwhere(v == u))) for u in _np.unique(v)]
+    indices = [_np.flatnonzero(v == u).tolist() for u in _np.unique(v)]
 
     return indices
 
 
-# noinspection PyBroadException
 def find_lumping_partitions(p: _tarray) -> _tpartitions:
 
     size = p.shape[0]
@@ -221,7 +209,7 @@ def find_lumping_partitions(p: _tarray) -> _tpartitions:
     k = size - 1
     indices = list(range(size))
 
-    possible_partitions = []
+    partitions = []
 
     for i in range(2**k):
 
@@ -238,29 +226,25 @@ def find_lumping_partitions(p: _tarray) -> _tpartitions:
 
         partition_length = len(partition)
 
-        if 2 <= partition_length < size:
-            possible_partitions.append(partition)
-
-    partitions = []
-
-    for partition in possible_partitions:
-
-        r = _np.zeros((size, len(partition)), dtype=float)
-
-        for index, lumping in enumerate(partition):
-            for state in lumping:
-                r[state, index] = 1.0
-
-        rt = _np.transpose(r)
-
-        try:
-            k = _np.dot(_npl.inv(_np.dot(rt, r)), rt)
-        except Exception:  # pragma: no cover
+        if partition_length < 2 or partition_length >= size:
             continue
 
-        left = _np.dot(_np.dot(_np.dot(r, k), p), r)
-        right = _np.dot(p, r)
-        is_lumpable = _np.array_equal(left, right)
+        r = _np.zeros((size, partition_length), dtype=float)
+
+        for index, lumping in enumerate(partition):
+            r[lumping, index] = 1.0
+
+        pr = _np.dot(p, r)
+
+        is_lumpable = True
+
+        for lumping in partition:
+
+            reference = pr[lumping[0], :]
+
+            if not _np.all(pr[lumping, :] == reference):
+                is_lumpable = False
+                break
 
         if is_lumpable:
             partitions.append(partition)

@@ -279,7 +279,11 @@ class MarkovChain(_Model):
     @_cached_property
     def __absorbing_states_indices(self) -> _tlist_int:
 
-        indices = [index for index in range(self.__size) if _np.isclose(self.__p[index, index], 1.0)]
+        indices = [
+            index
+            for index in range(self.__size)
+            if _np.isclose(self.__p[index, index], 1.0, rtol=0.0, atol=_ETOL)
+        ]
 
         return indices
 
@@ -651,32 +655,14 @@ class MarkovChain(_Model):
         A property indicating whether the Markov chain is absorbing.
         """
 
-        if len(self.absorbing_states) == 0:
-            result = False
-        else:
+        if len(self.__absorbing_states_indices) == 0:
+            return False
 
-            indices = set(self.__states_indices)
-            absorbing_indices = set(self.__absorbing_states_indices)
-            transient_indices = set()
+        absorbing_states = [self.__states[index] for index in self.__absorbing_states_indices]
+        graph = self.__digraph.reverse(copy=False)
 
-            progress = True
-            unknown_states = None
-
-            while progress:
-
-                unknown_states = indices.copy() - absorbing_indices - transient_indices
-                known_states = absorbing_indices | transient_indices
-
-                progress = False
-
-                for i in unknown_states:
-                    for j in known_states:
-                        if self.__p[i, j] > 0.0:
-                            transient_indices.add(i)
-                            progress = True
-                            break
-
-            result = len(unknown_states) == 0
+        reachable = _nx.multi_source_dijkstra_path_length(graph, absorbing_states, weight=None)
+        result = len(reachable) == self.__size
 
         return result
 
@@ -723,7 +709,7 @@ class MarkovChain(_Model):
         A property indicating whether the Markov chain is doubly stochastic.
         """
 
-        result = _np.allclose(_np.sum(self.__p, axis=0), 1.0)
+        result = _np.allclose(_np.sum(self.__p, axis=0), 1.0, rtol=0.0, atol=_ETOL)
 
         return result
 
@@ -787,20 +773,8 @@ class MarkovChain(_Model):
         A property indicating whether the Markov chain is stochastically monotone.
         """
 
-        result = True
-
-        for m in range(1, self.__size):
-
-            sm = _np.sum(self.__p[:, m:], axis=1)
-
-            for k, l in zip(range(self.__size - 1), range(1, self.__size)):
-
-                sk = sm[k]
-                sl = sm[l]
-
-                if sl < sk:
-                    result = False
-                    break
+        cumulative = _np.cumsum(self.__p[:, ::-1], axis=1)[:, ::-1]
+        result = bool(_np.all(_np.diff(cumulative[:, 1:], axis=0) >= 0.0))
 
         return result
 
@@ -811,7 +785,7 @@ class MarkovChain(_Model):
         A property indicating whether the Markov chain is symmetric.
         """
 
-        result = _np.allclose(self.__p, _np.transpose(self.__p))
+        result = _np.allclose(self.__p, _np.transpose(self.__p), rtol=0.0, atol=_ETOL)
 
         return result
 
@@ -2549,7 +2523,7 @@ class MarkovChain(_Model):
         for (state_from, state_to), probability in d.items():
             p[states.index(state_from), states.index(state_to)] = probability
 
-        if not _np.allclose(_np.sum(p, axis=1), _np.ones(size, dtype=float)):  # pragma: no cover
+        if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.0.')
 
         mc = MarkovChain(p, states)
@@ -2626,7 +2600,7 @@ class MarkovChain(_Model):
         for (state_from, state_to), probability in d.items():
             p[states.index(state_from), states.index(state_to)] = probability
 
-        if not _np.allclose(_np.sum(p, axis=1), _np.ones(size, dtype=float)):  # pragma: no cover
+        if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the file must sum to 1.0.')
 
         mc = MarkovChain(p, states)

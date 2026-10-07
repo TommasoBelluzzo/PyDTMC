@@ -77,13 +77,10 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
             omega_prev = omega[im1, :]
             symbol = pv_symbols[im1]
 
-            for j in range(n):
+            prob = _np.round(omega_prev[:, _np.newaxis] + p_log, 12)
 
-                prob = _np.round(omega_prev + p_log[:, j], 12)
-                prob_index = _np.argmax(prob)
-
-                omega[i, j] = prob[prob_index] + e_log[j, symbol]
-                path[im1, j] = prob_index
+            path[im1, :] = _np.argmax(prob, axis=0)
+            omega[i, :] = _np.max(prob, axis=0) + e_log[:, symbol]
 
             if _np.all(omega[i, :] == -_np.inf):  # pragma: no cover
                 return None

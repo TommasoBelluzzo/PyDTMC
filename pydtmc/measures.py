@@ -31,7 +31,6 @@ __all__ = [
 
 import numpy as _np
 import numpy.linalg as _npl
-import scipy.optimize as _spo
 
 # Internal
 
@@ -78,8 +77,7 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
         symbol = symbols[i]
         forward_i = forward[:, i - 1]
 
-        for state in range(n):
-            forward[state, i] = e[state, symbol] * _np.sum(_np.multiply(forward_i, p[:, state]))
+        forward[:, i] = e[:, symbol] * _np.dot(forward_i, p)
 
         scaling_factor = _np.sum(forward[:, i])
 
@@ -98,8 +96,7 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
         scaling_factor = 1.0 / scaling_factors[i + 1]
         backward_i = backward[:, i + 1]
 
-        for state in range(n):
-            backward[state, i] = scaling_factor * _np.sum(_np.multiply(_np.multiply(p[state, :], backward_i), e_i))
+        backward[:, i] = scaling_factor * _np.dot(p, backward_i * e_i)
 
     posterior = _np.multiply(backward, forward)
     posterior = posterior[:, 1:]
@@ -399,7 +396,7 @@ def mc_mean_first_passage_times_to(mc: _tmc, targets: _olist_int) -> _oarray:
 
     a = _np.tile(pi, (size, 1))
     i = _np.eye(size)
-    z = _npl.inv(i - p + a)
+    z = _npl.solve(i - p + a, i)
 
     e = _np.ones((size, size), dtype=float)
     k = _np.dot(e, _np.diag(_np.diag(z)))
@@ -412,76 +409,26 @@ def mc_mean_first_passage_times_to(mc: _tmc, targets: _olist_int) -> _oarray:
 
 def mc_mean_number_visits(mc: _tmc) -> _oarray:
 
-    p, size, states, cm = mc.p, mc.size, mc.states, mc.communication_matrix
+    p, size, states = mc.p, mc.size, mc.states
 
-    ccis = [[*map(states.index, communicating_class)] for communicating_class in mc.communicating_classes]
-    closed_states = [True] * size
-
-    for cci in ccis:
-
-        closed = True
-
-        for i in cci:
-            for j in range(size):
-
-                if j in cci:
-                    continue
-
-                if p[i, j] > 0.0:
-                    closed = False
-                    break
-
-        for i in cci:
-            closed_states[i] = closed
-
-    hp = _np.zeros((size, size), dtype=float)
-
-    for j in range(size):
-
-        a = _np.copy(p)
-        b = -a[:, j]
-
-        for i in range(size):
-            a[i, j] = 0.0
-            a[i, i] -= 1.0
-
-        for i in range(size):
-
-            if not closed_states[i]:
-                continue
-
-            for k in range(size):
-                if k == i:
-                    a[i, i] = 1.0
-                else:
-                    a[i, k] = 0.0
-
-            if cm[i, j] == 1:
-                b[i] = 1.0
-            else:
-                b[i] = 0.0
-
-        hp[:, j] = _npl.solve(a, b)
+    states_indices = {state: index for index, state in enumerate(states)}
+    transient_indices = [states_indices[state] for state in mc.transient_states]
+    recurrent_indices = [states_indices[state] for state in mc.recurrent_states]
 
     mnv = _np.zeros((size, size), dtype=float)
 
-    for j in range(size):
+    if len(transient_indices) > 0:
 
-        ct1 = _np.isclose(hp[j, j], 1.0)
+        q = p[_np.ix_(transient_indices, transient_indices)]
+        i = _np.eye(len(transient_indices), dtype=float)
+        n = _npl.solve(i - q, i) - i
 
-        if ct1:
-            z = _np.nan
-        else:
-            z = 1.0 / (1.0 - hp[j, j])
+        mnv[_np.ix_(transient_indices, transient_indices)] = n
 
-        for i in range(size):
+    if len(recurrent_indices) > 0:
 
-            if _np.isclose(hp[i, j], 0.0):
-                mnv[i, j] = 0.0
-            elif ct1:
-                mnv[i, j] = _np.inf
-            else:
-                mnv[i, j] = hp[i, j] * z
+        accessible = mc.accessibility_matrix[:, recurrent_indices] != 0
+        mnv[:, recurrent_indices] = _np.where(accessible, _np.inf, 0.0)
 
     return mnv
 

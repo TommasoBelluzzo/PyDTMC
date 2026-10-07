@@ -78,25 +78,22 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
 
         log_prob, _, backward, forward, s = decoding
 
-        with _np.errstate(divide='ignore'):
-            lb, lf, lp, le = _np.log(backward), _np.log(forward), _np.log(fwb_p_guess), _np.log(fwb_e_guess)
+        pc = _np.zeros_like(fwb_p_guess)
+        ec = _np.zeros_like(fwb_e_guess)
 
-        z = len(fbw_symbols)
-        symbols_all = [-1] + fbw_symbols
+        for w, symbol in enumerate(fbw_symbols):
 
-        pc, ec = _np.zeros_like(fwb_p_guess), _np.zeros_like(fwb_e_guess)
+            wp1 = w + 1
 
-        for u in range(n):
-            for v in range(n):
-                lp_uv = lp[u, v]
-                for w in range(z):
-                    wp1 = w + 1
-                    pc[u, v] += _np.exp(lb[v, wp1] + lf[u, w] + lp_uv + le[v, symbols_all[wp1]]) / s[wp1]
+            source = forward[:, w, _np.newaxis]
+            destination = (fwb_e_guess[:, symbol] * backward[:, wp1])[_np.newaxis, :]
 
-        for u in range(n):
-            for v in range(k):
-                indices = [s == v for s in symbols_all]
-                ec[u, v] += _np.sum(_np.exp(lb[u, indices] + lf[u, indices]))
+            pc += (source * fwb_p_guess * destination) / s[wp1]
+
+        posterior = forward[:, 1:] * backward[:, 1:]
+        symbols_array = _np.asarray(fbw_symbols, dtype=int)
+
+        _np.add.at(ec.T, symbols_array, posterior.T)
 
         return log_prob, pc, ec
 
@@ -296,30 +293,20 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _tany, possible_states: _t
         f = _np.zeros((size, size), dtype=int)
         eq_prob = 1.0 / size
 
-        for i, j in zip(sequence[:-1], sequence[1:]):
-            f[i, j] += 1
+        _np.add.at(f, (sequence[:-1], sequence[1:]), 1)
 
-        for i in range(size):
+        counts = f + fitting_param
+        rt = _np.sum(counts, axis=1)
 
-            rt = _np.sum(f[i, :]) + _np.sum(fitting_param[i, :])
+        uniform = rt == size
+        non_uniform = ~uniform
 
-            if rt == size:
-
-                for j in range(size):
-                    p[i, j] = eq_prob
-
-            else:
-
-                rt_delta = rt - size
-
-                for j in range(size):
-                    ct = f[i, j] + fitting_param[i, j]
-                    p[i, j] = (ct - 1.0) / rt_delta
+        p[uniform, :] = eq_prob
+        p[non_uniform, :] = (counts[non_uniform, :] - 1.0) / (rt[non_uniform, _np.newaxis] - size)
 
     else:
 
-        for i, j in zip(sequence[:-1], sequence[1:]):
-            p[i, j] += 1.0
+        _np.add.at(p, (sequence[:-1], sequence[1:]), 1.0)
 
         if fitting_param:
             p += 0.001

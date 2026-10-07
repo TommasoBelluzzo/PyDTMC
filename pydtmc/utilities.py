@@ -82,50 +82,38 @@ from .exceptions import (
 
 def build_hmm_graph(p, e, states, symbols):
 
-    n, k = len(states), len(symbols)
-
     graph = _nx.DiGraph()
     graph.add_nodes_from(states, layer=1)
     graph.add_nodes_from(symbols, layer=0)
 
-    for i in range(n):
+    rows, columns = _np.nonzero(p > 0.0)
 
-        state_i = states[i]
+    graph.add_edges_from(
+        (states[i], states[j], {'type': 'P', 'weight': p[i, j]})
+        for i, j in zip(rows, columns)
+    )
 
-        for j in range(n):
+    rows, columns = _np.nonzero(e > 0.0)
 
-            p_ij = p[i, j]
-
-            if p_ij > 0.0:
-                graph.add_edge(state_i, states[j], type='P', weight=p_ij)
-
-        for j in range(k):
-
-            e_ij = e[i, j]
-
-            if e_ij > 0.0:
-                graph.add_edge(state_i, symbols[j], type='E', weight=e_ij)
+    graph.add_edges_from(
+        (states[i], symbols[j], {'type': 'E', 'weight': e[i, j]})
+        for i, j in zip(rows, columns)
+    )
 
     return graph
 
 
 def build_mc_graph(p: _tarray, states: _tlist_str) -> _tgraph:
 
-    n = len(states)
-
     graph = _nx.DiGraph()
     graph.add_nodes_from(states)
 
-    for i in range(n):
+    rows, columns = _np.nonzero(p > 0.0)
 
-        state_i = states[i]
-
-        for j in range(n):
-
-            p_ij = p[i, j]
-
-            if p_ij > 0.0:
-                graph.add_edge(state_i, states[j], weight=p_ij)
+    graph.add_weighted_edges_from(
+        (states[i], states[j], p[i, j])
+        for i, j in zip(rows, columns)
+    )
 
     return graph
 
