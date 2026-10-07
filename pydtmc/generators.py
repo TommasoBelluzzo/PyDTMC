@@ -829,7 +829,7 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
         jac=_jacobian,
         constraints=constraints,
         method='SLSQP',
-        options={'disp': False}
+        options={'ftol': 1e-8, 'disp': False}
     )
 
     if not solution['success']:  # pragma: no cover
