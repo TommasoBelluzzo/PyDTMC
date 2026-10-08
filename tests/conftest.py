@@ -177,7 +177,7 @@ def _parse_fixtures_list(fixtures, names, func):
                 for case_index, case in enumerate(cases):
 
                     if not isinstance(case, dict):
-                        fixture_valid = False
+                        valid = False
                         break
 
                     case_values = fixture_values + tuple(case[name] for name in names if name in case)
