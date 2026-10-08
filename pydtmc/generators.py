@@ -326,7 +326,7 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
 
             positions = evector >= 0.0
 
-            if _np.all(positions) or not _np.any(positions):
+            if _np.all(positions) or (not _np.any(positions)):  # pragma: no cover
                 indices_order = _np.argsort(evector)
                 positions = _np.zeros(indices.size, dtype=bool)
                 positions[indices_order[:indices.size // 2]] = True

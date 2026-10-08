@@ -183,7 +183,7 @@ def find_cyclic_classes(p: _tarray) -> _tlists_int:
 
                 d = _mt.gcd(d, v_ip - v[j])
 
-                if d == 1:
+                if d == 1:  # pragma: no cover
                     break
 
             else:

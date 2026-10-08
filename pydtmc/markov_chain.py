@@ -131,20 +131,20 @@ from .generators import (
 
 from .measures import (
     mc_absorption_probabilities as _absorption_probabilities,
+    mc_absorption_times as _absorption_times,
     mc_committor_probabilities as _committor_probabilities,
     mc_expected_rewards as _expected_rewards,
     mc_expected_transitions as _expected_transitions,
     mc_first_passage_reward as _first_passage_reward,
     mc_first_passage_probabilities as _first_passage_probabilities,
+    mc_first_passage_times_between as _first_passage_times_between,
+    mc_first_passage_times_to as _first_passage_times_to,
     mc_hitting_probabilities as _hitting_probabilities,
     mc_hitting_times as _hitting_times,
-    mc_mean_absorption_times as _mean_absorption_times,
-    mc_mean_first_passage_times_between as _mean_first_passage_times_between,
-    mc_mean_first_passage_times_to as _mean_first_passage_times_to,
     mc_mean_number_visits as _mean_number_visits,
-    mc_mean_recurrence_times as _mean_recurrence_times,
     mc_mixing_time as _mixing_time,
     mc_mixing_time_from as _mixing_time_from,
+    mc_recurrence_times as _recurrence_times,
     mc_sensitivity as _sensitivity,
     mc_time_correlations as _time_correlations,
     mc_time_relaxations as _time_relaxations
@@ -661,7 +661,7 @@ class MarkovChain(_Model):
         absorbing_states = [self.__states[index] for index in self.__absorbing_states_indices]
         graph = self.__digraph.reverse(copy=False)
 
-        reachable = _nx.multi_source_dijkstra_path_length(graph, absorbing_states, weight=None)
+        reachable = _nx.multi_source_dijkstra_path_length(graph, absorbing_states, weight='weight')
         result = len(reachable) == self.__size
 
         return result
@@ -1081,6 +1081,7 @@ class MarkovChain(_Model):
 
         return states
 
+    @_object_mark(aliases=['ap'])
     def absorption_probabilities(self) -> _oarray:
 
         """
@@ -1088,13 +1089,45 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - If the Markov chain has no transient states, then :py:class:`None` is returned.
+        - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **ap**.
         """
 
         if 'ap' not in self.__cache:
             self.__cache['ap'] = _absorption_probabilities(self)
 
         return self.__cache['ap']
+
+    @_object_mark(aliases=['at'])
+    def absorption_times(self, statistic: str) -> _oarray:
+
+        """
+        The method computes a statistic of the times required for the transient states to first enter a recurrent class of the Markov chain.
+
+        | **Notes:**
+
+        - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **at**.
+
+        :param statistic:
+         - **mean** to compute the mean;
+         - **variance** to compute the variance.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        cache_label = f'at_{statistic}'
+
+        if cache_label not in self.__cache:
+            self.__cache[cache_label] = _absorption_times(self, statistic)
+
+        return self.__cache[cache_label]
 
     @_object_mark(instance_generator=True)
     def aggregate(self, s: int, method: str = 'adaptive') -> _tmc:
@@ -1276,6 +1309,34 @@ class MarkovChain(_Model):
 
         return value
 
+    @_object_mark(aliases=['ct'])
+    def commute_times(self) -> _oarray:
+
+        """
+        The method computes the commute times between all pairs of states of the Markov chain.
+
+        | **Notes:**
+
+        - The commute time between two states is the sum of the mean first passage times in both directions.
+        - Diagonal elements are equal to 0.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **ct**.
+        """
+
+        if 'ct' not in self.__cache:
+
+            fptt_mean = self.first_passage_times_to(statistic='mean')
+
+            if fptt_mean is None:
+                ct = None
+            else:
+                ct = fptt_mean + _np.transpose(fptt_mean)
+                _np.fill_diagonal(ct, 0.0)
+
+            self.__cache['ct'] = ct
+
+        return self.__cache['ct']
+
     @_object_mark(aliases=['conditional_distribution', 'cd', 'cp'])
     def conditional_probabilities(self, state: _tstate) -> _tarray:
 
@@ -1427,6 +1488,73 @@ class MarkovChain(_Model):
 
         return value
 
+    @_object_mark(aliases=['fpt_between', 'fptb'])
+    def first_passage_times_between(self, statistic: str, origins: _tstates, targets: _tstates) -> _ofloat:
+
+        """
+        The method computes a statistic of the first passage time between the given subsets of the state space.
+
+        | **Notes:**
+
+        - The origin states are weighted according to the stationary distribution conditioned on the origin set.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **fpt_between**, **fptb**.
+
+        :param statistic:
+         - **mean** to compute the mean;
+         - **variance** to compute the variance.
+        :param origins: the origin states.
+        :param targets: the target states.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
+            origins = _validate_labels_current(origins, self.__states, True)
+            targets = _validate_labels_current(targets, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        value = _first_passage_times_between(self, statistic, origins, targets)
+
+        return value
+
+    @_object_mark(aliases=['fpt_to', 'fptt'])
+    def first_passage_times_to(self, statistic: str, targets: _ostates = None) -> _oarray:
+
+        """
+        The method computes a statistic of the first passage times from all states to the given target states.
+
+        | **Notes:**
+
+        - If the target states are omitted, a matrix containing the statistic for every ordered pair of states is returned.
+        - Target states have first passage time equal to 0.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - The method can be accessed through the following aliases: **fpt_to**, **fptt**.
+
+        :param statistic:
+         - **mean** to compute the mean;
+         - **variance** to compute the variance.
+        :param targets: the target states (*if omitted, each state is considered separately as a target*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
+
+            if targets is not None:
+                targets = _validate_labels_current(targets, self.__states, False)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        value = _first_passage_times_to(self, statistic, targets)
+
+        return value
+
     @_object_mark(aliases=['hp'])
     def hitting_probabilities(self, targets: _ostates = None) -> _tarray:
 
@@ -1457,22 +1585,28 @@ class MarkovChain(_Model):
         return value
 
     @_object_mark(aliases=['ht'])
-    def hitting_times(self, targets: _ostates = None) -> _tarray:
+    def hitting_times(self, statistic: str, targets: _ostates = None) -> _tarray:
 
         """
-        The method computes the expected hitting times of the given set of states from each state of the Markov chain.
+        The method computes a statistic of the hitting times of the given set of states from each state of the Markov chain.
 
         | **Notes:**
 
         - Target states have hitting time equal to 0.
-        - Infinite values are returned for states from which there is a positive probability of never reaching the target set.
+        - For the mean, infinite values are returned for states from which there is a positive probability of never reaching the target set.
+        - For the variance, *NaN* values are returned for states from which there is a positive probability of never reaching the target set.
         - The method can be accessed through the following aliases: **ht**.
 
+        :param statistic:
+         - **mean** to compute the mean;
+         - **variance** to compute the variance.
         :param targets: the target states (*if omitted, all the states are targeted*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
+
+            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
 
             if targets is None:
                 targets = self.__states_indices.copy()
@@ -1482,7 +1616,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _hitting_times(self, targets)
+        value = _hitting_times(self, statistic, targets)
 
         return value
 
@@ -1618,79 +1752,6 @@ class MarkovChain(_Model):
 
         return mc
 
-    @_object_mark(aliases=['mat'])
-    def mean_absorption_times(self) -> _oarray:
-
-        """
-        The method computes the mean times required for the transient states to first enter a recurrent class of the Markov chain.
-
-        | **Notes:**
-
-        - If the Markov chain has no transient states, then :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **mat**.
-        """
-
-        if 'mat' not in self.__cache:
-            self.__cache['mat'] = _mean_absorption_times(self)
-
-        return self.__cache['mat']
-
-    @_object_mark(aliases=['mfpt_between', 'mfptb'])
-    def mean_first_passage_times_between(self, origins: _tstates, targets: _tstates) -> _ofloat:
-
-        """
-        The method computes the mean first passage time between the given subsets of the state space.
-
-        | **Notes:**
-
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
-        - The origin states are weighted according to the stationary distribution conditioned on the origin set.
-        - The method can be accessed through the following aliases: **mfpt_between**, **mfptb**.
-
-        :param origins: the origin states.
-        :param targets: the target states.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            origins = _validate_labels_current(origins, self.__states, True)
-            targets = _validate_labels_current(targets, self.__states, True)
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
-
-        value = _mean_first_passage_times_between(self, origins, targets)
-
-        return value
-
-    @_object_mark(aliases=['mfpt_to', 'mfptt'])
-    def mean_first_passage_times_to(self, targets: _ostates = None) -> _oarray:
-
-        """
-        The method computes the mean first passage times, for all the states, to the given set of states.
-
-        | **Notes:**
-
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **mfpt_to**, **mfptt**.
-
-        :param targets: the target states (*if omitted, all the states are targeted*).
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            if targets is not None:
-                targets = _validate_labels_current(targets, self.__states, False)
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
-
-        value = _mean_first_passage_times_to(self, targets)
-
-        return value
-
     @_object_mark(aliases=['mnv'])
     def mean_number_visits(self) -> _oarray:
 
@@ -1706,22 +1767,6 @@ class MarkovChain(_Model):
             self.__cache['mnv'] = _mean_number_visits(self)
 
         return self.__cache['mnv']
-
-    @_object_mark(aliases=['mrt'])
-    def mean_recurrence_times(self) -> _oarray:
-
-        """
-        The method computes the mean recurrence times of the Markov chain.
-
-        | **Notes:**
-
-        - The method can be accessed through the following aliases: **mrt**.
-        """
-
-        if 'mrt' not in self.__cache:
-            self.__cache['mrt'] = _mean_recurrence_times(self)
-
-        return self.__cache['mrt']
 
     @_object_mark(instance_generator=True)
     def merge_with(self, other: _tmc, gamma: float) -> _tmc:
@@ -1871,6 +1916,38 @@ class MarkovChain(_Model):
             value = [*map(self.__states.__getitem__, value)]
 
         return value
+
+    @_object_mark(aliases=['rt'])
+    def recurrence_times(self, statistic: str) -> _tarray:
+
+        """
+        The method computes a statistic of the recurrence times of the Markov chain.
+
+        | **Notes:**
+
+        - For the mean, infinite values are returned for transient states.
+        - For the variance, *NaN* values are returned for transient states.
+        - The method can be accessed through the following aliases: **rt**.
+
+        :param statistic:
+         - **mean** to compute the mean;
+         - **variance** to compute the variance.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        cache_label = f'rt_{statistic}'
+
+        if cache_label not in self.__cache:
+            self.__cache[cache_label] = _recurrence_times(self, statistic)
+
+        return self.__cache[cache_label]
 
     def redistribute(self, steps: int, initial_status: _ostatus = None, output_last: bool = True) -> _tredists:
 

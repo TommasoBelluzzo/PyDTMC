@@ -133,28 +133,66 @@ def _parse_fixtures_list(fixtures, names, func):
     values, ids = [], []
 
     expected_args = len(names)
-    target = f'{func.replace("test_", "")}_data'
+    target = func.replace('test_', '')
+    target_data = f'{target}_data'
 
-    if any(target in fixture for fixture in fixtures):
+    if any((target in fixture) or (target_data in fixture) for fixture in fixtures):
 
         flags = [False] * len(fixtures)
 
         for fixture_index, fixture in enumerate(fixtures):
 
+            fixture_id = fixture['id'] if 'id' in fixture else f' #{str(fixture_index + 1)}'
+            fixture_values = tuple(fixture[name] for name in names if name in fixture)
+
             if target in fixture:
 
-                fixture_id = fixture['id'] if 'id' in fixture else f' #{str(fixture_index + 1)}'
-                fixture_values = tuple(fixture[name] for name in names if name in fixture)
+                case = fixture[target]
 
-                for case_index, case in enumerate(fixture[target]):
+                if isinstance(case, dict):
+                    case_values = fixture_values + tuple(case[name] for name in names if name in case)
+                else:
+                    case_values = fixture_values + tuple(case for name in names if name not in fixture)
 
-                    case_id = f'{str(case_index + 1)}'
+                if len(case_values) == expected_args:
+                    values.append(case_values)
+                    ids.append(f'{func} {fixture_id}')
+                    flags[fixture_index] = True
+
+            elif target_data in fixture:
+
+                cases = fixture[target_data]
+
+                if not isinstance(cases, list):
+                    continue
+
+                if len(cases) == 0:
+                    flags[fixture_index] = True
+                    continue
+
+                case_values_all = []
+                case_ids_all = []
+                valid = True
+
+                for case_index, case in enumerate(cases):
+
+                    if not isinstance(case, dict):
+                        fixture_valid = False
+                        break
+
                     case_values = fixture_values + tuple(case[name] for name in names if name in case)
 
-                    if len(case_values) == expected_args:
-                        values.append(case_values)
-                        ids.append(f'{func} {fixture_id}-{case_id}')
-                        flags[fixture_index] = True
+                    if len(case_values) != expected_args:
+                        valid = False
+                        break
+
+                    case_values_all.append(case_values)
+                    case_ids_all.append(f'{func} {fixture_id}-{str(case_index + 1)}')
+
+                if valid:
+                    values.extend(case_values_all)
+                    ids.extend(case_ids_all)
+                    flags[fixture_index] = True
 
         if not all(flags):
             values = []

@@ -3,20 +3,20 @@
 __all__ = [
     'hmm_decode',
     'mc_absorption_probabilities',
+    'mc_absorption_times',
     'mc_committor_probabilities',
     'mc_expected_rewards',
     'mc_expected_transitions',
     'mc_first_passage_probabilities',
     'mc_first_passage_reward',
+    'mc_first_passage_times_between',
+    'mc_first_passage_times_to',
     'mc_hitting_probabilities',
     'mc_hitting_times',
-    'mc_mean_absorption_times',
-    'mc_mean_first_passage_times_between',
-    'mc_mean_first_passage_times_to',
     'mc_mean_number_visits',
-    'mc_mean_recurrence_times',
     'mc_mixing_time',
     'mc_mixing_time_from',
+    'mc_recurrence_times',
     'mc_sensitivity',
     'mc_time_correlations',
     'mc_time_relaxations'
@@ -35,12 +35,14 @@ import numpy.linalg as _npl
 # Internal
 
 from .constants import (
-    ETOL as _ETOL
+    ETOL as _ETOL,
+    FTOL as _FTOL
 )
 
 from .custom_types import (
     oarray as _oarray,
     ohmm_decoding as _ohmm_decoding,
+    ofloat as _ofloat,
     oint as _oint,
     olist_int as _olist_int,
     osequence as _osequence,
@@ -58,6 +60,25 @@ from .custom_types import (
 #############
 # FUNCTIONS #
 #############
+
+def _clean_variance(variance: _tarray) -> _tarray:
+
+    variance = _np.where(variance < -_FTOL, _np.nan, _np.maximum(variance, 0.0))
+
+    return variance
+
+
+def _hitting_times_statistics(p: _tarray, states: _tarray) -> _tany:
+
+    a = _np.eye(states.size) - p[_np.ix_(states, states)]
+    b = _np.ones(states.size, dtype=float)
+    mean = _npl.solve(a, b)
+
+    second_moment = _npl.solve(a, (2.0 * mean) - b)
+    variance = _clean_variance(second_moment - mean**2.0)
+
+    return mean, variance
+
 
 def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int, use_scaling: bool) -> _ohmm_decoding:
 
@@ -118,10 +139,12 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
 def mc_absorption_probabilities(mc: _tmc) -> _oarray:
 
-    if len(mc.transient_states) == 0:
+    om = mc.occupation_matrix
+
+    if om is None:
         return None
 
-    p, states, om = mc.p, mc.states, mc.occupation_matrix
+    p, states = mc.p, mc.states
     transient_indices = [states.index(state) for state in mc.transient_states]
 
     ap = _np.zeros((len(mc.recurrent_classes), len(transient_indices)), dtype=float)
@@ -134,6 +157,24 @@ def mc_absorption_probabilities(mc: _tmc) -> _oarray:
         ap[i, :] = _np.dot(om, _np.sum(r, axis=1))
 
     return ap
+
+
+def mc_absorption_times(mc: _tmc, statistic: str) -> _oarray:
+
+    om = mc.occupation_matrix
+
+    if om is None:
+        return None
+
+    mean = _np.dot(om, _np.ones(om.shape[0], dtype=float))
+
+    if statistic == 'mean':
+        return mean
+
+    second_moment = _np.dot((2.0 * om) - _np.eye(om.shape[0]), mean)
+    variance = _clean_variance(second_moment - mean**2.0)
+
+    return variance
 
 
 def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_int, states2: _tlist_int) -> _oarray:
@@ -306,6 +347,77 @@ def mc_first_passage_reward(mc: _tmc, steps: int, initial_state: int, first_pass
     return reward
 
 
+def mc_first_passage_times_between(mc: _tmc, statistic: str, origins: _tlist_int, targets: _tlist_int) -> _ofloat:
+
+    if not mc.is_irreducible:
+        return None
+
+    p, size, pi = mc.p, mc.size, mc.pi[0]
+
+    pi_origins = pi[origins]
+    mu = pi_origins / _np.sum(pi_origins)
+
+    if statistic == 'mean':
+
+        fptt_mean = mc_first_passage_times_to(mc, 'mean', targets)
+        mean = _np.dot(mu, fptt_mean[origins])
+
+        return mean
+
+    target = _np.array(targets, dtype=int)
+    non_target = _np.setdiff1d(_np.arange(size, dtype=int), target)
+
+    mean = _np.zeros(size, dtype=float)
+    variance = _np.zeros(size, dtype=float)
+
+    if non_target.size > 0:
+        ht_mean, ht_variance = _hitting_times_statistics(p, non_target)
+        mean[non_target] = ht_mean
+        variance[non_target] = ht_variance
+
+    mean_origins = mean[origins]
+    variance_origins = variance[origins]
+
+    mean_between = _np.dot(mu, mean_origins)
+
+    second_moment_between = _np.dot(mu, variance_origins + mean_origins**2.0)
+    variance = float(_clean_variance(second_moment_between - mean_between**2.0))
+
+    return variance
+
+
+def mc_first_passage_times_to(mc: _tmc, statistic: str, targets: _olist_int) -> _oarray:
+
+    if not mc.is_irreducible:
+        return None
+
+    if targets is not None:
+        return mc_hitting_times(mc, statistic, targets)
+
+    p, size, pi = mc.p, mc.size, mc.pi[0]
+
+    if statistic == 'mean':
+
+        a = _np.tile(pi, (size, 1))
+        i = _np.eye(size)
+        z = _npl.solve(i - p + a, i)
+
+        e = _np.ones((size, size), dtype=float)
+        k = _np.dot(e, _np.diag(_np.diag(z)))
+
+        mean = _np.dot(i - z + k, _np.diag(1.0 / _np.diag(a)))
+        _np.fill_diagonal(mean, 0.0)
+
+        return mean
+
+    variance = _np.zeros((size, size), dtype=float)
+
+    for target in range(size):
+        variance[:, target] = mc_hitting_times(mc, 'variance', [target])
+
+    return variance
+
+
 def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
 
     p, size = mc.p, mc.size
@@ -333,7 +445,7 @@ def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
     return hp
 
 
-def mc_hitting_times(mc: _tmc, targets: _tlist_int) -> _tarray:
+def mc_hitting_times(mc: _tmc, statistic: str, targets: _tlist_int) -> _tarray:
 
     p, size = mc.p, mc.size
 
@@ -341,70 +453,29 @@ def mc_hitting_times(mc: _tmc, targets: _tlist_int) -> _tarray:
     non_target = _np.setdiff1d(_np.arange(size, dtype=int), target)
 
     hp = mc_hitting_probabilities(mc, targets)
-    ht = _np.zeros(size, dtype=float)
 
     finite = non_target[_np.isclose(hp[non_target], 1.0, rtol=0.0, atol=_ETOL)]
     non_finite = _np.setdiff1d(non_target, finite)
 
-    ht[non_finite] = _np.inf
+    if statistic == 'mean':
+
+        mean = _np.zeros(size, dtype=float)
+        mean[non_finite] = _np.inf
+
+        if finite.size > 0:
+            ht_mean, _ = _hitting_times_statistics(p, finite)
+            mean[finite] = ht_mean
+
+        return mean
+
+    variance = _np.zeros(size, dtype=float)
+    variance[non_finite] = _np.nan
 
     if finite.size > 0:
-        a = _np.eye(finite.size) - p[_np.ix_(finite, finite)]
-        b = _np.ones(finite.size, dtype=float)
-        ht[finite] = _npl.solve(a, b)
+        _, ht_variance = _hitting_times_statistics(p, finite)
+        variance[finite] = ht_variance
 
-    return ht
-
-
-def mc_mean_absorption_times(mc: _tmc) -> _oarray:
-
-    if len(mc.transient_states) == 0:
-        return None
-
-    om = mc.occupation_matrix
-    mat = _np.dot(om, _np.ones(om.shape[0], dtype=float))
-
-    return mat
-
-
-def mc_mean_first_passage_times_between(mc: _tmc, origins: _tlist_int, targets: _tlist_int) -> _oarray:
-
-    if not mc.is_irreducible:
-        return None
-
-    pi = mc.pi[0]
-
-    mfptt = mc_mean_first_passage_times_to(mc, targets)
-
-    pi_origins = pi[origins]
-    mu = pi_origins / _np.sum(pi_origins)
-
-    mfptb = _np.dot(mu, mfptt[origins])
-
-    return mfptb
-
-
-def mc_mean_first_passage_times_to(mc: _tmc, targets: _olist_int) -> _oarray:
-
-    if not mc.is_irreducible:
-        return None
-
-    if targets is not None:
-        return mc_hitting_times(mc, targets)
-
-    p, size, pi = mc.p, mc.size, mc.pi[0]
-
-    a = _np.tile(pi, (size, 1))
-    i = _np.eye(size)
-    z = _npl.solve(i - p + a, i)
-
-    e = _np.ones((size, size), dtype=float)
-    k = _np.dot(e, _np.diag(_np.diag(z)))
-
-    mfptt = _np.dot(i - z + k, _np.diag(1.0 / _np.diag(a)))
-    _np.fill_diagonal(mfptt, 0.0)
-
-    return mfptt
+    return variance
 
 
 def mc_mean_number_visits(mc: _tmc) -> _oarray:
@@ -431,17 +502,6 @@ def mc_mean_number_visits(mc: _tmc) -> _oarray:
         mnv[:, recurrent_indices] = _np.where(accessible, _np.inf, 0.0)
 
     return mnv
-
-
-def mc_mean_recurrence_times(mc: _tmc) -> _oarray:
-
-    mrt = _np.full(mc.size, _np.inf, dtype=float)
-
-    for pi in mc.pi:
-        mask = pi > 0.0
-        mrt[mask] = 1.0 / pi[mask]
-
-    return mrt
 
 
 def mc_mixing_time(mc: _tmc, cutoff: float, maximum_iterations: int) -> _oint:
@@ -491,6 +551,51 @@ def mc_mixing_time_from(mc: _tmc, initial_distribution: _tarray, jump: int, cuto
         return None
 
     return mt
+
+
+def mc_recurrence_times(mc: _tmc, statistic: str) -> _tarray:
+
+    if statistic == 'mean':
+
+        mean = _np.full(mc.size, _np.inf, dtype=float)
+
+        for pi in mc.pi:
+            mask = pi > 0.0
+            mean[mask] = 1.0 / pi[mask]
+
+        return mean
+
+    p, states = mc.p, mc.states
+    states_indices = {state: index for index, state in enumerate(states)}
+
+    variance = _np.full(mc.size, _np.nan, dtype=float)
+
+    for recurrent_class in mc.recurrent_classes:
+
+        recurrent_indices = [states_indices[state] for state in recurrent_class]
+
+        for target in recurrent_indices:
+
+            other = [index for index in recurrent_indices if index != target]
+
+            if len(other) == 0:
+                variance[target] = 0.0
+                continue
+
+            probabilities = p[target, other]
+
+            a = _np.eye(len(other)) - p[_np.ix_(other, other)]
+            b = _np.ones(len(other), dtype=float)
+            mean = _npl.solve(a, b)
+
+            second_moment = _npl.solve(a, (2.0 * mean) - b)
+
+            mean_return = 1.0 + _np.dot(probabilities, mean)
+            second_moment_return = 1.0 + (2.0 * _np.dot(probabilities, mean)) + _np.dot(probabilities, second_moment)
+
+            variance[target] = _clean_variance(second_moment_return - mean_return**2.0)
+
+    return variance
 
 
 def mc_sensitivity(mc: _tmc, state: int) -> _oarray:
