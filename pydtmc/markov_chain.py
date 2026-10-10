@@ -2884,7 +2884,6 @@ class MarkovChain(_Model):
 
         return mc
 
-    # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True)
     def from_graph(graph: _tgraphs) -> _tmc:
@@ -2928,7 +2927,6 @@ class MarkovChain(_Model):
 
         return mc
 
-    # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True)
     def from_matrix(m: _tnumeric, states: _olist_str = None) -> _tmc:
@@ -3069,7 +3067,6 @@ class MarkovChain(_Model):
 
         return mc
 
-    # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True, random_output=True)
     def random(size: int, states: _olist_str = None, zeros: int = 0, mask: _onumeric = None, seed: _oint = None) -> _tmc:

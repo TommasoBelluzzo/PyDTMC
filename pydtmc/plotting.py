@@ -660,7 +660,6 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
         return colors_list
 
-    # noinspection DuplicatedCode
     def _plot_hmm_extended(phe_hmm, phe_nodes_color, phe_nodes_type, phe_edges_label, phe_dpi):
 
         magnitude = _calculate_magnitude(phe_hmm.p, phe_hmm.e)
@@ -1020,7 +1019,6 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
     return figure, ax
 
 
-# noinspection DuplicatedCode
 def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
 
     """
@@ -1111,7 +1109,6 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
     return figure, ax
 
 
-# noinspection DuplicatedCode
 def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _oplot:
 
     """
@@ -1133,7 +1130,6 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    # noinspection DuplicatedCode
     @_noninteractive
     def _plot_heatmap(phm_walk_data, phm_dpi):
 

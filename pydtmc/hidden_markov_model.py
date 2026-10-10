@@ -654,7 +654,6 @@ class HiddenMarkovModel(_Model):
 
         return hmm
 
-    # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True)
     def from_dictionary(d: _thmm_dict_flex) -> _thmm:
@@ -704,7 +703,6 @@ class HiddenMarkovModel(_Model):
 
         return hmm
 
-    # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True)
     def from_file(file_path: _tpath) -> _thmm:
@@ -797,7 +795,6 @@ class HiddenMarkovModel(_Model):
 
         return hmm
 
-    # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True)
     def from_graph(graph: _tgraphs) -> _thmm:
@@ -861,7 +858,6 @@ class HiddenMarkovModel(_Model):
 
         return hmm
 
-    # noinspection DuplicatedCode
     @staticmethod
     @_object_mark(instance_generator=True)
     def from_matrices(mp: _tnumeric, me: _tnumeric, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:

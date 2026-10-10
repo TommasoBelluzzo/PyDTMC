@@ -97,7 +97,6 @@ def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: 
 
 def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: int, e_mask: _tarray) -> _thmm_generation:
 
-    # noinspection DuplicatedCode
     def process_matrix(pm_rows, pm_columns, pm_mask, pm_full_rows, pm_mask_unassigned, pm_zeros, pm_zeros_required):
 
         pm_mask_internal = _np.copy(pm_mask)
@@ -194,7 +193,6 @@ def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str
 
 def mc_aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
 
-    # noinspection DuplicatedCode
     def _calculate_q(cq_p, cq_pi, cq_phi):
 
         cq_pi = _np.diag(cq_pi)
@@ -213,7 +211,6 @@ def mc_aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen
 
         return q_value
 
-    # noinspection DuplicatedCode
     def _create_bipartition_candidate(cbc_p, cbc_pi, cbc_phi, cbc_index):
 
         v = cbc_phi[:, cbc_index]
@@ -997,7 +994,6 @@ def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: floa
     return p, state_names, None
 
 
-# noinspection DuplicatedCode
 def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generation:
 
     full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0)

@@ -358,7 +358,6 @@ def assess_stationarity(possible_states: _tlist_str, sequence: _tsequence, block
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
 
 
-# noinspection DuplicatedCode
 def assess_theoretical_compatibility(mc: _tmc, sequence: _tsequence, significance: float = 0.05) -> _ttest:
 
     """

@@ -170,7 +170,6 @@ def validate_boundary_condition(value: _tany) -> _tbcond:
     raise TypeError('The "@arg@" parameter must be either a float representing the first probability of the semi-reflecting condition or a non-empty string representing the boundary condition type.')
 
 
-# noinspection DuplicatedCode
 def validate_dictionary(value: _tany, attributes: _olist_str = None) -> _tmc_dict:
 
     if not _is_dictionary(value) or len(value) == 0:
@@ -249,7 +248,6 @@ def validate_dpi(value: _tany) -> int:
     return value
 
 
-# noinspection DuplicatedCode
 def validate_emission_matrix(value: _tany, size: int) -> _tarray:
 
     try:
@@ -1053,18 +1051,12 @@ def validate_transition_function(value: _tany) -> _ttfunc:
     except Exception as ex:  # pragma: no cover
         raise ValueError('The "@arg@" parameter behavior is not compliant.') from ex
 
-    if not _is_number(result):
-        raise ValueError('The "@arg@" parameter behavior is not compliant.')
-
-    result = float(result)
-
-    if not _np.isfinite(result):
+    if (not _is_number(result)) or (not _np.isfinite(result)):
         raise ValueError('The "@arg@" parameter behavior is not compliant.')
 
     return value
 
 
-# noinspection DuplicatedCode
 def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
 
     try:
