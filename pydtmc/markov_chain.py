@@ -62,6 +62,7 @@ from .custom_types import (
     tgraph as _tgraph,
     tgraphs as _tgraphs,
     tlist_array as _tlist_array,
+    tlist_float as _tlist_float,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
@@ -133,12 +134,14 @@ from .measures import (
     mc_absorption_probabilities as _absorption_probabilities,
     mc_absorption_times as _absorption_times,
     mc_committor_probabilities as _committor_probabilities,
+    mc_entropy_production_rate as _entropy_production_rate,
     mc_expected_rewards as _expected_rewards,
     mc_expected_transitions as _expected_transitions,
     mc_first_passage_reward as _first_passage_reward,
     mc_first_passage_probabilities as _first_passage_probabilities,
     mc_first_passage_times_between as _first_passage_times_between,
     mc_first_passage_times_to as _first_passage_times_to,
+    mc_global_conductance as _global_conductance,
     mc_hitting_probabilities as _hitting_probabilities,
     mc_hitting_times as _hitting_times,
     mc_mean_number_visits as _mean_number_visits,
@@ -386,6 +389,27 @@ class MarkovChain(_Model):
         return indices
 
     @_cached_property
+    def absolute_spectral_gap(self) -> _ofloat:
+
+        """
+        | A property representing the absolute spectral gap of the Markov chain.
+        | If the Markov chain is not **irreducible** or the **SLEM** (second-largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
+        """
+
+        slem = self.__slem
+
+        if slem is None:
+            sg = None
+        else:
+
+            sg = 1.0 - slem
+
+            if -_FTOL < sg < 0.0:
+                sg = 0.0
+
+        return sg
+
+    @_cached_property
     def absorbing_states(self) -> _tlists_str:
 
         """
@@ -505,10 +529,10 @@ class MarkovChain(_Model):
         """
 
         if not self.is_irreducible:
-            dm = None
-        else:
-            fm = self.fundamental_matrix
-            dm = fm - self.pi[0]
+            return None
+
+        fm = self.fundamental_matrix
+        dm = fm - self.pi[0]
 
         return dm
 
@@ -539,34 +563,15 @@ class MarkovChain(_Model):
         return dc
 
     @_cached_property
-    def entropy_production_rate(self) -> list[float]:
+    def entropy_production_rate(self) -> _tlist_float:
 
         """
         | A property representing the stationary entropy production rates of the Markov chain.
+        | A rate is 0 for a reversible stationary flow and infinite if a positive stationary flux has no reverse counterpart.
         | One value is returned for each stationary distribution.
-        | A rate is zero for a reversible stationary flow and infinite if a positive stationary flux has no reverse counterpart.
         """
 
-        indices = _np.triu_indices(self.size, k=1)
-        epr = []
-
-        for flux in self.stationary_flux:
-
-            forward = flux[indices]
-            backward = _np.transpose(flux)[indices]
-
-            if _np.any((forward == 0.0) != (backward == 0.0)):
-                rate = float('inf')
-            else:
-
-                mask = (forward > 0.0) & (backward > 0.0)
-
-                current = forward[mask] - backward[mask]
-                affinity = _np.log(forward[mask]) - _np.log(backward[mask])
-
-                rate = float(_np.sum(current * affinity))
-
-            epr.append(rate)
+        epr = _entropy_production_rate(self)
 
         return epr
 
@@ -579,22 +584,21 @@ class MarkovChain(_Model):
         """
 
         if len(self.pi) > 1:
+            return None
+
+        p = self.__p
+
+        contributions = _np.zeros((self.__size, self.__size), dtype=float)
+        _np.log(p, out=contributions, where=p > 0.0)
+        contributions *= p
+
+        h = -_np.dot(self.pi[0], _np.sum(contributions, axis=1))
+
+        if -_FTOL < h < 0.0:
+            h = 0.0
+
+        if not _np.isfinite(h) or (h < 0.0):
             h = None
-        else:
-
-            p = self.__p
-
-            contributions = _np.zeros((self.__size, self.__size), dtype=float)
-            _np.log(p, out=contributions, where=p > 0.0)
-            contributions *= p
-
-            h = -_np.dot(self.pi[0], _np.sum(contributions, axis=1))
-
-            if -_FTOL < h < 0.0:
-                h = 0.0
-
-            if not _np.isfinite(h) or (h < 0.0):
-                h = None
 
         return h
 
@@ -609,16 +613,15 @@ class MarkovChain(_Model):
         h = self.entropy_rate
 
         if h is None:
-            hn = None
+            return None
+
+        ht = self.topological_entropy
+
+        if (h <= _FTOL) or (ht <= _FTOL):
+            hn = 0.0
         else:
-
-            ht = self.topological_entropy
-
-            if (h <= _FTOL) or (ht <= _FTOL):
-                hn = 0.0
-            else:
-                hn = h / ht
-                hn = min(1.0, max(0.0, hn))
+            hn = h / ht
+            hn = min(1.0, max(0.0, hn))
 
         return hn
 
@@ -631,16 +634,28 @@ class MarkovChain(_Model):
         """
 
         if not self.is_irreducible:
-            fm = None
-        else:
+            return None
 
-            i = _np.eye(self.__size)
-            a = i - self.__p
-            a += self.pi[0]
+        i = _np.eye(self.__size)
+        a = i - self.__p
+        a += self.pi[0]
 
-            fm = _npl.solve(a, i)
+        fm = _npl.solve(a, i)
 
         return fm
+
+    @_cached_property
+    def global_conductance(self) -> _ofloat:
+
+        """
+        | A property representing the global conductance of the Markov chain.
+        | The computation requires exhaustive subset enumeration and has exponential computational complexity.
+        | If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        """
+
+        gc = _global_conductance(self)
+
+        return gc
 
     @_cached_property
     def implied_timescales(self) -> _oarray:
@@ -651,23 +666,22 @@ class MarkovChain(_Model):
         """
 
         if not self.is_irreducible:
-            it = None
-        else:
+            return None
 
-            ev = self.__eigenvalues_sorted[::-1]
+        ev = self.__eigenvalues_sorted[::-1]
 
-            remaining = ev[1:]
-            timescales = _np.zeros(remaining.shape, dtype=float)
+        remaining = ev[1:]
+        timescales = _np.zeros(remaining.shape, dtype=float)
 
-            infinite_mask = remaining >= (1.0 - _ETOL)
-            zero_mask = remaining <= _ETOL
-            finite_mask = ~(infinite_mask | zero_mask)
+        infinite_mask = remaining >= (1.0 - _ETOL)
+        zero_mask = remaining <= _ETOL
+        finite_mask = ~(infinite_mask | zero_mask)
 
-            timescales[infinite_mask] = _np.inf
-            timescales[zero_mask] = 0.0
-            timescales[finite_mask] = -1.0 / _np.log(remaining[finite_mask])
+        timescales[infinite_mask] = _np.inf
+        timescales[zero_mask] = 0.0
+        timescales[finite_mask] = -1.0 / _np.log(remaining[finite_mask])
 
-            it = _np.append(_np.inf, timescales)
+        it = _np.append(_np.inf, timescales)
 
         return it
 
@@ -845,14 +859,13 @@ class MarkovChain(_Model):
         """
 
         if not self.is_irreducible:
+            return None
+
+        fm = self.fundamental_matrix
+        kc = float(_np.trace(fm)) - 1.0
+
+        if not _np.isfinite(kc):
             kc = None
-        else:
-
-            fm = self.fundamental_matrix
-            kc = float(_np.trace(fm)) - 1.0
-
-            if not _np.isfinite(kc):
-                kc = None
 
         return kc
 
@@ -872,7 +885,7 @@ class MarkovChain(_Model):
 
         """
         | A property representing the mixing rate of the Markov chain.
-        | If the Markov chain is not **irreducible** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
+        | If the Markov chain is not **irreducible** or the **SLEM** (second-largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
         slem = self.__slem
@@ -934,6 +947,34 @@ class MarkovChain(_Model):
             kc = float(_np.trace(om))
 
         return kc
+
+    @_cached_property
+    def ordinary_spectral_gap(self) -> _tany:
+
+        """
+        | A property representing the ordinary spectral gap of the Markov chain, together with its Cheeger bounds.
+        | If the Markov chain is not **irreducible** and **reversible**, then :py:class:`None` is returned.
+        """
+
+        if (not self.is_irreducible) or (not self.is_reversible):
+            return None
+
+        pi = self.pi[0]
+        w = _np.sqrt(pi)
+
+        pw = (w[:, _np.newaxis] * self.__p) / w[_np.newaxis, :]
+        pw = 0.5 * (pw + _np.transpose(pw))
+
+        evalues = _npl.eigvalsh(pw)
+        sg = 1.0 - float(evalues[-2])
+
+        if -_FTOL < sg < 0.0:
+            sg = 0.0
+
+        gc = self.global_conductance
+        cb = [0.5 * gc ** 2.0, 2.0 * gc]
+
+        return sg, cb
 
     @property
     def p(self) -> _tarray:
@@ -1037,10 +1078,10 @@ class MarkovChain(_Model):
 
         """
         | A property representing the relaxation rate of the Markov chain.
-        | If the Markov chain is not **irreducible** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
+        | If the Markov chain is not **irreducible** or the **SLEM** (second-largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
         """
 
-        sg = self.spectral_gap
+        sg = self.absolute_spectral_gap
 
         if sg is None:
             rr = None
@@ -1060,27 +1101,6 @@ class MarkovChain(_Model):
 
         return self.__size
 
-    @_cached_property
-    def spectral_gap(self) -> _ofloat:
-
-        """
-        | A property representing the spectral gap of the Markov chain.
-        | If the Markov chain is not **irreducible** or the **SLEM** (second largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
-        """
-
-        slem = self.__slem
-
-        if slem is None:
-            sg = None
-        else:
-
-            sg = 1.0 - slem
-
-            if -_FTOL < sg < 0.0:
-                sg = 0.0
-
-        return sg
-
     @property
     def states(self) -> _tlist_str:
 
@@ -1098,9 +1118,9 @@ class MarkovChain(_Model):
         | One matrix is returned for each stationary distribution.
         """
 
-        current = [f - _np.transpose(f) for f in self.stationary_flux]
+        sc = [f - _np.transpose(f) for f in self.stationary_flux]
 
-        return current
+        return sc
 
     @_cached_property
     def stationary_flux(self) -> _tlist_array:
@@ -1110,9 +1130,9 @@ class MarkovChain(_Model):
         | One matrix is returned for each stationary distribution.
         """
 
-        flux = [pi[:, _np.newaxis] * self.__p for pi in self.pi]
+        sf = [pi[:, _np.newaxis] * self.__p for pi in self.pi]
 
-        return flux
+        return sf
 
     @_cached_property
     def topological_entropy(self) -> float:
@@ -1429,6 +1449,40 @@ class MarkovChain(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         value = self.__p[state, :]
+
+        return value
+
+    def conductance(self, states: _tstates) -> _ofloat:
+
+        """
+        The method computes the conductance of the given subset of the state space.
+
+        | **Notes:**
+
+        - Conductance is the stationary probability of leaving the subset in one step, conditioned on being in the subset, and lies between 0 and 1.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+
+        :param states: the subset of the state space.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            states = _validate_labels_current(states, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if not self.is_irreducible:
+            return None
+
+        complement = _np.ones(self.__size, dtype=bool)
+        complement[states] = False
+
+        pi = self.pi[0]
+        sf = self.stationary_flux[0]
+
+        value = float(_np.sum(sf[_np.ix_(states, complement)]) / _np.sum(pi[states]))
 
         return value
 

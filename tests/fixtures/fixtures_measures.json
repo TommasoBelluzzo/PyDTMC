@@ -19,6 +19,16 @@
       }
     ],
     "commute_times": [[0.0, 2.0], [2.0, 0.0]],
+    "conductance_data": [
+      {
+        "states": 0,
+        "value": 1.0
+      },
+      {
+        "states": 1,
+        "value": 1.0
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 1,
@@ -205,6 +215,16 @@
       }
     ],
     "commute_times": [[0.00000000, 5.42857143], [5.42857143, 0.00000000]],
+    "conductance_data": [
+      {
+        "states": 0,
+        "value": 0.7
+      },
+      {
+        "states": 1,
+        "value": 0.25
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 5,
@@ -399,6 +419,16 @@
       }
     ],
     "commute_times": null,
+    "conductance_data": [
+      {
+        "states": 0,
+        "value": null
+      },
+      {
+        "states": [0, 1],
+        "value": null
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 3,
@@ -584,7 +614,21 @@
         "value_forward": [0.75, 1.00, 0.00]
       }
     ],
-    "commute_times": [[0.00000000, 7.08333333, 7.21212121], [7.08333333, 0.00000000, 7.72727273], [7.21212121, 7.72727273, 0.00000000]],
+    "commute_times": [
+      [0.00000000, 7.08333333, 7.21212121],
+      [7.08333333, 0.00000000, 7.72727273],
+      [7.21212121, 7.72727273, 0.00000000]
+    ],
+    "conductance_data": [
+      {
+        "states": 0,
+        "value": 0.4
+      },
+      {
+        "states": [1, 2],
+        "value": 0.3157894737
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 1,
@@ -779,6 +823,16 @@
       }
     ],
     "commute_times": [[0.00000000, 6.66666667, 6.66666667], [6.66666667, 0.00000000, 6.66666667], [6.66666667, 6.66666667, 0.00000000]],
+    "conductance_data": [
+      {
+        "states": [0, 1],
+        "value": 0.3333333333
+      },
+      {
+        "states": [0, 2],
+        "value": 0.25
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 2,
@@ -972,6 +1026,16 @@
       }
     ],
     "commute_times": null,
+    "conductance_data": [
+      {
+        "states": 1,
+        "value": null
+      },
+      {
+        "states": [0, 3],
+        "value": null
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 2,
@@ -1162,6 +1226,16 @@
       [8.49206349, 0.00000000, 15.28571429, 16.55952381],
       [11.88888889, 15.28571429, 0.00000000, 17.83333333],
       [13.16269841, 16.55952381, 17.83333333, 0.00000000]
+    ],
+    "conductance_data": [
+      {
+        "states": [0, 3],
+        "value": 0.2547945205
+      },
+      {
+        "states": [1, 2],
+        "value": 0.5470588235
+      }
     ],
     "expected_rewards_data": [
       {
@@ -1372,6 +1446,16 @@
       [7.40000000, 14.80000000, 0.00000000, 14.80000000, 9.51428571],
       [12.33333333, 17.26666667, 14.80000000, 0.00000000, 17.61904762],
       [5.28571429, 8.45714286, 9.51428571, 17.61904762, 0.00000000]
+    ],
+    "conductance_data": [
+      {
+        "states": 3,
+        "value": 1.0
+      },
+      {
+        "states": [0, 2],
+        "value": 0.6666666667
+      }
     ],
     "expected_rewards_data": [
       {
@@ -1586,6 +1670,16 @@
       }
     ],
     "commute_times": null,
+    "conductance_data": [
+      {
+        "states": [0, 2],
+        "value": null
+      },
+      {
+        "states": [1, 5],
+        "value": null
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 100,
@@ -1775,6 +1869,16 @@
       }
     ],
     "commute_times": null,
+    "conductance_data": [
+      {
+        "states": 1,
+        "value": null
+      },
+      {
+        "states": [1, 2],
+        "value": null
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 10,

@@ -214,6 +214,20 @@ def test_fundamental_matrix(p, fundamental_matrix, deviation_matrix, kemeny_cons
         assert actual == expected
 
 
+def test_global_conductance(p, global_conductance):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.global_conductance
+    expected = global_conductance
+
+    if (actual is not None) and (expected is not None):
+        assert mc.is_irreducible
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
 def test_irreducibility(p):
 
     mc = _MarkovChain(p)
@@ -311,6 +325,68 @@ def test_regularity(p):
     else:
         assert mc.is_irreducible
         assert mc.is_aperiodic
+
+
+def test_spectral_gaps(p, absolute_spectral_gap, ordinary_spectral_gap):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.absolute_spectral_gap
+    expected = absolute_spectral_gap
+
+    if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+    actual = mc.ordinary_spectral_gap
+    expected = ordinary_spectral_gap
+
+    if (actual is not None) and (expected is not None):
+
+        assert mc.is_irreducible
+        assert mc.is_reversible
+
+        sg_actual, cb_actual = actual
+        sg_expected, cb_expected = expected
+
+        assert _np.isclose(sg_actual, sg_expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(_np.array(cb_actual), _np.array(cb_expected), rtol=1e-5, atol=1e-8)
+
+        assert sg_actual >= mc.absolute_spectral_gap or _np.isclose(sg_actual, mc.absolute_spectral_gap, rtol=1e-5, atol=1e-8)
+
+    else:
+        assert actual == expected
+
+
+def test_spectral_timing(p, mixing_rate, relaxation_rate, implied_timescales):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.mixing_rate
+    expected = mixing_rate
+
+    if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+    actual = mc.relaxation_rate
+    expected = relaxation_rate
+
+    if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+    actual = mc.implied_timescales
+    expected = implied_timescales
+
+    if (actual is not None) and (expected is not None):
+        expected = _np.array(expected)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
 
 
 def test_stationary_current(p, stationary_current):
@@ -440,45 +516,6 @@ def test_transitions(p):
                 expected = transition_matrix[index2, index1]
 
                 assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
-
-
-# noinspection DuplicatedCode
-def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales):
-
-    mc = _MarkovChain(p)
-
-    actual = mc.mixing_rate
-    expected = mixing_rate
-
-    if (actual is not None) and (expected is not None):
-        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
-    else:
-        assert actual == expected
-
-    actual = mc.relaxation_rate
-    expected = relaxation_rate
-
-    if (actual is not None) and (expected is not None):
-        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
-    else:
-        assert actual == expected
-
-    actual = mc.spectral_gap
-    expected = spectral_gap
-
-    if (actual is not None) and (expected is not None):
-        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
-    else:
-        assert actual == expected
-
-    actual = mc.implied_timescales
-    expected = implied_timescales
-
-    if (actual is not None) and (expected is not None):
-        expected = _np.array(expected)
-        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-    else:
-        assert actual == expected
 
 
 def test_topological_entropy(p, topological_entropy):

@@ -1,21 +1,44 @@
 [
   {
     "id": "#1",
-    "p": [[0.0, 1.0], [1.0, 0.0]],
-    "accessibility_matrix": [[1, 1], [1, 1]],
-    "adjacency_matrix": [[0, 1], [1, 0]],
-    "communication_matrix": [[1, 1], [1, 1]],
+    "p": [
+      [0.0, 1.0],
+      [1.0, 0.0]
+    ],
+    "absolute_spectral_gap": 0.0,
+    "accessibility_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
+    "adjacency_matrix": [
+      [0, 1],
+      [1, 0]
+    ],
+    "communication_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.25, -0.25], [-0.25, 0.25]],
+    "deviation_matrix": [
+      [0.25, -0.25],
+      [-0.25, 0.25]
+    ],
     "determinant": -1.0,
     "dobrushin_coefficient": 1.0,
     "doeblin_coefficient": 0.0,
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.0,
     "entropy_rate_normalized": 0.0,
-    "fundamental_matrix": [[0.75, 0.25], [0.25, 0.75]],
+    "fundamental_matrix": [
+      [0.75, 0.25],
+      [0.25, 0.75]
+    ],
+    "global_conductance": 1.0,
     "implied_timescales": ["Infinity", "Infinity"],
-    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 0],
+      [0, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": true,
@@ -28,37 +51,63 @@
     "mixing_rate": "Infinity",
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": [2.0, [0.5, 2.0]],
     "period": 2,
     "rank": 2,
     "relaxation_rate": "Infinity",
-    "spectral_gap": 0.0,
     "stationary_current": [
-      [
-        [0.0, 0.0],
-        [0.0, 0.0]
-      ]
+      [[0.0, 0.0],
+       [0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.5, 0.5]],
-    "stationary_flux": [[[0.0, 0.5], [0.5, 0.0]]],
+    "stationary_distributions": [
+      [0.5, 0.5]
+    ],
+    "stationary_flux": [
+      [[0.0, 0.5],
+       [0.5, 0.0]]
+    ],
     "topological_entropy": 0.0
   },
   {
     "id": "#2",
-    "p": [[0.4, 0.6], [1.0, 0.0]],
-    "accessibility_matrix": [[1, 1], [1, 1]],
-    "adjacency_matrix": [[1, 1], [1, 0]],
-    "communication_matrix": [[1, 1], [1, 1]],
+    "p": [
+      [0.4, 0.6],
+      [1.0, 0.0]
+    ],
+    "absolute_spectral_gap": 0.4,
+    "accessibility_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1],
+      [1, 0]
+    ],
+    "communication_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.234375, -0.234375], [-0.390625, 0.390625]],
+    "deviation_matrix": [
+      [0.234375, -0.234375],
+      [-0.390625, 0.390625]
+    ],
     "determinant": -0.6,
     "dobrushin_coefficient": 0.6,
     "doeblin_coefficient": 0.4,
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.42063229,
     "entropy_rate_normalized": 0.87411046,
-    "fundamental_matrix": [[0.859375, 0.140625], [0.234375, 0.765625]],
+    "fundamental_matrix": [
+      [0.859375, 0.140625],
+      [0.234375, 0.765625]
+    ],
+    "global_conductance": 1.0,
     "implied_timescales": ["Infinity", 1.95761519],
-    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 0],
+      [0, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -71,37 +120,63 @@
     "mixing_rate": 1.95761519,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": [1.6, [0.5, 2.0]],
     "period": 1,
     "rank": 2,
     "relaxation_rate": 2.5,
-    "spectral_gap": 0.4,
     "stationary_current": [
-      [
-        [0.0, 0.0],
-        [0.0, 0.0]
-      ]
+      [[0.0, 0.0],
+       [0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.625, 0.375]],
-    "stationary_flux": [[[0.250,  0.375], [ 0.375, 0.000]]],
+    "stationary_distributions": [
+      [0.625, 0.375]
+    ],
+    "stationary_flux": [
+      [[0.250, 0.375],
+       [0.375, 0.000]]
+    ],
     "topological_entropy": 0.48121183
   },
   {
     "id": "#3",
-    "p": [[0.05, 0.95], [0.8, 0.2]],
-    "accessibility_matrix": [[1, 1], [1, 1]],
-    "adjacency_matrix": [[1, 1], [1, 1]],
-    "communication_matrix": [[1, 1], [1, 1]],
+    "p": [
+      [0.05, 0.95],
+      [0.80, 0.20]
+    ],
+    "absolute_spectral_gap": 0.25,
+    "accessibility_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.310204082, -0.310204082], [-0.26122449, 0.26122449]],
+    "deviation_matrix": [
+      [0.310204082, -0.310204082],
+      [-0.26122449, 0.26122449]
+    ],
     "determinant": -0.75,
     "dobrushin_coefficient": 0.75,
     "doeblin_coefficient": 0.25,
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.36239686,
     "entropy_rate_normalized": 0.52282815,
-    "fundamental_matrix": [[0.7673469, 0.2326531], [0.1959184, 0.8040816]],
+    "fundamental_matrix": [
+      [0.7673469, 0.2326531],
+      [0.1959184, 0.8040816]
+    ],
+    "global_conductance": 0.95,
     "implied_timescales": ["Infinity", 3.47605950],
-    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 0],
+      [0, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -114,37 +189,63 @@
     "mixing_rate": 3.47605950,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": [1.75, [0.45125, 1.90000]],
     "period": 1,
     "rank": 2,
     "relaxation_rate": 4.0,
-    "spectral_gap": 0.25,
     "stationary_current": [
-      [
-        [0.0, 0.0],
-        [0.0, 0.0]
-      ]
+      [[0.0, 0.0],
+       [0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.45714286, 0.54285714]],
-    "stationary_flux": [[[0.022857, 0.434286], [0.434286, 0.108571]]],
+    "stationary_distributions": [
+      [0.45714286, 0.54285714]
+    ],
+    "stationary_flux": [
+      [[0.022857, 0.434286],
+       [0.434286, 0.108571]]
+    ],
     "topological_entropy": 0.69314718
   },
   {
     "id": "#4",
-    "p": [[0.5, 0.5], [0.5, 0.5]],
-    "accessibility_matrix": [[1, 1], [1, 1]],
-    "adjacency_matrix": [[1, 1], [1, 1]],
-    "communication_matrix": [[1, 1], [1, 1]],
+    "p": [
+      [0.5, 0.5],
+      [0.5, 0.5]
+    ],
+    "absolute_spectral_gap": 1.0,
+    "accessibility_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.5, -0.5], [-0.5, 0.5]],
+    "deviation_matrix": [
+      [0.5, -0.5],
+      [-0.5, 0.5]
+    ],
     "determinant": 0.0,
     "dobrushin_coefficient": 0.0,
     "doeblin_coefficient": 1.0,
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.69314718,
     "entropy_rate_normalized": 1.0,
-    "fundamental_matrix": [[1.0, 0.0], [0.0, 1.0]],
+    "fundamental_matrix": [
+      [1.0, 0.0],
+      [0.0, 1.0]
+    ],
+    "global_conductance": 0.5,
     "implied_timescales": ["Infinity", 0.0],
-    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 0],
+      [0, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": true,
@@ -157,26 +258,42 @@
     "mixing_rate": 0.0,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": [1.0, [0.125, 1.000]],
     "period": 1,
     "rank": 1,
     "relaxation_rate": 1.0,
-    "spectral_gap": 1.0,
     "stationary_current": [
-      [
-        [0.0, 0.0],
-        [0.0, 0.0]
-      ]
+      [[0.0, 0.0],
+       [0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.5, 0.5]],
-    "stationary_flux": [[[0.25, 0.25], [0.25, 0.25]]],
+    "stationary_distributions": [
+      [0.5, 0.5]
+    ],
+    "stationary_flux": [
+      [[0.25, 0.25],
+       [0.25, 0.25]]
+    ],
     "topological_entropy": 0.69314718
   },
   {
     "id": "#5",
-    "p": [[1.0, 0.0], [0.1, 0.9]],
-    "accessibility_matrix": [[1, 0], [1, 1]],
-    "adjacency_matrix": [[1, 0], [1, 1]],
-    "communication_matrix": [[1, 0], [0, 1]],
+    "p": [
+      [1.0, 0.0],
+      [0.1, 0.9]
+    ],
+    "absolute_spectral_gap": null,
+    "accessibility_matrix": [
+      [1, 0],
+      [1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 0],
+      [1, 1]
+    ],
+    "communication_matrix": [
+      [1, 0],
+      [0, 1]
+    ],
     "density": 0.5,
     "deviation_matrix": null,
     "determinant": 0.9,
@@ -186,8 +303,12 @@
     "entropy_rate": 0.0,
     "entropy_rate_normalized": 0.0,
     "fundamental_matrix": null,
+    "global_conductance": null,
     "implied_timescales": null,
-    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 0],
+      [0, 1, 1, 0]
+    ],
     "is_absorbing": true,
     "is_canonical": false,
     "is_doubly_stochastic": false,
@@ -200,37 +321,63 @@
     "mixing_rate": null,
     "occupation_matrix": [[10.0]],
     "occupation_trace": 10.0,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 2,
     "relaxation_rate": null,
-    "spectral_gap": null,
     "stationary_current": [
-      [
-        [0.0, 0.0],
-        [0.0, 0.0]
-      ]
+      [[0.0, 0.0],
+       [0.0, 0.0]]
     ],
-    "stationary_distributions": [[1.0, 0.0]],
-    "stationary_flux": [[[1.0, 0.0], [0.0, 0.0]]],
+    "stationary_distributions": [
+      [1.0, 0.0]
+    ],
+    "stationary_flux": [
+      [[1.0, 0.0],
+       [0.0, 0.0]]
+    ],
     "topological_entropy": 0.0
   },
   {
     "id": "#6",
-    "p": [[0.1, 0.9], [0.1, 0.9]],
-    "accessibility_matrix": [[1, 1], [1, 1]],
-    "adjacency_matrix": [[1, 1], [1, 1]],
-    "communication_matrix": [[1, 1], [1, 1]],
+    "p": [
+      [0.1, 0.9],
+      [0.1, 0.9]
+    ],
+    "absolute_spectral_gap": 1.0,
+    "accessibility_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.9, -0.9], [-0.1, 0.1]],
+    "deviation_matrix": [
+      [0.9, -0.9],
+      [-0.1, 0.1]
+    ],
     "determinant": 0.0,
     "dobrushin_coefficient": 0.0,
     "doeblin_coefficient": 1.0,
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.32508297,
     "entropy_rate_normalized": 0.46899559,
-    "fundamental_matrix": [[1.0, 0.0], [0.0, 1.0]],
+    "fundamental_matrix": [
+      [1.0, 0.0],
+      [0.0, 1.0]
+    ],
+    "global_conductance": 0.9,
     "implied_timescales": ["Infinity", 0.0],
-    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 0],
+      [0, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -243,37 +390,63 @@
     "mixing_rate": 0.0,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": [1.0, [0.405, 1.800]],
     "period": 1,
     "rank": 1,
     "relaxation_rate": 1.0,
-    "spectral_gap": 1.0,
     "stationary_current": [
-      [
-        [0.0, 0.0],
-        [0.0, 0.0]
-      ]
+      [[0.0, 0.0],
+       [0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.1, 0.9]],
-    "stationary_flux": [[[0.01, 0.09], [0.09, 0.81]]],
+    "stationary_distributions": [
+      [0.1, 0.9]
+    ],
+    "stationary_flux": [
+      [[0.01, 0.09],
+       [0.09, 0.81]]
+    ],
     "topological_entropy": 0.69314718
   },
   {
     "id": "#7",
-    "p": [[0.9, 0.1], [0.9, 0.1]],
-    "accessibility_matrix": [[1, 1], [1, 1]],
-    "adjacency_matrix": [[1, 1], [1, 1]],
-    "communication_matrix": [[1, 1], [1, 1]],
+    "p": [
+      [0.9, 0.1],
+      [0.9, 0.1]
+    ],
+    "absolute_spectral_gap": 1.0,
+    "accessibility_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1],
+      [1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.1, -0.1], [-0.9, 0.9]],
+    "deviation_matrix": [
+      [0.1, -0.1],
+      [-0.9, 0.9]
+    ],
     "determinant": 0.0,
     "dobrushin_coefficient": 0.0,
     "doeblin_coefficient": 1.0,
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.32508297,
     "entropy_rate_normalized": 0.46899559,
-    "fundamental_matrix": [[1.0, 0.0], [0.0, 1.0]],
+    "fundamental_matrix": [
+      [1.0, 0.0],
+      [0.0, 1.0]
+    ],
+    "global_conductance": 0.9,
     "implied_timescales": ["Infinity", 0.0],
-    "incidence_matrix": [[0, 1, 1, 0], [0, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 0],
+      [0, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -286,26 +459,46 @@
     "mixing_rate": 0.0,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": [1.0, [0.405, 1.800]],
     "period": 1,
     "rank": 1,
     "relaxation_rate": 1.0,
-    "spectral_gap": 1.0,
     "stationary_current": [
-      [
-        [0.0, 0.0],
-        [0.0, 0.0]
-      ]
+      [[0.0, 0.0],
+       [0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.9, 0.1]],
-    "stationary_flux": [[[0.81, 0.09], [0.09, 0.01]]],
+    "stationary_distributions": [
+      [0.9, 0.1]
+    ],
+    "stationary_flux": [
+      [[0.81, 0.09],
+       [0.09, 0.01]]
+    ],
     "topological_entropy": 0.69314718
   },
   {
     "id": "#8",
-    "p": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-    "accessibility_matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-    "adjacency_matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-    "communication_matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+    "p": [
+      [1.0, 0.0, 0.0],
+      [0.0, 1.0, 0.0],
+      [0.0, 0.0, 1.0]
+    ],
+    "absolute_spectral_gap": null,
+    "accessibility_matrix": [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ],
+    "communication_matrix": [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ],
     "density": 0.0,
     "deviation_matrix": null,
     "determinant": 1.0,
@@ -315,8 +508,13 @@
     "entropy_rate": null,
     "entropy_rate_normalized": null,
     "fundamental_matrix": null,
+    "global_conductance": null,
     "implied_timescales": null,
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": true,
     "is_canonical": true,
     "is_doubly_stochastic": true,
@@ -329,52 +527,86 @@
     "mixing_rate": null,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 3,
     "relaxation_rate": null,
-    "spectral_gap": null,
     "stationary_current": [
-      [
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0]
-      ],
-      [
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0]
-      ],
-      [
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0]
-      ]
+      [[0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0]],
+      [[0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0]],
+      [[0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0]]
     ],
-    "stationary_distributions": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+    "stationary_distributions": [
+      [1.0, 0.0, 0.0],
+      [0.0, 1.0, 0.0],
+      [0.0, 0.0, 1.0]
+    ],
     "stationary_flux": [
-      [[1.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
-      [[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]],
-      [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]]
+      [[1.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0]],
+      [[0.0, 0.0, 0.0],
+       [0.0, 1.0, 0.0],
+       [0.0, 0.0, 0.0]],
+      [[0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0],
+       [0.0, 0.0, 1.0]]
     ],
     "topological_entropy": 0.0
   },
   {
     "id": "#9",
-    "p": [[0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[0, 1, 0], [0, 0, 1], [1, 0, 0]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.0, 1.0, 0.0],
+      [0.0, 0.0, 1.0],
+      [1.0, 0.0, 0.0]
+    ],
+    "absolute_spectral_gap": 0.0,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [0, 1, 0],
+      [0, 0, 1],
+      [1, 0, 0]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 0.5,
-    "deviation_matrix": [[0.333333333, 0.0, -0.333333333], [-0.333333333, 0.333333333, 0.0], [0.0, -0.333333333, 0.333333333]],
+    "deviation_matrix": [
+      [0.333333333, 0.0, -0.333333333],
+      [-0.333333333, 0.333333333, 0.0],
+      [0.0, -0.333333333, 0.333333333]
+    ],
     "determinant": 1.0,
     "dobrushin_coefficient": 1.0,
     "doeblin_coefficient": 0.0,
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.0,
     "entropy_rate_normalized": 0.0,
-    "fundamental_matrix": [[0.666667, 0.333333, 0.000000], [0.000000, 0.666667, 0.333333], [0.333333, 0.000000, 0.666667]],
+    "fundamental_matrix": [
+      [0.666667, 0.333333, 0.000000],
+      [0.000000, 0.666667, 0.333333],
+      [0.333333, 0.000000, 0.666667]
+    ],
+    "global_conductance": 1.0,
     "implied_timescales": ["Infinity", "Infinity", "Infinity"],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": true,
@@ -387,18 +619,18 @@
     "mixing_rate": "Infinity",
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 3,
     "rank": 3,
     "relaxation_rate": "Infinity",
-    "spectral_gap": 0.0,
     "stationary_current": [
-      [
-        [0.00000, 0.33333, -0.33333],
-        [-0.33333, 0.00000, 0.33333],
-        [0.33333, -0.33333, 0.00000]
-      ]
+      [[0.00000, 0.33333, -0.33333],
+       [-0.33333, 0.00000, 0.33333],
+       [0.33333, -0.33333, 0.00000]]
     ],
-    "stationary_distributions": [[0.33333333, 0.33333333, 0.33333333]],
+    "stationary_distributions": [
+      [0.33333333, 0.33333333, 0.33333333]
+    ],
     "stationary_flux": [
       [[0.000000, 0.333333, 0.000000],
        [0.000000, 0.000000, 0.333333],
@@ -408,10 +640,27 @@
   },
   {
     "id": "#10",
-    "p": [[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.5, 0.5]],
-    "accessibility_matrix": [[1, 1, 0], [1, 1, 0], [1, 1, 1]],
-    "adjacency_matrix": [[0, 1, 0], [1, 0, 0], [0, 1, 1]],
-    "communication_matrix": [[1, 1, 0], [1, 1, 0], [0, 0, 1]],
+    "p": [
+      [0.0, 1.0, 0.0],
+      [1.0, 0.0, 0.0],
+      [0.0, 0.5, 0.5]
+    ],
+    "absolute_spectral_gap": null,
+    "accessibility_matrix": [
+      [1, 1, 0],
+      [1, 1, 0],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [0, 1, 0],
+      [1, 0, 0],
+      [0, 1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 0],
+      [1, 1, 0],
+      [0, 0, 1]
+    ],
     "density": 0.5,
     "deviation_matrix": null,
     "determinant": -0.5,
@@ -421,8 +670,13 @@
     "entropy_rate": 0.0,
     "entropy_rate_normalized": 0.0,
     "fundamental_matrix": null,
+    "global_conductance": null,
     "implied_timescales": null,
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": false,
     "is_doubly_stochastic": false,
@@ -435,18 +689,18 @@
     "mixing_rate": null,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 2,
     "rank": 3,
     "relaxation_rate": null,
-    "spectral_gap": null,
     "stationary_current": [
-      [
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0]
-      ]
+      [[0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.5, 0.5, 0.0]],
+    "stationary_distributions": [
+      [0.5, 0.5, 0.0]
+    ],
     "stationary_flux": [
       [[0.0, 0.5, 0.0],
        [0.5, 0.0, 0.0],
@@ -456,21 +710,51 @@
   },
   {
     "id": "#11",
-    "p": [[0.0, 0.3, 0.7], [0.1, 0.5, 0.4], [0.1, 0.2, 0.7]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[0, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.0, 0.3, 0.7],
+      [0.1, 0.5, 0.4],
+      [0.1, 0.2, 0.7]
+    ],
+    "absolute_spectral_gap": 0.7,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [0, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.826446281, -0.308652387, -0.517793894], [-0.082644628, 0.990048912, -0.907404284], [-0.082644628, -0.438522516, 0.521167145]],
+    "deviation_matrix": [
+      [0.826446281, -0.308652387, -0.517793894],
+      [-0.082644628, 0.990048912, -0.907404284],
+      [-0.082644628, -0.438522516, 0.521167145]
+    ],
     "determinant": -0.02999999,
     "dobrushin_coefficient": 0.3,
     "doeblin_coefficient": 0.6,
     "entropy_production_rate": [0.0004003914],
     "entropy_rate": 0.82673422,
     "entropy_rate_normalized": 0.82257811,
-    "fundamental_matrix": [[0.9173554, -0.0099511, 0.0925957], [0.0082645, 1.2887502, -0.29701470], [0.0082645, -0.1398212, 1.1315568]],
+    "fundamental_matrix": [
+      [0.9173554, -0.0099511,  0.0925957],
+      [0.0082645,  1.2887502, -0.29701470],
+      [0.0082645, -0.1398212,  1.1315568]
+    ],
+    "global_conductance": 0.47,
     "implied_timescales": ["Infinity", 0.83058355, 0.43429448],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -483,18 +767,18 @@
     "mixing_rate": 0.83058355,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 3,
     "relaxation_rate": 1.42857143,
-    "spectral_gap": 0.7,
     "stationary_current": [
-      [
-        [0.0000000, -0.0025974, 0.0025974],
-        [0.0025974, 0.0000000, -0.0025974],
-        [-0.0025974, 0.0025974, 0.0000000]
-      ]
+      [[0.0000000, -0.0025974, 0.0025974],
+       [0.0025974, 0.0000000, -0.0025974],
+       [-0.0025974, 0.0025974, 0.0000000]]
     ],
-    "stationary_distributions": [[0.09090909, 0.29870130, 0.61038961]],
+    "stationary_distributions": [
+      [0.09090909, 0.29870130, 0.61038961]
+    ],
     "stationary_flux": [
       [[0.000000, 0.027273, 0.063636],
        [0.029870, 0.149351, 0.119481],
@@ -504,21 +788,51 @@
   },
   {
     "id": "#12",
-    "p": [[0.0, 1.0, 0.0], [0.3, 0.0, 0.7], [0.0, 1.0, 0.0]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[0, 1, 0], [1, 0, 1], [0, 1, 0]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.0, 1.0, 0.0],
+      [0.3, 0.0, 0.7],
+      [0.0, 1.0, 0.0]
+    ],
+    "absolute_spectral_gap": 0.0,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [0, 1, 0],
+      [1, 0, 1],
+      [0, 1, 0]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 0.66666667,
-    "deviation_matrix": [[0.775, -0.25, -0.525], [-0.075, 0.25, -0.175], [-0.225, -0.25, 0.475]],
+    "deviation_matrix": [
+      [0.775, -0.25, -0.525],
+      [-0.075, 0.25, -0.175],
+      [-0.225, -0.25, 0.475]
+    ],
     "determinant": 0.0,
     "dobrushin_coefficient": 1.0,
     "doeblin_coefficient": 0.0,
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.30543215,
     "entropy_rate_normalized": 0.88129090,
-    "fundamental_matrix": [[0.925, 0.250, -0.175], [0.075, 0.750, 0.175], [-0.075, 0.250, 0.825]],
+    "fundamental_matrix": [
+      [ 0.925, 0.250, -0.175],
+      [ 0.075, 0.750,  0.175],
+      [-0.075, 0.250,  0.825]
+    ],
+    "global_conductance": 1.0,
     "implied_timescales": ["Infinity", "Infinity", 0.0],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -531,18 +845,18 @@
     "mixing_rate": "Infinity",
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": [1.0, [0.5, 2.0]],
     "period": 2,
     "rank": 2,
     "relaxation_rate": "Infinity",
-    "spectral_gap": 0.0,
     "stationary_current": [
-      [
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0]
-      ]
+      [[0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.15, 0.50, 0.35]],
+    "stationary_distributions": [
+      [0.15, 0.50, 0.35]
+    ],
     "stationary_flux": [
       [[0.00, 0.15, 0.00],
        [0.15, 0.00, 0.35],
@@ -552,21 +866,51 @@
   },
   {
     "id": "#13",
-    "p": [[0.4, 0.3, 0.3], [0.2, 0.6, 0.2], [0.3, 0.3, 0.4]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.4, 0.3, 0.3],
+      [0.2, 0.6, 0.2],
+      [0.3, 0.3, 0.4]
+    ],
+    "absolute_spectral_gap": 0.7,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.861678005, -0.612244898, -0.249433107], [-0.408163265, 0.816326531, -0.408163265], [-0.249433107, -0.612244898, 0.861678005]],
+    "deviation_matrix": [
+      [0.861678005, -0.612244898, -0.249433107],
+      [-0.408163265, 0.816326531, -0.408163265],
+      [-0.249433107, -0.612244898, 0.861678005]
+    ],
     "determinant": 0.02999999,
     "dobrushin_coefficient": 0.3,
     "doeblin_coefficient": 0.7,
     "entropy_production_rate": [0.0],
     "entropy_rate": 1.02948736,
     "entropy_rate_normalized": 0.93707978,
-    "fundamental_matrix": [[1.1473923, -0.1836735, 0.0362812], [-0.1224490, 1.2448980, -0.12244900], [0.0362812, -0.1836735, 1.1473923]],
+    "fundamental_matrix": [
+      [ 1.1473923, -0.1836735,  0.0362812],
+      [-0.1224490,  1.2448980, -0.12244900],
+      [ 0.0362812, -0.1836735,  1.1473923]
+    ],
+    "global_conductance": 0.4,
     "implied_timescales": ["Infinity", 0.830584, 0.434294],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -579,18 +923,18 @@
     "mixing_rate": 0.83058354,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": [0.7, [0.08, 0.80]],
     "period": 1,
     "rank": 3,
     "relaxation_rate": 1.42857143,
-    "spectral_gap": 0.7,
     "stationary_current": [
-      [
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0]
-      ]
+      [[0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.285714, 0.428571, 0.285714]],
+    "stationary_distributions": [
+      [0.285714, 0.428571, 0.285714]
+    ],
     "stationary_flux": [
       [[0.114286, 0.085714, 0.085714],
        [0.085714, 0.257143, 0.085714],
@@ -600,21 +944,51 @@
   },
   {
     "id": "#14",
-    "p": [[0.1, 0.1, 0.8], [0.3, 0.3, 0.4], [0.25, 0.50, 0.25]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.10, 0.10, 0.80],
+      [0.30, 0.30, 0.40],
+      [0.25, 0.50, 0.25]
+    ],
+    "absolute_spectral_gap": 0.7763932,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.646045918, -0.498086735, -0.147959184], [-0.175382653, 0.609056122, -0.433673469], [-0.211096939, -0.212372449, 0.423469388]],
+    "deviation_matrix": [
+      [0.646045918, -0.498086735, -0.147959184],
+      [-0.175382653, 0.609056122, -0.433673469],
+      [-0.211096939, -0.212372449, 0.423469388]
+    ],
     "determinant": 0.05,
     "dobrushin_coefficient": 0.55,
     "doeblin_coefficient": 0.45,
     "entropy_production_rate": [0.1952426653],
     "entropy_rate": 0.96338950,
     "entropy_rate_normalized": 0.87691492,
-    "fundamental_matrix": [[0.8781888, -0.1588010, 0.2806122], [0.0567602, 0.9483418, -0.0051020], [0.0210459, 0.1269133, 0.8520408]],
+    "fundamental_matrix": [
+      [0.8781888, -0.1588010,  0.2806122],
+      [0.0567602,  0.9483418, -0.0051020],
+      [0.0210459,  0.1269133,  0.8520408]
+    ],
+    "global_conductance": 0.7,
     "implied_timescales": ["Infinity", 0.66761640, 0.66761640],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -627,18 +1001,18 @@
     "mixing_rate": 0.66761640,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 3,
     "relaxation_rate": 1.28800716,
-    "spectral_gap": 0.77639320,
     "stationary_current": [
-      [
-        [0.000000, -0.078571, 0.078571],
-        [0.078571, 0.000000, -0.078571],
-        [-0.078571, 0.078571, 0.000000]
-      ]
+      [[0.000000, -0.078571, 0.078571],
+       [0.078571, 0.000000, -0.078571],
+       [-0.078571, 0.078571, 0.000000]]
     ],
-    "stationary_distributions": [[0.23214286, 0.33928571, 0.42857143]],
+    "stationary_distributions": [
+      [0.23214286, 0.33928571, 0.42857143]
+    ],
     "stationary_flux": [
       [[0.0232142857, 0.0232142857, 0.1857142857],
        [0.1017857143, 0.1017857143, 0.1357142857],
@@ -648,21 +1022,51 @@
   },
   {
     "id": "#15",
-    "p": [[0.05, 0.90, 0.05], [0.5, 0.4, 0.1], [0.3, 0.2, 0.5]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.05, 0.90, 0.05],
+      [0.50, 0.40, 0.10],
+      [0.30, 0.20, 0.50]
+    ],
+    "absolute_spectral_gap": 0.53839377,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.502974581, -0.228501893, -0.274472688], [-0.194699838, 0.411032991, -0.216333153], [-0.427257977, -1.042455381, 1.469713359]],
+    "deviation_matrix": [
+      [0.502974581, -0.228501893, -0.274472688],
+      [-0.194699838, 0.411032991, -0.216333153],
+      [-0.427257977, -1.042455381, 1.469713359]
+    ],
     "determinant": -0.19,
     "dobrushin_coefficient": 0.7,
     "doeblin_coefficient": 0.3,
     "entropy_production_rate": [0.0431404383],
     "entropy_rate": 0.77666276,
     "entropy_rate_normalized": 0.70694891,
-    "fundamental_matrix": [[0.8285560, 0.3063818, -0.1349378], [0.1308816, 0.9459167, -0.0767983], [-0.1016766, -0.5075717, 1.6092482]],
+    "fundamental_matrix": [
+      [ 0.8285560,  0.3063818, -0.1349378],
+      [ 0.1308816,  0.9459167, -0.0767983],
+      [-0.1016766, -0.5075717,  1.6092482]
+    ],
+    "global_conductance": 0.5,
     "implied_timescales": ["Infinity", 1.29358899, 1.12652175],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -675,18 +1079,18 @@
     "mixing_rate": 1.29358899,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 3,
     "relaxation_rate": 1.85737662,
-    "spectral_gap": 0.53839377,
     "stationary_current": [
-      [
-        [0.0000000, 0.0255814, -0.0255814],
-        [-0.0255814, 0.0000000, 0.0255814],
-        [0.0255814, -0.0255814, 0.0000000]
-      ]
+      [[0.0000000, 0.0255814, -0.0255814],
+       [-0.0255814, 0.0000000, 0.0255814],
+       [0.0255814, -0.0255814, 0.0000000]]
     ],
-    "stationary_distributions": [[0.32558140, 0.53488372, 0.13953488]],
+    "stationary_distributions": [
+      [0.32558140, 0.53488372, 0.13953488]
+    ],
     "stationary_flux": [
       [[0.01627900, 0.29302300, 0.01627900],
        [0.26744200, 0.21395300, 0.05348800],
@@ -696,21 +1100,51 @@
   },
   {
     "id": "#16",
-    "p": [[0.1, 0.1, 0.8], [0.3, 0.3, 0.4], [0.25, 0.50, 0.25]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.10, 0.10, 0.80],
+      [0.30, 0.30, 0.40],
+      [0.25, 0.50, 0.25]
+    ],
+    "absolute_spectral_gap": 0.7763932,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.646045918, -0.498086735, -0.147959184], [-0.175382653, 0.609056122, -0.433673469], [-0.211096939, -0.212372449, 0.423469388]],
+    "deviation_matrix": [
+      [0.646045918, -0.498086735, -0.147959184],
+      [-0.175382653, 0.609056122, -0.433673469],
+      [-0.211096939, -0.212372449, 0.423469388]
+    ],
     "determinant": 0.05,
     "dobrushin_coefficient": 0.55,
     "doeblin_coefficient": 0.45,
     "entropy_production_rate": [0.1952426653],
     "entropy_rate": 0.96338950,
     "entropy_rate_normalized": 0.87691492,
-    "fundamental_matrix": [[0.8781888, -0.1588010, 0.2806122], [0.0567602, 0.9483418, -0.0051020], [0.0210459, 0.1269133, 0.8520408]],
+    "fundamental_matrix": [
+      [0.8781888, -0.1588010,  0.2806122],
+      [0.0567602,  0.9483418, -0.0051020],
+      [0.0210459,  0.1269133,  0.8520408]
+    ],
+    "global_conductance": 0.7,
     "implied_timescales": ["Infinity", 0.66761640, 0.66761640],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -723,18 +1157,18 @@
     "mixing_rate": 0.66761640,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 3,
     "relaxation_rate": 1.28800716,
-    "spectral_gap": 0.77639320,
     "stationary_current": [
-      [
-        [0.000000, -0.078571, 0.078571],
-        [0.078571, 0.000000, -0.078571],
-        [-0.078571, 0.078571, 0.000000]
-      ]
+      [[0.000000, -0.078571, 0.078571],
+       [0.078571, 0.000000, -0.078571],
+       [-0.078571, 0.078571, 0.000000]]
     ],
-    "stationary_distributions": [[0.23214286, 0.33928571, 0.42857143]],
+    "stationary_distributions": [
+      [0.23214286, 0.33928571, 0.42857143]
+    ],
     "stationary_flux": [
       [[0.0232142857, 0.0232142857, 0.1857142857],
        [0.1017857143, 0.1017857143, 0.1357142857],
@@ -744,21 +1178,51 @@
   },
   {
     "id": "#17",
-    "p": [[0.78, 0.22, 0.00], [0.0, 0.1, 0.9], [0.45, 0.00, 0.55]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[1, 1, 0], [0, 1, 1], [1, 0, 1]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.78, 0.22, 0.00],
+      [0.00, 0.10, 0.90],
+      [0.45, 0.00, 0.55]
+    ],
+    "absolute_spectral_gap": 0.63668196,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1, 0],
+      [0, 1, 1],
+      [1, 0, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 0.5,
-    "deviation_matrix": [[0.632807364, -0.002008912, -0.630798451], [-1.29026956, 0.639016729, 0.651252831], [-0.649243918, -0.315399226, 0.964643144]],
+    "deviation_matrix": [
+      [0.632807364, -0.002008912, -0.630798451],
+      [-1.29026956, 0.639016729, 0.651252831],
+      [-0.649243918, -0.315399226, 0.964643144]
+    ],
     "determinant": 0.132,
     "dobrushin_coefficient": 0.9,
     "doeblin_coefficient": 0.0,
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.54392083,
     "entropy_rate_normalized": 0.78471189,
-    "fundamental_matrix": [[1.2097304, 0.1390167, -0.3487472], [-0.7133465, 0.7800424, 0.9333041], [-0.0723208, -0.1743736, 1.2466944]],
+    "fundamental_matrix": [
+      [ 1.2097304,  0.1390167, -0.3487472],
+      [-0.7133465,  0.7800424,  0.9333041],
+      [-0.0723208, -0.1743736,  1.2466944]
+    ],
+    "global_conductance": 0.3,
     "implied_timescales": ["Infinity", 0.98767707, 0.98767707],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -771,18 +1235,18 @@
     "mixing_rate": 0.98767707,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 3,
     "relaxation_rate": 1.57064291,
-    "spectral_gap": 0.63668196,
     "stationary_current": [
-      [
-        [0.000000, 0.126923, -0.126923],
-        [-0.126923, 0.000000, 0.126923],
-        [0.126923, -0.126923, 0.000000]
-      ]
+      [[0.000000, 0.126923, -0.126923],
+       [-0.126923, 0.000000, 0.126923],
+       [0.126923, -0.126923, 0.000000]]
     ],
-    "stationary_distributions": [[0.57692308, 0.14102564, 0.28205128]],
+    "stationary_distributions": [
+      [0.57692308, 0.14102564, 0.28205128]
+    ],
     "stationary_flux": [
       [[0.4500000000, 0.1269230769, 0.0000000000],
        [0.0000000000, 0.0141025641, 0.1269230769],
@@ -792,21 +1256,51 @@
   },
   {
     "id": "#18",
-    "p": [[0.5, 0.5, 0.0], [0.50, 0.25, 0.25], [0.00, 0.33, 0.67]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[1, 1, 0], [1, 1, 1], [0, 1, 1]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.50, 0.50, 0.00],
+      [0.50, 0.25, 0.25],
+      [0.00, 0.33, 0.67]
+    ],
+    "absolute_spectral_gap": 0.3787823,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1, 0],
+      [1, 1, 1],
+      [0, 1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 0.66666667,
-    "deviation_matrix": [[1.114358169, -0.160367105, -0.953991064], [-0.160367105, 0.56490762, -0.404540514], [-1.259268204, -0.533993479, 1.793261683]],
+    "deviation_matrix": [
+      [1.114358169, -0.160367105, -0.953991064],
+      [-0.160367105, 0.56490762, -0.404540514],
+      [-1.259268204, -0.533993479, 1.793261683]
+    ],
     "determinant": -0.125,
     "dobrushin_coefficient": 0.67,
     "doeblin_coefficient": 0.25,
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.80262756,
     "entropy_rate_normalized": 0.91065534,
-    "fundamental_matrix": [[1.4769955, 0.2022703, -0.6792658], [0.2022703, 0.9275450, -0.1298152], [-0.8966308, -0.1713561, 2.0679870]],
+    "fundamental_matrix": [
+      [ 1.4769955,  0.2022703, -0.6792658],
+      [ 0.2022703,  0.9275450, -0.1298152],
+      [-0.8966308, -0.1713561,  2.0679870]
+    ],
+    "global_conductance": 0.33,
     "implied_timescales": ["Infinity", 2.10051516, 0.62368720],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -819,18 +1313,18 @@
     "mixing_rate": 2.10051516,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": [0.3787822961, [0.05445, 0.66000]],
     "period": 1,
     "rank": 3,
     "relaxation_rate": 2.64003891,
-    "spectral_gap": 0.37878230,
     "stationary_current": [
-      [
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0]
-      ]
+      [[0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.36263736, 0.36263736, 0.27472527]],
+    "stationary_distributions": [
+      [0.36263736, 0.36263736, 0.27472527]
+    ],
     "stationary_flux": [
       [[0.1813186813, 0.1813186813, 0.0000000000],
        [0.1813186813, 0.0906593407, 0.0906593407],
@@ -840,21 +1334,51 @@
   },
   {
     "id": "#19",
-    "p": [[0.0, 1.0, 0.0], [0.0, 0.5, 0.5], [0.1, 0.7, 0.2]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[0, 1, 0], [0, 1, 1], [1, 1, 1]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.0, 1.0, 0.0],
+      [0.0, 0.5, 0.5],
+      [0.1, 0.7, 0.2]
+    ],
+    "absolute_spectral_gap": 0.7763932,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [0, 1, 0],
+      [0, 1, 1],
+      [1, 1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 0.66666667,
-    "deviation_matrix": [[0.899862826, -0.268861454, -0.631001372], [-0.063100137, 0.323731139, -0.260631001], [0.010973937, -0.491083676, 0.480109739]],
+    "deviation_matrix": [
+      [0.899862826, -0.268861454, -0.631001372],
+      [-0.063100137, 0.323731139, -0.260631001],
+      [0.010973937, -0.491083676, 0.480109739]
+    ],
     "determinant": 0.05,
     "dobrushin_coefficient": 0.5,
     "doeblin_coefficient": 0.5,
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.70772372,
     "entropy_rate_normalized": 0.89473640,
-    "fundamental_matrix": [[0.9368999, 0.3237311, -0.2606310], [-0.0260631, 0.9163237, 0.1097394], [0.0480110, 0.1015089, 0.8504801]],
+    "fundamental_matrix": [
+      [ 0.9368999, 0.3237311, -0.2606310],
+      [-0.0260631, 0.9163237,  0.1097394],
+      [ 0.0480110, 0.1015089,  0.8504801]
+    ],
+    "global_conductance": 0.7272727273,
     "implied_timescales": ["Infinity", 0.66761640, 0.66761640],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -867,18 +1391,18 @@
     "mixing_rate": 0.66761640,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 3,
     "relaxation_rate": 1.28800716,
-    "spectral_gap": 0.77639320,
     "stationary_current": [
-      [
-        [0.000000, 0.037037, -0.037037],
-        [-0.037037, 0.000000, 0.037037],
-        [0.037037, -0.037037, 0.000000]
-      ]
+      [[0.000000, 0.037037, -0.037037],
+       [-0.037037, 0.000000, 0.037037],
+       [0.037037, -0.037037, 0.000000]]
     ],
-    "stationary_distributions": [[0.03703704, 0.59259259, 0.37037037]],
+    "stationary_distributions": [
+      [0.03703704, 0.59259259, 0.37037037]
+    ],
     "stationary_flux": [
       [[0.0000000000, 0.0370370370, 0.0000000000],
        [0.0000000000, 0.2962962963, 0.2962962963],
@@ -888,10 +1412,27 @@
   },
   {
     "id": "#20",
-    "p": [[1.0, 0.0, 0.0], [0.2, 0.7, 0.1], [0.3, 0.3, 0.4]],
-    "accessibility_matrix": [[1, 0, 0], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[1, 0, 0], [1, 1, 1], [1, 1, 1]],
-    "communication_matrix": [[1, 0, 0], [0, 1, 1], [0, 1, 1]],
+    "p": [
+      [1.0, 0.0, 0.0],
+      [0.2, 0.7, 0.1],
+      [0.3, 0.3, 0.4]
+    ],
+    "absolute_spectral_gap": null,
+    "accessibility_matrix": [
+      [1, 0, 0],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 0, 0],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "communication_matrix": [
+      [1, 0, 0],
+      [0, 1, 1],
+      [0, 1, 1]
+    ],
     "density": 0.66666667,
     "deviation_matrix": null,
     "determinant": 0.25,
@@ -901,8 +1442,13 @@
     "entropy_rate": 0.0,
     "entropy_rate_normalized": 0.0,
     "fundamental_matrix": null,
+    "global_conductance": null,
     "implied_timescales": null,
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": true,
     "is_canonical": false,
     "is_doubly_stochastic": false,
@@ -913,20 +1459,23 @@
     "kemeny_constant": null,
     "lumping_partitions": [],
     "mixing_rate": null,
-    "occupation_matrix": [[4.00000000, 0.66666667], [2.000000, 2.000000]],
+    "occupation_matrix": [
+      [4.00000000, 0.66666667],
+      [2.000000, 2.000000]
+    ],
     "occupation_trace": 6.0,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 3,
     "relaxation_rate": null,
-    "spectral_gap": null,
     "stationary_current": [
-      [
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0]
-      ]
+      [[0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0]]
     ],
-    "stationary_distributions": [[1.0, 0.0, 0.0]],
+    "stationary_distributions": [
+      [1.0, 0.0, 0.0]
+    ],
     "stationary_flux": [
       [[1.0, 0.0, 0.0],
        [0.0, 0.0, 0.0],
@@ -936,21 +1485,51 @@
   },
   {
     "id": "#21",
-    "p": [[0.7, 0.2, 0.1], [0.4, 0.6, 0.0], [0.0, 1.0, 0.0]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[1, 1, 1], [1, 1, 0], [0, 1, 0]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.7, 0.2, 0.1],
+      [0.4, 0.6, 0.0],
+      [0.0, 1.0, 0.0]
+    ],
+    "absolute_spectral_gap": 0.8,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1, 1],
+      [1, 1, 0],
+      [0, 1, 0]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 0.66666667,
-    "deviation_matrix": [[0.650109569, -0.661066472, 0.010956903], [-0.701241782, 0.825420015, -0.124178232], [-1.241782323, 0.420014609, 0.821767714]],
+    "deviation_matrix": [
+      [0.650109569, -0.661066472, 0.010956903],
+      [-0.701241782, 0.825420015, -0.124178232],
+      [-1.241782323, 0.420014609, 0.821767714]
+    ],
     "determinant": 0.04,
     "dobrushin_coefficient": 0.8,
     "doeblin_coefficient": 0.2,
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.70625800,
     "entropy_rate_normalized": 0.89288338,
-    "fundamental_matrix": [[1.1906501, -0.2556611, 0.06501100], [-0.1607012, 1.2308254, -0.0701242], [-0.7012418, 0.8254200, 0.8758218]],
+    "fundamental_matrix": [
+      [ 1.1906501, -0.2556611,  0.06501100],
+      [-0.1607012,  1.2308254, -0.0701242],
+      [-0.7012418,  0.8254200,  0.8758218]
+    ],
+    "global_conductance": 0.3529411765,
     "implied_timescales": ["Infinity", 0.62133493, 0.62133493],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -963,18 +1542,18 @@
     "mixing_rate": 0.62133493,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 3,
     "relaxation_rate": 1.25,
-    "spectral_gap": 0.8,
     "stationary_current": [
-      [
-        [0.000000, -0.054054, 0.054054],
-        [0.054054, 0.000000, -0.054054],
-        [-0.054054, 0.054054, 0.000000]
-      ]
+      [[0.000000, -0.054054, 0.054054],
+       [0.054054, 0.000000, -0.054054],
+       [-0.054054, 0.054054, 0.000000]]
     ],
-    "stationary_distributions": [[0.54054054, 0.40540541, 0.05405405]],
+    "stationary_distributions": [
+      [0.54054054, 0.40540541, 0.05405405]
+    ],
     "stationary_flux": [
       [[0.3783783784, 0.1081081081, 0.0540540541],
        [0.1621621622, 0.2432432432, 0.0000000000],
@@ -984,21 +1563,51 @@
   },
   {
     "id": "#22",
-    "p": [[0.90, 0.05, 0.05], [0.05, 0.90, 0.05], [0.05, 0.05, 0.90]],
-    "accessibility_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "adjacency_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    "communication_matrix": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    "p": [
+      [0.90, 0.05, 0.05],
+      [0.05, 0.90, 0.05],
+      [0.05, 0.05, 0.90]
+    ],
+    "absolute_spectral_gap": 0.14999999,
+    "accessibility_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[4.444444444, -2.222222222, -2.222222222], [-2.222222222, 4.444444444, -2.222222222], [-2.222222222, -2.222222222, 4.444444444]],
+    "deviation_matrix": [
+      [4.444444444, -2.222222222, -2.222222222],
+      [-2.222222222, 4.444444444, -2.222222222],
+      [-2.222222222, -2.222222222, 4.444444444]
+    ],
     "determinant": 0.7225,
     "dobrushin_coefficient": 0.85,
     "doeblin_coefficient": 0.15,
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.39439769,
     "entropy_rate_normalized": 0.35899625,
-    "fundamental_matrix": [[4.7777778, -1.8888889, -1.8888889], [-1.8888889, 4.7777778, -1.8888889], [-1.8888889, -1.8888889, 4.7777778]],
+    "fundamental_matrix": [
+      [ 4.7777778, -1.8888889, -1.8888889],
+      [-1.8888889,  4.7777778, -1.8888889],
+      [-1.8888889, -1.8888889,  4.7777778]
+    ],
+    "global_conductance": 0.1,
     "implied_timescales": ["Infinity", 6.15312938, 6.15312938],
-    "incidence_matrix": [[0, 1, 1, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0, 0, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 0, 0, 1, 0, 0],
+      [0, 1, 0, 1, 0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 0, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": true,
@@ -1011,18 +1620,18 @@
     "mixing_rate": 6.15312938,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": [0.15, [0.005, 0.200]],
     "period": 1,
     "rank": 3,
     "relaxation_rate": 6.66666667,
-    "spectral_gap": 0.14999999,
     "stationary_current": [
-      [
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0]
-      ]
+      [[0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.33333333, 0.33333333, 0.33333333]],
+    "stationary_distributions": [
+      [0.33333333, 0.33333333, 0.33333333]
+    ],
     "stationary_flux": [
       [[0.3000000000, 0.0166666667, 0.0166666667],
        [0.0166666667, 0.3000000000, 0.0166666667],
@@ -1032,10 +1641,31 @@
   },
   {
     "id": "#23",
-    "p": [[0.0, 0.5, 0.5, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0, 0.0]],
-    "accessibility_matrix": [[1, 1, 1, 1], [0, 1, 0, 0], [0, 0, 1, 1], [0, 0, 1, 1]],
-    "adjacency_matrix": [[0, 1, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
-    "communication_matrix": [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 1], [0, 0, 1, 1]],
+    "p": [
+      [0.0, 0.5, 0.5, 0.0],
+      [0.0, 1.0, 0.0, 0.0],
+      [0.0, 0.0, 0.0, 1.0],
+      [0.0, 0.0, 1.0, 0.0]
+    ],
+    "absolute_spectral_gap": null,
+    "accessibility_matrix": [
+      [1, 1, 1, 1],
+      [0, 1, 0, 0],
+      [0, 0, 1, 1],
+      [0, 0, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [0, 1, 1, 0],
+      [0, 1, 0, 0],
+      [0, 0, 0, 1],
+      [0, 0, 1, 0]
+    ],
+    "communication_matrix": [
+      [1, 0, 0, 0],
+      [0, 1, 0, 0],
+      [0, 0, 1, 1],
+      [0, 0, 1, 1]
+    ],
     "density": 0.33333333,
     "deviation_matrix": null,
     "determinant": 0.0,
@@ -1045,8 +1675,14 @@
     "entropy_rate": null,
     "entropy_rate_normalized": null,
     "fundamental_matrix": null,
+    "global_conductance": null,
     "implied_timescales": null,
-    "incidence_matrix": [[0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+      [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0],
+      [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0],
+      [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -1059,44 +1695,63 @@
     "mixing_rate": null,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 2,
     "rank": 3,
     "relaxation_rate": null,
-    "spectral_gap": null,
     "stationary_current": [
-      [
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0]
-      ],
-      [
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0]
-      ]
+      [[0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0]],
+      [[0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.0, 0.0, 0.5, 0.5], [0.0, 1.0, 0.0, 0.0]],
+    "stationary_distributions": [
+      [0.0, 0.0, 0.5, 0.5],
+      [0.0, 1.0, 0.0, 0.0]
+    ],
     "stationary_flux": [
       [[0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.5],
-       [0.0, 0.0, 0.5, 0.0]
-      ],
-     [[0.0, 0.0, 0.0, 0.0],
-      [0.0, 1.0, 0.0, 0.0],
-      [0.0, 0.0, 0.0, 0.0],
-      [0.0, 0.0, 0.0, 0.0]]
+       [0.0, 0.0, 0.5, 0.0]],
+      [[0.0, 0.0, 0.0, 0.0],
+       [0.0, 1.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0]]
     ],
     "topological_entropy": 0.0
   },
   {
     "id": "#24",
-    "p": [[0.00, 0.90, 0.05, 0.05], [0.2, 0.8, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
-    "accessibility_matrix": [[1, 1, 1, 1], [1, 1, 1, 1], [0, 0, 1, 0], [0, 0, 0, 1]],
-    "adjacency_matrix": [[0, 1, 1, 1], [1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
-    "communication_matrix": [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+    "p": [
+      [0.00, 0.90, 0.05, 0.05],
+      [0.20, 0.80, 0.00, 0.00],
+      [0.00, 0.00, 1.00, 0.00],
+      [0.00, 0.00, 0.00, 1.00]
+    ],
+    "absolute_spectral_gap": null,
+    "accessibility_matrix": [
+      [1, 1, 1, 1],
+      [1, 1, 1, 1],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1]
+    ],
+    "adjacency_matrix": [
+      [0, 1, 1, 1],
+      [1, 1, 0, 0],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 0, 0],
+      [1, 1, 0, 0],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1]
+    ],
     "density": 0.33333333,
     "deviation_matrix": null,
     "determinant": -0.18,
@@ -1106,8 +1761,14 @@
     "entropy_rate": null,
     "entropy_rate_normalized": null,
     "fundamental_matrix": null,
+    "global_conductance": null,
     "implied_timescales": null,
-    "incidence_matrix": [[0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+      [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0],
+      [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0],
+      [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]
+    ],
     "is_absorbing": true,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -1120,55 +1781,90 @@
     "mixing_rate": null,
     "occupation_matrix": [[10.0, 45.0], [10.0, 50.0]],
     "occupation_trace": 60.0,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 4,
     "relaxation_rate": null,
-    "spectral_gap": null,
     "stationary_current": [
-      [
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0]
-      ],
-      [
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0]
-      ]
+      [[0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0]],
+      [[0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+    "stationary_distributions": [
+      [0.0, 0.0, 1.0, 0.0],
+      [0.0, 0.0, 0.0, 1.0]
+    ],
     "stationary_flux": [
       [[0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 1.0, 0.0],
-       [0.0, 0.0, 0.0, 0.0]
-      ],
-     [[0.0, 0.0, 0.0, 0.0],
-      [0.0, 0.0, 0.0, 0.0],
-      [0.0, 0.0, 0.0, 0.0],
-      [0.0, 0.0, 0.0, 1.0]]
+       [0.0, 0.0, 0.0, 0.0]],
+      [[0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 1.0]]
     ],
     "topological_entropy": 0.48121183
   },
   {
     "id": "#25",
-    "p": [[0.0, 0.0, 0.5, 0.5], [1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]],
-    "accessibility_matrix": [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]],
-    "adjacency_matrix": [[0, 0, 1, 1], [1, 0, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]],
-    "communication_matrix": [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]],
+    "p": [
+      [0.0, 0.0, 0.5, 0.5],
+      [1.0, 0.0, 0.0, 0.0],
+      [0.0, 1.0, 0.0, 0.0],
+      [0.0, 1.0, 0.0, 0.0]
+    ],
+    "absolute_spectral_gap": 0.0,
+    "accessibility_matrix": [
+      [1, 1, 1, 1],
+      [1, 1, 1, 1],
+      [1, 1, 1, 1],
+      [1, 1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [0, 0, 1, 1],
+      [1, 0, 0, 0],
+      [0, 1, 0, 0],
+      [0, 1, 0, 0]
+    ],
+    "communication_matrix": [
+      [1, 1, 1, 1],
+      [1, 1, 1, 1],
+      [1, 1, 1, 1],
+      [1, 1, 1, 1]
+    ],
     "density": 0.41666666,
-    "deviation_matrix": [[0.333333333, -0.333333333, 0.0, 0.0], [-0.0, 0.333333333, -0.166666667, -0.166666667], [-0.333333333, -0.0, 0.666666667, -0.333333333], [-0.333333333, -0.0, -0.333333333, 0.666666667]],
+    "deviation_matrix": [
+      [0.333333333, -0.333333333, 0.0, 0.0],
+      [-0.0, 0.333333333, -0.166666667, -0.166666667],
+      [-0.333333333, -0.0, 0.666666667, -0.333333333],
+      [-0.333333333, -0.0, -0.333333333, 0.666666667]
+    ],
     "determinant": 0.0,
     "dobrushin_coefficient": 1.0,
     "doeblin_coefficient": 0.0,
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.23104906,
     "entropy_rate_normalized": 0.99999999,
-    "fundamental_matrix": [[0.6666667, 0.0000000, 0.1666667, 0.1666667], [0.3333333, 0.6666667, 0.0000000, 0.0000000], [0.0000000, 0.3333333, 0.8333333, -0.1666667], [0.0000000, 0.3333333, -0.1666667, 0.8333333]],
+    "fundamental_matrix": [
+      [0.6666667, 0.0000000,  0.1666667,  0.1666667],
+      [0.3333333, 0.6666667,  0.0000000,  0.0000000],
+      [0.0000000, 0.3333333,  0.8333333, -0.1666667],
+      [0.0000000, 0.3333333, -0.1666667,  0.8333333]
+    ],
+    "global_conductance": 0.6666666667,
     "implied_timescales": ["Infinity", "Infinity", "Infinity", 0.0],
-    "incidence_matrix": [[0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+      [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0],
+      [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0],
+      [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -1181,19 +1877,19 @@
     "mixing_rate": "Infinity",
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 3,
     "rank": 3,
     "relaxation_rate": "Infinity",
-    "spectral_gap": 0.0,
     "stationary_current": [
-      [
-        [0.00000000, -0.33333333, 0.16666667, 0.16666667],
-        [0.33333333, 0.00000000, -0.16666667, -0.16666667],
-        [-0.16666667, 0.16666667, 0.00000000, 0.00000000],
-        [-0.16666667, 0.16666667, 0.00000000, 0.00000000]
-      ]
+      [[0.00000000, -0.33333333, 0.16666667, 0.16666667],
+       [0.33333333, 0.00000000, -0.16666667, -0.16666667],
+       [-0.16666667, 0.16666667, 0.00000000, 0.00000000],
+       [-0.16666667, 0.16666667, 0.00000000, 0.00000000]]
     ],
-    "stationary_distributions": [[0.33333333, 0.33333333, 0.16666667, 0.16666667]],
+    "stationary_distributions": [
+      [0.33333333, 0.33333333, 0.16666667, 0.16666667]
+    ],
     "stationary_flux": [
       [[0.00000000, 0.00000000, 0.16666667, 0.16666667],
        [0.33333333, 0.00000000, 0.00000000, 0.00000000],
@@ -1204,21 +1900,58 @@
   },
   {
     "id": "#26",
-    "p": [[0.7, 0.1, 0.1, 0.1], [0.85, 0.05, 0.05, 0.05], [0.2, 0.2, 0.5, 0.1], [0.3, 0.3, 0.3, 0.1]],
-    "accessibility_matrix": [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]],
-    "adjacency_matrix": [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]],
-    "communication_matrix": [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]],
+    "p": [
+      [0.70, 0.10, 0.10, 0.10],
+      [0.85, 0.05, 0.05, 0.05],
+      [0.20, 0.20, 0.50, 0.10],
+      [0.30, 0.30, 0.30, 0.10]
+    ],
+    "absolute_spectral_gap": 0.61655617,
+    "accessibility_matrix": [
+      [1, 1, 1, 1],
+      [1, 1, 1, 1],
+      [1, 1, 1, 1],
+      [1, 1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1, 1, 1],
+      [1, 1, 1, 1],
+      [1, 1, 1, 1],
+      [1, 1, 1, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 1, 1],
+      [1, 1, 1, 1],
+      [1, 1, 1, 1],
+      [1, 1, 1, 1]
+    ],
     "density": 1.0,
-    "deviation_matrix": [[0.582146912, -0.171776283, -0.325501499, -0.08486913], [-0.212245611, 0.762803156, -0.418959443, -0.131598102], [-1.216918508, -0.016013043, 1.325588843, -0.092657292], [-0.936544676, 0.046292253, -0.01397502, 0.904227443]],
+    "deviation_matrix": [
+      [0.582146912, -0.171776283, -0.325501499, -0.08486913],
+      [-0.212245611, 0.762803156, -0.418959443, -0.131598102],
+      [-1.216918508, -0.016013043, 1.325588843, -0.092657292],
+      [-0.936544676, 0.046292253, -0.01397502, 0.904227443]
+    ],
     "determinant": 0.00299999,
     "dobrushin_coefficient": 0.65,
     "doeblin_coefficient": 0.35,
     "entropy_production_rate": [0.1547583356],
     "entropy_rate": 0.98153011,
     "entropy_rate_normalized": 0.70802431,
-    "fundamental_matrix": [[1.1709320, -0.0409352, -0.1385856,  0.0085888], [0.3765394, 0.8936443, -0.2320436, -0.0381402], [-0.6281335, 0.1148281, 1.5125047, 0.00080065], [-0.3477596, 0.1771334, 0.1729409, 0.9976854]],
+    "fundamental_matrix": [
+      [ 1.1709320, -0.0409352, -0.1385856,  0.0085888],
+      [ 0.3765394,  0.8936443, -0.2320436, -0.0381402],
+      [-0.6281335,  0.1148281,  1.5125047,  0.00080065],
+      [-0.3477596,  0.1771334,  0.1729409,  0.9976854]
+    ],
+    "global_conductance": 0.4295454545,
     "implied_timescales": ["Infinity", 1.04322920, 0.41232175, 0.41232175],
-    "incidence_matrix": [[0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+      [0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0],
+      [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0],
+      [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -1231,19 +1964,19 @@
     "mixing_rate": 1.04322920,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 4,
     "relaxation_rate": 1.62191225,
-    "spectral_gap": 0.61655617,
     "stationary_current": [
-      [
-        [0.0000000, -0.0523364, 0.0214953, 0.0308411],
-        [0.0523364, 0.0000000, -0.0308411, -0.0214953],
-        [-0.0214953, 0.0308411, 0.0000000, -0.0093458],
-        [-0.0308411, 0.0214953, 0.0093458, 0.0000000]
-      ]
+      [[0.0000000, -0.0523364, 0.0214953, 0.0308411],
+       [0.0523364, 0.0000000, -0.0308411, -0.0214953],
+       [-0.0214953, 0.0308411, 0.0000000, -0.0093458],
+       [-0.0308411, 0.0214953, 0.0093458, 0.0000000]]
     ],
-    "stationary_distributions": [[0.58878505, 0.13084112, 0.18691589, 0.09345794]],
+    "stationary_distributions": [
+      [0.58878505, 0.13084112, 0.18691589, 0.09345794]
+    ],
     "stationary_flux": [
       [[0.4121495327, 0.0588785047, 0.0588785047, 0.0588785047],
        [0.1112149533, 0.0065420561, 0.0065420561, 0.0065420561],
@@ -1254,21 +1987,65 @@
   },
   {
     "id": "#27",
-    "p": [[0.0, 1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0, 0.0], [0.5, 0.0, 0.0, 0.5, 0.0], [0.0, 0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0, 0.0, 0.0]],
-    "accessibility_matrix": [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]],
-    "adjacency_matrix": [[0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [1, 0, 0, 1, 0], [0, 0, 0, 0, 1], [0, 0, 1, 0, 0]],
-    "communication_matrix": [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]],
+    "p": [
+      [0.0, 1.0, 0.0, 0.0, 0.0],
+      [0.0, 0.0, 1.0, 0.0, 0.0],
+      [0.5, 0.0, 0.0, 0.5, 0.0],
+      [0.0, 0.0, 0.0, 0.0, 1.0],
+      [0.0, 0.0, 1.0, 0.0, 0.0]
+    ],
+    "absolute_spectral_gap": 0.0,
+    "accessibility_matrix": [
+      [1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [0, 1, 0, 0, 0],
+      [0, 0, 1, 0, 0],
+      [1, 0, 0, 1, 0],
+      [0, 0, 0, 0, 1],
+      [0, 0, 1, 0, 0]
+    ],
+    "communication_matrix": [
+      [1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1]
+    ],
     "density": 0.3,
-    "deviation_matrix": [[0.666666667, 0.5, -0.333333333, -0.333333333, -0.5], [-0.166666667, 0.666666667, 0.0, -0.166666667, -0.333333333], [0.0, -0.166666667, 0.333333333, 0.0, -0.166666667], [-0.333333333, -0.5, -0.333333333, 0.666666667, 0.5], [-0.166666667, -0.333333333, 0.0, -0.166666667, 0.666666667]],
+    "deviation_matrix": [
+      [0.666666667, 0.5, -0.333333333, -0.333333333, -0.5],
+      [-0.166666667, 0.666666667, 0.0, -0.166666667, -0.333333333],
+      [0.0, -0.166666667, 0.333333333, 0.0, -0.166666667],
+      [-0.333333333, -0.5, -0.333333333, 0.666666667, 0.5],
+      [-0.166666667, -0.333333333, 0.0, -0.166666667, 0.666666667]
+    ],
     "determinant": 0.0,
     "dobrushin_coefficient": 1.0,
     "doeblin_coefficient": 0.0,
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.23104906,
     "entropy_rate_normalized": 1.0,
-    "fundamental_matrix": [[0.8333333, 0.6666667, 0.0000000, -0.1666667, -0.3333333], [0.0000000, 0.8333333, 0.3333333, 0.0000000, -0.1666667], [0.1666667, 0.0000000, 0.6666667, 0.1666667, 0.0000000], [-0.1666667, -0.3333333, 0.0000000, 0.8333333, 0.6666667], [0.0000000, -0.1666667, 0.3333333, 0.0000000, 0.8333333]],
+    "fundamental_matrix": [
+      [ 0.8333333,  0.6666667, 0.0000000, -0.1666667, -0.3333333],
+      [ 0.0000000,  0.8333333, 0.3333333,  0.0000000, -0.1666667],
+      [ 0.1666667,  0.0000000, 0.6666667,  0.1666667,  0.0000000],
+      [-0.1666667, -0.3333333, 0.0000000,  0.8333333,  0.6666667],
+      [ 0.0000000, -0.1666667, 0.3333333,  0.0000000,  0.8333333]
+    ],
+    "global_conductance": 0.5,
     "implied_timescales": ["Infinity", "Infinity", "Infinity", 0.0, 0.0],
-    "incidence_matrix": [[0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+      [0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+      [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+      [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0],
+      [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": true,
     "is_doubly_stochastic": false,
@@ -1281,20 +2058,20 @@
     "mixing_rate": "Infinity",
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 3,
     "rank": 4,
     "relaxation_rate": "Infinity",
-    "spectral_gap": 0.0,
     "stationary_current": [
-      [
-        [0.000000, 0.166667, -0.166667, 0.000000, 0.000000],
-        [-0.166667, 0.000000, 0.166667, 0.000000, 0.000000],
-        [0.166667, -0.166667, 0.000000, 0.166667, -0.166667],
-        [0.000000, 0.000000, -0.166667, 0.000000, 0.166667],
-        [0.000000, 0.000000, 0.166667, -0.166667, 0.000000]
-      ]
+      [[0.000000, 0.166667, -0.166667, 0.000000, 0.000000],
+       [-0.166667, 0.000000, 0.166667, 0.000000, 0.000000],
+       [0.166667, -0.166667, 0.000000, 0.166667, -0.166667],
+       [0.000000, 0.000000, -0.166667, 0.000000, 0.166667],
+       [0.000000, 0.000000, 0.166667, -0.166667, 0.000000]]
     ],
-    "stationary_distributions": [[0.16666667, 0.16666667, 0.33333333, 0.16666667, 0.16666667]],
+    "stationary_distributions": [
+      [0.16666667, 0.16666667, 0.33333333, 0.16666667, 0.16666667]
+    ],
     "stationary_flux": [
       [[0.00000000, 0.16666667, 0.00000000, 0.00000000, 0.00000000],
        [0.00000000, 0.00000000, 0.16666667, 0.00000000, 0.00000000],
@@ -1306,10 +2083,39 @@
   },
   {
     "id": "#28",
-    "p": [[0.0, 1.0, 0.0, 0.0, 0.0, 0.0], [0.25, 0.75, 0.00, 0.00, 0.00, 0.00], [0.2, 0.0, 0.4, 0.2, 0.2, 0.0], [0.0, 0.0, 0.0, 0.4, 0.6, 0.0], [0.0, 0.0, 0.0, 0.5, 0.0, 0.5], [0.0, 0.0, 0.0, 0.4, 0.0, 0.6]],
-    "accessibility_matrix": [[1, 1, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1], [0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 1]],
-    "adjacency_matrix": [[0, 1, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0], [1, 0, 1, 1, 1, 0], [0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 0, 1], [0, 0, 0, 1, 0, 1]],
-    "communication_matrix": [[1, 1, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 1]],
+    "p": [
+      [0.00, 1.00, 0.00, 0.00, 0.00, 0.00],
+      [0.25, 0.75, 0.00, 0.00, 0.00, 0.00],
+      [0.20, 0.00, 0.40, 0.20, 0.20, 0.00],
+      [0.00, 0.00, 0.00, 0.40, 0.60, 0.00],
+      [0.00, 0.00, 0.00, 0.50, 0.00, 0.50],
+      [0.00, 0.00, 0.00, 0.40, 0.00, 0.60]
+    ],
+    "absolute_spectral_gap": null,
+    "accessibility_matrix": [
+      [1, 1, 0, 0, 0, 0],
+      [1, 1, 0, 0, 0, 0],
+      [1, 1, 1, 1, 1, 1],
+      [0, 0, 0, 1, 1, 1],
+      [0, 0, 0, 1, 1, 1],
+      [0, 0, 0, 1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [0, 1, 0, 0, 0, 0],
+      [1, 1, 0, 0, 0, 0],
+      [1, 0, 1, 1, 1, 0],
+      [0, 0, 0, 1, 1, 0],
+      [0, 0, 0, 1, 0, 1],
+      [0, 0, 0, 1, 0, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 0, 0, 0, 0],
+      [1, 1, 0, 0, 0, 0],
+      [0, 0, 1, 0, 0, 0],
+      [0, 0, 0, 1, 1, 1],
+      [0, 0, 0, 1, 1, 1],
+      [0, 0, 0, 1, 1, 1]
+    ],
     "density": 0.3,
     "deviation_matrix": null,
     "determinant": 0.00599999,
@@ -1319,8 +2125,16 @@
     "entropy_rate": null,
     "entropy_rate_normalized": null,
     "fundamental_matrix": null,
+    "global_conductance": null,
     "implied_timescales": null,
-    "incidence_matrix": [[0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+      [0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+      [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+      [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+      [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0],
+      [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": false,
     "is_doubly_stochastic": false,
@@ -1333,29 +2147,28 @@
     "mixing_rate": null,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 6,
     "relaxation_rate": null,
-    "spectral_gap": null,
     "stationary_current": [
-      [
-        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
-        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
-        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
-        [0.00000, 0.00000, 0.00000, 0.00000, 0.12766, -0.12766],
-        [0.00000, 0.00000, 0.00000, -0.12766, 0.00000, 0.12766],
-        [0.00000, 0.00000, 0.00000, 0.12766, -0.12766, 0.00000]
-      ],
-      [
-        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
-        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
-        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
-        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
-        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
-        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000]
-      ]
+      [[0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
+       [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
+       [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
+       [0.00000, 0.00000, 0.00000, 0.00000, 0.12766, -0.12766],
+       [0.00000, 0.00000, 0.00000, -0.12766, 0.00000, 0.12766],
+       [0.00000, 0.00000, 0.00000, 0.12766, -0.12766, 0.00000]],
+      [[0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
+       [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
+       [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
+       [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
+       [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
+       [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000]]
     ],
-    "stationary_distributions": [[0.00000000, 0.00000000, 0.00000000, 0.42553191, 0.25531915, 0.31914894], [0.2, 0.8, 0.0, 0.0, 0.0, 0.0]],
+    "stationary_distributions": [
+      [0.00000000, 0.00000000, 0.00000000, 0.42553191, 0.25531915, 0.31914894],
+      [0.20000000, 0.80000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000]
+    ],
     "stationary_flux": [
       [[0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000],
        [0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000],
@@ -1374,10 +2187,39 @@
   },
   {
     "id": "#29",
-    "p": [[0.2, 0.2, 0.2, 0.2, 0.0, 0.2], [0.05, 0.75, 0.00, 0.10, 0.00, 0.10], [0.4, 0.6, 0.0, 0.0, 0.0, 0.0], [0.1, 0.1, 0.2, 0.3, 0.0, 0.3], [0.0, 0.0, 0.0, 0.0, 1.0, 0.0], [0.3, 0.0, 0.1, 0.1, 0.0, 0.5]],
-    "accessibility_matrix": [[1, 1, 1, 1, 0, 1], [1, 1, 1, 1, 0, 1], [1, 1, 1, 1, 0, 1], [1, 1, 1, 1, 0, 1], [0, 0, 0, 0, 1, 0], [1, 1, 1, 1, 0, 1]],
-    "adjacency_matrix": [[1, 1, 1, 1, 0, 1], [1, 1, 0, 1, 0, 1], [1, 1, 0, 0, 0, 0], [1, 1, 1, 1, 0, 1], [0, 0, 0, 0, 1, 0], [1, 0, 1, 1, 0, 1]],
-    "communication_matrix": [[1, 1, 1, 1, 0, 1], [1, 1, 1, 1, 0, 1], [1, 1, 1, 1, 0, 1], [1, 1, 1, 1, 0, 1], [0, 0, 0, 0, 1, 0], [1, 1, 1, 1, 0, 1]],
+    "p": [
+      [0.20, 0.20, 0.20, 0.20, 0.00, 0.20],
+      [0.05, 0.75, 0.00, 0.10, 0.00, 0.10],
+      [0.40, 0.60, 0.00, 0.00, 0.00, 0.00],
+      [0.10, 0.10, 0.20, 0.30, 0.00, 0.30],
+      [0.00, 0.00, 0.00, 0.00, 1.00, 0.00],
+      [0.30, 0.00, 0.10, 0.10, 0.00, 0.50]
+    ],
+    "absolute_spectral_gap": null,
+    "accessibility_matrix": [
+      [1, 1, 1, 1, 0, 1],
+      [1, 1, 1, 1, 0, 1],
+      [1, 1, 1, 1, 0, 1],
+      [1, 1, 1, 1, 0, 1],
+      [0, 0, 0, 0, 1, 0],
+      [1, 1, 1, 1, 0, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 1, 1, 1, 0, 1],
+      [1, 1, 0, 1, 0, 1],
+      [1, 1, 0, 0, 0, 0],
+      [1, 1, 1, 1, 0, 1],
+      [0, 0, 0, 0, 1, 0],
+      [1, 0, 1, 1, 0, 1]
+    ],
+    "communication_matrix": [
+      [1, 1, 1, 1, 0, 1],
+      [1, 1, 1, 1, 0, 1],
+      [1, 1, 1, 1, 0, 1],
+      [1, 1, 1, 1, 0, 1],
+      [0, 0, 0, 0, 1, 0],
+      [1, 1, 1, 1, 0, 1]
+    ],
     "density": 0.53333333,
     "deviation_matrix": null,
     "determinant": -0.002,
@@ -1387,8 +2229,16 @@
     "entropy_rate": null,
     "entropy_rate_normalized": null,
     "fundamental_matrix": null,
+    "global_conductance": null,
     "implied_timescales": null,
-    "incidence_matrix": [[0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+      [0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+      [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+      [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+      [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0],
+      [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0]
+    ],
     "is_absorbing": false,
     "is_canonical": false,
     "is_doubly_stochastic": false,
@@ -1401,29 +2251,28 @@
     "mixing_rate": null,
     "occupation_matrix": null,
     "occupation_trace": null,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 6,
     "relaxation_rate": null,
-    "spectral_gap": null,
     "stationary_current": [
-      [
-        [0.000000000, 0.014104683, 0.000220386, 0.019944904, 0.000000000, -0.034269972],
-        [-0.014104683, 0.000000000, -0.049917355, 0.025234160, 0.000000000, 0.038787879],
-        [-0.000220386, 0.049917355, 0.000000000, -0.027107438, 0.000000000, -0.022589532],
-        [-0.019944904, -0.025234160, 0.027107438, 0.000000000, 0.000000000, 0.018071625],
-        [0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000],
-        [0.034269972, -0.038787879, 0.022589532, -0.018071625, 0.000000000, 0.000000000]
-      ],
-      [
-        [0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000],
-        [0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000],
-        [0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000],
-        [0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000],
-        [0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000],
-        [0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000]
-      ]
+      [[ 0.000000000,  0.014104683,  0.000220386,  0.019944904, 0.000000000, -0.034269972],
+       [-0.014104683,  0.000000000, -0.049917355,  0.025234160, 0.000000000,  0.038787879],
+       [-0.000220386,  0.049917355,  0.000000000, -0.027107438, 0.000000000, -0.022589532],
+       [-0.019944904, -0.025234160,  0.027107438,  0.000000000, 0.000000000,  0.018071625],
+       [ 0.000000000,  0.000000000,  0.000000000,  0.000000000, 0.000000000,  0.000000000],
+       [ 0.034269972, -0.038787879,  0.022589532, -0.018071625, 0.000000000,  0.000000000]],
+      [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
     ],
-    "stationary_distributions": [[0.16749311, 0.38787879, 0.08319559, 0.13553719, 0.00000000, 0.22589532], [0.0, 0.0, 0.0, 0.0, 1.0, 0.0]],
+    "stationary_distributions": [
+      [0.16749311, 0.38787879, 0.08319559, 0.13553719, 0.00000000, 0.22589532],
+      [0.00000000, 0.00000000, 0.00000000, 0.00000000, 1.00000000, 0.00000000]
+    ],
     "stationary_flux": [
       [[0.0334986226, 0.0334986226, 0.0334986226, 0.0334986226, 0.0000000000, 0.0334986226],
        [0.0193939394, 0.2909090909, 0.0000000000, 0.0387878788, 0.0000000000, 0.0387878788],
@@ -1436,16 +2285,45 @@
        [0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000],
        [0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000],
        [0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 1.0000000000, 0.0000000000],
-       [0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000]
-    ]],
+       [0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000]]
+    ],
     "topological_entropy": 1.41860640
   },
   {
     "id": "#30",
-    "p": [[1.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0, 0.0, 0.0], [0.6, 0.0, 0.0, 0.4, 0.0, 0.0], [0.0, 0.0, 0.6, 0.0, 0.4, 0.0], [0.0, 0.0, 0.0, 0.6, 0.0, 0.4], [0.0, 0.4, 0.0, 0.0, 0.6, 0.0]],
-    "accessibility_matrix": [[1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1]],
-    "adjacency_matrix": [[1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [1, 0, 0, 1, 0, 0], [0, 0, 1, 0, 1, 0], [0, 0, 0, 1, 0, 1], [0, 1, 0, 0, 1, 0]],
-    "communication_matrix": [[1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1], [0, 0, 1, 1, 1, 1], [0, 0, 1, 1, 1, 1], [0, 0, 1, 1, 1, 1]],
+    "p": [
+      [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+      [0.6, 0.0, 0.0, 0.4, 0.0, 0.0],
+      [0.0, 0.0, 0.6, 0.0, 0.4, 0.0],
+      [0.0, 0.0, 0.0, 0.6, 0.0, 0.4],
+      [0.0, 0.4, 0.0, 0.0, 0.6, 0.0]
+    ],
+    "absolute_spectral_gap": null,
+    "accessibility_matrix": [
+      [1, 0, 0, 0, 0, 0],
+      [0, 1, 0, 0, 0, 0],
+      [1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1]
+    ],
+    "adjacency_matrix": [
+      [1, 0, 0, 0, 0, 0],
+      [0, 1, 0, 0, 0, 0],
+      [1, 0, 0, 1, 0, 0],
+      [0, 0, 1, 0, 1, 0],
+      [0, 0, 0, 1, 0, 1],
+      [0, 1, 0, 0, 1, 0]
+    ],
+    "communication_matrix": [
+      [1, 0, 0, 0, 0, 0],
+      [0, 1, 0, 0, 0, 0],
+      [0, 0, 1, 1, 1, 1],
+      [0, 0, 1, 1, 1, 1],
+      [0, 0, 1, 1, 1, 1],
+      [0, 0, 1, 1, 1, 1]
+    ],
     "density": 0.26666667,
     "deviation_matrix": null,
     "determinant": 0.0576,
@@ -1455,8 +2333,16 @@
     "entropy_rate": null,
     "entropy_rate_normalized": null,
     "fundamental_matrix": null,
+    "global_conductance": null,
     "implied_timescales": null,
-    "incidence_matrix": [[0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0]],
+    "incidence_matrix": [
+      [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+      [0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+      [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+      [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+      [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0],
+      [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0]
+    ],
     "is_absorbing": true,
     "is_canonical": false,
     "is_doubly_stochastic": false,
@@ -1467,31 +2353,35 @@
     "kemeny_constant": null,
     "lumping_partitions": [[[0, 1], [2], [3], [4], [5]]],
     "mixing_rate": null,
-    "occupation_matrix": [[1.54028436, 0.90047393, 0.47393365, 0.18957346], [1.35071090, 2.25118483, 1.18483412, 0.47393365], [1.06635071, 1.77725118, 2.25118483, 0.90047393], [0.63981043, 1.06635071, 1.35071090, 1.54028436]],
+    "occupation_matrix": [
+      [1.54028436, 0.90047393, 0.47393365, 0.18957346],
+      [1.35071090, 2.25118483, 1.18483412, 0.47393365],
+      [1.06635071, 1.77725118, 2.25118483, 0.90047393],
+      [0.63981043, 1.06635071, 1.35071090, 1.54028436]
+    ],
     "occupation_trace": 7.58293839,
+    "ordinary_spectral_gap": null,
     "period": 1,
     "rank": 6,
     "relaxation_rate": null,
-    "spectral_gap": null,
     "stationary_current": [
-      [
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-      ],
-      [
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-      ]
+      [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]],
+      [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
     ],
-    "stationary_distributions": [[1.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0, 0.0, 0.0]],
+    "stationary_distributions": [
+      [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      [0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+    ],
     "stationary_flux": [
       [[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -1504,8 +2394,8 @@
        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    ]],
+       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
+    ],
     "topological_entropy": 0.48121183
   }
 ]

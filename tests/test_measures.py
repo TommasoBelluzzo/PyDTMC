@@ -104,6 +104,20 @@ def test_commute_times(p, commute_times):
         assert actual == expected
 
 
+def test_conductance(p, states, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.conductance(states)
+    expected = value
+
+    if (actual is not None) and (expected is not None):
+        assert 0.0 <= actual <= 1.0
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
 def test_expected_rewards(p, steps, rewards, value):
 
     mc = _MarkovChain(p)

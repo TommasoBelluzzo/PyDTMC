@@ -5,12 +5,14 @@ __all__ = [
     'mc_absorption_probabilities',
     'mc_absorption_times',
     'mc_committor_probabilities',
+    'mc_entropy_production_rate',
     'mc_expected_rewards',
     'mc_expected_transitions',
     'mc_first_passage_probabilities',
     'mc_first_passage_reward',
     'mc_first_passage_times_between',
     'mc_first_passage_times_to',
+    'mc_global_conductance',
     'mc_hitting_probabilities',
     'mc_hitting_times',
     'mc_mean_number_visits',
@@ -27,6 +29,10 @@ __all__ = [
 ###########
 # IMPORTS #
 ###########
+
+# Standard
+
+import itertools as _it
 
 # Libraries
 
@@ -51,6 +57,7 @@ from .custom_types import (
     tany as _tany,
     tarray as _tarray,
     tmc as _tmc,
+    tlist_float as _tlist_float,
     tlist_int as _tlist_int,
     trdl as _trdl,
     tsequence as _tsequence,
@@ -176,6 +183,33 @@ def mc_absorption_times(mc: _tmc, statistic: str) -> _oarray:
     variance = _clean_variance(second_moment - mean**2.0)
 
     return variance
+
+
+def mc_entropy_production_rate(mc: _tmc) -> _tlist_float:
+
+    indices = _np.triu_indices(mc.size, k=1)
+
+    epr = []
+
+    for sf in mc.stationary_flux:
+
+        forward = sf[indices]
+        backward = _np.transpose(sf)[indices]
+
+        if _np.any((forward == 0.0) != (backward == 0.0)):
+            rate = float('inf')
+        else:
+
+            mask = (forward > 0.0) & (backward > 0.0)
+
+            current = forward[mask] - backward[mask]
+            affinity = _np.log(forward[mask]) - _np.log(backward[mask])
+
+            rate = float(_np.sum(current * affinity))
+
+        epr.append(rate)
+
+    return epr
 
 
 def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_int, states2: _tlist_int) -> _oarray:
@@ -414,6 +448,37 @@ def mc_first_passage_times_to(mc: _tmc, statistic: str, targets: _olist_int) -> 
         variance[:, target] = mc_hitting_times(mc, 'variance', [target])
 
     return variance
+
+
+def mc_global_conductance(mc: _tmc) -> _ofloat:
+
+    if not mc.is_irreducible:
+        return None
+
+    pi = mc.pi[0]
+    sf = mc.stationary_flux[0]
+
+    gc = float('inf')
+
+    for i in range(1, mc.size):
+        for c in _it.combinations(range(mc.size), i):
+
+            states = list(c)
+
+            mass = _np.sum(pi[states])
+
+            if mass > (0.5 + _FTOL):
+                continue
+
+            complement = _np.ones(mc.size, dtype=bool)
+            complement[states] = False
+
+            flow = _np.sum(sf[_np.ix_(states, complement)])
+            conductance = flow / mass
+
+            gc = min(gc, float(conductance))
+
+    return gc
 
 
 def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:

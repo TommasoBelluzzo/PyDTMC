@@ -19,7 +19,7 @@ import numpy as _np
 # VARIABLES #
 #############
 
-EPS = _np.finfo(_np.float64).eps  # pylint: disable=no-member
+_EPS = _np.finfo(_np.float64).eps  # pylint: disable=no-member
 
-ETOL = _np.sqrt(EPS)
-FTOL = 100.0 * EPS
+ETOL = float(_np.sqrt(_EPS))
+FTOL = 100.0 * float(_EPS)
