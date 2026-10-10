@@ -492,9 +492,25 @@ class MarkovChain(_Model):
         A property representing the determinant of the transition matrix of the Markov chain.
         """
 
-        d = _npl.det(self.__p)
+        d = float(_npl.det(self.__p))
 
         return d
+
+    @_cached_property
+    def deviation_matrix(self) -> _oarray:
+
+        """
+        | A property representing the deviation matrix of the Markov chain.
+        | If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        """
+
+        if not self.is_irreducible:
+            dm = None
+        else:
+            fm = self.fundamental_matrix
+            dm = fm - self.pi[0]
+
+        return dm
 
     @_cached_property
     def dobrushin_coefficient(self) -> float:
@@ -828,12 +844,11 @@ class MarkovChain(_Model):
         | If the Markov chain is not **irreducible** or the value cannot be computed, then :py:class:`None` is returned.
         """
 
-        fm = self.fundamental_matrix
-
-        if fm is None:
+        if not self.is_irreducible:
             kc = None
         else:
 
+            fm = self.fundamental_matrix
             kc = float(_np.trace(fm)) - 1.0
 
             if not _np.isfinite(kc):

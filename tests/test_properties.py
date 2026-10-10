@@ -124,7 +124,7 @@ def test_cached(p):
         time1 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=lcl), 10)
         time2 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=lcl), 10)
 
-        assert time1 >= time2
+        assert time1 > time2
 
 
 def test_connectivity(p, density):
@@ -167,7 +167,7 @@ def test_entropy_production_rate(p, entropy_production_rate):
 
     assert actual == expected
 
-    for entropy_production_rate_actual, entropy_production_rate_expected, stationary_current in zip(mc.entropy_production_rate, entropy_production_rate, mc.stationary_current):
+    for entropy_production_rate_actual, entropy_production_rate_expected in zip(mc.entropy_production_rate, entropy_production_rate):
 
         assert entropy_production_rate_actual >= 0.0
 
@@ -184,7 +184,7 @@ def test_entropy_production_rate(p, entropy_production_rate):
             assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
+def test_fundamental_matrix(p, fundamental_matrix, deviation_matrix, kemeny_constant):
 
     mc = _MarkovChain(p)
 
@@ -197,11 +197,18 @@ def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
     else:
         assert actual == expected
 
+    actual = mc.deviation_matrix
+    expected = deviation_matrix
+
+    if (actual is not None) and (expected is not None):
+        _npt.assert_allclose(actual, _np.array(expected), rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
     actual = mc.kemeny_constant
     expected = kemeny_constant
 
     if (actual is not None) and (expected is not None):
-        assert mc.is_irreducible
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
