@@ -306,7 +306,6 @@ def test_regularity(p):
         assert mc.is_aperiodic
 
 
-
 def test_stationary_current(p, stationary_current):
 
     mc = _MarkovChain(p)
@@ -339,7 +338,6 @@ def test_stationary_current(p, stationary_current):
         expected = _np.zeros(mc.size, dtype=float)
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-
 
 
 def test_stationary_distributions(p, stationary_distributions):
