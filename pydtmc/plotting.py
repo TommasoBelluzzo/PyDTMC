@@ -1173,7 +1173,7 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
     @_noninteractive
     def _plot_histogram(ph_walk_data, ph_dpi):
 
-        walk_steps, walks = ph_walk_data
+        _, walks = ph_walk_data
         plots_count = len(walks)
 
         f, a = _mplp.subplots(nrows=plots_count, tight_layout=True, dpi=ph_dpi)
