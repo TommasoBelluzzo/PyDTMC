@@ -1075,7 +1075,6 @@ class MarkovChain(_Model):
 
         return self.__states.copy()
 
-
     @_cached_property
     def stationary_current(self) -> _tlist_array:
 
@@ -1087,7 +1086,6 @@ class MarkovChain(_Model):
         current = [f - _np.transpose(f) for f in self.stationary_flux]
 
         return current
-
 
     @_cached_property
     def stationary_flux(self) -> _tlist_array:
