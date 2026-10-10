@@ -42,7 +42,6 @@ def test_classes_communicating(p, communicating_classes):
         assert actual == expected
 
 
-# noinspection DuplicatedCode
 def test_classes_recurrent(p, recurrent_classes):
 
     mc = _MarkovChain(p)
@@ -58,7 +57,6 @@ def test_classes_recurrent(p, recurrent_classes):
     assert actual == expected
 
 
-# noinspection DuplicatedCode
 def test_classes_transient(p, transient_classes):
 
     mc = _MarkovChain(p)

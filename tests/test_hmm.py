@@ -65,7 +65,7 @@ def test_decode(p, e, symbols, initial_status, use_scaling, value):
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-# noinspection DuplicatedCode, PyBroadException
+# noinspection PyBroadException
 def test_estimate(possible_states, possible_symbols, sequence_states, sequence_symbols, value):
 
     try:
@@ -88,7 +88,7 @@ def test_estimate(possible_states, possible_symbols, sequence_states, sequence_s
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-# noinspection DuplicatedCode, PyBroadException
+# noinspection PyBroadException
 def test_fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, symbols, initial_status, value):
 
     p_guess = _np.array(p_guess)
@@ -238,7 +238,7 @@ def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-# noinspection DuplicatedCode, PyBroadException
+# noinspection PyBroadException
 def test_restrict(p, e, states, symbols, value):
 
     hmm = _HiddenMarkovModel(p, e)

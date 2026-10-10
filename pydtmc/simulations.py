@@ -103,7 +103,6 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
     return prediction
 
 
-# noinspection DuplicatedCode
 def hmm_simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint, final_symbol: _oint, rng: _trand) -> _thmm_sequence:
 
     n, k = hmm.size

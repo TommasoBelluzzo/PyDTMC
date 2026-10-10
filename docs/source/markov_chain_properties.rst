@@ -6,6 +6,7 @@ Properties
 .. autoclass:: MarkovChain
 	:noindex:
 	:members:
+		absolute_spectral_gap,
 		absorbing_states,
 		accessibility_matrix,
 		adjacency_matrix,
@@ -15,11 +16,14 @@ Properties
 		cyclic_states,
 		density,
 		determinant,
+		deviation_matrix,
 		dobrushin_coefficient,
 		doeblin_coefficient,
+		entropy_production_rate,
 		entropy_rate,
 		entropy_rate_normalized,
 		fundamental_matrix,
+		global_conductance,
 		implied_timescales,
 		incidence_matrix,
 		is_absorbing,
@@ -38,6 +42,7 @@ Properties
 		n,
 		occupation_matrix,
 		occupation_trace,
+		ordinary_spectral_gap,
 		p,
 		period,
 		periods,
@@ -47,7 +52,6 @@ Properties
 		recurrent_states,
 		relaxation_rate,
 		size,
-		spectral_gap,
 		states,
 		stationary_current,
 		stationary_flux,

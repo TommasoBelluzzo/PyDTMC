@@ -653,7 +653,7 @@ def test_validate_models(value, is_valid):
             assert result_check is True
 
 
-# noinspection DuplicatedCode, PyBroadException
+# noinspection PyBroadException
 def test_validate_partitions(value, labels, is_valid):
 
     try:
@@ -713,7 +713,7 @@ def test_validate_rewards(value, size, is_valid):
         assert result_check is True
 
 
-# noinspection DuplicatedCode, PyBroadException
+# noinspection PyBroadException
 def test_validate_sequence(value, labels, is_valid):
 
     try:
@@ -733,7 +733,7 @@ def test_validate_sequence(value, labels, is_valid):
         assert result_check is True
 
 
-# noinspection DuplicatedCode, PyBroadException
+# noinspection PyBroadException
 def test_validate_sequences(value, labels, flex, is_valid):
 
     try:
@@ -793,7 +793,7 @@ def test_validate_strings(value, size, is_valid):
         assert result_check is True
 
 
-# noinspection DuplicatedCode, PyBroadException
+# noinspection PyBroadException
 def test_validate_time_points(value, is_valid):
 
     try:

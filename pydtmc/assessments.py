@@ -60,7 +60,7 @@ from .validation import (
 #############
 
 
-# noinspection DuplicatedCode, PyBroadException
+# noinspection PyBroadException
 def assess_first_order(possible_states: _tlist_str, sequence: _tsequence, significance: float = 0.05) -> _ttest:
 
     """
@@ -113,7 +113,6 @@ def assess_first_order(possible_states: _tlist_str, sequence: _tsequence, signif
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
 
 
-# noinspection DuplicatedCode
 def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, significance: float = 0.05) -> _ttest:
 
     """
@@ -190,7 +189,6 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, sign
     return rejection, p_value, {'chi2': chi2, 'dof': dof}
 
 
-# noinspection DuplicatedCode
 def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, significance: float = 0.05) -> _ttest:
 
     """

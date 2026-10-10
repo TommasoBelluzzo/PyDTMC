@@ -18,6 +18,7 @@ __all__ = [
 # Standard
 
 import copy as _cp
+import functools as _ft
 import inspect as _ins
 import io as _io
 import math as _mt
@@ -34,7 +35,6 @@ import matplotlib.ticker as _mplt
 import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
-import scipy.interpolate as _spip
 
 try:
     import pydot as _pyd
@@ -44,6 +44,10 @@ except ImportError:  # pragma: no cover
     _pydot_found = False
 
 # Internal
+
+from .computations import (
+    slem as _slem
+)
 
 from .custom_types import (
     oint as _oint,
@@ -127,6 +131,16 @@ def _decode_image(g, dpi):
     return img, img_x, img_xo, img_y, img_yo
 
 
+def _noninteractive(func):
+
+    @_ft.wraps(func)
+    def wrapper(*args, **kwargs):
+        with _mplp.ioff():
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
 def _xticks_labels(ax, size, labels_name, labels, minor_major):
 
     if labels_name is not None:
@@ -141,12 +155,26 @@ def _xticks_labels(ax, size, labels_name, labels, minor_major):
     ax.set_xticklabels(labels)
 
 
-def _xticks_steps(ax, length):
+def _xticks_steps(ax, length, interval=1, max_ticks=11):
 
     ax.set_xlabel('Steps', fontsize=13.0)
-    ax.set_xticks(_np.arange(0.0, length + 1.0, 1.0 if length <= 11 else 10.0), minor=False)
+
+    tick_step = 1
+    if length > max_ticks:
+
+        target_step = (length - 1) / (max_ticks - 1)
+        magnitude = 10.0**_mt.floor(_mt.log10(target_step))
+
+        for multiplier in (1, 2, 5, 10):
+            tick_step = int(multiplier * magnitude)
+            if tick_step >= target_step:
+                break
+
+    ticks = _np.arange(0, length, tick_step)
+
+    ax.set_xticks(ticks, minor=False)
     ax.set_xticks(_np.arange(-0.5, length, 1.0), minor=True)
-    ax.set_xticklabels(_np.arange(0, length + 1, 1 if length <= 11 else 10))
+    ax.set_xticklabels(ticks * interval)
     ax.set_xlim(-0.5, length - 0.5)
 
 
@@ -220,9 +248,12 @@ def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition
         ax.set_yticks([])
         ax.set_yticks([], minor=True)
 
-    color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(axes, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
+    for ax in axes[len(models):]:
+        ax.set_visible(False)
+
+    color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(axes[:len(models)], drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
     figure.colorbar(ax_is, cax=color_map_ax, **color_map_ax_kwargs)
-    color_map_ax.set_xticklabels([0.0, 0.25, 0.5, 0.75, 1.0])
+    color_map_ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
 
     figure.suptitle('Comparison Plot', fontsize=15.0, fontweight='bold')
 
@@ -267,24 +298,30 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
     theta = _np.linspace(0.0, 2.0 * _np.pi, 200)
 
     evalues = _npl.eigvals(model.p).astype(complex)
-    evalues_final = _np.unique(_np.append(evalues, _np.array([1.0]).astype(complex)))
+    evalues_final = _np.copy(evalues)
+
+    argmin_index = _np.argmin(_np.abs(evalues_final - 1.0))
+
+    if _np.isclose(evalues_final[argmin_index], 1.0):
+        evalues_final[argmin_index] = 1.0 + 0.0j
+    else:
+        evalues_final = _np.append(evalues_final, 1.0 + 0.0j)
+
+    evalues_final = _np.unique(evalues_final)
 
     x_unit_circle = _np.cos(theta)
     y_unit_circle = _np.sin(theta)
 
-    if mc.is_ergodic:
+    if mc.is_irreducible:
 
-        values_abs = _np.sort(_np.abs(evalues))
-        values_ct1 = _np.isclose(values_abs, 1.0)
+        mu = _slem(model.p)
 
-        if not _np.all(values_ct1):
+        if not _np.isclose(mu, 0.0):
 
-            mu = values_abs[~values_ct1][-1]
+            x_slem_circle = mu * x_unit_circle
+            y_slem_circle = mu * y_unit_circle
 
-            if not _np.isclose(mu, 0.0):
-
-                x_slem_circle = mu * x_unit_circle
-                y_slem_circle = mu * y_unit_circle
+            if not _np.isclose(mu, 1.0):
 
                 cs = _np.linspace(-1.1, 1.1, 201)
                 x_spectral_gap, y_spectral_gap = _np.meshgrid(cs, cs)
@@ -294,7 +331,7 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
                 handles.append(_mplp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.get_facecolor()[0]))
                 labels.append('Spectral Gap')
 
-                ax.plot(x_slem_circle, y_slem_circle, color='red', linestyle='--', linewidth=1.5)
+            ax.plot(x_slem_circle, y_slem_circle, color='red', linestyle='--', linewidth=1.5)
 
     ax.plot(x_unit_circle, y_unit_circle, color='red', linestyle='-', linewidth=3.0)
 
@@ -347,13 +384,13 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
     def _get_boundaries(gb_d):
 
         i, j = gb_d.shape
-        k = 0.1 / (i - 1.0)
+        k = 0.1 / (i - 1.0) if i > 1 else 0.0
 
         b = _np.zeros((i, j), dtype=float)
         t = _np.zeros((i, j), dtype=float)
 
         for o in range(j):
-            dj = d[:, o]
+            dj = gb_d[:, o]
             b[:, o] = _np.cumsum(dj + k) - dj - k
             t[:, o] = _np.cumsum(dj + k) - k
 
@@ -366,14 +403,10 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
 
         i = gc_d.shape[0]
 
-        cm = _np.array(_mplp.get_cmap(gc_pn).colors)
+        cm = _mplp.get_cmap(gc_pn)
+        colors = cm(_np.linspace(0.0, 1.0, i + 2))[1:-1, :]
 
-        ipf = _spip.interp1d(_np.linspace(0.0, 1.0, cm.shape[0]), cm, kind='linear', axis=0)
-        ipv = ipf(_np.linspace(0.0, 1.0, 3 + ((i - 1) * 10)))
-
-        cm = ipv[1:-1:10, :]
-
-        return cm
+        return colors
 
     def _get_curves(gc_n, gc_x1, gc_y1, gc_x2, gc_y2):
 
@@ -423,12 +456,12 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
 
         i, j = gpf_d.shape
         w = j / 40.0
+        q = _npl.matrix_power(gpf_p, interval)
 
         polygons = []
 
         for oj in range(j - 1):
 
-            q = _npl.matrix_power(gpf_p, indices[oj + 1] - indices[oj])
             bj = _np.copy(gpf_bb[:, oj + 1])
 
             x_lo = oj + w
@@ -437,7 +470,7 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
             for oi in range(i):
 
                 dij = gpf_d[oi, oj]
-                bij = bb[oi, oj]
+                bij = gpf_bb[oi, oj]
 
                 qi = q[oi, :]
                 qis = _np.cumsum(qi)
@@ -505,9 +538,9 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
             dv = distributions[ai, aj]
 
             if dv > 0.05:
-                ax.text(aj, bm[ai, aj], f'{dv:.3f}', horizontalalignment='center', verticalalignment='center')
+                ax.text(aj, float(bm[ai, aj]), f'{dv:.3f}', horizontalalignment='center', verticalalignment='center')
 
-    _xticks_steps(ax, steps)
+    _xticks_steps(ax, steps + 1, interval)
 
     ax.set_ylim(0.0, 1.0)
     ax.invert_yaxis()
@@ -723,6 +756,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
         return f, a
 
+    @_noninteractive
     def _plot_hmm_standard(phs_hmm, phs_nodes_color, phs_nodes_shape, phe_edges_label, phs_dpi):
 
         g = phs_hmm.to_graph()
@@ -731,9 +765,6 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
         node_colors = _node_colors(phs_hmm.n) if phs_nodes_color else []
         edge_colors = _cp.deepcopy(node_colors) if phs_nodes_color else []
-
-        mpi = _mplp.isinteractive()
-        _mplp.interactive(False)
 
         f, a = _mplp.subplots(dpi=phs_dpi)
 
@@ -819,11 +850,8 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
         if len(edge_labels_curved) > 0:
             _draw_edge_labels_curved(a, positions, edge_labels_curved)
 
-        _mplp.interactive(mpi)
-
         return f, a
 
-    # noinspection DuplicatedCode
     def _plot_mc_extended(pme_mc, pme_nodes_color, pme_nodes_shape, phe_edges_label, pme_dpi):
 
         magnitude = _calculate_magnitude(pme_mc.p)
@@ -882,16 +910,14 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
         return f, a
 
+    @_noninteractive
     def _plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_shape, phe_edges_label, pms_dpi):
 
         g = pms_mc.to_graph()
-        positions = _nx.spring_layout(g)
+        positions = _nx.spring_layout(g, seed=0)
         magnitude = _calculate_magnitude(pms_mc.p)
 
         node_colors = _node_colors(len(pms_mc.communicating_classes)) if pms_nodes_color else []
-
-        mpi = _mplp.isinteractive()
-        _mplp.interactive(False)
 
         f, a = _mplp.subplots(dpi=pms_dpi)
 
@@ -956,8 +982,6 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
         if len(edge_labels_curved) > 0:
             _draw_edge_labels_curved(a, positions, edge_labels_curved)
 
-        _mplp.interactive(mpi)
-
         return f, a
 
     try:
@@ -1014,7 +1038,6 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
      - **projection** for displaying a projection plot.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
-    :raises ValueError: if the "distributions" parameter represents a sequence of redistributions and the "initial_status" parameter does not match its first element.
     """
 
     try:
@@ -1034,10 +1057,6 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
         mc = _MarkovChain(model.p, model.states)
 
     distributions = mc.redistribute(redistributions, initial_status=initial_status, output_last=False)
-
-    if initial_status is not None and not _np.array_equal(distributions[0], initial_status):  # pragma: no cover
-        raise ValueError('The "initial_status" parameter, if specified when the "distributions" parameter represents a sequence of redistributions, must match the first element.')
-
     distributions_length = 1 if isinstance(distributions, _np.ndarray) else len(distributions)
     distributions = _np.array([distributions]) if isinstance(distributions, _np.ndarray) else _np.array(distributions)
 
@@ -1054,7 +1073,7 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
         ax.grid(which='minor', color='k')
 
         cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
-        cb.ax.set_xticklabels([0.0, 0.25, 0.5, 0.75, 1.0])
+        cb.ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
 
         ax.set_title('Redistributions Plot (Heatmap)', fontsize=15.0, fontweight='bold')
 
@@ -1106,7 +1125,7 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
     :param steps: the number of steps.
     :param initial_state: the initial state of the random walk (*if omitted, it is chosen uniformly at random*).
     :param plot_type:
-     - **heatmap** for displaying heatmap-like plots;
+     - **heatmap** for displaying the relative frequencies of observed transitions;
      - **histogram** for displaying a histogram plots;
      - **matrix** for displaying matrix plots.
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
@@ -1115,13 +1134,11 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
     """
 
     # noinspection DuplicatedCode
+    @_noninteractive
     def _plot_heatmap(phm_walk_data, phm_dpi):
 
         walk_steps, walks = phm_walk_data
         plots_count = len(walks)
-
-        mpi = _mplp.isinteractive()
-        _mplp.interactive(False)
 
         f, a = _mplp.subplots(nrows=plots_count, constrained_layout=True, dpi=phm_dpi)
         a = [a] if plots_count == 1 else list(a.flat)
@@ -1147,36 +1164,25 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
             a_current.grid(which='minor', color='k')
 
         color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(a, drawedges=True, orientation='vertical', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
-
-        for is_ax in is_axes:
-            f.colorbar(is_ax, cax=color_map_ax, **color_map_ax_kwargs)
+        f.colorbar(is_axes[0], cax=color_map_ax, **color_map_ax_kwargs)
 
         f.suptitle('Sequence Plot (Heatmap)', fontsize=15.0, fontweight='bold')
 
-        _mplp.interactive(mpi)
-
         return f, a
 
-    # noinspection DuplicatedCode
+    @_noninteractive
     def _plot_histogram(ph_walk_data, ph_dpi):
 
         walk_steps, walks = ph_walk_data
         plots_count = len(walks)
-
-        mpi = _mplp.isinteractive()
-        _mplp.interactive(False)
 
         f, a = _mplp.subplots(nrows=plots_count, tight_layout=True, dpi=ph_dpi)
         a = [a] if plots_count == 1 else list(a.flat)
 
         for a_current, (size, labels_name, labels, sequence) in zip(a, walks):
 
-            sequence_histogram = _np.zeros((size, walk_steps), dtype=float)
-
-            for index, label in enumerate(sequence):
-                sequence_histogram[label, index] = 1.0
-
-            sequence_histogram = _np.sum(sequence_histogram, axis=1) / _np.sum(sequence_histogram)
+            sequence_histogram = _np.bincount(sequence, minlength=size).astype(float)
+            sequence_histogram /= _np.sum(sequence_histogram)
 
             a_current.bar(_np.arange(0.0, size, 1.0), sequence_histogram, edgecolor=_color_black, facecolor=_colors[0])
 
@@ -1185,18 +1191,13 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
 
         f.suptitle('Sequence Plot (Histogram)', fontsize=15.0, fontweight='bold')
 
-        _mplp.interactive(mpi)
-
         return f, a
 
-    # noinspection DuplicatedCode
+    @_noninteractive
     def _plot_matrix(pm_walk_data, pm_dpi):
 
         walk_steps, walks = pm_walk_data
         plots_count = len(walks)
-
-        mpi = _mplp.isinteractive()
-        _mplp.interactive(False)
 
         f, a = _mplp.subplots(nrows=plots_count, tight_layout=True, dpi=pm_dpi)
         a = [a] if plots_count == 1 else list(a.flat)
@@ -1219,8 +1220,6 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
 
         f.suptitle('Sequence Plot (Matrix)', fontsize=15.0, fontweight='bold')
 
-        _mplp.interactive(mpi)
-
         return f, a
 
     try:
@@ -1240,17 +1239,13 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
     if model_mc:
         walk_data = (
             steps + 1,
-            [
-                (model.n, 'States', model.states, model_sequence)
-            ]
+            [(model.n, 'States', model.states, model_sequence)]
         )
     else:
         walk_data = (
             steps + 1,
-            [
-                (model.n, 'States', model.states, model_sequence[0]),
-                (model.k, 'Symbols', model.symbols, model_sequence[1])
-            ]
+            [(model.n, 'States', model.states, model_sequence[0]),
+             (model.k, 'Symbols', model.symbols, model_sequence[1])]
         )
 
     if plot_type == 'heatmap':
@@ -1334,12 +1329,12 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
 
             for col in range(f - 1):
 
-                if col == 0 and not gte_initial_distribution[col] > 0.0:
+                if (col == 0) and (not gte_initial_distribution[row] > 0.0):
                     continue
 
                 for row_next in range(n):
 
-                    if hmm.p[row][row_next] > 0.0:
+                    if gte_hmm.p[row][row_next] > 0.0:
 
                         if gte_forward:
                             edge_from = f'node{row_offset + col}'
@@ -1390,21 +1385,19 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
 
             for col in range(f - 1):
 
-                if col == 0 and not gts_initial_distribution[col] > 0.0:
+                if (col == 0) and (not gts_initial_distribution[row] > 0.0):
                     continue
 
                 for row_next in range(n):
 
-                    if hmm.p[row][row_next] > 0.0:
+                    if gts_hmm.p[row][row_next] > 0.0:
 
                         if gts_forward:
                             trellis.add_edge(row_offset + col, (row_next * f) + col + 1)
-                            on_path = gts_states_path[col] == row and gts_states_path[col + 1] == row_next
                         else:
                             trellis.add_edge((row_next * f) + col + 1, row_offset + col)
-                            on_path = gts_states_path[col] == row_next and gts_states_path[col + 1] == row
 
-                        if on_path:
+                        if (gts_states_path[col] == row) and (gts_states_path[col + 1] == row_next):
                             edge_colors.append(_default_color_path)
                         else:
                             edge_colors.append(_color_black)
@@ -1415,12 +1408,12 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
 
             node_colors.append('none')
             node_edges.append('none')
-            node_labels[node_index] = hmm.states[row]
+            node_labels[node_index] = gts_hmm.states[row]
             node_positions[node_index] = (0.6, float(n - row))
 
             node_index += 1
 
-        headers = [r"$\mathregular{T_0}$"] + [hmm.symbols[symbol] for symbol in gts_symbols[1:]]
+        headers = [r"$\mathregular{T_0}$"] + [gts_hmm.symbols[symbol] for symbol in gts_symbols[1:]]
 
         for col, header in enumerate(headers):
 
@@ -1435,10 +1428,8 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
 
         return trellis, node_colors, node_edges, node_labels, node_positions, edge_colors
 
+    @_noninteractive
     def _plot_extended(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
-
-        mpi = _mplp.isinteractive()
-        _mplp.interactive(False)
 
         f, a = _mplp.subplots(nrows=2, tight_layout=True, dpi=ps_dpi)
         a = list(a.flat)
@@ -1459,16 +1450,12 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
         ax_current.axis('off')
         ax_current.set_title('Forward Trellis', fontsize=15.0, fontweight='normal', pad=1)
 
-        _mplp.interactive(mpi)
-
         return f, a
 
+    @_noninteractive
     def _plot_standard(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
 
         y_top = ps_hmm.n + 0.5
-
-        mpi = _mplp.isinteractive()
-        _mplp.interactive(False)
 
         f, a = _mplp.subplots(nrows=2, tight_layout=True, dpi=ps_dpi)
         a = list(a.flat)
@@ -1488,8 +1475,6 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
         ax_current.set_ylim(0.5, y_top)
         ax_current.axis('off')
         ax_current.set_title('Forward Trellis', fontsize=15.0, fontweight='normal', pad=1)
-
-        _mplp.interactive(mpi)
 
         return f, a
 

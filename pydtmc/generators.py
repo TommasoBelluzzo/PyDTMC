@@ -64,7 +64,6 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
-# noinspection DuplicatedCode
 def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: _tlist_int, handle_nulls: bool) -> _thmm_params:
 
     p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
@@ -136,7 +135,6 @@ def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zer
 
         return m
 
-    # noinspection DuplicatedCode
     def process_zeros(pz_columns, pz_zeros, pz_mask):
 
         pz_mask_internal = _np.copy(pz_mask)
@@ -336,7 +334,6 @@ def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gene
 
         return pair_candidates
 
-    # noinspection DuplicatedCode
     def _calculate_q(cq_p, cq_pi, cq_eta, cq_vi0, cq_vi1):
 
         cq_pi = _np.diag(cq_pi)
