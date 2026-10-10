@@ -26,15 +26,19 @@ def test_aggregate(p, method, s, value):
 
     mc = _MarkovChain(p)
 
-    if (mc.size == 2) or (not mc.is_ergodic):
-        _pt.skip('The Markov chain cannot be aggregated.')
+    if value is None:
 
-    mc_aggregated = mc.aggregate(s, method)
+        with _pt.raises(ValueError):
+            mc.aggregate(s, method)
 
-    actual = mc_aggregated.p
-    expected = _np.array(value)
+    else:
 
-    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        mc_aggregated = mc.aggregate(s, method)
+
+        actual = mc_aggregated.p
+        expected = _np.array(value)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_bounded(p, boundary_condition, value):
@@ -97,15 +101,23 @@ def test_lump(p, partitions, value):
 
     mc = _MarkovChain(p)
 
-    if partitions not in mc.lumping_partitions:
-        _pt.skip('The Markov chain is not lumpable for the specified partitions.')
+    if value is None:
 
-    mc_lump = mc.lump(partitions)
+        assert partitions not in mc.lumping_partitions
 
-    actual = mc_lump.p
-    expected = _np.array(value)
+        with _pt.raises(ValueError):
+            mc.lump(partitions)
 
-    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+
+        assert partitions in mc.lumping_partitions
+
+        mc_lump = mc.lump(partitions)
+
+        actual = mc_lump.p
+        expected = _np.array(value)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_merge_with(p, p_other, gamma, value):
@@ -131,10 +143,46 @@ def test_nth_order(p, order, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-def test_sub(p, states, value):
+def test_reversibilize(p, method, value):
+
+    mc = _MarkovChain(p)
 
     if value is None:
-        _pt.skip('The Markov chain cannot generate the specified subchain.')
+
+        with _pt.raises(ValueError):
+            mc.reversibilize(method)
+
+    else:
+
+        mc_reversibilized = mc.reversibilize(method)
+
+        actual = mc_reversibilized.p
+        expected = _np.array(value)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = _np.sum(mc_reversibilized.p, axis=1)
+        expected = _np.ones(mc.size, dtype=float)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        for pi in mc.pi:
+
+            actual = _np.dot(pi, mc_reversibilized.p)
+            expected = pi
+
+            _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_sub(p, states, value):
+
+    mc = _MarkovChain(p)
+
+    if value is None:
+
+        with _pt.raises(ValueError):
+            mc.to_subchain(states)
+
     else:
 
         mc = _MarkovChain(p)
@@ -157,5 +205,39 @@ def test_sub(p, states, value):
 
             actual = mc_sub.p
             expected = mc.p
+
+            _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_time_reversal(p, value):
+
+    mc = _MarkovChain(p)
+
+    if value is None:
+
+        with _pt.raises(ValueError):
+            mc.time_reversal()
+
+    else:
+
+        mc_reversed = mc.time_reversal()
+        actual = mc_reversed.p
+        expected = _np.array(value)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        mc_rereversed = mc_reversed.time_reversal()
+        actual = mc_rereversed.p
+        expected = mc.p
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        if mc.is_irreducible:
+
+            states1 = [mc.states[0]]
+            states2 = [mc.states[-1]]
+
+            actual = mc.committor_probabilities('backward', states1, states2)
+            expected = mc_reversed.committor_probabilities('forward', states2, states1)
 
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

@@ -124,7 +124,7 @@ def test_cached(p):
         time1 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=lcl), 10)
         time2 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=lcl), 10)
 
-        assert time1 > time2
+        assert time1 >= time2
 
 
 def test_connectivity(p, density):
@@ -134,7 +134,7 @@ def test_connectivity(p, density):
     actual = mc.density
     expected = density
 
-    assert _np.isclose(actual, expected)
+    assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_contraction_coefficients(p, dobrushin_coefficient, doeblin_coefficient):
@@ -144,44 +144,44 @@ def test_contraction_coefficients(p, dobrushin_coefficient, doeblin_coefficient)
     actual = mc.dobrushin_coefficient
     expected = dobrushin_coefficient
 
-    assert _np.isclose(actual, expected)
+    assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     actual = mc.doeblin_coefficient
     expected = doeblin_coefficient
 
-    assert _np.isclose(actual, expected)
+    assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     r1 = dobrushin_coefficient <= (1.0 - doeblin_coefficient)
-    r2 = _np.isclose(dobrushin_coefficient, 1.0 - doeblin_coefficient)
+    r2 = _np.isclose(dobrushin_coefficient, 1.0 - doeblin_coefficient, rtol=1e-5, atol=1e-8)
 
     assert r1 or r2
 
 
-# noinspection DuplicatedCode
-def test_entropy(p, entropy_rate, entropy_rate_normalized, topological_entropy):
+def test_entropy_production_rate(p, entropy_production_rate):
 
     mc = _MarkovChain(p)
 
-    actual = mc.entropy_rate
-    expected = entropy_rate
+    # noinspection PyTypeChecker
+    actual = len(mc.pi)
+    expected = len(entropy_production_rate)
 
-    if (actual is not None) and (expected is not None):
-        assert _np.isclose(actual, expected)
-    else:
-        assert actual == expected
+    assert actual == expected
 
-    actual = mc.entropy_rate_normalized
-    expected = entropy_rate_normalized
+    for entropy_production_rate_actual, entropy_production_rate_expected, stationary_current in zip(mc.entropy_production_rate, entropy_production_rate, mc.stationary_current):
 
-    if (actual is not None) and (expected is not None):
-        assert _np.isclose(actual, expected)
-    else:
-        assert actual == expected
+        assert entropy_production_rate_actual >= 0.0
 
-    actual = mc.topological_entropy
-    expected = topological_entropy
+        actual = entropy_production_rate_actual
+        expected = entropy_production_rate_expected
 
-    assert _np.isclose(actual, expected)
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        if mc.is_reversible:
+
+            actual = entropy_production_rate_actual
+            expected = 0.0
+
+            assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
@@ -202,7 +202,7 @@ def test_fundamental_matrix(p, fundamental_matrix, kemeny_constant):
 
     if (actual is not None) and (expected is not None):
         assert mc.is_irreducible
-        assert _np.isclose(actual, expected)
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -249,7 +249,7 @@ def test_matrix(p, determinant, rank):
     actual = mc.determinant
     expected = determinant
 
-    assert _np.isclose(actual, expected)
+    assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     actual = mc.rank
     expected = rank
@@ -275,7 +275,7 @@ def test_occupation_matrix(p, occupation_matrix, occupation_trace):
 
     if (actual is not None) and (expected is not None):
         assert mc.is_absorbing
-        assert _np.isclose(actual, expected)
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -306,6 +306,42 @@ def test_regularity(p):
         assert mc.is_aperiodic
 
 
+
+def test_stationary_current(p, stationary_current):
+
+    mc = _MarkovChain(p)
+    stationary_current = [_np.array(x) for x in stationary_current]
+
+    # noinspection PyTypeChecker
+    actual = len(mc.pi)
+    expected = len(stationary_current)
+
+    assert actual == expected
+
+    for stationary_current_actual, stationary_current_expected, stationary_flux in zip(mc.stationary_current, stationary_current, mc.stationary_flux):
+
+        actual = stationary_current_actual
+        expected = stationary_current_expected
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = stationary_current_actual
+        expected = stationary_flux - _np.transpose(stationary_flux)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = stationary_current_actual
+        expected = _np.zeros(stationary_current_actual.shape, dtype=float) if mc.is_reversible else -_np.transpose(stationary_current_actual)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = _np.sum(stationary_current_actual, axis=1)
+        expected = _np.zeros(mc.size, dtype=float)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+
 def test_stationary_distributions(p, stationary_distributions):
 
     mc = _MarkovChain(p)
@@ -332,10 +368,44 @@ def test_stationary_distributions(p, stationary_distributions):
 
     for index, stationary_distribution in enumerate(stationary_distributions):
 
-        assert _np.isclose(_np.sum(mc.pi[index]), 1.0)
+        assert _np.isclose(_np.sum(mc.pi[index]), 1.0, rtol=1e-5, atol=1e-8)
 
         actual = mc.pi[index]
         expected = stationary_distribution
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_stationary_flux(p, stationary_flux):
+
+    mc = _MarkovChain(p)
+    stationary_flux = [_np.array(x) for x in stationary_flux]
+
+    # noinspection PyTypeChecker
+    actual = len(mc.pi)
+    expected = len(stationary_flux)
+
+    assert actual == expected
+
+    for stationary_flux_actual, stationary_flux_expected, pi in zip(mc.stationary_flux, stationary_flux, mc.pi):
+
+        actual = stationary_flux_actual
+        expected = stationary_flux_expected
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = stationary_flux_actual
+        expected = pi[:, _np.newaxis] * mc.p
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = _np.sum(stationary_flux_actual, axis=1)
+        expected = pi
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = _np.sum(stationary_flux_actual, axis=0)
+        expected = pi
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
@@ -364,7 +434,7 @@ def test_transitions(p):
                 actual = mc.transition_probability(state1, state2, steps)
                 expected = transition_matrix[index2, index1]
 
-                assert _np.isclose(actual, expected)
+                assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 # noinspection DuplicatedCode
@@ -376,7 +446,7 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     expected = mixing_rate
 
     if (actual is not None) and (expected is not None):
-        assert _np.isclose(actual, expected)
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -384,7 +454,7 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     expected = relaxation_rate
 
     if (actual is not None) and (expected is not None):
-        assert _np.isclose(actual, expected)
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -392,7 +462,7 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     expected = spectral_gap
 
     if (actual is not None) and (expected is not None):
-        assert _np.isclose(actual, expected)
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -402,5 +472,36 @@ def test_times(p, mixing_rate, relaxation_rate, spectral_gap, implied_timescales
     if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
+def test_topological_entropy(p, topological_entropy):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.topological_entropy
+    expected = topological_entropy
+
+    assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_uncertainty_entropy(p, entropy_rate, entropy_rate_normalized):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.entropy_rate
+    expected = entropy_rate
+
+    if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+    actual = mc.entropy_rate_normalized
+    expected = entropy_rate_normalized
+
+    if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected

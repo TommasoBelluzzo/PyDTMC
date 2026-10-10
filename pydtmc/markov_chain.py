@@ -147,7 +147,8 @@ from .measures import (
     mc_recurrence_times as _recurrence_times,
     mc_sensitivity as _sensitivity,
     mc_time_correlations as _time_correlations,
-    mc_time_relaxations as _time_relaxations
+    mc_time_relaxations as _time_relaxations,
+    mc_time_reversal as _time_reversal
 )
 
 from .simulations import (
@@ -240,13 +241,13 @@ class MarkovChain(_Model):
     def __eq__(self, other) -> bool:
 
         if isinstance(other, MarkovChain):
-            return _np.array_equal(self.p, other.p) and self.states == other.states
+            return _np.array_equal(self.p, other.p) and self.__states == other.states
 
         return False
 
     def __hash__(self) -> int:
 
-        return hash((self.p.tobytes(), tuple(self.states)))
+        return hash((self.p.tobytes(), tuple(self.__states)))
 
     def __repr__(self) -> str:
 
@@ -522,6 +523,38 @@ class MarkovChain(_Model):
         return dc
 
     @_cached_property
+    def entropy_production_rate(self) -> list[float]:
+
+        """
+        | A property representing the stationary entropy production rates of the Markov chain.
+        | One value is returned for each stationary distribution.
+        | A rate is zero for a reversible stationary flow and infinite if a positive stationary flux has no reverse counterpart.
+        """
+
+        indices = _np.triu_indices(self.size, k=1)
+        epr = []
+
+        for flux in self.stationary_flux:
+
+            forward = flux[indices]
+            backward = _np.transpose(flux)[indices]
+
+            if _np.any((forward == 0.0) != (backward == 0.0)):
+                rate = float('inf')
+            else:
+
+                mask = (forward > 0.0) & (backward > 0.0)
+
+                current = forward[mask] - backward[mask]
+                affinity = _np.log(forward[mask]) - _np.log(backward[mask])
+
+                rate = float(_np.sum(current * affinity))
+
+            epr.append(rate)
+
+        return epr
+
+    @_cached_property
     def entropy_rate(self) -> _ofloat:
 
         """
@@ -535,10 +568,8 @@ class MarkovChain(_Model):
 
             p = self.__p
 
-            positive_mask = p > 0.0
-            contributions = _np.zeros_like(p)
-
-            _np.log(p, out=contributions, where=positive_mask)
+            contributions = _np.zeros((self.__size, self.__size), dtype=float)
+            _np.log(p, out=contributions, where=p > 0.0)
             contributions *= p
 
             h = -_np.dot(self.pi[0], _np.sum(contributions, axis=1))
@@ -610,7 +641,7 @@ class MarkovChain(_Model):
             ev = self.__eigenvalues_sorted[::-1]
 
             remaining = ev[1:]
-            timescales = _np.empty_like(remaining, dtype=float)
+            timescales = _np.zeros(remaining.shape, dtype=float)
 
             infinite_mask = remaining >= (1.0 - _ETOL)
             zero_mask = remaining <= _ETOL
@@ -1044,6 +1075,32 @@ class MarkovChain(_Model):
 
         return self.__states.copy()
 
+
+    @_cached_property
+    def stationary_current(self) -> _tlist_array:
+
+        """
+        | A property representing the stationary probability current matrices of the Markov chain.
+        | One matrix is returned for each stationary distribution.
+        """
+
+        current = [f - _np.transpose(f) for f in self.stationary_flux]
+
+        return current
+
+
+    @_cached_property
+    def stationary_flux(self) -> _tlist_array:
+
+        """
+        | A property representing the stationary probability flux matrices of the Markov chain.
+        | One matrix is returned for each stationary distribution.
+        """
+
+        flux = [pi[:, _np.newaxis] * self.__p for pi in self.pi]
+
+        return flux
+
     @_cached_property
     def topological_entropy(self) -> float:
 
@@ -1223,12 +1280,12 @@ class MarkovChain(_Model):
         if len(states) < 2:  # pragma: no cover
             raise _ValidationError('At least two states must be retained.')
 
-        p, states_out, error_message = _censor(self.__p, self.__states, states)
+        p, states, error_message = _censor(self.__p, self.__states, states)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
-        mc = MarkovChain(p, states_out)
+        mc = MarkovChain(p, states)
 
         return mc
 
@@ -1743,7 +1800,7 @@ class MarkovChain(_Model):
         if self.__size == 2:  # pragma: no cover
             raise ValueError('The Markov chain defines only two states.')
 
-        p, states, error_message = _lump(self.p, self.states, partitions)
+        p, states, error_message = _lump(self.__p, self.__states, partitions)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -1973,6 +2030,50 @@ class MarkovChain(_Model):
 
         return value
 
+    @_object_mark(instance_generator=True)
+    def reversibilize(self, method: str = 'additive') -> _tmc:
+
+        """
+        The method returns a reversible Markov chain obtained by reversibilizing the original process.
+
+        | **Notes:**
+
+        - The stationary time reversal is computed independently within each recurrent class.
+        - The transformation preserves every stationary distribution of the original chain.
+        - Multiplicative reversibilization may change communicating classes and periodicity.
+
+        :param method:
+         - **additive** for the arithmetic mean of the transition matrix and its time reversal;
+         - **multiplicative** for the product of the transition matrix and its time reversal;
+         - **multiplicative_reverse** for the product of the transition matrix and its time reversal in the reverse order.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the Markov chain has transient states.
+        """
+
+        try:
+
+            method = _validate_enumerator(method, ['additive', 'multiplicative', 'multiplicative_reverse'])
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if len(self.transient_states) > 0:  # pragma: no cover
+            raise ValueError('The Markov chain has transient states and its stationary time reversal is not defined.')
+
+        p = self.__p
+        pr = self.time_reversal().p
+
+        if method == 'additive':
+            result = 0.5 * (p + pr)
+        elif method == 'multiplicative':
+            result = _np.dot(p, pr)
+        else:
+            result = _np.dot(pr, p)
+
+        mc = MarkovChain(result, self.__states)
+
+        return mc
+
     def sensitivity(self, state: _tstate) -> _oarray:
 
         """
@@ -2114,6 +2215,32 @@ class MarkovChain(_Model):
 
         return value
 
+    @_object_mark(instance_generator=True)
+    def time_reversal(self) -> _tmc:
+
+        """
+        The method returns the stationary time reversal of the Markov chain.
+
+        | **Notes:**
+
+        - The reversal is computed independently within each recurrent class.
+
+        :raises ValueError: if the Markov chain has transient states.
+        """
+
+        if len(self.transient_states) > 0:  # pragma: no cover
+            raise ValueError('The Markov chain has transient states and its stationary time reversal is not defined.')
+
+        p = _np.zeros((self.__size, self.__size), dtype=float)
+
+        for indices, pi in zip(self.__recurrent_classes_indices, self.pi):
+            p_slice = _np.ix_(indices, indices)
+            p[p_slice] = _time_reversal(self.__p[p_slice], pi[indices])
+
+        mc = MarkovChain(p, self.__states)
+
+        return mc
+
     @_object_mark(aliases=['to_bounded'], instance_generator=True)
     def to_bounded_chain(self, boundary_condition: _tbcond) -> _tmc:
 
@@ -2155,10 +2282,7 @@ class MarkovChain(_Model):
         - The method can be accessed through the following aliases: **to_canonical**.
         """
 
-        p, _, error_message = _canonical(self.__p, self.__recurrent_classes_indices, self.__transient_states_indices)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
+        p, _, _ = _canonical(self.__p, self.__recurrent_classes_indices, self.__transient_states_indices)
 
         recurrent_indices = list(_it.chain.from_iterable(self.__recurrent_classes_indices))
         indices = self.__transient_states_indices + recurrent_indices
@@ -2174,7 +2298,11 @@ class MarkovChain(_Model):
         The method returns a dictionary representing the Markov chain.
         """
 
-        d = {(self.__states[i], self.__states[j]): self.__p[i, j] for i in range(self.__size) for j in range(self.__size)}
+        d = {
+            (self.__states[i], self.__states[j]): float(self.__p[i, j])
+            for i in range(self.__size)
+            for j in range(self.__size)
+        }
 
         return d
 

@@ -49,6 +49,8 @@ Properties
 		size,
 		spectral_gap,
 		states,
+		stationary_current,
+		stationary_flux,
 		topological_entropy,
 		transient_classes,
 		transient_states

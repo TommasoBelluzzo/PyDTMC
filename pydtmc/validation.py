@@ -299,7 +299,7 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
 
     if write_permission:
 
-        if not _osp.isdir(_osp.dirname(file_path)) and _osp.isabs(file_path):
+        if not _osp.isdir(_osp.dirname(file_path)) and _osp.isabs(file_path):  # pragma: no cover
             raise ValueError('The "@arg@" parameter defines a non-existent parent directory.')
 
         try:

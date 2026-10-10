@@ -19,7 +19,8 @@ __all__ = [
     'mc_recurrence_times',
     'mc_sensitivity',
     'mc_time_correlations',
-    'mc_time_relaxations'
+    'mc_time_relaxations',
+    'mc_time_reversal'
 ]
 
 
@@ -231,10 +232,7 @@ def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_in
             return None
 
         pi = mc.pi[0]
-
-        p = _np.transpose(p) * pi[_np.newaxis, :]
-        p /= pi[:, _np.newaxis]
-
+        p = mc_time_reversal(p, pi)
         cp = _solve_committor_probabilities(p, size, states2, states1)
 
     return cp
@@ -521,7 +519,7 @@ def mc_mixing_time(mc: _tmc, cutoff: float, maximum_iterations: int) -> _oint:
 
         pt = pt.dot(p)
 
-    return None
+    return None  # pragma: no cover
 
 
 def mc_mixing_time_from(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: float, maximum_iterations: int) -> _oint:
@@ -788,3 +786,11 @@ def mc_time_relaxations(mc: _tmc, rdl: _trdl, sequence: _tsequence, initial_dist
         return trs[0]
 
     return trs
+
+
+def mc_time_reversal(p: _tarray, pi: _tarray) -> _tarray:
+
+    pr = _np.transpose(p) * pi[_np.newaxis, :]
+    pr /= pi[:, _np.newaxis]
+
+    return pr
