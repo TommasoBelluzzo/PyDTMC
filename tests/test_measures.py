@@ -198,8 +198,6 @@ def test_first_passage_times_to(p, targets, value_mean, value_variance):
     actual = mc.first_passage_times_to('variance', targets)
     expected = value_variance
 
-    print(actual)
-
     if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8, equal_nan=True)

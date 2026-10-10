@@ -2024,6 +2024,11 @@ class MarkovChain(_Model):
         """
         The method performs a redistribution of states of *N* steps.
 
+        | **Notes:**
+
+        - When `output_last` is :py:class:`False`, the method returns the state distributions from time 0 through *N*, including the initial distribution.
+        - The returned distributions can be summed to obtain the expected number of visits to each state over the finite horizon.
+
         :param steps: the number of steps.
         :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param output_last: a boolean indicating whether to output only the last distributions.
