@@ -32,7 +32,6 @@ Properties
 		is_doubly_stochastic,
 		is_ergodic,
 		is_irreducible,
-		is_regular,
 		is_reversible,
 		is_stochastically_monotone,
 		is_symmetric,

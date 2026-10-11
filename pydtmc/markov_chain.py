@@ -207,8 +207,14 @@ from .validation import (
 @_aliased
 class MarkovChain(_Model):
 
-    """
+    r"""
     Defines a Markov chain with the given transition matrix.
+
+    | **Mathematical Notation:**
+
+    - :math:`P` is the row-stochastic transition matrix;
+    - :math:`P_{ij}` is the probability of moving from state :math:`i` to state :math:`j`;
+    - :math:`n` is the number of states.
 
     :param p: the transition matrix.
     :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
@@ -271,7 +277,6 @@ class MarkovChain(_Model):
         lines.append(f'  > IRREDUCIBLE: {("YES" if self.is_irreducible else "NO")}')
         lines.append(f' ABSORBING:      {("YES" if self.is_absorbing else "NO")}')
         lines.append(f' MONOTONE:       {("YES" if self.is_stochastically_monotone else "NO")}')
-        lines.append(f' REGULAR:        {("YES" if self.is_regular else "NO")}')
         lines.append(f' REVERSIBLE:     {("YES" if self.is_reversible else "NO")}')
         lines.append(f' SYMMETRIC:      {("YES" if self.is_symmetric else "NO")}')
         lines.append('')
@@ -391,9 +396,13 @@ class MarkovChain(_Model):
     @_cached_property
     def absolute_spectral_gap(self) -> _ofloat:
 
-        """
-        | A property representing the absolute spectral gap of the Markov chain.
-        | If the Markov chain is not **irreducible** or the **SLEM** (second-largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
+        r"""
+        | A property representing the absolute spectral gap of the Markov chain:
+        | :math:`\gamma_{\mathrm{abs}} = 1 - \lambda_*` where :math:`\lambda_*` is the second-largest eigenvalue modulus.
+
+        | **Notes:**
+
+        - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
         slem = self.__slem
@@ -413,7 +422,12 @@ class MarkovChain(_Model):
     def absorbing_states(self) -> _tlists_str:
 
         """
-        A property representing the absorbing states of the Markov chain.
+        | A property representing the absorbing states of the Markov chain.
+
+        | **Notes:**
+
+        - An absorbing state cannot be left once entered.
+        - An empty list is returned if the Markov chain has no absorbing states.
         """
 
         states = [*map(self.__states.__getitem__, self.__absorbing_states_indices)]
@@ -423,8 +437,14 @@ class MarkovChain(_Model):
     @_cached_property
     def accessibility_matrix(self) -> _tarray:
 
-        """
-        A property representing the accessibility matrix of the Markov chain.
+        r"""
+        | A property representing the accessibility matrix of the Markov chain:
+        | :math:`R_{ij} = \mathbb{1}_{\{\exists\,t \geq 0:\,(P^t)_{ij} > 0\}}` where :math:`t` is the number of transitions.
+
+        | **Notes:**
+
+        - An entry is 1 if the destination state is accessible from the origin state, and 0 otherwise.
+        - Every diagonal entry is 1, since each state is accessible from itself.
         """
 
         a = self.adjacency_matrix
@@ -438,8 +458,13 @@ class MarkovChain(_Model):
     @_cached_property
     def adjacency_matrix(self) -> _tarray:
 
-        """
-        A property representing the adjacency matrix of the Markov chain.
+        r"""
+        | A property representing the adjacency matrix of the Markov chain:
+        | :math:`A_{ij} = \mathbb{1}_{\{P_{ij} > 0\}}`
+
+        | **Notes:**
+
+        - The adjacency matrix includes self-transitions and contains only binary entries.
         """
 
         am = (self.__p > 0.0).astype(int)
@@ -450,7 +475,12 @@ class MarkovChain(_Model):
     def communicating_classes(self) -> _tlists_str:
 
         """
-        A property representing the communicating classes of the Markov chain.
+        | A property representing the communicating classes of the Markov chain.
+
+        | **Notes:**
+
+        - Each communicating class is a maximal subset of mutually accessible states.
+        - The communicating classes partition the state space.
         """
 
         classes = [[*map(self.__states.__getitem__, i)] for i in self.__communicating_classes_indices]
@@ -460,8 +490,14 @@ class MarkovChain(_Model):
     @_cached_property
     def communication_matrix(self) -> _tarray:
 
-        """
-        A property representing the communication matrix of the Markov chain.
+        r"""
+        | A property representing the communication matrix of the Markov chain:
+        | :math:`C_{ij} = R_{ij}R_{ji}` where :math:`R` is the accessibility matrix.
+
+        | **Notes:**
+
+        - An entry is 1 if the two states communicate, and 0 otherwise.
+        - The matrix is symmetric, with all diagonal entries equal to 1.
         """
 
         cm = _np.zeros((self.__size, self.__size), dtype=int)
@@ -475,7 +511,13 @@ class MarkovChain(_Model):
     def cyclic_classes(self) -> _tlists_str:
 
         """
-        A property representing the cyclic classes of the Markov chain.
+        | A property representing the cyclic classes of the Markov chain.
+
+        | **Notes:**
+
+        - Cyclic classes partition the state space of an **irreducible** chain according to its period.
+        - Transitions from each cyclic class lead to the next class in cyclic order.
+        - If the Markov chain is not **irreducible**, an empty list is returned.
         """
 
         classes = [[*map(self.__states.__getitem__, i)] for i in self.__cyclic_classes_indices]
@@ -486,7 +528,11 @@ class MarkovChain(_Model):
     def cyclic_states(self) -> _tlists_str:
 
         """
-        A property representing the cyclic states of the Markov chain.
+        | A property representing the cyclic states of the Markov chain.
+
+        | **Notes:**
+
+        - If the Markov chain is not **irreducible**, an empty list is returned.
         """
 
         states = [*map(self.__states.__getitem__, self.__cyclic_states_indices)]
@@ -496,8 +542,14 @@ class MarkovChain(_Model):
     @_cached_property
     def density(self) -> float:
 
-        """
-        A property representing the density of the transition matrix of the Markov chain.
+        r"""
+        | A property representing the density of the transition matrix of the Markov chain:
+        | :math:`d = \frac{\sum_{i \neq j} A_{ij}}{n(n-1)}` where :math:`A` is the adjacency matrix.
+
+        | **Notes:**
+
+        - Self-transitions are excluded from the computation.
+        - The density ranges from 0 to 1.
         """
 
         am = _np.copy(self.adjacency_matrix)
@@ -512,8 +564,9 @@ class MarkovChain(_Model):
     @_cached_property
     def determinant(self) -> float:
 
-        """
-        A property representing the determinant of the transition matrix of the Markov chain.
+        r"""
+        | A property representing the determinant of the transition matrix of the Markov chain:
+        | :math:`\operatorname{det}(P)`
         """
 
         d = float(_npl.det(self.__p))
@@ -523,9 +576,17 @@ class MarkovChain(_Model):
     @_cached_property
     def deviation_matrix(self) -> _oarray:
 
-        """
-        | A property representing the deviation matrix of the Markov chain.
-        | If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        r"""
+        | A property representing the deviation matrix of the Markov chain:
+        | :math:`D = Z - \mathbf{1}\pi`
+        | where:
+
+        - :math:`Z` is the fundamental matrix;
+        - :math:`\pi` is the unique stationary distribution.
+
+        | **Notes:**
+
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
         if not self.is_irreducible:
@@ -539,8 +600,10 @@ class MarkovChain(_Model):
     @_cached_property
     def dobrushin_coefficient(self) -> float:
 
-        """
-        A property representing the Dobrushin contraction coefficient of the Markov chain.
+        r"""
+        | A property representing the Dobrushin contraction coefficient of the Markov chain.
+        | The coefficient represents the maximum total variation distance between any two rows of the transition matrix:
+        | :math:`\delta(P) = \frac{1}{2}\max_{i,j}\sum_k |P_{ik} - P_{jk}|`
         """
 
         dc = 0.0
@@ -554,8 +617,15 @@ class MarkovChain(_Model):
     @_cached_property
     def doeblin_coefficient(self) -> float:
 
-        """
-        A property representing the Doeblin contraction coefficient of the Markov chain.
+        r"""
+        | A property representing the Doeblin contraction coefficient of the Markov chain.
+        | The coefficient represents the total common probability mass shared by all rows of the transition matrix:
+        | :math:`\alpha(P) = \sum_j \min_i P_{ij}`
+
+        | **Notes:**
+
+        - The coefficients satisfy :math:`\delta(P) \leq 1 - \alpha(P)`, where :math:`\delta(P)` is the Dobrushin contraction coefficient.
+        - Equality does not necessarily hold.
         """
 
         dc = float(_np.sum(_np.min(self.__p, axis=0)))
@@ -565,10 +635,15 @@ class MarkovChain(_Model):
     @_cached_property
     def entropy_production_rate(self) -> _tlist_float:
 
-        """
-        | A property representing the stationary entropy production rates of the Markov chain.
-        | A rate is 0 for a reversible stationary flow and infinite if a positive stationary flux has no reverse counterpart.
-        | One value is returned for each stationary distribution.
+        r"""
+        | A property representing the stationary entropy production rates of the Markov chain:
+        | :math:`e_{\mathrm{p}} = \sum_{i<j}(F_{ij} - F_{ji})\log\frac{F_{ij}}{F_{ji}}` where :math:`F` is the stationary probability flux matrix.
+
+        | **Notes:**
+
+        - A rate is 0 for a reversible stationary flow and infinite if a positive stationary flux has no reverse counterpart.
+        - Terms with zero flux in both directions contribute 0.
+        - One value is returned for each stationary distribution.
         """
 
         epr = _entropy_production_rate(self)
@@ -578,9 +653,15 @@ class MarkovChain(_Model):
     @_cached_property
     def entropy_rate(self) -> _ofloat:
 
-        """
-        | A property representing the entropy rate of the Markov chain.
-        | If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:class:`None` is returned.
+        r"""
+        | A property representing the entropy rate of the Markov chain:
+        | :math:`h = -\sum_i \pi_i \sum_j P_{ij}\log P_{ij}` where :math:`\pi_i` is the stationary probability of state :math:`i`.
+
+        | **Notes:**
+
+        - Terms with null transition probability contribute 0.
+        - The entropy rate is expressed in nats per transition.
+        - If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:class:`None` is returned.
         """
 
         if len(self.pi) > 1:
@@ -605,9 +686,17 @@ class MarkovChain(_Model):
     @_cached_property
     def entropy_rate_normalized(self) -> _ofloat:
 
-        """
-        | A property representing the entropy rate, normalized between 0 and 1, of the Markov chain.
-        | If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
+        r"""
+        | A property representing the entropy rate, normalized between 0 and 1, of the Markov chain:
+        | :math:`h_{\mathrm{n}} = \frac{h}{h_{\mathrm{t}}}` where:
+
+        - :math:`h` is the entropy rate;
+        - :math:`h_{\mathrm{t}}` is the topological entropy.
+
+        | **Notes:**
+
+        - If the entropy rate or topological entropy is 0, the normalized entropy rate is defined as 0.
+        - If the entropy rate cannot be computed, then :py:class:`None` is returned.
         """
 
         h = self.entropy_rate
@@ -628,9 +717,13 @@ class MarkovChain(_Model):
     @_cached_property
     def fundamental_matrix(self) -> _oarray:
 
-        """
-        | A property representing the fundamental matrix of the Markov chain.
-        | If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        r"""
+        | A property representing the fundamental matrix of the Markov chain:
+        | :math:`Z = (I - P + \mathbf{1}\pi)^{-1}` where :math:`\pi` is the unique stationary distribution.
+
+        | **Notes:**
+
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
         if not self.is_irreducible:
@@ -647,10 +740,19 @@ class MarkovChain(_Model):
     @_cached_property
     def global_conductance(self) -> _ofloat:
 
-        """
-        | A property representing the global conductance of the Markov chain.
-        | The computation requires exhaustive subset enumeration and has exponential computational complexity.
-        | If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        r"""
+        | A property representing the global conductance of the Markov chain:
+        | :math:`\Phi = \min_{\varnothing \neq S \subseteq \mathcal{S},\ \pi(S) \leq 1/2} \phi(S)` where:
+
+        - :math:`\mathcal{S}` is the state space;
+        - :math:`S` is a subset of the state space;
+        - :math:`\pi(S)` is the stationary probability mass of the subset of the state space;
+        - :math:`\phi(S)` is the conductance of the subset of the state space.
+
+        | **Notes:**
+
+        - The computation requires exhaustive subset enumeration and has exponential computational complexity.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
         gc = _global_conductance(self)
@@ -660,9 +762,15 @@ class MarkovChain(_Model):
     @_cached_property
     def implied_timescales(self) -> _oarray:
 
-        """
-        | A property representing the implied timescales of the Markov chain.
-        | If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        r"""
+        | A property representing the implied timescales of the Markov chain:
+        | :math:`\tau_i = -\frac{1}{\log|\lambda_i|}` where :math:`\lambda_i` is an eigenvalue of the transition matrix.
+
+        | **Notes:**
+
+        - The timescales are ordered by decreasing eigenvalue modulus, including an infinite timescale for the stationary mode.
+        - Eigenvalue moduli equal to 0 yield zero timescales, while moduli equal to 1 yield infinite timescales.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
         if not self.is_irreducible:
@@ -689,7 +797,14 @@ class MarkovChain(_Model):
     def incidence_matrix(self) -> _tarray:
 
         """
-        A property representing the incidence matrix of the Markov chain.
+        | A property representing the unsigned incidence matrix of the Markov chain.
+
+        | **Notes:**
+
+        - The matrix has n rows and n² columns, with one column for each ordered pair of states.
+        - Columns corresponding to distinct states contain 1 at both endpoints and 0 elsewhere.
+        - Columns corresponding to self-pairs contain only zeros.
+        - The matrix includes all possible ordered pairs, independently of their transition probabilities.
         """
 
         n = self.__size
@@ -713,7 +828,12 @@ class MarkovChain(_Model):
     def is_absorbing(self) -> bool:
 
         """
-        A property indicating whether the Markov chain is absorbing.
+        | A property indicating whether the Markov chain is absorbing.
+
+        | **Notes:**
+
+        - A Markov chain is absorbing if it contains at least one absorbing state and every state can reach an absorbing state.
+        - An absorbing state has a self-transition probability equal to 1.
         """
 
         if len(self.__absorbing_states_indices) == 0:
@@ -731,7 +851,12 @@ class MarkovChain(_Model):
     def is_aperiodic(self) -> bool:
 
         """
-        A property indicating whether the Markov chain is aperiodic.
+        | A property indicating whether the Markov chain is aperiodic.
+
+        | **Notes:**
+
+        - A Markov chain is aperiodic if every recurrent class has a period equal to 1.
+        - Transient classes do not affect the aperiodicity of the Markov chain.
         """
 
         if self.is_irreducible:
@@ -748,7 +873,13 @@ class MarkovChain(_Model):
     def is_canonical(self) -> bool:
 
         """
-        A property indicating whether the Markov chain has a canonical form.
+        | A property indicating whether the Markov chain has a canonical form.
+
+        | **Notes:**
+
+        - Transient states must precede all recurrent states.
+        - States belonging to the same recurrent class must be contiguous.
+        - Recurrent classes must follow the ordering determined by their first state index.
         """
 
         transient_indices = self.__transient_states_indices
@@ -766,8 +897,9 @@ class MarkovChain(_Model):
     @_cached_property
     def is_doubly_stochastic(self) -> bool:
 
-        """
-        A property indicating whether the Markov chain is doubly stochastic.
+        r"""
+        | A property indicating whether the Markov chain is doubly stochastic:
+        | :math:`\sum_i P_{ij} = 1` for every state :math:`j`.
         """
 
         result = _np.allclose(_np.sum(self.__p, axis=0), 1.0, rtol=0.0, atol=_ETOL)
@@ -775,10 +907,12 @@ class MarkovChain(_Model):
         return result
 
     @_cached_property
+    @_object_mark(aliases=['is_regular'])
     def is_ergodic(self) -> bool:
 
         """
-        A property indicating whether the Markov chain is ergodic.
+        | A property indicating whether the Markov chain is ergodic.
+        | A Markov chain is ergodic when it is both **irreducible** and **aperiodic**.
         """
 
         result = self.is_irreducible and self.is_aperiodic
@@ -789,7 +923,12 @@ class MarkovChain(_Model):
     def is_irreducible(self) -> bool:
 
         """
-        A property indicating whether the Markov chain is irreducible.
+        | A property indicating whether the Markov chain is irreducible.
+
+        | **Notes:**
+
+        - A Markov chain is irreducible if every state is accessible from every other state.
+        - Equivalently, the entire state space forms a single communicating class.
         """
 
         result = len(self.communicating_classes) == 1
@@ -797,21 +936,15 @@ class MarkovChain(_Model):
         return result
 
     @_cached_property
-    def is_regular(self) -> bool:
-
-        """
-        A property indicating whether the Markov chain is regular.
-        """
-
-        result = self.is_irreducible and self.is_aperiodic
-
-        return result
-
-    @_cached_property
     def is_reversible(self) -> bool:
 
-        """
-        A property indicating whether the Markov chain is reversible.
+        r"""
+        | A property indicating whether the Markov chain is reversible:
+        | :math:`\pi_i P_{ij} = \pi_j P_{ji}` for every pair of states :math:`i` and :math:`j`.
+
+        | **Notes:**
+
+        - For **reducible** chains, detailed balance is checked independently within each recurrent class.
         """
 
         for indices in self.__recurrent_classes_indices:
@@ -830,8 +963,14 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['is_monotone'])
     def is_stochastically_monotone(self) -> bool:
 
-        """
-        A property indicating whether the Markov chain is stochastically monotone.
+        r"""
+        | A property indicating whether the Markov chain is stochastically monotone:
+        | :math:`\sum_{k=j}^{n-1} P_{ik} \leq \sum_{k=j}^{n-1} P_{i+1,k}` for every pair of consecutive states and every threshold state :math:`j`.
+
+        | **Notes:**
+
+        - The property depends on the ordering of the states.
+        - The property can also be accessed through the alias **is_monotone**.
         """
 
         cumulative = _np.cumsum(self.__p[:, ::-1], axis=1)[:, ::-1]
@@ -842,8 +981,9 @@ class MarkovChain(_Model):
     @_cached_property
     def is_symmetric(self) -> bool:
 
-        """
-        A property indicating whether the Markov chain is symmetric.
+        r"""
+        | A property indicating whether the transition matrix of the Markov chain is symmetric:
+        | :math:`P_{ij} = P_{ji}` for every pair of states :math:`i` and :math:`j`.
         """
 
         result = _np.allclose(self.__p, _np.transpose(self.__p), rtol=0.0, atol=_ETOL)
@@ -853,9 +993,13 @@ class MarkovChain(_Model):
     @_cached_property
     def kemeny_constant(self) -> _ofloat:
 
-        """
-        | A property representing Kemeny's constant of the Markov chain.
-        | If the Markov chain is not **irreducible** or the value cannot be computed, then :py:class:`None` is returned.
+        r"""
+        | A property representing Kemeny's constant of the Markov chain:
+        | :math:`K = \operatorname{tr}(Z) - 1` where :math:`Z` is the fundamental matrix.
+
+        | **Notes:**
+
+        - If the Markov chain is not **irreducible** or the value cannot be computed, then :py:class:`None` is returned.
         """
 
         if not self.is_irreducible:
@@ -872,8 +1016,18 @@ class MarkovChain(_Model):
     @_cached_property
     def lumping_partitions(self) -> _tpartitions:
 
-        """
-        A property representing all the partitions of the Markov chain that satisfy the ordinary lumpability criterion.
+        r"""
+        | A property representing the partitions of the Markov chain that satisfy the ordinary lumpability criterion:
+        | :math:`\sum_{k \in B_b} P_{ik} = \sum_{k \in B_b} P_{jk}` where:
+
+        - :math:`\mathcal{B}` is a partition of the state space;
+        - :math:`B_a` and :math:`B_b` are blocks of the partition;
+        - :math:`i` and :math:`j` belong to the same block :math:`B_a`.
+
+        | **Notes:**
+
+        - The search considers partitions into contiguous blocks of state indices.
+        - Partitions consisting of only one block or one block per state are excluded.
         """
 
         lp = _find_lumping_partitions(self.__p)
@@ -883,9 +1037,14 @@ class MarkovChain(_Model):
     @_cached_property
     def mixing_rate(self) -> _ofloat:
 
-        """
-        | A property representing the mixing rate of the Markov chain.
-        | If the Markov chain is not **irreducible** or the **SLEM** (second-largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
+        r"""
+        | A property representing the mixing rate of the Markov chain:
+        | :math:`\tau_* = -\frac{1}{\log\lambda_*}` where :math:`\lambda_*` is the second-largest eigenvalue modulus.
+
+        | **Notes:**
+
+        - A null **SLEM** yields a value of 0, while a **SLEM** equal to 1 yields infinity.
+        - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
         slem = self.__slem
@@ -905,7 +1064,7 @@ class MarkovChain(_Model):
     def n(self) -> int:
 
         """
-        A property representing the size of the Markov chain state space.
+        A property representing the number of states of the Markov chain.
         """
 
         return self.__size
@@ -913,9 +1072,14 @@ class MarkovChain(_Model):
     @_cached_property
     def occupation_matrix(self) -> _oarray:
 
-        """
-        | A property representing the occupation matrix of the Markov chain.
-        | If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        r"""
+        | A property representing the occupation matrix of the Markov chain:
+        | :math:`N = (I - Q)^{-1}` where :math:`Q` is the transient-to-transient submatrix of the transition matrix.
+
+        | **Notes:**
+
+        - Each entry represents the expected number of visits to a transient state before leaving the transient state space, including the initial visit.
+        - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
         """
 
         if (not self.is_absorbing) or (len(self.transient_states) == 0):
@@ -934,9 +1098,13 @@ class MarkovChain(_Model):
     @_cached_property
     def occupation_trace(self) -> _ofloat:
 
-        """
-        | A property representing the trace of the occupation matrix of the Markov chain.
-        | If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        r"""
+        | A property representing the trace of the occupation matrix of the Markov chain:
+        | :math:`\operatorname{tr}(N) = \sum_i N_{ii}` where :math:`N` is the occupation matrix.
+
+        | **Notes:**
+
+        - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
         """
 
         om = self.occupation_matrix
@@ -951,9 +1119,18 @@ class MarkovChain(_Model):
     @_cached_property
     def ordinary_spectral_gap(self) -> _tany:
 
-        """
-        | A property representing the ordinary spectral gap of the Markov chain, together with its Cheeger bounds.
-        | If the Markov chain is not **irreducible** and **reversible**, then :py:class:`None` is returned.
+        r"""
+        | A property representing the ordinary spectral gap of the Markov chain, together with its Cheeger bounds:
+        | :math:`\gamma_{\mathrm{ord}} = 1 - \lambda_2`
+        | :math:`\frac{\Phi^2}{2} \leq \gamma_{\mathrm{ord}} \leq 2\Phi`
+        | where:
+
+        - :math:`\lambda_2` is the second-largest eigenvalue of the transition matrix, ordered algebraically;
+        - :math:`\Phi` is the global conductance of the Markov chain.
+
+        | **Notes:**
+
+        - If the Markov chain is not both **irreducible** and **reversible**, then :py:class:`None` is returned.
         """
 
         if (not self.is_irreducible) or (not self.is_reversible):
@@ -988,8 +1165,14 @@ class MarkovChain(_Model):
     @_cached_property
     def period(self) -> int:
 
-        """
-        A property representing the period of the Markov chain.
+        r"""
+        | A property representing the period of the Markov chain.
+
+        | **Notes:**
+
+        - For an **irreducible** chain, the period is the greatest common divisor of its possible positive return times.
+        - For a **reducible** chain, the period is the least common multiple of the periods of its recurrent classes.
+        - An **aperiodic** Markov chain has period 1.
         """
 
         if self.is_aperiodic:
@@ -1008,8 +1191,13 @@ class MarkovChain(_Model):
     @_cached_property
     def periods(self) -> _tlist_int:
 
-        """
-        A property representing the period of each communicating class defined by the Markov chain.
+        r"""
+        | A property representing the period of each communicating class of the Markov chain.
+
+        | **Notes:**
+
+        - The returned periods correspond to the ordering of the communicating classes.
+        - A class containing no directed cycle has a period equal to 0.
         """
 
         periods = _calculate_periods(self.__digraph)
@@ -1020,10 +1208,15 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['stationary_distributions', 'steady_states'])
     def pi(self) -> _tlist_array:
 
-        """
-        | A property representing the stationary distributions of the Markov chain.
-        | For a reducible Markov chain, one stationary distribution is returned for each recurrent class.
-        | **Aliases:** stationary_distributions, steady_states
+        r"""
+        | A property representing the stationary distributions of the Markov chain:
+        | :math:`\pi P = \pi` where :math:`\pi` is a stationary probability distribution represented as a row vector.
+
+        | **Notes:**
+
+        - For an **irreducible** Markov chain, the stationary distribution is unique.
+        - For a **reducible** Markov chain, one stationary distribution is returned for each recurrent class.
+        - The property can also be accessed through the aliases **stationary_distributions** and **steady_states**.
         """
 
         if self.is_irreducible:
@@ -1043,8 +1236,9 @@ class MarkovChain(_Model):
     @_cached_property
     def rank(self) -> int:
 
-        """
-        A property representing the rank of the transition matrix of the Markov chain.
+        r"""
+        | A property representing the rank of the transition matrix of the Markov chain:
+        | :math:`\operatorname{rank}(P)`
         """
 
         r = _npl.matrix_rank(self.__p)
@@ -1055,7 +1249,11 @@ class MarkovChain(_Model):
     def recurrent_classes(self) -> _tlists_str:
 
         """
-        A property representing the recurrent classes defined by the Markov chain.
+        | A property representing the recurrent classes of the Markov chain.
+
+        | **Notes:**
+
+        - A recurrent class is a communicating class that cannot be left once entered.
         """
 
         classes = [[*map(self.__states.__getitem__, i)] for i in self.__recurrent_classes_indices]
@@ -1066,7 +1264,12 @@ class MarkovChain(_Model):
     def recurrent_states(self) -> _tlists_str:
 
         """
-        A property representing the recurrent states of the Markov chain.
+        | A property representing the recurrent states of the Markov chain.
+
+        | **Notes:**
+
+        - A state is recurrent if it belongs to a recurrent communicating class.
+        - Starting from a recurrent state, the chain returns to that state with probability 1.
         """
 
         states = [*map(self.__states.__getitem__, self.__recurrent_states_indices)]
@@ -1076,9 +1279,14 @@ class MarkovChain(_Model):
     @_cached_property
     def relaxation_rate(self) -> _ofloat:
 
-        """
-        | A property representing the relaxation rate of the Markov chain.
-        | If the Markov chain is not **irreducible** or the **SLEM** (second-largest eigenvalue modulus) cannot be computed, then :py:class:`None` is returned.
+        r"""
+        | A property representing the relaxation rate of the Markov chain:
+        | :math:`t_{\mathrm{rel}} = \frac{1}{\gamma_{\mathrm{abs}}}` where :math:`\gamma_{\mathrm{abs}}` is the absolute spectral gap.
+
+        | **Notes:**
+
+        - A null absolute spectral gap yields infinity.
+        - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
         sg = self.absolute_spectral_gap
@@ -1096,7 +1304,7 @@ class MarkovChain(_Model):
     def size(self) -> int:
 
         """
-        A property representing the size of the Markov chain.
+        A property representing the number of states of the Markov chain.
         """
 
         return self.__size
@@ -1113,9 +1321,13 @@ class MarkovChain(_Model):
     @_cached_property
     def stationary_current(self) -> _tlist_array:
 
-        """
-        | A property representing the stationary probability current matrices of the Markov chain.
-        | One matrix is returned for each stationary distribution.
+        r"""
+        | A property representing the stationary probability current matrices of the Markov chain:
+        | :math:`J_{ij} = F_{ij} - F_{ji}` where :math:`F` is the stationary probability flux matrix.
+
+        | **Notes:**
+
+        - One matrix is returned for each stationary distribution.
         """
 
         sc = [f - _np.transpose(f) for f in self.stationary_flux]
@@ -1125,9 +1337,13 @@ class MarkovChain(_Model):
     @_cached_property
     def stationary_flux(self) -> _tlist_array:
 
-        """
-        | A property representing the stationary probability flux matrices of the Markov chain.
-        | One matrix is returned for each stationary distribution.
+        r"""
+        | A property representing the stationary probability flux matrices of the Markov chain:
+        | :math:`F_{ij} = \pi_i P_{ij}` where :math:`\pi_i` is the stationary probability of state :math:`i`.
+
+        | **Notes:**
+
+        - One matrix is returned for each stationary distribution.
         """
 
         sf = [pi[:, _np.newaxis] * self.__p for pi in self.pi]
@@ -1137,8 +1353,16 @@ class MarkovChain(_Model):
     @_cached_property
     def topological_entropy(self) -> float:
 
-        """
-        A property representing the topological entropy of the Markov chain.
+        r"""
+        | A property representing the topological entropy of the Markov chain:
+        | :math:`h_{\mathrm{t}} = \log\rho(A)` where:
+
+        - :math:`A` is the adjacency matrix of the Markov chain;
+        - :math:`\rho(A)` is its spectral radius.
+
+        | **Notes:**
+
+        - The entropy depends on the possible transitions rather than their probabilities.
         """
 
         ev = _eigenvalues_sorted(self.adjacency_matrix)
@@ -1153,7 +1377,11 @@ class MarkovChain(_Model):
     def transient_classes(self) -> _tlists_str:
 
         """
-        A property representing the transient classes defined by the Markov chain.
+        | A property representing the transient classes of the Markov chain.
+
+        | **Notes:**
+
+        - A transient class is a communicating class that can be left and cannot subsequently be reentered.
         """
 
         classes = [[*map(self.__states.__getitem__, i)] for i in self.__transient_classes_indices]
@@ -1164,7 +1392,12 @@ class MarkovChain(_Model):
     def transient_states(self) -> _tlists_str:
 
         """
-        A property representing the transient states of the Markov chain.
+        | A property representing the transient states of the Markov chain.
+
+        | **Notes:**
+
+        - A state is transient if it belongs to a transient communicating class.
+        - Starting from a transient state, there is a positive probability that the chain never returns to that state.
         """
 
         states = [*map(self.__states.__getitem__, self.__transient_states_indices)]
@@ -1175,12 +1408,13 @@ class MarkovChain(_Model):
     def absorption_probabilities(self) -> _oarray:
 
         """
-        The method computes the absorption probabilities of the Markov chain into its recurrent classes.
+        | The method computes the probabilities of eventual absorption into each recurrent class of the Markov chain.
 
         | **Notes:**
 
+        - The returned matrix has one row per recurrent class and one column per transient state.
         - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **ap**.
+        - The method can also be accessed through the alias **ap**.
         """
 
         if 'ap' not in self.__cache:
@@ -1191,13 +1425,19 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['at'])
     def absorption_times(self, statistic: str) -> _oarray:
 
-        """
-        The method computes a statistic of the times required for the transient states to first enter a recurrent class of the Markov chain.
+        r"""
+        | The method computes a statistic of the absorption times of the transient states of the Markov chain:
+        | :math:`\mathbf{m} = N\mathbf{1}` where:
+
+        - :math:`\mathbf{m}` is the vector of mean absorption times;
+        - :math:`N` is the occupation matrix.
 
         | **Notes:**
 
+        - The absorption time is the number of transitions required to first enter a recurrent class.
+        - The returned vector contains one value per transient state.
         - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **at**.
+        - The method can also be accessed through the alias **at**.
 
         :param statistic:
          - **mean** to compute the mean;
@@ -1223,19 +1463,20 @@ class MarkovChain(_Model):
     def aggregate(self, s: int, method: str = 'adaptive') -> _tmc:
 
         """
-        The method attempts to reduce the state space of the Markov chain to the given number of states through a Kullback-Leibler divergence minimization approach.
+        | The method attempts to aggregate the Markov chain into a reduced Markov chain with the given number of states.
 
         | **Notes:**
 
-        - The spectral theory based aggregation is described in `Optimal Kullback-Leibler Aggregation via Spectral Theory of Markov Chains (Deng et al., 2011) <https://doi.org/10.1109/TAC.2011.2141350>`_.
+        - The aggregation is based on spectral methods and Kullback-Leibler divergence minimization.
+        - Methodologies are described in `Optimal Kullback-Leibler Aggregation via Spectral Theory of Markov Chains (Deng et al., 2011) <https://doi.org/10.1109/TAC.2011.2141350>`_.
 
         :param s: the number of states of the reduced Markov chain.
         :param method:
-         - **spectral-bottom-up** for a spectral theory based aggregation, bottom-up (more suitable for reducing a large number of states).
-         - **spectral-top-down** for a spectral theory based aggregation, top-down (more suitable for reducing a small number of states).
-         - **adaptive** for automatically selecting the best aggregation method.
+         - **spectral-bottom-up** for a spectral theory based aggregation, bottom-up (more suitable for reducing a large number of states);
+         - **spectral-top-down** for a spectral theory based aggregation, top-down (more suitable for reducing a small number of states);
+         - **adaptive** for automatically selecting the best aggregation method, according to the size of the original and reduced chains.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Markov chain defines only two states or is not **ergodic**.
+        :raises ValueError: if the Markov chain has only two states, is not **ergodic**, or the aggregation cannot be computed.
         """
 
         try:
@@ -1271,7 +1512,11 @@ class MarkovChain(_Model):
     def are_communicating(self, state1: _tstate, state2: _tstate) -> bool:
 
         """
-        The method verifies whether the given states of the Markov chain are communicating.
+        | The method verifies whether the given states of the Markov chain communicate.
+
+        | **Notes:**
+
+        - Two states communicate if each is accessible from the other.
 
         :param state1: the first state.
         :param state2: the second state.
@@ -1296,7 +1541,12 @@ class MarkovChain(_Model):
     def censor(self, states: _tstates) -> _tmc:
 
         """
-        The method returns the Markov chain censored to the given states.
+        | The method returns the Markov chain censored to the given subset of states.
+
+        | **Notes:**
+
+        - The censored chain records transitions between retained states, including excursions through states outside the retained subset.
+        - The transformation preserves the original state labels of the retained states.
 
         :param states: the states to retain in the censored Markov chain.
         :raises ValidationError: if any input argument is not compliant.
@@ -1326,16 +1576,18 @@ class MarkovChain(_Model):
     def closest_reversible(self, initial_distribution: _onumeric = None, weighted: bool = False) -> _tmc:
 
         """
-        The method computes the closest reversible of the Markov chain.
+        | The method computes a reversible Markov chain closest to the original Markov chain under the selected Frobenius norm.
 
         | **Notes:**
 
-        - The algorithm is described in `Computing the Nearest Reversible Markov chain (Nielsen & Weber, 2015) <https://doi.org/10.1002/nla.1967>`_.
+        - The weighted option uses the initial distribution to define the weighting.
+        - The weighted Frobenius norm requires strictly positive entries in the initial distribution.
+        - The computation is based on `Computing the Nearest Reversible Markov Chain (Nielsen & Weber, 2015) <https://doi.org/10.1002/nla.1967>`_.
 
         :param initial_distribution: the distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param weighted: a boolean indicating whether to use the weighted Frobenius norm.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the closest reversible could not be computed.
+        :raises ValueError: if the closest reversible Markov chain cannot be computed.
         """
 
         try:
@@ -1363,15 +1615,21 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['crp'])
     def committor_probabilities(self, committor_type: str, states1: _tstates, states2: _tstates) -> _oarray:
 
-        """
-        The method computes the committor probabilities between the given subsets of the state space defined by the Markov chain.
+        r"""
+        | The method computes the committor probabilities between two disjoint subsets of the state space:
+        | :math:`q_i^+ = \mathbb{P}_i(T_{S_2} < T_{S_1})` where:
+
+        - :math:`S_1` and :math:`S_2` are the first and second subsets of states, respectively;
+        - :math:`T_{S_1}` and :math:`T_{S_2}` are their first hitting times;
+        - :math:`\mathbb{P}_i` denotes probability conditional on starting from state :math:`i`.
 
         | **Notes:**
 
-        - For the **backward** committor, the probability is 1 on **states1** and 0 on **states2**.
-        - For the **forward** committor, the probability is 0 on **states1** and 1 on **states2**.
-        - The backward committor is defined only for **irreducible** Markov chains; otherwise, :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **crp**.
+        - The **backward** committor is computed using the stationary time-reversed chain.
+        - It requires an **irreducible** Markov chain; otherwise, :py:class:`None` is returned.
+        - The **forward** committor is the probability of reaching the second subset before the first.
+        - It is 0 on the first subset and 1 on the second; the backward committor has the opposite boundary values.
+        - The method can also be accessed through the alias **crp**.
 
         :param committor_type:
          - **backward** for the backward committor;
@@ -1402,15 +1660,15 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['ct'])
     def commute_times(self) -> _oarray:
 
-        """
-        The method computes the commute times between all pairs of states of the Markov chain.
+        r"""
+        | The method computes the commute times between all pairs of states of the Markov chain:
+        | :math:`\kappa_{ij} = m_{ij} + m_{ji}` where :math:`m_{ij}` is the mean first passage time from state :math:`i` to state :math:`j`.
 
         | **Notes:**
 
-        - The commute time between two states is the sum of the mean first passage times in both directions.
-        - Diagonal elements are equal to 0.
+        - The returned matrix is symmetric, with diagonal entries equal to 0.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **ct**.
+        - The method can also be accessed through the alias **ct**.
         """
 
         if 'ct' not in self.__cache:
@@ -1430,12 +1688,14 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['conditional_distribution', 'cd', 'cp'])
     def conditional_probabilities(self, state: _tstate) -> _tarray:
 
-        """
-        The method computes the probabilities, for all the states of the Markov chain, conditioned on the process being at the given state.
+        r"""
+        | The method computes the one-step conditional transition probabilities of the Markov chain:
+        | :math:`P_{ij} = \mathbb{P}(X_{t+1}=j \mid X_t=i)` where :math:`i` is the given state.
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **conditional_distribution**, **cd**, **cp**.
+        - The returned vector contains the probabilities of transitioning from the given state to every state of the Markov chain.
+        - The method can also be accessed through the aliases **conditional_distribution**, **cd** and **cp**.
 
         :param state: the current state.
         :raises ValidationError: if any input argument is not compliant.
@@ -1454,8 +1714,14 @@ class MarkovChain(_Model):
 
     def conductance(self, states: _tstates) -> _ofloat:
 
-        """
-        The method computes the conductance of the given subset of the state space.
+        r"""
+        | The method computes the conductance of the given subset of the state space:
+        | :math:`\phi(S) = \frac{\sum_{i \in S}\sum_{j \in S^c}F_{ij}}{\pi(S)}` where:
+
+        - :math:`S` is the given subset of states;
+        - :math:`S^c` is its complement;
+        - :math:`F` is the stationary probability flux matrix;
+        - :math:`\pi(S)` is the stationary probability mass of the subset of states.
 
         | **Notes:**
 
@@ -1489,15 +1755,22 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['er'])
     def expected_rewards(self, steps: int, rewards: _tnumeric) -> _tarray:
 
-        """
-        The method computes the expected rewards of the Markov chain after **N** steps, given the reward value of each state.
+        r"""
+        | The method computes the expected cumulative rewards of the Markov chain over a given number of steps:
+        | :math:`v^{(t)} = \sum_{k=0}^{t} P^k r` where:
+
+        - :math:`v^{(t)}` is the vector of expected cumulative rewards;
+        - :math:`t` is the number of steps;
+        - :math:`r` is the vector of state rewards.
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **er**.
+        - The cumulative rewards include the reward at time 0 and at every subsequent step through time :math:`t`.
+        - The returned vector contains one expected reward for each initial state.
+        - The method can also be accessed through the alias **er**.
 
         :param steps: the number of steps.
-        :param rewards: the reward values.
+        :param rewards: the reward value of each state.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1516,12 +1789,19 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['et'])
     def expected_transitions(self, steps: int, initial_distribution: _onumeric = None) -> _tarray:
 
-        """
-        The method computes the expected number of transitions performed by the Markov chain after *N* steps, given the initial distribution of the states.
+        r"""
+        | The method computes the expected numbers of transitions between all pairs of states of the Markov chain:
+        | :math:`E_{ij}^{(t)} = \sum_{k=0}^{t-1}(\mu P^k)_i P_{ij}` where:
+
+        - :math:`E^{(t)}` is the expected transition-count matrix;
+        - :math:`t` is the number of steps;
+        - :math:`\mu` is the initial state distribution.
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **et**.
+        - Each entry represents the expected number of transitions from state :math:`i` to state :math:`j` during the first :math:`t` steps.
+        - At time 0, the expected transition-count matrix is zero.
+        - The method can also be accessed through the alias **et**.
 
         :param steps: the number of steps.
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
@@ -1543,12 +1823,16 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['fpp'])
     def first_passage_probabilities(self, steps: int, initial_state: _tstate, first_passage_states: _ostates = None) -> _tarray:
 
-        """
-        The method computes the first passage probabilities of the Markov chain after *N* steps, given the initial state and, optionally, the first passage states.
+        r"""
+        | The method computes the first passage probabilities of the Markov chain from the given initial state:
+        | :math:`f_{ij}(t) = \mathbb{P}_i(T_j^+ = t)` where :math:`T_j^+` is the first positive hitting time of state :math:`j`.
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **fpp**.
+        - The returned probabilities correspond to steps from 1 through the specified number of steps.
+        - If the first passage states are omitted, a matrix with one column per destination state is returned.
+        - If the first passage states are specified, their individual first passage probabilities are summed at each step.
+        - The method can also be accessed through the alias **fpp**.
 
         :param steps: the number of steps.
         :param initial_state: the initial state.
@@ -1574,17 +1858,26 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['fpr'])
     def first_passage_reward(self, steps: int, initial_state: _tstate, first_passage_states: _tstates, rewards: _tnumeric) -> float:
 
-        """
-        The method computes the first passage reward of the Markov chain after *N* steps, given the reward value of each state, the initial state and the first passage states.
+        r"""
+        | The method computes the expected cumulative reward before reaching the given first passage states:
+        | :math:`g_i^{(t)} = \mathbb{E}_i\left[\sum_{k=1}^{t} r(X_k)\mathbb{1}_{\{T_S>k\}}\right]` where:
+
+        - :math:`g_i^{(t)}` is the expected cumulative reward starting from state :math:`i`;
+        - :math:`t` is the number of steps;
+        - :math:`r(X_k)` is the reward assigned to the state occupied at time :math:`k`;
+        - :math:`S` is the set of first passage states;
+        - :math:`T_S` is the first hitting time of the target set.
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **fpr**.
+        - Rewards at the initial state and at the first passage states are excluded.
+        - Only rewards accumulated strictly before the first passage are considered.
+        - The method can also be accessed through the alias **fpr**.
 
         :param steps: the number of steps.
         :param initial_state: the initial state.
         :param first_passage_states: the first passage states.
-        :param rewards: the reward values.
+        :param rewards: the reward value of each state.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Markov chain defines only two states.
         """
@@ -1615,14 +1908,15 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['fpt_between', 'fptb'])
     def first_passage_times_between(self, statistic: str, origins: _tstates, targets: _tstates) -> _ofloat:
 
-        """
-        The method computes a statistic of the first passage time between the given subsets of the state space.
+        r"""
+        | The method computes a statistic of the first passage time between the given subsets of the state space.
 
         | **Notes:**
 
         - The origin states are weighted according to the stationary distribution conditioned on the origin set.
+        - The variance accounts for both the individual first passage time variances and the differences between their means.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **fpt_between**, **fptb**.
+        - The method can also be accessed through the aliases **fpt_between** and **fptb**.
 
         :param statistic:
          - **mean** to compute the mean;
@@ -1649,14 +1943,13 @@ class MarkovChain(_Model):
     def first_passage_times_to(self, statistic: str, targets: _ostates = None) -> _oarray:
 
         """
-        The method computes a statistic of the first passage times from all states to the given target states.
+        | The method computes a statistic of the first passage times from every state to the given target states of the Markov chain.
 
         | **Notes:**
 
-        - If the target states are omitted, a matrix containing the statistic for every ordered pair of states is returned.
         - Target states have first passage time equal to 0.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **fpt_to**, **fptt**.
+        - The method can also be accessed through the aliases **fpt_to** and **fptt**.
 
         :param statistic:
          - **mean** to compute the mean;
@@ -1682,13 +1975,19 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['hp'])
     def hitting_probabilities(self, targets: _ostates = None) -> _tarray:
 
-        """
-        The method computes the probabilities of ever hitting the given set of states from each state of the Markov chain.
+        r"""
+        | The method computes the probabilities of eventually reaching the given target states of the Markov chain:
+        | :math:`h_i(S) = \mathbb{P}_i(T_S < \infty)` where:
+
+        - :math:`S` is the set of target states;
+        - :math:`T_S` is the first hitting time of the target set;
+        - :math:`\mathbb{P}_i` denotes probability conditional on starting from state :math:`i`.
 
         | **Notes:**
 
         - Target states have hitting probability equal to 1.
-        - The method can be accessed through the following aliases: **hp**.
+        - States from which the target set is inaccessible have hitting probability equal to 0.
+        - The method can also be accessed through the alias **hp**.
 
         :param targets: the target states (*if omitted, all the states are targeted*).
         :raises ValidationError: if any input argument is not compliant.
@@ -1711,15 +2010,16 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['ht'])
     def hitting_times(self, statistic: str, targets: _ostates = None) -> _tarray:
 
-        """
-        The method computes a statistic of the hitting times of the given set of states from each state of the Markov chain.
+        r"""
+        | The method computes a statistic of the first hitting times of the given target states of the Markov chain:
+        | :math:`T_S = \inf\{t \geq 0 : X_t \in S\}` where :math:`S` is the set of target states.
 
         | **Notes:**
 
         - Target states have hitting time equal to 0.
-        - For the mean, infinite values are returned for states from which there is a positive probability of never reaching the target set.
-        - For the variance, *NaN* values are returned for states from which there is a positive probability of never reaching the target set.
-        - The method can be accessed through the following aliases: **ht**.
+        - For the mean, infinity is returned for states from which the target set is not reached with probability 1.
+        - For the variance, *NaN* is returned for those states.
+        - The method can also be accessed through the alias **ht**.
 
         :param statistic:
          - **mean** to compute the mean;
@@ -1747,7 +2047,11 @@ class MarkovChain(_Model):
     def is_absorbing_state(self, state: _tstate) -> bool:
 
         """
-        The method verifies whether the given state of the Markov chain is absorbing.
+        | The method verifies whether the given state of the Markov chain is absorbing.
+
+        | **Notes:**
+
+        - An absorbing state has a self-transition probability equal to 1.
 
         :param state: the target state.
         :raises ValidationError: if any input argument is not compliant.
@@ -1767,7 +2071,11 @@ class MarkovChain(_Model):
     def is_accessible(self, state_target: _tstate, state_origin: _tstate) -> bool:
 
         """
-        The method verifies whether the given target state is reachable from the given origin state.
+        | The method verifies whether the given target state is accessible from the given origin state.
+
+        | **Notes:**
+
+        - A state is always accessible from itself.
 
         :param state_target: the target state.
         :param state_origin: the origin state.
@@ -1789,7 +2097,11 @@ class MarkovChain(_Model):
     def is_cyclic_state(self, state: _tstate) -> bool:
 
         """
-        The method verifies whether the given state is cyclic.
+        | The method verifies whether the given state of the Markov chain is cyclic.
+
+        | **Notes:**
+
+        - If the Markov chain is not **irreducible**, then :py:obj:`False` is returned.
 
         :param state: the target state.
         :raises ValidationError: if any input argument is not compliant.
@@ -1809,7 +2121,11 @@ class MarkovChain(_Model):
     def is_recurrent_state(self, state: _tstate) -> bool:
 
         """
-        The method verifies whether the given state is recurrent.
+        | The method verifies whether the given state of the Markov chain is recurrent.
+
+        | **Notes:**
+
+        - A recurrent state belongs to a closed communicating class.
 
         :param state: the target state.
         :raises ValidationError: if any input argument is not compliant.
@@ -1829,7 +2145,11 @@ class MarkovChain(_Model):
     def is_transient_state(self, state: _tstate) -> bool:
 
         """
-        The method verifies whether the given state is transient.
+        | The method verifies whether the given state of the Markov chain is transient.
+
+        | **Notes:**
+
+        - A transient state does not belong to a closed communicating class.
 
         :param state: the target state.
         :raises ValidationError: if any input argument is not compliant.
@@ -1850,11 +2170,17 @@ class MarkovChain(_Model):
     def lump(self, partitions: _tpartition) -> _tmc:
 
         """
-        The method attempts to reduce the state space of the Markov chain with respect to the given partitions following the ordinary lumpability criterion.
+        | The method attempts to reduce the state space of the Markov chain using the given partition.
 
-        :param partitions: the partitions of the state space.
+        | **Notes:**
+
+        - The partition must satisfy the ordinary lumpability criterion.
+        - Each block of the partition corresponds to a state of the reduced Markov chain.
+        - The resulting Markov chain preserves the aggregated transition probabilities independently of the initial state within each block.
+
+        :param partitions: the partition of the state space.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Markov chain defines only two states or is not lumpable with respect to the given partitions.
+        :raises ValueError: if the Markov chain has only two states or is not lumpable with respect to the given partition.
         """
 
         try:
@@ -1879,12 +2205,16 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['mnv'])
     def mean_number_visits(self) -> _oarray:
 
-        """
-        The method computes the mean number of visits of the Markov chain.
+        r"""
+        | The method computes the expected numbers of visits between all pairs of states of the Markov chain:
+        | :math:`V_{ij} = \mathbb{E}_i\left[\sum_{t=1}^{\infty}\mathbb{1}_{\{X_t=j\}}\right]` where :math:`X_t` is the state occupied at time :math:`t`.
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **mnv**.
+        - The initial visit at time 0 is excluded.
+        - Visits to transient states have finite expectations.
+        - Visits to recurrent states have infinite expectation when those states are accessible, and zero otherwise.
+        - The method can also be accessed through the alias **mnv**.
         """
 
         if 'mnv' not in self.__cache:
@@ -1896,9 +2226,17 @@ class MarkovChain(_Model):
     def merge_with(self, other: _tmc, gamma: float) -> _tmc:
 
         r"""
-        The method returns a Markov chain whose transition matrix is defined below.
+        | The method merges the Markov chain with another Markov chain of the same size:
+        | :math:`\widetilde{P} = (1-\gamma)P + \gamma P'` where:
 
-        | :math:`p_{new} = (1 - \gamma) p_{current} + \gamma p_{other}`
+        - :math:`\widetilde{P}` is the transition matrix of the merged chain;
+        - :math:`P'` is the transition matrix of the other chain;
+        - :math:`\gamma` is the blending factor.
+
+        | **Notes:**
+
+        - A blending factor of 0 preserves the original transition matrix, while a factor of 1 selects the other transition matrix.
+        - The returned chain is assigned newly generated state labels.
 
         :param other: the other Markov chain to be merged.
         :param gamma: the merger blending factor.
@@ -1925,13 +2263,19 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['mt'])
     def mixing_time(self, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
 
-        """
-        The method computes the mixing time of the Markov chain.
+        r"""
+        | The method computes the mixing time of the Markov chain:
+        | :math:`t_{\mathrm{mix}}(\varepsilon) = \min\left\{t \geq 1 : \max_i \frac{1}{2}\sum_j |(P^t)_{ij} - \pi_j| \leq \varepsilon\right\}` where:
+
+        - :math:`\varepsilon` is the total variation distance threshold;
+        - :math:`\pi` is the unique stationary distribution;
+        - :math:`t` is the number of transitions.
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **mt**.
+        - The mixing time is computed over all possible initial states.
+        - If the Markov chain is not **ergodic** or the threshold is not reached within the maximum number of iterations, then :py:class:`None` is returned.
+        - The method can also be accessed through the alias **mt**.
 
         :param cutoff: the total variation distance threshold.
         :param maximum_iterations: the maximum number of iterations.
@@ -1953,13 +2297,20 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['mtf'])
     def mixing_time_from(self, initial_distribution: _onumeric = None, jump: int = 1, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
 
-        """
-        The method computes the mixing time of the Markov chain from a given initial distribution.
+        r"""
+        | The method computes the mixing time of the Markov chain from a given initial distribution:
+        | :math:`t_{\mathrm{mix}}(\mu,\varepsilon) = \min\left\{t \in \mathcal{T} : \frac{1}{2}\sum_j |(\mu P^t)_j - \pi_j| \leq \varepsilon\right\}` where:
+
+        - :math:`\mu` is the initial state distribution;
+        - :math:`\varepsilon` is the total variation distance threshold;
+        - :math:`\pi` is the unique stationary distribution;
+        - :math:`\mathcal{T}` is the set of positive multiples of the jump parameter.
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic**, then :py:class:`None` is returned.
-        - The method can be accessed through the following aliases: **mtf**.
+        - Convergence is evaluated at intervals determined by the jump parameter.
+        - If the Markov chain is not **ergodic** or the threshold is not reached within the maximum number of iterations, then :py:class:`None` is returned.
+        - The method can also be accessed through the alias **mtf**.
 
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param jump: the number of steps in each iteration.
@@ -1986,7 +2337,12 @@ class MarkovChain(_Model):
     def next(self, initial_state: _tstate, output_index: bool = False, seed: _oint = None) -> _tstate:
 
         """
-        The method simulates a single step in a random walk.
+        | The method randomly selects the next state of the Markov chain from the given initial state.
+
+        | **Notes:**
+
+        - The next state is sampled according to the transition probabilities of the initial state.
+        - The returned value is a state label unless **output_index** is :py:obj:`True`.
 
         :param initial_state: the initial state.
         :param output_index: a boolean indicating whether to output the state index.
@@ -2012,12 +2368,16 @@ class MarkovChain(_Model):
 
     def predict(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _osequence:
 
-        """
-        The method computes the most probable sequence of states produced by a random walk of *N* steps, given the initial state.
+        r"""
+        | The method predicts a sequence of states by repeatedly selecting the most probable transition:
+        | :math:`\hat{x}_{t+1} = \operatorname*{arg\,max}_j P_{\hat{x}_t j}`
 
         | **Notes:**
 
-        - In presence of probability ties :py:class:`None` is returned.
+        - The returned sequence includes the initial state.
+        - The prediction is greedy and does not necessarily maximize the probability of the entire sequence.
+        - If multiple states share the highest transition probability at any step, then :py:class:`None` is returned.
+        - State labels are returned unless **output_indices** is :py:obj:`True`.
 
         :param steps: the number of steps.
         :param initial_state: the initial state.
@@ -2044,14 +2404,18 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['rt'])
     def recurrence_times(self, statistic: str) -> _tarray:
 
-        """
-        The method computes a statistic of the recurrence times of the Markov chain.
+        r"""
+        | The method computes a statistic of the recurrence times of the Markov chain:
+        | :math:`\mathbb{E}_i[T_i^+] = \frac{1}{\pi_i}` where:
+
+        - :math:`T_i^+` is the first positive return time to state :math:`i`;
+        - :math:`\pi_i` is the stationary probability of state :math:`i` in its recurrent class.
 
         | **Notes:**
 
-        - For the mean, infinite values are returned for transient states.
-        - For the variance, *NaN* values are returned for transient states.
-        - The method can be accessed through the following aliases: **rt**.
+        - For the mean, infinity is returned for transient states.
+        - For the variance, *NaN* is returned for transient states.
+        - The method can also be accessed through the alias **rt**.
 
         :param statistic:
          - **mean** to compute the mean;
@@ -2075,17 +2439,22 @@ class MarkovChain(_Model):
 
     def redistribute(self, steps: int, initial_status: _ostatus = None, output_last: bool = True) -> _tredists:
 
-        """
-        The method performs a redistribution of states of *N* steps.
+        r"""
+        | The method computes the evolution of the state distribution of the Markov chain:
+        | :math:`\mu^{(t)} = \mu P^t` where:
+
+        - :math:`\mu` is the initial state distribution;
+        - :math:`\mu^{(t)}` is the state distribution after :math:`t` transitions.
 
         | **Notes:**
 
-        - When `output_last` is :py:obj:`False`, the method returns the state distributions from time 0 through *N*, including the initial distribution.
-        - The returned distributions can be summed to obtain the expected number of visits to each state over the finite horizon.
+        - An initial state is interpreted as a distribution concentrated on that state.
+        - If **output_last** is :py:obj:`False`, the distributions from time 0 through the specified number of steps are returned.
+        - Otherwise, only the final distribution is returned.
 
         :param steps: the number of steps.
         :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
-        :param output_last: a boolean indicating whether to output only the last distributions.
+        :param output_last: a boolean indicating whether to output only the final distribution.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2105,19 +2474,19 @@ class MarkovChain(_Model):
     @_object_mark(instance_generator=True)
     def reversibilize(self, method: str = 'additive') -> _tmc:
 
-        """
-        The method returns a reversible Markov chain obtained by reversibilizing the original process.
+        r"""
+        | The method returns a reversible Markov chain obtained by reversibilizing the original transition matrix.
 
         | **Notes:**
 
         - The stationary time reversal is computed independently within each recurrent class.
         - The transformation preserves every stationary distribution of the original chain.
-        - Multiplicative reversibilization may change communicating classes and periodicity.
+        - Multiplicative reversibilization may change the communicating classes and periodicity.
 
         :param method:
-         - **additive** for the arithmetic mean of the transition matrix and its time reversal;
-         - **multiplicative** for the product of the transition matrix and its time reversal;
-         - **multiplicative_reverse** for the product of the transition matrix and its time reversal in the reverse order.
+         - **additive** for :math:`\widetilde{P} = \frac{1}{2}(P + P^*)`;
+         - **multiplicative** for :math:`\widetilde{P} = PP^*`;
+         - **multiplicative_reverse** for :math:`\widetilde{P} = P^*P`.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Markov chain has transient states.
         """
@@ -2149,10 +2518,12 @@ class MarkovChain(_Model):
     def sensitivity(self, state: _tstate) -> _oarray:
 
         """
-        The method computes the sensitivity matrix of the stationary distribution with respect to a given state.
+        | The method computes a sensitivity matrix associated with the stationary distribution of the Markov chain and the given state.
 
         | **Notes:**
 
+        - The computation uses the unique stationary distribution and an augmented linear system.
+        - The returned matrix has one row and one column per state.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
 
         :param state: the target state.
@@ -2172,8 +2543,14 @@ class MarkovChain(_Model):
 
     def sequence_probability(self, sequence: _tsequence) -> float:
 
-        """
-        The method computes the probability of a given sequence of states.
+        r"""
+        | The method computes the probability of the given sequence of states:
+        | :math:`\mathbb{P}(X_1=i_1,\ldots,X_t=i_t \mid X_0=i_0) = \prod_{k=0}^{t-1}P_{i_k i_{k+1}}`
+
+        | **Notes:**
+
+        - The probability is conditional on the first state of the sequence and does not include an initial distribution.
+        - If any transition in the sequence has probability 0, the sequence probability is 0.
 
         :param sequence: the observed sequence of states.
         :raises ValidationError: if any input argument is not compliant.
@@ -2194,11 +2571,16 @@ class MarkovChain(_Model):
     def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _tsequence:
 
         """
-        The method simulates a random walk of the given number of steps.
+        | The method simulates a random walk of the Markov chain for the given number of steps.
+
+        | **Notes:**
+
+        - The returned sequence includes the initial state.
+        - State labels are returned unless **output_indices** is :py:obj:`True`.
 
         :param steps: the number of steps.
         :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
-        :param final_state: the final state of the walk (*if specified, the simulation stops as soon as it is reached even if not all the steps have been performed*).
+        :param final_state: the optional state at which the simulation stops (is specified, the simulation stops upon reaching it).
         :param output_indices: a boolean indicating whether to output the state indices.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
@@ -2225,14 +2607,21 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['tc'])
     def time_correlations(self, sequence1: _tsequence, sequence2: _osequence = None, time_points: _ttimes_in = 1) -> _otimes_out:
 
-        """
-        The method computes the time autocorrelations of a single observed sequence of states or the time cross-correlations of two observed sequences of states.
+        r"""
+        | The method computes the stationary time autocorrelations or cross-correlations of the given sequences of states:
+        | :math:`\mathcal{C}_{fg}(t) = \sum_{i,j}\pi_i f(i)(P^t)_{ij}g(j)` where:
+
+        - :math:`f(i)` and :math:`g(j)` count the occurrences of the corresponding states in the first and second sequences;
+        - :math:`\pi` is the unique stationary distribution;
+        - :math:`t` is the time lag.
 
         | **Notes:**
 
+        - If the second sequence is omitted, the autocorrelation of the first sequence is computed.
+        - The correlations are not centered or normalized.
+        - A single time point produces a :py:class:`float`; multiple time points produce a list of values.
         - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
-        - If a single time point is provided, then a :py:class:`float` is returned.
-        - The method can be accessed through the following aliases: **tc**.
+        - The method can also be accessed through the alias **tc**.
 
         :param sequence1: the first observed sequence of states.
         :param sequence2: the second observed sequence of states.
@@ -2259,14 +2648,20 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['tr'])
     def time_relaxations(self, sequence: _tsequence, initial_distribution: _onumeric = None, time_points: _ttimes_in = 1) -> _otimes_out:
 
-        """
-        The method computes the time relaxations of an observed sequence of states with respect to the given initial distribution of the states.
+        r"""
+        | The method computes the time-dependent expected state observations of the Markov chain:
+        | :math:`\mathbb{E}_{\mu}[f(X_t)] = \sum_{i,j}\mu_i(P^t)_{ij}f(j)` where:
+
+        - :math:`\mu` is the initial state distribution;
+        - :math:`f(j)` is the number of occurrences of state :math:`j` in the given sequence;
+        - :math:`X_t` is the state occupied at time :math:`t`.
 
         | **Notes:**
 
+        - The computation includes time 0 when requested.
+        - A single time point produces a :py:class:`float`; multiple time points produce a list of values.
         - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
-        - If a single time point is provided, then a :py:class:`float` is returned.
-        - The method can be accessed through the following aliases: **tr**.
+        - The method can also be accessed through the alias **tr**.
 
         :param sequence: the observed sequence of states.
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
@@ -2290,12 +2685,18 @@ class MarkovChain(_Model):
     @_object_mark(instance_generator=True)
     def time_reversal(self) -> _tmc:
 
-        """
-        The method returns the stationary time reversal of the Markov chain.
+        r"""
+        | The method returns the stationary time reversal of the Markov chain:
+        | :math:`P^*_{ij} = \frac{\pi_j P_{ji}}{\pi_i}` where:
+
+        - :math:`P^*` is the transition matrix of the time-reversed chain;
+        - :math:`\pi` is the stationary distribution within the corresponding recurrent class.
 
         | **Notes:**
 
-        - The reversal is computed independently within each recurrent class.
+        - For **reducible** chains, the reversal is computed independently within each recurrent class.
+        - The time-reversed chain preserves the stationary distributions of the original chain.
+        - If the Markov chain has transient states, the stationary time reversal is not computed.
 
         :raises ValueError: if the Markov chain has transient states.
         """
@@ -2317,15 +2718,16 @@ class MarkovChain(_Model):
     def to_bounded_chain(self, boundary_condition: _tbcond) -> _tmc:
 
         """
-        The method returns a bounded Markov chain by adjusting the transition matrix of the original process using the specified boundary condition.
+        | The method returns a bounded Markov chain obtained by applying the specified boundary condition to the original transition matrix.
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **to_bounded**.
+        - The boundary condition modifies transitions at the first and last states.
+        - The method can also be accessed through the alias **to_bounded**.
 
         :param boundary_condition:
          - a number representing the first probability of the semi-reflecting condition;
-         - a string representing the boundary condition type (either absorbing or reflecting).
+         - a string representing the boundary condition type (either **absorbing** or **reflecting**).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2345,13 +2747,15 @@ class MarkovChain(_Model):
     def to_canonical_form(self) -> _tmc:
 
         """
-        The method returns the canonical form of the Markov chain.
+        | The method returns the canonical form of the Markov chain.
 
         | **Notes:**
 
         - Transient states are placed first, followed by the recurrent classes.
         - States belonging to the same recurrent class are kept contiguous.
-        - The method can be accessed through the following aliases: **to_canonical**.
+        - The transition probabilities and state labels are preserved under a common reordering.
+        - The returned Markov chain satisfies the **is_canonical** property.
+        - The method can also be accessed through the alias **to_canonical**.
         """
 
         p, _, _ = _canonical(self.__p, self.__recurrent_classes_indices, self.__transient_states_indices)
@@ -2421,12 +2825,18 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['to_lazy'], instance_generator=True)
     def to_lazy_chain(self, inertial_weights: _tweights = 0.5) -> _tmc:
 
-        """
-        The method returns a lazy Markov chain by adjusting the state inertia of the original process.
+        r"""
+        | The method returns a lazy Markov chain by adjusting the inertia of each state:
+        | :math:`\widetilde{P}_{ij} = (1-w_i)P_{ij} + w_i\mathbb{1}_{\{i=j\}}` where:
+
+        - :math:`\widetilde{P}` is the transition matrix of the transformed chain;
+        - :math:`w_i` is the inertial weight of state :math:`i`.
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **to_lazy**.
+        - The inertial weights increase the probabilities of remaining in the corresponding states.
+        - A scalar weight is applied uniformly to all states.
+        - The method can also be accessed through the alias **to_lazy**.
 
         :param inertial_weights: the inertial weights to apply for the transformation.
         :raises ValidationError: if any input argument is not compliant.
@@ -2458,14 +2868,17 @@ class MarkovChain(_Model):
     @_object_mark(aliases=['to_nth'], instance_generator=True)
     def to_nth_order(self, order: int = 2) -> _tmc:
 
-        """
-        The method returns an nth-order transformation of the Markov chain.
+        r"""
+        | The method returns a Markov chain whose transition matrix represents the transitions of the original chain over the given number of steps:
+        | :math:`\widetilde{P} = P^k` where :math:`k` is the specified order.
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **to_nth**.
+        - Each transition of the transformed chain corresponds to :math:`k` transitions of the original chain.
+        - The transformation does not increase the memory order of the process.
+        - The method can also be accessed through the alias **to_nth**.
 
-        :param order: the inertial weights to apply for the transformation.
+        :param order: the number of original transitions represented by each transition of the transformed chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2485,15 +2898,16 @@ class MarkovChain(_Model):
     def to_subchain(self, states: _tstates) -> _tmc:
 
         """
-        The method returns a subchain containing all the given states plus all the states reachable from them.
+        | The method returns a subchain containing the given states and all states accessible from them.
 
         | **Notes:**
 
-        - The method can be accessed through the following aliases: **to_sub**.
+        - The selected states are extended to include their reachable states.
+        - The method can also be accessed through the alias **to_sub**.
 
         :param states: the states to include in the subchain.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the subchain is not a valid Markov chain.
+        :raises ValueError: if the resulting subchain is not a valid Markov chain.
         """
 
         try:
@@ -2542,8 +2956,7 @@ class MarkovChain(_Model):
     def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, states: _olist_str = None, k: _ofloat = None) -> _tmc:
 
         """
-        The method approximates the Markov chain associated with the discretized version of the first-order autoregressive process defined below.
-
+        |The method approximates the Markov chain associated with the discretized version of the first-order autoregressive process defined below.
         | :math:`y_t = (1 - \\rho) \\alpha + \\rho y_{t-1} + \\varepsilon_t`
         | with :math:`\\varepsilon_t \\overset{i.i.d}{\\sim} \\mathcal{N}(0, \\sigma_{\\varepsilon}^{2})`
 

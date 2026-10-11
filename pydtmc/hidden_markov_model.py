@@ -194,7 +194,6 @@ class HiddenMarkovModel(_Model):
         lines.append(f' STATES:  {self.n:d}')
         lines.append(f' SYMBOLS: {self.k:d}')
         lines.append(f' ERGODIC: {("YES" if self.is_ergodic else "NO")}')
-        lines.append(f' REGULAR: {("YES" if self.is_regular else "NO")}')
         lines.append('')
 
         value = '\n'.join(lines)

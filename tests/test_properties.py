@@ -51,6 +51,10 @@ def test_attributes(p, is_absorbing, is_canonical, is_doubly_stochastic, is_ergo
 
     assert actual == expected
 
+    if mc.is_ergodic:
+        assert mc.is_irreducible
+        assert mc.is_aperiodic
+
     actual = mc.is_reversible
     expected = is_reversible
 
@@ -314,17 +318,6 @@ def test_periodicity(p, period):
     expected = period == 1
 
     assert actual == expected
-
-
-def test_regularity(p):
-
-    mc = _MarkovChain(p)
-
-    if not mc.is_regular:
-        _pt.skip('The Markov chain is not regular.')
-    else:
-        assert mc.is_irreducible
-        assert mc.is_aperiodic
 
 
 def test_spectral_gaps(p, absolute_spectral_gap, ordinary_spectral_gap):
