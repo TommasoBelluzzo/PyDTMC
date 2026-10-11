@@ -20,9 +20,11 @@ from pydtmc import (
     HiddenMarkovModel as _HiddenMarkovModel,
     MarkovChain as _MarkovChain,
     plot_comparison as _plot_comparison,
+    plot_convergence as _plot_convergence,
     plot_eigenvalues as _plot_eigenvalues,
     plot_flow as _plot_flow,
     plot_graph as _plot_graph,
+    plot_matrix as _plot_matrix,
     plot_redistributions as _plot_redistributions,
     plot_sequence as _plot_sequence,
     plot_trellis as _plot_trellis
@@ -153,6 +155,32 @@ def test_plot_comparison(seed, runs, maximum_models, maximum_size):
         assert exception is False
 
 
+@_pt.mark.slow
+def test_plot_convergence(seed, runs, maximum_size, maximum_steps):
+
+    models = _generate_models(seed, runs, maximum_size)
+
+    for model in models:
+
+        mc = model if isinstance(model, _MarkovChain) else _MarkovChain(model.p, model.states)
+
+        if not mc.is_ergodic:
+            continue
+
+        try:
+
+            figure, _ = _plot_convergence(model, maximum_steps)
+            figure.clear()
+            _mplp.close(figure)
+
+            exception = False
+
+        except Exception:
+            exception = True
+
+        assert exception is False
+
+
 # noinspection PyBroadException
 @_pt.mark.slow
 def test_plot_eigenvalues(seed, runs, maximum_size):
@@ -231,6 +259,33 @@ def test_plot_graph(seed, runs, maximum_size):
             figure, _ = _plot_graph(model, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label, force_standard=False)
             figure.clear()
             _mplp.close(figure)
+
+            exception = False
+
+        except Exception:
+            exception = True
+
+        assert exception is False
+
+
+# noinspection PyBroadException
+@_pt.mark.slow
+def test_plot_matrix(seed, runs, maximum_size):
+
+    models = _generate_models(seed, runs, maximum_size)
+
+    for model in models:
+
+        try:
+
+            figure, _ = _plot_matrix(model)
+            figure.clear()
+            _mplp.close(figure)
+
+            if isinstance(model, _HiddenMarkovModel):
+                figure, _ = _plot_matrix(model, underlying_matrix='emission')
+                figure.clear()
+                _mplp.close(figure)
 
             exception = False
 

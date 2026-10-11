@@ -405,13 +405,7 @@ def _hook_autodoc_before_process_signature(app, obj, bound_method):
 def _hook_missing_reference(app, env, node, contnode):
 
     if node.get('refdomain') == 'py' and node.get('reftarget') == 'typing.Union':
-
-        return _dun.reference(
-            '',
-            '',
-            contnode,
-            refuri='https://docs.python.org/3/library/typing.html#typing.Union'
-        )
+        return _dun.reference('', '', contnode, refuri='https://docs.python.org/3/library/typing.html#typing.Union')
 
     return None
 

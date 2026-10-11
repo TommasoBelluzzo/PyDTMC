@@ -2,9 +2,11 @@
 
 __all__ = [
     'plot_comparison',
+    'plot_convergence',
     'plot_eigenvalues',
     'plot_flow',
     'plot_graph',
+    'plot_matrix',
     'plot_redistributions',
     'plot_sequence',
     'plot_trellis'
@@ -204,17 +206,17 @@ def _yticks_labels(ax, size, labels_name, labels):
 def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition', names: _olist_str = None, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the underlying matrices of the given models in the form of a heatmap.
+    | The function plots a heatmap comparison of the transition or emission matrices of the given models.
 
     | **Notes:**
 
-    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param models: the models.
+    :param models: the models to compare (at least two).
     :param underlying_matrices:
      - **emission** for comparing the emission matrices;
      - **transition** for comparing the transition matrices.
-    :param names: the name of each model subplot (*if omitted, a standard name is given to each subplot*).
+    :param names: the subplot titles (*if omitted, standard names are generated*).
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -270,14 +272,76 @@ def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition
     return figure, axes
 
 
-def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
+def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the eigenvalues of the transition matrix of the given model on the complex plane.
+    | The function plots the convergence of state probabilities toward the stationary distribution of the given model, measured by total variation distance.
 
     | **Notes:**
 
-    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - The underlying Markov chain must be **ergodic**.
+    - For hidden Markov models, convergence refers to the underlying state-transition chain.
+    - The total variation distance at each step is half the sum of the absolute differences between the current and stationary state probabilities.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+
+    :param model: the model.
+    :param steps: the number of steps to evaluate (*the initial distribution at step zero is also included*).
+    :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+    :param dpi: the resolution of the plot expressed in dots per inch.
+    :raises ValidationError: if any input argument is not compliant.
+    """
+
+    try:
+
+        model = _validate_model(model)
+        steps = _validate_integer(steps, lower_limit=(1, False))
+        initial_status = None if initial_status is None else _validate_status(initial_status, model.states)
+        dpi = _validate_dpi(dpi)
+
+    except Exception as ex:  # pragma: no cover
+        raise _create_validation_error(ex, _ins.trace()) from None
+
+    if model.__class__.__name__ == 'MarkovChain':
+        mc = model
+    else:
+        mc = _MarkovChain(model.p, model.states)
+
+    if not mc.is_ergodic:
+        raise _ValidationError('The underlying Markov chain must be ergodic in order to plot convergence.')
+
+    stationary_distribution = mc.pi[0]
+
+    distributions = mc.redistribute(steps, initial_status=initial_status, output_last=False)
+    distributions = _np.asarray(distributions, dtype=float)
+
+    distances = 0.5 * _np.sum(_np.abs(distributions - stationary_distribution), axis=1)
+
+    figure, ax = _mplp.subplots(dpi=dpi)
+
+    ax.plot(_np.arange(distances.size), distances, color=_colors[0])
+
+    _xticks_steps(ax, distances.size)
+    ax.set_ylabel('Total Variation Distance', fontsize=13.0)
+    ax.set_ylim(0.0, 1.0)
+    ax.grid()
+    ax.set_title('Convergence Plot', fontsize=15.0, fontweight='bold')
+
+    if _mplp.isinteractive():  # pragma: no cover
+        _mplp.show(block=False)
+        return None
+
+    return figure, ax
+
+
+def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
+
+    """
+    | The function plots the eigenvalues of the transition matrix of the given model on the complex plane.
+
+    | **Notes:**
+
+    - For **irreducible** models, the plot also illustrates the second-largest eigenvalue modulus and the corresponding spectral gap.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
     :param model: the model.
     :param dpi: the resolution of the plot expressed in dots per inch.
@@ -372,15 +436,16 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
 def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatus = None, palette: str = 'viridis', dpi: int = 100) -> _oplot:
 
     """
-    The function produces an alluvial diagram of the given model.
+    | The function plots an alluvial diagram representing the evolution of state probabilities and their redistribution between observations.
 
     | **Notes:**
 
-    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - The diagram includes the initial distribution at step zero.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
     :param model: the model.
-    :param steps: the number of steps.
-    :param interval: the interval between each step.
+    :param steps: the number of observation intervals to plot.
+    :param interval: the number of Markov-chain steps between consecutive observations.
     :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
     :param palette: the palette of the plot.
     :param dpi: the resolution of the plot expressed in dots per inch.
@@ -567,21 +632,21 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
 def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the directed graph of the given model.
+    | The function plots the directed graph of the given model, representing state transitions and, for hidden Markov models, symbol emissions.
 
     | **Notes:**
 
-    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
-    * `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are not required, but they provide access to extended mode with improved rendering and additional features.
-    * The rendering, especially in standard mode or for big graphs, is not granted to be high-quality.
-    * For Markov chains, the color of nodes is based on communicating classes; for hidden Markov models, every state node has a different color and symbol nodes are gray.
-    * For Markov chains, recurrent nodes have an elliptical shape and transient nodes have a rectangular shape; for hidden Markov models, state nodes have an elliptical shape and symbol nodes have a hexagonal shape.
+    - For Markov chains, node colors identify communicating classes and node shapes distinguish recurrent from transient states.
+    - For hidden Markov models, state nodes have distinct colors and elliptical shapes, while symbol nodes are gray and hexagonal.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are optional dependencies that enable an extended rendering mode.
+    - Rendering quality may deteriorate for large graphs, particularly in standard mode.
 
     :param model: the model.
-    :param nodes_color: a boolean indicating whether to use a different color for every type of node.
-    :param nodes_shape: a boolean indicating whether to use a different shape for every type of node.
-    :param edges_label: a boolean indicating whether to display the probability of every edge as text.
-    :param force_standard: a boolean indicating whether to use standard mode even if extended mode is available.
+    :param nodes_color: whether to distinguish node types using colors.
+    :param nodes_shape: whether to distinguish node types using shapes.
+    :param edges_label: whether to display transition and emission probabilities on edges.
+    :param force_standard: whether to force standard rendering even when extended rendering is available.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -591,9 +656,13 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
         magnitudes = []
 
         for element in cm_elements:
-            element_minimum = _np.min(element).item()
-            element_magnitude = 0 if element_minimum == 0.0 else int(-_mt.floor(_mt.log10(abs(element_minimum))))
-            magnitudes.append(element_magnitude)
+
+            element_positive = element[element > 0.0]
+
+            if element_positive.size > 0:
+                element_minimum = _np.min(element_positive).item()
+                element_magnitude = int(-_mt.floor(_mt.log10(element_minimum)))
+                magnitudes.append(element_magnitude)
 
         magnitude = max(1, min(max(magnitudes), 4))
 
@@ -1025,21 +1094,76 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
     return figure, ax
 
 
-def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
+def plot_matrix(model: _tmodel, underlying_matrix: str = 'transition', dpi: int = 100) -> _oplot:
 
     """
-    The function plots a redistribution of states on the given model.
+    | The function plots a heatmap of the transition or emission matrix of the given model.
 
     | **Notes:**
 
-    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - Matrix rows represent origin states, while columns represent destination states or emitted symbols.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
-    :param model: the model to be converted into a graph.
-    :param redistributions: the number of redistributions to perform.
+    :param model: the model.
+    :param underlying_matrix:
+     - **emission** for displaying the emission matrix;
+     - **transition** for displaying the transition matrix.
+    :param dpi: the resolution of the plot expressed in dots per inch.
+    :raises ValidationError: if any input argument is not compliant or if an emission matrix is requested for a Markov chain.
+    """
+
+    try:
+
+        model = _validate_model(model)
+        underlying_matrix = _validate_enumerator(underlying_matrix, ['emission', 'transition'])
+        dpi = _validate_dpi(dpi)
+
+    except Exception as ex:  # pragma: no cover
+        raise _create_validation_error(ex, _ins.trace()) from None
+
+    if underlying_matrix == 'emission' and not isinstance(model, _HiddenMarkovModel):  # pragma: no cover
+        raise _ValidationError('An emission matrix can only be plotted for a hidden Markov model.')
+
+    matrix = model.e if underlying_matrix == 'emission' else model.p
+    labels_x = model.symbols if underlying_matrix == 'emission' else model.states
+
+    figure, ax = _mplp.subplots(dpi=dpi)
+
+    color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
+    ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+
+    _xticks_labels(ax, len(labels_x), 'Symbols' if underlying_matrix == 'emission' else 'States', labels_x, True)
+    _yticks_labels(ax, len(model.states), 'States', model.states)
+
+    ax.grid(which='minor', color='k')
+
+    cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
+    cb.ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
+
+    ax.set_title('Matrix Plot (' + underlying_matrix.capitalize() + ')', fontsize=15.0, fontweight='bold')
+
+    if _mplp.isinteractive():  # pragma: no cover
+        _mplp.show(block=False)
+        return None
+
+    return figure, ax
+
+
+def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
+
+    """
+    | The function plots the evolution of state probability distributions over successive steps of the given model.
+
+    | **Notes:**
+
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+
+    :param model: the model.
+    :param redistributions: the number of redistributions to perform (*the initial distribution at step zero is also included*).
     :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
     :param plot_type:
-     - **heatmap** for displaying a heatmap plot;
-     - **projection** for displaying a projection plot.
+     - **heatmap** for displaying state probabilities across successive steps;
+     - **projection** for displaying the evolution of each state's probability as a line plot.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -1118,19 +1242,19 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
 def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _oplot:
 
     """
-    The function plots a random walk on the given model.
+    | The function plots a random sequence of states and, for hidden Markov models, emitted symbols.
 
     | **Notes:**
 
-    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
 
     :param model: the model.
-    :param steps: the number of steps.
-    :param initial_state: the initial state of the random walk (*if omitted, it is chosen uniformly at random*).
+    :param steps: the number of steps to simulate.
+    :param initial_state: the initial state of the sequence (*if omitted, it is chosen uniformly at random*).
     :param plot_type:
-     - **heatmap** for displaying the relative frequencies of observed transitions;
-     - **histogram** for displaying a histogram plots;
-     - **matrix** for displaying matrix plots.
+     - **heatmap** for displaying the relative frequencies of observed transitions between consecutive states or symbols;
+     - **histogram** for displaying the empirical frequencies of states or symbols;
+     - **matrix** for displaying the simulated states or symbols across successive steps.
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
@@ -1270,23 +1394,23 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
 def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _oint = None, force_standard: bool = False, dpi: int = 100) -> _oplot:
 
     """
-    The function plots the trellis diagrams of a random walk on the given hidden Markov model.
+    | The function plots the forward and backward trellis diagrams of a simulated observation sequence on the given hidden Markov model.
 
     | **Notes:**
 
-    * If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
-    * `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are not required, but they provide access to extended mode with improved rendering and additional features.
-    * The rendering of large simulations is not granted to be high-quality.
-    * Red nodes and edges belong to the most probable states path calculated using the Viterbi algorithm.
+    - Highlighted nodes and edges identify the most probable hidden-state sequence calculated using the Viterbi algorithm.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are optional dependencies that enable an extended rendering mode.
+    - Rendering quality may deteriorate for large simulations.
 
     :param hmm: the hidden Markov model.
-    :param steps: the number of steps.
-    :param initial_state: the initial state of the random walk (*if omitted, it is chosen uniformly at random*).
+    :param steps: the number of steps to simulate.
+    :param initial_state: the initial state of the simulation (*if omitted, it is chosen uniformly at random*).
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
-    :param force_standard: a boolean indicating whether to use standard mode even if extended mode is available.
+    :param force_standard: whether to force standard rendering even when extended rendering is available.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
-    :raises ValueError: if the computation of backward and forward probabilities fails or if the computation of the most probable states path fails.
+    :raises ValueError: if the computation of forward or backward probabilities or the most probable hidden-state sequence fails.
     """
 
     def _generate_trellis_extended(gte_hmm, gte_initial_distribution, gte_symbols, gte_forward, gte_matrix, gte_states_path):

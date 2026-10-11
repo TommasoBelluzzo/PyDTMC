@@ -137,6 +137,11 @@ def test_expected_transitions(p, steps, initial_distribution, value):
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
+    actual = _np.sum(actual)
+    expected = float(steps)
+
+    assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
 
 def test_first_passage_probabilities(p, steps, initial_state, first_passage_states, value):
 
@@ -164,7 +169,7 @@ def test_first_passage_reward(p, steps, initial_state, first_passage_states, rew
         actual = mc.first_passage_reward(steps, initial_state, first_passage_states, rewards)
         expected = value
 
-        assert _np.isclose(actual, expected)
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_first_passage_times_between(p, origins, targets, value_mean, value_variance):

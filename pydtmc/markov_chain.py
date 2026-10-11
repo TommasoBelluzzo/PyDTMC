@@ -1807,13 +1807,13 @@ class MarkovChain(_Model):
 
         try:
 
-            steps = _validate_integer(steps, lower_limit=(0, True))
+            steps = _validate_integer(steps, lower_limit=(0, False))
             initial_distribution = _np.full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _expected_transitions(self.__p, self.__rdl_decomposition, steps, initial_distribution)
+        value = _expected_transitions(self.__p, steps, initial_distribution)
 
         return value
 

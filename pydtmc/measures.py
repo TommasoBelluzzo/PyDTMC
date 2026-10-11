@@ -283,35 +283,16 @@ def mc_expected_rewards(p: _tarray, steps: int, rewards: _tarray) -> _tany:
     return er
 
 
-def mc_expected_transitions(p: _tarray, rdl: _trdl, steps: int, initial_distribution: _tarray) -> _tarray:
+def mc_expected_transitions(p: _tarray, steps: int, initial_distribution: _tarray) -> _tarray:
 
-    if steps <= p.shape[0]:
+    idist = _np.copy(initial_distribution)
+    idist_sum = _np.zeros_like(idist)
 
-        idist = initial_distribution
-        idist_sum = initial_distribution
+    for _ in range(steps):
+        idist_sum += idist
+        idist = _np.dot(idist, p)
 
-        for _ in range(steps - 1):
-            pi = _np.dot(idist, p)
-            idist_sum += pi
-
-        et = idist_sum[:, _np.newaxis] * p
-
-    else:
-
-        r, d, l = rdl  # noqa: E741
-
-        q = _np.array(_np.diag(d))
-        q_indices = q == 1.0
-
-        gs = _np.zeros(_np.shape(q), dtype=float)
-        gs[q_indices] = steps
-        gs[~q_indices] = (1.0 - q[~q_indices]**steps) / (1.0 - q[~q_indices])
-
-        ds = _np.diag(gs)
-        ts = _np.dot(_np.dot(r, ds), _np.conjugate(l))
-        ps = _np.dot(initial_distribution, ts)
-
-        et = _np.real(ps[:, _np.newaxis] * p)  # pylint: disable=invalid-sequence-index
+    et = idist_sum[:, _np.newaxis] * p
 
     return et
 

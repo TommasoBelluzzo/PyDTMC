@@ -5,6 +5,12 @@
     "maximum_models": 12,
     "maximum_size": 25
   },
+  "plot_convergence_data": {
+    "seed": 7331,
+    "runs": 20,
+    "maximum_size": 10,
+    "maximum_steps": 20
+  },
   "plot_eigenvalues_data": {
     "seed": 7331,
     "runs": 20,
@@ -20,6 +26,11 @@
     "seed": 7331,
     "runs": 50,
     "maximum_size": 5
+  },
+  "plot_matrix_data": {
+    "seed": 7331,
+    "runs": 50,
+    "maximum_size": 25
   },
   "plot_redistributions_data": {
     "seed": 7331,
