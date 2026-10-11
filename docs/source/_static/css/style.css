@@ -33,21 +33,22 @@
     margin-bottom: 0 !important;
 }
 
-.rst-content section:not([id='pydtmc']):not([id='static-methods']) .line-block {
-    margin-bottom: 4px !important;
+.rst-content dl.py .line-block:has(+ ul.simple) {
+    margin-top: 16px !important;
+    margin-bottom: 0 !important;
 }
 
-.rst-content section[id='pydtmc'] .line-block,
-.rst-content section[id='static-methods'] .line-block {
-    margin-bottom: 24px !important;
+.rst-content dl.py .line-block + ul.simple {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 }
 
-.wy-menu a[href='hidden_markov_model.html#pydtmc.HiddenMarkovModel'],
-.wy-menu a[href='markov_chain.html#pydtmc.MarkovChain'],
-.wy-menu a[href='#pydtmc.HiddenMarkovModel'],
-.wy-menu a[href='#pydtmc.MarkovChain']
-{
-    display: none;
+.rst-content dl.py .line-block + ul.simple:has(+ dl) {
+    margin-bottom: 16px !important;
+}
+
+.rst-content dl.py .line-block + dl.field-list {
+    margin-top: 16px !important;
 }
 
 .wy-nav-content {

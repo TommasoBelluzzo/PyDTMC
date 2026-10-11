@@ -91,6 +91,7 @@ exclude_patterns = ['_build']
 templates_path = ['_templates']
 pygments_style = 'sphinx'
 nitpick_ignore = []
+toc_object_entries = False
 
 linkcheck_ignore = [
     r'hidden_markov_model\.html',
@@ -161,7 +162,7 @@ html_show_sphinx = False
 html_static_path = ['_static']
 html_style = 'css/style.css'
 html_theme = 'sphinx_rtd_theme'
-html_theme_options = {'display_version': False}
+html_theme_options = {'language_selector': False, 'version_selector': False}
 html_title = ''
 
 # LaTeX
@@ -231,6 +232,7 @@ class _SphinxPostTransformDocutilsFixes(_sppt.SphinxPostTransform):
                 node_desc_content.append(_dun.field_list('', field))
 
 
+
 class _SphinxPostTransformConstructors(_sppt.SphinxPostTransform):
 
     """
@@ -241,7 +243,12 @@ class _SphinxPostTransformConstructors(_sppt.SphinxPostTransform):
 
     def run(self, **kwargs):
 
-        if not _re.search(r'(?:hidden_markov_model|markov_chain)_[A-Z_]+\.rst$', self.document['source'], flags=_re.IGNORECASE):
+        source = _osp.basename(self.document['source'])
+
+        is_main_page = source in ('hidden_markov_model.rst', 'markov_chain.rst')
+        is_secondary_page = bool(_re.fullmatch(r'(?:hidden_markov_model|markov_chain)_[A-Z_]+\.rst', source, flags=_re.IGNORECASE))
+
+        if not is_main_page and not is_secondary_page:
             return
 
         for node in self.document.findall(_san.desc):
@@ -264,18 +271,52 @@ class _SphinxPostTransformConstructors(_sppt.SphinxPostTransform):
             if not isinstance(node_desc_content, _san.desc_content):
                 continue
 
-            nodes_to_remove = []
+            if is_secondary_page:
 
-            for node_child in node_desc_signature:
-                if isinstance(node_child, _san.desc_parameterlist):
-                    nodes_to_remove.append((node_desc_signature, node_child))
+                for node_child in list(node_desc_signature):
+                    if isinstance(node_child, _san.desc_parameterlist):
+                        node_desc_signature.remove(node_child)
 
-            for node_child in node_desc_content:
-                if isinstance(node_child, (_dun.paragraph, _dun.field_list)):
-                    nodes_to_remove.append((node_desc_content, node_child))
+            nodes = list(node_desc_content.children)
+            class_nodes = []
 
-            for parent, child in nodes_to_remove:
-                parent.remove(child)
+            for node_child in nodes:
+
+                if isinstance(node_child, _san.desc):
+                    break
+
+                class_nodes.append(node_child)
+
+            notation_nodes = []
+
+            for index, node_child in enumerate(class_nodes):
+
+                node_text = node_child.astext().strip()
+
+                if not node_text.startswith('Mathematical Notation:'):
+                    continue
+
+                notation_nodes.append(node_child)
+
+                if index + 1 < len(class_nodes):
+
+                    node_next = class_nodes[index + 1]
+
+                    if isinstance(node_next, _dun.bullet_list) or any(isinstance(child, _dun.bullet_list) for child in node_next.findall()):
+                        notation_nodes.append(node_next)
+
+                break
+
+            if not notation_nodes:
+                continue
+
+            if is_main_page:
+                nodes_to_remove = notation_nodes
+            else:
+                nodes_to_remove = [node_child for node_child in class_nodes if node_child not in notation_nodes]
+
+            for node_child in nodes_to_remove:
+                node_desc_content.remove(node_child)
 
 
 class _SphinxPostTransformExceptions(_sppt.SphinxPostTransform):
@@ -381,6 +422,46 @@ class _SphinxPostTransformReturnTypes(_sppt.SphinxPostTransform):
             if node_text == 'RETURN TYPE':
                 node_new = _dun.field_name(text='Return Type')
                 node.parent.replace(node, node_new)
+
+        for node in self.document.findall(_san.desc):
+
+            if (not node.hasattr('objtype')) or (node['objtype'].upper() != 'METHOD'):
+                continue
+
+            node_desc_content = node[-1]
+
+            if not isinstance(node_desc_content, _san.desc_content):
+                continue
+
+            node_first = node_desc_content[0] if len(node_desc_content) > 0 else None
+
+            if not isinstance(node_first, _dun.field_list):
+                continue
+
+            fields_to_move = [
+                field for field in node_first
+                if isinstance(field, _dun.field) and field[0].astext().upper() == 'RETURN TYPE'
+            ]
+
+            if not fields_to_move:
+                continue
+
+            for field in fields_to_move:
+                node_first.remove(field)
+
+            if len(node_first) == 0:
+                node_desc_content.remove(node_first)
+
+            node_last = node_desc_content[-1] if len(node_desc_content) > 0 else None
+
+            if isinstance(node_last, _dun.field_list):
+                target = node_last
+            else:
+                target = _dun.field_list()
+                node_desc_content.append(target)
+
+            for field in fields_to_move:
+                target.append(field)
 
 
 #############
