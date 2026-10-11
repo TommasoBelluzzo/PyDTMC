@@ -387,10 +387,11 @@ class _SphinxPostTransformReturnTypes(_sppt.SphinxPostTransform):
 # FUNCTIONS #
 #############
 
+# noinspection PyUnusedLocal
 def _hook_autodoc_before_process_signature(app, obj, bound_method):
 
-    import pydtmc.assessments as assessments
-    import pydtmc.plotting as plotting
+    from pydtmc import assessments
+    from pydtmc import plotting
 
     from pydtmc.hidden_markov_model import HiddenMarkovModel
     from pydtmc.markov_chain import MarkovChain
@@ -400,6 +401,7 @@ def _hook_autodoc_before_process_signature(app, obj, bound_method):
     plotting.__dict__.setdefault('MarkovChain', MarkovChain)
 
 
+# noinspection PyUnusedLocal
 def _hook_missing_reference(app, env, node, contnode):
 
     if node.get('refdomain') == 'py' and node.get('reftarget') == 'typing.Union':

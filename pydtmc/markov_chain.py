@@ -659,7 +659,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Terms with null transition probability contribute 0.
+        - Terms with zero transition probability contribute 0.
         - The entropy rate is expressed in nats per transition.
         - If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:class:`None` is returned.
         """
@@ -1043,7 +1043,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - A null **SLEM** yields a value of 0, while a **SLEM** equal to 1 yields infinity.
+        - A **SLEM** equal to 0 yields a mixing rate of 0, while a **SLEM** equal to 1 yields infinity.
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
@@ -1285,7 +1285,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - A null absolute spectral gap yields infinity.
+        - An absolute spectral gap equal to 0 yields infinity.
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
@@ -1546,7 +1546,6 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - The censored chain records transitions between retained states, including excursions through states outside the retained subset.
-        - The transformation preserves the original state labels of the retained states.
 
         :param states: the states to retain in the censored Markov chain.
         :raises ValidationError: if any input argument is not compliant.
@@ -1694,7 +1693,6 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The returned vector contains the probabilities of transitioning from the given state to every state of the Markov chain.
         - The method can also be accessed through the aliases **conditional_distribution**, **cd** and **cp**.
 
         :param state: the current state.
@@ -1799,7 +1797,6 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Each entry represents the expected number of transitions from state :math:`i` to state :math:`j` during the first :math:`t` steps.
         - At time 0, the expected transition-count matrix is zero.
         - The method can also be accessed through the alias **et**.
 
@@ -1871,7 +1868,6 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - Rewards at the initial state and at the first passage states are excluded.
-        - Only rewards accumulated strictly before the first passage are considered.
         - The method can also be accessed through the alias **fpr**.
 
         :param steps: the number of steps.
@@ -2235,7 +2231,6 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - A blending factor of 0 preserves the original transition matrix, while a factor of 1 selects the other transition matrix.
         - The returned chain is assigned newly generated state labels.
 
         :param other: the other Markov chain to be merged.
@@ -2273,7 +2268,6 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The mixing time is computed over all possible initial states.
         - If the Markov chain is not **ergodic** or the threshold is not reached within the maximum number of iterations, then :py:class:`None` is returned.
         - The method can also be accessed through the alias **mt**.
 
@@ -2308,7 +2302,6 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Convergence is evaluated at intervals determined by the jump parameter.
         - If the Markov chain is not **ergodic** or the threshold is not reached within the maximum number of iterations, then :py:class:`None` is returned.
         - The method can also be accessed through the alias **mtf**.
 
@@ -2341,7 +2334,6 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The next state is sampled according to the transition probabilities of the initial state.
         - The returned value is a state label unless **output_index** is :py:obj:`True`.
 
         :param initial_state: the initial state.
@@ -2450,7 +2442,6 @@ class MarkovChain(_Model):
 
         - An initial state is interpreted as a distribution concentrated on that state.
         - If **output_last** is :py:obj:`False`, the distributions from time 0 through the specified number of steps are returned.
-        - Otherwise, only the final distribution is returned.
 
         :param steps: the number of steps.
         :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
@@ -2550,7 +2541,6 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - The probability is conditional on the first state of the sequence and does not include an initial distribution.
-        - If any transition in the sequence has probability 0, the sequence probability is 0.
 
         :param sequence: the observed sequence of states.
         :raises ValidationError: if any input argument is not compliant.
@@ -2580,7 +2570,7 @@ class MarkovChain(_Model):
 
         :param steps: the number of steps.
         :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
-        :param final_state: the optional state at which the simulation stops (is specified, the simulation stops upon reaching it).
+        :param final_state: the final state (*if specified, the simulation stops upon reaching it*).
         :param output_indices: a boolean indicating whether to output the state indices.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
@@ -2696,7 +2686,6 @@ class MarkovChain(_Model):
 
         - For **reducible** chains, the reversal is computed independently within each recurrent class.
         - The time-reversed chain preserves the stationary distributions of the original chain.
-        - If the Markov chain has transient states, the stationary time reversal is not computed.
 
         :raises ValueError: if the Markov chain has transient states.
         """
@@ -2753,7 +2742,6 @@ class MarkovChain(_Model):
 
         - Transient states are placed first, followed by the recurrent classes.
         - States belonging to the same recurrent class are kept contiguous.
-        - The transition probabilities and state labels are preserved under a common reordering.
         - The returned Markov chain satisfies the **is_canonical** property.
         - The method can also be accessed through the alias **to_canonical**.
         """
@@ -2771,7 +2759,12 @@ class MarkovChain(_Model):
     def to_dictionary(self) -> _tmc_dict:
 
         """
-        The method returns a dictionary representing the Markov chain.
+        | The method returns a dictionary representing the transition matrix of the Markov chain.
+
+        | **Notes:**
+
+        - Each key is an ordered pair of state labels, and its value is the corresponding transition probability.
+        - All ordered pairs are included, even when their transition probabilities are 0.
         """
 
         d = {
@@ -2785,9 +2778,12 @@ class MarkovChain(_Model):
     def to_file(self, file_path: _tpath):
 
         """
-        The method writes a Markov chain to the given file.
+        | The method writes the Markov chain to the given file.
 
-        | Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension.
+        | **Notes:**
+
+        - The supported formats are **csv**, **json**, **txt** and **xml**.
+        - The output format is determined by the file extension.
 
         :param file_path: the location of the file in which the Markov chain must be written.
         :raises OSError: if the file cannot be written.
@@ -2815,7 +2811,12 @@ class MarkovChain(_Model):
     def to_graph(self) -> _tgraph:
 
         """
-        The method returns a directed graph representing the Markov chain.
+        | The method returns a directed graph representing the Markov chain.
+
+        | **Notes:**
+
+        - Each node represents a state, and each edge represents a transition with positive probability.
+        - Edge weights represent transition probabilities.
         """
 
         graph = _cp.deepcopy(self.__digraph)
@@ -2834,7 +2835,6 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The inertial weights increase the probabilities of remaining in the corresponding states.
         - A scalar weight is applied uniformly to all states.
         - The method can also be accessed through the alias **to_lazy**.
 
@@ -2857,7 +2857,7 @@ class MarkovChain(_Model):
     def to_matrix(self) -> _tarray:
 
         """
-        The method returns the transition matrix of the Markov chain.
+        | The method returns a copy of the transition matrix of the Markov chain.
         """
 
         m = _np.copy(self.__p)
@@ -2874,7 +2874,6 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Each transition of the transformed chain corresponds to :math:`k` transitions of the original chain.
         - The transformation does not increase the memory order of the process.
         - The method can also be accessed through the alias **to_nth**.
 
@@ -2902,7 +2901,6 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The selected states are extended to include their reachable states.
         - The method can also be accessed through the alias **to_sub**.
 
         :param states: the states to include in the subchain.
@@ -2928,8 +2926,17 @@ class MarkovChain(_Model):
 
     def transition_probability(self, state_target: _tstate, state_origin: _tstate, steps: int = 1) -> float:
 
-        """
-        The method computes the probability of a given state, conditioned on the process being at a given state.
+        r"""
+        | The method computes the transition probability between two states after a given number of steps:
+        | :math:`\mathbb{P}(X_t=j \mid X_0=i) = (P^t)_{ij}` where:
+
+        - :math:`i` is the origin state;
+        - :math:`j` is the target state;
+        - :math:`t` is the number of steps.
+
+        | **Notes:**
+
+        - The probability refers to being in the target state after exactly the specified number of transitions, not necessarily reaching it for the first time.
 
         :param state_target: the target state.
         :param state_origin: the origin state.
@@ -2955,26 +2962,26 @@ class MarkovChain(_Model):
     @_object_mark(instance_generator=True)
     def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, states: _olist_str = None, k: _ofloat = None) -> _tmc:
 
-        """
-        |The method approximates the Markov chain associated with the discretized version of the first-order autoregressive process defined below.
-        | :math:`y_t = (1 - \\rho) \\alpha + \\rho y_{t-1} + \\varepsilon_t`
-        | with :math:`\\varepsilon_t \\overset{i.i.d}{\\sim} \\mathcal{N}(0, \\sigma_{\\varepsilon}^{2})`
+        r"""
+        | The method approximates the Markov chain associated with a discretized first-order autoregressive process:
+        | :math:`y_t = (1-\rho)\alpha + \rho y_{t-1} + \varepsilon_t`
+        | where :math:`\varepsilon_t \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0,\sigma^2)`.
 
-        :param size: the size of the Markov chain.
+        :param size: the number of states of the approximating Markov chain.
         :param approximation_type:
          - **adda-cooper** for the Adda-Cooper approximation;
          - **rouwenhorst** for the Rouwenhorst approximation;
          - **tauchen** for the Tauchen approximation;
          - **tauchen-hussey** for the Tauchen-Hussey approximation.
-        :param alpha: the constant term :math:`\\alpha`, representing the unconditional mean of the process.
-        :param sigma: the standard deviation of the innovation term :math:`\\varepsilon`.
-        :param rho: the autocorrelation coefficient :math:`\\rho`, representing the persistence of the process across periods.
-        :param k:
-         - In the Tauchen approximation, the number of standard deviations to approximate out to (*if omitted, the value is set to 3*).
-         - In the Tauchen-Hussey approximation, the standard deviation used for the gaussian quadrature (*if omitted, the value is set to an optimal default*).
+        :param alpha: the unconditional mean of the process.
+        :param sigma: the standard deviation of the innovation term.
+        :param rho: the autoregressive coefficient of the process.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param k:
+         - For the Tauchen approximation, the number of standard deviations defining the discretization range (*if omitted, the value is set to 3*);
+         - For the Tauchen-Hussey approximation, the standard deviation used for Gaussian quadrature (*if omitted, an automatically computed value is used*).
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the gaussian quadrature fails to converge in the Tauchen-Hussey approximation.
+        :raises ValueError: if the Gaussian quadrature fails to converge in the Tauchen-Hussey approximation.
         """
 
         try:
@@ -3012,11 +3019,16 @@ class MarkovChain(_Model):
     @_object_mark(instance_generator=True)
     def birth_death(p: _tarray, q: _tarray, states: _olist_str = None) -> _tmc:
 
-        """
-        The method generates a birth-death Markov chain of given size and from given probabilities.
+        r"""
+        | The method generates a birth-death Markov chain with transitions between neighboring states:
+        | :math:`P_{ij} = \begin{cases} p_i & j=i+1 \\ q_i & j=i-1 \\ 1-p_i-q_i & j=i \\ 0 & \text{otherwise} \end{cases}`
 
-        :param q: the creation probabilities.
-        :param p: the annihilation probabilities.
+        | **Notes:**
+
+        - The formula describes the interior transitions; at the boundaries, the transition probabilities are renormalized to ensure that each row sums to 1.
+
+        :param p: the birth probabilities.
+        :param q: the death probabilities.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -3052,13 +3064,17 @@ class MarkovChain(_Model):
     def dirichlet_process(size: int, diffusion_factor: int, states: _olist_str = None, diagonal_bias_factor: _ofloat = None, shift_concentration: bool = False, seed: _oint = None) -> _tmc:
 
         """
-        The method generates a Markov chain of given size using a parametrized Dirichlet process.
+        | The method generates a random Markov chain using a parametrized Dirichlet stick-breaking process.
 
-        :param size: the size of the Markov chain.
-        :param diffusion_factor: the diffusion factor of the Dirichlet process.
+        | **Notes:**
+
+        - Transition probabilities are generated independently for each row using a stick-breaking construction.
+
+        :param size: the number of states of the Markov chain.
+        :param diffusion_factor: the concentration parameter of the stick-breaking process.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
-        :param diagonal_bias_factor: the bias factor applied to the diagonal of the transition matrix (*if omitted, no inside-state stability is enforced*).
-        :param shift_concentration: a boolean indicating whether to shift the concentration of the Dirichlet process to the rightmost states.
+        :param diagonal_bias_factor: the parameter controlling the additional diagonal bias (*if omitted, no diagonal bias is applied*).
+        :param shift_concentration: a boolean indicating whether to shift the probability concentration toward the rightmost states.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -3090,17 +3106,20 @@ class MarkovChain(_Model):
     @_object_mark(instance_generator=True)
     def fit_function(quadrature_type: str, possible_states: _tlist_str, f: _ttfunc, quadrature_interval: _ointerval = None) -> _tmc:
 
-        """
-        The method fits a Markov chain using the given transition function and the given quadrature type for the computation of nodes and weights.
+        r"""
+        | The method fits a Markov chain by evaluating the given transition function using numerical quadrature:
+        | :math:`W_{ij} = w_j f(i,x_i,j,x_j)`
+        | :math:`P_{ij} = \frac{W_{ij}}{\sum_k W_{ik}}`
+        | where:
+
+        - :math:`W_{ij}` is the unnormalized transition weight from state :math:`i` to state :math:`j`;
+        - :math:`x_i` and :math:`x_j` are the quadrature nodes;
+        - :math:`w_j` is the quadrature weight associated with node :math:`x_j`.
 
         | **Notes:**
 
-        - The transition function takes the four input arguments below and returns a numeric value:
-
-          - **x_index** an integer value representing the index of the i-th quadrature node;
-          - **x_value** a float value representing the value of the i-th quadrature node;
-          - **y_index** an integer value representing the index of the j-th quadrature node;
-          - **y_value** a float value representing the value of the j-th quadrature node.
+        - The transition function receives four arguments, in order: **x_index**, **x_value**, **y_index** and **y_value**, representing the indices and values of the origin and destination quadrature nodes.
+        - If all transition weights in a row are zero, a uniform transition distribution is assigned.
 
         :param quadrature_type:
          - **gauss-chebyshev** for the Gauss-Chebyshev quadrature;
@@ -3111,9 +3130,9 @@ class MarkovChain(_Model):
          - **trapezoid-rule** for the Trapezoid rule.
         :param possible_states: the possible states of the process.
         :param f: the transition function of the process.
-        :param quadrature_interval: the quadrature interval to use for the computation of nodes and weights (*if omitted, the interval [0, 1] is used*).
+        :param quadrature_interval: the quadrature interval used to compute the nodes and weights (*if omitted, the interval [0, 1] is used*).
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Gauss-Legendre quadrature fails to converge.
+        :raises ValueError: if the transition function returns an invalid value or the Gauss-Legendre quadrature fails to converge.
         """
 
         try:
@@ -3142,17 +3161,24 @@ class MarkovChain(_Model):
     @_object_mark(instance_generator=True)
     def fit_sequence(fitting_type: str, possible_states: _tlist_str, sequence: _tsequence, fitting_param: _tany = None) -> _tmc:
 
-        """
-        The method fits a Markov chain from an observed sequence of states using the specified fitting approach.
+        r"""
+        | The method fits a Markov chain from an observed sequence of states using transition counts:
+        | :math:`c_{ij} = \sum_{t=0}^{T-1}\mathbb{1}_{\{X_t=i,\ X_{t+1}=j\}}` where :math:`c_{ij}` is the number of observed transitions from state :math:`i` to state :math:`j`.
+
+        | **Notes:**
+
+        - The transition probabilities are estimated independently for each origin state.
+        - States with no observed outgoing transitions are assigned a uniform transition distribution.
+        - Maximum-likelihood estimation optionally supports additive smoothing.
 
         :param fitting_type:
-         - **map** for the maximum a posteriori fitting;
-         - **mle** for the maximum likelihood fitting.
+         - **map** for maximum a posteriori estimation;
+         - **mle** for maximum-likelihood estimation.
         :param possible_states: the possible states of the process.
         :param sequence: the observed sequence of states.
         :param fitting_param:
-         | - In the maximum a posteriori fitting, the matrix for the a priori distribution (*if omitted, a default value of 1 is assigned to each matrix element*).
-         | - In the maximum likelihood fitting, a boolean indicating whether to apply a Laplace smoothing to compensate for the unseen transition combinations (*if omitted, the value is set to True*).
+         - For **map**, a matrix of Dirichlet prior parameters (*if omitted, all entries are set to 1*);
+         - For **mle**, a boolean indicating whether to apply additive smoothing (*if omitted, smoothing is disabled*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -3188,11 +3214,17 @@ class MarkovChain(_Model):
     def from_dictionary(d: _tmc_dict_flex) -> _tmc:
 
         """
-        The method generates a Markov chain from the given dictionary, whose keys represent state pairs and whose values represent transition probabilities.
+        | The method generates a Markov chain from a dictionary mapping ordered pairs of states to transition probabilities.
 
-        :param d: the dictionary to transform into the transition matrix.
+        | **Notes:**
+
+        - Missing transitions are assigned probability 0.
+        - The state space is determined by the diagonal entries of the dictionary.
+        - The resulting transition matrix must already be stochastic; no row normalization is performed.
+
+        :param d: the dictionary defining the transition probabilities.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the transition matrix defined by the dictionary is not valid.
+        :raises ValueError: if the resulting transition matrix is not valid.
         """
 
         try:
@@ -3225,9 +3257,7 @@ class MarkovChain(_Model):
     def from_file(file_path: _tpath) -> _tmc:
 
         r"""
-        The method reads a Markov chain from the given file.
-
-        | Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension.
+        | The method reads a Markov chain from a file in **csv**, **json**, **txt** or **xml** format, inferred from its extension.
 
         | In **csv** files, data must be structured as follows:
 
@@ -3302,8 +3332,13 @@ class MarkovChain(_Model):
     def from_graph(graph: _tgraphs) -> _tmc:
 
         """
-        The method generates a Markov chain from the given directed graph, whose transition matrix is obtained through the normalization of edge weights.
+        | The method generates a Markov chain from a directed graph by normalizing its edge weights into transition probabilities.
 
+        | **Notes:**
+
+        - Nodes with zero total outgoing weight are assigned a uniform transition distribution.
+
+        :param graph: the directed graph defining the Markov chain.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -3345,7 +3380,11 @@ class MarkovChain(_Model):
     def from_matrix(m: _tnumeric, states: _olist_str = None) -> _tmc:
 
         """
-        The method generates a Markov chain whose transition matrix is obtained through the normalization of the given matrix.
+        | The method generates a Markov chain by normalizing the rows of the given matrix into transition probabilities.
+
+        | **Notes:**
+
+        - Rows with a zero sum are replaced by uniform transition distributions.
 
         :param m: the matrix to transform into the transition matrix.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
@@ -3382,11 +3421,12 @@ class MarkovChain(_Model):
     @_object_mark(instance_generator=True)
     def gamblers_ruin(size: int, w: float, states: _olist_str = None) -> _tmc:
 
-        """
-        The method generates a gambler's ruin Markov chain of given size and win probability.
+        r"""
+        | The method generates a gambler's ruin Markov chain:
+        | :math:`P_{ij} = \begin{cases} 1 & i=j\in\{0,n-1\} \\ w & 0<i<n-1,\ j=i+1 \\ 1-w & 0<i<n-1,\ j=i-1 \\ 0 & \text{otherwise} \end{cases}`
 
-        :param size: the size of the Markov chain.
-        :param w: the win probability.
+        :param size: the number of states of the Markov chain.
+        :param w: the probability of winning each game.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -3415,10 +3455,11 @@ class MarkovChain(_Model):
     @_object_mark(instance_generator=True)
     def identity(size: int, states: _olist_str = None) -> _tmc:
 
-        """
-        The method generates a Markov chain of given size based on an identity transition matrix.
+        r"""
+        | The method generates a Markov chain with an identity transition matrix:
+        | :math:`P=I`
 
-        :param size: the size of the Markov chain.
+        :param size: the number of states of the Markov chain.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -3441,7 +3482,14 @@ class MarkovChain(_Model):
     def population_genetics_model(model: str, n: int, s: float = 0.0, u: float = 1.0e-9, v: float = 1.0e-9, states: _olist_str = None) -> _tmc:
 
         """
-        The method generates a Markov chain based on the specified population genetics model.
+        | The method generates a population genetics Markov chain according to the specified model.
+
+        | **Notes:**
+
+        - The state space represents allele counts from 0 to **n**, resulting in **n + 1** states.
+        - The boundary states, corresponding to fixation and loss of the allele, are absorbing.
+        - The Moran model permits changes of at most one allele count per transition.
+        - The Wright-Fisher model uses binomially distributed allele counts in each generation.
 
         :param model:
          - **moran** for the Moran model;
@@ -3485,16 +3533,17 @@ class MarkovChain(_Model):
     def random(size: int, states: _olist_str = None, zeros: int = 0, mask: _onumeric = None, seed: _oint = None) -> _tmc:
 
         """
-        The method generates a Markov chain of given size with random transition probabilities.
+        | The method generates a Markov chain with random transition probabilities, optionally subject to fixed values and zero-probability constraints.
 
         | **Notes:**
 
-        - In the mask parameter, undefined transition probabilities are represented by *NaN* values.
+        - In the mask, *NaN* entries represent unspecified transition probabilities.
+        - Specified mask entries remain fixed, while the remaining probability mass is distributed among unspecified entries.
 
-        :param size: the size of the Markov chain.
+        :param size: the number of states of the Markov chain.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
-        :param zeros: the number of null transition probabilities.
-        :param mask: a matrix representing locations and values of fixed transition probabilities.
+        :param zeros: the number of additional zero transition probabilities.
+        :param mask: a matrix specifying fixed transition probabilities and unspecified entries.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -3531,18 +3580,17 @@ class MarkovChain(_Model):
     def random_distribution(size: int, f: _trandfunc_flex, states: _olist_str = None, seed: _oint = None, **kwargs) -> _tmc:
 
         r"""
-        The method generates a Markov chain of given size using draws from a `Numpy <https://numpy.org/>`_ random distribution function.
+        | The method generates a random Markov chain by sampling transition weights from a NumPy random distribution and normalizing them row-wise.
 
         | **Notes:**
 
-        - *NaN* values are replaced with zeros
-        - Infinite values are replaced with finite numbers.
+        - *NaN* values are replaced with zero.
+        - Infinite values are replaced with finite values.
         - Negative values are clipped to zero.
-        - In transition matrix rows with no positive values the states are assumed to be uniformly distributed.
-        - In light of the above points, random distribution functions must be carefully parametrized.
+        - Rows containing no positive weights are assigned uniform transition probabilities.
 
-        :param size: the size of the Markov chain.
-        :param f: the Numpy random distribution function or the name of the Numpy random distribution function.
+        :param size: the number of states of the Markov chain.
+        :param f: the NumPy random distribution function or its name.
         :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :param \**kwargs: additional arguments passed to the random distribution function.
@@ -3576,7 +3624,13 @@ class MarkovChain(_Model):
     def urn_model(model: str, n: int, states: _olist_str = None) -> _tmc:
 
         """
-        The method generates a Markov chain of size **2N + 1** based on the specified urn model.
+        | The method generates a Markov chain based on the specified urn model, with **2n + 1** states.
+
+        | **Notes:**
+
+        - The Ehrenfest model changes the state by one at each transition.
+        - The Bernoulli-Laplace model permits transitions to neighboring states or remaining in the current state.
+        - Both models have reflecting boundaries.
 
         :param model:
          - **bernoulli-laplace** for the Bernoulli-Laplace urn model;
