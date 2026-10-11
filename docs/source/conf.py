@@ -136,6 +136,7 @@ autodoc_typehints_format = 'short'
 
 set_type_checking_flag = True
 simplify_optional_unions = False
+always_use_bars_union = True
 typehints_fully_qualified = False
 typehints_use_rtype = False
 
@@ -228,43 +229,6 @@ class _SphinxPostTransformDocutilsFixes(_sppt.SphinxPostTransform):
                 field_body = _dun.field_body('', _dun.paragraph('', '', node_paragraph_inline))
                 field = _dun.field('', field_name, field_body)
                 node_desc_content.append(_dun.field_list('', field))
-
-        for node in self.document.findall(_san.pending_xref):
-
-            if not node.hasattr('reftarget'):
-                continue
-
-            ref_target = node['reftarget']
-
-            if not ref_target.startswith('typing.Union`[:py:class:`'):
-                continue
-
-            node_parent = node.parent
-            node_index = node_parent.index(node)
-
-            other_type = ref_target.replace('typing.Union`[:py:class:`', '')
-
-            if other_type.startswith('~'):
-                other_type = other_type[1:]
-                other_text = other_type.split('.')[-1]
-            else:
-                other_text = other_type
-
-            pending_xref_new = node.deepcopy()
-            pending_xref_new['reftarget'] = 'typing.Union'
-            pending_xref_new['reftype'] = 'data'
-            pending_xref_new[0]['classes'] = ['xref', 'py', 'py-data']
-            pending_xref_new[0][0] = _dun.Text('Union')
-
-            pending_xref_other = node.deepcopy()
-            pending_xref_other['reftarget'] = other_type
-            pending_xref_other['reftype'] = 'class'
-            pending_xref_other[0]['classes'] = ['xref', 'py', 'py-class']
-            pending_xref_other[0][0] = _dun.Text(other_text)
-
-            node_parent.replace(node, pending_xref_new)
-            node_parent.insert(node_index + 1, _dun.Text('  ['))
-            node_parent.insert(node_index + 2, pending_xref_other)
 
 
 class _SphinxPostTransformConstructors(_sppt.SphinxPostTransform):
@@ -423,6 +387,33 @@ class _SphinxPostTransformReturnTypes(_sppt.SphinxPostTransform):
 # FUNCTIONS #
 #############
 
+def _hook_autodoc_before_process_signature(app, obj, bound_method):
+
+    import pydtmc.assessments as assessments
+    import pydtmc.plotting as plotting
+
+    from pydtmc.hidden_markov_model import HiddenMarkovModel
+    from pydtmc.markov_chain import MarkovChain
+
+    assessments.__dict__.setdefault('MarkovChain', MarkovChain)
+    plotting.__dict__.setdefault('HiddenMarkovModel', HiddenMarkovModel)
+    plotting.__dict__.setdefault('MarkovChain', MarkovChain)
+
+
+def _hook_missing_reference(app, env, node, contnode):
+
+    if node.get('refdomain') == 'py' and node.get('reftarget') == 'typing.Union':
+
+        return _dun.reference(
+            '',
+            '',
+            contnode,
+            refuri='https://docs.python.org/3/library/typing.html#typing.Union'
+        )
+
+    return None
+
+
 def _hook_builder_inited(app):
 
     inventories = _spei.InventoryAdapter(app.builder.env)
@@ -461,4 +452,6 @@ def setup(app):
     app.add_post_transform(_SphinxPostTransformLists)
     app.add_post_transform(_SphinxPostTransformProperties)
 
+    app.connect('autodoc-before-process-signature', _hook_autodoc_before_process_signature)
     app.connect('builder-inited', _hook_builder_inited)
+    app.connect('missing-reference', _hook_missing_reference)

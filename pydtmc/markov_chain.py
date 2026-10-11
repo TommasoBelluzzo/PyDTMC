@@ -2080,7 +2080,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - When `output_last` is :py:class:`False`, the method returns the state distributions from time 0 through *N*, including the initial distribution.
+        - When `output_last` is :py:obj:`False`, the method returns the state distributions from time 0 through *N*, including the initial distribution.
         - The returned distributions can be summed to obtain the expected number of visits to each state over the finite horizon.
 
         :param steps: the number of steps.

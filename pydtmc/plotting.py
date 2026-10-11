@@ -135,8 +135,14 @@ def _noninteractive(func):
 
     @_ft.wraps(func)
     def wrapper(*args, **kwargs):
-        with _mplp.ioff():
+
+        mpi = _mplp.isinteractive()
+        _mplp.interactive(False)
+
+        try:
             return func(*args, **kwargs)
+        finally:
+            _mplp.interactive(mpi)
 
     return wrapper
 
