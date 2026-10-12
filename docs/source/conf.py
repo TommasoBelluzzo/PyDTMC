@@ -469,7 +469,7 @@ class _SphinxPostTransformReturnTypes(_sppt.SphinxPostTransform):
 #############
 
 # noinspection PyUnusedLocal
-def _hook_autodoc_before_process_signature(app, obj, bound_method):
+def _hook_autodoc_before_process_signature(app, obj, bound_method):  # pylint: disable=unused-argument
 
     from pydtmc import assessments
     from pydtmc import plotting
@@ -483,7 +483,7 @@ def _hook_autodoc_before_process_signature(app, obj, bound_method):
 
 
 # noinspection PyUnusedLocal
-def _hook_missing_reference(app, env, node, contnode):
+def _hook_missing_reference(app, env, node, contnode):  # pylint: disable=unused-argument
 
     if node.get('refdomain') == 'py' and node.get('reftarget') == 'typing.Union':
         return _dun.reference('', '', contnode, refuri='https://docs.python.org/3/library/typing.html#typing.Union')
