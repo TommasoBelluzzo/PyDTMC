@@ -227,10 +227,10 @@
     },
     {
       "possible_states": ["A", "B", "C"],
-      "sequence": ["A", "B", "B", "C", "A", "B", "A", "B", "B", "A", "B", "B", "A", "A", "C", "C", "B", "B", "A", "C", "B", "B", "A", "C", "C", "B", "B"],
+      "sequence": ["A", "A", "B", "A", "B", "B", "A", "A", "B", "C"],
       "method": "simulation",
-      "significance": 0.10,
-      "value": [true, 0.00990099, 20.64666667, 12]
+      "significance": 0.05,
+      "value": [null, "NaN", 2.66666667, 3]
     }
   ],
   "assess_theoretical_compatibility_data": [
