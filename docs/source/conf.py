@@ -232,7 +232,6 @@ class _SphinxPostTransformDocutilsFixes(_sppt.SphinxPostTransform):
                 node_desc_content.append(_dun.field_list('', field))
 
 
-
 class _SphinxPostTransformConstructors(_sppt.SphinxPostTransform):
 
     """

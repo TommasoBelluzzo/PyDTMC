@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    'assess_first_order',
     'assess_homogeneity',
     'assess_markov_property',
-    'assess_stationarity',
-    'assess_theoretical_compatibility'
+    'assess_theoretical_compatibility',
+    'assess_time_homogeneity'
 ]
 
 
@@ -15,9 +14,7 @@ __all__ = [
 
 # Standard
 
-import copy as _cp
 import inspect as _ins
-import math as _mt
 
 # Libraries
 
@@ -26,11 +23,8 @@ import scipy.stats as _sps
 
 # Internal
 
-from .computations import (
-    chi2_contingency as _chi2_contingency
-)
-
 from .custom_types import (
+    oint as _oint,
     tlist_str as _tlist_str,
     tmc as _tmc,
     tsequence as _tsequence,
@@ -38,15 +32,13 @@ from .custom_types import (
     ttest as _ttest
 )
 
-from .fitting import (
-    mc_fit_sequence as _fit_sequence
-)
-
 from .utilities import (
+    create_rng as _create_rng,
     create_validation_error as _create_validation_error
 )
 
 from .validation import (
+    validate_enumerator as _validate_enumerator,
     validate_float as _validate_float,
     validate_integer as _validate_integer,
     validate_labels_input as _validate_labels_input,
@@ -55,72 +47,25 @@ from .validation import (
     validate_sequences as _validate_sequences
 )
 
+
 #############
 # FUNCTIONS #
 #############
 
-
-# noinspection PyBroadException
-def assess_first_order(possible_states: _tlist_str, sequence: _tsequence, significance: float = 0.05) -> _ttest:
-
-    """
-    The function verifies whether the given sequence can be associated to a first-order Markov process.
-
-    :param possible_states: the possible states of the process.
-    :param sequence: the observed sequence of states.
-    :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
-    :raises ValidationError: if any input argument is not compliant.
-    """
-
-    try:
-
-        possible_states = _validate_labels_input(possible_states)
-        sequence = _validate_sequence(sequence, possible_states)
-        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
-
-    except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
-
-    sequence_indices, sequence_labels = _cp.deepcopy(sequence), [possible_states[state] for state in sequence]
-    k, n = len(sequence) - 2, len(possible_states)
-
-    chi2 = 0.0
-
-    for state in possible_states:
-
-        ct = _np.zeros((n, n), dtype=float)
-
-        for i in range(k):
-            if state == sequence_labels[i + 1]:
-                p = sequence_indices[i]
-                f = sequence_indices[i + 2]
-                ct[p, f] += 1
-
-        try:
-            ct_chi2, _ = _chi2_contingency(ct)
-        except Exception:
-            ct_chi2 = float('nan')
-
-        if _mt.isnan(ct_chi2):
-            return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
-
-        chi2 += ct_chi2
-
-    dof = n * (n - 1)**2
-    p_value = 1.0 - _sps.chi2.cdf(chi2, dof)
-    rejection = p_value < significance
-
-    return rejection, p_value, {'chi2': chi2, 'dof': dof}
-
-
 def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, significance: float = 0.05) -> _ttest:
 
-    """
-    The function verifies whether the given sequences belong to the same Markov process.
+    r"""
+    | The function assesses whether the given sequences share the same transition probabilities:
+    | :math:`H_0: P_{ij}^{(s)} = P_{ij}` for every sequence :math:`s` and pair of states :math:`i,j`.
 
-    :param possible_states: the possible states of the process.
+    | **Notes:**
+
+    - The assessment uses a likelihood-ratio (G) test, comparing transition frequencies across the sequences.
+    - If the test has zero degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+
+    :param possible_states: the possible states of the processes.
     :param sequences: the observed sequences of states.
-    :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
+    :param significance: the p-value significance threshold below which to reject the null hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -135,24 +80,7 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, sign
 
     k, n = len(sequences), len(possible_states)
 
-    intersections_found = []
-
-    for i in range(k):
-        sequence_i = sequences[i]
-
-        for j in range(k):
-            sequence_j = sequences[j]
-
-            if i != j:
-                intersection = list(set(sequence_i) & set(sequence_j))
-                intersection_found = len(intersection) > 0
-                intersections_found.append(intersection_found)
-
-    if not any(intersections_found):
-        return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
-
-    fs = []
-    f_pooled = _np.zeros((n, n), dtype=float)
+    fs, f_pooled = [], _np.zeros((n, n), dtype=float)
 
     for sequence in sequences:
 
@@ -164,208 +92,181 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, sign
         fs.append(f)
         f_pooled += f
 
-    f_pooled_transitions = _np.sum(f_pooled)
+    statistic, dof = 0.0, 0
 
-    chi2 = 0.0
+    for i in range(n):
 
-    for f in fs:
+        f_pooled_i = _np.sum(f_pooled[i, :])
 
-        f_transitions = _np.sum(f)
+        if f_pooled_i == 0.0:
+            continue
 
-        for i in range(n):
+        active_sequences = 0
+
+        for f in fs:
+
+            f_i = _np.sum(f[i, :])
+
+            if f_i == 0.0:
+                continue
+
+            active_sequences += 1
+
             for j in range(n):
 
                 f_ij = f[i, j]
                 f_pooled_ij = f_pooled[i, j]
 
-                if f_ij > 0.0 and f_pooled_ij > 0.0:
-                    chi2 += f_ij * _np.log((f_pooled_transitions * f_ij) / (f_transitions * f_pooled_ij))
+                if f_ij > 0.0:
+                    statistic += f_ij * _np.log((f_pooled_i * f_ij) / (f_i * f_pooled_ij))
 
-    chi2 *= 2.0
-    dof = (n * (n - 1)) * (k - 1)
-    p_value = 1.0 - _sps.chi2.cdf(chi2, dof)
+        active_destinations = int(_np.count_nonzero(f_pooled[i, :]))
+        dof += (active_sequences - 1) * (active_destinations - 1)
+
+    statistic = float(statistic * 2.0)
+
+    if dof == 0:
+        return None, float('nan'), {'statistic': statistic, 'dof': dof}
+
+    p_value = float(_sps.chi2.sf(statistic, dof))
     rejection = p_value < significance
 
-    return rejection, p_value, {'chi2': chi2, 'dof': dof}
+    return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, significance: float = 0.05) -> _ttest:
+def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _ttest:
 
-    """
-    The function verifies whether the given sequence holds the Markov property.
+    r"""
+    | The function verifies whether the given sequence is compatible with a first-order Markov process:
+    | :math:`H_0: \mathbb{P}(X_{t+1}=k \mid X_t=j, X_{t-1}=i) = \mathbb{P}(X_{t+1}=k \mid X_t=j)`
+
+    | **Notes:**
+
+    - Both methods use Pearson's chi-squared statistic.
+    - If the test has zero degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+    - The simulation method also returns an undefined result if an observed state has no outgoing transitions.
 
     :param possible_states: the possible states of the process.
     :param sequence: the observed sequence of states.
-    :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
+    :param method:
+     - **asymptotic** for p-values computed from the asymptotic chi-squared distribution;
+     - **simulation** for p-values estimated through Monte Carlo simulation under a fitted first-order Markov model.
+    :param significance: the p-value significance threshold below which to reject the null hypothesis.
+    :param simulations: the number of Monte Carlo simulations (*at least 10; used only with the simulation method*).
+    :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    def _fnp_iteration(fnp_row, fnp_n1, fnp_n2, fnp_c, fnp_p):
+    def _pearson_statistic(ps_n, ps_sequence):
 
-        a = fnp_n1[fnp_row, 0]
-        b = fnp_n1[fnp_row, 1]
-        c = fnp_n1[fnp_row, 2]
+        counts = _np.zeros((ps_n, ps_n, ps_n), dtype=int)
 
-        p_jk = fnp_p[b, c]
+        for k in range(len(ps_sequence) - 2):
+            counts[ps_sequence[k], ps_sequence[k + 1], ps_sequence[k + 2]] += 1
 
-        m1 = _np.argwhere(fnp_n2[:, 0] == a) + 1
-        m2 = _np.argwhere(fnp_n2[:, 1] == b) + 1
-        m = _np.ravel(_np.concatenate([m1, m2]))
+        ps_statistic, ps_dof = 0.0, 0
 
-        k = _np.setdiff1d(_np.arange(m.size), _np.unique(m, return_index=True)[1]).item()
-        m_k = m[k]
+        for state in range(ps_n):
 
-        result = fnp_c[m_k - 1] * p_jk
+            ct = counts[:, state, :]
+            ct = ct[_np.sum(ct, axis=1) > 0, :]
+            ct = ct[:, _np.sum(ct, axis=0) > 0]
 
-        return result
+            r, c = ct.shape[0], ct.shape[1]
 
-    def _sorted_counts(sc_set):
+            if r < 2 or c < 2:
+                continue
 
-        sf = _np.fliplr(sc_set)
-        sfu = _np.unique(sf, axis=0)
+            row_totals = _np.sum(ct, axis=1)
+            column_totals = _np.sum(ct, axis=0)
 
-        a = [".".join(item) for item in (sf + 1).astype(str)]
-        b = sorted([".".join(item) for item in (sfu + 1).astype(str)])
-        indices = [a.index(x) for x in b]
-        indices_length = len(indices)
+            expected = _np.outer(row_totals, column_totals) / _np.sum(ct)
 
-        sts = sc_set[indices, :]
-        so = _np.zeros(indices_length, dtype=int)
+            ps_statistic += float(_np.sum((ct - expected)**2.0 / expected))
+            ps_dof += (r - 1) * (c - 1)
 
-        for k in range(indices_length):
-            so[k] = _np.sum(_np.all(sc_set == sts[k, :], axis=1))
+        ps_statistic = float(ps_statistic)
 
-        return sts, so
+        return ps_statistic, ps_dof
 
     try:
 
+        rng = _create_rng(seed)
         possible_states = _validate_labels_input(possible_states)
         sequence = _validate_sequence(sequence, possible_states)
+        method = _validate_enumerator(method, ['asymptotic', 'simulation'])
         significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+        simulations = _validate_integer(simulations, lower_limit=(10, False))
 
     except Exception as ex:  # pragma: no cover
         raise _create_validation_error(ex, _ins.trace()) from None
 
-    p, _ = _fit_sequence('mle', False, possible_states, sequence)
+    n, length = len(possible_states), len(sequence)
 
-    sequence_indices, sequence_labels = _cp.deepcopy(sequence), [possible_states[state] for state in sequence]
-    sequence_length = len(sequence)
+    statistic, dof = _pearson_statistic(n, sequence)
 
-    sample_length = sequence_length - (sequence_length % 3)
-    sample = sequence_indices[:sample_length]
-    c1 = sample[0:(sample_length - 2)]
-    c2 = sample[1:(sample_length - 1)]
-    c3 = sample[2:sample_length]
+    if dof == 0:
+        return None, float('nan'), {'statistic': statistic, 'dof': dof}
 
-    set3 = _np.transpose(_np.array([c1, c2, c3]))
-    sts3, so3 = _sorted_counts(set3)
+    if method == 'asymptotic':
+        p_value = float(_sps.chi2.sf(statistic, dof))
+    else:
 
-    set2 = _np.transpose(_np.array([c1, c2]))
-    sts2, s02 = _sorted_counts(set2)
+        transitions = _np.zeros((n, n), dtype=int)
 
-    chi2 = 0.0
+        for i in range(length - 1):
+            transitions[sequence[i], sequence[i + 1]] += 1
 
-    for i in range(so3.size):
-        fnp = _fnp_iteration(i, sts3, sts2, s02, p)
-        chi2 += ((so3[i] - fnp)**2.0) / fnp
+        total_transitions = _np.sum(transitions, axis=1)
 
-    doubles = [f'{sequence_labels[i]}{sequence_labels[i + 1]}' for i in range(sequence_length - 1)]
-    triples = [f'{sequence_labels[i]}{sequence_labels[i + 1]}{sequence_labels[i + 2]}' for i in range(sequence_length - 2)]
-    dof = len(set(triples)) - len(set(doubles)) + len(set(sequence_labels)) - 1
+        observed_states = _np.unique(sequence)
 
-    p_value = 0.0 if dof == 0 else 1.0 - _sps.chi2.cdf(chi2, dof)
+        if _np.any(total_transitions[observed_states] == 0):
+            return None, float('nan'), {'statistic': statistic, 'dof': dof}
+
+        probabilities = _np.zeros((n, n), dtype=float)
+
+        active_transitions = total_transitions > 0
+        probabilities[active_transitions, :] = transitions[active_transitions, :] / total_transitions[active_transitions, _np.newaxis]
+
+        exceedances = 0
+
+        for _ in range(simulations):
+
+            simulated_sequence = _np.empty(length, dtype=int)
+            simulated_sequence[0] = sequence[0]
+
+            for i in range(1, length):
+                simulated_sequence[i] = rng.choice(n, p=probabilities[simulated_sequence[i - 1], :])
+
+            simulated_statistic, _ = _pearson_statistic(n, simulated_sequence)
+
+            if simulated_statistic >= statistic:
+                exceedances += 1
+
+        p_value = (exceedances + 1) / (simulations + 1)
+
+    p_value = float(p_value)
     rejection = p_value < significance
 
-    return rejection, p_value, {'chi2': chi2, 'dof': dof}
-
-
-def assess_stationarity(possible_states: _tlist_str, sequence: _tsequence, blocks: int = 1, significance: float = 0.05) -> _ttest:
-
-    """
-    The function verifies whether the given sequence is stationary.
-
-    :param possible_states: the possible states of the process.
-    :param sequence: the observed sequence of states.
-    :param blocks: the number of blocks in which the sequence is divided.
-    :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
-    :raises ValidationError: if any input argument is not compliant.
-    """
-
-    # noinspection PyBroadException
-    def _chi2_contingency_inner(cc_ct):  # pragma: no cover
-
-        try:
-            v, _ = _chi2_contingency(cc_ct)
-        except Exception:
-            v = float('nan')
-
-        return v
-
-    # noinspection PyBroadException
-    def _chi2_standard_inner(cs_ct):  # pragma: no cover
-
-        try:
-            v, _ = _sps.chisquare(_np.ravel(cs_ct))
-        except Exception:
-            v = float('nan')
-
-        return v
-
-    try:
-
-        possible_states = _validate_labels_input(possible_states)
-        sequence = _validate_sequence(sequence, possible_states)
-        blocks = _validate_integer(blocks, lower_limit=(1, False))
-        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
-
-    except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
-
-    sequence_indices, sequence_labels = _cp.deepcopy(sequence), [possible_states[state] for state in sequence]
-    k, n = len(sequence), len(possible_states)
-
-    iters = k - 1
-    block_size = float(k) / blocks
-    adjustment = 1.0 / n
-    chi2_func = _chi2_standard_inner if blocks == 1 else _chi2_contingency_inner
-
-    chi2 = 0.0
-
-    for state in possible_states:
-
-        ct = _np.zeros((blocks, n), dtype=float)
-
-        for i in range(iters):
-            if sequence_labels[i] == state:
-                p = _mt.ceil((i + 1) / block_size) - 1
-                f = sequence_indices[i + 1]
-                ct[p, f] += 1.0
-
-        ct[_np.argwhere(_np.sum(ct, axis=1) == 0.0), :] = adjustment
-        ct /= _np.sum(ct, axis=1, keepdims=True)
-
-        ct_chi2 = chi2_func(ct)
-
-        if _mt.isnan(ct_chi2):
-            return None, float('nan'), {'chi2': float('nan'), 'dof': float('nan')}
-
-        chi2 += ct_chi2
-
-    dof = n * (n - 1) * (blocks - 1)
-    p_value = 0.0 if dof == 0 else 1.0 - _sps.chi2.cdf(chi2, dof)
-    rejection = p_value < significance
-
-    return rejection, p_value, {'chi2': chi2, 'dof': dof}
+    return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
 def assess_theoretical_compatibility(mc: _tmc, sequence: _tsequence, significance: float = 0.05) -> _ttest:
 
-    """
-    The function verifies whether the given empirical sequence is statistically compatible with the given theoretical Markov process.
+    r"""
+    | The function assesses whether the given sequence is compatible with the transition probabilities of the specified Markov chain:
+    | :math:`H_0: \mathbb{P}(X_{t+1}=j \mid X_t=i) = P_{ij}` for every state pair :math:`i,j`.
 
-    :param mc: a Markov chain representing the theoretical process.
+    | **Notes:**
+
+    - The assessment uses a likelihood-ratio (G) test against the theoretical transition probabilities.
+    - An observed transition with zero theoretical probability results in rejection with a zero p-value.
+    - If the test has zero degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+
+    :param mc: the Markov chain representing the theoretical process.
     :param sequence: the observed sequence of states.
-    :param significance: the p-value significance threshold below which to accept the alternative hypothesis.
+    :param significance: the p-value significance threshold below which to reject the null hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -384,27 +285,102 @@ def assess_theoretical_compatibility(mc: _tmc, sequence: _tsequence, significanc
     for i, j in zip(sequence[:-1], sequence[1:]):
         f[i, j] += 1
 
-    if _np.all(f[p == 0.0] == 0):
+    if _np.any(f[p == 0.0] > 0):
+        return True, 0.0, {'statistic': float('inf'), 'dof': float('nan')}
 
-        chi2 = 0.0
+    statistic, dof = 0.0, 0
 
-        for i in range(n):
+    for i in range(n):
 
-            f_i = _np.sum(f[:, i])
+        f_i = _np.sum(f[i, :])
 
-            for j in range(n):
+        if f_i == 0:
+            continue
 
-                p_ij = p[i, j]
-                f_ij = f[i, j]
+        dof += int(_np.count_nonzero(p[i, :]) - 1)
 
-                if p_ij > 0.0 and f_ij > 0:
-                    chi2 += f_ij * _np.log(f_ij / (f_i * p_ij))
+        for j in range(n):
 
-        chi2 *= 2.0
-        dof = (n * (n - 1)) - (n**2 - _np.count_nonzero(p))
-        p_value = 1.0 - _sps.chi2.cdf(chi2, dof)
-        rejection = p_value < significance
+            p_ij = p[i, j]
+            f_ij = f[i, j]
 
-        return rejection, p_value, {'chi2': chi2, 'dof': dof}
+            if p_ij > 0.0 and f_ij > 0:
+                statistic += f_ij * _np.log(f_ij / (f_i * p_ij))
 
-    return True, 0.0, {'chi2': float('nan'), 'dof': float('nan')}
+    statistic = float(statistic * 2.0)
+
+    if dof == 0:
+        return None, float('nan'), {'statistic': statistic, 'dof': dof}
+
+    p_value = float(_sps.chi2.sf(statistic, dof))
+    rejection = p_value < significance
+
+    return rejection, p_value, {'statistic': statistic, 'dof': dof}
+
+
+def assess_time_homogeneity(possible_states: _tlist_str, sequence: _tsequence, blocks: int = 2, significance: float = 0.05) -> _ttest:
+
+    r"""
+    | The function assesses whether the transition probabilities of the given sequence remain constant across consecutive time blocks:
+    | :math:`H_0: P_{ij}^{(b)} = P_{ij}` for every block :math:`b` and pair of states :math:`i,j`.
+
+    | **Notes:**
+
+    - The assessment uses Pearson's chi-squared test on the transition frequencies of the blocks.
+    - Time-homogeneity concerns transition probabilities and does not imply a stationary state distribution.
+    - If the test has zero degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+
+    :param possible_states: the possible states of the process.
+    :param sequence: the observed sequence of states.
+    :param blocks: the number of consecutive blocks in which the observed transitions are divided (*at least two*).
+    :param significance: the p-value significance threshold below which to reject the null hypothesis.
+    :raises ValidationError: if any input argument is not compliant.
+    """
+
+    try:
+
+        possible_states = _validate_labels_input(possible_states)
+        sequence = _validate_sequence(sequence, possible_states)
+        blocks = _validate_integer(blocks, lower_limit=(2, False))
+        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+
+    except Exception as ex:  # pragma: no cover
+        raise _create_validation_error(ex, _ins.trace()) from None
+
+    k, n = len(sequence), len(possible_states)
+
+    iterations = k - 1
+    statistic, dof = 0.0, 0
+
+    for state in range(n):
+
+        ct = _np.zeros((blocks, n), dtype=float)
+
+        for i in range(iterations):
+            if sequence[i] == state:
+                b = (i * blocks) // iterations
+                f = sequence[i + 1]
+                ct[b, f] += 1.0
+
+        ct = ct[_np.sum(ct, axis=1) > 0.0, :]
+        ct = ct[:, _np.sum(ct, axis=0) > 0.0]
+
+        r, c = ct.shape
+
+        if (r < 2) or (c < 2):
+            continue
+
+        expected = _np.outer(_np.sum(ct, axis=1), _np.sum(ct, axis=0)) / _np.sum(ct)
+
+        statistic += _np.sum((ct - expected)**2.0 / expected)
+        dof += (r - 1) * (c - 1)
+
+    statistic = float(statistic)
+
+    if dof == 0:
+        return None, float('nan'), {'statistic': statistic, 'dof': dof}
+
+    p_value = float(_sps.chi2.sf(statistic, dof))
+    rejection = p_value < significance
+
+    return rejection, p_value, {'statistic': statistic, 'dof': dof}

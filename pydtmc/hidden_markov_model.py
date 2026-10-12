@@ -451,8 +451,8 @@ class HiddenMarkovModel(_Model):
 
         :param steps: the number of steps.
         :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
-        :param final_state: the final state of the simulation (*if specified, the simulation stops as soon as it is reached even if not all the steps have been performed*).
-        :param final_symbol: the final state of the simulation (*if specified, the simulation stops as soon as it is reached even if not all the steps have been performed*).
+        :param final_state: the final state of the simulation (*if specified, the simulation stops as soon as it is reached*).
+        :param final_symbol: the final state of the simulation (*if specified, the simulation stops as soon as it is reached*).
         :param output_indices: a boolean indicating whether to output the state indices.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.

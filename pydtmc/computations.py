@@ -2,7 +2,6 @@
 
 __all__ = [
     'calculate_periods',
-    'chi2_contingency',
     'eigenvalues_sorted',
     'find_cyclic_classes',
     'find_lumping_partitions',
@@ -116,38 +115,6 @@ def calculate_periods(graph: _tgraph) -> _tlist_int:
         periods[index] = _calculate_period(graph.subgraph(scc))
 
     return periods
-
-
-def chi2_contingency(observed: _tarray, correction: bool = True) -> _ttest_chi2:
-
-    observed = observed.astype(float)
-
-    if _np.any(observed < 0.0):  # pragma: no cover
-        raise ValueError('The table of observed frequencies must contain only non-negative values.')
-
-    marginals_rows = _np.sum(observed, axis=1, keepdims=True)
-    marginals_columns = _np.sum(observed, axis=0, keepdims=True)
-    expected = _np.dot(marginals_rows, marginals_columns) / _np.sum(observed)
-
-    if _np.any(expected == 0.0):  # pragma: no cover
-        raise ValueError('The internally computed table of expected frequencies contains null elements.')
-
-    dof = expected.size - sum(expected.shape) + 1
-
-    if dof == 0:  # pragma: no cover
-        chi2, p_value = 0.0, 1.0
-    else:
-
-        if correction and dof == 1:
-            diff = expected - observed
-            direction = _np.sign(diff)
-            magnitude = _np.minimum(0.5, _np.abs(diff))
-            observed = observed + (magnitude * direction)
-
-        chi2 = _np.sum((observed - expected)**2.0 / expected)
-        p_value = _sps.chi2.sf(chi2, dof - 2)
-
-    return chi2, p_value
 
 
 def eigenvalues_sorted(m: _tarray) -> _tarray:
