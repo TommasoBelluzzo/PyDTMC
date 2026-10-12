@@ -26,7 +26,6 @@ import math as _mt
 import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
-import scipy.stats as _sps
 
 # Internal
 
@@ -41,8 +40,7 @@ from .custom_types import (
     tlist_int as _tlist_int,
     tlists_int as _tlists_int,
     tpartitions as _tpartitions,
-    trdl as _trdl,
-    ttest_chi2 as _ttest_chi2
+    trdl as _trdl
 )
 
 

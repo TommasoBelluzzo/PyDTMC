@@ -41,6 +41,9 @@ __all__ = [
     'tlists_int', 'olists_int',
     'tlists_str', 'olists_str',
     # Compound Types - Generic
+    'tass_cp', 'oass_cp',
+    'tass_ord', 'oass_ord',
+    'tass_stat', 'oass_stat',
     'tcache', 'ocache',
     'tdtype', 'odtype',
     'tedge_attributes', 'oedge_attributes',
@@ -54,8 +57,6 @@ __all__ = [
     'trandfunc', 'orandfunc',
     'trandfunc_flex', 'orandfunc_flex',
     'trdl', 'ordl',
-    'ttest', 'otest',
-    'ttest_chi2', 'otest_chi2',
     # Compound Types - Specific
     'tbcond', 'obcond',
     'tfitting_res', 'ofitting_res',
@@ -231,14 +232,20 @@ olists_str = _tp.Optional[tlists_str]
 
 # Compound Types - Generic
 
+tass_cp = _tp.Tuple[oint, float, float]
+oass_cp = _tp.Optional[tass_cp]
+
+tass_ord = _tp.Tuple[int, _tp.Dict[int, float]]
+oass_ord = _tp.Optional[tass_ord]
+
+tass_stat = _tp.Tuple[obool, float, _tp.Dict[str, tany]]
+oass_stat = _tp.Optional[tass_stat]
+
 tcache = _tp.Dict[str, tany]
 ocache = _tp.Optional[tcache]
 
 tdtype = _tp.Union[object, str]
 odtype = _tp.Optional[tdtype]
-
-tedge_attributes = _tp.List[_tp.Tuple[str, _tp.Tuple[str, ...]]]
-oedge_attributes = _tp.Optional[tedge_attributes]
 
 tfile = _tp.Tuple[tpath, str]
 ofile = _tp.Optional[tfile]
@@ -267,14 +274,11 @@ orandfunc = _tp.Optional[trandfunc]
 trandfunc_flex = _tp.Union[_tp.Callable, str]
 orandfunc_flex = _tp.Optional[trandfunc_flex]
 
+tedge_attributes = _tp.List[_tp.Tuple[str, _tp.Tuple[str, ...]]]
+oedge_attributes = _tp.Optional[tedge_attributes]
+
 trdl = _tp.Tuple[tarray, tarray, tarray]
 ordl = _tp.Optional[trdl]
-
-ttest = _tp.Tuple[obool, float, _tp.Dict[str, tany]]
-otest = _tp.Optional[ttest]
-
-ttest_chi2 = _tp.Tuple[float, float]
-otest_chi2 = _tp.Optional[ttest_chi2]
 
 # Compound Types - Specific
 
