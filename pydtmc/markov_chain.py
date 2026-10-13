@@ -39,7 +39,6 @@ from .computations import (
     find_cyclic_classes as _find_cyclic_classes,
     find_lumping_partitions as _find_lumping_partitions,
     gth_solve as _gth_solve,
-    rdl_decomposition as _rdl_decomposition,
     slem as _slem
 )
 
@@ -75,7 +74,6 @@ from .custom_types import (
     tpartitions as _tpartitions,
     tpath as _tpath,
     trandfunc_flex as _trandfunc_flex,
-    trdl as _trdl,
     tredists as _tredists,
     tsequence as _tsequence,
     tstate as _tstate,
@@ -336,13 +334,6 @@ class MarkovChain(_Model):
         ev = _eigenvalues_sorted(self.__p)
 
         return ev
-
-    @_cached_property
-    def __rdl_decomposition(self) -> _trdl:
-
-        r, d, l = _rdl_decomposition(self.__p)  # noqa: E741
-
-        return r, d, l
 
     @_cached_property
     def __recurrent_classes_indices(self) -> _tlists_int:
@@ -2631,7 +2622,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _time_correlations(self, self.__rdl_decomposition, sequence1, sequence2, time_points)
+        value = _time_correlations(self, sequence1, sequence2, time_points)
 
         return value
 
@@ -2668,7 +2659,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _time_relaxations(self, self.__rdl_decomposition, sequence, initial_distribution, time_points)
+        value = _time_relaxations(self, sequence, initial_distribution, time_points)
 
         return value
 
