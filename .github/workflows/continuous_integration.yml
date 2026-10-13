@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ master ]
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   continuous_integration:
     name: Continuous Integration
@@ -32,7 +36,6 @@ jobs:
         python -m pip install --quiet --upgrade -r requirements.txt
         python -m pip install --quiet --upgrade -e ".[lint,docs,package,build,tests]"
     - name: Libraries Installation
-      shell: bash
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
           sudo apt update --quiet --yes
