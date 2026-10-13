@@ -59,7 +59,6 @@ from .custom_types import (
     tmc as _tmc,
     tlist_float as _tlist_float,
     tlist_int as _tlist_int,
-    trdl as _trdl,
     tsequence as _tsequence,
     ttimes_in as _ttimes_in
 )
@@ -666,7 +665,7 @@ def mc_sensitivity(mc: _tmc, state: int) -> _oarray:
     return s
 
 
-def mc_time_correlations(mc: _tmc, rdl: _trdl, sequence1: _tsequence, sequence2: _osequence, time_points: _ttimes_in) -> _otimes_out:
+def mc_time_correlations(mc: _tmc, sequence1: _tsequence, sequence2: _osequence, time_points: _ttimes_in) -> _otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 
@@ -701,19 +700,14 @@ def mc_time_correlations(mc: _tmc, rdl: _trdl, sequence1: _tsequence, sequence2:
 
     if time_points[-1] > size:
 
-        r, d, l = rdl  # noqa: E741
-
         for i in range(time_points_length):
 
-            t = _np.zeros(d.shape, dtype=float)
-            t[_np.diag_indices_from(d)] = _np.diag(d)**time_points[i]
-
-            p_times = _np.dot(_np.dot(r, t), l)
+            p_times = _npl.matrix_power(p, time_points[i])
 
             m1 = _np.multiply(observations1, pi)
             m2 = _np.dot(p_times, observations2)
 
-            tcs.append(_np.dot(m1, m2).item())  # pylint: disable=no-member
+            tcs.append(float(_np.dot(m1, m2)))
 
     else:
 
@@ -750,7 +744,7 @@ def mc_time_correlations(mc: _tmc, rdl: _trdl, sequence1: _tsequence, sequence2:
 
             start_values = (time_point, pk_i)
 
-            tcs.append(_np.dot(m, pk_i).item())  # pylint: disable=no-member
+            tcs.append(float(_np.dot(m, pk_i)))
 
     if time_points_integer:
         return tcs[0]
@@ -758,7 +752,7 @@ def mc_time_correlations(mc: _tmc, rdl: _trdl, sequence1: _tsequence, sequence2:
     return tcs
 
 
-def mc_time_relaxations(mc: _tmc, rdl: _trdl, sequence: _tsequence, initial_distribution: _tarray, time_points: _ttimes_in) -> _otimes_out:
+def mc_time_relaxations(mc: _tmc, sequence: _tsequence, initial_distribution: _tarray, time_points: _ttimes_in) -> _otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 
@@ -782,16 +776,9 @@ def mc_time_relaxations(mc: _tmc, rdl: _trdl, sequence: _tsequence, initial_dist
 
     if time_points[-1] > size:
 
-        r, d, l = rdl  # noqa: E741
-
         for i in range(time_points_length):
-
-            t = _np.zeros(d.shape, dtype=float)
-            t[_np.diag_indices_from(d)] = _np.diag(d)**time_points[i]
-
-            p_times = _np.dot(_np.dot(r, t), l)
-
-            trs.append(_np.dot(_np.dot(initial_distribution, p_times), observations).item())  # pylint: disable=no-member
+            p_times = _np.linalg.matrix_power(p, time_points[i])
+            trs.append(float(_np.dot(_np.dot(initial_distribution, p_times), observations)))  # pylint: disable=no-member
 
     else:
 
@@ -826,7 +813,7 @@ def mc_time_relaxations(mc: _tmc, rdl: _trdl, sequence: _tsequence, initial_dist
 
             start_values = (time_point, pk_i)
 
-            trs.append(_np.dot(pk_i, observations).item())  # pylint: disable=no-member
+            trs.append(float(_np.dot(pk_i, observations)))  # pylint: disable=no-member
 
     if time_points_integer:
         return trs[0]
