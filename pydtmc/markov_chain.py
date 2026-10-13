@@ -85,6 +85,7 @@ from .custom_types import (
 
 from .decorators import (
     aliased as _aliased,
+    cached_method as _cached_method,
     cached_property as _cached_property,
     object_mark as _object_mark
 )
@@ -239,7 +240,6 @@ class MarkovChain(_Model):
             except Exception as ex:  # pragma: no cover
                 raise _create_validation_error(ex, _ins.trace()) from None
 
-        self.__cache: _tcache = {}
         self.__digraph: _tgraph = _build_mc_graph(p, states)
         self.__p: _tarray = p
         self.__size: int = p.shape[1]
@@ -1396,6 +1396,7 @@ class MarkovChain(_Model):
 
         return states
 
+    @_cached_method
     @_object_mark(aliases=['ap'])
     def absorption_probabilities(self) -> _oarray:
 
@@ -1409,11 +1410,9 @@ class MarkovChain(_Model):
         - The method can also be accessed through the alias **ap**.
         """
 
-        if 'ap' not in self.__cache:
-            self.__cache['ap'] = _absorption_probabilities(self)
+        return _absorption_probabilities(self)
 
-        return self.__cache['ap']
-
+    @_cached_method
     @_object_mark(aliases=['at'])
     def absorption_times(self, statistic: str) -> _oarray:
 
@@ -1444,12 +1443,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        cache_label = f'at_{statistic}'
-
-        if cache_label not in self.__cache:
-            self.__cache[cache_label] = _absorption_times(self, statistic)
-
-        return self.__cache[cache_label]
+        return _absorption_times(self, statistic)
 
     @_object_mark(instance_generator=True)
     def aggregate(self, s: int, method: str = 'adaptive') -> _tmc:
@@ -1648,6 +1642,7 @@ class MarkovChain(_Model):
 
         return value
 
+    @_cached_method
     @_object_mark(aliases=['ct'])
     def commute_times(self) -> _oarray:
 
@@ -1662,19 +1657,15 @@ class MarkovChain(_Model):
         - The method can also be accessed through the alias **ct**.
         """
 
-        if 'ct' not in self.__cache:
+        fptt_mean = self.first_passage_times_to(statistic='mean')
 
-            fptt_mean = self.first_passage_times_to(statistic='mean')
+        if fptt_mean is None:
+            ct = None
+        else:
+            ct = fptt_mean + _np.transpose(fptt_mean)
+            _np.fill_diagonal(ct, 0.0)
 
-            if fptt_mean is None:
-                ct = None
-            else:
-                ct = fptt_mean + _np.transpose(fptt_mean)
-                _np.fill_diagonal(ct, 0.0)
-
-            self.__cache['ct'] = ct
-
-        return self.__cache['ct']
+        return ct
 
     @_object_mark(aliases=['conditional_distribution', 'cd', 'cp'])
     def conditional_probabilities(self, state: _tstate) -> _tarray:
@@ -2190,6 +2181,7 @@ class MarkovChain(_Model):
 
         return mc
 
+    @_cached_method
     @_object_mark(aliases=['mnv'])
     def mean_number_visits(self) -> _oarray:
 
@@ -2205,10 +2197,7 @@ class MarkovChain(_Model):
         - The method can also be accessed through the alias **mnv**.
         """
 
-        if 'mnv' not in self.__cache:
-            self.__cache['mnv'] = _mean_number_visits(self)
-
-        return self.__cache['mnv']
+        return _mean_number_visits(self)
 
     @_object_mark(instance_generator=True)
     def merge_with(self, other: _tmc, gamma: float) -> _tmc:
@@ -2385,6 +2374,7 @@ class MarkovChain(_Model):
 
         return value
 
+    @_cached_method
     @_object_mark(aliases=['rt'])
     def recurrence_times(self, statistic: str) -> _tarray:
 
@@ -2414,12 +2404,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        cache_label = f'rt_{statistic}'
-
-        if cache_label not in self.__cache:
-            self.__cache[cache_label] = _recurrence_times(self, statistic)
-
-        return self.__cache[cache_label]
+        return _recurrence_times(self, statistic)
 
     def redistribute(self, steps: int, initial_status: _ostatus = None, output_last: bool = True) -> _tredists:
 

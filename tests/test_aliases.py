@@ -54,9 +54,9 @@ def _compare_values_npt_loop(actual, expected):
     if actual_length != expected_length:
         return False
 
-    for _ in range({actual_length, expected_length}.pop()):
+    for i in range(actual_length):
         try:
-            _npt.assert_array_equal(actual, expected)
+            _npt.assert_array_equal(actual[i], expected[i])
         except Exception:
             return False
 
@@ -122,3 +122,33 @@ def test_aliased_properties(p):
 
             expected = getattr(mc, member_alias)
             assert _compare_values(actual, expected)
+
+
+def test_aliased_properties_caching():
+
+    from pydtmc import markov_chain as _mc_module
+    from unittest.mock import patch as _patch
+
+    p = _np.array([[0.8, 0.2], [0.3, 0.7]])
+
+    for first, second in [
+        ('pi', 'stationary_distributions'),
+        ('steady_states', 'stationary_distributions'),
+        ('stationary_distributions', 'pi')
+    ]:
+
+        mc = _MarkovChain(p)
+
+        with _patch.object(_mc_module, '_gth_solve', wraps=_mc_module._gth_solve) as solve:
+
+            actual = getattr(mc, first)
+            expected = getattr(mc, second)
+
+            assert _compare_values(actual, expected)
+            assert actual is not expected
+            assert solve.call_count == 1
+
+            for alias in ('pi', 'stationary_distributions', 'steady_states'):
+                assert _compare_values(getattr(mc, alias), actual)
+
+            assert solve.call_count == 1

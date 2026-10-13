@@ -2,6 +2,7 @@
 
 __all__ = [
     'aliased',
+    'cached_method',
     'cached_property',
     'object_mark'
 ]
@@ -13,14 +14,64 @@ __all__ = [
 
 # Standard
 
+import copy as _cp
 import functools as _ft
+import inspect as _ins
 import re as _re
 import threading as _th
+
+
+#############
+# VARIABLES #
+#############
+
+ILOCK = _th.Lock()
 
 
 ###########
 # CLASSES #
 ###########
+
+def cached_method(func):
+
+    signature = _ins.signature(func)
+    cache_name = f'__pydtmc_cached_method_{func.__name__}__'
+
+    @_ft.wraps(func)
+    def wrapper(self, *args, **kwargs):
+
+        bound = signature.bind(self, *args, **kwargs)
+        bound.apply_defaults()
+
+        arguments = tuple(value for name, value in bound.arguments.items() if name != 'self')
+
+        cache = self.__dict__
+
+        try:
+            results = cache[cache_name]
+            value = results[arguments]
+        except KeyError:
+
+            with ILOCK:
+                lock = cache.setdefault('__pydtmc_cache_lock__', _th.RLock())
+
+            with lock:
+
+                results = cache.setdefault(cache_name, {})
+
+                try:
+                    value = results[arguments]
+                except KeyError:
+                    value = func(self, *args, **kwargs)
+                    results[arguments] = value
+
+        if isinstance(value, (bool, bytes, float, int, str, type(None))):
+            return value
+
+        return _cp.deepcopy(value)
+
+    return wrapper
+
 
 # noinspection PyPep8Naming
 class cached_property(property):
@@ -41,7 +92,6 @@ class cached_property(property):
 
         self._func = fget
         self._func_name = None
-        self._lock = _th.RLock()
 
         _ft.update_wrapper(self, fget)
 
@@ -57,11 +107,26 @@ class cached_property(property):
         if instance is None:
             return self
 
-        with self._lock:
-            try:
-                return instance.__dict__[self._func_name]
-            except KeyError:
-                return instance.__dict__.setdefault(self._func_name, self._func(instance))
+        cache = instance.__dict__
+
+        try:
+            value = cache[self._func_name]
+        except KeyError:
+
+            with ILOCK:
+                lock = cache.setdefault('__pydtmc_cache_lock__', _th.RLock())
+
+            with lock:
+                try:
+                    value = cache[self._func_name]
+                except KeyError:
+                    value = self._func(instance)
+                    cache[self._func_name] = value
+
+        if isinstance(value, (bool, bytes, float, int, str, type(None))):
+            return value
+
+        return _cp.deepcopy(value)
 
     def __set__(self, instance, value):
 
@@ -174,7 +239,7 @@ def aliased(aliased_class):
         for member, member_aliases in aliases.items():
 
             if isinstance(member, property):
-                member_wrapped = property(member.fget, member.fset, member.fdel, member.__doc__)
+                member_wrapped = property(lambda self, m=member: m.__get__(self, type(self)), doc=member.__doc__)
             else:
                 member_wrapped = wrapper(member)
                 member_wrapped.__doc__ = member.__doc__
