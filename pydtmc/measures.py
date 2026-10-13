@@ -440,10 +440,45 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
 
     gc = float('inf')
 
-    for i in range(1, mc.size):
-        for c in _it.combinations(range(mc.size), i):
+    if mc.size <= 12:
 
-            states = list(c)
+        for i in range(1, mc.size):
+            for c in _it.combinations(range(mc.size), i):
+
+                states = list(c)
+
+                mass = _np.sum(pi[states])
+
+                if mass > (0.5 + _FTOL):
+                    continue
+
+                complement = _np.ones(mc.size, dtype=bool)
+                complement[states] = False
+
+                flow = _np.sum(sf[_np.ix_(states, complement)])
+                conductance = flow / mass
+
+                gc = min(gc, float(conductance))
+
+    else:
+
+        flow = 0.5 * (sf + _np.transpose(sf))
+        pi_root = _np.sqrt(pi)
+        normalized = flow / _np.outer(pi_root, pi_root)
+
+        laplacian = _np.eye(mc.size) - normalized
+        _, eigenvectors = _npl.eigh(laplacian)
+
+        fiedler = eigenvectors[:, 1] / pi_root
+        order = _np.argsort(fiedler, kind='stable')
+
+        candidates = [[i] for i in range(mc.size)]
+
+        for ordering in (order, order[::-1]):
+            for count in range(1, mc.size):
+                candidates.append(ordering[:count])
+
+        for states in candidates:
 
             mass = _np.sum(pi[states])
 
@@ -453,8 +488,8 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
             complement = _np.ones(mc.size, dtype=bool)
             complement[states] = False
 
-            flow = _np.sum(sf[_np.ix_(states, complement)])
-            conductance = flow / mass
+            cut = _np.sum(sf[_np.ix_(states, complement)])
+            conductance = cut / mass
 
             gc = min(gc, float(conductance))
 

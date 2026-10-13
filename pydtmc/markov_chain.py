@@ -664,7 +664,7 @@ class MarkovChain(_Model):
         _np.log(p, out=contributions, where=p > 0.0)
         contributions *= p
 
-        h = -_np.dot(self.pi[0], _np.sum(contributions, axis=1))
+        h = -float(_np.dot(self.pi[0], _np.sum(contributions, axis=1)))
 
         if -_FTOL < h < 0.0:
             h = 0.0
@@ -742,7 +742,8 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The computation requires exhaustive subset enumeration and has exponential computational complexity.
+        - For chains with at most 12 states, exact conductance is computed through exhaustive subset enumeration.
+        - For chains with more than 12 states, a deterministic spectral-sweep approximation provides an upper bound on exact conductance.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
@@ -1232,7 +1233,7 @@ class MarkovChain(_Model):
         | :math:`\operatorname{rank}(P)`
         """
 
-        r = _npl.matrix_rank(self.__p)
+        r = int(_npl.matrix_rank(self.__p))
 
         return r
 
