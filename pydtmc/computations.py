@@ -35,12 +35,12 @@ from .constants import (
 
 from .custom_types import (
     ofloat as _ofloat,
+    ordl as _ordl,
     tarray as _tarray,
     tgraph as _tgraph,
     tlist_int as _tlist_int,
     tlists_int as _tlists_int,
-    tpartitions as _tpartitions,
-    trdl as _trdl
+    tpartitions as _tpartitions
 )
 
 
@@ -261,27 +261,32 @@ def kullback_leibler_divergence(p, pi, phi, q):
     return kld
 
 
-def rdl_decomposition(p: _tarray) -> _trdl:
+def rdl_decomposition(p: _tarray) -> _ordl:
 
     evalues, evectors = _npl.eig(p)
 
-    indices = _np.argsort(_np.abs(evalues))[::-1]
+    indices = _np.argsort(-_np.abs(evalues), kind='stable')
+    stationary_index = _np.argmin(_np.abs(evalues - 1.0))
+    indices = _np.concatenate(([stationary_index], indices[indices != stationary_index]))
+
     evalues = evalues[indices]
     vectors = evectors[:, indices]
 
     r = _np.copy(vectors)
     d = _np.diag(evalues)
-    l = _npl.solve(_np.transpose(r), _np.eye(p.shape[0]))  # noqa: E741
 
-    k = _np.sum(l[:, 0])
+    if (_npl.cond(r) > 1.0) / _np.sqrt(_np.finfo(float).eps):
+        raise ValueError('The transition matrix is not numerically diagonalizable.')
 
-    if not _np.isclose(k, 0.0):
-        r[:, 0] *= k
-        l[:, 0] /= k
+    l = _npl.solve(r, _np.eye(p.shape[0], dtype=r.dtype))  # noqa: E741
 
-    r = _np.real(r)
-    d = _np.real(d)
-    l = _np.transpose(_np.real(l))  # noqa: E741
+    if _np.allclose(r[:, 0], r[0, 0]) and (not _np.isclose(r[0, 0], 0.0)):
+        k = r[0, 0]
+        r[:, 0] /= k
+        l[0, :] *= k
+
+    if not _np.allclose(_np.dot(_np.dot(r, d), l), p):
+        raise ValueError('The RDL decomposition could not be reconstructed accurately.')
 
     return r, d, l
 
