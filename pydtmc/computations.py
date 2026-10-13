@@ -30,6 +30,7 @@ import numpy.linalg as _npl
 # Internal
 
 from .constants import (
+    ETOL as _ETOL,
     FTOL as _FTOL
 )
 
@@ -275,7 +276,7 @@ def rdl_decomposition(p: _tarray) -> _ordl:
     r = _np.copy(vectors)
     d = _np.diag(evalues)
 
-    if (_npl.cond(r) > 1.0) / _np.sqrt(_np.finfo(float).eps):
+    if _npl.cond(r) > (1.0 / _ETOL):
         raise ValueError('The transition matrix is not numerically diagonalizable.')
 
     l = _npl.solve(r, _np.eye(p.shape[0], dtype=r.dtype))  # noqa: E741
