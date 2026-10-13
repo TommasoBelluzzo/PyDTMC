@@ -778,7 +778,7 @@ def mc_time_relaxations(mc: _tmc, sequence: _tsequence, initial_distribution: _t
 
         for i in range(time_points_length):
             p_times = _np.linalg.matrix_power(p, time_points[i])
-            trs.append(float(_np.dot(_np.dot(initial_distribution, p_times), observations)))  # pylint: disable=no-member
+            trs.append(float(_np.dot(_np.dot(initial_distribution, p_times), observations)))
 
     else:
 
@@ -813,7 +813,7 @@ def mc_time_relaxations(mc: _tmc, sequence: _tsequence, initial_distribution: _t
 
             start_values = (time_point, pk_i)
 
-            trs.append(float(_np.dot(pk_i, observations)))  # pylint: disable=no-member
+            trs.append(float(_np.dot(pk_i, observations)))
 
     if time_points_integer:
         return trs[0]
