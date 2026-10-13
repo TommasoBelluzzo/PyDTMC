@@ -6,6 +6,7 @@ __all__ = [
     'assess_independence',
     'assess_markov_property',
     'assess_order',
+    'assess_stationarity',
     'assess_theoretical_compatibility',
     'assess_time_homogeneity'
 ]
@@ -18,6 +19,8 @@ __all__ = [
 # Standard
 
 import inspect as _ins
+import itertools as _it
+import math as _mt
 
 # Libraries
 
@@ -60,7 +63,7 @@ from .validation import (
 def assess_change_point(possible_states: _tlist_str, sequence: _tsequence, significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _tass_cp:
 
     r"""
-    | The function assesses whether the transition probabilities of the given sequence change at an unknown point:
+    | The function assesses whether the transition probabilities of the given sequence change at a single unknown point:
     | :math:`H_0: P_{ij}^{(1)} = P_{ij}^{(2)}` for every pair of states :math:`i,j`
 
     | **Notes:**
@@ -76,6 +79,7 @@ def assess_change_point(possible_states: _tlist_str, sequence: _tsequence, signi
     :param simulations: the number of Monte Carlo simulations (*at least 10*).
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :raises ValidationError: if any input argument is not compliant.
+    :raises ValueError: if fewer than three observations are provided.
     """
 
     def _log_likelihood(ll_counts):
@@ -135,6 +139,9 @@ def assess_change_point(possible_states: _tlist_str, sequence: _tsequence, signi
         raise _create_validation_error(ex, _ins.trace()) from None
 
     n, length = len(possible_states), len(sequence)
+
+    if length < 3:
+        raise ValueError('The sequence must contain at least three observations.')
 
     statistic, change_point, transitions = _change_point_statistic(n, sequence)
 
@@ -536,6 +543,125 @@ def assess_order(possible_states: _tlist_str, sequence: _tsequence, maximum_orde
     selected_order = min(scores, key=scores.get)
 
     return selected_order, scores
+
+
+def assess_stationarity(mc: _tmc, sequences: _tsequences, significance: float = 0.05) -> _tass_stat:
+
+    r"""
+    | The function assesses whether independent sequences of the given Markov chain are initialized according to its stationary distribution:
+    | :math:`H_0: \mu = \pi`, where:
+
+    - :math:`\mu` is the initial distribution;
+    - :math:`\pi` is the stationary distribution.
+
+    | **Notes:**
+
+    - The assessment uses Pearson's chi-squared statistic, with exact p-values when computationally feasible and an asymptotic approximation when applicable.
+    - Exact multinomial enumeration is limited to 100,000 configurations; the asymptotic approximation requires every positive expected count to be at least 10.
+    - The assessment requires a unique stationary distribution and independent sequences.
+
+    :param mc: the theoretical Markov chain.
+    :param sequences: the independent observed sequences of states.
+    :param significance: the p-value significance threshold below which to reject the null hypothesis.
+    :raises ValidationError: if any input argument is not compliant.
+    :raises ValueError: if fewer than two independent sequences are provided.
+    """
+
+    def _exact_multinomial(em_count, em_probabilities, em_statistic):
+
+        em_n = len(em_probabilities)
+        em_expected = em_count * em_probabilities
+        em_counts = _np.zeros(em_n, dtype=int)
+        em_p_value = 0.0
+
+        for separators in _it.combinations(range(em_count + em_n - 1), em_n - 1):
+
+            em_counts[0] = separators[0]
+            em_counts[1:-1] = _np.diff(separators) - 1
+            em_counts[-1] = em_count + em_n - 2 - separators[-1]
+
+            em_current = _np.sum((em_counts - em_expected)**2.0 / em_expected)
+
+            if (em_current >= em_statistic) or _np.isclose(em_current, em_statistic, rtol=1e-12, atol=1e-12):
+                em_p_value += float(_sps.multinomial.pmf(em_counts, em_count, em_probabilities))
+
+        em_p_value = min(1.0, float(em_p_value))
+
+        return em_p_value
+
+    try:
+
+        mc = _validate_markov_chain(mc)
+        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+        sequences = _validate_sequences(sequences, mc.states, False)
+
+    except Exception as ex:  # pragma: no cover
+        raise _create_validation_error(ex, _ins.trace()) from None
+
+    lengths = len(sequences)
+
+    if lengths < 2:
+        raise ValueError('The sequences parameter must contain at least two independent sequences.')
+
+    stationary_distributions = mc.pi
+
+    if len(stationary_distributions) != 1:
+        return None, float('nan'), {'statistic': float('nan'), 'dof': 0}
+
+    initial_states = [sequence[0] for sequence in sequences]
+
+    probabilities = stationary_distributions[0]
+
+    positive_probabilities = probabilities > 0.0
+    counts = _np.bincount(initial_states, minlength=mc.n)
+
+    k = int(_np.count_nonzero(positive_probabilities))
+    dof = k - 1
+
+    if _np.any(counts[~positive_probabilities] > 0):
+        return True, 0.0, {'statistic': float('inf'), 'dof': dof}
+
+    probabilities = probabilities[positive_probabilities]
+    counts = counts[positive_probabilities]
+    expected = lengths * probabilities
+
+    statistic = float(_np.sum((counts - expected)**2.0 / expected))
+
+    if k == 1:
+        p_value = 1.0
+    elif k == 2:
+
+        probability = float(probabilities[0])
+        observed = int(counts[0])
+        mean = lengths * probability
+
+        if observed <= mean:
+            lower = observed
+            upper = int(_np.ceil((2.0 * mean) - observed - 1e-12))
+        else:
+            upper = observed
+            lower = int(_np.floor((2.0 * mean) - observed + 1e-12))
+
+        lower = max(-1, min(lengths, lower))
+        upper = max(0, min(lengths + 1, upper))
+
+        p_value = _sps.binom.cdf(lower, lengths, probability) + _sps.binom.sf(upper - 1, lengths, probability)
+
+    else:
+
+        configurations = _mt.comb(lengths + k - 1, k - 1)
+
+        if configurations <= 100000:
+            p_value = _exact_multinomial(lengths, probabilities, statistic)
+        elif _np.all(expected >= 10.0):
+            p_value = _sps.chi2.sf(statistic, dof)
+        else:
+            return None, float('nan'), {'statistic': statistic, 'dof': dof}
+
+    p_value = float(_np.clip(p_value, 0.0, 1.0))
+    rejection = p_value < significance
+
+    return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
 def assess_theoretical_compatibility(mc: _tmc, sequence: _tsequence, significance: float = 0.05) -> _tass_stat:

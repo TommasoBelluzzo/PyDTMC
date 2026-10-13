@@ -7,7 +7,7 @@ __author__ = 'Tommaso Belluzzo'
 __all__ = [
     'ValidationError',
     'HiddenMarkovModel', 'MarkovChain',
-    'assess_change_point', 'assess_homogeneity', 'assess_independence', 'assess_markov_property', 'assess_order', 'assess_theoretical_compatibility', 'assess_time_homogeneity',
+    'assess_change_point', 'assess_homogeneity', 'assess_independence', 'assess_markov_property', 'assess_order', 'assess_stationarity', 'assess_theoretical_compatibility', 'assess_time_homogeneity',
     'plot_comparison', 'plot_convergence', 'plot_eigenvalues', 'plot_flow', 'plot_graph', 'plot_matrix', 'plot_redistributions', 'plot_sequence', 'plot_trellis'
 ]
 
@@ -29,6 +29,7 @@ from pydtmc.assessments import (
     assess_independence,
     assess_markov_property,
     assess_order,
+    assess_stationarity,
     assess_theoretical_compatibility,
     assess_time_homogeneity
 )

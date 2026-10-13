@@ -17,6 +17,7 @@ from pydtmc.assessments import (
     assess_independence as _assess_independence,
     assess_markov_property as _assess_markov_property,
     assess_order as _assess_order,
+    assess_stationarity as _assess_stationarity,
     assess_theoretical_compatibility as _assess_theoretical_compatibility,
     assess_time_homogeneity as _assess_time_homogeneity
 )
@@ -122,6 +123,16 @@ def test_assess_order(possible_states, sequence, maximum_order, criterion, value
 
     result = _assess_order(possible_states, sequence, maximum_order, criterion)
     actual, expected = _extract_data_order(result, value)
+
+    assert actual == expected
+
+
+def test_assess_stationarity(p, states, sequences, significance, value):
+
+    mc = _MarkovChain(p, states)
+
+    result = _assess_stationarity(mc, sequences, significance)
+    actual, expected = _extract_data_statistic(result, value)
 
     assert actual == expected
 
