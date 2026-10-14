@@ -176,6 +176,50 @@
         "value": null
       }
     ],
+    "reactive_density_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": [0.0, 0.0]
+      },
+      {
+        "states1": 1,
+        "states2": 0,
+        "value": [0.0, 0.0]
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "net": false,
+        "value": [
+          [0.0, 0.5],
+          [0.0, 0.0]
+        ]
+      },
+      {
+        "states1": 1,
+        "states2": 0,
+        "net": true,
+        "value": [
+          [0.00000000, 0.00000000],
+          [0.50000000, 0.00000000]
+        ]
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": 0.5
+      },
+      {
+        "states1": 1,
+        "states2": 0,
+        "value": 0.5
+      }
+    ],
     "recurrence_times": {
       "value_mean": [2.0, 2.0],
       "value_variance": [0.0, 0.0]
@@ -414,6 +458,50 @@
         "value": 1
       }
     ],
+    "reactive_density_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": [0.0, 0.0]
+      },
+      {
+        "states1": 1,
+        "states2": 0,
+        "value": [0.0, 0.0]
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "net": false,
+        "value": [
+          [0.00000000, 0.18421053],
+          [0.00000000, 0.00000000]
+        ]
+      },
+      {
+        "states1": 1,
+        "states2": 0,
+        "net": true,
+        "value": [
+          [0.00000000, 0.00000000],
+          [0.18421053, 0.00000000]
+        ]
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": 0.18421053
+      },
+      {
+        "states1": 1,
+        "states2": 0,
+        "value": 0.18421053
+      }
+    ],
     "recurrence_times": {
       "value_mean": [3.80000000, 1.35714286],
       "value_variance": [11.76000000,  0.53571429]
@@ -635,6 +723,44 @@
         "initial_distribution": [0.3, 0.2, 0.5],
         "jump": 1,
         "cutoff": 0.25,
+        "value": null
+      }
+    ],
+    "reactive_density_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": null
+      },
+      {
+        "states1": 1,
+        "states2": [0, 2],
+        "value": null
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "net": false,
+        "value": null
+      },
+      {
+        "states1": 1,
+        "states2": [0, 2],
+        "net": true,
+        "value": null
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": null
+      },
+      {
+        "states1": 1,
+        "states2": [0, 2],
         "value": null
       }
     ],
@@ -873,6 +999,52 @@
         "value": null
       }
     ],
+    "reactive_density_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": [0.0, 0.0, 0.0]
+      },
+      {
+        "states1": 0,
+        "states2": [1, 2],
+        "value": [0.0, 0.0, 0.0]
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "net": false,
+        "value": [
+          [0.00000000, 0.33333333, 0.00000000],
+          [0.00000000, 0.00000000, 0.00000000],
+          [0.00000000, 0.00000000, 0.00000000]
+        ]
+      },
+      {
+        "states1": 0,
+        "states2": [1, 2],
+        "net": true,
+        "value": [
+          [0.00000000, 0.33333333, 0.00000000],
+          [0.00000000, 0.00000000, 0.00000000],
+          [0.00000000, 0.00000000, 0.00000000]
+        ]
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": 0.33333333
+      },
+      {
+        "states1": 0,
+        "states2": [1, 2],
+        "value": 0.33333333
+      }
+    ],
     "recurrence_times": {
       "value_mean": [3.0, 3.0, 3.0],
       "value_variance": [0.0, 0.0, 0.0]
@@ -1101,6 +1273,44 @@
         "initial_distribution": [0.50, 0.25, 0.25],
         "jump": 3,
         "cutoff": 0.25,
+        "value": null
+      }
+    ],
+    "reactive_density_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": null
+      },
+      {
+        "states1": 0,
+        "states2": 2,
+        "value": null
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "net": false,
+        "value": null
+      },
+      {
+        "states1": 0,
+        "states2": 2,
+        "net": true,
+        "value": null
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": null
+      },
+      {
+        "states1": 0,
+        "states2": 2,
         "value": null
       }
     ],
@@ -1344,6 +1554,52 @@
         "value": 2
       }
     ],
+    "reactive_density_data": [
+      {
+        "states1": 2,
+        "states2": 0,
+        "value": [0.00000000, 0.01320528, 0.00000000]
+      },
+      {
+        "states1": 2,
+        "states2": 1,
+        "value": [0.24264706, 0.00000000, 0.00000000]
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 2,
+        "states2": 0,
+        "net": false,
+        "value": [
+          [0.00000000, 0.00000000, 0.00000000],
+          [0.00924370, 0.00396158, 0.00000000],
+          [0.12941176, 0.00924370, 0.00000000]
+        ]
+      },
+      {
+        "states1": 2,
+        "states2": 1,
+        "net": true,
+        "value": [
+          [0.00000000, 0.09705882, 0.00000000],
+          [0.00000000, 0.00000000, 0.00000000],
+          [0.09705882, 0.03235294, 0.00000000]
+        ]
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 2,
+        "states2": 0,
+        "value": 0.13865546
+      },
+      {
+        "states1": 2,
+        "states2": 1,
+        "value": 0.12941176
+      }
+    ],
     "recurrence_times": {
       "value_mean": [2.26666667, 4.25000000, 3.09090909],
       "value_variance": [4.59555556, 14.00000000, 9.90082645]
@@ -1585,6 +1841,52 @@
         "value": 5
       }
     ],
+    "reactive_density_data": [
+      {
+        "states1": 1,
+        "states2": 2,
+        "value": [0.1, 0.0, 0.0]
+      },
+      {
+        "states1": [1, 2],
+        "states2": 0,
+        "value": [0.0, 0.0, 0.0]
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 1,
+        "states2": 2,
+        "net": false,
+        "value": [
+          [0.05, 0.00, 0.05],
+          [0.05, 0.00, 0.10],
+          [0.00, 0.00, 0.00]
+        ]
+      },
+      {
+        "states1": [1, 2],
+        "states2": 0,
+        "net": true,
+        "value": [
+          [0.00000000, 0.00000000, 0.00000000],
+          [0.10000000, 0.00000000, 0.00000000],
+          [0.10000000, 0.00000000, 0.00000000]
+        ]
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 1,
+        "states2": 2,
+        "value": 0.15
+      },
+      {
+        "states1": [1, 2],
+        "states2": 0,
+        "value": 0.2
+      }
+    ],
     "recurrence_times": {
       "value_mean": [2.5, 5.0, 2.5],
       "value_variance": [5.58333333, 12.00000000, 5.58333333]
@@ -1815,6 +2117,44 @@
         "initial_distribution": [0.1, 0.6, 0.1, 0.2],
         "jump": 2,
         "cutoff": 0.25,
+        "value": null
+      }
+    ],
+    "reactive_density_data": [
+      {
+        "states1": 0,
+        "states2": [2, 3],
+        "value": null
+      },
+      {
+        "states1": 3,
+        "states2": [1, 2],
+        "value": null
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 0,
+        "states2": [2, 3],
+        "net": false,
+        "value": null
+      },
+      {
+        "states1": 3,
+        "states2": [1, 2],
+        "net": true,
+        "value": null
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": [2, 3],
+        "value": null
+      },
+      {
+        "states1": 3,
+        "states2": [1, 2],
         "value": null
       }
     ],
@@ -2060,6 +2400,54 @@
         "jump": 1,
         "cutoff": 0.2,
         "value": 1
+      }
+    ],
+    "reactive_density_data": [
+      {
+        "states1": 0,
+        "states2": 2,
+        "value": [0.00000000, 0.00600801, 0.00000000, 0.02503338]
+      },
+      {
+        "states1": 1,
+        "states2": 3,
+        "value": [0.20206824, 0.00000000, 0.03871039, 0.00000000]
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 0,
+        "states2": 2,
+        "net": false,
+        "value": [
+          [0.00000000, 0.00420561, 0.05887850, 0.02102804],
+          [0.00000000, 0.00030040, 0.00420561, 0.00150200],
+          [0.00000000, 0.00000000, 0.00000000, 0.00000000],
+          [0.00000000, 0.00150200, 0.02102804, 0.00250334]
+        ]
+      },
+      {
+        "states1": 1,
+        "states2": 3,
+        "net": true,
+        "value": [
+          [0.00000000, 0.00000000, 0.00754853, 0.04378145],
+          [0.05132998, 0.00000000, 0.00251618, 0.00654206],
+          [0.00000000, 0.00000000, 0.00000000, 0.01006470],
+          [0.00000000, 0.00000000, 0.00000000, 0.00000000]
+        ]
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 2,
+        "value": 0.08411215
+      },
+      {
+        "states1": 1,
+        "states2": 3,
+        "value": 0.06038821
       }
     ],
     "recurrence_times": {
@@ -2327,6 +2715,56 @@
         "value": 4
       }
     ],
+    "reactive_density_data": [
+      {
+        "states1": 0,
+        "states2": [3, 4],
+        "value": [0.00000000, 0.13513514, 0.13513514, 0.00000000, 0.00000000]
+      },
+      {
+        "states1": 4,
+        "states2": 2,
+        "value": [0.11678345, 0.01167835, 0.00000000, 0.01167835, 0.00000000]
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 0,
+        "states2": [3, 4],
+        "net": false,
+        "value": [
+          [0.00000000, 0.13513514, 0.13513514, 0.00000000, 0.00000000],
+          [0.00000000, 0.00000000, 0.00000000, 0.02702703, 0.10810811],
+          [0.00000000, 0.00000000, 0.00000000, 0.05405405, 0.08108108],
+          [0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+          [0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000]
+        ]
+      },
+      {
+        "states1": 4,
+        "states2": 2,
+        "net": true,
+        "value": [
+          [0.00000000, 0.01167835, 0.10510511, 0.00000000, 0.00000000],
+          [0.00000000, 0.00000000, 0.00000000, 0.01167835, 0.00000000],
+          [0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+          [0.01167835, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+          [0.10510511, 0.00000000, 0.00000000, 0.00000000, 0.00000000]
+        ]
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": [3, 4],
+        "value": 0.27027027
+      },
+      {
+        "states1": 4,
+        "states2": 2,
+        "value": 0.10510511
+      }
+    ],
     "recurrence_times": {
       "value_mean": [3.70000000, 7.40000000, 7.40000000, 12.33333333, 2.64285714],
       "value_variance": [1.61000000, 29.12000000, 32.08000000, 129.11111111, 5.45408163]
@@ -2569,6 +3007,44 @@
         "value": null
       }
     ],
+    "reactive_density_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": null
+      },
+      {
+        "states1": 3,
+        "states2": [2, 4],
+        "value": null
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "net": false,
+        "value": null
+      },
+      {
+        "states1": 3,
+        "states2": [2, 4],
+        "net": true,
+        "value": null
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": null
+      },
+      {
+        "states1": 3,
+        "states2": [2, 4],
+        "value": null
+      }
+    ],
     "recurrence_times": {
       "value_mean": [1.0, 1.0, "Infinity", "Infinity", "Infinity", "Infinity"],
       "value_variance": [0.0, 0.0, "NaN", "NaN", "NaN", "NaN"]
@@ -2796,6 +3272,44 @@
         "initial_distribution": [0.05, 0.05, 0.40, 0.30, 0.10, 0.10],
         "jump": 5,
         "cutoff": 0.25,
+        "value": null
+      }
+    ],
+    "reactive_density_data": [
+      {
+        "states1": 2,
+        "states2": [1, 4, 5],
+        "value": null
+      },
+      {
+        "states1": [1, 3],
+        "states2": [2, 4],
+        "value": null
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 2,
+        "states2": [1, 4, 5],
+        "net": false,
+        "value": null
+      },
+      {
+        "states1": [1, 3],
+        "states2": [2, 4],
+        "net": true,
+        "value": null
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": 2,
+        "states2": [1, 4, 5],
+        "value": null
+      },
+      {
+        "states1": [1, 3],
+        "states2": [2, 4],
         "value": null
       }
     ],

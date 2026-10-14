@@ -284,6 +284,47 @@ def test_mixing_time_from(p, initial_distribution, jump, cutoff, value):
     assert actual == expected
 
 
+def test_reactive_density(p, states1, states2, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.reactive_density(states1, states2)
+    expected = value
+
+    if (actual is not None) and (expected is not None):
+        expected = _np.array(expected)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
+def test_reactive_flux(p, net, states1, states2, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.reactive_flux(net, states1, states2)
+    expected = value
+
+    if (actual is not None) and (expected is not None):
+        expected = _np.array(expected)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
+def test_reaction_rate(p, states1, states2, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.reaction_rate(states1, states2)
+    expected = value
+
+    if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
 def test_recurrence_times(p, value_mean, value_variance):
 
     mc = _MarkovChain(p)

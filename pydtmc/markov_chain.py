@@ -629,7 +629,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - A rate is 0 for a reversible stationary flow and infinite if a positive stationary flux has no reverse counterpart.
+        - A rate is zero for a reversible stationary flow and infinite if a positive stationary flux has no reverse counterpart.
         - Terms with zero flux in both directions contribute 0.
         - One value is returned for each stationary distribution.
         """
@@ -683,7 +683,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - If the entropy rate or topological entropy is 0, the normalized entropy rate is defined as 0.
+        - If the entropy rate or topological entropy is zero, the normalized entropy rate is defined as zero.
         - If the entropy rate cannot be computed, then :py:class:`None` is returned.
         """
 
@@ -1122,7 +1122,7 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - For chains with at most 12 states, the Cheeger bounds are computed using exact conductance.
-        - For chains with more than 12 states, the lower bound is 0 and the upper bound uses approximate conductance.
+        - For chains with more than 12 states, the lower bound is zero and the upper bound uses approximate conductance.
         - If the Markov chain is not both **irreducible** and **reversible**, then :py:class:`None` is returned.
         """
 
@@ -1618,7 +1618,7 @@ class MarkovChain(_Model):
         - The **backward** committor is computed using the stationary time-reversed chain.
         - It requires an **irreducible** Markov chain; otherwise, :py:class:`None` is returned.
         - The **forward** committor is the probability of reaching the second subset before the first.
-        - It is 0 on the first subset and 1 on the second; the backward committor has the opposite boundary values.
+        - It is zero on the first subset and 1 on the second; the backward committor has the opposite boundary values.
         - The method can also be accessed through the alias **crp**.
 
         :param committor_type:
@@ -2378,6 +2378,139 @@ class MarkovChain(_Model):
             value = [*map(self.__states.__getitem__, value)]
 
         return value
+
+    def reactive_density(self, states1: _tstates, states2: _tstates) -> _oarray:
+
+        r"""
+        | The method computes the reactive density between two disjoint subsets of the state space:
+        | :math:`\rho_i = \pi_i q_i^- q_i^+` where:
+
+        - :math:`\pi_i` is the stationary probability of state :math:`i`;
+        - :math:`q_i^-` is the backward committor probability of state :math:`i`;
+        - :math:`q_i^+` is the forward committor probability of state :math:`i`.
+
+        | **Notes:**
+
+        - The reactive density represents the stationary probability of occupying a state along a reactive trajectory from the first subset to the second.
+        - The reactive density is zero for states belonging to either subset.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+
+        :param states1: the first subset of the state space.
+        :param states2: the second subset of the state space.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            states1 = _validate_labels_current(states1, self.__states, True)
+            states2 = _validate_labels_current(states2, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        intersection = _np.intersect1d(states1, states2)
+
+        if len(intersection) > 0:  # pragma: no cover
+            raise _ValidationError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
+
+        if not self.is_irreducible:
+            return None
+
+        q_forward = _committor_probabilities(self, 'forward', states1, states2)
+        q_backward = _committor_probabilities(self, 'backward', states1, states2)
+        rd = self.pi[0] * q_backward * q_forward
+
+        return rd
+
+    def reactive_flux(self, net: bool, states1: _tstates, states2: _tstates) -> _oarray:
+
+        r"""
+        | The method computes the reactive flux between two disjoint subsets of the state space:
+        | :math:`f_{ij} = \begin{cases} \max(0, F_{ij}q_i^-q_j^+ - F_{ji}q_j^-q_i^+) & \text{if net} \\ F_{ij}q_i^-q_j^+ & \text{otherwise} \end{cases}` where:
+
+        - :math:`F_{ij}` is the stationary probability flux from state :math:`i` to state :math:`j`;
+        - :math:`q_i^-` and :math:`q_j^-` are the backward committor probabilities of states :math:`i` and :math:`j`, respectively;
+        - :math:`q_i^+` and :math:`q_j^+` are the forward committor probabilities of states :math:`i` and :math:`j`, respectively.
+
+        | **Notes:**
+
+        - The reactive flux represents the stationary probability flow along reactive trajectories from the first subset to the second.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+
+        :param net: whether to compute the net reactive flux.
+        :param states1: the first subset of the state space.
+        :param states2: the second subset of the state space.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            net = _validate_boolean(net)
+            states1 = _validate_labels_current(states1, self.__states, True)
+            states2 = _validate_labels_current(states2, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        intersection = _np.intersect1d(states1, states2)
+
+        if len(intersection) > 0:  # pragma: no cover
+            raise _ValidationError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
+
+        if not self.is_irreducible:
+            return None
+
+        q_forward = _committor_probabilities(self, 'forward', states1, states2)
+        q_backward = _committor_probabilities(self, 'backward', states1, states2)
+        rf = self.stationary_flux[0] * q_backward[:, _np.newaxis] * q_forward[_np.newaxis, :]
+
+        if net:
+            rf = _np.maximum(rf - _np.transpose(rf), 0.0)
+
+        return rf
+
+    def reaction_rate(self, states1: _tstates, states2: _tstates) -> _ofloat:
+
+        r"""
+        | The method computes the reaction rate between two disjoint subsets of the state space:
+        | :math:`k_{S_1 S_2} = \sum_{i \in S_1}\sum_j f_{ij}` where:
+
+        - :math:`S_1` and :math:`S_2` are the first and second subsets of states, respectively;
+        - :math:`f_{ij}` is the reactive flux from state :math:`i` to state :math:`j`, without net-flow adjustment.
+
+        | **Notes:**
+
+        - The reaction rate represents the expected number of reactive departures from the first subset toward the second per time step in stationarity.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+
+        :param states1: the first subset of the state space.
+        :param states2: the second subset of the state space.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            states1 = _validate_labels_current(states1, self.__states, True)
+            states2 = _validate_labels_current(states2, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        intersection = _np.intersect1d(states1, states2)
+
+        if len(intersection) > 0:  # pragma: no cover
+            raise _ValidationError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
+
+        if not self.is_irreducible:
+            return None
+
+        q_forward = _committor_probabilities(self, 'forward', states1, states2)
+        q_backward = _committor_probabilities(self, 'backward', states1, states2)
+
+        rf = self.stationary_flux[0] * q_backward[:, _np.newaxis] * q_forward[_np.newaxis, :]
+        rr = float(_np.sum(rf[states1, :]))
+
+        return rr
 
     @_cached_method
     @_object_mark(aliases=['rt'])
