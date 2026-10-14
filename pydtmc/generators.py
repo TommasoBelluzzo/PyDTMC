@@ -42,7 +42,8 @@ from .computations import (
 )
 
 from .constants import (
-    ETOL as _ETOL
+    ETOL as _ETOL,
+    FTOL as _FTOL
 )
 
 from .custom_types import (
@@ -653,10 +654,10 @@ def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _t
 
 def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tmc_generation:
 
-    def _is_reversible_with(irw_p, irw_d):
+    def _is_reversible_with(irw_p, irw_d, irw_tolerance):
 
         flow = irw_d[:, _np.newaxis] * irw_p
-        result = _np.max(_np.abs(flow - _np.transpose(flow))) <= _ETOL
+        result = _np.max(_np.abs(flow - _np.transpose(flow))) <= irw_tolerance
 
         return result
 
@@ -677,7 +678,7 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
 
     state_names = [f'{i:d}' for i in range(1, size + 1)]
 
-    if _is_reversible_with(p, initial_distribution):
+    if _is_reversible_with(p, initial_distribution, _FTOL):
         return _np.copy(p), state_names, None
 
     support = _np.flatnonzero(initial_distribution)
@@ -850,7 +851,7 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
     pcr[_np.where(~pcr.any(axis=1)), :] = _np.ones(size, dtype=float)
     pcr /= _np.sum(pcr, axis=1, keepdims=True)
 
-    if not _is_reversible_with(pcr, initial_distribution):  # pragma: no cover
+    if not _is_reversible_with(pcr, initial_distribution, _ETOL):  # pragma: no cover
         return None, None, 'The closest reversible could not be computed.'
 
     return pcr, state_names, None

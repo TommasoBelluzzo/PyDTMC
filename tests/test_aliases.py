@@ -152,3 +152,31 @@ def test_aliased_properties_caching():
                 assert _compare_values(getattr(mc, alias), actual)
 
             assert solve.call_count == 1
+
+
+
+
+
+
+import pytest as _pt
+import numpy as _np
+
+@_pt.mark.parametrize('epsilon', [1.0e-4, 1.0e-6, 1.0e-9])
+def test_reversibility_near_boundary(epsilon):
+
+    p = _np.array([
+        [0.5, 0.25 + epsilon, 0.25 - epsilon],
+        [0.25 - epsilon, 0.5, 0.25 + epsilon],
+        [0.25 + epsilon, 0.25 - epsilon, 0.5]
+    ])
+
+    mc = _MarkovChain(p)
+
+    pi = _np.full(3, 1.0 / 3.0)
+    flow = pi[:, _np.newaxis] * p
+
+    imbalance = _np.max(_np.abs(flow - flow.T))
+
+    _npt.assert_allclose(imbalance, 2.0 * epsilon / 3.0, rtol=1.0e-7)
+
+    assert not mc.is_reversible

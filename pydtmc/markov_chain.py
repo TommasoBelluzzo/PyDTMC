@@ -945,7 +945,7 @@ class MarkovChain(_Model):
 
             flow = pi[:, _np.newaxis] * p
 
-            if _np.max(_np.abs(flow - _np.transpose(flow))) > _ETOL:
+            if _np.max(_np.abs(flow - _np.transpose(flow))) > _FTOL:
                 return False
 
         return True
