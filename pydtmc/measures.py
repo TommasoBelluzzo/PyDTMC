@@ -250,8 +250,6 @@ def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_in
             output[s] = _npl.solve(a, b)
 
         output = _np.clip(output, 0.0, 1.0)
-        output[_np.isclose(output, 0.0, rtol=0.0, atol=_ETOL)] = 0.0
-        output[_np.isclose(output, 1.0, rtol=0.0, atol=_ETOL)] = 1.0
 
         return output
 
@@ -517,9 +515,6 @@ def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
         b = _np.sum(p[_np.ix_(solve, target)], axis=1)
         hp[solve] = _npl.solve(a, b)
 
-    hp[_np.isclose(hp, 0.0, rtol=0.0, atol=_ETOL)] = 0.0
-    hp[_np.isclose(hp, 1.0, rtol=0.0, atol=_ETOL)] = 1.0
-
     return hp
 
 
@@ -527,12 +522,27 @@ def mc_hitting_times(mc: _tmc, statistic: str, targets: _tlist_int) -> _tarray:
 
     p, size = mc.p, mc.size
 
+    states_indices = {state: index for index, state in enumerate(mc.states)}
+
     target = _np.array(targets, dtype=int)
     non_target = _np.setdiff1d(_np.arange(size, dtype=int), target)
 
-    hp = mc_hitting_probabilities(mc, targets)
+    p_modified = p.copy()
+    p_modified[target, :] = 0.0
+    p_modified[target, target] = 1.0
 
-    finite = non_target[_np.isclose(hp[non_target], 1.0, rtol=0.0, atol=_ETOL)]
+    reachable = _np.eye(size, dtype=bool) | (p_modified > 0.0)
+
+    for k in range(size):
+        reachable |= reachable[:, [k]] & reachable[[k], :]
+
+    bad = _np.array([index for index in non_target if not _np.any(reachable[index, target])], dtype=int)
+
+    if bad.size > 0:
+        finite = non_target[~_np.any(reachable[_np.ix_(non_target, bad)], axis=1)]
+    else:
+        finite = non_target
+
     non_finite = _np.setdiff1d(non_target, finite)
 
     if statistic == 'mean':

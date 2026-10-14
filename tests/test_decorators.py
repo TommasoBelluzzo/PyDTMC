@@ -32,8 +32,10 @@ from pydtmc.decorators import (
 def test_cached_method_arguments():
 
     class Sample:
+
         def __init__(self):
             self.calls = 0
+
         @_cached_method
         def value(self, statistic='mean'):
             self.calls += 1
@@ -58,8 +60,10 @@ def test_cached_method_concurrence_single():
     release = _th.Event()
 
     class Sample:
+
         def __init__(self):
             self.calls = 0
+
         @_cached_method
         def value(self, statistic):
             self.calls += 1
@@ -90,8 +94,10 @@ def test_cached_method_concurrence_multiple():
     start = _th.Barrier(2, timeout=5.0)
 
     class Sample:
+
         def __init__(self):
             self.calls = 0
+
         @_cached_method
         def value(self, statistic):
             self.calls += 1
@@ -119,8 +125,10 @@ def test_cached_method_concurrence_multiple():
 def test_cached_method_exception_retry():
 
     class Sample:
+
         def __init__(self):
             self.calls = 0
+
         @_cached_method
         def value(self, statistic):
             self.calls += 1
@@ -141,8 +149,10 @@ def test_cached_method_exception_retry():
 def test_cached_method_mutability():
 
     class Sample:
+
         def __init__(self):
             self.calls = 0
+
         @_cached_method
         def value(self, statistic):
             self.calls += 1
@@ -175,8 +185,10 @@ def test_cached_property_concurrence_single():
     release = _th.Event()
 
     class Sample:
+
         def __init__(self):
             self.calls = 0
+
         @_cached_property
         def value(self):
             self.calls += 1
@@ -207,8 +219,10 @@ def test_cached_property_concurrence_multiple():
     start = _th.Barrier(2, timeout=5.0)
 
     class Sample:
+
         def __init__(self):
             self.calls = 0
+
         @_cached_property
         def value(self):
             self.calls += 1
@@ -236,8 +250,10 @@ def test_cached_property_concurrence_multiple():
 def test_cached_property_exception_retry():
 
     class Sample:
+
         def __init__(self):
             self.calls = 0
+
         @_cached_property
         def value(self):
             self.calls += 1
@@ -258,8 +274,10 @@ def test_cached_property_exception_retry():
 def test_cached_property_mutability():
 
     class Sample:
+
         def __init__(self):
             self.calls = 0
+
         @_cached_property
         def value(self):
             self.calls += 1
@@ -289,12 +307,15 @@ def test_cached_property_mutability():
 def test_cached_property_nested_dependencies():
 
     class Sample:
+
         def __init__(self):
             self.calls = 0
+
         @_cached_property
         def first(self):
             self.calls += 1
             return 2
+
         @_cached_property
         def second(self):
             self.calls += 1
@@ -313,6 +334,7 @@ def test_cached_property_nested_dependencies():
 def test_cached_property_readonly():
 
     class Sample:
+
         @_cached_property
         def value(self):
             return 42

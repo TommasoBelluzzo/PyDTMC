@@ -57,7 +57,6 @@ from .custom_types import (
     tany as _tany,
     tarray as _tarray,
     tbcond as _tbcond,
-    tcache as _tcache,
     tgraph as _tgraph,
     tgraphs as _tgraphs,
     tlist_array as _tlist_array,
@@ -286,11 +285,7 @@ class MarkovChain(_Model):
     @_cached_property
     def __absorbing_states_indices(self) -> _tlist_int:
 
-        indices = [
-            index
-            for index in range(self.__size)
-            if _np.isclose(self.__p[index, index], 1.0, rtol=0.0, atol=_ETOL)
-        ]
+        indices = [index for index in range(self.__size) if self.__p[index, index] == 1.0]
 
         return indices
 
@@ -438,11 +433,13 @@ class MarkovChain(_Model):
         - Every diagonal entry is 1, since each state is accessible from itself.
         """
 
-        a = self.adjacency_matrix
-        i = _np.eye(self.__size, dtype=int)
+        am = self.adjacency_matrix.astype(bool)
+        _np.fill_diagonal(am, True)
 
-        am = _npl.matrix_power(i + a, self.__size - 1)
-        am = (am > 0).astype(int)
+        for k in range(self.__size):
+            am |= am[:, [k]] & am[[k], :]
+
+        am = am.astype(int)
 
         return am
 
@@ -773,13 +770,15 @@ class MarkovChain(_Model):
         remaining = ev[1:]
         timescales = _np.zeros(remaining.shape, dtype=float)
 
-        infinite_mask = remaining >= (1.0 - _ETOL)
-        zero_mask = remaining <= _ETOL
+        infinite_mask = _np.zeros(remaining.shape, dtype=bool)
+        infinite_mask[:self.period - 1] = True
+
+        zero_mask = (remaining <= _FTOL) & ~infinite_mask
         finite_mask = ~(infinite_mask | zero_mask)
 
         timescales[infinite_mask] = _np.inf
         timescales[zero_mask] = 0.0
-        timescales[finite_mask] = -1.0 / _np.log(remaining[finite_mask])
+        timescales[finite_mask] = -1.0 / _np.log1p(remaining[finite_mask] - 1.0)
 
         it = _np.append(_np.inf, timescales)
 
@@ -1122,6 +1121,8 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
+        - For chains with at most 12 states, the Cheeger bounds are computed using exact conductance.
+        - For chains with more than 12 states, the lower bound is 0 and the upper bound uses approximate conductance.
         - If the Markov chain is not both **irreducible** and **reversible**, then :py:class:`None` is returned.
         """
 
@@ -1141,7 +1142,11 @@ class MarkovChain(_Model):
             sg = 0.0
 
         gc = self.global_conductance
-        cb = [0.5 * gc ** 2.0, 2.0 * gc]
+
+        if self.__size <= 12:
+            cb = [0.5 * gc ** 2.0, 2.0 * gc]
+        else:
+            cb = [0.0, 2.0 * gc]
 
         return sg, cb
 
