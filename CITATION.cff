@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use PyDTMC in your work, please cite this software."
+type: software
+title: PyDTMC
+abstract: >-
+  PyDTMC is a lightweight Python library focused on discrete-time Markov
+  chains and hidden Markov models. It provides a comprehensive set of classes
+  and functions for creating, manipulating, analyzing, simulating, and
+  visualizing Markovian stochastic processes.
+authors:
+  - family-names: Belluzzo
+    given-names: Tommaso
+    orcid: https://orcid.org/0009-0007-8514-5522
+license: MIT
+repository-code: https://github.com/TommasoBelluzzo/PyDTMC
+url: https://github.com/TommasoBelluzzo/PyDTMC
