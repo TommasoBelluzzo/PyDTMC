@@ -56,7 +56,6 @@ __all__ = [
     'tpartitions', 'opartitions',
     'trandfunc', 'orandfunc',
     'trandfunc_flex', 'orandfunc_flex',
-    'trdl', 'ordl',
     # Compound Types - Specific
     'tbcond', 'obcond',
     'tfitting_res', 'ofitting_res',
@@ -276,9 +275,6 @@ orandfunc_flex = _tp.Optional[trandfunc_flex]
 
 tedge_attributes = _tp.List[_tp.Tuple[str, _tp.Tuple[str, ...]]]
 oedge_attributes = _tp.Optional[tedge_attributes]
-
-trdl = _tp.Tuple[tarray, tarray, tarray]
-ordl = _tp.Optional[trdl]
 
 # Compound Types - Specific
 

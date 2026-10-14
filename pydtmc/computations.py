@@ -7,7 +7,6 @@ __all__ = [
     'find_lumping_partitions',
     'gth_solve',
     'kullback_leibler_divergence',
-    'rdl_decomposition',
     'slem'
 ]
 
@@ -30,13 +29,11 @@ import numpy.linalg as _npl
 # Internal
 
 from .constants import (
-    ETOL as _ETOL,
     FTOL as _FTOL
 )
 
 from .custom_types import (
     ofloat as _ofloat,
-    ordl as _ordl,
     tarray as _tarray,
     tgraph as _tgraph,
     tlist_int as _tlist_int,
@@ -260,36 +257,6 @@ def kullback_leibler_divergence(p, pi, phi, q):
     kld = t - u
 
     return kld
-
-
-def rdl_decomposition(p: _tarray) -> _ordl:
-
-    evalues, evectors = _npl.eig(p)
-
-    indices = _np.argsort(-_np.abs(evalues), kind='stable')
-    stationary_index = _np.argmin(_np.abs(evalues - 1.0))
-    indices = _np.concatenate(([stationary_index], indices[indices != stationary_index]))
-
-    evalues = evalues[indices]
-    vectors = evectors[:, indices]
-
-    r = _np.copy(vectors)
-    d = _np.diag(evalues)
-
-    if _npl.cond(r) > (1.0 / _ETOL):
-        raise ValueError('The transition matrix is not numerically diagonalizable.')
-
-    l = _npl.solve(r, _np.eye(p.shape[0], dtype=r.dtype))  # noqa: E741
-
-    if _np.allclose(r[:, 0], r[0, 0]) and (not _np.isclose(r[0, 0], 0.0)):
-        k = r[0, 0]
-        r[:, 0] /= k
-        l[0, :] *= k
-
-    if not _np.allclose(_np.dot(_np.dot(r, d), l), p):
-        raise ValueError('The RDL decomposition could not be reconstructed accurately.')
-
-    return r, d, l
 
 
 def slem(m: _tarray) -> _ofloat:

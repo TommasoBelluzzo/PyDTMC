@@ -51,18 +51,10 @@
     margin-top: 16px !important;
 }
 
+.rst-content dl.py.class:has(> dd > .line-block) > dt.sig {
+    margin-bottom: 24px !important;
+}
+
 .wy-nav-content {
     max-width: 1200px !important;
-}
-
-#instance-methods dl.method,
-#properties dl.property,
-#static-methods dl.method {
-    margin-bottom: 0 !important;
-}
-
-#instance-methods dl.class > dt.sig,
-#properties dl.class > dt.sig,
-#static-methods dl.class > dt.sig {
-    margin-bottom: 24px !important;
 }

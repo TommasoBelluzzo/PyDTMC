@@ -76,7 +76,7 @@ def assess_change_point(possible_states: _tlist_str, sequence: _tsequence, signi
     :param possible_states: the possible states of the process.
     :param sequence: the observed sequence of states.
     :param significance: the p-value significance threshold below which to reject the null hypothesis.
-    :param simulations: the number of Monte Carlo simulations (*at least 10*).
+    :param simulations: the number of Monte Carlo simulations.
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :raises ValidationError: if any input argument is not compliant.
     :raises ValueError: if fewer than three observations are provided.
@@ -141,7 +141,7 @@ def assess_change_point(possible_states: _tlist_str, sequence: _tsequence, signi
     n, length = len(possible_states), len(sequence)
 
     if length < 3:
-        raise ValueError('The sequence must contain at least three observations.')
+        raise ValueError('The sequence must contain at least 3 observations.')
 
     statistic, change_point, transitions = _change_point_statistic(n, sequence)
 
@@ -277,7 +277,7 @@ def assess_independence(possible_states: _tlist_str, sequence: _tsequence, metho
      - **asymptotic** for p-values computed from the asymptotic chi-squared distribution;
      - **simulation** for p-values estimated through Monte Carlo permutations under the independence hypothesis.
     :param significance: the p-value significance threshold below which to reject the null hypothesis.
-    :param simulations: the number of Monte Carlo simulations (*at least 10; used only with the simulation method*).
+    :param simulations: the number of Monte Carlo simulations (*used only with the simulation method*).
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -369,7 +369,7 @@ def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, me
      - **asymptotic** for p-values computed from the asymptotic chi-squared distribution;
      - **simulation** for p-values estimated through Monte Carlo simulation under a fitted first-order Markov model.
     :param significance: the p-value significance threshold below which to reject the null hypothesis.
-    :param simulations: the number of Monte Carlo simulations (*at least 10; used only with the simulation method*).
+    :param simulations: the number of Monte Carlo simulations (*used only with the simulation method*).
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -744,7 +744,7 @@ def assess_time_homogeneity(possible_states: _tlist_str, sequence: _tsequence, b
 
     :param possible_states: the possible states of the process.
     :param sequence: the observed sequence of states.
-    :param blocks: the number of consecutive blocks in which the observed transitions are divided (*at least 2*).
+    :param blocks: the number of consecutive blocks in which the observed transitions are divided.
     :param significance: the p-value significance threshold below which to reject the null hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """

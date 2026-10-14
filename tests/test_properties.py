@@ -11,6 +11,7 @@ import timeit as _ti
 
 # Libraries
 
+import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
 import numpy.testing as _npt
@@ -77,6 +78,17 @@ def test_binary_matrices(p, accessibility_matrix, adjacency_matrix, communicatio
 
     actual = mc.accessibility_matrix
     expected = _np.array(accessibility_matrix)
+
+    assert _np.array_equal(actual, expected)
+
+    graph = _nx.from_numpy_array(mc.p, create_using=_nx.DiGraph)
+    graph_reference = [
+        [int(i == j or j in _nx.descendants(graph, i)) for j in range(mc.size)]
+        for i in range(mc.size)
+    ]
+
+    actual = mc.accessibility_matrix
+    expected = _np.array(graph_reference)
 
     assert _np.array_equal(actual, expected)
 

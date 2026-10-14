@@ -4,6 +4,8 @@ __all__ = [
     'aliased',
     'cached_method',
     'cached_property',
+    'cached_property',
+    'interactive_plot',
     'object_mark'
 ]
 
@@ -20,6 +22,10 @@ import inspect as _ins
 import re as _re
 import threading as _th
 
+# Libraries
+
+import matplotlib.pyplot as _mplp
+
 
 #############
 # VARIABLES #
@@ -31,47 +37,6 @@ ILOCK = _th.Lock()
 ###########
 # CLASSES #
 ###########
-
-def cached_method(func):
-
-    signature = _ins.signature(func)
-    cache_name = f'__pydtmc_cached_method_{func.__name__}__'
-
-    @_ft.wraps(func)
-    def wrapper(self, *args, **kwargs):
-
-        bound = signature.bind(self, *args, **kwargs)
-        bound.apply_defaults()
-
-        arguments = tuple(value for name, value in bound.arguments.items() if name != 'self')
-
-        cache = self.__dict__
-
-        try:
-            results = cache[cache_name]
-            value = results[arguments]
-        except KeyError:
-
-            with ILOCK:
-                lock = cache.setdefault('__pydtmc_cache_lock__', _th.RLock())
-
-            with lock:
-
-                results = cache.setdefault(cache_name, {})
-
-                try:
-                    value = results[arguments]
-                except KeyError:
-                    value = func(self, *args, **kwargs)
-                    results[arguments] = value
-
-        if isinstance(value, (bool, bytes, float, int, str, type(None))):
-            return value
-
-        return _cp.deepcopy(value)
-
-    return wrapper
-
 
 # noinspection PyPep8Naming
 class cached_property(property):
@@ -248,3 +213,62 @@ def aliased(aliased_class):
                 setattr(aliased_class, member_alias, member_wrapped)
 
     return aliased_class
+
+
+def cached_method(func):
+
+    signature = _ins.signature(func)
+    cache_name = f'__pydtmc_cached_method_{func.__name__}__'
+
+    @_ft.wraps(func)
+    def wrapper(self, *args, **kwargs):
+
+        bound = signature.bind(self, *args, **kwargs)
+        bound.apply_defaults()
+
+        arguments = tuple(value for name, value in bound.arguments.items() if name != 'self')
+
+        cache = self.__dict__
+
+        try:
+            results = cache[cache_name]
+            value = results[arguments]
+        except KeyError:
+
+            with ILOCK:
+                lock = cache.setdefault('__pydtmc_cache_lock__', _th.RLock())
+
+            with lock:
+
+                results = cache.setdefault(cache_name, {})
+
+                try:
+                    value = results[arguments]
+                except KeyError:
+                    value = func(self, *args, **kwargs)
+                    results[arguments] = value
+
+        if isinstance(value, (bool, bytes, float, int, str, type(None))):
+            return value
+
+        return _cp.deepcopy(value)
+
+    return wrapper
+
+
+def interactive_plot(func):
+
+    @_ft.wraps(func)
+    def wrapper(*args, **kwargs):
+
+        was_interactive = _mplp.isinteractive()
+
+        with _mplp.ioff():
+            result = func(*args, **kwargs)
+
+        if was_interactive:  # pragma: no cover
+            result[0].show()
+
+        return result
+
+    return wrapper

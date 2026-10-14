@@ -20,7 +20,6 @@ __all__ = [
 # Standard
 
 import copy as _cp
-import functools as _ft
 import inspect as _ins
 import io as _io
 import math as _mt
@@ -54,12 +53,16 @@ from .computations import (
 from .custom_types import (
     oint as _oint,
     olist_str as _olist_str,
-    oplot as _oplot,
     ostate as _ostate,
     ostatus as _ostatus,
     thmm as _thmm,
     tlist_model as _tlist_model,
-    tmodel as _tmodel
+    tmodel as _tmodel,
+    tplot as _tplot
+)
+
+from .decorators import (
+    interactive_plot as _interactive_plot
 )
 
 from .exceptions import (
@@ -133,22 +136,6 @@ def _decode_image(g, dpi):
     return img, img_x, img_xo, img_y, img_yo
 
 
-def _noninteractive(func):
-
-    @_ft.wraps(func)
-    def wrapper(*args, **kwargs):
-
-        mpi = _mplp.isinteractive()
-        _mplp.interactive(False)
-
-        try:
-            return func(*args, **kwargs)
-        finally:
-            _mplp.interactive(mpi)
-
-    return wrapper
-
-
 def _xticks_labels(ax, size, labels_name, labels, minor_major):
 
     if labels_name is not None:
@@ -203,14 +190,15 @@ def _yticks_labels(ax, size, labels_name, labels):
     ax.set_yticklabels(labels)
 
 
-def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition', names: _olist_str = None, dpi: int = 100) -> _oplot:
+@_interactive_plot
+def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition', names: _olist_str = None, dpi: int = 100) -> _tplot:
 
     """
     | The function plots a heatmap comparison of the transition or emission matrices of the given models.
 
     | **Notes:**
 
-    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param models: the models to compare (at least two).
     :param underlying_matrices:
@@ -265,14 +253,11 @@ def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition
 
     figure.suptitle('Comparison Plot', fontsize=15.0, fontweight='bold')
 
-    if _mplp.isinteractive():  # pragma: no cover
-        _mplp.show(block=False)
-        return None
-
     return figure, axes
 
 
-def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None, dpi: int = 100) -> _oplot:
+@_interactive_plot
+def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None, dpi: int = 100) -> _tplot:
 
     """
     | The function plots the convergence of state probabilities toward the stationary distribution of the given model, measured by total variation distance.
@@ -282,7 +267,7 @@ def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None
     - The underlying Markov chain must be **ergodic**.
     - For hidden Markov models, convergence refers to the underlying state-transition chain.
     - The total variation distance at each step is half the sum of the absolute differences between the current and stationary state probabilities.
-    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
     :param steps: the number of steps to evaluate (*the initial distribution at step zero is also included*).
@@ -318,22 +303,22 @@ def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None
 
     figure, ax = _mplp.subplots(dpi=dpi)
 
-    ax.plot(_np.arange(distances.size), distances, color=_colors[0])
+    ax.plot(_np.arange(distances.size), distances, color=_colors[0], linewidth=1.75)
 
-    _xticks_steps(ax, distances.size)
+    ax.set_xlim(0, distances.size - 1)
+
     ax.set_ylabel('Total Variation Distance', fontsize=13.0)
     ax.set_ylim(0.0, 1.0)
-    ax.grid()
-    ax.set_title('Convergence Plot', fontsize=15.0, fontweight='bold')
 
-    if _mplp.isinteractive():  # pragma: no cover
-        _mplp.show(block=False)
-        return None
+    ax.grid()
+
+    ax.set_title('Convergence Plot', fontsize=15.0, fontweight='bold')
 
     return figure, ax
 
 
-def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
+@_interactive_plot
+def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _tplot:
 
     """
     | The function plots the eigenvalues of the transition matrix of the given model on the complex plane.
@@ -341,7 +326,7 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
     | **Notes:**
 
     - For **irreducible** models, the plot also illustrates the second-largest eigenvalue modulus and the corresponding spectral gap.
-    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
     :param dpi: the resolution of the plot expressed in dots per inch.
@@ -426,14 +411,11 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _oplot:
 
     _mplp.subplots_adjust(bottom=0.2)
 
-    if _mplp.isinteractive():  # pragma: no cover
-        _mplp.show(block=False)
-        return None
-
     return figure, ax
 
 
-def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatus = None, palette: str = 'viridis', dpi: int = 100) -> _oplot:
+@_interactive_plot
+def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatus = None, dpi: int = 100) -> _tplot:
 
     """
     | The function plots an alluvial diagram representing the evolution of state probabilities and their redistribution between observations.
@@ -441,13 +423,12 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
     | **Notes:**
 
     - The diagram includes the initial distribution at step zero.
-    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
     :param steps: the number of observation intervals to plot.
     :param interval: the number of Markov-chain steps between consecutive observations.
     :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
-    :param palette: the palette of the plot.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -470,12 +451,30 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
 
         return b, t
 
-    def _get_colors(gc_pn, gc_d):
+    def _get_colors(gc_d):
 
         i = gc_d.shape[0]
+        colors_count = len(_colors)
 
-        cm = _mplp.get_cmap(gc_pn)
-        colors = cm(_np.linspace(0.0, 1.0, i + 2))[1:-1, :]
+        colors = _np.zeros((i, 4), dtype=float)
+
+        for index in range(i):
+
+            base_color = _np.array(_mplcr.to_rgb(_colors[index % colors_count]))
+            cycle = index // colors_count
+
+            if cycle == 0:
+                color = base_color
+            else:
+                variation = min(0.12 * ((cycle + 1) // 2), 0.36)
+
+                if cycle % 2 == 1:
+                    color = base_color + ((1.0 - base_color) * variation)
+                else:
+                    color = base_color * (1.0 - variation)
+
+            colors[index, :3] = color
+            colors[index, 3] = 1.0
 
         return colors
 
@@ -569,7 +568,6 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
         steps = _validate_integer(steps, lower_limit=(1, False))
         interval = _validate_integer(interval, lower_limit=(1, False))
         initial_status = None if initial_status is None else _validate_status(initial_status, model.states)
-        palette = _validate_enumerator(palette, list(_mplp.colormaps))
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
@@ -589,7 +587,7 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
     d = distributions * 0.9
     bb, bt = _get_boundaries(d)
     bm = (bb + bt) / 2.0
-    c = _get_colors(palette, d)
+    c = _get_colors(d)
     lh, ll = _get_legend(mc, c)
 
     polygons_bars = _get_polygons_bars(d, bb, bt, c)
@@ -621,15 +619,12 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
 
     _mplp.subplots_adjust(bottom=0.2)
 
-    if _mplp.isinteractive():  # pragma: no cover
-        _mplp.show(block=False)
-        return None
-
     return figure, ax
 
 
 # noinspection PyBroadException
-def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _oplot:
+@_interactive_plot
+def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _tplot:
 
     """
     | The function plots the directed graph of the given model, representing state transitions and, for hidden Markov models, symbol emissions.
@@ -638,7 +633,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
     - For Markov chains, node colors identify communicating classes and node shapes distinguish recurrent from transient states.
     - For hidden Markov models, state nodes have distinct colors and elliptical shapes, while symbol nodes are gray and hexagonal.
-    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
     - `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are optional dependencies that enable an extended rendering mode.
     - Rendering quality may deteriorate for large graphs, particularly in standard mode.
 
@@ -830,7 +825,6 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
         return f, a
 
-    @_noninteractive
     def _plot_hmm_standard(phs_hmm, phs_nodes_color, phs_nodes_shape, phe_edges_label, phs_dpi):
 
         g = phs_hmm.to_graph()
@@ -982,9 +976,10 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
         a = f.gca()
         a.axis('off')
 
+        a.set_title('Graph Plot', fontsize=18.0, fontweight='bold', pad=10)
+
         return f, a
 
-    @_noninteractive
     def _plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_shape, phe_edges_label, pms_dpi):
 
         g = pms_mc.to_graph()
@@ -1086,15 +1081,13 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
         func = _plot_mc_standard if model_mc else _plot_hmm_standard
 
     figure, ax = func(model, nodes_color, nodes_shape, edges_label, dpi)
-
-    if _mplp.isinteractive():  # pragma: no cover
-        _mplp.show(block=False)
-        return None
+    figure.suptitle('Graph Plot', fontsize=15.0, fontweight='bold')
 
     return figure, ax
 
 
-def plot_matrix(model: _tmodel, underlying_matrix: str = 'transition', dpi: int = 100) -> _oplot:
+@_interactive_plot
+def plot_matrix(model: _tmodel, underlying_matrix: str = 'transition', dpi: int = 100) -> _tplot:
 
     """
     | The function plots a heatmap of the transition or emission matrix of the given model.
@@ -1102,7 +1095,7 @@ def plot_matrix(model: _tmodel, underlying_matrix: str = 'transition', dpi: int 
     | **Notes:**
 
     - Matrix rows represent origin states, while columns represent destination states or emitted symbols.
-    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
     :param underlying_matrix:
@@ -1142,21 +1135,18 @@ def plot_matrix(model: _tmodel, underlying_matrix: str = 'transition', dpi: int 
 
     ax.set_title('Matrix Plot (' + underlying_matrix.capitalize() + ')', fontsize=15.0, fontweight='bold')
 
-    if _mplp.isinteractive():  # pragma: no cover
-        _mplp.show(block=False)
-        return None
-
     return figure, ax
 
 
-def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _oplot:
+@_interactive_plot
+def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _tplot:
 
     """
     | The function plots the evolution of state probability distributions over successive steps of the given model.
 
     | **Notes:**
 
-    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
     :param redistributions: the number of redistributions to perform (*the initial distribution at step zero is also included*).
@@ -1211,10 +1201,10 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
 
         if distributions_length == 2:
             for i in range(mc.size):
-                ax.plot(_np.arange(0.0, distributions_length, 1.0), distributions[:, i], label=mc.states[i], marker='o')
+                ax.plot(_np.arange(0.0, distributions_length, 1.0), distributions[:, i], label=mc.states[i], linewidth=1.75, marker='o')
         else:
             for i in range(mc.size):
-                ax.plot(_np.arange(0.0, distributions_length, 1.0), distributions[:, i], label=mc.states[i])
+                ax.plot(_np.arange(0.0, distributions_length, 1.0), distributions[:, i], label=mc.states[i], linewidth=1.75)
 
         if _np.allclose(distributions[0, :], _np.ones(mc.size, dtype=float) / mc.size):
             ax.plot(0.0, distributions[0, 0], color=_color_black, label="Start", marker='o', markeredgecolor=_color_black, markerfacecolor=_color_black)
@@ -1232,21 +1222,18 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
 
         _mplp.subplots_adjust(bottom=0.2)
 
-    if _mplp.isinteractive():  # pragma: no cover
-        _mplp.show(block=False)
-        return None
-
     return figure, ax
 
 
-def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _oplot:
+@_interactive_plot
+def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _tplot:
 
     """
     | The function plots a random sequence of states and, for hidden Markov models, emitted symbols.
 
     | **Notes:**
 
-    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
     :param steps: the number of steps to simulate.
@@ -1260,7 +1247,6 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    @_noninteractive
     def _plot_heatmap(phm_walk_data, phm_dpi):
 
         walk_steps, walks = phm_walk_data
@@ -1296,7 +1282,6 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
 
         return f, a
 
-    @_noninteractive
     def _plot_histogram(ph_walk_data, ph_dpi):
 
         _, walks = ph_walk_data
@@ -1319,7 +1304,6 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
 
         return f, a
 
-    @_noninteractive
     def _plot_matrix(pm_walk_data, pm_dpi):
 
         walk_steps, walks = pm_walk_data
@@ -1383,15 +1367,12 @@ def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plo
 
     figure, ax = func(walk_data, dpi)
 
-    if _mplp.isinteractive():  # pragma: no cover
-        _mplp.show(block=False)
-        return None
-
     return figure, ax
 
 
 # noinspection PyBroadException
-def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _oint = None, force_standard: bool = False, dpi: int = 100) -> _oplot:
+@_interactive_plot
+def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _oint = None, force_standard: bool = False, dpi: int = 100) -> _tplot:
 
     """
     | The function plots the forward and backward trellis diagrams of a simulated observation sequence on the given hidden Markov model.
@@ -1399,7 +1380,7 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
     | **Notes:**
 
     - Highlighted nodes and edges identify the most probable hidden-state sequence calculated using the Viterbi algorithm.
-    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed and the function does not return the plot handles.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
     - `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are optional dependencies that enable an extended rendering mode.
     - Rendering quality may deteriorate for large simulations.
 
@@ -1554,7 +1535,6 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
 
         return trellis, node_colors, node_edges, node_labels, node_positions, edge_colors
 
-    @_noninteractive
     def _plot_extended(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
 
         f, a = _mplp.subplots(nrows=2, tight_layout=True, dpi=ps_dpi)
@@ -1578,7 +1558,6 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
 
         return f, a
 
-    @_noninteractive
     def _plot_standard(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
 
         y_top = ps_hmm.n + 0.5
@@ -1649,9 +1628,5 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
         figure, ax = _plot_extended(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
     else:
         figure, ax = _plot_standard(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
-
-    if _mplp.isinteractive():  # pragma: no cover
-        _mplp.show(block=False)
-        return None
 
     return figure, ax
