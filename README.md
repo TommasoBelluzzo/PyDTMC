@@ -1,6 +1,6 @@
 # PyDTMC
 
-PyDTMC is a full-featured and lightweight library for discrete-time Markov chains analysis. It provides classes and functions for creating, manipulating, simulating and visualizing Markov processes.
+PyDTMC is a lightweight Python library focused on discrete-time Markov chains and hidden Markov models. It provides a comprehensive set of classes and functions for creating, manipulating, analyzing, simulating, and visualizing Markovian stochastic processes.
 
 <table>
   <tr>
@@ -15,7 +15,7 @@ PyDTMC is a full-featured and lightweight library for discrete-time Markov chain
     <td align="right">Info:</td>
     <td align="left">
       <a href="#"><img alt="License" src="https://img.shields.io/github/license/TommasoBelluzzo/PyDTMC?style=flat&label=License&color=1081C2"/></a>
-      <a href="#"><img alt="Lines" src="https://img.shields.io/tokei/lines/github/TommasoBelluzzo/PyDTMC?style=flat&label=Lines&color=1081C2"/></a>
+      <a href="https://doi.org/10.5281/zenodo.23363778"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.23363778.svg"/></a>
       <a href="#"><img alt="Size" src="https://img.shields.io/github/repo-size/TommasoBelluzzo/PyDTMC?style=flat&label=Size&color=1081C2"/></a>
     </td>
   </tr>
@@ -282,3 +282,9 @@ Below a few examples of `HiddenMarkovModel` plotting functions; in order to disp
 ```
 
 ![Screenshots](https://i.imgur.com/rSNUbdX.gif)
+
+## Citation
+
+If you use PyDTMC in your work, please cite the software using its [Zenodo DOI](https://doi.org/10.5281/zenodo.23363778).\
+For reproducible research, please cite the DOI corresponding to the specific version used.\
+Citation metadata is available in the [CITATION.cff](https://github.com/TommasoBelluzzo/PyDTMC/blob/master/CITATION.cff) file.

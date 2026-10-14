@@ -42,7 +42,6 @@ import numpy.linalg as _npl
 # Internal
 
 from .constants import (
-    ETOL as _ETOL,
     FTOL as _FTOL
 )
 
@@ -521,8 +520,6 @@ def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
 def mc_hitting_times(mc: _tmc, statistic: str, targets: _tlist_int) -> _tarray:
 
     p, size = mc.p, mc.size
-
-    states_indices = {state: index for index, state in enumerate(mc.states)}
 
     target = _np.array(targets, dtype=int)
     non_target = _np.setdiff1d(_np.arange(size, dtype=int), target)
