@@ -12,5 +12,6 @@ authors:
     given-names: Tommaso
     orcid: https://orcid.org/0009-0007-8514-5522
 license: MIT
+doi: 10.5281/zenodo.23363778
 repository-code: https://github.com/TommasoBelluzzo/PyDTMC
 url: https://github.com/TommasoBelluzzo/PyDTMC
