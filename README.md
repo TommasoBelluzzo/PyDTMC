@@ -285,6 +285,6 @@ Below a few examples of `HiddenMarkovModel` plotting functions; in order to disp
 
 ## Citation
 
-If you use PyDTMC in your work, please cite the software using its [Zenodo DOI](https://doi.org/10.5281/zenodo.23363778).
-For reproducible research, please cite the DOI corresponding to the specific version used.
+If you use PyDTMC in your work, please cite the software using its [Zenodo DOI](https://doi.org/10.5281/zenodo.23363778).\
+For reproducible research, please cite the DOI corresponding to the specific version used.\
 Citation metadata is available in the [CITATION.cff](https://github.com/TommasoBelluzzo/PyDTMC/blob/master/CITATION.cff) file.
