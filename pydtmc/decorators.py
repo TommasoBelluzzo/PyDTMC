@@ -239,7 +239,7 @@ def aliased(aliased_class):
         for member, member_aliases in aliases.items():
 
             if isinstance(member, property):
-                member_wrapped = property(lambda self, m=member: m.__get__(self, type(self)), doc=member.__doc__)
+                member_wrapped = property(lambda self, m=member: m.__get__(self, type(self)), doc=member.__doc__)  # pylint: disable=unnecessary-dunder-call
             else:
                 member_wrapped = wrapper(member)
                 member_wrapped.__doc__ = member.__doc__
