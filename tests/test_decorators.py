@@ -1,5 +1,6 @@
 
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-class-docstring
 
 
 ###########
@@ -154,7 +155,7 @@ def test_cached_method_mutability():
             self.calls = 0
 
         @_cached_method
-        def value(self, statistic):
+        def value(self, statistic):  # pylint: disable=unused-argument
             self.calls += 1
             return [_np.array([1.0, 2.0, 3.0])]
 
