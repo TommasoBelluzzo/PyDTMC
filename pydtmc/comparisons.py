@@ -28,16 +28,6 @@ from .custom_types import (
     tmodel as _tmodel
 )
 
-# noinspection PyUnresolvedReferences
-from .hidden_markov_model import (  # noqa: F401  # pylint: disable=unused-import
-    HiddenMarkovModel as _HiddenMarkovModel
-)
-
-# noinspection PyUnresolvedReferences
-from .markov_chain import (  # noqa: F401  # pylint: disable=unused-import
-    MarkovChain as _MarkovChain
-)
-
 from .utilities import (
     create_validation_error as _create_validation_error
 )
@@ -54,12 +44,12 @@ from .validation import (
 
 def _extract_stationary_distribution(model1: _tmodel, model2: _tmodel):
 
-    if model1.n != model2.n:
+    if model1.n != model2.n:  # pragma: no cover
         raise ValueError('The models must have the same number of states in order to be compared.')
 
     pi1, pi2 = model1.pi, model2.pi
 
-    if (len(pi1) != 1) or (len(pi2) != 1):
+    if (len(pi1) != 1) or (len(pi2) != 1):  # pragma: no cover
         raise ValueError('The models must have a unique stationary distribution in order to be compared.')
 
     pi1_unique, pi2_unique = pi1[0], pi2[0]
@@ -69,7 +59,7 @@ def _extract_stationary_distribution(model1: _tmodel, model2: _tmodel):
 
 def _extract_transition_matrices(model1: _tmodel, model2: _tmodel):
 
-    if model1.n != model2.n:
+    if model1.n != model2.n:  # pragma: no cover
         raise ValueError('The models must have the same number of states in order to be compared.')
 
     return model1.p, model2.p
