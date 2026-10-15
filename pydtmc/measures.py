@@ -456,15 +456,14 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
     if not mc.is_irreducible:
         return None
 
-    pi = mc.pi[0]
-    sf = mc.stationary_flux[0]
+    size, pi, sf = mc.size, mc.pi[0], mc.stationary_flux[0]
 
     gc = float('inf')
 
-    if mc.size <= 12:
+    if size <= 12:
 
-        for i in range(1, mc.size):
-            for c in _it.combinations(range(mc.size), i):
+        for i in range(1, size):
+            for c in _it.combinations(range(size), i):
 
                 states = list(c)
 
@@ -473,7 +472,7 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
                 if mass > (0.5 + _FTOL):
                     continue
 
-                complement = _np.ones(mc.size, dtype=bool)
+                complement = _np.ones(size, dtype=bool)
                 complement[states] = False
 
                 flow = _np.sum(sf[_np.ix_(states, complement)])
@@ -487,16 +486,16 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
         pi_root = _np.sqrt(pi)
         normalized = flow / _np.outer(pi_root, pi_root)
 
-        laplacian = _np.eye(mc.size) - normalized
+        laplacian = _np.eye(size) - normalized
         _, eigenvectors = _npl.eigh(laplacian)
 
         fiedler = eigenvectors[:, 1] / pi_root
         order = _np.argsort(fiedler, kind='stable')
 
-        candidates = [[i] for i in range(mc.size)]
+        candidates = [[i] for i in range(size)]
 
         for ordering in (order, order[::-1]):
-            for count in range(1, mc.size):
+            for count in range(1, size):
                 candidates.append(ordering[:count])
 
         for states in candidates:
@@ -506,7 +505,7 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
             if mass > (0.5 + _FTOL):
                 continue
 
-            complement = _np.ones(mc.size, dtype=bool)
+            complement = _np.ones(size, dtype=bool)
             complement[states] = False
 
             cut = _np.sum(sf[_np.ix_(states, complement)])
@@ -662,7 +661,7 @@ def mc_mixing_time_from(mc: _tmc, initial_distribution: _tarray, jump: int, cuto
     return mt
 
 
-def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:
+def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=too-many-return-statements
 
     p, size, states = mc.p, mc.size, mc.states
     transient_indices = [states.index(state) for state in mc.transient_states]
@@ -730,7 +729,7 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:
 
     actual_survival = float(_np.sum(_np.dot(evector, q)))
 
-    if (not (0.0 < actual_survival < 1.0)) or (not _np.allclose(evector @ q, actual_survival * evector, rtol=_FTOL, atol=_FTOL)):
+    if not (0.0 < actual_survival < 1.0) or (not _np.allclose(evector @ q, actual_survival * evector, rtol=_FTOL, atol=_FTOL)):
         return None
 
     nu = _np.zeros(size, dtype=float)
