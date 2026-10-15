@@ -57,7 +57,7 @@ def test_calculate_transition_distance(p1, p2, value_f, value_h, value_m, value_
 
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-        actual = _calculate_transition_distance(distance_type, model2, model1)
+        actual = _calculate_transition_distance(distance_type, model2, model1)  # pylint: disable=arguments-out-of-order
         expected = distance_value
 
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
