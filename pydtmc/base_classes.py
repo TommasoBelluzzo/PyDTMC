@@ -13,6 +13,14 @@ __all__ = [
 
 import abc as _abc
 
+# Internal
+
+from .custom_types import (
+    tarray as _tarray,
+    tlist_array as _tlist_array,
+    tlist_str as _tlist_str
+)
+
 
 ###########
 # CLASSES #
@@ -33,12 +41,22 @@ class Model(_abc.ABC):  # pragma: no cover
 
     @property
     @_abc.abstractmethod
-    def n(self):
+    def n(self) -> int:
         pass
 
     @property
     @_abc.abstractmethod
-    def states(self):
+    def p(self) -> _tarray:
+        pass
+
+    @property
+    @_abc.abstractmethod
+    def pi(self) -> _tlist_array:
+        pass
+
+    @property
+    @_abc.abstractmethod
+    def states(self) -> _tlist_str:
         pass
 
     @_abc.abstractmethod

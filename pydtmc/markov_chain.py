@@ -1197,9 +1197,7 @@ class MarkovChain(_Model):
         - A class containing no directed cycle has a period equal to 0.
         """
 
-        periods = _calculate_periods(self.__digraph)
-
-        return periods
+        return _calculate_periods(self.__digraph)
 
     @_cached_property
     @_object_mark(aliases=['stationary_distributions', 'steady_states'])

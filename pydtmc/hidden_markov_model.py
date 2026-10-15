@@ -43,6 +43,7 @@ from .custom_types import (
     thmm_sequence_ext as _thmm_sequence_ext,
     thmm_step as _thmm_step,
     thmm_symbols_ext as _thmm_symbols_ext,
+    tlist_array as _tlist_array,
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
     tpair_array as _tpair_array,
@@ -258,6 +259,25 @@ class HiddenMarkovModel(_Model):
         """
 
         return _np.copy(self.__p)
+
+    @_cached_property
+    @_object_mark(aliases=['stationary_distributions', 'steady_states'])
+    def pi(self) -> _tlist_array:
+
+        r"""
+        | A property representing the stationary distributions of the hidden-state transition matrix:
+        | :math:`\pi P = \pi` where :math:`\pi` is a stationary probability distribution represented as a row vector.
+
+        | **Notes:**
+
+        - For an **irreducible** underlying Markov chain, the stationary distribution is unique.
+        - For a **reducible** underlying Markov chain, one stationary distribution is returned for each recurrent class.
+        - The property can also be accessed through the aliases **stationary_distributions** and **steady_states**.
+        """
+
+        mc = _MarkovChain(self.p, self.states)
+
+        return mc.pi
 
     @property
     def size(self) -> _tpair_int:
