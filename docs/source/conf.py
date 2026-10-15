@@ -130,13 +130,13 @@ autoclass_content = 'both'
 autodoc_class_signature = 'mixed'
 autodoc_member_order = 'bysource'
 autodoc_docstring_signature = True
-autodoc_typehints = 'signature'
+autodoc_typehints = 'none'
 autodoc_typehints_format = 'short'
 
 # Autodoc Typehints
 
 set_type_checking_flag = True
-simplify_optional_unions = False
+simplify_optional_unions = True
 always_use_bars_union = True
 typehints_fully_qualified = False
 typehints_use_rtype = False
