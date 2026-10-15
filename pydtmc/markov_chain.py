@@ -1454,6 +1454,7 @@ class MarkovChain(_Model):
         - The returned matrix has one row per recurrent class and one column per transient state.
         - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
         - The method can also be accessed through the alias **ap**.
+
         """
 
         return _absorption_probabilities(self)
@@ -1651,6 +1652,7 @@ class MarkovChain(_Model):
         - The returned matrix is symmetric, with diagonal entries equal to 0.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         - The method can also be accessed through the alias **ct**.
+
         """
 
         fptt_mean = self.first_passage_times_to(statistic='mean')
@@ -2182,6 +2184,7 @@ class MarkovChain(_Model):
         - Visits to transient states have finite expectations.
         - Visits to recurrent states have infinite expectation when those states are accessible, and zero otherwise.
         - The method can also be accessed through the alias **mnv**.
+
         """
 
         return _mean_number_visits(self)
@@ -2993,6 +2996,7 @@ class MarkovChain(_Model):
         - States belonging to the same recurrent class are kept contiguous.
         - The returned Markov chain satisfies the **is_canonical** property.
         - The method can also be accessed through the alias **to_canonical**.
+
         """
 
         p, _, _ = _canonical(self.__p, self.__recurrent_classes_indices, self.__transient_states_indices)
@@ -3014,6 +3018,7 @@ class MarkovChain(_Model):
 
         - Each key is an ordered pair of state labels, and its value is the corresponding transition probability.
         - All ordered pairs are included, even when their transition probabilities are 0.
+
         """
 
         d = {
@@ -3066,6 +3071,7 @@ class MarkovChain(_Model):
 
         - Each node represents a state, and each edge represents a transition with positive probability.
         - Edge weights represent transition probabilities.
+
         """
 
         graph = _cp.deepcopy(self.__digraph)
@@ -3106,7 +3112,7 @@ class MarkovChain(_Model):
     def to_matrix(self) -> _tarray:
 
         """
-        | The method returns a copy of the transition matrix of the Markov chain.
+        The method returns a copy of the transition matrix of the Markov chain.
         """
 
         m = _np.copy(self.__p)

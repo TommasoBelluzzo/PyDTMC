@@ -1970,7 +1970,7 @@
       "is_valid": false
     }
   ],
-  "validate_partitions_data": [
+  "validate_partition_data": [
     {
       "value": [["A", "B"], ["C"]],
       "labels": ["A", "B", "C"],

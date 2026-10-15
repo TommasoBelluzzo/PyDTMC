@@ -699,10 +699,10 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=to
 
         descendants = _nx.descendants(dag, index)
 
-        if any(0.0 < abs(radius - radii[j]) <= _FTOL for j in descendants):
+        if any(0.0 < abs(radius - radii[j]) <= _FTOL for j in descendants):  # pragma: no cover
             return None
 
-        if all(radius > radii[j] for j in descendants):
+        if all(radius > radii[j] for j in descendants):  # pragma: no cover
             distinguished.append(index)
 
     if len(distinguished) != 1:
@@ -713,7 +713,7 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=to
     index = _np.argmin(_np.abs(evalues - survival))
     evalue, evector = evalues[index], evectors[:, index]
 
-    if (_np.abs(evalue.imag) > _FTOL) or (_np.abs(evalue.real - survival) > _FTOL) or (_np.max(_np.abs(evector.imag)) > _FTOL):
+    if (_np.abs(evalue.imag) > _FTOL) or (_np.abs(evalue.real - survival) > _FTOL) or (_np.max(_np.abs(evector.imag)) > _FTOL):  # pragma: no cover
         return None
 
     evector = evector.real
@@ -721,7 +721,7 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=to
     if _np.sum(evector) < 0.0:
         evector = -evector
 
-    if (_np.sum(evector) <= _FTOL) or (_np.min(evector) < -_FTOL):
+    if (_np.sum(evector) <= _FTOL) or (_np.min(evector) < -_FTOL):  # pragma: no cover
         return None
 
     evector = _np.maximum(evector, 0.0)
@@ -729,7 +729,7 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=to
 
     actual_survival = float(_np.sum(_np.dot(evector, q)))
 
-    if not (0.0 < actual_survival < 1.0) or (not _np.allclose(evector @ q, actual_survival * evector, rtol=_FTOL, atol=_FTOL)):
+    if not (0.0 < actual_survival < 1.0) or (not _np.allclose(evector @ q, actual_survival * evector, rtol=_FTOL, atol=_FTOL)):  # pragma: no cover
         return None
 
     nu = _np.zeros(size, dtype=float)

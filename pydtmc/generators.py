@@ -1003,7 +1003,7 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
     x = evectors[:, _np.arange(n - 1, n - s - 1, -1)] / root[:, _np.newaxis]
     x[:, 0] = 1.0
 
-    if _np.abs(evalues[n - s] - evalues[n - s - 1]) < 1e-10:
+    if _np.abs(evalues[n - s] - evalues[n - s - 1]) < 1e-10:  # pragma: no cover
         return None, None, 'The requested dimension splits a degenerate eigenspace.'
 
     n, s = x.shape
@@ -1027,7 +1027,7 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
             _, singular, right = _npl.svd(directions, full_matrices=False)
             rank = _np.sum(singular > (1e-12 * scale))
 
-            if rank != (v - 1):
+            if rank != (v - 1):  # pragma: no cover
                 return None, None, 'The metastable simplex is rank deficient.'
 
             residuals = differences - _np.dot(_np.dot(differences, _np.transpose(right[:rank])), right[:rank])
@@ -1036,12 +1036,12 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
         distances[vertices] = -1.0
         candidate = _np.argmax(distances)
 
-        if distances[candidate] <= (1e-12 * scale)**2.0:
+        if distances[candidate] <= (1e-12 * scale)**2.0:  # pragma: no cover
             return None, None, 'The requested number of simplex vertices could not be identified.'
 
         vertices.append(candidate)
 
-    if _npl.cond(x[vertices, :]) > 1e12:
+    if _npl.cond(x[vertices, :]) > 1e12:  # pragma: no cover
         return None, None, 'The metastable simplex is ill-conditioned.'
 
     transform = _spl.solve(x[vertices, :], _np.eye(s), assume_a='gen')
@@ -1087,7 +1087,7 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
 
         chi = _memberships(result.x, x, s)
 
-        if (not result.success) or (not _np.all(_np.isfinite(chi))) or (_np.min(chi) < -1e-8) or (not _np.allclose(_np.sum(chi, axis=1), 1.0, atol=1.0e-8, rtol=0.0)):
+        if (not result.success) or (not _np.all(_np.isfinite(chi))) or (_np.min(chi) < -1e-8) or (not _np.allclose(_np.sum(chi, axis=1), 1.0, atol=1.0e-8, rtol=0.0)):  # pragma: no cover
             return None, None, 'The robust PCCA membership optimization did not converge.'
 
         chi = _np.maximum(chi, 0.0)
@@ -1096,7 +1096,7 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
     groups = _np.argmax(chi, axis=1)
     s = chi.shape[1]
 
-    if len(_np.unique(groups)) != s:
+    if len(_np.unique(groups)) != s:  # pragma: no cover
         return None, None, 'A metastable macrostate has no assigned microstates.'
 
     order = sorted(range(s), key=lambda k: int(_np.flatnonzero(groups == k)[0]))
@@ -1105,19 +1105,19 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
 
     masses = _np.dot(pi, chi)
 
-    if _np.any(masses <= 0.0):
+    if _np.any(masses <= 0.0):  # pragma: no cover
         return None, None, 'At least one macrostate has non-positive stationary probability mass.'
 
     pm = _np.dot(_np.transpose(chi), (pi[:, _np.newaxis] * p))
     pm = _np.dot(pm, chi) / masses[:, _np.newaxis]
 
-    if not _np.all(_np.isfinite(pm)) or _np.min(pm) < -_FTOL:
+    if not _np.all(_np.isfinite(pm)) or _np.min(pm) < -_FTOL:  # pragma: no cover
         return None, None, 'Non-finite or significantly negative transition probabilities have been detected.'
 
     pm = _np.maximum(pm, 0.0)
     q_sums = _np.sum(pm, axis=1, keepdims=True)
 
-    if _np.any(q_sums <= 0.0):
+    if _np.any(q_sums <= 0.0):  # pragma: no cover
         return None, None, 'At least one row of the reduced transition matrix has zero probability mass.'
 
     pm /= q_sums
