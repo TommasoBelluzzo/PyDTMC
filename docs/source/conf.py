@@ -471,12 +471,18 @@ class _SphinxPostTransformReturnTypes(_sppt.SphinxPostTransform):
 def _hook_autodoc_before_process_signature(app, obj, bound_method):  # pylint: disable=unused-argument
 
     from pydtmc import assessments
+    from pydtmc import comparisons
     from pydtmc import plotting
 
     from pydtmc.hidden_markov_model import HiddenMarkovModel
     from pydtmc.markov_chain import MarkovChain
 
+    assessments.__dict__.setdefault('HiddenMarkovModel', HiddenMarkovModel)
     assessments.__dict__.setdefault('MarkovChain', MarkovChain)
+
+    comparisons.__dict__.setdefault('HiddenMarkovModel', HiddenMarkovModel)
+    comparisons.__dict__.setdefault('MarkovChain', MarkovChain)
+
     plotting.__dict__.setdefault('HiddenMarkovModel', HiddenMarkovModel)
     plotting.__dict__.setdefault('MarkovChain', MarkovChain)
 

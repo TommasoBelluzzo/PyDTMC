@@ -24,7 +24,7 @@ __all__ = [
     'validate_matrix',
     'validate_model',
     'validate_models',
-    'validate_partitions',
+    'validate_partition',
     'validate_random_distribution',
     'validate_rewards',
     'validate_sequence',
@@ -738,7 +738,7 @@ def validate_models(value: _tany) -> _tlist_model:
     return value
 
 
-def validate_partitions(value: _tany, labels: _tlist_str) -> _tlists_int:
+def validate_partition(value: _tany, labels: _tlist_str) -> _tlists_int:
 
     if not _is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
@@ -746,7 +746,7 @@ def validate_partitions(value: _tany, labels: _tlist_str) -> _tlists_int:
     partitions_length = len(value)
     labels_length = len(labels)
 
-    if partitions_length < 2 or partitions_length >= labels_length:
+    if (partitions_length < 2) or (partitions_length >= labels_length):
 
         if labels_length == 2:  # pragma: no cover
             raise ValueError('The "@arg@" parameter must contain a number of elements equal to 2.')

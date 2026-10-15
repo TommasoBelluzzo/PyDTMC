@@ -24,6 +24,7 @@ Properties
 		entropy_rate_normalized,
 		fundamental_matrix,
 		global_conductance,
+		global_metastability,
 		implied_timescales,
 		incidence_matrix,
 		is_absorbing,

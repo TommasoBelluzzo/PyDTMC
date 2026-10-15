@@ -110,8 +110,6 @@ from .fitting import (
 )
 
 from .generators import (
-    mc_aggregate_spectral_bottom_up as _aggregate_spectral_bottom_up,
-    mc_aggregate_spectral_top_down as _aggregate_spectral_top_down,
     mc_approximation as _approximation,
     mc_birth_death as _birth_death,
     mc_bounded as _bounded,
@@ -122,8 +120,11 @@ from .generators import (
     mc_gamblers_ruin as _gamblers_ruin,
     mc_lazy as _lazy,
     mc_lump as _lump,
+    mc_metastable_aggregation as _metastable_aggregation,
     mc_population_genetics_model as _population_genetics_model,
     mc_random as _random,
+    mc_spectral_aggregation_bottom_up as _spectral_aggregation_bottom_up,
+    mc_spectral_aggregation_top_down as _spectral_aggregation_top_down,
     mc_sub as _sub,
     mc_urn_model as _urn_model
 )
@@ -132,6 +133,7 @@ from .measures import (
     mc_absorption_probabilities as _absorption_probabilities,
     mc_absorption_times as _absorption_times,
     mc_committor_probabilities as _committor_probabilities,
+    mc_conductance as _conductance,
     mc_entropy_production_rate as _entropy_production_rate,
     mc_expected_rewards as _expected_rewards,
     mc_expected_transitions as _expected_transitions,
@@ -187,7 +189,7 @@ from .validation import (
     validate_mask as _validate_mask,
     validate_markov_chain as _validate_markov_chain,
     validate_matrix as _validate_matrix,
-    validate_partitions as _validate_partitions,
+    validate_partition as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
     validate_sequence as _validate_sequence,
@@ -350,11 +352,11 @@ class MarkovChain(_Model):
     def __slem(self) -> _ofloat:
 
         if not self.is_irreducible:
-            value = None
+            slem = None
         else:
-            value = _slem(self.__p)
+            slem = _slem(self.__p)
 
-        return value
+        return slem
 
     @_cached_property
     def __states_indices(self) -> _tlist_int:
@@ -750,6 +752,25 @@ class MarkovChain(_Model):
         return gc
 
     @_cached_property
+    def global_metastability(self) -> _ofloat:
+
+        r"""
+        | A property representing the global metastability of the Markov chain:
+        | :math:`M = 1 - \Phi` where :math:`\Phi` is the global conductance of the Markov chain.
+
+        | **Notes:**
+
+        - For chains with at most 12 states, exact global metastability is computed through exhaustive subset enumeration.
+        - For chains with more than 12 states, a deterministic spectral-sweep approximation provides a lower bound on exact global metastability.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        """
+
+        gc = _global_conductance(self)
+        gm = None if gc is None else 1.0 - gc
+
+        return gm
+
+    @_cached_property
     def implied_timescales(self) -> _oarray:
 
         r"""
@@ -1022,9 +1043,10 @@ class MarkovChain(_Model):
         - Partitions consisting of only one block or one block per state are excluded.
         """
 
-        lp = _find_lumping_partitions(self.__p)
+        partitions = _find_lumping_partitions(self.__p)
+        partitions = [[[self.__states[index] for index in group] for group in partition] for partition in partitions]
 
-        return lp
+        return partitions
 
     @_cached_property
     def mixing_rate(self) -> _ofloat:
@@ -1449,56 +1471,6 @@ class MarkovChain(_Model):
 
         return _absorption_times(self, statistic)
 
-    @_object_mark(instance_generator=True)
-    def aggregate(self, s: int, method: str = 'adaptive') -> _tmc:
-
-        """
-        | The method attempts to aggregate the Markov chain into a reduced Markov chain with the given number of states.
-
-        | **Notes:**
-
-        - The aggregation is based on spectral methods and Kullback-Leibler divergence minimization.
-        - Methodologies are described in `Optimal Kullback-Leibler Aggregation via Spectral Theory of Markov Chains (Deng et al., 2011) <https://doi.org/10.1109/TAC.2011.2141350>`_.
-
-        :param s: the number of states of the reduced Markov chain.
-        :param method:
-         - **spectral-bottom-up** for a spectral theory based aggregation, bottom-up (more suitable for reducing a large number of states);
-         - **spectral-top-down** for a spectral theory based aggregation, top-down (more suitable for reducing a small number of states);
-         - **adaptive** for automatically selecting the best aggregation method, according to the size of the original and reduced chains.
-        :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Markov chain has only two states, is not **ergodic**, or the aggregation cannot be computed.
-        """
-
-        try:
-
-            method = _validate_enumerator(method, ['adaptive', 'spectral-bottom-up', 'spectral-top-down'])
-            s = _validate_integer(s, lower_limit=(2, False), upper_limit=(self.__size - 1, False))
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
-
-        if self.__size == 2:  # pragma: no cover
-            raise ValueError('The Markov chain defines only two states.')
-
-        if not self.is_ergodic:  # pragma: no cover
-            raise ValueError('The Markov chain is not ergodic.')
-
-        if method == 'adaptive':  # pragma: no cover
-            if self.__size < 30:
-                method = 'spectral-top-down'
-            else:
-                method = 'spectral-bottom-up' if (float(s) / self.__size) <= 0.3 else 'spectral-top-down'
-
-        func = _aggregate_spectral_bottom_up if method == 'spectral-bottom-up' else _aggregate_spectral_top_down
-        p, states, error_message = func(self.p, self.pi[0], s)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
-        mc = MarkovChain(p, states)
-
-        return mc
-
     def are_communicating(self, state1: _tstate, state2: _tstate) -> bool:
 
         """
@@ -1642,9 +1614,9 @@ class MarkovChain(_Model):
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
-        value = _committor_probabilities(self, committor_type, states1, states2)
+        crp = _committor_probabilities(self, committor_type, states1, states2)
 
-        return value
+        return crp
 
     @_cached_method
     @_object_mark(aliases=['ct'])
@@ -1693,9 +1665,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = self.__p[state, :]
+        cp = self.__p[state, :]
 
-        return value
+        return cp
 
     def conductance(self, states: _tstates) -> _ofloat:
 
@@ -1724,18 +1696,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        if not self.is_irreducible:
-            return None
+        c = _conductance(self, states)
 
-        complement = _np.ones(self.__size, dtype=bool)
-        complement[states] = False
-
-        pi = self.pi[0]
-        sf = self.stationary_flux[0]
-
-        value = float(_np.sum(sf[_np.ix_(states, complement)]) / _np.sum(pi[states]))
-
-        return value
+        return c
 
     @_object_mark(aliases=['er'])
     def expected_rewards(self, steps: int, rewards: _tnumeric) -> _tarray:
@@ -1767,9 +1730,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _expected_rewards(self.__p, steps, rewards)
+        er = _expected_rewards(self.__p, steps, rewards)
 
-        return value
+        return er
 
     @_object_mark(aliases=['et'])
     def expected_transitions(self, steps: int, initial_distribution: _onumeric = None) -> _tarray:
@@ -1800,9 +1763,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _expected_transitions(self.__p, steps, initial_distribution)
+        et = _expected_transitions(self.__p, steps, initial_distribution)
 
-        return value
+        return et
 
     @_object_mark(aliases=['fpp'])
     def first_passage_probabilities(self, steps: int, initial_state: _tstate, first_passage_states: _ostates = None) -> _tarray:
@@ -1835,9 +1798,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _first_passage_probabilities(self, steps, initial_state, first_passage_states)
+        fpp = _first_passage_probabilities(self, steps, initial_state, first_passage_states)
 
-        return value
+        return fpp
 
     @_object_mark(aliases=['fpr'])
     def first_passage_reward(self, steps: int, initial_state: _tstate, first_passage_states: _tstates, rewards: _tnumeric) -> float:
@@ -1884,9 +1847,9 @@ class MarkovChain(_Model):
         if len(first_passage_states) == (self.__size - 1):  # pragma: no cover
             raise _ValidationError('The first passage states cannot include all the states except the initial one.')
 
-        value = _first_passage_reward(self, steps, initial_state, first_passage_states, rewards)
+        fpr = _first_passage_reward(self, steps, initial_state, first_passage_states, rewards)
 
-        return value
+        return fpr
 
     @_object_mark(aliases=['fpt_between', 'fptb'])
     def first_passage_times_between(self, statistic: str, origins: _tstates, targets: _tstates) -> _ofloat:
@@ -1918,9 +1881,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _first_passage_times_between(self, statistic, origins, targets)
+        fptb = _first_passage_times_between(self, statistic, origins, targets)
 
-        return value
+        return fptb
 
     @_object_mark(aliases=['fpt_to', 'fptt'])
     def first_passage_times_to(self, statistic: str, targets: _ostates = None) -> _oarray:
@@ -1951,9 +1914,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _first_passage_times_to(self, statistic, targets)
+        fptt = _first_passage_times_to(self, statistic, targets)
 
-        return value
+        return fptt
 
     @_object_mark(aliases=['hp'])
     def hitting_probabilities(self, targets: _ostates = None) -> _tarray:
@@ -1986,9 +1949,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _hitting_probabilities(self, targets)
+        hp = _hitting_probabilities(self, targets)
 
-        return value
+        return hp
 
     @_object_mark(aliases=['ht'])
     def hitting_times(self, statistic: str, targets: _ostates = None) -> _tarray:
@@ -2023,9 +1986,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _hitting_times(self, statistic, targets)
+        ht = _hitting_times(self, statistic, targets)
 
-        return value
+        return ht
 
     def is_absorbing_state(self, state: _tstate) -> bool:
 
@@ -2150,7 +2113,7 @@ class MarkovChain(_Model):
         return result
 
     @_object_mark(instance_generator=True)
-    def lump(self, partitions: _tpartition) -> _tmc:
+    def lump(self, partition: _tpartition) -> _tmc:
 
         """
         | The method attempts to reduce the state space of the Markov chain using the given partition.
@@ -2161,14 +2124,14 @@ class MarkovChain(_Model):
         - Each block of the partition corresponds to a state of the reduced Markov chain.
         - The resulting Markov chain preserves the aggregated transition probabilities independently of the initial state within each block.
 
-        :param partitions: the partition of the state space.
+        :param partition: the partition of the state space.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Markov chain has only two states or is not lumpable with respect to the given partition.
         """
 
         try:
 
-            partitions = _validate_partitions(partitions, self.__states)
+            partition = _validate_partitions(partition, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -2176,7 +2139,7 @@ class MarkovChain(_Model):
         if self.__size == 2:  # pragma: no cover
             raise ValueError('The Markov chain defines only two states.')
 
-        p, states, error_message = _lump(self.__p, self.__states, partitions)
+        p, states, error_message = _lump(self.__p, self.__states, partition)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -2240,6 +2203,78 @@ class MarkovChain(_Model):
 
         return mc
 
+    def metastability(self, states: _tstates) -> _ofloat:
+
+        r"""
+        | The method computes the metastability of the given subset of the state space:
+        | :math:`m(S) = 1 - \phi(S)` where:
+
+        - :math:`S` is the given subset of states;
+        - :math:`\phi(S)` is the conductance of the subset of states.
+
+        | **Notes:**
+
+        - Metastability is the stationary probability of remaining in the subset after one step, conditioned on being in the subset, and lies between 0 and 1.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+
+        :param states: the subset of the state space.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            states = _validate_labels_current(states, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        c = _conductance(self, states)
+        m = None if c is None else 1.0 - c
+
+        return m
+
+    @_object_mark(instance_generator=True)
+    def metastable_aggregation(self, s: int, robust: bool = True) -> _tmc:
+
+        r"""
+        | The method attempts to aggregate the Markov chain into a reduced Markov chain with the given number of states, using Perron Cluster Cluster Analysis (PCCA).
+
+        | **Notes:**
+
+        - PCCA+ uses fuzzy memberships, whereas standard PCCA uses a hard partitioning.
+
+        :param s: the number of states of the reduced Markov chain.
+        :param robust: a boolean indicating whether to use PCCA+ instead of standard PCCA.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the Markov chain has only two states, is not both **irreducible** and **reversible**, or the aggregation cannot be computed.
+        """
+
+        try:
+
+            s = _validate_integer(s, lower_limit=(2, False), upper_limit=(self.__size - 1, False))
+            robust = _validate_boolean(robust)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if self.__size == 2:  # pragma: no cover
+            raise ValueError('The Markov chain defines only two states.')
+
+        if not self.is_irreducible:  # pragma: no cover
+            raise ValueError('The Markov chain is not irreducible.')
+
+        if not self.is_reversible:  # pragma: no cover
+            raise ValueError('The Markov chain is not reversible.')
+
+        p, states, error_message = _metastable_aggregation(self.__p, self.__states, s, robust)
+
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
+
+        mc = MarkovChain(p, states)
+
+        return mc
+
     @_object_mark(aliases=['mt'])
     def mixing_time(self, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
 
@@ -2269,9 +2304,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _mixing_time(self, cutoff, maximum_iterations)
+        mt = _mixing_time(self, cutoff, maximum_iterations)
 
-        return value
+        return mt
 
     @_object_mark(aliases=['mtf'])
     def mixing_time_from(self, initial_distribution: _onumeric = None, jump: int = 1, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
@@ -2307,9 +2342,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _mixing_time_from(self, initial_distribution, jump, cutoff, maximum_iterations)
+        mtf = _mixing_time_from(self, initial_distribution, jump, cutoff, maximum_iterations)
 
-        return value
+        return mtf
 
     @_object_mark(random_output=True)
     def next(self, initial_state: _tstate, output_index: bool = False, seed: _oint = None) -> _tstate:
@@ -2591,14 +2626,14 @@ class MarkovChain(_Model):
         :param method:
          - **additive** for :math:`\widetilde{P} = \frac{1}{2}(P + P^*)`;
          - **multiplicative** for :math:`\widetilde{P} = PP^*`;
-         - **multiplicative_reverse** for :math:`\widetilde{P} = P^*P`.
+         - **multiplicative-reverse** for :math:`\widetilde{P} = P^*P`.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Markov chain has transient states.
         """
 
         try:
 
-            method = _validate_enumerator(method, ['additive', 'multiplicative', 'multiplicative_reverse'])
+            method = _validate_enumerator(method, ['additive', 'multiplicative', 'multiplicative-reverse'])
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -2642,9 +2677,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _sensitivity(self, state)
+        s = _sensitivity(self, state)
 
-        return value
+        return s
 
     def sequence_probability(self, sequence: _tsequence) -> float:
 
@@ -2667,9 +2702,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _sequence_probability(self, sequence)
+        sp = _sequence_probability(self, sequence)
 
-        return value
+        return sp
 
     @_object_mark(random_output=True)
     def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _tsequence:
@@ -2708,6 +2743,56 @@ class MarkovChain(_Model):
 
         return value
 
+    @_object_mark(instance_generator=True)
+    def spectral_aggregation(self, s: int, method: str = 'adaptive') -> _tmc:
+
+        """
+        | The method attempts to aggregate the Markov chain into a reduced Markov chain with the given number of states, using spectral theory.
+
+        | **Notes:**
+
+        - The aggregation is based on Kullback-Leibler divergence minimization.
+        - Methodologies are described in `Optimal Kullback-Leibler Aggregation via Spectral Theory of Markov Chains (Deng et al., 2011) <https://doi.org/10.1109/TAC.2011.2141350>`_.
+
+        :param s: the number of states of the reduced Markov chain.
+        :param method:
+         - **bottom-up** for bottom-up aggregation (more suitable for reducing a large number of states);
+         - **top-down** for a top-down aggregation (more suitable for reducing a small number of states);
+         - **adaptive** for automatically selecting the best aggregation method, according to the size of the original and reduced chains.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the Markov chain has only two states, is not **ergodic**, or the aggregation cannot be computed.
+        """
+
+        try:
+
+            method = _validate_enumerator(method, ['adaptive', 'bottom-up', 'top-down'])
+            s = _validate_integer(s, lower_limit=(2, False), upper_limit=(self.__size - 1, False))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if self.__size == 2:  # pragma: no cover
+            raise ValueError('The Markov chain defines only two states.')
+
+        if not self.is_ergodic:  # pragma: no cover
+            raise ValueError('The Markov chain is not ergodic.')
+
+        if method == 'adaptive':  # pragma: no cover
+            if self.__size < 30:
+                method = 'top-down'
+            else:
+                method = 'bottom-up' if (float(s) / self.__size) <= 0.3 else 'top-down'
+
+        func = _spectral_aggregation_bottom_up if method == 'bottom-up' else _spectral_aggregation_top_down
+        p, states, error_message = func(self.p, self.pi[0], s)
+
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
+
+        mc = MarkovChain(p, states)
+
+        return mc
+
     def stationary_perturbation_bound(self, epsilon: float) -> _ofloat:
 
         r"""
@@ -2734,9 +2819,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _stationary_perturbation_bound(self, epsilon)
+        spb = _stationary_perturbation_bound(self, epsilon)
 
-        return value
+        return spb
 
     @_object_mark(aliases=['tc'])
     def time_correlations(self, sequence1: _tsequence, sequence2: _osequence = None, time_points: _ttimes_in = 1) -> _otimes_out:
@@ -2775,9 +2860,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _time_correlations(self, sequence1, sequence2, time_points)
+        tc = _time_correlations(self, sequence1, sequence2, time_points)
 
-        return value
+        return tc
 
     @_object_mark(aliases=['tr'])
     def time_relaxations(self, sequence: _tsequence, initial_distribution: _onumeric = None, time_points: _ttimes_in = 1) -> _otimes_out:
@@ -2812,9 +2897,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _time_relaxations(self, sequence, initial_distribution, time_points)
+        tr = _time_relaxations(self, sequence, initial_distribution, time_points)
 
-        return value
+        return tr
 
     @_object_mark(instance_generator=True)
     def time_reversal(self) -> _tmc:
@@ -3098,9 +3183,9 @@ class MarkovChain(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         p = self.__p if steps == 1 else _npl.matrix_power(self.__p, steps)
-        value = float(p[state_origin, state_target])
+        tp = float(p[state_origin, state_target])
 
-        return value
+        return tp
 
     @staticmethod
     @_object_mark(instance_generator=True)

@@ -156,6 +156,16 @@
       ["Infinity", "Infinity"],
       ["Infinity", "Infinity"]
     ],
+    "metastability_data": [
+      {
+        "states": 0,
+        "value": 0.0
+      },
+      {
+        "states": 1,
+        "value": 0.0
+      }
+    ],
     "mixing_time_data": [
       {
         "cutoff": 0.25,
@@ -439,6 +449,16 @@
     "mean_number_visits": [
       ["Infinity", "Infinity"],
       ["Infinity", "Infinity"]
+    ],
+    "metastability_data": [
+      {
+        "states": 0,
+        "value": 0.3
+      },
+      {
+        "states": 1,
+        "value": 0.75
+      }
     ],
     "mixing_time_data": [
       {
@@ -726,6 +746,16 @@
       [0.0, "Infinity", 0.0],
       [0.0, 0.0, "Infinity"]
     ],
+    "metastability_data": [
+      {
+        "states": 0,
+        "value": null
+      },
+      {
+        "states": [0, 2],
+        "value": null
+      }
+    ],
     "mixing_time_data": [
       {
         "cutoff": 0.25,
@@ -1008,6 +1038,16 @@
       ["Infinity", "Infinity", "Infinity"],
       ["Infinity", "Infinity", "Infinity"],
       ["Infinity", "Infinity", "Infinity"]
+    ],
+    "metastability_data": [
+      {
+        "states": 1,
+        "value": 0.0
+      },
+      {
+        "states": [0, 1],
+        "value": 0.5
+      }
     ],
     "mixing_time_data": [
       {
@@ -1296,6 +1336,16 @@
       ["Infinity", 1.0, 0.0],
       ["Infinity", 2.0, 1.0]
     ],
+    "metastability_data": [
+      {
+        "states": 0,
+        "value": null
+      },
+      {
+        "states": [0, 1],
+        "value": null
+      }
+    ],
     "mixing_time_data": [
       {
         "cutoff": 0.25,
@@ -1575,6 +1625,16 @@
       ["Infinity", "Infinity", "Infinity"],
       ["Infinity", "Infinity", "Infinity"],
       ["Infinity", "Infinity", "Infinity"]
+    ],
+    "metastability_data": [
+      {
+        "states": 0,
+        "value": 0.6
+      },
+      {
+        "states": [0, 1],
+        "value": 0.76086957
+      }
     ],
     "mixing_time_data": [
       {
@@ -1877,6 +1937,16 @@
       ["Infinity", "Infinity", "Infinity"],
       ["Infinity", "Infinity", "Infinity"]
     ],
+    "metastability_data": [
+      {
+        "states": [0, 1],
+        "value": 0.66666667
+      },
+      {
+        "states": [1, 2],
+        "value": 0.66666667
+      }
+    ],
     "mixing_time_data": [
       {
         "cutoff": 0.1,
@@ -2170,6 +2240,16 @@
       ["Infinity", 0.66666667, 0.33333333, "Infinity"],
       [0.00000000, 0.00000000, 0.00000000, "Infinity"]
     ],
+    "metastability_data": [
+      {
+        "states": 1,
+        "value": null
+      },
+      {
+        "states": [0, 1],
+        "value": null
+      }
+    ],
     "mixing_time_data": [
       {
         "cutoff": 0.25,
@@ -2453,6 +2533,16 @@
       ["Infinity", "Infinity", "Infinity", "Infinity"],
       ["Infinity", "Infinity", "Infinity", "Infinity"],
       ["Infinity", "Infinity", "Infinity", "Infinity"]
+    ],
+    "metastability_data": [
+      {
+        "states": [0, 3],
+        "value": 0.74520548
+      },
+      {
+        "states": [0, 1],
+        "value": 0.81818182
+      }
     ],
     "mixing_time_data": [
       {
@@ -2773,6 +2863,16 @@
       ["Infinity", "Infinity", "Infinity", "Infinity", "Infinity"],
       ["Infinity", "Infinity", "Infinity", "Infinity", "Infinity"]
     ],
+    "metastability_data": [
+      {
+        "states": 3,
+        "value": 0.0
+      },
+      {
+        "states": [0, 1],
+        "value": 0.33333333
+      }
+    ],
     "mixing_time_data": [
       {
         "cutoff": 0.05,
@@ -3087,6 +3187,16 @@
       ["Infinity", "Infinity", 1.06635071, 1.77725118, 1.25118483, 0.90047393],
       ["Infinity", "Infinity", 0.63981043, 1.06635071, 1.35071090, 0.54028436]
     ],
+    "metastability_data": [
+      {
+        "states": [0, 2],
+        "value": null
+      },
+      {
+        "states": [0, 1],
+        "value": null
+      }
+    ],
     "mixing_time_data": [
       {
         "cutoff": 0.25,
@@ -3364,6 +3474,16 @@
       ["Infinity", "Infinity", 1.35071090, 1.25118483, 1.18483412, 0.47393365],
       ["Infinity", "Infinity", 1.06635071, 1.77725118, 1.25118483, 0.90047393],
       ["Infinity", "Infinity", 0.63981043, 1.06635071, 1.35071090, 0.54028436]
+    ],
+    "metastability_data": [
+      {
+        "states": 1,
+        "value": null
+      },
+      {
+        "states": [0, 1],
+        "value": null
+      }
     ],
     "mixing_time_data": [
       {

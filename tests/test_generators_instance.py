@@ -22,25 +22,6 @@ from pydtmc import (
 # TESTS #
 #########
 
-def test_aggregate(p, method, s, value):
-
-    mc = _MarkovChain(p)
-
-    if value is None:
-
-        with _pt.raises(ValueError):
-            mc.aggregate(s, method)
-
-    else:
-
-        mc_aggregated = mc.aggregate(s, method)
-
-        actual = mc_aggregated.p
-        expected = _np.array(value)
-
-        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-
-
 def test_bounded(p, boundary_condition, value):
 
     mc = _MarkovChain(p)
@@ -97,22 +78,22 @@ def test_lazy(p, inertial_weights, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-def test_lump(p, partitions, value):
+def test_lump(p, partition, value):
 
     mc = _MarkovChain(p)
 
     if value is None:
 
-        assert partitions not in mc.lumping_partitions
+        assert partition not in mc.lumping_partitions
 
         with _pt.raises(ValueError):
-            mc.lump(partitions)
+            mc.lump(partition)
 
     else:
 
-        assert partitions in mc.lumping_partitions
+        assert partition in mc.lumping_partitions
 
-        mc_lump = mc.lump(partitions)
+        mc_lump = mc.lump(partition)
 
         actual = mc_lump.p
         expected = _np.array(value)
@@ -130,6 +111,25 @@ def test_merge_with(p, p_other, gamma, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_metastable_aggregation(p, s, robust, value):
+
+    mc = _MarkovChain(p)
+
+    if value is None:
+
+        with _pt.raises(ValueError):
+            mc.metastable_aggregation(s, robust)
+
+    else:
+
+        mc_aggregated = mc.metastable_aggregation(s, robust)
+
+        actual = mc_aggregated.p
+        expected = _np.array(value)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_nth_order(p, order, value):
@@ -172,6 +172,25 @@ def test_reversibilize(p, method, value):
             expected = pi
 
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_spectral_aggregation(p, method, s, value):
+
+    mc = _MarkovChain(p)
+
+    if value is None:
+
+        with _pt.raises(ValueError):
+            mc.spectral_aggregation(s, method)
+
+    else:
+
+        mc_aggregated = mc.spectral_aggregation(s, method)
+
+        actual = mc_aggregated.p
+        expected = _np.array(value)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_sub(p, states, value):

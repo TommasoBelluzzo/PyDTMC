@@ -5,6 +5,7 @@ __all__ = [
     'mc_absorption_probabilities',
     'mc_absorption_times',
     'mc_committor_probabilities',
+    'mc_conductance',
     'mc_entropy_production_rate',
     'mc_expected_rewards',
     'mc_expected_transitions',
@@ -267,6 +268,22 @@ def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_in
         cp = _solve_committor_probabilities(p, size, states2, states1)
 
     return cp
+
+
+def mc_conductance(mc: _tmc, states: _tlist_int) -> _ofloat:
+
+    if not mc.is_irreducible:
+        return None
+
+    complement = _np.ones(mc.size, dtype=bool)
+    complement[states] = False
+
+    pi = mc.pi[0]
+    sf = mc.stationary_flux[0]
+
+    value = float(_np.sum(sf[_np.ix_(states, complement)]) / _np.sum(pi[states]))
+
+    return value
 
 
 def mc_expected_rewards(p: _tarray, steps: int, rewards: _tarray) -> _tany:
@@ -721,17 +738,17 @@ def mc_stationary_perturbation_bound(mc: _tmc, epsilon: float) -> _ofloat:
     differences = z[:, _np.newaxis, :] - z[_np.newaxis, :, :]
     coefficient = 0.5 * _np.max(_np.sum(_np.abs(differences), axis=2))
 
-    bound = epsilon * coefficient
+    spb = epsilon * coefficient
 
     differences = p[:, _np.newaxis, :] - p[_np.newaxis, :, :]
     contraction = 0.5 * _np.max(_np.sum(_np.abs(differences), axis=2))
 
     if contraction < 1.0:
-        bound = min(bound, epsilon / (1.0 - contraction))
+        spb = min(spb, epsilon / (1.0 - contraction))
 
-    bound = min(1.0, float(bound))
+    spb = min(1.0, float(spb))
 
-    return bound
+    return spb
 
 
 def mc_time_correlations(mc: _tmc, sequence1: _tsequence, sequence2: _osequence, time_points: _ttimes_in) -> _otimes_out:

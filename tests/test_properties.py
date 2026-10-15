@@ -230,17 +230,41 @@ def test_fundamental_matrix(p, fundamental_matrix, deviation_matrix, kemeny_cons
         assert actual == expected
 
 
-def test_global_conductance(p, global_conductance):
+def test_global_conductance_metastability(p, global_conductance, global_metastability):
 
     mc = _MarkovChain(p)
+    gc = mc.global_conductance
+    gm = mc.global_metastability
 
-    actual = mc.global_conductance
-    expected = global_conductance
+    if (gc is not None) and (gm is not None):
 
-    if (actual is not None) and (expected is not None):
         assert mc.is_irreducible
+
+        actual = gc
+        expected = global_conductance
+
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = gm
+        expected = global_metastability
+
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = gc + gm
+        expected = 1.0
+
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
     else:
+
+        actual = gc
+        expected = global_conductance
+
+        assert actual == expected
+
+        actual = gm
+        expected = global_metastability
+
         assert actual == expected
 
 

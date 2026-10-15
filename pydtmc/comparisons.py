@@ -196,9 +196,9 @@ def calculate_transition_divergence(divergence_type: str, model1: _tmodel, model
 
     if divergence_type == 'jensen_shannon':
         m = 0.5 * (p1 + p2)
-        divergences = 0.5 * _np.sum(_sps.rel_entr(p1, m) + _sps.rel_entr(p2, m), axis=1)
+        divergences = 0.5 * _np.sum(_sps.rel_entr(p1, m) + _sps.rel_entr(p2, m), axis=1)  # pylint: disable=no-member
     else:
-        divergences = _np.sum(_sps.rel_entr(p1, p2), axis=1)
+        divergences = _np.sum(_sps.rel_entr(p1, p2), axis=1)  # pylint: disable=no-member
 
     divergence = float(_np.max(divergences))
 

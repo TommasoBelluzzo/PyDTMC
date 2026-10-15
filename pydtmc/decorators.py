@@ -4,7 +4,6 @@ __all__ = [
     'aliased',
     'cached_method',
     'cached_property',
-    'cached_property',
     'interactive_plot',
     'object_mark'
 ]

@@ -4,8 +4,6 @@ __all__ = [
     'hmm_estimate',
     'hmm_restrict',
     'hmm_random',
-    'mc_aggregate_spectral_bottom_up',
-    'mc_aggregate_spectral_top_down',
     'mc_approximation',
     'mc_birth_death',
     'mc_bounded',
@@ -18,6 +16,8 @@ __all__ = [
     'mc_lump',
     'mc_population_genetics_model',
     'mc_random',
+    'mc_spectral_aggregation_bottom_up',
+    'mc_spectral_aggregation_top_down',
     'mc_sub',
     'mc_urn_model'
 ]
@@ -32,12 +32,14 @@ __all__ = [
 import numpy as _np
 import numpy.linalg as _npl
 import scipy.integrate as _spi
+import scipy.linalg as _spl
 import scipy.optimize as _spo
 import scipy.stats as _sps
 
 # Internal
 
 from .computations import (
+    gth_solve as _gth_solve,
     kullback_leibler_divergence as _kullback_leibler_divergence
 )
 
@@ -192,7 +194,7 @@ def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str
     return p, e, state_names, symbol_names, None
 
 
-def mc_aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
+def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
 
     def _calculate_q(cq_p, cq_pi, cq_phi):
 
@@ -276,7 +278,7 @@ def mc_aggregate_spectral_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen
     return q, states, None
 
 
-def mc_aggregate_spectral_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
+def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
 
     def _calculate_invariant(ci_q):
 
@@ -451,7 +453,7 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
         size_m1 = size - 1
         size_p1 = size + 1
 
-        n = int(_np.fix(size_p1 / 2))
+        n = int(_np.trunc(size_p1 / 2))
 
         p1_const = 1.0 / _np.pi**0.25
         p2_const = 0.0
@@ -836,7 +838,7 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
         jac=_jacobian,
         constraints=constraints,
         method='SLSQP',
-        options={'ftol': 1e-8, 'disp': False}
+        options={'ftol': 1e-8, 'maxiter': 100, 'disp': False}
     )
 
     if not solution['success']:  # pragma: no cover
@@ -947,6 +949,183 @@ def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen
     state_names = [','.join(list(map(states.__getitem__, partition))) for partition in partitions]
 
     return p_lump, state_names, None
+
+
+def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bool) -> _tmc_generation:
+
+    def _memberships(m_flat, m_x, m_s):
+
+        return _np.dot(m_x, _np.reshape(m_flat, (m_s, m_s)))
+
+    def _objective(o_flat, o_x, o_pi, o_s):
+
+        o_chi = _memberships(o_flat, o_x, o_s)
+        o_masses = _np.dot(o_pi, o_chi)
+
+        if _np.any(o_masses <= 0.0):
+            return 1.0e6
+
+        o_weighted = o_pi[:, _np.newaxis] * o_chi**2.0
+        o_ratios = o_weighted / o_masses[_np.newaxis, :]
+
+        output = -_np.sum(o_ratios)
+
+        return output
+
+    def _jacobian(j_flat, j_x, j_pi, j_s):
+
+        j_chi = _memberships(j_flat, j_x, j_s)
+        j_masses = _np.dot(j_pi, j_chi)
+
+        if _np.any(j_masses <= 0.0):
+            return _np.zeros(j_s * j_s)
+
+        j_squared = _np.sum(j_pi[:, _np.newaxis] * j_chi**2.0, axis=0)
+        j_masses_row = j_masses[_np.newaxis, :]
+
+        j_term1 = (2.0 * j_chi) / j_masses_row
+        j_term2 = j_squared[_np.newaxis, :] / j_masses_row**2.0
+
+        j_dchi = -j_pi[:, _np.newaxis] * (j_term1 - j_term2)
+
+        output = _np.ravel(_np.dot(_np.transpose(j_x), j_dchi))
+
+        return output
+
+    n = p.shape[0]
+
+    pi = _gth_solve(p)
+    root = _np.sqrt(pi)
+
+    sym = (root[:, _np.newaxis] * p) / root[_np.newaxis, :]
+    evalues, evectors = _spl.eigh(0.5 * (sym + _np.transpose(sym)))
+
+    x = evectors[:, _np.arange(n - 1, n - s - 1, -1)] / root[:, _np.newaxis]
+    x[:, 0] = 1.0
+
+    if _np.abs(evalues[n - s] - evalues[n - s - 1]) < 1e-10:
+        return None, None, 'The requested dimension splits a degenerate eigenspace.'
+
+    n, s = x.shape
+    coordinates = x[:, 1:]
+    center = _np.mean(coordinates, axis=0)
+    scale = max(1.0, float(_npl.norm(coordinates, ord=2)))
+
+    vertices = [_np.argmax(_np.sum((coordinates - center)**2.0, axis=1))]
+
+    for _ in range(1, s):
+
+        v = len(vertices)
+
+        differences = coordinates - coordinates[vertices[0]]
+        directions = differences[_np.asarray(vertices[1:], dtype=int)]
+
+        if v == 1:
+            residuals = differences
+        else:
+
+            _, singular, right = _npl.svd(directions, full_matrices=False)
+            rank = _np.sum(singular > (1e-12 * scale))
+
+            if rank != (v - 1):
+                return None, None, 'The metastable simplex is rank deficient.'
+
+            residuals = differences - _np.dot(_np.dot(differences, _np.transpose(right[:rank])), right[:rank])
+
+        distances = _np.sum(residuals**2.0, axis=1)
+        distances[vertices] = -1.0
+        candidate = _np.argmax(distances)
+
+        if distances[candidate] <= (1e-12 * scale)**2.0:
+            return None, None, 'The requested number of simplex vertices could not be identified.'
+
+        vertices.append(candidate)
+
+    if _npl.cond(x[vertices, :]) > 1e12:
+        return None, None, 'The metastable simplex is ill-conditioned.'
+
+    transform = _spl.solve(x[vertices, :], _np.eye(s), assume_a='gen')
+
+    if not robust:
+
+        coordinates = _np.dot(x, transform)
+        groups = _np.argmax(coordinates, axis=1)
+        chi = _np.eye(s)[groups]
+
+    else:
+
+        uniform = _np.zeros_like(transform)
+        uniform[0, :] = 1.0 / s
+
+        minimum = _np.min(_np.dot(x, transform))
+
+        if minimum < 0.0:
+            factor = min(1.0, (1.0 / s - 1.0e-8) / (1.0 / s - minimum))
+            transform = factor * transform + (1.0 - factor) * uniform
+
+        x0 = _np.ravel(transform)
+
+        equation = _np.kron(_np.eye(s), _np.ones((1, s)))
+        inequality = _np.kron(x, _np.eye(s))
+
+        target = _np.zeros(s)
+        target[0] = 1.0
+
+        constraints = (
+            _spo.LinearConstraint(equation, target, target),
+            _spo.LinearConstraint(inequality, 0.0, _np.inf)
+        )
+
+        result = _spo.minimize(
+            _objective, x0,
+            args=(x, pi, s),
+            jac=_jacobian,
+            constraints=constraints,
+            method='SLSQP',
+            options={'ftol': 1.0e-12, 'maxiter': 1000, 'disp': False}
+        )
+
+        chi = _memberships(result.x, x, s)
+
+        if (not result.success) or (not _np.all(_np.isfinite(chi))) or (_np.min(chi) < -1e-8) or (not _np.allclose(_np.sum(chi, axis=1), 1.0, atol=1.0e-8, rtol=0.0)):
+            return None, None, 'The robust PCCA membership optimization did not converge.'
+
+        chi = _np.maximum(chi, 0.0)
+        chi /= _np.sum(chi, axis=1)[:, _np.newaxis]
+
+    groups = _np.argmax(chi, axis=1)
+    s = chi.shape[1]
+
+    if len(_np.unique(groups)) != s:
+        return None, None, 'A metastable macrostate has no assigned microstates.'
+
+    order = sorted(range(s), key=lambda k: int(_np.flatnonzero(groups == k)[0]))
+    chi = chi[:, order]
+    groups = _np.argmax(chi, axis=1)
+
+    masses = _np.dot(pi, chi)
+
+    if _np.any(masses <= 0.0):
+        return None, None, 'At least one macrostate has non-positive stationary probability mass.'
+
+    pm = _np.dot(_np.transpose(chi), (pi[:, _np.newaxis] * p))
+    pm = _np.dot(pm, chi) / masses[:, _np.newaxis]
+
+    if not _np.all(_np.isfinite(pm)) or _np.min(pm) < -_FTOL:
+        return None, None, 'Non-finite or significantly negative transition probabilities have been detected.'
+
+    pm = _np.maximum(pm, 0.0)
+    q_sums = _np.sum(pm, axis=1, keepdims=True)
+
+    if _np.any(q_sums <= 0.0):
+        return None, None, 'At least one row of the reduced transition matrix has zero probability mass.'
+
+    pm /= q_sums
+
+    partitions = [_np.flatnonzero(groups == k).tolist() for k in range(s)]
+    state_names = [','.join(map(states.__getitem__, partition)) for partition in partitions]
+
+    return pm, state_names, None
 
 
 def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _tmc_generation:

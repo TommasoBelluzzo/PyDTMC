@@ -264,6 +264,20 @@ def test_mean_number_visits(p, mean_number_visits):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_metastability(p, states, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.metastability(states)
+    expected = value
+
+    if (actual is not None) and (expected is not None):
+        assert 0.0 <= actual <= 1.0
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
 def test_mixing_time(p, cutoff, value):
 
     mc = _MarkovChain(p)

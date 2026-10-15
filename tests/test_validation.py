@@ -49,7 +49,7 @@ from pydtmc.validation import (
     validate_matrix as _validate_matrix,
     validate_model as _validate_model,
     validate_models as _validate_models,
-    validate_partitions as _validate_partitions,
+    validate_partition as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
     validate_sequence as _validate_sequence,
@@ -654,7 +654,7 @@ def test_validate_models(value, is_valid):
 
 
 # noinspection PyBroadException
-def test_validate_partitions(value, labels, is_valid):
+def test_validate_partition(value, labels, is_valid):
 
     try:
         result = _validate_partitions(value, labels)

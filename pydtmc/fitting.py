@@ -189,7 +189,7 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _tinterval, possi
         weights = _np.zeros(size, dtype=float)
 
         iterations = 0
-        i = _np.arange(int(_np.fix((size + 1.0) / 2.0)))
+        i = _np.arange(int(_np.trunc((size + 1.0) / 2.0)))
         pp = 0.0
         z = _np.cos(_np.pi * ((i + 1.0) - 0.25) / (size + 0.5))
 
@@ -230,7 +230,7 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _tinterval, possi
         r = b - a
 
         nodes = _np.arange(1.0, size + 1.0) * 2.0**0.5
-        nodes -= _np.fix(nodes)
+        nodes -= _np.trunc(nodes)
         nodes = a + (nodes * r)
 
         weights = (r / size) * _np.ones(size, dtype=float)
