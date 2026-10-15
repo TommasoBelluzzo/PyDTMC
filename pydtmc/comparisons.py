@@ -29,13 +29,13 @@ from .custom_types import (
 )
 
 # noinspection PyUnresolvedReferences
-from .hidden_markov_model import (
-    HiddenMarkovModel as _HiddenMarkovModel  # noqa: F401  # pylint: disable=unused-import
+from .hidden_markov_model import (  # noqa: F401  # pylint: disable=unused-import
+    HiddenMarkovModel as _HiddenMarkovModel
 )
 
 # noinspection PyUnresolvedReferences
-from .markov_chain import (
-    MarkovChain as _MarkovChain  # noqa: F401  # pylint: disable=unused-import
+from .markov_chain import (  # noqa: F401  # pylint: disable=unused-import
+    MarkovChain as _MarkovChain
 )
 
 from .utilities import (
