@@ -9,6 +9,7 @@ PyDTMC
 	markov_chain
 	hidden_markov_model
 	other_assessment_functions
+	other_comparison_functions
 	other_plotting_functions
 	custom_exceptions
 	genindex

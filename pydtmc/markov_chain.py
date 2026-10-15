@@ -3079,8 +3079,7 @@ class MarkovChain(_Model):
 
         r"""
         | The method approximates the Markov chain associated with a discretized first-order autoregressive process:
-        | :math:`y_t = (1-\rho)\alpha + \rho y_{t-1} + \varepsilon_t`
-        | where :math:`\varepsilon_t \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0,\sigma^2)`.
+        | :math:`y_t = (1-\rho)\alpha + \rho y_{t-1} + \varepsilon_t` where :math:`\varepsilon_t \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0,\sigma^2)`
 
         :param size: the number of states of the approximating Markov chain.
         :param approximation_type:

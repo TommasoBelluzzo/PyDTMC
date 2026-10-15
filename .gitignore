@@ -1,12 +1,22 @@
-# Byte-compiled / optimized / DLL files
+
+# =========
+# 1. Python
+# =========
+
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
 
-# Distribution / packaging
+
+# ============
+# 2. Packaging
+# ============
+
+# CMake
+cmake-build-*/
+
+# Distribution
 .Python
 build/
 develop-eggs/
@@ -26,83 +36,31 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
-
-# Installer logs
+# Installer Logs
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-.benchmarks/
+# PyInstaller
+*.manifest
+*.spec
 
-# Translations
-*.mo
-*.pot
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# ===============
+# 3. Environments
+# ===============
 
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+# PEP 582
 __pypackages__/
 
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
+# Pipenv
+# Pipfile.lock may be tracked for reproducible environments.
+# Pipfile.lock
 
-# SageMath parsed files
-*.sage.py
+# pyenv
+# Uncomment if the Python version should not be tracked.
+# .python-version
 
-# Environments
+# Virtual Environments
 .env
 .venv
 env/
@@ -111,29 +69,76 @@ ENV/
 env.bak/
 venv.bak/
 
-# Spyder project settings
-.spyderproject
-.spyproject
 
-# Rope project settings
-.ropeproject
+# ==========
+# 4. Testing
+# ==========
 
-# mkdocs documentation
+# Benchmarks
+.benchmarks/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+nosetests.xml
+*.cover
+*.py,cover
+cover/
+
+# Hypothesis
+.hypothesis/
+
+# Test Runners
+.tox/
+.nox/
+.pytest_cache/
+.cache
+
+
+# ================
+# 5. Documentation
+# ================
+
+# MkDocs
 /site
+
+# Sphinx
+!docs/build/
+docs/build/*
+!docs/build/empty
+
+
+# ===========
+# 6. Analysis
+# ===========
+
+# Cython
+cython_debug/
 
 # mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json
 
-# Pyre type checker
+# Pyre
 .pyre/
 
-# pytype static type analyzer
+# pytype
 .pytype/
 
-# Cython debug symbols
-cython_debug/
+
+# ==========
+# 7. Editors
+# ==========
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Jupyter
+.ipynb_checkpoints
 
 # PyCharm
 *.iws
@@ -151,4 +156,39 @@ cython_debug/
 .idea/**/httpRequests/
 .idea/**/sqlDataSources.xml
 .idea/**/uiDesigner.xml
-cmake-build-*/
+
+# Rope
+.ropeproject
+
+# Spyder
+.spyderproject
+.spyproject
+
+
+# =============
+# 8. Frameworks
+# =============
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask
+instance/
+.webassets-cache
+
+# PyBuilder
+.pybuilder/
+target/
+
+# SageMath
+*.sage.py
+
+# Scrapy
+.scrapy
