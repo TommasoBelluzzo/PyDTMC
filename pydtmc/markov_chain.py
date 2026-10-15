@@ -147,6 +147,7 @@ from .measures import (
     mc_mean_number_visits as _mean_number_visits,
     mc_mixing_time as _mixing_time,
     mc_mixing_time_from as _mixing_time_from,
+    mc_quasi_stationary_distribution as _quasi_stationary_distribution,
     mc_recurrence_times as _recurrence_times,
     mc_sensitivity as _sensitivity,
     mc_stationary_perturbation_bound as _stationary_perturbation_bound,
@@ -1084,6 +1085,25 @@ class MarkovChain(_Model):
         return self.__size
 
     @_cached_property
+    @_object_mark(aliases=['quasi_stationary_distribution'])
+    def nu(self) -> _oarray:
+
+        r"""
+        | A property representing the quasi-stationary distribution of the Markov chain:
+        | :math:`\nu Q = \lambda \nu` where :math:`Q` is the transient-to-transient transition submatrix
+
+        | **Notes:**
+
+        - The returned distribution follows the original state ordering, with zero probabilities for recurrent states.
+        - If the distribution does not exist or is not unique, then :py:class:`None` is returned.
+        - The property can also be accessed through the alias **quasi_stationary_distribution**.
+        """
+
+        nu = _quasi_stationary_distribution(self)
+
+        return nu
+
+    @_cached_property
     def occupation_matrix(self) -> _oarray:
 
         r"""
@@ -1730,7 +1750,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        er = _expected_rewards(self.__p, steps, rewards)
+        er = _expected_rewards(self, steps, rewards)
 
         return er
 
@@ -1763,7 +1783,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        et = _expected_transitions(self.__p, steps, initial_distribution)
+        et = _expected_transitions(self, steps, initial_distribution)
 
         return et
 

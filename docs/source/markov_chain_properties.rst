@@ -40,6 +40,7 @@ Properties
 		lumping_partitions,
 		mixing_rate,
 		n,
+		nu,
 		occupation_matrix,
 		occupation_trace,
 		ordinary_spectral_gap,

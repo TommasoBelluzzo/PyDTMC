@@ -19,6 +19,7 @@ __all__ = [
     'mc_mean_number_visits',
     'mc_mixing_time',
     'mc_mixing_time_from',
+    'mc_quasi_stationary_distribution',
     'mc_recurrence_times',
     'mc_sensitivity',
     'mc_stationary_perturbation_bound',
@@ -38,6 +39,7 @@ import itertools as _it
 
 # Libraries
 
+import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
 
@@ -286,7 +288,9 @@ def mc_conductance(mc: _tmc, states: _tlist_int) -> _ofloat:
     return value
 
 
-def mc_expected_rewards(p: _tarray, steps: int, rewards: _tarray) -> _tany:
+def mc_expected_rewards(mc: _tmc, steps: int, rewards: _tarray) -> _tany:
+
+    p = mc.p
 
     original_rewards = _np.copy(rewards)
     er = _np.copy(rewards)
@@ -297,7 +301,9 @@ def mc_expected_rewards(p: _tarray, steps: int, rewards: _tarray) -> _tany:
     return er
 
 
-def mc_expected_transitions(p: _tarray, steps: int, initial_distribution: _tarray) -> _tarray:
+def mc_expected_transitions(mc: _tmc, steps: int, initial_distribution: _tarray) -> _tarray:
+
+    p = mc.p
 
     idist = _np.copy(initial_distribution)
     idist_sum = _np.zeros_like(idist)
@@ -654,6 +660,83 @@ def mc_mixing_time_from(mc: _tmc, initial_distribution: _tarray, jump: int, cuto
         return None
 
     return mt
+
+
+def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:
+
+    p, size, states = mc.p, mc.size, mc.states
+    transient_indices = [states.index(state) for state in mc.transient_states]
+
+    if len(transient_indices) == 0:
+        return None
+
+    q = p[_np.ix_(transient_indices, transient_indices)]
+
+    graph = _nx.from_numpy_array((q > 0.0).astype(int), create_using=_nx.DiGraph)
+    classes = list(_nx.strongly_connected_components(graph))
+    component_of = {state: index for index, component in enumerate(classes) for state in component}
+
+    dag = _nx.DiGraph()
+    dag.add_nodes_from(range(len(classes)))
+    dag.add_edges_from(
+        (component_of[i], component_of[j])
+        for i, j in graph.edges
+        if component_of[i] != component_of[j]
+    )
+
+    radii = []
+
+    for component in classes:
+        indices = sorted(component)
+        evalues = _npl.eigvals(q[_np.ix_(indices, indices)])
+        radii.append(float(_np.max(_np.abs(evalues))))
+
+    distinguished = []
+
+    for index, radius in enumerate(radii):
+
+        if radius <= _FTOL:
+            continue
+
+        descendants = _nx.descendants(dag, index)
+
+        if any(0.0 < abs(radius - radii[j]) <= _FTOL for j in descendants):
+            return None
+
+        if all(radius > radii[j] for j in descendants):
+            distinguished.append(index)
+
+    if len(distinguished) != 1:
+        return None
+
+    evalues, evectors = _npl.eig(_np.transpose(q))
+    survival = radii[distinguished[0]]
+    index = _np.argmin(_np.abs(evalues - survival))
+    evalue, evector = evalues[index], evectors[:, index]
+
+    if (_np.abs(evalue.imag) > _FTOL) or (_np.abs(evalue.real - survival) > _FTOL) or (_np.max(_np.abs(evector.imag)) > _FTOL):
+        return None
+
+    evector = evector.real
+
+    if _np.sum(evector) < 0.0:
+        evector = -evector
+
+    if (_np.sum(evector) <= _FTOL) or (_np.min(evector) < -_FTOL):
+        return None
+
+    evector = _np.maximum(evector, 0.0)
+    evector /= evector.sum()
+
+    actual_survival = float(_np.sum(_np.dot(evector, q)))
+
+    if (not (0.0 < actual_survival < 1.0)) or (not _np.allclose(evector @ q, actual_survival * evector, rtol=_FTOL, atol=_FTOL)):
+        return None
+
+    nu = _np.zeros(size, dtype=float)
+    nu[transient_indices] = evector
+
+    return nu
 
 
 def mc_recurrence_times(mc: _tmc, statistic: str) -> _tarray:

@@ -20,8 +20,8 @@
     ],
     "density": 1.0,
     "deviation_matrix": [
-      [0.25, -0.25],
-      [-0.25, 0.25]
+      [ 0.25, -0.25],
+      [-0.25,  0.25]
     ],
     "determinant": -1.0,
     "dobrushin_coefficient": 1.0,
@@ -53,15 +53,16 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": [2.0, [0.5, 2.0]],
+    "nu": null,
     "period": 2,
+    "pi": [
+      [0.5, 0.5]
+    ],
     "rank": 2,
     "relaxation_rate": "Infinity",
     "stationary_current": [
       [[0.0, 0.0],
        [0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.5, 0.5]
     ],
     "stationary_flux": [
       [[0.0, 0.5],
@@ -90,7 +91,7 @@
     ],
     "density": 1.0,
     "deviation_matrix": [
-      [0.234375, -0.234375],
+      [ 0.234375, -0.234375],
       [-0.390625, 0.390625]
     ],
     "determinant": -0.6,
@@ -123,15 +124,16 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": [1.6, [0.5, 2.0]],
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.625, 0.375]
+    ],
     "rank": 2,
     "relaxation_rate": 2.5,
     "stationary_current": [
       [[0.0, 0.0],
        [0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.625, 0.375]
     ],
     "stationary_flux": [
       [[0.250, 0.375],
@@ -193,15 +195,16 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": [1.75, [0.45125, 1.90000]],
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.45714286, 0.54285714]
+    ],
     "rank": 2,
     "relaxation_rate": 4.0,
     "stationary_current": [
       [[0.0, 0.0],
        [0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.45714286, 0.54285714]
     ],
     "stationary_flux": [
       [[0.022857, 0.434286],
@@ -263,15 +266,16 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": [1.0, [0.125, 1.000]],
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.5, 0.5]
+    ],
     "rank": 1,
     "relaxation_rate": 1.0,
     "stationary_current": [
       [[0.0, 0.0],
        [0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.5, 0.5]
     ],
     "stationary_flux": [
       [[0.25, 0.25],
@@ -327,15 +331,16 @@
     "occupation_matrix": [[10.0]],
     "occupation_trace": 10.0,
     "ordinary_spectral_gap": null,
+    "nu": [0.0, 1.0],
     "period": 1,
+    "pi": [
+      [1.0, 0.0]
+    ],
     "rank": 2,
     "relaxation_rate": null,
     "stationary_current": [
       [[0.0, 0.0],
        [0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [1.0, 0.0]
     ],
     "stationary_flux": [
       [[1.0, 0.0],
@@ -397,15 +402,16 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": [1.0, [0.405, 1.800]],
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.1, 0.9]
+    ],
     "rank": 1,
     "relaxation_rate": 1.0,
     "stationary_current": [
       [[0.0, 0.0],
        [0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.1, 0.9]
     ],
     "stationary_flux": [
       [[0.01, 0.09],
@@ -467,15 +473,16 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": [1.0, [0.405, 1.800]],
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.9, 0.1]
+    ],
     "rank": 1,
     "relaxation_rate": 1.0,
     "stationary_current": [
       [[0.0, 0.0],
        [0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.9, 0.1]
     ],
     "stationary_flux": [
       [[0.81, 0.09],
@@ -536,7 +543,13 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [1.0, 0.0, 0.0],
+      [0.0, 1.0, 0.0],
+      [0.0, 0.0, 1.0]
+    ],
     "rank": 3,
     "relaxation_rate": null,
     "stationary_current": [
@@ -549,11 +562,6 @@
       [[0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [1.0, 0.0, 0.0],
-      [0.0, 1.0, 0.0],
-      [0.0, 0.0, 1.0]
     ],
     "stationary_flux": [
       [[1.0, 0.0, 0.0],
@@ -629,16 +637,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 3,
+    "pi": [
+      [0.33333333, 0.33333333, 0.33333333]
+    ],
     "rank": 3,
     "relaxation_rate": "Infinity",
     "stationary_current": [
       [[0.00000, 0.33333, -0.33333],
        [-0.33333, 0.00000, 0.33333],
        [0.33333, -0.33333, 0.00000]]
-    ],
-    "stationary_distributions": [
-      [0.33333333, 0.33333333, 0.33333333]
     ],
     "stationary_flux": [
       [[0.000000, 0.333333, 0.000000],
@@ -700,16 +709,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": [0.0, 0.0, 1.0],
     "period": 2,
+    "pi": [
+      [0.5, 0.5, 0.0]
+    ],
     "rank": 3,
     "relaxation_rate": null,
     "stationary_current": [
       [[0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.5, 0.5, 0.0]
     ],
     "stationary_flux": [
       [[0.0, 0.5, 0.0],
@@ -779,16 +789,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.09090909, 0.29870130, 0.61038961]
+    ],
     "rank": 3,
     "relaxation_rate": 1.42857143,
     "stationary_current": [
       [[0.0000000, -0.0025974, 0.0025974],
        [0.0025974, 0.0000000, -0.0025974],
        [-0.0025974, 0.0025974, 0.0000000]]
-    ],
-    "stationary_distributions": [
-      [0.09090909, 0.29870130, 0.61038961]
     ],
     "stationary_flux": [
       [[0.000000, 0.027273, 0.063636],
@@ -858,16 +869,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": [1.0, [0.5, 2.0]],
+    "nu": null,
     "period": 2,
+    "pi": [
+      [0.15, 0.50, 0.35]
+    ],
     "rank": 2,
     "relaxation_rate": "Infinity",
     "stationary_current": [
       [[0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.15, 0.50, 0.35]
     ],
     "stationary_flux": [
       [[0.00, 0.15, 0.00],
@@ -937,16 +949,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": [0.7, [0.08, 0.80]],
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.285714, 0.428571, 0.285714]
+    ],
     "rank": 3,
     "relaxation_rate": 1.42857143,
     "stationary_current": [
       [[0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.285714, 0.428571, 0.285714]
     ],
     "stationary_flux": [
       [[0.114286, 0.085714, 0.085714],
@@ -1016,16 +1029,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.23214286, 0.33928571, 0.42857143]
+    ],
     "rank": 3,
     "relaxation_rate": 1.28800716,
     "stationary_current": [
       [[0.000000, -0.078571, 0.078571],
        [0.078571, 0.000000, -0.078571],
        [-0.078571, 0.078571, 0.000000]]
-    ],
-    "stationary_distributions": [
-      [0.23214286, 0.33928571, 0.42857143]
     ],
     "stationary_flux": [
       [[0.0232142857, 0.0232142857, 0.1857142857],
@@ -1095,16 +1109,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.32558140, 0.53488372, 0.13953488]
+    ],
     "rank": 3,
     "relaxation_rate": 1.85737662,
     "stationary_current": [
       [[0.0000000, 0.0255814, -0.0255814],
        [-0.0255814, 0.0000000, 0.0255814],
        [0.0255814, -0.0255814, 0.0000000]]
-    ],
-    "stationary_distributions": [
-      [0.32558140, 0.53488372, 0.13953488]
     ],
     "stationary_flux": [
       [[0.01627900, 0.29302300, 0.01627900],
@@ -1174,16 +1189,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.23214286, 0.33928571, 0.42857143]
+    ],
     "rank": 3,
     "relaxation_rate": 1.28800716,
     "stationary_current": [
       [[0.000000, -0.078571, 0.078571],
        [0.078571, 0.000000, -0.078571],
        [-0.078571, 0.078571, 0.000000]]
-    ],
-    "stationary_distributions": [
-      [0.23214286, 0.33928571, 0.42857143]
     ],
     "stationary_flux": [
       [[0.0232142857, 0.0232142857, 0.1857142857],
@@ -1253,16 +1269,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.57692308, 0.14102564, 0.28205128]
+    ],
     "rank": 3,
     "relaxation_rate": 1.57064291,
     "stationary_current": [
       [[0.000000, 0.126923, -0.126923],
        [-0.126923, 0.000000, 0.126923],
        [0.126923, -0.126923, 0.000000]]
-    ],
-    "stationary_distributions": [
-      [0.57692308, 0.14102564, 0.28205128]
     ],
     "stationary_flux": [
       [[0.4500000000, 0.1269230769, 0.0000000000],
@@ -1332,16 +1349,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": [0.3787822961, [0.05445, 0.66000]],
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.36263736, 0.36263736, 0.27472527]
+    ],
     "rank": 3,
     "relaxation_rate": 2.64003891,
     "stationary_current": [
       [[0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.36263736, 0.36263736, 0.27472527]
     ],
     "stationary_flux": [
       [[0.1813186813, 0.1813186813, 0.0000000000],
@@ -1411,16 +1429,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.03703704, 0.59259259, 0.37037037]
+    ],
     "rank": 3,
     "relaxation_rate": 1.28800716,
     "stationary_current": [
       [[0.000000, 0.037037, -0.037037],
        [-0.037037, 0.000000, 0.037037],
        [0.037037, -0.037037, 0.000000]]
-    ],
-    "stationary_distributions": [
-      [0.03703704, 0.59259259, 0.37037037]
     ],
     "stationary_flux": [
       [[0.0000000000, 0.0370370370, 0.0000000000],
@@ -1481,20 +1500,21 @@
     "mixing_rate": null,
     "occupation_matrix": [
       [4.00000000, 0.66666667],
-      [2.000000, 2.000000]
+      [2.00000000, 2.00000000]
     ],
     "occupation_trace": 6.0,
     "ordinary_spectral_gap": null,
+    "nu": [0.00000000, 0.79128785, 0.20871215],
     "period": 1,
+    "pi": [
+      [1.0, 0.0, 0.0]
+    ],
     "rank": 3,
     "relaxation_rate": null,
     "stationary_current": [
       [[0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [1.0, 0.0, 0.0]
     ],
     "stationary_flux": [
       [[1.0, 0.0, 0.0],
@@ -1564,16 +1584,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.54054054, 0.40540541, 0.05405405]
+    ],
     "rank": 3,
     "relaxation_rate": 1.25,
     "stationary_current": [
       [[0.000000, -0.054054, 0.054054],
        [0.054054, 0.000000, -0.054054],
        [-0.054054, 0.054054, 0.000000]]
-    ],
-    "stationary_distributions": [
-      [0.54054054, 0.40540541, 0.05405405]
     ],
     "stationary_flux": [
       [[0.3783783784, 0.1081081081, 0.0540540541],
@@ -1643,16 +1664,17 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": [0.15, [0.005, 0.200]],
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.33333333, 0.33333333, 0.33333333]
+    ],
     "rank": 3,
     "relaxation_rate": 6.66666667,
     "stationary_current": [
       [[0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.33333333, 0.33333333, 0.33333333]
     ],
     "stationary_flux": [
       [[0.3000000000, 0.0166666667, 0.0166666667],
@@ -1719,7 +1741,12 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 2,
+    "pi": [
+      [0.0, 0.0, 0.5, 0.5],
+      [0.0, 1.0, 0.0, 0.0]
+    ],
     "rank": 3,
     "relaxation_rate": null,
     "stationary_current": [
@@ -1731,10 +1758,6 @@
        [0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.0, 0.0, 0.5, 0.5],
-      [0.0, 1.0, 0.0, 0.0]
     ],
     "stationary_flux": [
       [[0.0, 0.0, 0.0, 0.0],
@@ -1806,7 +1829,12 @@
     "occupation_matrix": [[10.0, 45.0], [10.0, 50.0]],
     "occupation_trace": 60.0,
     "ordinary_spectral_gap": null,
+    "nu": [0.16904811, 0.83095189, 0.00000000, 0.00000000],
     "period": 1,
+    "pi": [
+      [0.0, 0.0, 1.0, 0.0],
+      [0.0, 0.0, 0.0, 1.0]
+    ],
     "rank": 4,
     "relaxation_rate": null,
     "stationary_current": [
@@ -1818,10 +1846,6 @@
        [0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.0, 0.0, 1.0, 0.0],
-      [0.0, 0.0, 0.0, 1.0]
     ],
     "stationary_flux": [
       [[0.0, 0.0, 0.0, 0.0],
@@ -1903,7 +1927,11 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.25, 0.25, 0.25, 0.25]
+    ],
     "rank": 3,
     "relaxation_rate": 3.41421356,
     "stationary_current": [
@@ -1911,9 +1939,6 @@
        [-0.125,  0.000,  0.125,  0.000],
        [ 0.000, -0.125,  0.000,  0.125],
        [ 0.125,  0.000, -0.125,  0.000]]
-    ],
-    "stationary_distributions": [
-      [0.25, 0.25, 0.25, 0.25]
     ],
     "stationary_flux": [
       [[0.125, 0.125, 0.000, 0.000],
@@ -1991,7 +2016,11 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 3,
+    "pi": [
+      [0.33333333, 0.33333333, 0.16666667, 0.16666667]
+    ],
     "rank": 3,
     "relaxation_rate": "Infinity",
     "stationary_current": [
@@ -1999,9 +2028,6 @@
        [0.33333333, 0.00000000, -0.16666667, -0.16666667],
        [-0.16666667, 0.16666667, 0.00000000, 0.00000000],
        [-0.16666667, 0.16666667, 0.00000000, 0.00000000]]
-    ],
-    "stationary_distributions": [
-      [0.33333333, 0.33333333, 0.16666667, 0.16666667]
     ],
     "stationary_flux": [
       [[0.00000000, 0.00000000, 0.16666667, 0.16666667],
@@ -2079,7 +2105,11 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.58878505, 0.13084112, 0.18691589, 0.09345794]
+    ],
     "rank": 4,
     "relaxation_rate": 1.62191225,
     "stationary_current": [
@@ -2087,9 +2117,6 @@
        [0.0523364, 0.0000000, -0.0308411, -0.0214953],
        [-0.0214953, 0.0308411, 0.0000000, -0.0093458],
        [-0.0308411, 0.0214953, 0.0093458, 0.0000000]]
-    ],
-    "stationary_distributions": [
-      [0.58878505, 0.13084112, 0.18691589, 0.09345794]
     ],
     "stationary_flux": [
       [[0.4121495327, 0.0588785047, 0.0588785047, 0.0588785047],
@@ -2174,7 +2201,11 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 3,
+    "pi": [
+      [0.16666667, 0.16666667, 0.33333333, 0.16666667, 0.16666667]
+    ],
     "rank": 4,
     "relaxation_rate": "Infinity",
     "stationary_current": [
@@ -2183,9 +2214,6 @@
        [0.166667, -0.166667, 0.000000, 0.166667, -0.166667],
        [0.000000, 0.000000, -0.166667, 0.000000, 0.166667],
        [0.000000, 0.000000, 0.166667, -0.166667, 0.000000]]
-    ],
-    "stationary_distributions": [
-      [0.16666667, 0.16666667, 0.33333333, 0.16666667, 0.16666667]
     ],
     "stationary_flux": [
       [[0.00000000, 0.16666667, 0.00000000, 0.00000000, 0.00000000],
@@ -2268,7 +2296,12 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
     "period": 1,
+    "pi": [
+      [0.00000000, 0.00000000, 0.00000000, 0.42553191, 0.25531915, 0.31914894],
+      [0.20000000, 0.80000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000]
+    ],
     "rank": 6,
     "relaxation_rate": null,
     "stationary_current": [
@@ -2284,10 +2317,6 @@
        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000],
        [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000]]
-    ],
-    "stationary_distributions": [
-      [0.00000000, 0.00000000, 0.00000000, 0.42553191, 0.25531915, 0.31914894],
-      [0.20000000, 0.80000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000]
     ],
     "stationary_flux": [
       [[0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000, 0.0000000000],
@@ -2373,7 +2402,12 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.16749311, 0.38787879, 0.08319559, 0.13553719, 0.00000000, 0.22589532],
+      [0.00000000, 0.00000000, 0.00000000, 0.00000000, 1.00000000, 0.00000000]
+    ],
     "rank": 6,
     "relaxation_rate": null,
     "stationary_current": [
@@ -2389,10 +2423,6 @@
        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [0.16749311, 0.38787879, 0.08319559, 0.13553719, 0.00000000, 0.22589532],
-      [0.00000000, 0.00000000, 0.00000000, 0.00000000, 1.00000000, 0.00000000]
     ],
     "stationary_flux": [
       [[0.0334986226, 0.0334986226, 0.0334986226, 0.0334986226, 0.0000000000, 0.0334986226],
@@ -2483,7 +2513,12 @@
     ],
     "occupation_trace": 7.58293839,
     "ordinary_spectral_gap": null,
+    "nu": [0.00000000, 0.00000000, 0.25354072, 0.33495752, 0.27349167, 0.13801009],
     "period": 1,
+    "pi": [
+      [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      [0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+    ],
     "rank": 6,
     "relaxation_rate": null,
     "stationary_current": [
@@ -2499,10 +2534,6 @@
        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
-    ],
-    "stationary_distributions": [
-      [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-      [0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
     ],
     "stationary_flux": [
       [[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -2651,7 +2682,11 @@
     "occupation_matrix": null,
     "occupation_trace": null,
     "ordinary_spectral_gap": null,
+    "nu": null,
     "period": 1,
+    "pi": [
+      [0.06391641, 0.20438882, 0.07254790, 0.05599217, 0.03982147, 0.08966740, 0.06729427, 0.08000223, 0.01472965, 0.10514081, 0.07687798, 0.07613945, 0.05348144]
+    ],
     "rank": 13,
     "relaxation_rate": 1.6554724,
     "stationary_current": [
@@ -2668,9 +2703,6 @@
        [ 0.00000000, -0.02043888,  0.00043301, -0.01679765,  0.00000000,  0.01537560,  0.00191674,  0.00000000, -0.00589186,  0.03075119,  0.00000000,  0.00000000, -0.00534814],
        [ 0.02284184, -0.02043888, -0.00725479,  0.00761395, -0.01592859,  0.00000000, -0.00672943,  0.00000000, -0.00294593,  0.00000000,  0.00000000,  0.00000000,  0.02284184],
        [ 0.00000000, -0.01509074, -0.00190665,  0.00000000,  0.01069629,  0.01069629,  0.01069629,  0.00000000, -0.00294593,  0.00534814,  0.00534814, -0.02284184,  0.00000000]]
-    ],
-    "stationary_distributions": [
-      [0.06391641, 0.20438882, 0.07254790, 0.05599217, 0.03982147, 0.08966740, 0.06729427, 0.08000223, 0.01472965, 0.10514081, 0.07687798, 0.07613945, 0.05348144]
     ],
     "stationary_flux": [
       [[0.00000000, 0.00000000, 0.00000000, 0.01917492, 0.00000000, 0.03195820, 0.01278328, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000],

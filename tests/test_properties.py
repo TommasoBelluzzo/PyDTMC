@@ -318,6 +318,40 @@ def test_matrix(p, determinant, rank):
     assert actual == expected
 
 
+def test_nu(p, quasi_stationary_distribution):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.nu
+    expected = quasi_stationary_distribution
+
+    if (actual is not None) and (expected is not None):
+
+        expected = _np.array(expected)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        actual = _np.sum(mc.nu)
+        expected = 1.0
+
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        transient_indices = [mc.states.index(state) for state in mc.transient_states]
+        recurrent_indices = [mc.states.index(state) for state in mc.recurrent_states]
+
+        assert _np.all(mc.nu >= 0.0)
+        assert _np.all(mc.nu[recurrent_indices] == 0.0)
+
+        q = mc.p[_np.ix_(transient_indices, transient_indices)]
+        nu = mc.nu[transient_indices]
+        survival = float(_np.sum(nu @ q))
+
+        assert 0.0 < survival < 1.0
+        _npt.assert_allclose(nu @ q, survival * nu, rtol=1e-5, atol=1e-8)
+
+    else:
+        assert actual is expected
+
+
 def test_occupation_matrix(p, occupation_matrix, occupation_trace):
 
     mc = _MarkovChain(p)
@@ -354,6 +388,40 @@ def test_periodicity(p, period):
     expected = period == 1
 
     assert actual == expected
+
+
+def test_pi(p, stationary_distributions):
+
+    mc = _MarkovChain(p)
+    stationary_distributions = [_np.array(stationary_distribution) for stationary_distribution in stationary_distributions]
+
+    # noinspection PyTypeChecker
+    actual = len(mc.pi)
+    expected = len(stationary_distributions)
+
+    assert actual == expected
+
+    # noinspection PyTypeChecker
+    actual = len(mc.pi)
+    expected = len(mc.recurrent_classes)
+
+    assert actual == expected
+
+    # noinspection PyTypeChecker
+    ss_matrix = _np.vstack(mc.pi)
+    actual = _npl.matrix_rank(ss_matrix)
+    expected = min(ss_matrix.shape)
+
+    assert actual == expected
+
+    for index, stationary_distribution in enumerate(stationary_distributions):
+
+        assert _np.isclose(_np.sum(mc.pi[index]), 1.0, rtol=1e-5, atol=1e-8)
+
+        actual = mc.pi[index]
+        expected = stationary_distribution
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_spectral_gaps(p, absolute_spectral_gap, ordinary_spectral_gap):
@@ -448,40 +516,6 @@ def test_stationary_current(p, stationary_current):
 
         actual = _np.sum(stationary_current_actual, axis=1)
         expected = _np.zeros(mc.size, dtype=float)
-
-        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-
-
-def test_stationary_distributions(p, stationary_distributions):
-
-    mc = _MarkovChain(p)
-    stationary_distributions = [_np.array(stationary_distribution) for stationary_distribution in stationary_distributions]
-
-    # noinspection PyTypeChecker
-    actual = len(mc.pi)
-    expected = len(stationary_distributions)
-
-    assert actual == expected
-
-    # noinspection PyTypeChecker
-    actual = len(mc.pi)
-    expected = len(mc.recurrent_classes)
-
-    assert actual == expected
-
-    # noinspection PyTypeChecker
-    ss_matrix = _np.vstack(mc.pi)
-    actual = _npl.matrix_rank(ss_matrix)
-    expected = min(ss_matrix.shape)
-
-    assert actual == expected
-
-    for index, stationary_distribution in enumerate(stationary_distributions):
-
-        assert _np.isclose(_np.sum(mc.pi[index]), 1.0, rtol=1e-5, atol=1e-8)
-
-        actual = mc.pi[index]
-        expected = stationary_distribution
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
