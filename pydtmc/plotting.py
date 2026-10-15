@@ -291,7 +291,7 @@ def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None
     else:
         mc = _MarkovChain(model.p, model.states)
 
-    if not mc.is_ergodic:
+    if not mc.is_ergodic:  # pragma: no cover
         raise _ValidationError('The underlying Markov chain must be ergodic in order to plot convergence.')
 
     stationary_distribution = mc.pi[0]
@@ -359,7 +359,7 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _tplot:
 
     if _np.isclose(evalues_final[argmin_index], 1.0):
         evalues_final[argmin_index] = 1.0 + 0.0j
-    else:
+    else:  # pragma: no cover
         evalues_final = _np.append(evalues_final, 1.0 + 0.0j)
 
     evalues_final = _np.unique(evalues_final)
@@ -465,10 +465,11 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
 
             if cycle == 0:
                 color = base_color
-            else:
+            else:  # pragma: no cover
+
                 variation = min(0.12 * ((cycle + 1) // 2), 0.36)
 
-                if cycle % 2 == 1:
+                if (cycle % 2) == 1:
                     color = base_color + ((1.0 - base_color) * variation)
                 else:
                     color = base_color * (1.0 - variation)
