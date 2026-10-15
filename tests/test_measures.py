@@ -369,6 +369,20 @@ def test_sensitivity(p, state, value):
         assert actual == expected
 
 
+def test_stationary_perturbation_bound(p, epsilon, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.stationary_perturbation_bound(epsilon)
+    expected = value
+
+    if (actual is not None) and (expected is not None):
+        assert 0.0 <= actual <= 1.0
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
 def test_time_correlations(p, sequence1, sequence2, time_points, value):
 
     mc = _MarkovChain(p)

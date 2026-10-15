@@ -147,6 +147,7 @@ from .measures import (
     mc_mixing_time_from as _mixing_time_from,
     mc_recurrence_times as _recurrence_times,
     mc_sensitivity as _sensitivity,
+    mc_stationary_perturbation_bound as _stationary_perturbation_bound,
     mc_time_correlations as _time_correlations,
     mc_time_relaxations as _time_relaxations,
     mc_time_reversal as _time_reversal
@@ -2704,6 +2705,36 @@ class MarkovChain(_Model):
 
         if not output_indices:
             value = [*map(self.__states.__getitem__, value)]
+
+        return value
+
+    def stationary_perturbation_bound(self, epsilon: float) -> _ofloat:
+
+        r"""
+        | The method computes an upper bound on the total variation distance between the stationary distributions of the Markov chain and its perturbations:
+        | :math:`\|\widetilde{\pi} - \pi\|_{\mathrm{TV}} \leq \min(1, \varepsilon \tau(Z))` where:
+
+        - :math:`\pi` and :math:`\widetilde{\pi}` are the original and perturbed stationary distributions, respectively;
+        - :math:`\varepsilon` is the maximum row-wise total variation distance between the transition matrices;
+        - :math:`\tau(Z)` is the ergodicity coefficient of the fundamental matrix.
+
+        | **Notes:**
+
+        - When applicable, the bound is tightened using the Dobrushin contraction coefficient.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+
+        :param epsilon: the perturbation tolerance, in the interval (0, 1].
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            epsilon = _validate_float(epsilon, lower_limit=(0.0, False), upper_limit=(1.0, True))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        value = _stationary_perturbation_bound(self, epsilon)
 
         return value
 

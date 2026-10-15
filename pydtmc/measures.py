@@ -20,6 +20,7 @@ __all__ = [
     'mc_mixing_time_from',
     'mc_recurrence_times',
     'mc_sensitivity',
+    'mc_stationary_perturbation_bound',
     'mc_time_correlations',
     'mc_time_relaxations',
     'mc_time_reversal'
@@ -705,6 +706,32 @@ def mc_sensitivity(mc: _tmc, state: int) -> _oarray:
     s = -_np.outer(rev, phi) + (_np.dot(phi, rev) * _np.outer(rev, lev))
 
     return s
+
+
+def mc_stationary_perturbation_bound(mc: _tmc, epsilon: float) -> _ofloat:
+
+    if not mc.is_irreducible:
+        return None
+
+    p, size, pi = mc.p, mc.size, mc.pi[0]
+
+    a = (_np.eye(size) - p) + _np.outer(_np.ones(size, dtype=float), pi)
+    z = _npl.solve(a, _np.eye(size))
+
+    differences = z[:, _np.newaxis, :] - z[_np.newaxis, :, :]
+    coefficient = 0.5 * _np.max(_np.sum(_np.abs(differences), axis=2))
+
+    bound = epsilon * coefficient
+
+    differences = p[:, _np.newaxis, :] - p[_np.newaxis, :, :]
+    contraction = 0.5 * _np.max(_np.sum(_np.abs(differences), axis=2))
+
+    if contraction < 1.0:
+        bound = min(bound, epsilon / (1.0 - contraction))
+
+    bound = min(1.0, float(bound))
+
+    return bound
 
 
 def mc_time_correlations(mc: _tmc, sequence1: _tsequence, sequence2: _osequence, time_points: _ttimes_in) -> _otimes_out:
