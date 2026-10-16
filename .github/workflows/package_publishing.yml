@@ -24,25 +24,35 @@ on:
         required: true
         default: true
 
+concurrency:
+  group: package-publishing
+  cancel-in-progress: false
+
 jobs:
   package_publishing:
     name: Package Publishing
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Repository Checkout
       uses: actions/checkout@v7
     - name: Python Setup
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
-        python-version: '3.12'
+        python-version: '3.13'
         architecture: x64
+        cache: pip
+        cache-dependency-path: |
+          requirements.txt
+          setup.cfg
     - name: Version Bump
       id: bump
       env:
         TARGET: ${{ github.event.inputs.target }}
         PYPI: ${{ github.event.inputs.pypi }}
         CONDA: ${{ github.event.inputs.conda }}
-        VERSION_REGEX: __version__ = '\d+\.\d+\.\d+'
+        VERSION_REGEX: ^__version__ = '\d+\.\d+\.\d+'$
         VERSION_FILE: pydtmc/__init__.py
       run: |
         TARGET="${TARGET^^}"
@@ -60,40 +70,39 @@ jobs:
           echo "INVALID INPUT (PYPI=FALSE && CONDA=TRUE && TARGET!=NONE)"
           exit 1
         fi
-        grep -P "$VERSION_REGEX" "$VERSION_FILE"
+        MATCH_COUNT=$(grep -Pc "$VERSION_REGEX" "$VERSION_FILE" || true)
+        if [[ "$MATCH_COUNT" -ne 1 ]]; then
+          echo "INVALID VERSION DECLARATION ($MATCH_COUNT MATCHES)"
+          exit 1
+        fi
         VERSION=$(grep -P "$VERSION_REGEX" "$VERSION_FILE" | cut -d "'" -f2)
         VERSION_MAJOR=$(echo "$VERSION" | cut -d "." -f1)
         VERSION_MINOR=$(echo "$VERSION" | cut -d "." -f2)
         VERSION_RELEASE=$(echo "$VERSION" | cut -d "." -f3)
         if [[ "$PYPI" == "TRUE" ]]; then
           if [[ "$TARGET" == "MAJOR" ]]; then
-            VERSION_MAJOR=$(($VERSION_MAJOR+1))
+            VERSION_MAJOR=$((VERSION_MAJOR + 1))
             VERSION_MINOR=0
             VERSION_RELEASE=0
           elif [[ "$TARGET" == "MINOR" ]]; then
-            VERSION_MINOR=$(($VERSION_MINOR+1))
+            VERSION_MINOR=$((VERSION_MINOR + 1))
             VERSION_RELEASE=0
           elif [[ "$TARGET" == "RELEASE" ]]; then
-            VERSION_RELEASE=$(($VERSION_RELEASE+1))
+            VERSION_RELEASE=$((VERSION_RELEASE + 1))
           fi
         fi
-        VERSION=$(printf "%d.%d.%d" $VERSION_MAJOR $VERSION_MINOR $VERSION_RELEASE 2>/dev/null)
-        PATTERN=$(grep -Poh "$VERSION_REGEX" "$VERSION_FILE")
-        sed -i "s/$PATTERN/__version__ = '$VERSION'/g" "$VERSION_FILE"
-        grep -P "$VERSION_REGEX" "$VERSION_FILE"
-        echo "target=$TARGET" >> $GITHUB_OUTPUT
-        echo "pypi=$PYPI" >> $GITHUB_OUTPUT
-        echo "conda=$CONDA" >> $GITHUB_OUTPUT
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-    - name: Cache
-      id: pypi_cache
-      if: ${{ steps.bump.outputs.pypi == 'TRUE' }}
-      uses: actions/cache@v6
-      with:
-        path: ${{ env.pythonLocation }}
-        key: ${{ runner.os }}-PP-${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}
+        VERSION=$(printf "%d.%d.%d" "$VERSION_MAJOR" "$VERSION_MINOR" "$VERSION_RELEASE")
+        sed -i -E "s/^__version__ = '[0-9]+\.[0-9]+\.[0-9]+'$/__version__ = '$VERSION'/" "$VERSION_FILE"
+        if ! grep -Fxq "__version__ = '$VERSION'" "$VERSION_FILE"; then
+          echo "VERSION UPDATE FAILED ($VERSION)"
+          exit 1
+        fi
+        echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+        echo "pypi=$PYPI" >> "$GITHUB_OUTPUT"
+        echo "conda=$CONDA" >> "$GITHUB_OUTPUT"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
     - name: Dependencies Installation
-      if: ${{ steps.bump.outputs.pypi == 'TRUE' && steps.pypi_cache.outputs.cache-hit != 'true' }}
+      if: ${{ steps.bump.outputs.pypi == 'TRUE' }}
       run: |
         python -m pip install --quiet --upgrade pip
         python -m pip install --quiet --upgrade -r requirements.txt
@@ -106,7 +115,7 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         TWINE_NON_INTERACTIVE: true
       run: |
-        python setup.py sdist bdist_wheel
+        python -m build
         python -m twine check --strict dist/*
         python -m twine upload dist/*
     - name: Version Commit
@@ -123,25 +132,38 @@ jobs:
     - name: Conda Publishing
       if: ${{ steps.bump.outputs.conda == 'TRUE' }}
       env:
-        PYPI: ${{ steps.bump.outputs.pypi }}
         VERSION: ${{ steps.bump.outputs.version }}
         META_REGEX: 'sha256: [A-Fa-f0-9]{64}'
         META_FILE: meta.yaml
         ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
       run: |
-        if [[ "$PYPI" == "TRUE" ]]; then
-          sleep 900
-        fi
         conda clean --all --yes
         source "$(conda info --base)/etc/profile.d/conda.sh"
         conda create --quiet --yes --name conda-build-env python=3.12 conda-build anaconda-client
         conda activate conda-build-env
-        wget "https://pypi.io/packages/source/p/pydtmc/pydtmc-${VERSION}.tar.gz" -O "/tmp/pydtmc-${VERSION}.tar.gz"
-        SHA256=$(openssl sha256 "/tmp/pydtmc-${VERSION}.tar.gz" | awk '{print $2}')
-        grep -P "$META_REGEX" "$META_FILE"
-        PATTERN=$(grep -Poh "$META_REGEX" "$META_FILE")
-        sed -i "s/$PATTERN/sha256: $SHA256/g" "$META_FILE"
-        grep -P "$SHA256" "$META_FILE"
+        URL="https://files.pythonhosted.org/packages/source/p/pydtmc/pydtmc-${VERSION}.tar.gz"
+        FILE="/tmp/pydtmc-${VERSION}.tar.gz"
+        for ATTEMPT in {1..30}; do
+          if wget --quiet --tries=1 --timeout=30 "$URL" -O "$FILE"; then
+            break
+          fi
+          if [[ "$ATTEMPT" -eq 30 ]]; then
+            echo "PYPI SOURCE DISTRIBUTION UNAVAILABLE ($VERSION)"
+            exit 1
+          fi
+          sleep 30
+        done
+        SHA256=$(openssl sha256 "$FILE" | awk '{print $2}')
+        MATCH_COUNT=$(grep -Pc "$META_REGEX" "$META_FILE" || true)
+        if [[ "$MATCH_COUNT" -ne 1 ]]; then
+          echo "INVALID CONDA CHECKSUM DECLARATION ($MATCH_COUNT MATCHES)"
+          exit 1
+        fi
+        sed -i -E "s/$META_REGEX/sha256: $SHA256/" "$META_FILE"
+        if ! grep -Fq "sha256: $SHA256" "$META_FILE"; then
+          echo "CONDA CHECKSUM UPDATE FAILED ($SHA256)"
+          exit 1
+        fi
         conda config --set always_yes yes
         conda config --set anaconda_upload yes
         conda config --set changeps1 no
