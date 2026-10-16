@@ -25,7 +25,7 @@ jobs:
       id: version
       env:
         VERSION: ${{ github.event.inputs.version }}
-        VERSION_REGEX: ^__version__ = '\d+\.\d+\.\d+'$
+        VERSION_REGEX: ^__version__ = '[0-9]+\.[0-9]+\.[0-9]+'$
         VERSION_FILE: pydtmc/__init__.py
       run: |
         if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then

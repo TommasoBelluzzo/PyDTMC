@@ -31,7 +31,7 @@ if _sys.version_info < (3, 12):
 
 with open('pydtmc/__init__.py', 'r') as _file:
     _file_content = _file.read()
-    _matches = _re.search(r'^__version__ = \'(\d+\.\d+\.\d+)\'$', _file_content, flags=_re.MULTILINE)
+    _matches = _re.search(r'^__version__ = \'([0-9]+\.[0-9]+\.[0-9]+)\'$', _file_content, flags=_re.MULTILINE)
     _current_version = _matches.group(1)
 
 # Description

@@ -30,7 +30,7 @@ jobs:
       id: bump
       env:
         TARGET: ${{ github.event.inputs.target }}
-        VERSION_REGEX: ^__version__ = '\d+\.\d+\.\d+'$
+        VERSION_REGEX: ^__version__ = '[0-9]+\.[0-9]+\.[0-9]+'$
         VERSION_FILE: pydtmc/__init__.py
       run: |
         TARGET="${TARGET^^}"
