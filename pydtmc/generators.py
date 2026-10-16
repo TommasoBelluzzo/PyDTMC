@@ -14,6 +14,7 @@ __all__ = [
     'mc_gamblers_ruin',
     'mc_lazy',
     'mc_lump',
+    'mc_metastable_aggregation',
     'mc_population_genetics_model',
     'mc_random',
     'mc_spectral_aggregation_bottom_up',

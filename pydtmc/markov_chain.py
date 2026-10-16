@@ -158,6 +158,7 @@ from .measures import (
 
 from .simulations import (
     mc_predict as _predict,
+    mc_predict_trajectory as _predict_trajectory,
     mc_redistribute as _redistribute,
     mc_sequence_probability as _sequence_probability,
     mc_simulate as _simulate
@@ -1792,7 +1793,7 @@ class MarkovChain(_Model):
 
         r"""
         | The method computes the first passage probabilities of the Markov chain from the given initial state:
-        | :math:`f_{ij}(t) = \mathbb{P}_i(T_j^+ = t)` where :math:`T_j^+` is the first positive hitting time of state :math:`j`.
+        | :math:`f_{ij}(t) = \mathbb{P}_i(T_j^+ = t)` where :math:`T_j^+` is the first positive hitting time of state :math:`j`
 
         | **Notes:**
 
@@ -2401,17 +2402,18 @@ class MarkovChain(_Model):
     def predict(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _osequence:
 
         r"""
-        | The method predicts a sequence of states by repeatedly selecting the most probable transition:
+        | The method predicts a sequence of states by greedily selecting the most probable transition at each step:
         | :math:`\hat{x}_{t+1} = \operatorname*{arg\,max}_j P_{\hat{x}_t j}`
 
         | **Notes:**
 
-        - The returned sequence includes the initial state.
-        - The prediction is greedy and does not necessarily maximize the probability of the entire sequence.
+        - The method does not necessarily maximize the probability of the entire sequence, unlike **predict_trajectory**.
+        - Each predicted state depends only on the previously selected state.
         - If multiple states share the highest transition probability at any step, then :py:class:`None` is returned.
+        - The returned sequence includes the initial state.
         - State labels are returned unless **output_indices** is :py:obj:`True`.
 
-        :param steps: the number of steps.
+        :param steps: the number of transitions.
         :param initial_state: the initial state.
         :param output_indices: a boolean indicating whether to output the state indices.
         :raises ValidationError: if any input argument is not compliant.
@@ -2419,7 +2421,7 @@ class MarkovChain(_Model):
 
         try:
 
-            steps = _validate_integer(steps, lower_limit=(0, True))
+            steps = _validate_integer(steps, lower_limit=(1, False))
             initial_state = _validate_label(initial_state, self.__states)
             output_indices = _validate_boolean(output_indices)
 
@@ -2428,7 +2430,43 @@ class MarkovChain(_Model):
 
         value = _predict(self, steps, initial_state)
 
-        if value is not None and not output_indices:
+        if (value is not None) and (not output_indices):
+            value = [*map(self.__states.__getitem__, value)]
+
+        return value
+
+    def predict_trajectory(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _osequence:
+
+        r"""
+        | The method predicts the globally most probable sequence of states over the given number of transitions:
+        | :math:`\hat{x}_{0:T} = \operatorname*{arg\,max}_{x_1,\ldots,x_T} \prod_{t=0}^{T-1} P_{x_t x_{t+1}}` where the initial state :math:`x_0` is fixed
+
+        | **Notes:**
+
+        - The method maximizes the probability of the entire sequence, unlike **predict**.
+        - The most probable sequence does not necessarily pass through the most probable state at each time step.
+        - If multiple distinct sequences share the maximum probability, then :py:class:`None` is returned.
+        - The returned sequence includes the initial state.
+        - State labels are returned unless **output_indices** is :py:obj:`True`.
+
+        :param steps: the number of transitions.
+        :param initial_state: the initial state.
+        :param output_indices: a boolean indicating whether to output the state indices.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            steps = _validate_integer(steps, lower_limit=(1, False))
+            initial_state = _validate_label(initial_state, self.__states)
+            output_indices = _validate_boolean(output_indices)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        value = _predict_trajectory(self, steps, initial_state)
+
+        if (value is not None) and (not output_indices):
             value = [*map(self.__states.__getitem__, value)]
 
         return value

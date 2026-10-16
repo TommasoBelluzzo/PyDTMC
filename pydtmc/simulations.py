@@ -4,6 +4,7 @@ __all__ = [
     'hmm_predict',
     'hmm_simulate',
     'mc_predict',
+    'mc_predict_trajectory',
     'mc_redistribute',
     'mc_sequence_probability',
     'mc_simulate'
@@ -154,7 +155,7 @@ def mc_predict(mc: _tmc, steps: int, initial_state: int) -> _olist_int:
     p = mc.p
 
     current_state = initial_state
-    value = [initial_state]
+    prediction = [initial_state]
 
     for _ in range(steps):
 
@@ -165,9 +166,64 @@ def mc_predict(mc: _tmc, steps: int, initial_state: int) -> _olist_int:
             return None
 
         current_state = d_max.item()
-        value.append(current_state)
+        prediction.append(current_state)
 
-    return value
+    return prediction
+
+
+def mc_predict_trajectory(mc: _tmc, steps: int, initial_state: int) -> _olist_int:
+
+    p, n = mc.p, mc.size
+
+    with _np.errstate(divide='ignore'):
+        log_p = _np.log(p)
+
+    scores = _np.full(n, -_np.inf)
+    scores[initial_state] = 0.0
+
+    unique = _np.zeros(n, dtype=bool)
+    unique[initial_state] = True
+
+    predecessors = _np.full((steps + 1, n), -1, dtype=int)
+
+    for t in range(1, steps + 1):
+
+        next_scores = _np.full(n, -_np.inf)
+        next_unique = _np.zeros(n, dtype=bool)
+
+        for j in range(n):
+
+            candidates = scores + log_p[:, j]
+            best_candidate = _np.max(candidates)
+
+            if not _np.isfinite(best_candidate):
+                continue
+
+            origins = _np.flatnonzero(candidates == best_candidate)
+            next_scores[j] = best_candidate
+
+            if len(origins) == 1:
+                i = int(origins[0])
+                predecessors[t, j] = i
+                next_unique[j] = unique[i]
+
+        scores = next_scores
+        unique = next_unique
+
+    best_score = _np.max(scores)
+    destinations = _np.flatnonzero(scores == best_score)
+
+    if (len(destinations) != 1) or (not unique[destinations[0]]):
+        return None
+
+    prediction = [int(destinations[0])]
+
+    for t in range(steps, 0, -1):
+        prediction.append(int(predecessors[t, prediction[-1]]))
+
+    prediction.reverse()
+
+    return prediction
 
 
 def mc_redistribute(mc: _tmc, steps: int, initial_distribution: _tarray, output_last: bool) -> _tredists:
@@ -210,7 +266,7 @@ def mc_sequence_probability(mc: _tmc, walk_param: _tlist_int) -> float:
 
 def mc_simulate(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rng: _trand) -> _tlist_int:
 
-    p, size = mc.p, mc.size
+    p, n = mc.p, mc.size
     check_final_state = final_state is not None
 
     current_state = initial_state
@@ -219,7 +275,7 @@ def mc_simulate(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rn
     for _ in range(steps):
 
         w = p[current_state, :]
-        current_state = rng.choice(size, size=1, p=w).item()
+        current_state = rng.choice(n, size=1, p=w).item()
         value.append(current_state)
 
         if check_final_state and current_state == final_state:

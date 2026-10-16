@@ -31,6 +31,16 @@ def test_predict(p, steps, initial_state, output_indices, value):
     assert actual == expected
 
 
+def test_predict_trajectory(p, steps, initial_state, output_indices, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.predict_trajectory(steps, initial_state, output_indices)
+    expected = value
+
+    assert actual == expected
+
+
 def test_next(p, seed, initial_state, output_index, value):
 
     mc = _MarkovChain(p)
