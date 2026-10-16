@@ -12,6 +12,7 @@ Properties
 		k,
 		n,
 		p,
+		pi,
 		size,
 		states,
 		symbols
