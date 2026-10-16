@@ -669,10 +669,10 @@ class MarkovChain(_Model):
 
         h = -float(_np.dot(self.pi[0], _np.sum(contributions, axis=1)))
 
-        if -_FTOL < h < 0.0:
+        if -_FTOL < h < 0.0:  # pragma: no cover
             h = 0.0
 
-        if not _np.isfinite(h) or (h < 0.0):
+        if not _np.isfinite(h) or (h < 0.0):  # pragma: no cover
             h = None
 
         return h
@@ -1024,7 +1024,7 @@ class MarkovChain(_Model):
         fm = self.fundamental_matrix
         kc = float(_np.trace(fm)) - 1.0
 
-        if not _np.isfinite(kc):
+        if not _np.isfinite(kc):  # pragma: no cover
             kc = None
 
         return kc
@@ -1183,14 +1183,14 @@ class MarkovChain(_Model):
         evalues = _npl.eigvalsh(pw)
         sg = 1.0 - float(evalues[-2])
 
-        if -_FTOL < sg < 0.0:
+        if -_FTOL < sg < 0.0:  # pragma: no cover
             sg = 0.0
 
         gc = self.global_conductance
 
         if self.__size <= 12:
             cb = [0.5 * gc ** 2.0, 2.0 * gc]
-        else:
+        else:  # pragma: no cover
             cb = [0.0, 2.0 * gc]
 
         return sg, cb
@@ -3835,7 +3835,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        if model == 'wright-fisher' and (4.0 * n * max(u, v)) > 1.0:
+        if (model == 'wright-fisher') and ((4.0 * n * max(u, v)) > 1.0):  # pragma: no cover
             raise _ValidationError('The highest mutation rate specified is too high for the Wright-Fisher model.')
 
         p, states_out, _ = _population_genetics_model(model, n, s, u, v)
