@@ -1109,24 +1109,24 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
     if _np.any(masses <= 0.0):  # pragma: no cover
         return None, None, 'At least one macrostate has non-positive stationary probability mass.'
 
-    pm = _np.dot(_np.transpose(chi), (pi[:, _np.newaxis] * p))
-    pm = _np.dot(pm, chi) / masses[:, _np.newaxis]
+    p = _np.dot(_np.transpose(chi), (pi[:, _np.newaxis] * p))
+    p = _np.dot(p, chi) / masses[:, _np.newaxis]
 
-    if not _np.all(_np.isfinite(pm)) or _np.min(pm) < -_FTOL:  # pragma: no cover
+    if (not _np.all(_np.isfinite(p))) or (_np.min(p) < -_FTOL):  # pragma: no cover
         return None, None, 'Non-finite or significantly negative transition probabilities have been detected.'
 
-    pm = _np.maximum(pm, 0.0)
-    q_sums = _np.sum(pm, axis=1, keepdims=True)
+    p = _np.maximum(p, 0.0)
+    p_sums = _np.sum(p, axis=1, keepdims=True)
 
-    if _np.any(q_sums <= 0.0):  # pragma: no cover
+    if _np.any(p_sums <= 0.0):  # pragma: no cover
         return None, None, 'At least one row of the reduced transition matrix has zero probability mass.'
 
-    pm /= q_sums
+    p /= p_sums
 
     partitions = [_np.flatnonzero(groups == k).tolist() for k in range(s)]
     state_names = [','.join(map(states.__getitem__, partition)) for partition in partitions]
 
-    return pm, state_names, None
+    return p, state_names, None
 
 
 def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _tmc_generation:
@@ -1257,6 +1257,13 @@ def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states
     state_names = [*map(states.__getitem__, sub_states)]
 
     return p, state_names, None
+
+
+def mc_teleport(p: _tarray, probability: float, distribution: _tarray) -> _tmc_generation:
+
+    p = ((1.0 - probability) * p) + (probability * distribution[_np.newaxis, :])
+
+    return p, None, None
 
 
 def mc_urn_model(model: str, n: int) -> _tmc_generation:

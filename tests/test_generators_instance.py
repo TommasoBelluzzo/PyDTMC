@@ -228,6 +228,22 @@ def test_sub(p, states, value):
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_teleport(p, probability, distribution, value):
+
+    mc = _MarkovChain(p)
+    mc_teleport = mc.teleport(probability, distribution)
+
+    actual = mc_teleport.p
+    expected = _np.array(value)
+
+    print(actual)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+    if (probability > 0.0) and ((distribution is None) or all(x > 0.0 for x in distribution)):
+        assert mc_teleport.is_ergodic
+
+
 def test_time_reversal(p, value):
 
     mc = _MarkovChain(p)

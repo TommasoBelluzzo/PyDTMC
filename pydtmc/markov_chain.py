@@ -126,6 +126,7 @@ from .generators import (
     mc_spectral_aggregation_bottom_up as _spectral_aggregation_bottom_up,
     mc_spectral_aggregation_top_down as _spectral_aggregation_top_down,
     mc_sub as _sub,
+    mc_teleport as _teleport,
     mc_urn_model as _urn_model
 )
 
@@ -2880,6 +2881,38 @@ class MarkovChain(_Model):
         spb = _stationary_perturbation_bound(self, epsilon)
 
         return spb
+
+    @_object_mark(instance_generator=True)
+    def teleport(self, probability: float, distribution: _onumeric = None) -> _tmc:
+
+        r"""
+        | The method returns a Markov chain obtained by teleportation:
+        | :math:`\widetilde{P} = (1-\varepsilon)P + \varepsilon\mathbf{1}v^\top` where:
+
+        - :math:`\varepsilon` is the teleportation probability;
+        - :math:`v` is the destination probability distribution.
+
+        | **Notes:**
+
+        - A positive teleportation probability and a strictly positive destination distribution guarantee an **ergodic** Markov chain.
+
+        :param probability: the teleportation probability.
+        :param distribution: the destination distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            probability = _validate_float(probability, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            distribution = _np.full(self.__size, 1.0 / self.__size, dtype=float) if distribution is None else _validate_vector(distribution, 'stochastic', False, self.__size)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        p, _, _ = _teleport(self.__p, probability, distribution)
+        mc = MarkovChain(p, self.__states)
+
+        return mc
 
     @_object_mark(aliases=['tc'])
     def time_correlations(self, sequence1: _tsequence, sequence2: _osequence = None, time_points: _ttimes_in = 1) -> _otimes_out:
