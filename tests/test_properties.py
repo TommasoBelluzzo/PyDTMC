@@ -141,7 +141,8 @@ def test_cached(p):
         time1 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=lcl), 10)
         time2 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=lcl), 10)
 
-        _wn.warn(f"Cached property '{member_name}' was not faster on the second access.", RuntimeWarning)
+        if time1 <= time2:
+            _wn.warn(f"Cached property '{member_name}' was not faster on the second access.", RuntimeWarning)
 
 
 def test_connectivity(p, density):
