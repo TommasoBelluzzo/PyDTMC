@@ -1,0 +1,118 @@
+name: "Package Publishing - Conda"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: 'PyPI Version:'
+        required: true
+
+concurrency:
+  group: package-publishing
+  cancel-in-progress: false
+
+jobs:
+  package_publishing:
+    name: Package Publishing - Conda
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v7
+    - name: Version Validation
+      id: version
+      env:
+        VERSION: ${{ github.event.inputs.version }}
+        VERSION_REGEX: ^__version__ = '\d+\.\d+\.\d+'$
+        VERSION_FILE: pydtmc/__init__.py
+      run: |
+        if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "INVALID VERSION INPUT ($VERSION)"
+          exit 1
+        fi
+        MATCH_COUNT=$(grep -Pc "$VERSION_REGEX" "$VERSION_FILE" || true)
+        if [[ "$MATCH_COUNT" -ne 1 ]]; then
+          echo "INVALID VERSION DECLARATION ($MATCH_COUNT MATCHES)"
+          exit 1
+        fi
+        if ! grep -Fxq "__version__ = '$VERSION'" "$VERSION_FILE"; then
+          echo "VERSION MISMATCH ($VERSION)"
+          exit 1
+        fi
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+    - name: Conda Version Check
+      env:
+        VERSION: ${{ steps.version.outputs.version }}
+      run: |
+        URL="https://api.anaconda.org/package/TommasoBelluzzo/pydtmc"
+        FILE=$(mktemp)
+        trap 'rm -f "$FILE"' EXIT
+        if ! STATUS=$(curl --silent --show-error --location --retry 2 --max-time 30 --output "$FILE" --write-out "%{http_code}" "$URL"); then
+          echo "CONDA VERSION CHECK FAILED ($VERSION)"
+          exit 1
+        fi
+        if [[ "$STATUS" != "200" ]]; then
+          echo "CONDA VERSION CHECK FAILED (HTTP $STATUS)"
+          exit 1
+        fi
+        if ! jq -e '.versions | type == "array"' "$FILE" > /dev/null; then
+          echo "INVALID CONDA PACKAGE METADATA"
+          exit 1
+        fi
+        if jq -e --arg version "$VERSION" '.versions | index($version) != null' "$FILE" > /dev/null; then
+          echo "CONDA VERSION ALREADY PUBLISHED ($VERSION)"
+          exit 1
+        fi
+    - name: Conda Publishing
+      env:
+        VERSION: ${{ steps.version.outputs.version }}
+        META_REGEX: 'sha256: [A-Fa-f0-9]{64}'
+        META_FILE: meta.yaml
+        ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+      run: |
+        conda clean --all --yes
+        source "$(conda info --base)/etc/profile.d/conda.sh"
+        conda create --quiet --yes --name conda-build-env python=3.12 conda-build anaconda-client
+        conda activate conda-build-env
+        URL="https://files.pythonhosted.org/packages/source/p/pydtmc/pydtmc-${VERSION}.tar.gz"
+        FILE="/tmp/pydtmc-${VERSION}.tar.gz"
+        for ATTEMPT in {1..30}; do
+          if wget --quiet --tries=1 --timeout=30 "$URL" -O "$FILE"; then
+            break
+          fi
+          if [[ "$ATTEMPT" -eq 30 ]]; then
+            echo "PYPI SOURCE DISTRIBUTION UNAVAILABLE ($VERSION)"
+            exit 1
+          fi
+          sleep 30
+        done
+        SHA256=$(openssl sha256 "$FILE" | awk '{print $2}')
+        MATCH_COUNT=$(grep -Pc "$META_REGEX" "$META_FILE" || true)
+        if [[ "$MATCH_COUNT" -ne 1 ]]; then
+          echo "INVALID CONDA CHECKSUM DECLARATION ($MATCH_COUNT MATCHES)"
+          exit 1
+        fi
+        sed -i -E "s/$META_REGEX/sha256: $SHA256/" "$META_FILE"
+        if ! grep -Fq "sha256: $SHA256" "$META_FILE"; then
+          echo "CONDA CHECKSUM UPDATE FAILED ($SHA256)"
+          exit 1
+        fi
+        conda config --set always_yes yes
+        conda config --set anaconda_upload yes
+        conda config --set changeps1 no
+        conda-build --channel conda-forge --override-channels --use-local --output-folder /tmp/conda-build .
+    - name: Conda Metadata
+      env:
+        VERSION: ${{ steps.version.outputs.version }}
+      run: |
+        git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+        git config --local user.name "${{ secrets.BOT_USERNAME }}"
+        git config --local user.email "${{ secrets.BOT_EMAIL }}"
+        if ! git diff --quiet -- meta.yaml; then
+          git pull --rebase --autostash
+          git add meta.yaml
+          git commit -m "Conda Metadata $VERSION"
+          git push
+        fi

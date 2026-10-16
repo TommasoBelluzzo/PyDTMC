@@ -15,13 +15,13 @@ source:
 build:
   number: 0
   noarch: python
-  script: {{ PYTHON }} -m pip install . -vv
+  script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
 
 requirements:
   host:
     - python {{ data['python_requires'] }}
     - pip
-    - setuptools
+    - setuptools >=77.0.3
   run:
     - python {{ data['python_requires'] }}
 {% for dep in data['install_requires'] %}

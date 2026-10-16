@@ -1,0 +1,113 @@
+name: "Package Publishing - PyPI"
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        description: 'Target:'
+        required: true
+        options:
+        - MAJOR
+        - MINOR
+        - RELEASE
+        default: 'MINOR'
+
+concurrency:
+  group: package-publishing
+  cancel-in-progress: false
+
+jobs:
+  package_publishing:
+    name: Package Publishing - PyPI
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v7
+    - name: Version Bump
+      id: bump
+      env:
+        TARGET: ${{ github.event.inputs.target }}
+        VERSION_REGEX: ^__version__ = '\d+\.\d+\.\d+'$
+        VERSION_FILE: pydtmc/__init__.py
+      run: |
+        TARGET="${TARGET^^}"
+        MATCH_COUNT=$(grep -Pc "$VERSION_REGEX" "$VERSION_FILE" || true)
+        if [[ "$MATCH_COUNT" -ne 1 ]]; then
+          echo "INVALID VERSION DECLARATION ($MATCH_COUNT MATCHES)"
+          exit 1
+        fi
+        VERSION=$(grep -P "$VERSION_REGEX" "$VERSION_FILE" | cut -d "'" -f2)
+        VERSION_MAJOR=$(echo "$VERSION" | cut -d "." -f1)
+        VERSION_MINOR=$(echo "$VERSION" | cut -d "." -f2)
+        VERSION_RELEASE=$(echo "$VERSION" | cut -d "." -f3)
+        if [[ "$TARGET" == "MAJOR" ]]; then
+          VERSION_MAJOR=$((VERSION_MAJOR + 1))
+          VERSION_MINOR=0
+          VERSION_RELEASE=0
+        elif [[ "$TARGET" == "MINOR" ]]; then
+          VERSION_MINOR=$((VERSION_MINOR + 1))
+          VERSION_RELEASE=0
+        elif [[ "$TARGET" == "RELEASE" ]]; then
+          VERSION_RELEASE=$((VERSION_RELEASE + 1))
+        fi
+        VERSION=$(printf "%d.%d.%d" "$VERSION_MAJOR" "$VERSION_MINOR" "$VERSION_RELEASE")
+        sed -i -E "s/^__version__ = '[0-9]+\.[0-9]+\.[0-9]+'$/__version__ = '$VERSION'/" "$VERSION_FILE"
+        if ! grep -Fxq "__version__ = '$VERSION'" "$VERSION_FILE"; then
+          echo "VERSION UPDATE FAILED ($VERSION)"
+          exit 1
+        fi
+        echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+    - name: PyPI Version Check
+      env:
+        VERSION: ${{ steps.bump.outputs.version }}
+      run: |
+        URL="https://pypi.org/pypi/pydtmc/${VERSION}/json"
+        if ! STATUS=$(curl --silent --show-error --location --retry 2 --max-time 30 --output /dev/null --write-out "%{http_code}" "$URL"); then
+          echo "PYPI VERSION CHECK FAILED ($VERSION)"
+          exit 1
+        fi
+        if [[ "$STATUS" == "200" ]]; then
+          echo "PYPI VERSION ALREADY PUBLISHED ($VERSION)"
+          exit 1
+        elif [[ "$STATUS" != "404" ]]; then
+          echo "PYPI VERSION CHECK FAILED (HTTP $STATUS)"
+          exit 1
+        fi
+    - name: Python Setup
+      uses: actions/setup-python@v7
+      with:
+        python-version: '3.13'
+        architecture: x64
+        cache: pip
+        cache-dependency-path: |
+          requirements.txt
+          setup.cfg
+    - name: Dependencies Installation
+      run: |
+        python -m pip install --quiet --upgrade pip
+        python -m pip install --quiet --upgrade -r requirements.txt
+        python -m pip install --quiet --upgrade -e ".[build]"
+    - name: PyPI Publishing
+      env:
+        TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        TWINE_NON_INTERACTIVE: true
+      run: |
+        python -m build
+        python -m twine check --strict dist/*
+        python -m twine upload dist/*
+    - name: Version Commit
+      env:
+        VERSION: ${{ steps.bump.outputs.version }}
+      run: |
+        git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+        git config --local user.name "${{ secrets.BOT_USERNAME }}"
+        git config --local user.email "${{ secrets.BOT_EMAIL }}"
+        git add pydtmc/__init__.py
+        git commit -m "Release $VERSION"
+        git push
