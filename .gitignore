@@ -20,10 +20,10 @@ cmake-build-*/
 .Python
 build/
 develop-eggs/
-dist/
+dist/*
+!dist/.gitkeep
 downloads/
 eggs/
-.eggs/
 lib/
 lib64/
 parts/
@@ -31,9 +31,10 @@ sdist/
 var/
 wheels/
 share/python-wheels/
-*.egg-info/
-.installed.cfg
 *.egg
+*.egg-info/
+.eggs/
+.installed.cfg
 MANIFEST
 
 # Installer Logs
