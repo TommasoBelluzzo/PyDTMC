@@ -69,6 +69,13 @@ pip install git+https://github.com/TommasoBelluzzo/PyDTMC.git
 
 **Note:** [Graphviz](https://graphviz.org/) and [pydot](https://pypi.org/project/pydot/) are recommended for graph visualization using the `plot_graph` function.
 
+## Resources
+
+For additional functionality, mathematical definitions, and usage examples, refer to the [documentation](https://pydtmc.readthedocs.io/).
+
+If you use PyDTMC in your work, please cite the software using its [Zenodo DOI](https://doi.org/10.5281/zenodo.23363778).\
+Citation metadata is also available in the [CITATION.cff](https://github.com/TommasoBelluzzo/PyDTMC/blob/master/CITATION.cff) file.
+
 ## Quick Start
 
 Import the classes from PyDTMC and create instances of a discrete-time Markov chain and a hidden Markov model:
@@ -184,9 +191,3 @@ plot_trellis(hmm, 10, dpi=300)
 ```
 
 ![HiddenMarkovModel Plots](https://i.imgur.com/rSNUbdX.gif)
-
-## References
-
-For additional functionality, mathematical definitions, and usage examples, refer to the [documentation](https://pydtmc.readthedocs.io/).
-
-If you use PyDTMC in your work, please cite the software using its [Zenodo DOI](https://doi.org/10.5281/zenodo.23363778).
