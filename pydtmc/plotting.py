@@ -634,9 +634,9 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
     - For Markov chains, node colors identify communicating classes and node shapes distinguish recurrent from transient states.
     - For hidden Markov models, state nodes have distinct colors and elliptical shapes, while symbol nodes are gray and hexagonal.
-    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
     - `Graphviz <https://graphviz.org/>`_ and `pydot <https://pypi.org/project/pydot/>`_ are optional dependencies that enable an extended rendering mode.
     - Rendering quality may deteriorate for large graphs, particularly in standard mode.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
     :param nodes_color: whether to distinguish node types using colors.

@@ -20,12 +20,14 @@ import sphinx.addnodes as _san
 import sphinx.ext.intersphinx as _spei
 import sphinx.transforms.post_transforms as _sppt
 
-from sphinx_autodoc_typehints import (
-    format_annotation as _format_annotation
-)
-
 # noinspection PyUnresolvedReferences
 import sphinx_rtd_theme  # noqa
+
+try:
+    from sphinx_autodoc_typehints import format_annotation as _format_annotation
+except ImportError:
+    # noinspection PyProtectedMember
+    from sphinx_autodoc_typehints._render import format_annotation as _format_annotation
 
 
 ##################
