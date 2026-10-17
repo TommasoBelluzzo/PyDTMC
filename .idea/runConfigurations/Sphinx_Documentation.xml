@@ -15,6 +15,8 @@
     <option name="docutils_params" value="-Ean --keep-going" />
     <option name="docutils_task" value="html" />
     <option name="docutils_open_in_browser" value="false" />
-    <method v="2" />
+    <method v="2">
+      <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_Clean Sphinx Build" />
+    </method>
   </configuration>
 </component>
