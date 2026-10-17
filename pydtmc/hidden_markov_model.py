@@ -325,7 +325,7 @@ class HiddenMarkovModel(_Model):
         try:
 
             symbols = _validate_sequence(symbols, self.__symbols)
-            initial_status = _np.full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
+            initial_status = _validate_status(initial_status, self.__states, True)
             use_scaling = _validate_boolean(use_scaling)
 
         except Exception as ex:  # pragma: no cover
@@ -419,7 +419,7 @@ class HiddenMarkovModel(_Model):
 
             prediction_type = _validate_enumerator(prediction_type, ['map', 'mle', 'viterbi'])
             symbols = _validate_sequence(symbols, self.__symbols)
-            initial_status = _np.full(self.__size[0], 1.0 / self.__size[0], dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
+            initial_status = _validate_status(initial_status, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -656,7 +656,7 @@ class HiddenMarkovModel(_Model):
             p_guess = _validate_transition_matrix(p_guess, len(possible_states))
             e_guess = _validate_emission_matrix(e_guess, p_guess.shape[1])
             symbols = _validate_sequences(symbols, possible_symbols, True)
-            initial_status = _np.full(len(possible_states), 1.0 / len(possible_states), dtype=float) if initial_status is None else _validate_status(initial_status, possible_states)
+            initial_status = _validate_status(initial_status, possible_states, True)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None

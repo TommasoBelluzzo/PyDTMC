@@ -200,7 +200,9 @@ from .validation import (
     validate_time_points as _validate_time_points,
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
-    validate_vector as _validate_vector
+    validate_vector_birth_death as _validate_vector_birth_death,
+    validate_vector_flex as _validate_vector_flex,
+    validate_vector_stochastic as _validate_vector_stochastic
 )
 
 
@@ -221,7 +223,7 @@ class MarkovChain(_Model):
     - :math:`n` is the number of states.
 
     :param p: the transition matrix.
-    :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+    :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -418,7 +420,6 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - An absorbing state cannot be left once entered.
         - An empty list is returned if the Markov chain has no absorbing states.
         """
 
@@ -522,7 +523,7 @@ class MarkovChain(_Model):
     def cyclic_states(self) -> _tlists_str:
 
         """
-        | A property representing the cyclic states of the Markov chain.
+        | A property representing the states belonging to the cyclic decomposition of the Markov chain.
 
         | **Notes:**
 
@@ -572,8 +573,7 @@ class MarkovChain(_Model):
 
         r"""
         | A property representing the deviation matrix of the Markov chain:
-        | :math:`D = Z - \mathbf{1}\pi`
-        | where:
+        | :math:`D = Z - \mathbf{1}\pi` where:
 
         - :math:`Z` is the fundamental matrix;
         - :math:`\pi` is the unique stationary distribution.
@@ -635,8 +635,8 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - A rate is zero for a reversible stationary flow and infinite if a positive stationary flux has no reverse counterpart.
-        - Terms with zero flux in both directions contribute 0.
+        - A rate is 0 for a reversible stationary flow and infinite if a positive stationary flux has no reverse counterpart.
+        - Terms with 0 flux in both directions contribute 0.
         - One value is returned for each stationary distribution.
         """
 
@@ -653,7 +653,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Terms with zero transition probability contribute 0.
+        - Terms with transition probability equal to 0 contribute 0.
         - The entropy rate is expressed in nats per transition.
         - If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:class:`None` is returned.
         """
@@ -689,7 +689,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - If the entropy rate or topological entropy is zero, the normalized entropy rate is defined as zero.
+        - If the entropy rate or topological entropy is 0, the normalized entropy rate is defined as 0.
         - If the entropy rate cannot be computed, then :py:class:`None` is returned.
         """
 
@@ -783,7 +783,7 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - The timescales are ordered by decreasing eigenvalue modulus, including an infinite timescale for the stationary mode.
-        - Eigenvalue moduli equal to 0 yield zero timescales, while moduli equal to 1 yield infinite timescales.
+        - Eigenvalue moduli equal to 0 yield timescales of 0, while moduli equal to 1 yield infinite timescales.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
@@ -1043,7 +1043,7 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - The search considers partitions into contiguous blocks of state indices.
-        - Partitions consisting of only one block or one block per state are excluded.
+        - Partitions consisting of only 1 block or 1 block per state are excluded.
         """
 
         partitions = _find_lumping_partitions(self.__p)
@@ -1092,11 +1092,15 @@ class MarkovChain(_Model):
 
         r"""
         | A property representing the quasi-stationary distribution of the Markov chain:
-        | :math:`\nu Q = \lambda \nu` where :math:`Q` is the transient-to-transient transition submatrix
+        | :math:`\nu Q = \lambda \nu` where:
+
+        - :math:`\nu` is the quasi-stationary distribution restricted to the transient states;
+        - :math:`Q` is the transient-to-transient transition submatrix;
+        - :math:`\lambda` is the one-step survival probability under the quasi-stationary distribution.
 
         | **Notes:**
 
-        - The returned distribution follows the original state ordering, with zero probabilities for recurrent states.
+        - The returned distribution follows the original state ordering, with probabilities equal to 0 for recurrent states.
         - If the distribution does not exist or is not unique, then :py:class:`None` is returned.
         - The property can also be accessed through the alias **quasi_stationary_distribution**.
         """
@@ -1167,7 +1171,7 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - For chains with at most 12 states, the Cheeger bounds are computed using exact conductance.
-        - For chains with more than 12 states, the lower bound is zero and the upper bound uses approximate conductance.
+        - For chains with more than 12 states, the lower bound is 0 and the upper bound uses approximate conductance.
         - If the Markov chain is not both **irreducible** and **reversible**, then :py:class:`None` is returned.
         """
 
@@ -1453,7 +1457,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The returned matrix has one row per recurrent class and one column per transient state.
+        - Each matrix entry gives the probability of eventual absorption into the recurrent class identified by its row, starting from the transient state identified by its column.
         - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
         - The method can also be accessed through the alias **ap**.
         """
@@ -1533,18 +1537,21 @@ class MarkovChain(_Model):
 
         :param states: the states to retain in the censored Markov chain.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the censored Markov chain cannot be computed.
+        :raises ValueError: if the Markov chain defines only 2 states or if the censored Markov chain cannot be computed.
         """
 
         try:
 
-            states = _validate_labels_current(states, self.__states, True)
+            states = _validate_labels_current(states, self.__states, True, 2)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
+        if self.__size == 2:  # pragma: no cover
+            raise ValueError('The Markov chain defines only 2 states.')
+
         if len(states) < 2:  # pragma: no cover
-            raise _ValidationError('At least two states must be retained.')
+            raise _ValidationError('At least 2 states must be retained.')
 
         p, states, error_message = _censor(self.__p, self.__states, states)
 
@@ -1575,7 +1582,7 @@ class MarkovChain(_Model):
 
         try:
 
-            initial_distribution = _np.full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
+            initial_distribution = _validate_vector_stochastic(initial_distribution, self.__size, True)
             weighted = _validate_boolean(weighted)
 
         except Exception as ex:  # pragma: no cover
@@ -1611,7 +1618,7 @@ class MarkovChain(_Model):
         - The **backward** committor is computed using the stationary time-reversed chain.
         - It requires an **irreducible** Markov chain; otherwise, :py:class:`None` is returned.
         - The **forward** committor is the probability of reaching the second subset before the first.
-        - It is zero on the first subset and 1 on the second; the backward committor has the opposite boundary values.
+        - It is 0 on the first subset and 1 on the second; the backward committor has the opposite boundary values.
         - The method can also be accessed through the alias **crp**.
 
         :param committor_type:
@@ -1634,7 +1641,7 @@ class MarkovChain(_Model):
         intersection = _np.intersect1d(states1, states2)
 
         if len(intersection) > 0:  # pragma: no cover
-            raise _ValidationError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
+            raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
         crp = _committor_probabilities(self, committor_type, states1, states2)
 
@@ -1769,7 +1776,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - At time 0, the expected transition-count matrix is zero.
+        - At time 0, the expected transition-count matrix is 0.
         - The method can also be accessed through the alias **et**.
 
         :param steps: the number of steps.
@@ -1780,7 +1787,7 @@ class MarkovChain(_Model):
         try:
 
             steps = _validate_integer(steps, lower_limit=(0, False))
-            initial_distribution = _np.full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
+            initial_distribution = _validate_vector_stochastic(initial_distribution, self.__size, True)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -1794,7 +1801,7 @@ class MarkovChain(_Model):
 
         r"""
         | The method computes the first passage probabilities of the Markov chain from the given initial state:
-        | :math:`f_{ij}(t) = \mathbb{P}_i(T_j^+ = t)` where :math:`T_j^+` is the first positive hitting time of state :math:`j`
+        | :math:`f_{ij}(t) = \mathbb{P}_i(T_j^+ = t)` where :math:`T_j^+` is the first positive hitting time of state :math:`j`.
 
         | **Notes:**
 
@@ -1805,7 +1812,7 @@ class MarkovChain(_Model):
 
         :param steps: the number of steps.
         :param initial_state: the initial state.
-        :param first_passage_states: the first passage states.
+        :param first_passage_states: the destination states for which first-passage probabilities are computed.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1846,8 +1853,8 @@ class MarkovChain(_Model):
         :param initial_state: the initial state.
         :param first_passage_states: the first passage states.
         :param rewards: the reward value of each state.
-        :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Markov chain defines only two states.
+        :raises ValidationError: if any input argument is not compliant, if the target states include the initial state, or if the target states comprise all states except the initial state.
+        :raises ValueError: if the Markov chain defines only 2 states.
         """
 
         try:
@@ -1861,7 +1868,7 @@ class MarkovChain(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         if self.__size == 2:  # pragma: no cover
-            raise ValueError('The Markov chain defines only two states and the first passage rewards cannot be computed.')
+            raise ValueError('The Markov chain defines only 2 states and the first passage rewards cannot be computed.')
 
         if initial_state in first_passage_states:  # pragma: no cover
             raise _ValidationError('The first passage states cannot include the initial state.')
@@ -1889,8 +1896,8 @@ class MarkovChain(_Model):
         :param statistic:
          - **mean** to compute the mean;
          - **variance** to compute the variance.
-        :param origins: the origin states.
-        :param targets: the target states.
+        :param origins: the states defining the initial distribution obtained by conditioning the stationary distribution on the origin set.
+        :param targets: the states defining the target set for the first hitting-time computation.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1915,14 +1922,15 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Target states have first passage time equal to 0.
+        - If target states are omitted, an n-by-n matrix is returned, with origin states as rows and destination states as columns.
+        - If target states are specified, a vector is returned containing the first hitting-time statistic for the entire target set, starting from each state.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         - The method can also be accessed through the aliases **fpt_to** and **fptt**.
 
         :param statistic:
          - **mean** to compute the mean;
          - **variance** to compute the variance.
-        :param targets: the target states (*if omitted, each state is considered separately as a target*).
+        :param targets: the target states (*if omitted, all the states are targeted*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1953,8 +1961,8 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Target states have hitting probability equal to 1.
-        - States from which the target set is inaccessible have hitting probability equal to 0.
+        - The returned vector contains the probability of eventually reaching any state in the target set, starting from each state.
+        - Target states have hitting probability equal to 1; states from which the target set is inaccessible have hitting probability equal to 0.
         - The method can also be accessed through the alias **hp**.
 
         :param targets: the target states (*if omitted, all the states are targeted*).
@@ -1984,6 +1992,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
+        - The returned vector contains the selected first hitting-time statistic for the entire target set, starting from each state.
         - Target states have hitting time equal to 0.
         - For the mean, infinity is returned for states from which the target set is not reached with probability 1.
         - For the variance, *NaN* is returned for those states.
@@ -2148,7 +2157,7 @@ class MarkovChain(_Model):
 
         :param partition: the partition of the state space.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Markov chain has only two states or is not lumpable with respect to the given partition.
+        :raises ValueError: if the Markov chain has only 2 states or is not lumpable with respect to the given partition.
         """
 
         try:
@@ -2159,7 +2168,7 @@ class MarkovChain(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         if self.__size == 2:  # pragma: no cover
-            raise ValueError('The Markov chain defines only two states.')
+            raise ValueError('The Markov chain defines only 2 states.')
 
         p, states, error_message = _lump(self.__p, self.__states, partition)
 
@@ -2182,7 +2191,7 @@ class MarkovChain(_Model):
 
         - The initial visit at time 0 is excluded.
         - Visits to transient states have finite expectations.
-        - Visits to recurrent states have infinite expectation when those states are accessible, and zero otherwise.
+        - Visits to recurrent states have infinite expectation when those states are accessible, and 0 otherwise.
         - The method can also be accessed through the alias **mnv**.
         """
 
@@ -2263,12 +2272,12 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - PCCA+ uses fuzzy memberships, whereas standard PCCA uses a hard partitioning.
+        - PCCA+ uses fuzzy memberships, whereas standard PCCA uses a hard partition.
 
         :param s: the number of states of the reduced Markov chain.
         :param robust: a boolean indicating whether to use PCCA+ instead of standard PCCA.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Markov chain has only two states, is not both **irreducible** and **reversible**, or the aggregation cannot be computed.
+        :raises ValueError: if the Markov chain has only 2 states, is not both **irreducible** and **reversible**, or the aggregation cannot be computed.
         """
 
         try:
@@ -2280,7 +2289,7 @@ class MarkovChain(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         if self.__size == 2:  # pragma: no cover
-            raise ValueError('The Markov chain defines only two states.')
+            raise ValueError('The Markov chain defines only 2 states.')
 
         if not self.is_irreducible:  # pragma: no cover
             raise ValueError('The Markov chain is not irreducible.')
@@ -2356,7 +2365,7 @@ class MarkovChain(_Model):
 
         try:
 
-            initial_distribution = _np.full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
+            initial_distribution = _validate_vector_stochastic(initial_distribution, self.__size, True)
             jump = _validate_integer(jump, lower_limit=(1, False))
             cutoff = _validate_float(cutoff, lower_limit=(0.0, True), upper_limit=(0.5, False))
             maximum_iterations = _validate_integer(maximum_iterations, lower_limit=(10, False))
@@ -2374,12 +2383,8 @@ class MarkovChain(_Model):
         """
         | The method randomly selects the next state of the Markov chain from the given initial state.
 
-        | **Notes:**
-
-        - The returned value is a state label unless **output_index** is :py:obj:`True`.
-
         :param initial_state: the initial state.
-        :param output_index: a boolean indicating whether to output the state index.
+        :param output_index: a boolean indicating whether to return the state index instead of the state label.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -2409,14 +2414,12 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - The method does not necessarily maximize the probability of the entire sequence, unlike **predict_trajectory**.
-        - Each predicted state depends only on the previously selected state.
         - If multiple states share the highest transition probability at any step, then :py:class:`None` is returned.
         - The returned sequence includes the initial state.
-        - State labels are returned unless **output_indices** is :py:obj:`True`.
 
         :param steps: the number of transitions.
         :param initial_state: the initial state.
-        :param output_indices: a boolean indicating whether to output the state indices.
+        :param output_indices: a boolean indicating whether to return the state indices instead of the state labels.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2448,11 +2451,10 @@ class MarkovChain(_Model):
         - The most probable sequence does not necessarily pass through the most probable state at each time step.
         - If multiple distinct sequences share the maximum probability, then :py:class:`None` is returned.
         - The returned sequence includes the initial state.
-        - State labels are returned unless **output_indices** is :py:obj:`True`.
 
         :param steps: the number of transitions.
         :param initial_state: the initial state.
-        :param output_indices: a boolean indicating whether to output the state indices.
+        :param output_indices: a boolean indicating whether to return the state indices instead of the state labels.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2476,7 +2478,7 @@ class MarkovChain(_Model):
 
         r"""
         | The method computes the reactive density between two disjoint subsets of the state space:
-        | :math:`\rho_i = \pi_i q_i^- q_i^+` where:
+        | :math:`\eta_i = \pi_i q_i^- q_i^+` where:
 
         - :math:`\pi_i` is the stationary probability of state :math:`i`;
         - :math:`q_i^-` is the backward committor probability of state :math:`i`;
@@ -2485,7 +2487,7 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - The reactive density represents the stationary probability of occupying a state along a reactive trajectory from the first subset to the second.
-        - The reactive density is zero for states belonging to either subset.
+        - The reactive density is 0 for states belonging to either subset.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
 
         :param states1: the first subset of the state space.
@@ -2504,7 +2506,7 @@ class MarkovChain(_Model):
         intersection = _np.intersect1d(states1, states2)
 
         if len(intersection) > 0:  # pragma: no cover
-            raise _ValidationError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
+            raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
         if not self.is_irreducible:
             return None
@@ -2548,7 +2550,7 @@ class MarkovChain(_Model):
         intersection = _np.intersect1d(states1, states2)
 
         if len(intersection) > 0:  # pragma: no cover
-            raise _ValidationError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
+            raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
         if not self.is_irreducible:
             return None
@@ -2592,7 +2594,7 @@ class MarkovChain(_Model):
         intersection = _np.intersect1d(states1, states2)
 
         if len(intersection) > 0:  # pragma: no cover
-            raise _ValidationError(f'The two sets of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
+            raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
         if not self.is_irreducible:
             return None
@@ -2644,7 +2646,7 @@ class MarkovChain(_Model):
         | :math:`\mu^{(t)} = \mu P^t` where:
 
         - :math:`\mu` is the initial state distribution;
-        - :math:`\mu^{(t)}` is the state distribution after :math:`t` transitions.
+        - :math:`\mu^{(t)}` is the state probability distribution after :math:`t` transition
 
         | **Notes:**
 
@@ -2652,15 +2654,15 @@ class MarkovChain(_Model):
         - If **output_last** is :py:obj:`False`, the distributions from time 0 through the specified number of steps are returned.
 
         :param steps: the number of steps.
-        :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
-        :param output_last: a boolean indicating whether to output only the final distribution.
+        :param initial_status: the initial state or initial state distribution (*if omitted, the states are assumed to be uniformly distributed*).
+        :param output_last: a boolean indicating whether to return only the final distribution.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
             steps = _validate_integer(steps, lower_limit=(1, False))
-            initial_status = _np.full(self.__size, 1.0 / self.__size, dtype=float) if initial_status is None else _validate_status(initial_status, self.__states)
+            initial_status = _validate_status(initial_status, self.__states, True)
             output_last = _validate_boolean(output_last)
 
         except Exception as ex:  # pragma: no cover
@@ -2716,13 +2718,17 @@ class MarkovChain(_Model):
 
     def sensitivity(self, state: _tstate) -> _oarray:
 
-        """
-        | The method computes a sensitivity matrix associated with the stationary distribution of the Markov chain and the given state.
+        r"""
+        | The method computes the sensitivity matrix associated with the stationary distribution of the Markov chain and the given state:
+        | :math:`S_{ij}^{(s)} = \pi_i(Z_{js} - \pi_s)` where:
+
+        - :math:`s` is the target state;
+        - :math:`\pi` is the unique stationary distribution;
+        - :math:`Z` is the fundamental matrix.
 
         | **Notes:**
 
-        - The computation uses the unique stationary distribution and an augmented linear system.
-        - The returned matrix has one row and one column per state.
+        - The returned matrix has one row and one column per state, corresponding to the origin and destination states of each transition.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
 
         :param state: the target state.
@@ -2774,12 +2780,11 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - The returned sequence includes the initial state.
-        - State labels are returned unless **output_indices** is :py:obj:`True`.
 
         :param steps: the number of steps.
         :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
-        :param final_state: the final state (*if specified, the simulation stops upon reaching it*).
-        :param output_indices: a boolean indicating whether to output the state indices.
+        :param final_state: the early-stop target state (*if specified, the simulation stops upon reaching it*).
+        :param output_indices: a boolean indicating whether to return the state indices instead of the state labels.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -2811,7 +2816,7 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - The aggregation is based on Kullback-Leibler divergence minimization.
-        - Methodologies are described in `Optimal Kullback-Leibler Aggregation via Spectral Theory of Markov Chains (Deng et al., 2011) <https://doi.org/10.1109/TAC.2011.2141350>`_.
+        - The methodology is described in `Optimal Kullback-Leibler Aggregation via Spectral Theory of Markov Chains (Deng et al., 2011) <https://doi.org/10.1109/TAC.2011.2141350>`_.
 
         :param s: the number of states of the reduced Markov chain.
         :param method:
@@ -2819,7 +2824,7 @@ class MarkovChain(_Model):
          - **top-down** for a top-down aggregation (more suitable for reducing a small number of states);
          - **adaptive** for automatically selecting the best aggregation method, according to the size of the original and reduced chains.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Markov chain has only two states, is not **ergodic**, or the aggregation cannot be computed.
+        :raises ValueError: if the Markov chain has only 2 states, is not **ergodic**, or the aggregation cannot be computed.
         """
 
         try:
@@ -2831,7 +2836,7 @@ class MarkovChain(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         if self.__size == 2:  # pragma: no cover
-            raise ValueError('The Markov chain defines only two states.')
+            raise ValueError('The Markov chain defines only 2 states.')
 
         if not self.is_ergodic:  # pragma: no cover
             raise ValueError('The Markov chain is not ergodic.')
@@ -2856,11 +2861,11 @@ class MarkovChain(_Model):
 
         r"""
         | The method computes an upper bound on the total variation distance between the stationary distributions of the Markov chain and its perturbations:
-        | :math:`\|\widetilde{\pi} - \pi\|_{\mathrm{TV}} \leq \min(1, \varepsilon \tau(Z))` where:
+        | :math:`\|\widetilde{\pi} - \pi\|_{\mathrm{TV}} \leq \min(1, \varepsilon \delta(Z))` where:
 
         - :math:`\pi` and :math:`\widetilde{\pi}` are the original and perturbed stationary distributions, respectively;
         - :math:`\varepsilon` is the maximum row-wise total variation distance between the transition matrices;
-        - :math:`\tau(Z)` is the ergodicity coefficient of the fundamental matrix.
+        - :math:`\delta(Z)` is the ergodicity coefficient of the fundamental matrix.
 
         | **Notes:**
 
@@ -2904,7 +2909,7 @@ class MarkovChain(_Model):
         try:
 
             probability = _validate_float(probability, lower_limit=(0.0, False), upper_limit=(1.0, False))
-            distribution = _np.full(self.__size, 1.0 / self.__size, dtype=float) if distribution is None else _validate_vector(distribution, 'stochastic', False, self.__size)
+            distribution = _validate_vector_stochastic(distribution, self.__size, True)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -2927,6 +2932,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
+        - The input sequences define count-valued state observables; their ordering does not affect the computed correlations.
         - If the second sequence is omitted, the autocorrelation of the first sequence is computed.
         - The correlations are not centered or normalized.
         - A single time point produces a :py:class:`float`; multiple time points produce a list of values.
@@ -2959,7 +2965,7 @@ class MarkovChain(_Model):
     def time_relaxations(self, sequence: _tsequence, initial_distribution: _onumeric = None, time_points: _ttimes_in = 1) -> _otimes_out:
 
         r"""
-        | The method computes the time-dependent expected state observations of the Markov chain:
+        | The method computes the time-dependent expected value of a state observable of the Markov chain:
         | :math:`\mathbb{E}_{\mu}[f(X_t)] = \sum_{i,j}\mu_i(P^t)_{ij}f(j)` where:
 
         - :math:`\mu` is the initial state distribution;
@@ -2968,6 +2974,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
+        - The input sequence defines a count-valued state observable; its ordering does not affect the computed expectations.
         - The computation includes time 0 when requested.
         - A single time point produces a :py:class:`float`; multiple time points produce a list of values.
         - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
@@ -2982,7 +2989,7 @@ class MarkovChain(_Model):
         try:
 
             sequence = _validate_sequence(sequence, self.__states)
-            initial_distribution = _np.full(self.__size, 1.0 / self.__size, dtype=float) if initial_distribution is None else _validate_vector(initial_distribution, 'stochastic', False, self.__size)
+            initial_distribution = _validate_vector_stochastic(initial_distribution, self.__size, True)
             time_points = _validate_time_points(time_points)
 
         except Exception as ex:  # pragma: no cover
@@ -3060,8 +3067,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Transient states are placed first, followed by the recurrent classes.
-        - States belonging to the same recurrent class are kept contiguous.
+        - Transient states precede recurrent classes, and states within each recurrent class remain contiguous.
         - The returned Markov chain satisfies the **is_canonical** property.
         - The method can also be accessed through the alias **to_canonical**.
         """
@@ -3105,7 +3111,7 @@ class MarkovChain(_Model):
         - The supported formats are **csv**, **json**, **txt** and **xml**.
         - The output format is determined by the file extension.
 
-        :param file_path: the location of the file in which the Markov chain must be written.
+        :param file_path: the path of the file to which the Markov chain is written.
         :raises OSError: if the file cannot be written.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -3164,7 +3170,7 @@ class MarkovChain(_Model):
 
         try:
 
-            inertial_weights = _validate_vector(inertial_weights, 'unconstrained', True, self.__size)
+            inertial_weights = _validate_vector_flex(inertial_weights, self.__size)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -3283,8 +3289,8 @@ class MarkovChain(_Model):
     def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, states: _olist_str = None, k: _ofloat = None) -> _tmc:
 
         r"""
-        | The method approximates the Markov chain associated with a discretized first-order autoregressive process:
-        | :math:`y_t = (1-\rho)\alpha + \rho y_{t-1} + \varepsilon_t` where :math:`\varepsilon_t \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0,\sigma^2)`
+        | The method approximates a first-order autoregressive process with a finite-state Markov chain:
+        | :math:`y_t = (1-\rho)\alpha + \rho y_{t-1} + \varepsilon_t` where :math:`\varepsilon_t \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0,\sigma^2)`.
 
         :param size: the number of states of the approximating Markov chain.
         :param approximation_type:
@@ -3295,7 +3301,7 @@ class MarkovChain(_Model):
         :param alpha: the unconditional mean of the process.
         :param sigma: the standard deviation of the innovation term.
         :param rho: the autoregressive coefficient of the process.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :param k:
          - For the Tauchen approximation, the number of standard deviations defining the discretization range (*if omitted, the value is set to 3*);
          - For the Tauchen-Hussey approximation, the standard deviation used for Gaussian quadrature (*if omitted, an automatically computed value is used*).
@@ -3348,14 +3354,14 @@ class MarkovChain(_Model):
 
         :param p: the birth probabilities.
         :param q: the death probabilities.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            p = _validate_vector(p, 'creation', False)
-            q = _validate_vector(q, 'annihilation', False)
+            p = _validate_vector_birth_death(p, 'creation')
+            q = _validate_vector_birth_death(q, 'annihilation')
 
             if states is not None:  # pragma: no cover
                 states = _validate_labels_input(states, {p.shape[0], q.shape[0]}.pop())
@@ -3369,12 +3375,12 @@ class MarkovChain(_Model):
         if not _np.all(q + p <= 1.0):  # pragma: no cover
             raise _ValidationError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
 
-        p, states_out, _ = _birth_death(p, q)
+        p_out, states_out, _ = _birth_death(p, q)
 
         if states is None:
             states = states_out
 
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states)
 
         return mc
 
@@ -3391,7 +3397,7 @@ class MarkovChain(_Model):
 
         :param size: the number of states of the Markov chain.
         :param diffusion_factor: the concentration parameter of the stick-breaking process.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :param diagonal_bias_factor: the parameter controlling the additional diagonal bias (*if omitted, no diagonal bias is applied*).
         :param shift_concentration: a boolean indicating whether to shift the probability concentration toward the rightmost states.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
@@ -3437,8 +3443,8 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The transition function receives four arguments, in order: **x_index**, **x_value**, **y_index** and **y_value**, representing the indices and values of the origin and destination quadrature nodes.
-        - If all transition weights in a row are zero, a uniform transition distribution is assigned.
+        - The transition function receives 4 arguments, in order: **x_index**, **x_value**, **y_index** and **y_value**, representing the indices and values of the origin and destination quadrature nodes.
+        - If all transition weights in a row are 0, a uniform transition distribution is assigned.
 
         :param quadrature_type:
          - **gauss-chebyshev** for the Gauss-Chebyshev quadrature;
@@ -3450,7 +3456,7 @@ class MarkovChain(_Model):
         :param possible_states: the possible states of the process.
         :param f: the transition function of the process.
         :param quadrature_interval: the quadrature interval used to compute the nodes and weights (*if omitted, the interval [0, 1] is used*).
-        :raises ValidationError: if any input argument is not compliant.
+        :raises ValidationError: if any input argument is not compliant or if Simpson quadrature is requested with an even number of states.
         :raises ValueError: if the transition function returns an invalid value or the Gauss-Legendre quadrature fails to converge.
         """
 
@@ -3464,7 +3470,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        if quadrature_type == 'simpson-rule' and (len(possible_states) % 2) == 0:  # pragma: no cover
+        if (quadrature_type == 'simpson-rule') and ((len(possible_states) % 2) == 0):  # pragma: no cover
             raise _ValidationError('The quadrature based on the Simpson rule requires an odd number of possible states.')
 
         p, error_message = _fit_function(quadrature_type, quadrature_interval, possible_states, f)
@@ -3592,20 +3598,20 @@ class MarkovChain(_Model):
         - **state_to** *(string)*
         - **probability** *(float or int)*
 
+        |
         | In **txt** files, every line of the file must have the following format:
-
-        - **<state_from> <state_to> <probability>**
+        | **<state_from> <state_to> <probability>**
 
         | In **xml** files, the structure must be defined as follows:
 
         - *Root Element:* **MarkovChain**
-        - *Child Elements:* **Item**\ *, with attributes:*
+        - *Child Elements:* **Item**, with the following attributes:
 
           - **state_from** *(string)*
           - **state_to** *(string)*
           - **probability** *(float or int)*
 
-        :param file_path: the location of the file that defines the Markov chain.
+        :param file_path: the path of the file containing the Markov chain.
         :raises FileNotFoundError: if the file does not exist.
         :raises OSError: if the file cannot be read or is empty.
         :raises ValidationError: if any input argument is not compliant.
@@ -3655,7 +3661,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Nodes with zero total outgoing weight are assigned a uniform transition distribution.
+        - Nodes with total outgoing weight equal to 0 are assigned a uniform transition distribution.
 
         :param graph: the directed graph defining the Markov chain.
         :raises ValidationError: if any input argument is not compliant.
@@ -3703,10 +3709,10 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Rows with a zero sum are replaced by uniform transition distributions.
+        - Rows with a sum of 0 are replaced by uniform transition distributions.
 
         :param m: the matrix to transform into the transition matrix.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -3746,7 +3752,7 @@ class MarkovChain(_Model):
 
         :param size: the number of states of the Markov chain.
         :param w: the probability of winning each game.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -3779,7 +3785,7 @@ class MarkovChain(_Model):
         | :math:`P=I`
 
         :param size: the number of states of the Markov chain.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -3805,7 +3811,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The state space represents allele counts from 0 to **n**, resulting in **n + 1** states.
+        - The state space represents allele counts from 0 to n, resulting in n+1 states.
         - The boundary states, corresponding to fixation and loss of the allele, are absorbing.
         - The Moran model permits changes of at most one allele count per transition.
         - The Wright-Fisher model uses binomially distributed allele counts in each generation.
@@ -3817,8 +3823,8 @@ class MarkovChain(_Model):
         :param s: the selection intensity.
         :param u: the backward mutation rate.
         :param v: the forward mutation rate.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
-        :raises ValidationError: if any input argument is not compliant.
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
+        :raises ValidationError: if any input argument is not compliant or if the Wright-Fisher model has a maximum mutation rate exceeding 1/(4n).
         """
 
         try:
@@ -3860,7 +3866,7 @@ class MarkovChain(_Model):
         - Specified mask entries remain fixed, while the remaining probability mass is distributed among unspecified entries.
 
         :param size: the number of states of the Markov chain.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :param zeros: the number of additional zero transition probabilities.
         :param mask: a matrix specifying fixed transition probabilities and unspecified entries.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
@@ -3903,14 +3909,12 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - *NaN* values are replaced with zero.
-        - Infinite values are replaced with finite values.
-        - Negative values are clipped to zero.
+        - *NaN* values are replaced with 0; infinite values are replaced with finite values; negative values are clipped to 0.
         - Rows containing no positive weights are assigned uniform transition probabilities.
 
         :param size: the number of states of the Markov chain.
         :param f: the NumPy random distribution function or its name.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :param \**kwargs: additional arguments passed to the random distribution function.
         :raises ValidationError: if any input argument is not compliant.
@@ -3955,7 +3959,7 @@ class MarkovChain(_Model):
          - **bernoulli-laplace** for the Bernoulli-Laplace urn model;
          - **ehrenfest** for the Ehrenfest urn model.
         :param n: the number of elements in each urn.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :raises ValidationError: if any input argument is not compliant.
         """
 

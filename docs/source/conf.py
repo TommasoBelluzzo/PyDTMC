@@ -11,6 +11,7 @@ import datetime as _dt
 import os.path as _osp
 import re as _re
 import sys as _sys
+import typing as _tp
 
 # Libraries
 
@@ -18,6 +19,10 @@ import docutils.nodes as _dun
 import sphinx.addnodes as _san
 import sphinx.ext.intersphinx as _spei
 import sphinx.transforms.post_transforms as _sppt
+
+from sphinx_autodoc_typehints import (
+    format_annotation as _format_annotation
+)
 
 # noinspection PyUnresolvedReferences
 import sphinx_rtd_theme  # noqa
@@ -488,6 +493,70 @@ def _hook_autodoc_before_process_signature(app, obj, bound_method):  # pylint: d
 
 
 # noinspection PyUnusedLocal
+def _hook_autodoc_process_docstring(app, what, name, obj, options, lines):  # pylint: disable=unused-argument
+
+    if (what != 'property') or (not isinstance(obj, property)):
+        return
+
+    getter = obj.fget
+
+    if getter is None:
+        return
+
+    annotations = _tp.get_type_hints(getter)
+
+    if 'return' not in annotations:
+        return
+
+    if any(line.strip().startswith(':rtype:') for line in lines):
+        return
+
+    annotation = _format_annotation(annotations['return'], app.config)
+
+    if lines and lines[-1].strip():
+        lines.append('')
+
+    lines.append(f':rtype: {annotation}')
+
+
+# noinspection PyUnusedLocal
+def _hook_html_page_context(app, pagename, templatename, context, doctree):  # pylint: disable=unused-argument
+
+    if doctree is None:
+        return
+
+    builder = app.builder
+    indexer = getattr(builder, 'indexer', None)
+
+    if (indexer is None) or (pagename not in indexer._titles):
+        return
+
+    relations = builder.relations
+    relation = relations.get(pagename)
+
+    if relation is None:
+        return
+
+    parent = relation[0]
+
+    if parent is None or parent == builder.config.root_doc:
+        return
+
+    parent_title = builder.env.titles.get(parent)
+
+    if parent_title is None:
+        return
+
+    # noinspection PyProtectedMember
+    title = indexer._titles[pagename]
+    prefix = parent_title.astext()
+
+    if title and prefix:
+        # noinspection PyProtectedMember
+        indexer._titles[pagename] = f'{prefix} — {title}'
+
+
+# noinspection PyUnusedLocal
 def _hook_missing_reference(app, env, node, contnode):  # pylint: disable=unused-argument
 
     if node.get('refdomain') == 'py' and node.get('reftarget') == 'typing.Union':
@@ -535,5 +604,7 @@ def setup(app):
     app.add_post_transform(_SphinxPostTransformProperties)
 
     app.connect('autodoc-before-process-signature', _hook_autodoc_before_process_signature)
+    app.connect('autodoc-process-docstring', _hook_autodoc_process_docstring, priority=700)
     app.connect('builder-inited', _hook_builder_inited)
+    app.connect('html-page-context', _hook_html_page_context)
     app.connect('missing-reference', _hook_missing_reference)

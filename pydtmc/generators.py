@@ -20,6 +20,7 @@ __all__ = [
     'mc_spectral_aggregation_bottom_up',
     'mc_spectral_aggregation_top_down',
     'mc_sub',
+    'mc_teleport',
     'mc_urn_model'
 ]
 

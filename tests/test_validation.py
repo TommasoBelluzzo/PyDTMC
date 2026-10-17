@@ -59,7 +59,9 @@ from pydtmc.validation import (
     validate_time_points as _validate_time_points,
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
-    validate_vector as _validate_vector,
+    validate_vector_birth_death as _validate_vector_birth_death,
+    validate_vector_flex as _validate_vector_flex,
+    validate_vector_stochastic as _validate_vector_stochastic
 )
 
 from tests.utilities import (
@@ -96,7 +98,7 @@ def test_validate_boolean(value, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, bool)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -116,7 +118,7 @@ def test_validate_boundary_condition(value, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, (float, int, str))
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -148,7 +150,7 @@ def test_validate_dictionary(dictionary_elements, attributes, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, dict) and all(isinstance(k, tuple) and all(isinstance(x, str) for x in k) and isinstance(v, float) for k, v in result.items())
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -168,7 +170,7 @@ def test_validate_dpi(value, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, int)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -188,7 +190,7 @@ def test_validate_emission_matrix(value, size, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, _np.ndarray)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -208,7 +210,7 @@ def test_validate_enumerator(value, possible_values, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, str)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -254,7 +256,7 @@ def test_validate_float(value, lower_limit, upper_limit, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, float)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -307,7 +309,7 @@ def test_validate_graph(multi, graph_nodes, layers, edge_attributes, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, _nx.DiGraph)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -336,7 +338,7 @@ def test_validate_hidden_markov_model(value, is_valid):
 
         if result_is_valid:
             result_check = isinstance(result, _HiddenMarkovModel)
-            assert result_check is True
+            assert result_check
 
 
 # noinspection PyBroadException
@@ -365,7 +367,7 @@ def test_validate_hidden_markov_models(value, is_valid):
 
         if result_is_valid:
             result_check = isinstance(result, list) and all(isinstance(v, _HiddenMarkovModel) for v in result)
-            assert result_check is True
+            assert result_check
 
 
 # noinspection PyBroadException
@@ -385,7 +387,7 @@ def test_validate_hyperparameter(value, size, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, _np.ndarray)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -408,7 +410,7 @@ def test_validate_integer(value, lower_limit, upper_limit, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, int)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -430,7 +432,7 @@ def test_validate_interval(value, is_valid):
 
     if result_is_valid:
         result_check = all(isinstance(v, float) for v in result)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -470,7 +472,7 @@ def test_validate_labels_current(value, labels, subset, minimum_length, is_valid
 
     if result_is_valid:
         result_check = isinstance(result, list) and all(isinstance(v, int) for v in result)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -490,7 +492,7 @@ def test_validate_labels_input(value, size, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, list) and all(isinstance(v, str) for v in result)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -519,7 +521,7 @@ def test_validate_markov_chain(value, size, is_valid):
 
         if result_is_valid:
             result_check = isinstance(result, _MarkovChain)
-            assert result_check is True
+            assert result_check
 
 
 # noinspection PyBroadException
@@ -548,7 +550,7 @@ def test_validate_markov_chains(value, is_valid):
 
         if result_is_valid:
             result_check = isinstance(result, list) and all(isinstance(v, _MarkovChain) for v in result)
-            assert result_check is True
+            assert result_check
 
 
 # noinspection PyBroadException
@@ -570,7 +572,7 @@ def test_validate_mask(value, rows, columns, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, _np.ndarray)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -592,7 +594,7 @@ def test_validate_matrix(value, rows, columns, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, _np.ndarray)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -621,7 +623,7 @@ def test_validate_model(value, is_valid):
 
         if result_is_valid:
             result_check = isinstance(result, (_HiddenMarkovModel, _MarkovChain))
-            assert result_check is True
+            assert result_check
 
 
 # noinspection PyBroadException
@@ -650,7 +652,7 @@ def test_validate_models(value, is_valid):
 
         if result_is_valid:
             result_check = isinstance(result, list) and all(isinstance(v, (_HiddenMarkovModel, _MarkovChain)) for v in result)
-            assert result_check is True
+            assert result_check
 
 
 # noinspection PyBroadException
@@ -670,7 +672,7 @@ def test_validate_partition(value, labels, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, list) and all(isinstance(v, list) for v in result) and all(isinstance(s, int) for v in result for s in v)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -690,7 +692,7 @@ def test_validate_random_distribution(value, accepted_values, is_valid):
 
     if result_is_valid:
         result_check = callable(result)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -710,7 +712,7 @@ def test_validate_rewards(value, size, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, _np.ndarray)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -730,7 +732,7 @@ def test_validate_sequence(value, labels, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, list) and all(isinstance(v, int) for v in result)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -750,14 +752,14 @@ def test_validate_sequences(value, labels, flex, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, list) and all(isinstance(v, list) and all(isinstance(s, int) for s in v) for v in result)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
 def test_validate_status(value, labels, is_valid):
 
     try:
-        result = _validate_status(value, labels)
+        result = _validate_status(value, labels, False)
         result_is_valid = True
     except Exception:
         result = None
@@ -770,7 +772,7 @@ def test_validate_status(value, labels, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, _np.ndarray)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -790,7 +792,7 @@ def test_validate_strings(value, size, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, list) and all(isinstance(v, str) for v in result)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -810,7 +812,7 @@ def test_validate_time_points(value, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, int) or (isinstance(result, list) and all(isinstance(v, int) for v in result))
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -836,7 +838,7 @@ def test_validate_transition_function(value, is_valid):
 
     if result_is_valid:
         result_check = callable(result)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
@@ -856,14 +858,14 @@ def test_validate_transition_matrix(value, size, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, _np.ndarray)
-        assert result_check is True
+        assert result_check
 
 
 # noinspection PyBroadException
-def test_validate_vector(value, vector_type, flex, size, is_valid):
+def test_validate_vector_birth_death(value, vector_type, is_valid):
 
     try:
-        result = _validate_vector(value, vector_type, flex, size)
+        result = _validate_vector_birth_death(value, vector_type)
         result_is_valid = True
     except Exception:
         result = None
@@ -876,4 +878,44 @@ def test_validate_vector(value, vector_type, flex, size, is_valid):
 
     if result_is_valid:
         result_check = isinstance(result, _np.ndarray)
-        assert result_check is True
+        assert result_check
+
+
+# noinspection PyBroadException
+def test_validate_vector_flex(value, size, is_valid):
+
+    try:
+        result = _validate_vector_flex(value, size)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+        result_check = isinstance(result, _np.ndarray)
+        assert result_check
+
+
+# noinspection PyBroadException
+def test_validate_vector_stochastic(value, size, is_valid):
+
+    try:
+        result = _validate_vector_stochastic(value, size, False)
+        result_is_valid = True
+    except Exception:
+        result = None
+        result_is_valid = False
+
+    actual = result_is_valid
+    expected = is_valid
+
+    assert actual == expected
+
+    if result_is_valid:
+        result_check = isinstance(result, _np.ndarray)
+        assert result_check

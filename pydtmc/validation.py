@@ -34,7 +34,9 @@ __all__ = [
     'validate_time_points',
     'validate_transition_function',
     'validate_transition_matrix',
-    'validate_vector'
+    'validate_vector_birth_death',
+    'validate_vector_flex',
+    'validate_vector_stochastic'
 ]
 
 
@@ -922,9 +924,12 @@ def validate_sequences(value: _tany, labels: _tlist_str, flex: bool) -> _tlists_
     return value
 
 
-def validate_status(value: _tany, labels: _tlist_str) -> _tarray:
+def validate_status(value: _tany, labels: _tlist_str, emit_uniform: bool) -> _tarray:
 
     size = len(labels)
+
+    if (value is None) and emit_uniform:
+        return _np.full(size, 1.0 / size, dtype=float)
 
     if _is_integer(value):
 
@@ -1079,43 +1084,84 @@ def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
     return value
 
 
-def validate_vector(value: _tany, vector_type: str, flex: bool, size: _oint = None) -> _tarray:
+def validate_vector_birth_death(value: _tany, vector_type: str) -> _tarray:
 
-    if flex and _is_number(value):
+    try:
+        value = _extract_numeric(value, float)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
-        if vector_type != 'unconstrained':
-            raise ValueError('The "@arg@" parameter must be unconstrained.')
+    if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)) or ((value.ndim == 1) and (value.shape[0] == 0)):
+        raise ValueError('The "@arg@" parameter must be a valid vector.')
 
-        if size is None:
-            raise ValueError('The "@arg@" parameter must have a defined size.')
-
-        value = _np.repeat(float(value), size)
-
-    else:
-
-        try:
-            value = _extract_numeric(value, float)
-        except Exception as ex:
-            raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-        if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)) or ((value.ndim == 1) and (value.shape[0] == 0)):
-            raise ValueError('The "@arg@" parameter must be a valid vector.')
-
-        value = _np.ravel(value)
-
-        if size is not None and value.size != size:
-            raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
+    value = _np.ravel(value)
 
     if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
-    if (vector_type == 'annihilation') and (not _np.isclose(value[0], 0.0, rtol=0.0, atol=_ETOL)):
-        raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the first index.')
+    if vector_type == 'annihilation':
 
-    if (vector_type == 'creation') and (not _np.isclose(value[-1], 0.0, rtol=0.0, atol=_ETOL)):
-        raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the last index.')
+        if not _np.isclose(value[0], 0.0, rtol=0.0, atol=_ETOL):
+            raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the first index.')
 
-    if (vector_type == 'stochastic') and (not _np.isclose(_np.sum(value), 1.0, rtol=0.0, atol=_ETOL)):
+    else:
+
+        if not _np.isclose(value[-1], 0.0, rtol=0.0, atol=_ETOL):
+            raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the last index.')
+
+    return value
+
+
+def validate_vector_flex(value: _tany, size: _oint) -> _tarray:
+
+    if _is_number(value) and _np.isfinite(value):
+
+        if size is None:
+            raise ValueError('The "@arg@" parameter must have a defined size.')
+
+        return _np.repeat(float(value), size)
+
+    try:
+        value = _extract_numeric(value, float)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+    if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)) or ((value.ndim == 1) and (value.shape[0] == 0)):
+        raise ValueError('The "@arg@" parameter must be a valid vector.')
+
+    value = _np.ravel(value)
+
+    if (size is not None) and (value.size != size):
+        raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
+
+    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
+
+    return value
+
+
+def validate_vector_stochastic(value: _tany, size: int, emit_uniform: bool) -> _tarray:
+
+    if (value is None) and emit_uniform:
+        return _np.full(size, 1.0 / size, dtype=float)
+
+    try:
+        value = _extract_numeric(value, float)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+    if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)) or ((value.ndim == 1) and (value.shape[0] == 0)):
+        raise ValueError('The "@arg@" parameter must be a valid vector.')
+
+    value = _np.ravel(value)
+
+    if value.size != size:
+        raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
+
+    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
+
+    if not _np.isclose(_np.sum(value), 1.0, rtol=0.0, atol=_ETOL):
         raise ValueError('The "@arg@" parameter values must sum to 1.0.')
 
     return value

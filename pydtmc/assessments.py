@@ -70,12 +70,13 @@ def assess_change_point(possible_states: _tlist_str, sequence: _tsequence, signi
 
     - The assessment uses the maximum likelihood-ratio (G) statistic, with p-values estimated through Monte Carlo simulation.
     - The change point identifies the first transition of the second regime, using zero-based indexing, and is returned only when the null hypothesis is rejected.
-    - If an observed state has no outgoing transitions, the assessment returns an undefined result.
-    - Methodology is described in `Detecting change-points in Markov chains. (Polansky, 2007) <https://doi.org/10.1016/j.csda.2006.11.040>`_.
+    - The returned tuple contains the detected change-point index, the p-value, and the likelihood-ratio test statistic.
+    - If an observed state has no outgoing transitions, then :py:class:`None` and *NaN* are returned for the change-point index and p-value, respectively.
+    - The methodology is described in `Detecting change-points in Markov chains. (Polansky, 2007) <https://doi.org/10.1016/j.csda.2006.11.040>`_.
 
     :param possible_states: the possible states of the process.
     :param sequence: the observed sequence of states.
-    :param significance: the p-value significance threshold below which to reject the null hypothesis.
+    :param significance: the significance level used to determine whether to reject the null hypothesis.
     :param simulations: the number of Monte Carlo simulations.
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :raises ValidationError: if any input argument is not compliant.
@@ -186,11 +187,12 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, sign
     | **Notes:**
 
     - The assessment uses a likelihood-ratio (G) test, comparing transition frequencies across the sequences.
-    - If the test has zero degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+    - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
+    - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param possible_states: the possible states of the processes.
     :param sequences: the observed sequences of states.
-    :param significance: the p-value significance threshold below which to reject the null hypothesis.
+    :param significance: the significance level used to determine whether to reject the null hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -269,14 +271,15 @@ def assess_independence(possible_states: _tlist_str, sequence: _tsequence, metho
 
     - Both methods use Pearson's chi-squared statistic.
     - The simulation method estimates the p-value by permuting the observations after the initial state, preserving their frequencies under the independence hypothesis.
-    - If the test has zero degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+    - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
+    - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param possible_states: the possible states of the process.
     :param sequence: the observed sequence of states.
     :param method:
      - **asymptotic** for p-values computed from the asymptotic chi-squared distribution;
      - **simulation** for p-values estimated through Monte Carlo permutations under the independence hypothesis.
-    :param significance: the p-value significance threshold below which to reject the null hypothesis.
+    :param significance: the significance level used to determine whether to reject the null hypothesis.
     :param simulations: the number of Monte Carlo simulations (*used only with the simulation method*).
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :raises ValidationError: if any input argument is not compliant.
@@ -354,13 +357,14 @@ def assess_independence(possible_states: _tlist_str, sequence: _tsequence, metho
 def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _tass_stat:
 
     r"""
-    | The function verifies whether the given sequence is compatible with a first-order Markov process:
+    | The function assesses whether the given sequence is compatible with a first-order Markov process:
     | :math:`H_0: \mathbb{P}(X_{t+1}=k \mid X_t=j, X_{t-1}=i) = \mathbb{P}(X_{t+1}=k \mid X_t=j)`
 
     | **Notes:**
 
     - Both methods use Pearson's chi-squared statistic.
-    - If the test has zero degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+    - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
+    - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
     - The simulation method also returns an undefined result if an observed state has no outgoing transitions.
 
     :param possible_states: the possible states of the process.
@@ -368,7 +372,7 @@ def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, me
     :param method:
      - **asymptotic** for p-values computed from the asymptotic chi-squared distribution;
      - **simulation** for p-values estimated through Monte Carlo simulation under a fitted first-order Markov model.
-    :param significance: the p-value significance threshold below which to reject the null hypothesis.
+    :param significance: the significance level used to determine whether to reject the null hypothesis.
     :param simulations: the number of Monte Carlo simulations (*used only with the simulation method*).
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :raises ValidationError: if any input argument is not compliant.
@@ -476,10 +480,11 @@ def assess_order(possible_states: _tlist_str, sequence: _tsequence, maximum_orde
 
     | **Notes:**
 
-    - Candidate orders range from zero through *maximum_order*, inclusive, where order zero represents an independent process in which observations do not depend on preceding states.
+    - Candidate orders range from 0 through *maximum_order*, inclusive, where order 0 represents an independent process in which observations do not depend on preceding states.
     - All candidate orders are evaluated on the same observations, excluding the first *maximum_order* observations from the likelihood.
     - The number of free parameters for order :math:`m` is :math:`n^m(n-1)`, where :math:`n` is the number of possible states.
     - The order with the lowest score is selected; ties are resolved in favor of the lower order.
+    - The returned tuple contains the selected order and a dictionary mapping each candidate order to its criterion score.
 
     :param possible_states: the possible states of the process.
     :param sequence: the observed sequence of states.
@@ -551,7 +556,7 @@ def assess_stationarity(mc: _tmc, sequences: _tsequences, significance: float = 
     | The function assesses whether independent sequences of the given Markov chain are initialized according to its stationary distribution:
     | :math:`H_0: \mu = \pi`, where:
 
-    - :math:`\mu` is the initial distribution;
+    - :math:`\mu` is the initial state distribution;
     - :math:`\pi` is the stationary distribution.
 
     | **Notes:**
@@ -559,10 +564,11 @@ def assess_stationarity(mc: _tmc, sequences: _tsequences, significance: float = 
     - The assessment uses Pearson's chi-squared statistic, with exact p-values when computationally feasible and an asymptotic approximation when applicable.
     - Exact multinomial enumeration is limited to 100,000 configurations; the asymptotic approximation requires every positive expected count to be at least 10.
     - The assessment requires a unique stationary distribution and independent sequences.
+    - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
 
     :param mc: the theoretical Markov chain.
-    :param sequences: the independent observed sequences of states.
-    :param significance: the p-value significance threshold below which to reject the null hypothesis.
+    :param sequences: the observed sequences of states.
+    :param significance: the significance level used to determine whether to reject the null hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     :raises ValueError: if fewer than two independent sequences are provided.
     """
@@ -673,12 +679,13 @@ def assess_theoretical_compatibility(mc: _tmc, sequence: _tsequence, significanc
     | **Notes:**
 
     - The assessment uses a likelihood-ratio (G) test against the theoretical transition probabilities.
-    - An observed transition with zero theoretical probability results in rejection with a zero p-value.
-    - If the test has zero degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+    - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
+    - An observed transition with theoretical probability equal to 0 results in rejection with a p-value of 0.
+    - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param mc: the Markov chain representing the theoretical process.
     :param sequence: the observed sequence of states.
-    :param significance: the p-value significance threshold below which to reject the null hypothesis.
+    :param significance: the significance level used to determine whether to reject the null hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -740,12 +747,13 @@ def assess_time_homogeneity(possible_states: _tlist_str, sequence: _tsequence, b
 
     - The assessment uses Pearson's chi-squared test on the transition frequencies of the blocks.
     - Time-homogeneity concerns transition probabilities and does not imply a stationary state distribution.
-    - If the test has zero degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+    - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
+    - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param possible_states: the possible states of the process.
     :param sequence: the observed sequence of states.
-    :param blocks: the number of consecutive blocks in which the observed transitions are divided.
-    :param significance: the p-value significance threshold below which to reject the null hypothesis.
+    :param blocks: the number of consecutive blocks into which the observed transitions are divided.
+    :param significance: the significance level used to determine whether to reject the null hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
 

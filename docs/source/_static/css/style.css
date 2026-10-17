@@ -55,6 +55,10 @@
     margin-bottom: 24px !important;
 }
 
+.rst-content dl.py.property > dd > dl.field-list:last-child {
+    margin-bottom: 0 !important;
+}
+
 .wy-nav-content {
     max-width: 1200px !important;
 }

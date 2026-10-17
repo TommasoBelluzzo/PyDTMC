@@ -200,13 +200,13 @@ def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition
 
     - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
-    :param models: the models to compare (at least two).
+    :param models: a list containing at least two models to compare.
     :param underlying_matrices:
      - **emission** for comparing the emission matrices;
      - **transition** for comparing the transition matrices.
     :param names: the subplot titles (*if omitted, standard names are generated*).
     :param dpi: the resolution of the plot expressed in dots per inch.
-    :raises ValidationError: if any input argument is not compliant.
+    :raises ValidationError: if any input argument is not compliant or if emission matrices are requested for models that are not all hidden Markov models.
     """
 
     try:
@@ -219,7 +219,7 @@ def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition
     except Exception as ex:  # pragma: no cover
         raise _create_validation_error(ex, _ins.trace()) from None
 
-    if underlying_matrices == 'emission' and not all(isinstance(model, _HiddenMarkovModel) for model in models):  # pragma: no cover
+    if (underlying_matrices == 'emission') and (not all(isinstance(model, _HiddenMarkovModel) for model in models)):  # pragma: no cover
         raise _ValidationError('In order to compare emission matrices, the list must contain only hidden Markov models.')
 
     space = len(models)
@@ -260,7 +260,7 @@ def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition
 def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None, dpi: int = 100) -> _tplot:
 
     """
-    | The function plots the convergence of state probabilities toward the stationary distribution of the given model, measured by total variation distance.
+    | The function plots the total variation distance between the evolving state distribution and the stationary distribution of the given model.
 
     | **Notes:**
 
@@ -270,8 +270,8 @@ def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None
     - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
-    :param steps: the number of steps to evaluate (*the initial distribution at step zero is also included*).
-    :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+    :param steps: the number of steps to evaluate (*the initial distribution at step 0 is also included*).
+    :param initial_status: the initial state or initial state distribution (*if omitted, the states are assumed to be uniformly distributed*).
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -280,7 +280,7 @@ def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None
 
         model = _validate_model(model)
         steps = _validate_integer(steps, lower_limit=(1, False))
-        initial_status = None if initial_status is None else _validate_status(initial_status, model.states)
+        initial_status = None if initial_status is None else _validate_status(initial_status, model.states, False)
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
@@ -418,17 +418,17 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _tplot:
 def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatus = None, dpi: int = 100) -> _tplot:
 
     """
-    | The function plots an alluvial diagram representing the evolution of state probabilities and their redistribution between observations.
+    | The function plots an alluvial diagram representing the evolution of state probabilities and their redistribution between displayed time points.
 
     | **Notes:**
 
-    - The diagram includes the initial distribution at step zero.
+    - The diagram includes the initial distribution at step 0.
     - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
-    :param steps: the number of observation intervals to plot.
-    :param interval: the number of Markov-chain steps between consecutive observations.
-    :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+    :param steps: the number of intervals between displayed time points.
+    :param interval: the number of Markov-chain transitions between consecutive displayed time points.
+    :param initial_status: the initial state or initial state distribution (*if omitted, the states are assumed to be uniformly distributed*).
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -568,7 +568,7 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
         model = _validate_model(model)
         steps = _validate_integer(steps, lower_limit=(1, False))
         interval = _validate_integer(interval, lower_limit=(1, False))
-        initial_status = None if initial_status is None else _validate_status(initial_status, model.states)
+        initial_status = None if initial_status is None else _validate_status(initial_status, model.states, False)
         dpi = _validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
@@ -1143,15 +1143,16 @@ def plot_matrix(model: _tmodel, underlying_matrix: str = 'transition', dpi: int 
 def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _tplot:
 
     """
-    | The function plots the evolution of state probability distributions over successive steps of the given model.
+    | The function plots the evolution of the state probability distribution over successive steps of the given model.
 
     | **Notes:**
 
+    - The plot includes the initial distribution at step 0.
     - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
-    :param redistributions: the number of redistributions to perform (*the initial distribution at step zero is also included*).
-    :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+    :param redistributions: the number of redistributions to perform.
+    :param initial_status: the initial state or initial state distribution (*if omitted, the states are assumed to be uniformly distributed*).
     :param plot_type:
      - **heatmap** for displaying state probabilities across successive steps;
      - **projection** for displaying the evolution of each state's probability as a line plot.
@@ -1163,7 +1164,7 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
 
         model = _validate_model(model)
         redistributions = _validate_integer(redistributions, lower_limit=(1, False))
-        initial_status = None if initial_status is None else _validate_status(initial_status, model.states)
+        initial_status = None if initial_status is None else _validate_status(initial_status, model.states, False)
         plot_type = _validate_enumerator(plot_type, ['heatmap', 'projection'])
         dpi = _validate_dpi(dpi)
 
@@ -1392,7 +1393,7 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
     :param force_standard: whether to force standard rendering even when extended rendering is available.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
-    :raises ValueError: if the computation of forward or backward probabilities or the most probable hidden-state sequence fails.
+    :raises ValueError: if the computation of the forward probabilities, the backward probabilities or the most probable hidden-state sequence fails.
     """
 
     def _generate_trellis_extended(gte_hmm, gte_initial_distribution, gte_symbols, gte_forward, gte_matrix, gte_states_path):

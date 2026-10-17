@@ -12,7 +12,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="docutils_input_file" value="E:\Python\PyDTMC\docs\source" />
     <option name="docutils_output_file" value="E:\Python\PyDTMC\docs\build" />
-    <option name="docutils_params" value="-Ean" />
+    <option name="docutils_params" value="-Ean --keep-going" />
     <option name="docutils_task" value="html" />
     <option name="docutils_open_in_browser" value="false" />
     <method v="2" />

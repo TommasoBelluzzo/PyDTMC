@@ -2861,16 +2861,6 @@
       "is_valid": false
     },
     {
-      "value": null,
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": [],
-      "size": null,
-      "is_valid": false
-    },
-    {
       "value": [false],
       "size": null,
       "is_valid": false
@@ -2879,147 +2869,291 @@
       "value": [[], []],
       "size": null,
       "is_valid": false
-    }
-  ],
-  "validate_vector_data": [
-    {
-      "value": 0.3,
-      "vector_type": "unconstrained",
-      "flex": true,
-      "size": 4,
-      "is_valid": true
     },
     {
-      "value": 1,
-      "vector_type": "unconstrained",
-      "flex": true,
-      "size": 3,
-      "is_valid": true
-    },
-    {
-      "value": 0.275,
-      "vector_type": "unconstrained",
-      "flex": true,
+      "value": [],
       "size": null,
-      "is_valid": false
-    },
-    {
-      "value": 0,
-      "vector_type": "stochastic",
-      "flex": true,
-      "size": 3,
-      "is_valid": false
-    },
-    {
-      "value": [0.15, 0.45, 0.90, 0.65],
-      "vector_type": "unconstrained",
-      "flex": false,
-      "size": 4,
-      "is_valid": true
-    },
-    {
-      "value": [0, 1, 1, 0, 1, 1, 1],
-      "vector_type": "unconstrained",
-      "flex": false,
-      "size": 7,
-      "is_valid": true
-    },
-    {
-      "value": [[0, 1, 1, 0, 1, 1, 1]],
-      "vector_type": "unconstrained",
-      "flex": false,
-      "size": 7,
-      "is_valid": true
-    },
-    {
-      "value": [0.4, 0.1, 0.1],
-      "vector_type": "unconstrained",
-      "flex": false,
-      "size": 4,
-      "is_valid": false
-    },
-    {
-      "value": [[0.00], [0.45], [0.75]],
-      "vector_type": "unconstrained",
-      "flex": false,
-      "size": 3,
-      "is_valid": false
-    },
-    {
-      "value": ["NaN", 0.3],
-      "vector_type": "unconstrained",
-      "flex": false,
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": [1.25, 0.60, 0.20, 0.60, 0.20],
-      "vector_type": "unconstrained",
-      "flex": false,
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": [true, false, true, true, false],
-      "vector_type": "unconstrained",
-      "flex": false,
-      "size": 5,
       "is_valid": false
     },
     {
       "value": null,
-      "vector_type": "unconstrained",
-      "flex": false,
       "size": null,
       "is_valid": false
-    },
-    {
-      "value": [],
-      "vector_type": "unconstrained",
-      "flex": false,
-      "size": 0,
-      "is_valid": false
-    },
+    }
+  ],
+  "validate_vector_birth_death_data": [
     {
       "value": [0.00, 0.25, 0.50, 0.75],
       "vector_type": "annihilation",
-      "flex": false,
-      "size": null,
+      "is_valid": true
+    },
+    {
+      "value": [0.0, 1.0, 1.0, 1.0, 0.0],
+      "vector_type": "annihilation",
       "is_valid": true
     },
     {
       "value": [0.25, 0.50, 0.75, 0.00],
       "vector_type": "annihilation",
-      "flex": false,
-      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": [0.15, 0.45, 0.90, 0.65],
+      "vector_type": "annihilation",
+      "is_valid": false
+    },
+    {
+      "value": [1.25, 0.60, 0.20, 0.60, 0.20],
+      "vector_type": "annihilation",
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "vector_type": "annihilation",
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "vector_type": "annihilation",
       "is_valid": false
     },
     {
       "value": [0, 1, 1, 1, 0],
       "vector_type": "creation",
-      "flex": false,
-      "size": null,
+      "is_valid": true
+    },
+    {
+      "value": [0.00, 0.25, 0.50, 0.75],
+      "vector_type": "creation",
+      "is_valid": false
+    },
+    {
+      "value": [0.25, 0.25, 0.50, 0.00],
+      "vector_type": "creation",
       "is_valid": true
     },
     {
       "value": [0.0, 0.5, 1.0, 1.0],
       "vector_type": "creation",
-      "flex": false,
-      "size": null,
       "is_valid": false
     },
     {
-      "value": [0.2, 0.2, 0.6],
-      "vector_type": "stochastic",
-      "flex": false,
+      "value": [0.0, 1.05, 0.25, 0.15, 0.0],
+      "vector_type": "creation",
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "vector_type": "creation",
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "vector_type": "creation",
+      "is_valid": false
+    }
+  ],
+  "validate_vector_flex_data": [
+    {
+      "value": 0,
       "size": 3,
       "is_valid": true
     },
     {
-      "value": [0.3, 0.4, 0.9],
-      "vector_type": "stochastic",
-      "flex": false,
+      "value": 1,
       "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": 0.275,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": 0.3,
+      "size": 4,
+      "is_valid": true
+    },
+    {
+      "value": "NaN",
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": "Infinity",
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": [0, 1, 1, 0, 1, 1, 1],
+      "size": 7,
+      "is_valid": true
+    },
+    {
+      "value": [0.4, 0.1, 0.1],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": [0.2, 0.3, 0.2, 0.3, 0.2, 0.3],
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": [0.15, 0.45, 0.90, 0.65],
+      "size": 4,
+      "is_valid": true
+    },
+    {
+      "value": [1.25, 0.60, 0.20, 0.60, 0.20],
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": [1, "Infinity", "Infinity", "Infinity"],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": [0.2, "NaN", 0.3],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [[0, 1, 1, 0, 1, 1, 1]],
+      "size": 7,
+      "is_valid": true
+    },
+    {
+      "value": [[0.00], [0.45], [0.75]],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [true, false, true, true, false],
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": ["A", "B", "C"],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [[], []],
+      "size": 0,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "size": 0,
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "size": null,
+      "is_valid": false
+    }
+  ],
+  "validate_vector_stochastic_data": [
+    {
+      "value": 2,
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": 0.6,
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": "NaN",
+      "size": 1,
+      "is_valid": false
+    },
+    {
+      "value": "Infinity",
+      "size": 1,
+      "is_valid": false
+    },
+    {
+      "value": [1, 0, 0],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": [0, 1, 1, 0],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [0, 1, 1, 0],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": [0.7, 0.1, 0.2],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": [0.4, 0.1, 0.1],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [0.4, 0.1, 0.1],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": [0.2, 0.2, 0.2, 0.2, 0.2],
+      "size": 5,
+      "is_valid": true
+    },
+    {
+      "value": [0.2, 0.3, 0.2, 0.3, 0.2, 0.3],
+      "size": 6,
+      "is_valid": false
+    },
+    {
+      "value": [0.15, 0.45, 0.90, 0.65],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": [1.25, 0.60, 0.20, 0.60, 0.20],
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": [1, "Infinity", "Infinity", "Infinity"],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": [0.5, "NaN", 0.5],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [[1, 0, 1, 1, 1]],
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": [[0.25], [0.50], [0.25]],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "size": 0,
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "size": null,
       "is_valid": false
     }
   ]

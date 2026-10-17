@@ -105,7 +105,7 @@ def calculate_transition_distance(distance_type: str, model1: _tmodel, model2: _
 
     | **Notes:**
 
-    - The **spectral** method can return zero for different transition matrices.
+    - The **spectral** method defines a pseudodistance, since different transition matrices can have identical spectra and therefore yield a distance of 0.
 
     :param distance_type:
      - **frobenius** for the Frobenius distance;
@@ -156,13 +156,13 @@ def calculate_transition_divergence(divergence_type: str, model1: _tmodel, model
     | The function computes the selected maximum row-wise divergence between the transition matrices of the given models.
     | For :math:`P^1` and :math:`P^2`, the available divergences are:
 
-    - Jensen-Shannon: :math:`D_{JS}(P^1, P^2) = \max_{1 \leq i \leq n} \frac{1}{2} \sum_{j=1}^{n} \left(P_{ij}^1 \log \frac{P_{ij}^1}{M_{ij}} + P_{ij}^2 \log \frac{P_{ij}^2}{M_{ij}}\right)`, where :math:`M = (P^1 + P^2)/2`
+    - Jensen-Shannon: :math:`D_{JS}(P^1, P^2) = \max_{1 \leq i \leq n} \frac{1}{2} \sum_{j=1}^{n} \left(P_{ij}^1 \log \frac{P_{ij}^1}{M_{ij}} + P_{ij}^2 \log \frac{P_{ij}^2}{M_{ij}}\right)`, where :math:`M = \frac{P^1 + P^2}{2}`
     - Kullback-Leibler: :math:`D_{KL}(P^1 \| P^2) = \max_{1 \leq i \leq n} \sum_{j=1}^{n} P_{ij}^1 \log \frac{P_{ij}^1}{P_{ij}^2}`
 
     | **Notes:**
 
     - Jensen-Shannon divergence is symmetric and finite, while Kullback-Leibler divergence is generally asymmetric and can be infinite.
-    - Natural logarithms are used; zero numerator terms contribute zero, while positive numerator terms with zero denominators produce infinite Kullback-Leibler divergence.
+    - Natural logarithms are used; numerator terms equal to 0 contribute 0, while positive numerator terms with denominators equal to 0 produce infinite Kullback-Leibler divergence.
 
     :param divergence_type:
      - **jensen_shannon** for the Jensen-Shannon divergence;
