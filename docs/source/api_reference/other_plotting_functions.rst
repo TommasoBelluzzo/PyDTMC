@@ -11,3 +11,4 @@ Plotting Functions
 .. autofunction:: plot_matrix
 .. autofunction:: plot_redistributions
 .. autofunction:: plot_sequence
+.. autofunction:: plot_trellis

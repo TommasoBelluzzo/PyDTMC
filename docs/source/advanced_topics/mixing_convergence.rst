@@ -39,7 +39,7 @@ Using PyDTMC, the chain can be created as follows:
 
 .. code-block:: python
 
-   print(mc.pi)
+   print(mc.pi[0])
 
 .. math::
 

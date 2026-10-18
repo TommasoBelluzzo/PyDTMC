@@ -108,11 +108,13 @@ Long-Term Behavior
 
 .. code-block:: python
 
-   print(reduced.pi)
+   import numpy as np
+
+   print(np.round(reduced.pi[0], 4))
 
 .. code-block:: text
 
-   [0.6, 0.4]
+   [0.6000, 0.4000]
 
 | In the long run, the machine is normal 60% of the time and degraded 40% of the time.
 | These probabilities also equal the sums of the original chain's stationary probabilities within each group.

@@ -32,13 +32,16 @@ Using PyDTMC, we can create the model and generate a sequence of observations:
    observations = mc.simulate(1000, initial_state='Dry', seed=42)
 
 | The simulation contains the initial state and 1000 subsequent transitions.
+| Using a known model lets us examine the assessments under controlled conditions.
+| Statistical tests may still reject a true hypothesis because of random variation.
 | In a real application, the sequence could instead come from recorded weather observations.
 
 Understanding Statistical Assessments
 -------------------------------------
 
 | Most assessments begin with a **null hypothesis**, describing a property that the observations are assumed to satisfy.
-| The assessment returns a **p-value**, which measures how unusual the observed evidence would be if that hypothesis were true.
+| A **test statistic** summarizes how strongly the observations differ from what the null hypothesis predicts.
+| The **p-value** measures how unusual a test statistic at least as extreme as the observed one would be if the null hypothesis were true.
 | We compare the p-value with a chosen **significance level**, usually ``0.05``.
 
 | A p-value below ``0.05`` provides evidence against the null hypothesis.
@@ -88,6 +91,7 @@ Assessing Markov Order
 | A first-order model uses one previous state to predict the next state.
 | A higher-order model can use several previous states instead.
 | The ``assess_order`` function compares candidate orders and selects one using an information criterion.
+| By default, it uses the **Bayesian Information Criterion (BIC)**, which balances how well a model explains the observations against its complexity.
 
 .. code-block:: python
 
@@ -134,8 +138,9 @@ Time Homogeneity & Change Points
    print(change_point)
    print(p_value)
 
-| If a statistically significant change is detected, ``change_point`` identifies its location using zero-based indexing.
-| The p-value is estimated from simulated sequences, therefore the number of simulations affects its precision.
+| If a statistically significant change is detected, ``change_point`` identifies the first transition of the new regime, using zero-based indexing.
+| Otherwise, the returned change point is ``None``.
+| The p-value is estimated from simulated sequences, so the number of simulations affects its precision.
 
 Comparing Observation Sequences
 -------------------------------
@@ -179,9 +184,10 @@ Theoretical Model Compatibility
 Assessing Stationary Initialization
 -----------------------------------
 
-| A stationary distribution remains unchanged as the Markov chain evolves.
-| This differs from time homogeneity, which means that transition probabilities remain constant over time.
-| The ``assess_stationarity`` function tests whether independent sequences were initialized according to the stationary distribution.
+| Time homogeneity means that transition probabilities remain constant over time.
+| Stationarity means that the distribution of the states remains constant over time.
+| A time-homogeneous chain need not start in its stationary distribution.
+| The ``assess_stationarity`` function tests whether independent sequences were initialized according to that distribution.
 
 We can generate independent sequences with initial states drawn from the stationary distribution:
 

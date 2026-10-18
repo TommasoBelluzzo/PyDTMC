@@ -42,7 +42,7 @@ Stationary Distribution
 .. code-block:: python
 
    print(mc.is_ergodic)
-   print(mc.pi)
+   print(mc.pi[0])
 
 For this chain, the stationary distribution is:
 

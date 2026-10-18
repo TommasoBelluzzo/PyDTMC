@@ -22,15 +22,17 @@ A two-state hidden Markov model with four observable symbols can be created as f
 Decoding
 --------
 
-The model can evaluate emission probabilities and infer hidden states from observed symbols:
+The model can evaluate emission probabilities and infer hidden-state probabilities from observed symbols:
 
 .. code-block:: python
 
    print(hmm.emission_probability('H1', 'A'))
-   print(hmm.decode(['H1', 'H2', 'H3']))
+
+   log_probability, posterior, _, _, _ = hmm.decode(['H1', 'H2', 'H3'])
+   print(posterior)
 
 | State ``A`` emits symbol ``H1`` with probability ``0.5``.
-| Decoding identifies the most likely hidden-state sequence for the given observations.
+| Decoding estimates the probability of each hidden state at each observation.
 | These states are inferred rather than directly observed.
 
 Simulation

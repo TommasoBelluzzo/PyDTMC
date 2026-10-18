@@ -27,7 +27,7 @@ The properties of a Markov chain provide information about its structure and lon
    print(mc.is_irreducible)
    print(mc.is_aperiodic)
    print(mc.is_ergodic)
-   print(mc.pi)
+   print(mc.pi[0])
 
 | It is **irreducible** because each state can be reached from the other.
 | It is also **aperiodic** because both states have positive self-transition probabilities.
@@ -35,6 +35,9 @@ The properties of a Markov chain provide information about its structure and lon
 
 | Its unique **stationary distribution** is ``[0.4, 0.6]``.
 | In the long run, the chain spends approximately 40% of its time in state ``A`` and 60% in state ``B``.
+
+| The ``pi`` property returns a list of stationary distributions, one for each recurrent class.
+| Since this chain is irreducible, it has only one stationary distribution that can be accessed using ``mc.pi[0]``.
 
 Simulation
 ----------

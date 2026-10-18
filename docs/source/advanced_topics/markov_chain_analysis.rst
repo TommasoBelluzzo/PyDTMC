@@ -98,7 +98,7 @@ Using PyDTMC, it can be computed as follows:
 
 .. code-block:: python
 
-   print(mc.pi)
+   print(mc.pi[0])
 
 For this chain, the unique stationary distribution is:
 

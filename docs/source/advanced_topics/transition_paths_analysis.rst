@@ -76,7 +76,7 @@ The resulting probabilities are:
    [1.0, 0.5, 0.0]
 
 | At ``Warm``, the probability that the system last visited ``Cool`` rather than ``Hot`` is ``0.5``.
-| The forward and backward probabilities coincide at ``Warm`` in this symmetric example, but describe different questions.
+| The forward and backward probabilities both equal ``0.5`` at ``Warm`` in this example, but describe different questions.
 
 Reactive Density
 ----------------
