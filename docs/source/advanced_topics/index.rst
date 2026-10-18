@@ -13,7 +13,7 @@ Advanced Topics
    long_term_behavior
    hitting_passage
    mixing_convergence
-   transition_paths
+   transition_paths_analysis
    reduction_aggregation
    chain_comparison
    hidden_markov_models
