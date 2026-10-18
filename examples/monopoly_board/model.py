@@ -72,6 +72,10 @@ class MonopolyModel:  # pylint: disable=missing-class-docstring
     def squares(self) -> list[str]:
         return self._squares.copy()
 
+    @property
+    def squares_count(self) -> int:
+        return len(self._squares)
+
     def expected_visits(self, rolls: int, starting_square: int = 0) -> np.ndarray:
 
         if rolls < 1:

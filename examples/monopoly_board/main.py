@@ -22,8 +22,7 @@ def main() -> None:
 
     assert abs(float(expected_visits.sum()) - args.rolls) < 1e-8
 
-    print(f'Squares: {len(model.squares)}')
-    print(f'Rolls: {args.rolls}')
+    print(f'Squares: {model.squares_count}')
     print('')
     print('Top 10 squares by stationary probability:')
 
