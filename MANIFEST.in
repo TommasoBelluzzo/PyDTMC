@@ -10,6 +10,7 @@ prune .github
 prune .idea
 prune dist
 prune docs/build
+prune examples
 prune images
 global-exclude .env .git* __pycache__ *.dll *.py[cdo] *.so *.yaml *~
 exclude CODE_OF_CONDUCT.md CONTRIBUTING.md
