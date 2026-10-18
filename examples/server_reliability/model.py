@@ -79,7 +79,7 @@ class ReliabilityModel:  # pylint: disable=missing-class-docstring
 
         incidents = []
 
-        with Path(path).open('r', encoding='utf-8', newline='') as file:
+        with path.open('r', encoding='utf-8', newline='') as file:
 
             reader = DictReader(file)
 

@@ -108,7 +108,7 @@ class RegimeModel:  # pylint: disable=missing-class-docstring
 
         observations = []
 
-        with Path(path).open('r', newline='', encoding='utf-8') as file:
+        with path.open('r', newline='', encoding='utf-8') as file:
 
             reader = DictReader(file)
 
@@ -141,7 +141,7 @@ class RegimeModel:  # pylint: disable=missing-class-docstring
 
         return instance
 
-    def fit(self, p_guess: list[list[float]], e_guess: list[list[float]]) -> None:
+    def fit(self, p_guess: list[list[float]] | None, e_guess: list[list[float]] | None) -> None:
 
         if p_guess is None:
             p_guess = [
