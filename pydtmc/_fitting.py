@@ -18,6 +18,10 @@ import numpy.linalg as _npl
 
 # Internal
 
+from ._analysis import (
+    hmm_decode as _hmm_decode
+)
+
 from .custom_types import (
     tany as _tany,
     tarray as _tarray,
@@ -30,15 +34,11 @@ from .custom_types import (
     ttfunc as _ttfunc
 )
 
-from .generators import (
+from ._generators import (
     hmm_estimate as _hmm_estimate
 )
 
-from .measures import (
-    hmm_decode as _hmm_decode
-)
-
-from .simulations import (
+from ._simulations import (
     hmm_predict as _hmm_predict
 )
 

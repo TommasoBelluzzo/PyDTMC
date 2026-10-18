@@ -24,22 +24,40 @@ import numpy.linalg as _npl
 
 # Internal
 
-from .constants import (
-    ETOL as _ETOL,
-    FTOL as _FTOL
-)
-
 from .base_classes import (
     Model as _Model
 )
 
-from .computations import (
-    calculate_periods as _calculate_periods,
-    eigenvalues_sorted as _eigenvalues_sorted,
-    find_cyclic_classes as _find_cyclic_classes,
-    find_lumping_partitions as _find_lumping_partitions,
-    gth_solve as _gth_solve,
-    slem as _slem
+from ._analysis import (
+    mc_absorption_probabilities as _absorption_probabilities,
+    mc_absorption_times as _absorption_times,
+    mc_committor_probabilities as _committor_probabilities,
+    mc_conductance as _conductance,
+    mc_entropy_production_rate as _entropy_production_rate,
+    mc_expected_rewards as _expected_rewards,
+    mc_expected_transitions as _expected_transitions,
+    mc_first_passage_reward as _first_passage_reward,
+    mc_first_passage_probabilities as _first_passage_probabilities,
+    mc_first_passage_times_between as _first_passage_times_between,
+    mc_first_passage_times_to as _first_passage_times_to,
+    mc_global_conductance as _global_conductance,
+    mc_hitting_probabilities as _hitting_probabilities,
+    mc_hitting_times as _hitting_times,
+    mc_mean_number_visits as _mean_number_visits,
+    mc_mixing_time as _mixing_time,
+    mc_mixing_time_from as _mixing_time_from,
+    mc_quasi_stationary_distribution as _quasi_stationary_distribution,
+    mc_recurrence_times as _recurrence_times,
+    mc_sensitivity as _sensitivity,
+    mc_stationary_perturbation_bound as _stationary_perturbation_bound,
+    mc_time_correlations as _time_correlations,
+    mc_time_relaxations as _time_relaxations,
+    mc_time_reversal as _time_reversal
+)
+
+from .constants import (
+    ETOL as _ETOL,
+    FTOL as _FTOL
 )
 
 from .custom_types import (
@@ -104,12 +122,12 @@ from .files_io import (
     write_xml as _write_xml
 )
 
-from .fitting import (
+from ._fitting import (
     mc_fit_function as _fit_function,
     mc_fit_sequence as _fit_sequence
 )
 
-from .generators import (
+from ._generators import (
     mc_approximation as _approximation,
     mc_birth_death as _birth_death,
     mc_bounded as _bounded,
@@ -130,34 +148,16 @@ from .generators import (
     mc_urn_model as _urn_model
 )
 
-from .measures import (
-    mc_absorption_probabilities as _absorption_probabilities,
-    mc_absorption_times as _absorption_times,
-    mc_committor_probabilities as _committor_probabilities,
-    mc_conductance as _conductance,
-    mc_entropy_production_rate as _entropy_production_rate,
-    mc_expected_rewards as _expected_rewards,
-    mc_expected_transitions as _expected_transitions,
-    mc_first_passage_reward as _first_passage_reward,
-    mc_first_passage_probabilities as _first_passage_probabilities,
-    mc_first_passage_times_between as _first_passage_times_between,
-    mc_first_passage_times_to as _first_passage_times_to,
-    mc_global_conductance as _global_conductance,
-    mc_hitting_probabilities as _hitting_probabilities,
-    mc_hitting_times as _hitting_times,
-    mc_mean_number_visits as _mean_number_visits,
-    mc_mixing_time as _mixing_time,
-    mc_mixing_time_from as _mixing_time_from,
-    mc_quasi_stationary_distribution as _quasi_stationary_distribution,
-    mc_recurrence_times as _recurrence_times,
-    mc_sensitivity as _sensitivity,
-    mc_stationary_perturbation_bound as _stationary_perturbation_bound,
-    mc_time_correlations as _time_correlations,
-    mc_time_relaxations as _time_relaxations,
-    mc_time_reversal as _time_reversal
+from ._numerical import (
+    calculate_periods as _calculate_periods,
+    eigenvalues_sorted as _eigenvalues_sorted,
+    find_cyclic_classes as _find_cyclic_classes,
+    find_lumping_partitions as _find_lumping_partitions,
+    gth_solve as _gth_solve,
+    slem as _slem
 )
 
-from .simulations import (
+from ._simulations import (
     mc_predict as _predict,
     mc_predict_trajectory as _predict_trajectory,
     mc_redistribute as _redistribute,

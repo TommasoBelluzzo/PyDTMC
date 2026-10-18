@@ -21,6 +21,10 @@ import numpy.linalg as _npl
 
 # Internal
 
+from ._analysis import (
+    hmm_decode as _decode
+)
+
 from .base_classes import (
     Model as _Model
 )
@@ -73,11 +77,11 @@ from .files_io import (
     write_xml as _write_xml
 )
 
-from .fitting import (
+from ._fitting import (
     hmm_fit as _fit,
 )
 
-from .generators import (
+from ._generators import (
     hmm_estimate as _estimate,
     hmm_random as _random,
     hmm_restrict as _restrict
@@ -87,11 +91,7 @@ from .markov_chain import (
     MarkovChain as _MarkovChain
 )
 
-from .measures import (
-    hmm_decode as _decode
-)
-
-from .simulations import (
+from ._simulations import (
     hmm_predict as _predict,
     hmm_simulate as _simulate
 )

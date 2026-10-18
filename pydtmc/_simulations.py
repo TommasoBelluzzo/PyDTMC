@@ -21,6 +21,10 @@ import numpy as _np
 
 # Internal
 
+from ._analysis import (
+    hmm_decode as _hmm_decode
+)
+
 from .custom_types import (
     ohmm_prediction as _ohmm_prediction,
     oint as _oint,
@@ -32,10 +36,6 @@ from .custom_types import (
     tmc as _tmc,
     trand as _trand,
     tredists as _tredists
-)
-
-from .measures import (
-    hmm_decode as _hmm_decode
 )
 
 

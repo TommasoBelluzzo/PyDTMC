@@ -46,10 +46,6 @@ except ImportError:  # pragma: no cover
 
 # Internal
 
-from .computations import (
-    slem as _slem
-)
-
 from .custom_types import (
     oint as _oint,
     olist_str as _olist_str,
@@ -75,6 +71,10 @@ from .hidden_markov_model import (
 
 from .markov_chain import (
     MarkovChain as _MarkovChain
+)
+
+from ._numerical import (
+    slem as _slem
 )
 
 from .utilities import (

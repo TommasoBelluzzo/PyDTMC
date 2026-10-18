@@ -40,11 +40,6 @@ import scipy.stats as _sps
 
 # Internal
 
-from .computations import (
-    gth_solve as _gth_solve,
-    kullback_leibler_divergence as _kullback_leibler_divergence
-)
-
 from .constants import (
     ETOL as _ETOL,
     FTOL as _FTOL
@@ -62,6 +57,11 @@ from .custom_types import (
     tlists_int as _tlists_int,
     tnumeric as _tnumeric,
     trand as _trand
+)
+
+from ._numerical import (
+    gth_solve as _gth_solve,
+    kullback_leibler_divergence as _kullback_leibler_divergence
 )
 
 
