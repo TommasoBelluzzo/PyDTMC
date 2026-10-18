@@ -21,10 +21,10 @@ class MonopolyModel:  # pylint: disable=missing-class-docstring
         p = np.zeros((40, 40), dtype=float)
 
         for start in range(40):
-            for dice_1 in range(1, 7):
-                for dice_2 in range(1, 7):
+            for die_1 in range(1, 7):
+                for die_2 in range(1, 7):
 
-                    landing = (start + dice_1 + dice_2) % 40
+                    landing = (start + die_1 + die_2) % 40
 
                     for destination, probability in self._landing(landing).items():
                         p[start, destination] += probability / 36.0
