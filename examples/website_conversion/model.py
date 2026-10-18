@@ -7,7 +7,7 @@ import numpy as np
 from pydtmc import MarkovChain
 
 
-class ConversionModel:
+class ConversionModel:  # pylint: disable=missing-class-docstring
 
     def __init__(self, sessions: list[list[str]], success_state: str = 'purchase', failure_state: str = 'exit'):
 
@@ -66,11 +66,15 @@ class ConversionModel:
         return self._failure_state
 
     @property
+    def sessions(self) -> list[list[str]]:
+        return self._sessions.copy()
+
+    @property
     def sessions_count(self) -> int:
         return len(self._sessions)
 
     @property
-    def states(self) -> list:
+    def states(self) -> list[str]:
         return self._states.copy()
 
     @property

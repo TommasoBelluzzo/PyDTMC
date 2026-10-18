@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
-from generator import TextGenerator
+
+from generator import TextGenerator  # pylint: disable=import-error
 
 
 def main() -> None:
@@ -14,7 +15,7 @@ def main() -> None:
     generator = TextGenerator.from_file(args.corpus)
     output = generator.generate(words=args.token, seed=args.seed)
 
-    print(f'Augmented States: {generator.states}')
+    print(f'Augmented states: {generator.states}')
     print(f'Output: "{output}"')
 
 

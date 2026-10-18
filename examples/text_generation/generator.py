@@ -1,9 +1,10 @@
 from pathlib import Path
 from re import findall
+
 from pydtmc import MarkovChain
 
 
-class TextGenerator:
+class TextGenerator:  # pylint: disable=missing-class-docstring
 
     _separator = '<sep>'
 
@@ -35,6 +36,10 @@ class TextGenerator:
         self._label_to_pair = dict(zip(labels, unique_pairs))
         self._initial_state = labels[0]
         self._chain = MarkovChain.fit_sequence('mle', labels, [pair_to_label[pair] for pair in pairs])
+
+    @property
+    def initial_state(self) -> str:
+        return self._initial_state
 
     @property
     def states(self) -> int:

@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
-from model import ConversionModel
+
+from model import ConversionModel  # pylint: disable=import-error
 
 
 def main() -> None:
@@ -19,10 +20,12 @@ def main() -> None:
     assert steps > 0.0
 
     print(f'Sessions: {model.sessions_count}')
+    print('')
     print(f'Observed conversion rate: {model.observed_conversion_rate():.2%}')
     print(f'Model conversion probability: {conversion:.2%}')
     print(f'Model abandonment probability: {abandonment:.2%}')
     print(f'Expected steps to outcome: {steps:.2f}')
+    print('')
     print('Conversion probability by page:')
 
     for state in model.states:
