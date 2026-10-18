@@ -46,6 +46,8 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
+# GRAPH & STRUCTURAL ALGORITHMS
+
 def _calculate_period(graph):
 
     sccs = list(_nx.strongly_connected_components(graph))
@@ -111,14 +113,6 @@ def calculate_periods(graph: _tgraph) -> _tlist_int:
         periods[index] = _calculate_period(graph.subgraph(scc))
 
     return periods
-
-
-def eigenvalues_sorted(m: _tarray) -> _tarray:
-
-    evalues = _npl.eigvals(m)
-    evalues = _np.sort(_np.abs(evalues))
-
-    return evalues
 
 
 def find_cyclic_classes(p: _tarray) -> _tlists_int:
@@ -215,6 +209,29 @@ def find_lumping_partitions(p: _tarray) -> _tpartitions:
     return partitions
 
 
+# SPECTRAL ALGORITHMS
+
+def eigenvalues_sorted(m: _tarray) -> _tarray:
+
+    evalues = _npl.eigvals(m)
+    evalues = _np.sort(_np.abs(evalues))
+
+    return evalues
+
+
+def slem(m: _tarray) -> _ofloat:
+
+    ev = eigenvalues_sorted(m)
+    value = float(ev[-2])
+
+    if value <= _FTOL:
+        value = 0.0
+
+    return value
+
+
+# LINEAR ALGEBRA
+
 def gth_solve(p: _tarray) -> _tarray:
 
     a = _np.copy(p)
@@ -242,6 +259,8 @@ def gth_solve(p: _tarray) -> _tarray:
     return x
 
 
+# INFORMATION THEORY
+
 def kullback_leibler_divergence(p, pi, phi, q):
 
     pi = pi[_np.newaxis, :]
@@ -257,14 +276,3 @@ def kullback_leibler_divergence(p, pi, phi, q):
     kld = t - u
 
     return kld
-
-
-def slem(m: _tarray) -> _ofloat:
-
-    ev = eigenvalues_sorted(m)
-    value = float(ev[-2])
-
-    if value <= _FTOL:
-        value = 0.0
-
-    return value

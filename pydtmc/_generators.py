@@ -69,6 +69,33 @@ from ._numerical import (
 # FUNCTIONS #
 #############
 
+# HMM INSTANCE GENERATORS
+
+def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str, sub_states: _tlist_int, sub_symbols: _tlist_int) -> _thmm_generation:
+
+    p, e = _np.copy(p), _np.copy(e)
+
+    p_decrease = len(sub_states) < p.shape[0]
+    e_decrease = p_decrease or len(sub_symbols) < e.shape[0]
+
+    if p_decrease:
+        p = p[_np.ix_(sub_states, sub_states)]
+        p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[1], dtype=float)
+        p /= _np.sum(p, axis=1, keepdims=True)
+
+    if e_decrease:
+        e = e[_np.ix_(sub_states, sub_symbols)]
+        e[_np.where(~e.any(axis=1)), :] = _np.ones(e.shape[1], dtype=float)
+        e /= _np.sum(e, axis=1, keepdims=True)
+
+    state_names = [*map(states.__getitem__, sub_states)]
+    symbol_names = [*map(symbols.__getitem__, sub_symbols)]
+
+    return p, e, state_names, symbol_names, None
+
+
+# HMM STATIC GENERATORS
+
 def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: _tlist_int, handle_nulls: bool) -> _thmm_params:
 
     p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
@@ -98,7 +125,6 @@ def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: 
         e = _np.abs(e / e_rows)
 
     return p, e
-
 
 def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: int, e_mask: _tarray) -> _thmm_generation:
 
@@ -173,413 +199,7 @@ def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zer
     return p, e, states, symbols, None
 
 
-def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str, sub_states: _tlist_int, sub_symbols: _tlist_int) -> _thmm_generation:
-
-    p, e = _np.copy(p), _np.copy(e)
-
-    p_decrease = len(sub_states) < p.shape[0]
-    e_decrease = p_decrease or len(sub_symbols) < e.shape[0]
-
-    if p_decrease:
-        p = p[_np.ix_(sub_states, sub_states)]
-        p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[1], dtype=float)
-        p /= _np.sum(p, axis=1, keepdims=True)
-
-    if e_decrease:
-        e = e[_np.ix_(sub_states, sub_symbols)]
-        e[_np.where(~e.any(axis=1)), :] = _np.ones(e.shape[1], dtype=float)
-        e /= _np.sum(e, axis=1, keepdims=True)
-
-    state_names = [*map(states.__getitem__, sub_states)]
-    symbol_names = [*map(symbols.__getitem__, sub_symbols)]
-
-    return p, e, state_names, symbol_names, None
-
-
-def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
-
-    def _calculate_q(cq_p, cq_pi, cq_phi):
-
-        cq_pi = _np.diag(cq_pi)
-        z = cq_phi.shape[1]
-
-        q_num = _np.dot(_np.dot(_np.dot(_np.transpose(cq_phi), cq_pi), cq_p), cq_phi)
-        q_den = _np.zeros((z, 1), dtype=float)
-
-        for zi in range(z):
-            cq_phi_zi = cq_phi[:, zi]
-            q_den[zi] = _np.dot(_np.dot(_np.transpose(cq_phi_zi), cq_pi), cq_phi_zi)
-
-        q_den = _np.repeat(q_den, z, 1)
-
-        q_value = q_num / q_den
-
-        return q_value
-
-    def _create_bipartition_candidate(cbc_p, cbc_pi, cbc_phi, cbc_index):
-
-        v = cbc_phi[:, cbc_index]
-
-        if _np.sum(v) <= 1.0:  # pragma: no cover
-            return None
-
-        indices = v > 0.0
-        p_sub = cbc_p[_np.ix_(indices, indices)]
-        pi_sub = _np.diag(cbc_pi[indices])
-
-        ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
-
-        evalues, evectors = _npl.eig(ar)
-        index = _np.argsort(_np.abs(evalues))[-2]
-
-        evector = evectors[:, index]
-        evector = _np.transpose(evector[_np.newaxis, :])
-
-        vt = _np.transpose(v[_np.newaxis, :])
-
-        v1 = _np.copy(vt)
-        v1[indices] = evector >= 0.0
-
-        v2 = _np.copy(vt)
-        v2[indices] = evector < 0.0
-
-        bc_stack = _np.hstack((cbc_phi[:, :cbc_index], v1, v2, cbc_phi[:, (cbc_index + 1):]))
-
-        return bc_stack
-
-    size = p.shape[0]
-
-    phi = _np.ones((size, 1), dtype=float)
-    q = _np.full((size, size), 1.0 / size, dtype=float)
-    k = 1
-
-    while k < s:
-
-        phi_k, r_k = phi, _np.inf
-
-        for i in range(phi.shape[1]):
-
-            bc = _create_bipartition_candidate(p, pi, phi, i)
-
-            if bc is None:  # pragma: no cover
-                continue
-
-            bc_q = _calculate_q(p, pi, bc)
-            bc_r = _kullback_leibler_divergence(p, pi, bc, bc_q)
-
-            if bc_r < r_k:
-                phi_k, r_k, q = bc, bc_r, bc_q
-
-        phi = phi_k
-        k += 1
-
-    q /= _np.sum(q, axis=1, keepdims=True)
-
-    states = [f'ASBU{i:d}' for i in range(1, q.shape[0] + 1)]
-
-    return q, states, None
-
-
-def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
-
-    def _calculate_invariant(ci_q):
-
-        size = ci_q.shape[0]
-
-        kappa = _np.ones(size, dtype=float) / size
-        theta = _np.dot(kappa, ci_q)
-
-        z = 0
-
-        while (_np.amax(_np.abs(kappa - theta)) > 1e-8) and (z < 1000):
-            kappa = (kappa + theta) / 2.0
-            theta = _np.dot(kappa, ci_q)
-            z += 1
-
-        return theta
-
-    def _build_pair_candidates(bpc_q, bpc_pi):
-
-        worklist = [_np.arange(bpc_q.shape[0])]
-        pair_candidates = []
-
-        while len(worklist) > 0:
-
-            indices = worklist.pop(0)
-
-            if indices.size <= 1:
-                continue
-
-            if indices.size == 2:
-                pair_candidates.append(_np.sort(indices))
-                continue
-
-            p_sub = bpc_q[_np.ix_(indices, indices)]
-            pi_sub = _np.diag(bpc_pi[indices])
-
-            ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
-
-            evalues, evectors = _npl.eig(ar)
-            index = _np.argsort(_np.abs(evalues))[-2]
-
-            evector = _np.real(evectors[:, index])
-
-            positions = evector >= 0.0
-
-            if _np.all(positions) or (not _np.any(positions)):  # pragma: no cover
-                indices_order = _np.argsort(evector)
-                positions = _np.zeros(indices.size, dtype=bool)
-                positions[indices_order[:indices.size // 2]] = True
-
-            worklist.append(indices[positions])
-            worklist.append(indices[~positions])
-
-        return pair_candidates
-
-    def _calculate_q(cq_p, cq_pi, cq_eta, cq_vi0, cq_vi1):
-
-        cq_pi = _np.diag(cq_pi)
-
-        merged = _np.maximum(cq_eta[:, cq_vi0], cq_eta[:, cq_vi1])[:, _np.newaxis]
-
-        phi_i = _np.hstack((
-            cq_eta[:, :cq_vi0],
-            merged,
-            cq_eta[:, (cq_vi0 + 1):cq_vi1],
-            cq_eta[:, (cq_vi1 + 1):]
-        ))
-
-        z = phi_i.shape[1]
-
-        q_num = _np.dot(_np.dot(_np.dot(_np.transpose(phi_i), cq_pi), cq_p), phi_i)
-        q_den = _np.zeros((z, 1), dtype=float)
-
-        for zi in range(z):
-            q_eta_zi = phi_i[:, zi]
-            q_den[zi] = _np.dot(_np.dot(_np.transpose(q_eta_zi), cq_pi), q_eta_zi)
-
-        q_den = _np.repeat(q_den, z, 1)
-
-        q_value = q_num / q_den
-
-        return q_value, phi_i
-
-    q = _np.copy(p)
-    k = q.shape[0]
-    eta = _np.eye(k)
-
-    for i in range(k - s):
-
-        q_pi = pi if i == 0 else _calculate_invariant(q)
-        pairs = _build_pair_candidates(q, q_pi)
-
-        u = []
-
-        for vi in pairs:
-
-            vi0, vi1 = vi[0], vi[1]
-
-            q_j, phi_j = _calculate_q(p, pi, eta, vi0, vi1)
-            r_j = _kullback_leibler_divergence(p, pi, phi_j, q_j)
-
-            u.append((r_j, q_j, phi_j))
-
-        _, q, eta = min(u, key=lambda x: x[0])
-
-    q /= _np.sum(q, axis=1, keepdims=True)
-
-    states = [f'ASTD{i:d}' for i in range(1, q.shape[0] + 1)]
-
-    return q, states, None
-
-
-def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tmc_generation:
-
-    def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
-
-        t1 = _np.exp((-1.0 * (aci_x - aci_alpha)**2.0) / (2.0 * aci_sigma_z**2.0))
-        t2 = _sps.norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
-        t3 = _sps.norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
-        output = t1 * (t2 - t3)
-
-        return output
-
-    def _rouwenhorst_matrix(rm_size, rm_z):
-
-        if rm_size == 2:
-            output = _np.array([[rm_z, 1 - rm_z], [1 - rm_z, rm_z]])
-        else:
-
-            t1 = _np.zeros((rm_size, rm_size))
-            t2 = _np.zeros((rm_size, rm_size))
-            t3 = _np.zeros((rm_size, rm_size))
-            t4 = _np.zeros((rm_size, rm_size))
-
-            theta_inner = _rouwenhorst_matrix(rm_size - 1, rm_z)
-
-            t1[:rm_size - 1, :rm_size - 1] = rm_z * theta_inner
-            t2[:rm_size - 1, 1:] = (1.0 - rm_z) * theta_inner
-            t3[1:, :-1] = (1.0 - rm_z) * theta_inner
-            t4[1:, 1:] = rm_z * theta_inner
-
-            output = t1 + t2 + t3 + t4
-            output[1:rm_size - 1, :] /= 2.0
-
-        return output
-
-    if approximation_type == 'adda-cooper':
-
-        z_sigma = sigma / (1.0 - rho**2.0)**0.5
-        z_sigma_factor = size / _np.sqrt(2.0 * _np.pi * z_sigma**2.0)
-
-        z = (z_sigma * _sps.norm.ppf(_np.arange(size + 1) / size)) + alpha
-
-        p = _np.zeros((size, size), dtype=float)
-
-        for i in range(size):
-
-            z_i = z[i]
-            z_ip = z[i + 1]
-
-            for j in range(size):
-                iq = _spi.quad(_adda_cooper_integrand, z_i, z_ip, args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
-                p[i, j] = z_sigma_factor * iq[0]
-
-    elif approximation_type == 'rouwenhorst':
-
-        z = (1.0 + rho) / 2.0
-        p = _rouwenhorst_matrix(size, z)
-
-    elif approximation_type == 'tauchen-hussey':
-
-        size_m1 = size - 1
-        size_p1 = size + 1
-
-        n = int(_np.trunc(size_p1 / 2))
-
-        p1_const = 1.0 / _np.pi**0.25
-        p2_const = 0.0
-        pp_base = _np.sqrt(2.0 * size)
-
-        k_factor = _np.sqrt(2.0) * _np.sqrt(2.0 * k**2.0)
-        w_factor = _np.sqrt(_np.pi)**2.0
-
-        nodes = _np.zeros(size, dtype=float)
-        weights = _np.zeros(size, dtype=float)
-
-        pp = 0.0
-        z = 0.0
-
-        for i in range(n):
-
-            if i == 0:
-                sf = (2.0 * size) + 1.0
-                z = _np.sqrt(sf) - (1.85575 * sf**-0.16393)
-            elif i == 1:
-                z = z - ((1.14 * size**0.426) / z)
-            elif i == 2:
-                z = (1.86 * z) + (0.86 * nodes[0])
-            elif i == 3:
-                z = (1.91 * z) + (0.91 * nodes[1])
-            else:
-                z = (2.0 * z) + nodes[i - 2]
-
-            iterations = 0
-
-            while iterations < 100:
-
-                iterations += 1
-
-                p1 = p1_const
-                p2 = p2_const
-
-                for j in range(1, size_p1):
-                    p3 = p2
-                    p2 = p1
-                    p1 = (z * _np.sqrt(2.0 / j) * p2) - (_np.sqrt((j - 1.0) / j) * p3)
-
-                pp = pp_base * p2
-
-                z1 = z
-                z = z1 - p1 / pp
-
-                if _np.abs(z - z1) < 1e-14:
-                    break
-
-            if iterations == 100:  # pragma: no cover
-                return None, None, 'The gaussian quadrature failed to converge.'
-
-            offset = size_m1 - i
-
-            nodes[i] = -z
-            nodes[offset] = z
-
-            weights[i] = 2.0 / pp**2.0
-            weights[offset] = weights[i]
-
-        nodes = (nodes * k_factor) + alpha
-        weights = weights / w_factor
-
-        prime_left = (1.0 - rho) * alpha
-        p = _np.zeros((size, size), dtype=float)
-
-        for i in range(size):
-            prime_right = rho * nodes[i]
-            prime = prime_left + prime_right
-
-            for j in range(size):
-                p[i, j] = (weights[j] * _sps.norm.pdf(nodes[j], prime, sigma) / _sps.norm.pdf(nodes[j], alpha, k))
-
-        p /= _np.sum(p, axis=1, keepdims=True)
-
-    else:
-
-        size_m1 = size - 1
-
-        if _np.isclose(rho, 1.0):
-            rho = 1.0 - 1e-8
-
-        y_std = _np.sqrt(sigma**2.0 / (1.0 - rho**2.0))
-
-        x_max = y_std * k
-        x_min = -x_max
-        x = _np.linspace(x_min, x_max, size)
-
-        x_0 = x[0]
-        x_sm1 = x[size_m1]
-
-        step = 0.5 * ((x_max - x_min) / size_m1)
-        p = _np.zeros((size, size), dtype=float)
-
-        for i in range(size):
-            rx = rho * x[i]
-
-            p[i, 0] = _sps.norm.cdf((x_0 - rx + step) / sigma)
-            p[i, size_m1] = 1.0 - _sps.norm.cdf((x_sm1 - rx - step) / sigma)
-
-            for j in range(1, size_m1):
-                z = x[j] - rx
-                p[i, j] = _sps.norm.cdf((z + step) / sigma) - _sps.norm.cdf((z - step) / sigma)
-
-    states = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
-
-    return p, states, None
-
-
-def mc_birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
-
-    r = 1.0 - q - p
-
-    p = _np.diag(r) + _np.diag(p[0:-1], k=1) + _np.diag(q[1:], k=-1)
-    p[_np.isclose(p, 0.0)] = 0.0
-    p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[0], dtype=float)
-    p /= _np.sum(p, axis=1, keepdims=True)
-
-    size = {p.shape[0], q.shape[0]}.pop()
-    state_names = [f'{i:d}' for i in range(1, size + 1)]
-
-    return p, state_names, None
-
+# MC INSTANCE GENERATORS
 
 def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
 
@@ -612,7 +232,6 @@ def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
 
     return p_adjusted, state_names, None
 
-
 def mc_canonical(p: _tarray, recurrent_classes_indices: _tlists_int, transient_indices: _tlist_int) -> _tmc_generation:
 
     p = _np.copy(p)
@@ -631,7 +250,6 @@ def mc_canonical(p: _tarray, recurrent_classes_indices: _tlists_int, transient_i
     state_names = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
 
     return p, state_names, None
-
 
 def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _tmc_generation:
 
@@ -654,7 +272,6 @@ def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _t
     state_names = [*map(states.__getitem__, retained_states)]
 
     return p_censored, state_names, None
-
 
 def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tmc_generation:
 
@@ -860,57 +477,6 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
 
     return pcr, state_names, None
 
-
-def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool) -> _tmc_generation:
-
-    def _gem_allocation(ga_draws):
-
-        allocated_probability = 0.0
-        weights = []
-
-        for _, ga_draw in enumerate(ga_draws):
-            weight = (1.0 - allocated_probability) * ga_draw
-            allocated_probability += weight
-            weights.append(weight)
-
-        weights = _np.stack(weights)
-        weights /= _np.sum(weights)
-
-        return weights
-
-    draws = rng.beta(1.0, diffusion_factor, (size, size))
-    p = _np.apply_along_axis(_gem_allocation, axis=1, arr=draws)
-
-    if shift_concentration:
-        p = _np.fliplr(p)
-
-    if diagonal_bias_factor is not None:
-        diagonal = rng.beta(diagonal_bias_factor, 1.0, size)
-        p += + _np.diagflat(diagonal)
-        p /= _np.sum(p, axis=1, keepdims=True)
-
-    state_names = [f'{i:d}' for i in range(1, size + 1)]
-
-    return p, state_names, None
-
-
-def mc_gamblers_ruin(size: int, w: float) -> _tmc_generation:
-
-    wc = 1.0 - w
-
-    p = _np.zeros((size, size), dtype=float)
-    p[0, 0] = 1.0
-    p[-1, -1] = 1.0
-
-    for i in range(1, size - 1):
-        p[i, i - 1] = wc
-        p[i, i + 1] = w
-
-    state_names = [f'{i:d}' for i in range(1, size + 1)]
-
-    return p, state_names, None
-
-
 def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
 
     size = p.shape[0]
@@ -920,7 +486,6 @@ def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
     p = p1 + p2
 
     return p, None, None
-
 
 # noinspection PyBroadException
 def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_generation:
@@ -951,7 +516,6 @@ def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen
     state_names = [','.join(list(map(states.__getitem__, partition))) for partition in partitions]
 
     return p_lump, state_names, None
-
 
 def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bool) -> _tmc_generation:  # pylint: disable=too-many-return-statements
 
@@ -1129,6 +693,476 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
 
     return p, state_names, None
 
+def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
+
+    def _calculate_q(cq_p, cq_pi, cq_phi):
+
+        cq_pi = _np.diag(cq_pi)
+        z = cq_phi.shape[1]
+
+        q_num = _np.dot(_np.dot(_np.dot(_np.transpose(cq_phi), cq_pi), cq_p), cq_phi)
+        q_den = _np.zeros((z, 1), dtype=float)
+
+        for zi in range(z):
+            cq_phi_zi = cq_phi[:, zi]
+            q_den[zi] = _np.dot(_np.dot(_np.transpose(cq_phi_zi), cq_pi), cq_phi_zi)
+
+        q_den = _np.repeat(q_den, z, 1)
+
+        q_value = q_num / q_den
+
+        return q_value
+
+    def _create_bipartition_candidate(cbc_p, cbc_pi, cbc_phi, cbc_index):
+
+        v = cbc_phi[:, cbc_index]
+
+        if _np.sum(v) <= 1.0:  # pragma: no cover
+            return None
+
+        indices = v > 0.0
+        p_sub = cbc_p[_np.ix_(indices, indices)]
+        pi_sub = _np.diag(cbc_pi[indices])
+
+        ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
+
+        evalues, evectors = _npl.eig(ar)
+        index = _np.argsort(_np.abs(evalues))[-2]
+
+        evector = evectors[:, index]
+        evector = _np.transpose(evector[_np.newaxis, :])
+
+        vt = _np.transpose(v[_np.newaxis, :])
+
+        v1 = _np.copy(vt)
+        v1[indices] = evector >= 0.0
+
+        v2 = _np.copy(vt)
+        v2[indices] = evector < 0.0
+
+        bc_stack = _np.hstack((cbc_phi[:, :cbc_index], v1, v2, cbc_phi[:, (cbc_index + 1):]))
+
+        return bc_stack
+
+    size = p.shape[0]
+
+    phi = _np.ones((size, 1), dtype=float)
+    q = _np.full((size, size), 1.0 / size, dtype=float)
+    k = 1
+
+    while k < s:
+
+        phi_k, r_k = phi, _np.inf
+
+        for i in range(phi.shape[1]):
+
+            bc = _create_bipartition_candidate(p, pi, phi, i)
+
+            if bc is None:  # pragma: no cover
+                continue
+
+            bc_q = _calculate_q(p, pi, bc)
+            bc_r = _kullback_leibler_divergence(p, pi, bc, bc_q)
+
+            if bc_r < r_k:
+                phi_k, r_k, q = bc, bc_r, bc_q
+
+        phi = phi_k
+        k += 1
+
+    q /= _np.sum(q, axis=1, keepdims=True)
+
+    states = [f'ASBU{i:d}' for i in range(1, q.shape[0] + 1)]
+
+    return q, states, None
+
+def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
+
+    def _calculate_invariant(ci_q):
+
+        size = ci_q.shape[0]
+
+        kappa = _np.ones(size, dtype=float) / size
+        theta = _np.dot(kappa, ci_q)
+
+        z = 0
+
+        while (_np.amax(_np.abs(kappa - theta)) > 1e-8) and (z < 1000):
+            kappa = (kappa + theta) / 2.0
+            theta = _np.dot(kappa, ci_q)
+            z += 1
+
+        return theta
+
+    def _build_pair_candidates(bpc_q, bpc_pi):
+
+        worklist = [_np.arange(bpc_q.shape[0])]
+        pair_candidates = []
+
+        while len(worklist) > 0:
+
+            indices = worklist.pop(0)
+
+            if indices.size <= 1:
+                continue
+
+            if indices.size == 2:
+                pair_candidates.append(_np.sort(indices))
+                continue
+
+            p_sub = bpc_q[_np.ix_(indices, indices)]
+            pi_sub = _np.diag(bpc_pi[indices])
+
+            ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
+
+            evalues, evectors = _npl.eig(ar)
+            index = _np.argsort(_np.abs(evalues))[-2]
+
+            evector = _np.real(evectors[:, index])
+
+            positions = evector >= 0.0
+
+            if _np.all(positions) or (not _np.any(positions)):  # pragma: no cover
+                indices_order = _np.argsort(evector)
+                positions = _np.zeros(indices.size, dtype=bool)
+                positions[indices_order[:indices.size // 2]] = True
+
+            worklist.append(indices[positions])
+            worklist.append(indices[~positions])
+
+        return pair_candidates
+
+    def _calculate_q(cq_p, cq_pi, cq_eta, cq_vi0, cq_vi1):
+
+        cq_pi = _np.diag(cq_pi)
+
+        merged = _np.maximum(cq_eta[:, cq_vi0], cq_eta[:, cq_vi1])[:, _np.newaxis]
+
+        phi_i = _np.hstack((
+            cq_eta[:, :cq_vi0],
+            merged,
+            cq_eta[:, (cq_vi0 + 1):cq_vi1],
+            cq_eta[:, (cq_vi1 + 1):]
+        ))
+
+        z = phi_i.shape[1]
+
+        q_num = _np.dot(_np.dot(_np.dot(_np.transpose(phi_i), cq_pi), cq_p), phi_i)
+        q_den = _np.zeros((z, 1), dtype=float)
+
+        for zi in range(z):
+            q_eta_zi = phi_i[:, zi]
+            q_den[zi] = _np.dot(_np.dot(_np.transpose(q_eta_zi), cq_pi), q_eta_zi)
+
+        q_den = _np.repeat(q_den, z, 1)
+
+        q_value = q_num / q_den
+
+        return q_value, phi_i
+
+    q = _np.copy(p)
+    k = q.shape[0]
+    eta = _np.eye(k)
+
+    for i in range(k - s):
+
+        q_pi = pi if i == 0 else _calculate_invariant(q)
+        pairs = _build_pair_candidates(q, q_pi)
+
+        u = []
+
+        for vi in pairs:
+
+            vi0, vi1 = vi[0], vi[1]
+
+            q_j, phi_j = _calculate_q(p, pi, eta, vi0, vi1)
+            r_j = _kullback_leibler_divergence(p, pi, phi_j, q_j)
+
+            u.append((r_j, q_j, phi_j))
+
+        _, q, eta = min(u, key=lambda x: x[0])
+
+    q /= _np.sum(q, axis=1, keepdims=True)
+
+    states = [f'ASTD{i:d}' for i in range(1, q.shape[0] + 1)]
+
+    return q, states, None
+
+def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_generation:
+
+    size = p.shape[0]
+
+    closure = _np.copy(adjacency_matrix)
+
+    for i in range(size):
+        for j in range(size):
+            closure_ji = closure[j, i]
+            for x in range(size):
+                closure_ix = closure[i, x]
+                closure_jx = closure[j, x]
+                closure[j, x] = closure_jx or (closure_ji and closure_ix)
+
+    for state in sub_states:
+        state_closures = _np.ravel([_np.where(closure[state, :] == 1.0)])
+        for state_closure in state_closures:
+            if state_closure not in sub_states:
+                sub_states.append(state_closure)
+
+    sub_states = sorted(sub_states)
+
+    p = _np.copy(p)
+    p = p[_np.ix_(sub_states, sub_states)]
+    p /= _np.sum(p, axis=1, keepdims=True)
+
+    if p.size == 1:  # pragma: no cover
+        return None, None, 'The subchain is not a valid Markov chain.'
+
+    state_names = [*map(states.__getitem__, sub_states)]
+
+    return p, state_names, None
+
+def mc_teleport(p: _tarray, probability: float, distribution: _tarray) -> _tmc_generation:
+
+    p = ((1.0 - probability) * p) + (probability * distribution[_np.newaxis, :])
+
+    return p, None, None
+
+
+# MC STATIC GENERATORS
+
+def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tmc_generation:
+
+    def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
+
+        t1 = _np.exp((-1.0 * (aci_x - aci_alpha)**2.0) / (2.0 * aci_sigma_z**2.0))
+        t2 = _sps.norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
+        t3 = _sps.norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
+        output = t1 * (t2 - t3)
+
+        return output
+
+    def _rouwenhorst_matrix(rm_size, rm_z):
+
+        if rm_size == 2:
+            output = _np.array([[rm_z, 1 - rm_z], [1 - rm_z, rm_z]])
+        else:
+
+            t1 = _np.zeros((rm_size, rm_size))
+            t2 = _np.zeros((rm_size, rm_size))
+            t3 = _np.zeros((rm_size, rm_size))
+            t4 = _np.zeros((rm_size, rm_size))
+
+            theta_inner = _rouwenhorst_matrix(rm_size - 1, rm_z)
+
+            t1[:rm_size - 1, :rm_size - 1] = rm_z * theta_inner
+            t2[:rm_size - 1, 1:] = (1.0 - rm_z) * theta_inner
+            t3[1:, :-1] = (1.0 - rm_z) * theta_inner
+            t4[1:, 1:] = rm_z * theta_inner
+
+            output = t1 + t2 + t3 + t4
+            output[1:rm_size - 1, :] /= 2.0
+
+        return output
+
+    if approximation_type == 'adda-cooper':
+
+        z_sigma = sigma / (1.0 - rho**2.0)**0.5
+        z_sigma_factor = size / _np.sqrt(2.0 * _np.pi * z_sigma**2.0)
+
+        z = (z_sigma * _sps.norm.ppf(_np.arange(size + 1) / size)) + alpha
+
+        p = _np.zeros((size, size), dtype=float)
+
+        for i in range(size):
+
+            z_i = z[i]
+            z_ip = z[i + 1]
+
+            for j in range(size):
+                iq = _spi.quad(_adda_cooper_integrand, z_i, z_ip, args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
+                p[i, j] = z_sigma_factor * iq[0]
+
+    elif approximation_type == 'rouwenhorst':
+
+        z = (1.0 + rho) / 2.0
+        p = _rouwenhorst_matrix(size, z)
+
+    elif approximation_type == 'tauchen-hussey':
+
+        size_m1 = size - 1
+        size_p1 = size + 1
+
+        n = int(_np.trunc(size_p1 / 2))
+
+        p1_const = 1.0 / _np.pi**0.25
+        p2_const = 0.0
+        pp_base = _np.sqrt(2.0 * size)
+
+        k_factor = _np.sqrt(2.0) * _np.sqrt(2.0 * k**2.0)
+        w_factor = _np.sqrt(_np.pi)**2.0
+
+        nodes = _np.zeros(size, dtype=float)
+        weights = _np.zeros(size, dtype=float)
+
+        pp = 0.0
+        z = 0.0
+
+        for i in range(n):
+
+            if i == 0:
+                sf = (2.0 * size) + 1.0
+                z = _np.sqrt(sf) - (1.85575 * sf**-0.16393)
+            elif i == 1:
+                z = z - ((1.14 * size**0.426) / z)
+            elif i == 2:
+                z = (1.86 * z) + (0.86 * nodes[0])
+            elif i == 3:
+                z = (1.91 * z) + (0.91 * nodes[1])
+            else:
+                z = (2.0 * z) + nodes[i - 2]
+
+            iterations = 0
+
+            while iterations < 100:
+
+                iterations += 1
+
+                p1 = p1_const
+                p2 = p2_const
+
+                for j in range(1, size_p1):
+                    p3 = p2
+                    p2 = p1
+                    p1 = (z * _np.sqrt(2.0 / j) * p2) - (_np.sqrt((j - 1.0) / j) * p3)
+
+                pp = pp_base * p2
+
+                z1 = z
+                z = z1 - p1 / pp
+
+                if _np.abs(z - z1) < 1e-14:
+                    break
+
+            if iterations == 100:  # pragma: no cover
+                return None, None, 'The gaussian quadrature failed to converge.'
+
+            offset = size_m1 - i
+
+            nodes[i] = -z
+            nodes[offset] = z
+
+            weights[i] = 2.0 / pp**2.0
+            weights[offset] = weights[i]
+
+        nodes = (nodes * k_factor) + alpha
+        weights = weights / w_factor
+
+        prime_left = (1.0 - rho) * alpha
+        p = _np.zeros((size, size), dtype=float)
+
+        for i in range(size):
+            prime_right = rho * nodes[i]
+            prime = prime_left + prime_right
+
+            for j in range(size):
+                p[i, j] = (weights[j] * _sps.norm.pdf(nodes[j], prime, sigma) / _sps.norm.pdf(nodes[j], alpha, k))
+
+        p /= _np.sum(p, axis=1, keepdims=True)
+
+    else:
+
+        size_m1 = size - 1
+
+        if _np.isclose(rho, 1.0):
+            rho = 1.0 - 1e-8
+
+        y_std = _np.sqrt(sigma**2.0 / (1.0 - rho**2.0))
+
+        x_max = y_std * k
+        x_min = -x_max
+        x = _np.linspace(x_min, x_max, size)
+
+        x_0 = x[0]
+        x_sm1 = x[size_m1]
+
+        step = 0.5 * ((x_max - x_min) / size_m1)
+        p = _np.zeros((size, size), dtype=float)
+
+        for i in range(size):
+            rx = rho * x[i]
+
+            p[i, 0] = _sps.norm.cdf((x_0 - rx + step) / sigma)
+            p[i, size_m1] = 1.0 - _sps.norm.cdf((x_sm1 - rx - step) / sigma)
+
+            for j in range(1, size_m1):
+                z = x[j] - rx
+                p[i, j] = _sps.norm.cdf((z + step) / sigma) - _sps.norm.cdf((z - step) / sigma)
+
+    states = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
+
+    return p, states, None
+
+def mc_birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
+
+    r = 1.0 - q - p
+
+    p = _np.diag(r) + _np.diag(p[0:-1], k=1) + _np.diag(q[1:], k=-1)
+    p[_np.isclose(p, 0.0)] = 0.0
+    p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[0], dtype=float)
+    p /= _np.sum(p, axis=1, keepdims=True)
+
+    size = {p.shape[0], q.shape[0]}.pop()
+    state_names = [f'{i:d}' for i in range(1, size + 1)]
+
+    return p, state_names, None
+
+def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool) -> _tmc_generation:
+
+    def _gem_allocation(ga_draws):
+
+        allocated_probability = 0.0
+        weights = []
+
+        for _, ga_draw in enumerate(ga_draws):
+            weight = (1.0 - allocated_probability) * ga_draw
+            allocated_probability += weight
+            weights.append(weight)
+
+        weights = _np.stack(weights)
+        weights /= _np.sum(weights)
+
+        return weights
+
+    draws = rng.beta(1.0, diffusion_factor, (size, size))
+    p = _np.apply_along_axis(_gem_allocation, axis=1, arr=draws)
+
+    if shift_concentration:
+        p = _np.fliplr(p)
+
+    if diagonal_bias_factor is not None:
+        diagonal = rng.beta(diagonal_bias_factor, 1.0, size)
+        p += + _np.diagflat(diagonal)
+        p /= _np.sum(p, axis=1, keepdims=True)
+
+    state_names = [f'{i:d}' for i in range(1, size + 1)]
+
+    return p, state_names, None
+
+def mc_gamblers_ruin(size: int, w: float) -> _tmc_generation:
+
+    wc = 1.0 - w
+
+    p = _np.zeros((size, size), dtype=float)
+    p[0, 0] = 1.0
+    p[-1, -1] = 1.0
+
+    for i in range(1, size - 1):
+        p[i, i - 1] = wc
+        p[i, i + 1] = w
+
+    state_names = [f'{i:d}' for i in range(1, size + 1)]
+
+    return p, state_names, None
 
 def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _tmc_generation:
 
@@ -1174,7 +1208,6 @@ def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: floa
     state_names = [f'{i:d}' for i in range(1, size + 1)]
 
     return p, state_names, None
-
 
 def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generation:
 
@@ -1224,48 +1257,6 @@ def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generat
     state_names = [f'{i:d}' for i in range(1, size + 1)]
 
     return p, state_names, None
-
-
-def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_generation:
-
-    size = p.shape[0]
-
-    closure = _np.copy(adjacency_matrix)
-
-    for i in range(size):
-        for j in range(size):
-            closure_ji = closure[j, i]
-            for x in range(size):
-                closure_ix = closure[i, x]
-                closure_jx = closure[j, x]
-                closure[j, x] = closure_jx or (closure_ji and closure_ix)
-
-    for state in sub_states:
-        state_closures = _np.ravel([_np.where(closure[state, :] == 1.0)])
-        for state_closure in state_closures:
-            if state_closure not in sub_states:
-                sub_states.append(state_closure)
-
-    sub_states = sorted(sub_states)
-
-    p = _np.copy(p)
-    p = p[_np.ix_(sub_states, sub_states)]
-    p /= _np.sum(p, axis=1, keepdims=True)
-
-    if p.size == 1:  # pragma: no cover
-        return None, None, 'The subchain is not a valid Markov chain.'
-
-    state_names = [*map(states.__getitem__, sub_states)]
-
-    return p, state_names, None
-
-
-def mc_teleport(p: _tarray, probability: float, distribution: _tarray) -> _tmc_generation:
-
-    p = ((1.0 - probability) * p) + (probability * distribution[_np.newaxis, :])
-
-    return p, None, None
-
 
 def mc_urn_model(model: str, n: int) -> _tmc_generation:
 

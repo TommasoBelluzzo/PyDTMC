@@ -62,6 +62,11 @@ from .decorators import (
     object_mark as _object_mark
 )
 
+from ._dynamics import (
+    hmm_predict as _predict,
+    hmm_simulate as _simulate
+)
+
 from .exceptions import (
     ValidationError as _ValidationError
 )
@@ -89,11 +94,6 @@ from ._generators import (
 
 from .markov_chain import (
     MarkovChain as _MarkovChain
-)
-
-from ._simulations import (
-    hmm_predict as _predict,
-    hmm_simulate as _simulate
 )
 
 from .utilities import (

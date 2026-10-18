@@ -34,18 +34,20 @@ from .custom_types import (
     ttfunc as _ttfunc
 )
 
-from ._generators import (
-    hmm_estimate as _hmm_estimate
+from ._dynamics import (
+    hmm_predict as _hmm_predict
 )
 
-from ._simulations import (
-    hmm_predict as _hmm_predict
+from ._generators import (
+    hmm_estimate as _hmm_estimate
 )
 
 
 #############
 # FUNCTIONS #
 #############
+
+# HMM FITTING
 
 def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distribution: _tarray, symbols: _tlists_int) -> _thmm_params_res:
 
@@ -165,6 +167,8 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
 
     return None, None, 'The fitting algorithm failed to converge.'  # pragma: no cover
 
+
+# MC FITTING
 
 # noinspection PyBroadException
 def mc_fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible_states: _tlist_str, f: _ttfunc) -> _tfitting_res:

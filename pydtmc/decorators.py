@@ -122,7 +122,7 @@ class object_mark:
 
     def __init__(self, aliases=None, instance_generator=False, random_output=False):
 
-        if aliases is None and not instance_generator and not random_output:
+        if (aliases is None) and (not instance_generator) and (not random_output):
             raise AttributeError('Object mark decorator must have at least one argument value different than the default one.')
 
         self.mark_applied = False

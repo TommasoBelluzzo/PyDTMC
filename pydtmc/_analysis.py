@@ -71,6 +71,8 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
+# PRIVATE HELPERS
+
 def _clean_variance(variance: _tarray) -> _tarray:
 
     variance = _np.where(variance < -_FTOL, _np.nan, _np.maximum(variance, 0.0))
@@ -89,6 +91,8 @@ def _hitting_times_statistics(p: _tarray, states: _tarray) -> _tany:
 
     return mean, variance
 
+
+# HMM INFERENCE
 
 def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int, use_scaling: bool) -> _ohmm_decoding:
 
@@ -147,6 +151,8 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
     return log_prob, posterior, backward, forward, scaling_factors
 
 
+# ABSORPTION & PASSAGE
+
 def mc_absorption_probabilities(mc: _tmc) -> _oarray:
 
     om = mc.occupation_matrix
@@ -185,33 +191,6 @@ def mc_absorption_times(mc: _tmc, statistic: str) -> _oarray:
     variance = _clean_variance(second_moment - mean**2.0)
 
     return variance
-
-
-def mc_entropy_production_rate(mc: _tmc) -> _tlist_float:
-
-    indices = _np.triu_indices(mc.size, k=1)
-
-    epr = []
-
-    for sf in mc.stationary_flux:
-
-        forward = sf[indices]
-        backward = _np.transpose(sf)[indices]
-
-        if _np.any((forward == 0.0) != (backward == 0.0)):
-            rate = float('inf')
-        else:
-
-            mask = (forward > 0.0) & (backward > 0.0)
-
-            current = forward[mask] - backward[mask]
-            affinity = _np.log(forward[mask]) - _np.log(backward[mask])
-
-            rate = float(_np.sum(current * affinity))
-
-        epr.append(rate)
-
-    return epr
 
 
 def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_int, states2: _tlist_int) -> _oarray:
@@ -270,51 +249,6 @@ def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_in
         cp = _solve_committor_probabilities(p, size, states2, states1)
 
     return cp
-
-
-def mc_conductance(mc: _tmc, states: _tlist_int) -> _ofloat:
-
-    if not mc.is_irreducible:
-        return None
-
-    complement = _np.ones(mc.size, dtype=bool)
-    complement[states] = False
-
-    pi = mc.pi[0]
-    sf = mc.stationary_flux[0]
-
-    value = float(_np.sum(sf[_np.ix_(states, complement)]) / _np.sum(pi[states]))
-
-    return value
-
-
-def mc_expected_rewards(mc: _tmc, steps: int, rewards: _tarray) -> _tany:
-
-    p = mc.p
-
-    original_rewards = _np.copy(rewards)
-    er = _np.copy(rewards)
-
-    for _ in range(steps):
-        er = original_rewards + _np.dot(p, er)
-
-    return er
-
-
-def mc_expected_transitions(mc: _tmc, steps: int, initial_distribution: _tarray) -> _tarray:
-
-    p = mc.p
-
-    idist = _np.copy(initial_distribution)
-    idist_sum = _np.zeros_like(idist)
-
-    for _ in range(steps):
-        idist_sum += idist
-        idist = _np.dot(idist, p)
-
-    et = idist_sum[:, _np.newaxis] * p
-
-    return et
 
 
 def mc_first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, first_passage_states: _olist_int) -> _tarray:
@@ -451,71 +385,6 @@ def mc_first_passage_times_to(mc: _tmc, statistic: str, targets: _olist_int) -> 
     return variance
 
 
-def mc_global_conductance(mc: _tmc) -> _ofloat:
-
-    if not mc.is_irreducible:
-        return None
-
-    size, pi, sf = mc.size, mc.pi[0], mc.stationary_flux[0]
-
-    gc = float('inf')
-
-    if size <= 12:
-
-        for i in range(1, size):
-            for c in _it.combinations(range(size), i):
-
-                states = list(c)
-
-                mass = _np.sum(pi[states])
-
-                if mass > (0.5 + _FTOL):
-                    continue
-
-                complement = _np.ones(size, dtype=bool)
-                complement[states] = False
-
-                flow = _np.sum(sf[_np.ix_(states, complement)])
-                conductance = flow / mass
-
-                gc = min(gc, float(conductance))
-
-    else:
-
-        flow = 0.5 * (sf + _np.transpose(sf))
-        pi_root = _np.sqrt(pi)
-        normalized = flow / _np.outer(pi_root, pi_root)
-
-        laplacian = _np.eye(size) - normalized
-        _, eigenvectors = _npl.eigh(laplacian)
-
-        fiedler = eigenvectors[:, 1] / pi_root
-        order = _np.argsort(fiedler, kind='stable')
-
-        candidates = [[i] for i in range(size)]
-
-        for ordering in (order, order[::-1]):
-            for count in range(1, size):
-                candidates.append(ordering[:count])
-
-        for states in candidates:
-
-            mass = _np.sum(pi[states])
-
-            if mass > (0.5 + _FTOL):
-                continue
-
-            complement = _np.ones(size, dtype=bool)
-            complement[states] = False
-
-            cut = _np.sum(sf[_np.ix_(states, complement)])
-            conductance = cut / mass
-
-            gc = min(gc, float(conductance))
-
-    return gc
-
-
 def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
 
     p, size = mc.p, mc.size
@@ -586,6 +455,37 @@ def mc_hitting_times(mc: _tmc, statistic: str, targets: _tlist_int) -> _tarray:
     return variance
 
 
+# RECURRENCE & EXPECTATIONS
+
+def mc_expected_rewards(mc: _tmc, steps: int, rewards: _tarray) -> _tany:
+
+    p = mc.p
+
+    original_rewards = _np.copy(rewards)
+    er = _np.copy(rewards)
+
+    for _ in range(steps):
+        er = original_rewards + _np.dot(p, er)
+
+    return er
+
+
+def mc_expected_transitions(mc: _tmc, steps: int, initial_distribution: _tarray) -> _tarray:
+
+    p = mc.p
+
+    idist = _np.copy(initial_distribution)
+    idist_sum = _np.zeros_like(idist)
+
+    for _ in range(steps):
+        idist_sum += idist
+        idist = _np.dot(idist, p)
+
+    et = idist_sum[:, _np.newaxis] * p
+
+    return et
+
+
 def mc_mean_number_visits(mc: _tmc) -> _oarray:
 
     p, size, states = mc.p, mc.size, mc.states
@@ -612,54 +512,52 @@ def mc_mean_number_visits(mc: _tmc) -> _oarray:
     return mnv
 
 
-def mc_mixing_time(mc: _tmc, cutoff: float, maximum_iterations: int) -> _oint:
+def mc_recurrence_times(mc: _tmc, statistic: str) -> _tarray:
 
-    if not mc.is_ergodic:
-        return None
+    if statistic == 'mean':
 
-    p, pi = mc.p, mc.pi[0]
-    pt = _np.copy(p)
+        mean = _np.full(mc.size, _np.inf, dtype=float)
 
-    for t in range(1, maximum_iterations + 1):
+        for pi in mc.pi:
+            mask = pi > 0.0
+            mean[mask] = 1.0 / pi[mask]
 
-        distances = 0.5 * _np.sum(_np.abs(pt - pi), axis=1)
+        return mean
 
-        if _np.max(distances) <= cutoff:
-            return t
+    p, states = mc.p, mc.states
+    states_indices = {state: index for index, state in enumerate(states)}
 
-        pt = pt.dot(p)
+    variance = _np.full(mc.size, _np.nan, dtype=float)
 
-    return None  # pragma: no cover
+    for recurrent_class in mc.recurrent_classes:
+
+        recurrent_indices = [states_indices[state] for state in recurrent_class]
+
+        for target in recurrent_indices:
+
+            other = [index for index in recurrent_indices if index != target]
+
+            if len(other) == 0:
+                variance[target] = 0.0
+                continue
+
+            probabilities = p[target, other]
+
+            a = _np.eye(len(other)) - p[_np.ix_(other, other)]
+            b = _np.ones(len(other), dtype=float)
+            mean = _npl.solve(a, b)
+
+            second_moment = _npl.solve(a, (2.0 * mean) - b)
+
+            mean_return = 1.0 + _np.dot(probabilities, mean)
+            second_moment_return = 1.0 + (2.0 * _np.dot(probabilities, mean)) + _np.dot(probabilities, second_moment)
+
+            variance[target] = _clean_variance(second_moment_return - mean_return**2.0)
+
+    return variance
 
 
-def mc_mixing_time_from(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: float, maximum_iterations: int) -> _oint:
-
-    if not mc.is_ergodic:
-        return None
-
-    p, pi = mc.p, mc.pi[0]
-
-    if jump > 1:
-        p = _npl.matrix_power(p, jump)
-
-    d = initial_distribution.dot(p)
-
-    tvd, mt = 1.0, 0
-    iterations = 0
-
-    while (iterations < maximum_iterations) and (tvd > cutoff):
-
-        iterations += 1
-
-        tvd = 0.5 * _np.sum(_np.abs(d - pi))
-        d = d.dot(p)
-        mt += jump
-
-    if tvd > cutoff:  # pragma: no cover
-        return None
-
-    return mt
-
+# STATIONARY & ASYMPTOTIC ANALYSIS
 
 def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=too-many-return-statements
 
@@ -738,51 +636,6 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=to
     return nu
 
 
-def mc_recurrence_times(mc: _tmc, statistic: str) -> _tarray:
-
-    if statistic == 'mean':
-
-        mean = _np.full(mc.size, _np.inf, dtype=float)
-
-        for pi in mc.pi:
-            mask = pi > 0.0
-            mean[mask] = 1.0 / pi[mask]
-
-        return mean
-
-    p, states = mc.p, mc.states
-    states_indices = {state: index for index, state in enumerate(states)}
-
-    variance = _np.full(mc.size, _np.nan, dtype=float)
-
-    for recurrent_class in mc.recurrent_classes:
-
-        recurrent_indices = [states_indices[state] for state in recurrent_class]
-
-        for target in recurrent_indices:
-
-            other = [index for index in recurrent_indices if index != target]
-
-            if len(other) == 0:
-                variance[target] = 0.0
-                continue
-
-            probabilities = p[target, other]
-
-            a = _np.eye(len(other)) - p[_np.ix_(other, other)]
-            b = _np.ones(len(other), dtype=float)
-            mean = _npl.solve(a, b)
-
-            second_moment = _npl.solve(a, (2.0 * mean) - b)
-
-            mean_return = 1.0 + _np.dot(probabilities, mean)
-            second_moment_return = 1.0 + (2.0 * _np.dot(probabilities, mean)) + _np.dot(probabilities, second_moment)
-
-            variance[target] = _clean_variance(second_moment_return - mean_return**2.0)
-
-    return variance
-
-
 def mc_sensitivity(mc: _tmc, state: int) -> _oarray:
 
     if not mc.is_irreducible:
@@ -831,6 +684,65 @@ def mc_stationary_perturbation_bound(mc: _tmc, epsilon: float) -> _ofloat:
     spb = min(1.0, float(spb))
 
     return spb
+
+
+def mc_time_reversal(p: _tarray, pi: _tarray) -> _tarray:
+
+    pr = _np.transpose(p) * pi[_np.newaxis, :]
+    pr /= pi[:, _np.newaxis]
+
+    return pr
+
+
+# MIXING & TEMPORAL ANALYSIS
+
+def mc_mixing_time(mc: _tmc, cutoff: float, maximum_iterations: int) -> _oint:
+
+    if not mc.is_ergodic:
+        return None
+
+    p, pi = mc.p, mc.pi[0]
+    pt = _np.copy(p)
+
+    for t in range(1, maximum_iterations + 1):
+
+        distances = 0.5 * _np.sum(_np.abs(pt - pi), axis=1)
+
+        if _np.max(distances) <= cutoff:
+            return t
+
+        pt = pt.dot(p)
+
+    return None  # pragma: no cover
+
+
+def mc_mixing_time_from(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: float, maximum_iterations: int) -> _oint:
+
+    if not mc.is_ergodic:
+        return None
+
+    p, pi = mc.p, mc.pi[0]
+
+    if jump > 1:
+        p = _npl.matrix_power(p, jump)
+
+    d = initial_distribution.dot(p)
+
+    tvd, mt = 1.0, 0
+    iterations = 0
+
+    while (iterations < maximum_iterations) and (tvd > cutoff):
+
+        iterations += 1
+
+        tvd = 0.5 * _np.sum(_np.abs(d - pi))
+        d = d.dot(p)
+        mt += jump
+
+    if tvd > cutoff:  # pragma: no cover
+        return None
+
+    return mt
 
 
 def mc_time_correlations(mc: _tmc, sequence1: _tsequence, sequence2: _osequence, time_points: _ttimes_in) -> _otimes_out:
@@ -989,9 +901,111 @@ def mc_time_relaxations(mc: _tmc, sequence: _tsequence, initial_distribution: _t
     return trs
 
 
-def mc_time_reversal(p: _tarray, pi: _tarray) -> _tarray:
+# CONDUCTANCE & ENTROPY
 
-    pr = _np.transpose(p) * pi[_np.newaxis, :]
-    pr /= pi[:, _np.newaxis]
+def mc_conductance(mc: _tmc, states: _tlist_int) -> _ofloat:
 
-    return pr
+    if not mc.is_irreducible:
+        return None
+
+    complement = _np.ones(mc.size, dtype=bool)
+    complement[states] = False
+
+    pi = mc.pi[0]
+    sf = mc.stationary_flux[0]
+
+    value = float(_np.sum(sf[_np.ix_(states, complement)]) / _np.sum(pi[states]))
+
+    return value
+
+
+def mc_global_conductance(mc: _tmc) -> _ofloat:
+
+    if not mc.is_irreducible:
+        return None
+
+    size, pi, sf = mc.size, mc.pi[0], mc.stationary_flux[0]
+
+    gc = float('inf')
+
+    if size <= 12:
+
+        for i in range(1, size):
+            for c in _it.combinations(range(size), i):
+
+                states = list(c)
+
+                mass = _np.sum(pi[states])
+
+                if mass > (0.5 + _FTOL):
+                    continue
+
+                complement = _np.ones(size, dtype=bool)
+                complement[states] = False
+
+                flow = _np.sum(sf[_np.ix_(states, complement)])
+                conductance = flow / mass
+
+                gc = min(gc, float(conductance))
+
+    else:
+
+        flow = 0.5 * (sf + _np.transpose(sf))
+        pi_root = _np.sqrt(pi)
+        normalized = flow / _np.outer(pi_root, pi_root)
+
+        laplacian = _np.eye(size) - normalized
+        _, eigenvectors = _npl.eigh(laplacian)
+
+        fiedler = eigenvectors[:, 1] / pi_root
+        order = _np.argsort(fiedler, kind='stable')
+
+        candidates = [[i] for i in range(size)]
+
+        for ordering in (order, order[::-1]):
+            for count in range(1, size):
+                candidates.append(ordering[:count])
+
+        for states in candidates:
+
+            mass = _np.sum(pi[states])
+
+            if mass > (0.5 + _FTOL):
+                continue
+
+            complement = _np.ones(size, dtype=bool)
+            complement[states] = False
+
+            cut = _np.sum(sf[_np.ix_(states, complement)])
+            conductance = cut / mass
+
+            gc = min(gc, float(conductance))
+
+    return gc
+
+
+def mc_entropy_production_rate(mc: _tmc) -> _tlist_float:
+
+    indices = _np.triu_indices(mc.size, k=1)
+
+    epr = []
+
+    for sf in mc.stationary_flux:
+
+        forward = sf[indices]
+        backward = _np.transpose(sf)[indices]
+
+        if _np.any((forward == 0.0) != (backward == 0.0)):
+            rate = float('inf')
+        else:
+
+            mask = (forward > 0.0) & (backward > 0.0)
+
+            current = forward[mask] - backward[mask]
+            affinity = _np.log(forward[mask]) - _np.log(backward[mask])
+
+            rate = float(_np.sum(current * affinity))
+
+        epr.append(rate)
+
+    return epr

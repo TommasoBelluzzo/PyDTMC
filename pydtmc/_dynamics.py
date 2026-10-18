@@ -43,6 +43,8 @@ from .custom_types import (
 # FUNCTIONS #
 #############
 
+# HMM PREDICTION
+
 def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int) -> _ohmm_prediction:
 
     def _predict_map(pv_p, pv_e, pv_initial_distribution, pv_symbols):
@@ -104,6 +106,8 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
     return prediction
 
 
+# HMM SIMULATION
+
 def hmm_simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint, final_symbol: _oint, rng: _trand) -> _thmm_sequence:
 
     n, k = hmm.size
@@ -149,6 +153,8 @@ def hmm_simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint,
 
     return states, symbols
 
+
+# MC PREDICTION
 
 def mc_predict(mc: _tmc, steps: int, initial_state: int) -> _olist_int:
 
@@ -226,6 +232,8 @@ def mc_predict_trajectory(mc: _tmc, steps: int, initial_state: int) -> _olist_in
     return prediction
 
 
+# MC DISTRIBUTIONS & PROBABILITIES
+
 def mc_redistribute(mc: _tmc, steps: int, initial_distribution: _tarray, output_last: bool) -> _tredists:
 
     p = mc.p
@@ -263,6 +271,8 @@ def mc_sequence_probability(mc: _tmc, walk_param: _tlist_int) -> float:
 
     return value
 
+
+# MC SIMULATION
 
 def mc_simulate(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rng: _trand) -> _tlist_int:
 

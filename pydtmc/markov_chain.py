@@ -107,6 +107,14 @@ from .decorators import (
     object_mark as _object_mark
 )
 
+from ._dynamics import (
+    mc_predict as _predict,
+    mc_predict_trajectory as _predict_trajectory,
+    mc_redistribute as _redistribute,
+    mc_sequence_probability as _sequence_probability,
+    mc_simulate as _simulate
+)
+
 from .exceptions import (
     ValidationError as _ValidationError
 )
@@ -155,14 +163,6 @@ from ._numerical import (
     find_lumping_partitions as _find_lumping_partitions,
     gth_solve as _gth_solve,
     slem as _slem
-)
-
-from ._simulations import (
-    mc_predict as _predict,
-    mc_predict_trajectory as _predict_trajectory,
-    mc_redistribute as _redistribute,
-    mc_sequence_probability as _sequence_probability,
-    mc_simulate as _simulate
 )
 
 from .utilities import (
