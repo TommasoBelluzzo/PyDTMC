@@ -57,6 +57,7 @@ Graphs
 
 | The graph shows the connections among the weather states.
 | Arrow labels indicate transition probabilities, including the probabilities of remaining in the same state.
+| Node colors and shapes can distinguish communicating classes and recurrent or transient states.
 
 Transition Matrix
 -----------------
@@ -143,9 +144,9 @@ Hidden Markov Models
 | Rows correspond to hidden weather conditions and columns to observed umbrella symbols.
 | The heatmap shows, for example, that ``Umbrella`` is more likely under ``Wet`` than ``Dry``.
 
-| A **trellis diagram** illustrates how hidden-state sequences are evaluated against observations.
-| PyDTMC highlights the most probable hidden-state path found by the Viterbi algorithm.
+| A **trellis diagram** illustrates possible hidden-state sequences across a series of observations.
+| The ``plot_trellis`` function simulates the observations and highlights the most probable hidden-state path found by the Viterbi algorithm.
 
 .. code-block:: python
 
-   plot_trellis(hmm, 5, initial_state='Dry', seed=42, force_standard=True)
+   plot_trellis(hmm, 5, initial_state='Dry', seed=42)
