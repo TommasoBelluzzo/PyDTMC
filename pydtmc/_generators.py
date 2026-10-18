@@ -126,6 +126,7 @@ def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: 
 
     return p, e
 
+
 def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: int, e_mask: _tarray) -> _thmm_generation:
 
     def process_matrix(pm_rows, pm_columns, pm_mask, pm_full_rows, pm_mask_unassigned, pm_zeros, pm_zeros_required):
@@ -232,6 +233,7 @@ def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
 
     return p_adjusted, state_names, None
 
+
 def mc_canonical(p: _tarray, recurrent_classes_indices: _tlists_int, transient_indices: _tlist_int) -> _tmc_generation:
 
     p = _np.copy(p)
@@ -250,6 +252,7 @@ def mc_canonical(p: _tarray, recurrent_classes_indices: _tlists_int, transient_i
     state_names = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
 
     return p, state_names, None
+
 
 def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _tmc_generation:
 
@@ -272,6 +275,7 @@ def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _t
     state_names = [*map(states.__getitem__, retained_states)]
 
     return p_censored, state_names, None
+
 
 def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tmc_generation:
 
@@ -477,6 +481,7 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
 
     return pcr, state_names, None
 
+
 def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
 
     size = p.shape[0]
@@ -486,6 +491,7 @@ def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
     p = p1 + p2
 
     return p, None, None
+
 
 # noinspection PyBroadException
 def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_generation:
@@ -516,6 +522,7 @@ def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen
     state_names = [','.join(list(map(states.__getitem__, partition))) for partition in partitions]
 
     return p_lump, state_names, None
+
 
 def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bool) -> _tmc_generation:  # pylint: disable=too-many-return-statements
 
@@ -693,6 +700,7 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
 
     return p, state_names, None
 
+
 def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
 
     def _calculate_q(cq_p, cq_pi, cq_phi):
@@ -775,6 +783,7 @@ def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_g
     states = [f'ASBU{i:d}' for i in range(1, q.shape[0] + 1)]
 
     return q, states, None
+
 
 def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
 
@@ -888,6 +897,7 @@ def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_ge
 
     return q, states, None
 
+
 def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_generation:
 
     size = p.shape[0]
@@ -920,6 +930,7 @@ def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states
     state_names = [*map(states.__getitem__, sub_states)]
 
     return p, state_names, None
+
 
 def mc_teleport(p: _tarray, probability: float, distribution: _tarray) -> _tmc_generation:
 
@@ -1102,6 +1113,7 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
 
     return p, states, None
 
+
 def mc_birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
 
     r = 1.0 - q - p
@@ -1115,6 +1127,7 @@ def mc_birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
     state_names = [f'{i:d}' for i in range(1, size + 1)]
 
     return p, state_names, None
+
 
 def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool) -> _tmc_generation:
 
@@ -1148,6 +1161,7 @@ def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagon
 
     return p, state_names, None
 
+
 def mc_gamblers_ruin(size: int, w: float) -> _tmc_generation:
 
     wc = 1.0 - w
@@ -1163,6 +1177,7 @@ def mc_gamblers_ruin(size: int, w: float) -> _tmc_generation:
     state_names = [f'{i:d}' for i in range(1, size + 1)]
 
     return p, state_names, None
+
 
 def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _tmc_generation:
 
@@ -1208,6 +1223,7 @@ def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: floa
     state_names = [f'{i:d}' for i in range(1, size + 1)]
 
     return p, state_names, None
+
 
 def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generation:
 
@@ -1257,6 +1273,7 @@ def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generat
     state_names = [f'{i:d}' for i in range(1, size + 1)]
 
     return p, state_names, None
+
 
 def mc_urn_model(model: str, n: int) -> _tmc_generation:
 
