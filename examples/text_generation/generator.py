@@ -45,12 +45,12 @@ class TextGenerator:  # pylint: disable=missing-class-docstring
     def states(self) -> int:
         return len(self._label_to_pair)
 
-    def generate(self, words: int = 80, seed: int = 42) -> str:
+    def generate(self, tokens: int = 80, seed: int = 42) -> str:
 
-        if words < 4:
-            raise ValueError('The number of words must be at least four.')
+        if tokens < 4:
+            raise ValueError('The number of tokens must be at least four.')
 
-        states = self._chain.simulate(max(100, words * 8), initial_state=self._initial_state, seed=seed)
+        states = self._chain.simulate(max(100, tokens * 8), initial_state=self._initial_state, seed=seed)
 
         previous_pair = self._label_to_pair[states[0]]
         sentence = [previous_pair[1]]
@@ -78,7 +78,7 @@ class TextGenerator:  # pylint: disable=missing-class-docstring
                 sentence.append(token)
                 emitted += 1
 
-                if emitted == words:
+                if emitted == tokens:
                     output.append(' '.join(sentence).capitalize() + '.')
                     return ' '.join(output)
 

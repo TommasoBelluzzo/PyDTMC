@@ -141,7 +141,7 @@ class RegimeModel:  # pylint: disable=missing-class-docstring
 
         return instance
 
-    def fit(self, p_guess: list[list[float]] | None, e_guess: list[list[float]] | None) -> None:
+    def fit(self, p_guess: list[list[float]] | None = None, e_guess: list[list[float]] | None = None) -> None:
 
         if p_guess is None:
             p_guess = [

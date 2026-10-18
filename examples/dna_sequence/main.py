@@ -12,6 +12,9 @@ def main() -> None:
     parser.add_argument('--seed', type=int, default=42, help='The random seed.')
     args = parser.parse_args()
 
+    if args.length < 1:
+        parser.error('at least four nucleotides must be generated.')
+
     model = SequenceModel.from_file(args.sequence)
 
     observed = model.nucleotide_frequencies(model.sequence)

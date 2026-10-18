@@ -14,7 +14,7 @@ class SequenceModel:  # pylint: disable=missing-class-docstring
             raise ValueError('The sequence must contain at least four nucleotides.')
 
         if any(symbol not in self._nucleotides for symbol in sequence):
-            raise ValueError('The sequence must contain only: A, C, G, and T.')
+            raise ValueError('The sequence must contain only symbols: A, C, G, and T.')
 
         chain = MarkovChain.fit_sequence('mle', self._nucleotides, list(sequence))
 

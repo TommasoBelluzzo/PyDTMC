@@ -11,6 +11,9 @@ def main() -> None:
     parser.add_argument('--hours', type=int, default=24, help='The forecast horizon in hourly observations.')
     args = parser.parse_args()
 
+    if args.hours < 1:
+        parser.error('hours must be positive.')
+
     model = ReliabilityModel.from_csv(args.incidents)
 
     print(f'Observations: {len(model.incidents)}')
