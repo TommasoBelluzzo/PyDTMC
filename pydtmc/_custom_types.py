@@ -76,6 +76,7 @@ __all__ = [
     'tmc_dict_flex', 'omc_dict_flex',
     'tmc_gen', 'omc_gen',
     'tmc_gen_ext', 'omc_gen_ext',
+    'tmc_gen_full', 'omc_gen_full',
     'tobj_dict', 'oobj_dict',
     'tredists', 'oredists',
     'tsequence', 'osequence',
@@ -334,8 +335,11 @@ omc_dict_flex = _tp.Optional[tmc_dict_flex]
 tmc_gen = _tp.Tuple[oarray, ostr]
 omc_gen = _tp.Optional[tmc_gen]
 
-tmc_gen_ext = _tp.Tuple[oarray, olist_str, ostr]
+tmc_gen_ext = _tp.Tuple[oarray, olist_str]
 omc_gen_ext = _tp.Optional[tmc_gen_ext]
+
+tmc_gen_full = _tp.Tuple[oarray, olist_str, ostr]
+omc_gen_full = _tp.Optional[tmc_gen_full]
 
 tobj_dict = _tp.Union[thmm_dict, tmc_dict]
 oobj_dict = _tp.Optional[tobj_dict]

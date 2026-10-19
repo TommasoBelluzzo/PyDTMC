@@ -54,6 +54,7 @@ from ._custom_types import (
     thmm_params as _thmm_params,
     tmc_gen as _tmc_gen,
     tmc_gen_ext as _tmc_gen_ext,
+    tmc_gen_full as _tmc_gen_full,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
@@ -249,7 +250,7 @@ def mc_canonical(p: _tarray, recurrent_classes_indices: _tlists_int, transient_i
     return p
 
 
-def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _tmc_gen_ext:
+def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _tmc_gen_full:
 
     size = p.shape[0]
     removed_states = [i for i in range(size) if i not in retained_states]
@@ -487,7 +488,7 @@ def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tarray:
 
 
 # noinspection PyBroadException
-def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen_ext:
+def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen_full:
 
     size = p.shape[0]
 
@@ -517,7 +518,7 @@ def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen
     return p_lump, state_names, None
 
 
-def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bool) -> _tmc_gen_ext:  # pylint: disable=too-many-return-statements
+def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bool) -> _tmc_gen_full:  # pylint: disable=too-many-return-statements
 
     def _memberships(m_flat, m_x, m_s):
 
@@ -774,9 +775,9 @@ def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_g
 
     q /= _np.sum(q, axis=1, keepdims=True)
 
-    states = [f'ASBU{i:d}' for i in range(1, q.shape[0] + 1)]
+    states = [f'{i:d}' for i in range(1, q.shape[0] + 1)]
 
-    return q, states, None
+    return q, states
 
 
 def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gen_ext:
@@ -830,8 +831,8 @@ def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_ge
                 positions = _np.zeros(indices.size, dtype=bool)
                 positions[indices_order[:indices.size // 2]] = True
 
-            worklist.append(indices[positions])
-            worklist.append(indices[~positions])
+            worklist.append(indices[positions].astype(int))
+            worklist.append(indices[~positions].astype(int))
 
         return pair_candidates
 
@@ -887,12 +888,12 @@ def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_ge
 
     q /= _np.sum(q, axis=1, keepdims=True)
 
-    states = [f'ASTD{i:d}' for i in range(1, q.shape[0] + 1)]
+    states = [f'{i:d}' for i in range(1, q.shape[0] + 1)]
 
-    return q, states, None
+    return q, states
 
 
-def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_gen_ext:
+def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_gen_full:
 
     size = p.shape[0]
 
