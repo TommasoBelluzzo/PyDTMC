@@ -294,12 +294,12 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
     except Exception as ex:  # pragma: no cover
         raise ValueError('The "@arg@" parameter defines an invalid file path.') from ex
 
-    if accepted_extensions is not None and len(accepted_extensions) > 0 and file_extension not in accepted_extensions:
+    if (accepted_extensions is not None) and (len(accepted_extensions) > 0) and (file_extension not in accepted_extensions):
         raise ValueError(f'The "@arg@" parameter must have one of the following extensions: {", ".join(sorted(accepted_extensions)).replace(".", "")}.')
 
     if write_permission:
 
-        if not _osp.isdir(_osp.dirname(file_path)) and _osp.isabs(file_path):  # pragma: no cover
+        if (not _osp.isdir(_osp.dirname(file_path))) and _osp.isabs(file_path):  # pragma: no cover
             raise ValueError('The "@arg@" parameter defines a non-existent parent directory.')
 
         try:

@@ -53,55 +53,6 @@ from ._custom_types import (
 
 # GRAPH & STRUCTURAL ALGORITHMS
 
-def _calculate_period(graph):
-
-    sccs = list(_nx.strongly_connected_components(graph))
-
-    g = 0
-
-    for scc in sccs:
-
-        scc = list(scc)
-
-        levels = {scc: None for scc in scc}
-        vertices = levels.copy()
-
-        x = scc[0]
-        levels[x] = 0
-
-        current_level = (x,)
-        previous_level = 1
-
-        while current_level:
-
-            next_level = []
-
-            for u in current_level:
-                for v in graph[u]:
-
-                    if v not in vertices:  # pragma: no cover
-                        continue
-
-                    level = levels[v]
-
-                    if level is not None:
-
-                        g = _mt.gcd(g, previous_level - level)
-
-                        if g == 1:
-                            return 1
-
-                    else:
-
-                        next_level.append(v)
-                        levels[v] = previous_level
-
-            current_level = tuple(next_level)
-            previous_level += 1
-
-    return g
-
-
 def accessibility_matrix(adm: _tarray) -> _tarray:
 
     acm = adm.astype(bool)
@@ -116,6 +67,54 @@ def accessibility_matrix(adm: _tarray) -> _tarray:
 
 
 def calculate_periods(graph: _tgraph) -> _tlist_int:
+
+    def _calculate_period(subgraph):
+
+        components = list(_nx.strongly_connected_components(subgraph))
+
+        gcd = 0
+
+        for component in components:
+
+            component = list(component)
+
+            levels = {scc: None for scc in scc}
+            vertices = levels.copy()
+
+            x = component[0]
+            levels[x] = 0
+
+            current_level = (x,)
+            previous_level = 1
+
+            while current_level:
+
+                next_level = []
+
+                for u in current_level:
+                    for v in subgraph[u]:
+
+                        if v not in vertices:  # pragma: no cover
+                            continue
+
+                        level = levels[v]
+
+                        if level is not None:
+
+                            gcd = _mt.gcd(gcd, previous_level - level)
+
+                            if gcd == 1:
+                                return 1
+
+                        else:
+
+                            next_level.append(v)
+                            levels[v] = previous_level
+
+                current_level = tuple(next_level)
+                previous_level += 1
+
+        return gcd
 
     sccs = list(_nx.strongly_connected_components(graph))
 

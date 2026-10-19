@@ -2,10 +2,13 @@
 
 __all__ = [
     'hmm_decode',
+    'mc_absolute_spectral_gap',
     'mc_absorption_probabilities',
     'mc_absorption_times',
     'mc_committor_probabilities',
+    'mc_commute_times',
     'mc_conductance',
+    'mc_deviation_matrix',
     'mc_dobrushin_coefficient',
     'mc_doeblin_coefficient',
     'mc_entropy_production_rate',
@@ -17,21 +20,29 @@ __all__ = [
     'mc_first_passage_reward',
     'mc_first_passage_times_between',
     'mc_first_passage_times_to',
+    'mc_fundamental_matrix',
     'mc_global_conductance',
     'mc_hitting_probabilities',
     'mc_hitting_times',
     'mc_implied_timescales',
     'mc_is_absorbing',
+    'mc_is_aperiodic',
+    'mc_is_canonical',
     'mc_is_reversible',
+    'mc_kemeny_constant',
     'mc_mean_number_visits',
+    'mc_mixing_rate',
     'mc_mixing_time',
     'mc_mixing_time_from',
     'mc_ordinary_spectral_gap',
+    'mc_occupation_matrix',
+    'mc_period',
     'mc_quasi_stationary_distribution',
     'mc_reaction_rate',
     'mc_reactive_density',
     'mc_reactive_flux',
     'mc_recurrence_times',
+    'mc_relaxation_rate',
     'mc_sensitivity',
     'mc_stationary_distributions',
     'mc_stationary_perturbation_bound',
@@ -49,6 +60,7 @@ __all__ = [
 # Standard
 
 import itertools as _it
+import math as _mt
 
 # Libraries
 
@@ -277,6 +289,19 @@ def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_in
     return cp
 
 
+def mc_commute_times(mc: _tmc) -> _oarray:
+
+    fptt_mean = mc.first_passage_times_to(statistic='mean')
+
+    if fptt_mean is None:
+        ct = None
+    else:
+        ct = fptt_mean + _np.transpose(fptt_mean)
+        _np.fill_diagonal(ct, 0.0)
+
+    return ct
+
+
 def mc_first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, first_passage_states: _olist_int) -> _tarray:
 
     p, size = mc.p, mc.size
@@ -493,6 +518,21 @@ def mc_is_absorbing(graph: _tgraph, states: _tlist_str, absorbing_states_indices
     result = len(reachable) == len(states)
 
     return result
+
+
+def mc_occupation_matrix(mc: _tmc, transient_states_indices: _tlist_int) -> _oarray:
+
+    if (not mc.is_absorbing) or (len(mc.transient_states) == 0):
+        return None
+
+    indices = transient_states_indices
+
+    q = mc.p[_np.ix_(indices, indices)]
+    i = _np.eye(len(indices))
+
+    om = _npl.solve(i - q, i)
+
+    return om
 
 
 def mc_reaction_rate(mc: _tmc, states1: _tlist_int, states2: _tlist_int) -> _ofloat:
@@ -718,6 +758,20 @@ def mc_doeblin_coefficient(mc: _tmc) -> float:
 
 # MIXING & TEMPORAL ANALYSIS
 
+def mc_mixing_rate(slem: _ofloat) -> _ofloat:
+
+    if slem is None:
+        mr = None
+    elif slem <= _FTOL:
+        mr = 0.0
+    elif slem >= (1.0 - _FTOL):
+        mr = _np.inf
+    else:
+        mr = -1.0 / _np.log(slem)
+
+    return mr
+
+
 def mc_mixing_time(mc: _tmc, cutoff: float, maximum_iterations: int) -> _oint:
 
     if not mc.is_ergodic:
@@ -765,6 +819,20 @@ def mc_mixing_time_from(mc: _tmc, initial_distribution: _tarray, jump: int, cuto
         return None
 
     return mt
+
+
+def mc_relaxation_rate(mc: _tmc) -> _ofloat:
+
+    asg = mc.absolute_spectral_gap
+
+    if asg is None:
+        rr = None
+    elif asg <= _FTOL:
+        rr = _np.inf
+    else:
+        rr = 1.0 / asg
+
+    return rr
 
 
 def mc_time_correlations(mc: _tmc, sequence1: _tsequence, sequence2: _osequence, time_points: _ttimes_in) -> _otimes_out:
@@ -1027,6 +1095,45 @@ def mc_recurrence_times(mc: _tmc, statistic: str) -> _tarray:
 
 # STATIONARY & ASYMPTOTIC ANALYSIS
 
+def mc_absolute_spectral_gap(slem: _ofloat) -> _ofloat:
+
+    if slem is None:
+        asg = None
+    else:
+
+        asg = 1.0 - slem
+
+        if -_FTOL < asg < 0.0:
+            asg = 0.0
+
+    return asg
+
+
+def mc_deviation_matrix(mc: _tmc) -> _oarray:
+
+    if not mc.is_irreducible:
+        return None
+
+    fm = mc.fundamental_matrix
+    dm = fm - mc.pi[0]
+
+    return dm
+
+
+def mc_fundamental_matrix(mc: _tmc) -> _oarray:
+
+    if not mc.is_irreducible:
+        return None
+
+    i = _np.eye(mc.size)
+    a = i - mc.p
+    a += mc.pi[0]
+
+    fm = _npl.solve(a, i)
+
+    return fm
+
+
 def mc_implied_timescales(mc: _tmc) -> _oarray:
 
     if not mc.is_irreducible:
@@ -1052,6 +1159,22 @@ def mc_implied_timescales(mc: _tmc) -> _oarray:
     return it
 
 
+def mc_is_aperiodic(mc: _tmc) -> bool:
+
+    if mc.is_irreducible:
+        ia = set(mc.periods).pop() == 1
+    else:
+
+        recurrent_periods = [
+            mc.periods[mc.communicating_classes.index(recurrent_class)]
+            for recurrent_class in mc.recurrent_classes
+        ]
+
+        ia = all(period == 1 for period in recurrent_periods)
+
+    return ia
+
+
 def mc_is_reversible(mc: _tmc, recurrent_classes_indices: _tlists_int) -> bool:
 
     p = mc.p
@@ -1069,6 +1192,20 @@ def mc_is_reversible(mc: _tmc, recurrent_classes_indices: _tlists_int) -> bool:
     return True
 
 
+def mc_kemeny_constant(mc: _tmc) -> _ofloat:
+
+    if not mc.is_irreducible:
+        return None
+
+    fm = mc.fundamental_matrix
+    kc = float(_np.trace(fm)) - 1.0
+
+    if not _np.isfinite(kc):  # pragma: no cover
+        kc = None
+
+    return kc
+
+
 def mc_ordinary_spectral_gap(mc: _tmc) -> _omc_osp:
 
     if (not mc.is_irreducible) or (not mc.is_reversible):
@@ -1081,10 +1218,10 @@ def mc_ordinary_spectral_gap(mc: _tmc) -> _omc_osp:
     pw = 0.5 * (pw + _np.transpose(pw))
 
     evalues = _npl.eigvalsh(pw)
-    sg = 1.0 - float(evalues[-2])
+    osg = 1.0 - float(evalues[-2])
 
-    if -_FTOL < sg < 0.0:  # pragma: no cover
-        sg = 0.0
+    if -_FTOL < osg < 0.0:  # pragma: no cover
+        osg = 0.0
 
     gc = mc.global_conductance
 
@@ -1093,7 +1230,23 @@ def mc_ordinary_spectral_gap(mc: _tmc) -> _omc_osp:
     else:  # pragma: no cover
         cb = (0.0, 2.0 * gc)
 
-    return sg, cb
+    return osg, cb
+
+
+def mc_period(mc: _tmc) -> int:
+
+    if mc.is_aperiodic:
+        period = 1
+    elif mc.is_irreducible:
+        period = set(mc.periods).pop()
+    else:  # pragma: no cover
+
+        period = 1
+
+        for p in [mc.periods[mc.communicating_classes.index(recurrent_class)] for recurrent_class in mc.recurrent_classes]:
+            period = (period * p) // _mt.gcd(period, p)
+
+    return period
 
 
 def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=too-many-return-statements
@@ -1248,3 +1401,20 @@ def mc_time_reversal(p: _tarray, pi: _tarray) -> _tarray:
     pr /= pi[:, _np.newaxis]
 
     return pr
+
+
+# STRUCTURAL & CLASS ANALYSIS
+
+def mc_is_canonical(mc: _tmc, transient_states_indices: _tlist_int, recurrent_classes_indices: _tlists_int) -> bool:
+
+    transient_indices = transient_states_indices
+
+    if transient_indices != list(range(len(transient_indices))):
+        return False
+
+    recurrent_classes = sorted(recurrent_classes_indices, key=lambda x: x[0])
+    recurrent_indices = list(_it.chain.from_iterable(recurrent_classes))
+
+    result = recurrent_indices == list(range(len(transient_indices), mc.size))
+
+    return result

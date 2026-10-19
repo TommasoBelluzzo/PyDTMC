@@ -14,7 +14,6 @@ __all__ = [
 import copy as _cp
 import inspect as _ins
 import itertools as _it
-import math as _mt
 
 # Libraries
 
@@ -31,8 +30,11 @@ from ._base_classes import (
 from ._analysis import (
     mc_absorption_probabilities as _absorption_probabilities,
     mc_absorption_times as _absorption_times,
+    mc_absolute_spectral_gap as _absolute_spectral_gap,
     mc_committor_probabilities as _committor_probabilities,
+    mc_commute_times as _commute_times,
     mc_conductance as _conductance,
+    mc_deviation_matrix as _deviation_matrix,
     mc_dobrushin_coefficient as _dobrushin_coefficient,
     mc_doeblin_coefficient as _doeblin_coefficient,
     mc_entropy_production_rate as _entropy_production_rate,
@@ -44,21 +46,29 @@ from ._analysis import (
     mc_first_passage_probabilities as _first_passage_probabilities,
     mc_first_passage_times_between as _first_passage_times_between,
     mc_first_passage_times_to as _first_passage_times_to,
+    mc_fundamental_matrix as _fundamental_matrix,
     mc_global_conductance as _global_conductance,
     mc_hitting_probabilities as _hitting_probabilities,
     mc_hitting_times as _hitting_times,
     mc_implied_timescales as _implied_timescales,
     mc_is_absorbing as _is_absorbing,
+    mc_is_aperiodic as _is_aperiodic,
+    mc_is_canonical as _is_canonical,
     mc_is_reversible as _is_reversible,
+    mc_kemeny_constant as _kemeny_constant,
     mc_mean_number_visits as _mean_number_visits,
+    mc_mixing_rate as _mixing_rate,
     mc_mixing_time as _mixing_time,
     mc_mixing_time_from as _mixing_time_from,
+    mc_occupation_matrix as _occupation_matrix,
     mc_ordinary_spectral_gap as _ordinary_spectral_gap,
+    mc_period as _period,
     mc_quasi_stationary_distribution as _quasi_stationary_distribution,
     mc_reaction_rate as _reaction_rate,
     mc_reactive_density as _reactive_density,
     mc_reactive_flux as _reactive_flux,
     mc_recurrence_times as _recurrence_times,
+    mc_relaxation_rate as _relaxation_rate,
     mc_sensitivity as _sensitivity,
     mc_stationary_distributions as _stationary_distributions,
     mc_stationary_perturbation_bound as _stationary_perturbation_bound,
@@ -68,8 +78,7 @@ from ._analysis import (
 )
 
 from ._constants import (
-    ETOL as _ETOL,
-    FTOL as _FTOL
+    ETOL as _ETOL
 )
 
 from ._custom_types import (
@@ -411,18 +420,9 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
-        slem = self.__slem
+        asg = _absolute_spectral_gap(self.__slem)
 
-        if slem is None:
-            sg = None
-        else:
-
-            sg = 1.0 - slem
-
-            if -_FTOL < sg < 0.0:
-                sg = 0.0
-
-        return sg
+        return asg
 
     @_cached_property
     def absorbing_states(self) -> _tlists_str:
@@ -581,11 +581,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        if not self.is_irreducible:
-            return None
-
-        fm = self.fundamental_matrix
-        dm = fm - self.pi[0]
+        dm = _deviation_matrix(self)
 
         return dm
 
@@ -688,14 +684,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        if not self.is_irreducible:
-            return None
-
-        i = _np.eye(self.__size)
-        a = i - self.__p
-        a += self.pi[0]
-
-        fm = _npl.solve(a, i)
+        fm = _fundamental_matrix(self)
 
         return fm
 
@@ -805,15 +794,9 @@ class MarkovChain(_Model):
         - Transient classes do not affect the aperiodicity of the Markov chain.
         """
 
-        if self.is_irreducible:
-            return set(self.periods).pop() == 1
+        ia = _is_aperiodic(self)
 
-        recurrent_periods = [
-            self.periods[self.communicating_classes.index(recurrent_class)]
-            for recurrent_class in self.recurrent_classes
-        ]
-
-        return all(period == 1 for period in recurrent_periods)
+        return ia
 
     @_cached_property
     def is_canonical(self) -> bool:
@@ -828,17 +811,9 @@ class MarkovChain(_Model):
         - Recurrent classes must follow the ordering determined by their first state index.
         """
 
-        transient_indices = self.__transient_states_indices
+        ic = _is_canonical(self, self.__transient_states_indices, self.__recurrent_classes_indices)
 
-        if transient_indices != list(range(len(transient_indices))):
-            return False
-
-        recurrent_classes = sorted(self.__recurrent_classes_indices, key=lambda x: x[0])
-        recurrent_indices = list(_it.chain.from_iterable(recurrent_classes))
-
-        result = recurrent_indices == list(range(len(transient_indices), self.__size))
-
-        return result
+        return ic
 
     @_cached_property
     def is_doubly_stochastic(self) -> bool:
@@ -939,14 +914,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the value cannot be computed, then :py:class:`None` is returned.
         """
 
-        if not self.is_irreducible:
-            return None
-
-        fm = self.fundamental_matrix
-        kc = float(_np.trace(fm)) - 1.0
-
-        if not _np.isfinite(kc):  # pragma: no cover
-            kc = None
+        kc = _kemeny_constant(self)
 
         return kc
 
@@ -985,16 +953,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
-        slem = self.__slem
-
-        if slem is None:
-            mr = None
-        elif slem <= _FTOL:
-            mr = 0.0
-        elif slem >= (1.0 - _FTOL):
-            mr = _np.inf
-        else:
-            mr = -1.0 / _np.log(slem)
+        mr = _mixing_rate(self.__slem)
 
         return mr
 
@@ -1043,16 +1002,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
         """
 
-        if (not self.is_absorbing) or (len(self.transient_states) == 0):
-            om = None
-        else:
-
-            indices = self.__transient_states_indices
-
-            q = self.__p[_np.ix_(indices, indices)]
-            i = _np.eye(len(indices))
-
-            om = _npl.solve(i - q, i)
+        om = _occupation_matrix(self, self.__transient_states_indices)
 
         return om
 
@@ -1096,14 +1046,14 @@ class MarkovChain(_Model):
         - If the Markov chain is not both **irreducible** and **reversible**, then :py:class:`None` is returned.
         """
 
-        osp = _ordinary_spectral_gap(self)
+        result = _ordinary_spectral_gap(self)
 
-        if osp is None:
+        if result is None:
             return None
 
-        sg, cb = osp
+        osg, cb = result
 
-        return sg, cb
+        return osg, cb
 
     @property
     def p(self) -> _tarray:
@@ -1127,18 +1077,9 @@ class MarkovChain(_Model):
         - An **aperiodic** Markov chain has period 1.
         """
 
-        if self.is_aperiodic:
-            period = 1
-        elif self.is_irreducible:
-            period = set(self.periods).pop()
-        else:  # pragma: no cover
+        p = _period(self)
 
-            period = 1
-
-            for p in [self.periods[self.communicating_classes.index(recurrent_class)] for recurrent_class in self.recurrent_classes]:
-                period = (period * p) // _mt.gcd(period, p)
-
-        return period
+        return p
 
     @_cached_property
     def periods(self) -> _tlist_int:
@@ -1229,14 +1170,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
-        sg = self.absolute_spectral_gap
-
-        if sg is None:
-            rr = None
-        elif sg <= _FTOL:
-            rr = _np.inf
-        else:
-            rr = 1.0 / sg
+        rr = _relaxation_rate(self)
 
         return rr
 
@@ -1554,13 +1488,7 @@ class MarkovChain(_Model):
         - The method can also be accessed through the alias **ct**.
         """
 
-        fptt_mean = self.first_passage_times_to(statistic='mean')
-
-        if fptt_mean is None:
-            ct = None
-        else:
-            ct = fptt_mean + _np.transpose(fptt_mean)
-            _np.fill_diagonal(ct, 0.0)
+        ct = _commute_times(self)
 
         return ct
 

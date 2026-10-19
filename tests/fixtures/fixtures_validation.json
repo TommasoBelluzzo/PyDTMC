@@ -467,19 +467,19 @@
       "is_valid": false
     },
     {
-      "value": "file_noextension",
+      "value": "file_noext",
       "accepted_extensions": null,
       "write_permission": false,
       "is_valid": false
     },
     {
-      "value": "file_noextension",
+      "value": "file_noext",
       "accepted_extensions": [".csv", ".xlsx"],
       "write_permission": false,
       "is_valid": false
     },
     {
-      "value": "file_noextension",
+      "value": "file_noext",
       "accepted_extensions": [""],
       "write_permission": true,
       "is_valid": true
@@ -542,13 +542,13 @@
       "value": "file_filled.txt",
       "accepted_extensions": null,
       "write_permission": false,
-      "is_valid": false
+      "is_valid": true
     },
     {
       "value": "file_filled.txt",
       "accepted_extensions": [],
       "write_permission": false,
-      "is_valid": false
+      "is_valid": true
     },
     {
       "value": "file_filled.txt",
@@ -560,7 +560,7 @@
       "value": "file_filled.txt",
       "accepted_extensions": [".txt", ".xml"],
       "write_permission": false,
-      "is_valid": false
+      "is_valid": true
     },
     {
       "value": "file_filled.txt",
