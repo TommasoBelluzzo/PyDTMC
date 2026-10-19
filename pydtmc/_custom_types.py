@@ -77,6 +77,7 @@ __all__ = [
     'tmc_gen', 'omc_gen',
     'tmc_gen_ext', 'omc_gen_ext',
     'tmc_gen_full', 'omc_gen_full',
+    'tmc_osp', 'omc_osp',
     'tobj_dict', 'oobj_dict',
     'tredists', 'oredists',
     'tsequence', 'osequence',
@@ -122,7 +123,7 @@ except ImportError:  # pragma: no cover
 # TYPES #
 #########
 
-# Base Types
+# BASE TYPES
 
 tany = _tp.Any
 
@@ -172,7 +173,7 @@ omc = _tp.Optional[tmc]
 tmodel = _tp.Union[thmm, tmc]
 omodel = _tp.Optional[tmodel]
 
-# Pairs
+# PAIRS
 
 tpair_array = _tp.Tuple[tarray, tarray]
 opair_array = _tp.Optional[tpair_array]
@@ -189,7 +190,7 @@ opair_int = _tp.Optional[tpair_int]
 tpair_str = _tp.Tuple[str, str]
 opair_str = _tp.Optional[tpair_str]
 
-# Lists
+# LISTS
 
 tlist_any = _tp.List[tany]
 olist_any = _tp.Optional[tlist_any]
@@ -215,7 +216,7 @@ olist_mc = _tp.Optional[tlist_mc]
 tlist_model = _tp.List[tmodel]
 olist_model = _tp.Optional[tlist_model]
 
-# Lists of Lists
+# LISTS OF LISTS
 
 tlists_any = _tp.List[tlist_any]
 olists_any = _tp.Optional[tlists_any]
@@ -232,7 +233,7 @@ olists_int = _tp.Optional[tlists_int]
 tlists_str = _tp.List[tlist_str]
 olists_str = _tp.Optional[tlists_str]
 
-# Compound Types - Generic
+# COMPOUND TYPES - GENERIC
 
 tass_cp = _tp.Tuple[oint, float, float]
 oass_cp = _tp.Optional[tass_cp]
@@ -279,7 +280,7 @@ orandfunc_flex = _tp.Optional[trandfunc_flex]
 tedge_attributes = _tp.List[_tp.Tuple[str, _tp.Tuple[str, ...]]]
 oedge_attributes = _tp.Optional[tedge_attributes]
 
-# Compound Types - Specific
+# COMPOUND TYPES - SPECIFIC
 
 tbcond = _tp.Union[float, int, str]
 obcond = _tp.Optional[tbcond]
@@ -340,6 +341,9 @@ omc_gen_ext = _tp.Optional[tmc_gen_ext]
 
 tmc_gen_full = _tp.Tuple[oarray, olist_str, ostr]
 omc_gen_full = _tp.Optional[tmc_gen_full]
+
+tmc_osp = _tp.Tuple[float, _tp.Tuple[float, float]]
+omc_osp = _tp.Optional[tmc_osp]
 
 tobj_dict = _tp.Union[thmm_dict, tmc_dict]
 oobj_dict = _tp.Optional[tobj_dict]

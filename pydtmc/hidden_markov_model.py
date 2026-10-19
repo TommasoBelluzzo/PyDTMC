@@ -276,8 +276,9 @@ class HiddenMarkovModel(_Model):
         """
 
         mc = _MarkovChain(self.p, self.states)
+        pi = mc.pi
 
-        return mc.pi
+        return pi
 
     @property
     def size(self) -> _tpair_int:

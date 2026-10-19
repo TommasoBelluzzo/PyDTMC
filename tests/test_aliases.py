@@ -126,7 +126,7 @@ def test_aliased_properties(p):
 
 def test_aliased_properties_caching():
 
-    from pydtmc import markov_chain as _mc_module
+    from pydtmc import _analysis as _analysis_module
     from unittest.mock import patch as _patch
 
     p = _np.array([[0.8, 0.2], [0.3, 0.7]])
@@ -139,7 +139,7 @@ def test_aliased_properties_caching():
 
         mc = _MarkovChain(p)
 
-        with _patch.object(_mc_module, '_gth_solve', wraps=_mc_module._gth_solve) as solve:
+        with _patch.object(_analysis_module, '_gth_solve', wraps=_analysis_module._gth_solve) as solve:
 
             actual = getattr(mc, first)
             expected = getattr(mc, second)

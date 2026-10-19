@@ -21,10 +21,13 @@ __all__ = [
     'mc_metastable_aggregation',
     'mc_population_genetics_model',
     'mc_random',
+    'mc_random_distribution',
+    'mc_reversibilize',
     'mc_spectral_aggregation_bottom_up',
     'mc_spectral_aggregation_top_down',
     'mc_sub',
     'mc_teleport',
+    'mc_time_reversal',
     'mc_urn_model'
 ]
 
@@ -44,6 +47,10 @@ import scipy.stats as _sps
 
 # Internal
 
+from ._analysis import (
+    mc_time_reversal as _time_reversal
+)
+
 from ._constants import (
     ETOL as _ETOL,
     FTOL as _FTOL
@@ -57,6 +64,7 @@ from ._custom_types import (
     thmm_gen as _thmm_gen,
     thmm_gen_ext as _thmm_gen_ext,
     thmm_params as _thmm_params,
+    tlist_array as _tlist_array,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
@@ -66,7 +74,8 @@ from ._custom_types import (
     tmc_gen_full as _tmc_gen_full,
     tnumeric as _tnumeric,
     tpath as _tpath,
-    trand as _trand
+    trand as _trand,
+    trandfunc_flex as _trandfunc_flex
 )
 
 from ._files_io import (
@@ -710,6 +719,20 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
     return p, state_names, None
 
 
+def mc_reversibilize(p: _tarray, recurrent_classes_indices: _tlists_int, pi: _tlist_array, method: str) -> _tarray:
+
+    pr = mc_time_reversal(p, recurrent_classes_indices, pi)
+
+    if method == 'additive':
+        result = 0.5 * (p + pr)
+    elif method == 'multiplicative':
+        result = _np.dot(p, pr)
+    else:
+        result = _np.dot(pr, p)
+
+    return result
+
+
 def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen_ext:
 
     def _calculate_q(cq_p, cq_pi, cq_phi):
@@ -948,6 +971,18 @@ def mc_teleport(p: _tarray, probability: float, distribution: _tarray) -> _tarra
     return p
 
 
+def mc_time_reversal(p: _tarray, recurrent_classes_indices: _tlists_int, pi: _tlist_array) -> _tarray:
+
+    size = p.shape[0]
+    pr = _np.zeros((size, size), dtype=float)
+
+    for indices, pi_i in zip(recurrent_classes_indices, pi):
+        p_slice = _np.ix_(indices, indices)
+        pr[p_slice] = _time_reversal(p[p_slice], pi_i[indices])
+
+    return pr
+
+
 # MC STATIC GENERATORS
 
 def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tmc_gen:
@@ -1170,7 +1205,7 @@ def mc_from_dictionary(d: _tmc_dict_flex) -> _tmc_gen_full:
     size = len(states)
 
     if size < 2:  # pragma: no cover
-        return None, None, 'The size of the transition matrix defined by the dictionary must be greater than or equal to 2.'
+        return None, None, 'The size of the transition matrix must be greater than or equal to 2.'
 
     p = _np.zeros((size, size), dtype=float)
 
@@ -1178,7 +1213,7 @@ def mc_from_dictionary(d: _tmc_dict_flex) -> _tmc_gen_full:
         p[states.index(state_from), states.index(state_to)] = probability
 
     if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
-        return None, None, 'The rows of the transition matrix defined by the dictionary must sum to 1.0.'
+        return None, None, 'The rows of the transition matrix must sum to 1.0.'
 
     return p, states, None
 
@@ -1194,46 +1229,28 @@ def mc_from_file(file_path: _tpath, file_extension: str) -> _tmc_gen_full:
     else:
         d = _read_xml(True, file_path)
 
-    states = [key[0] for key in d if key[0] == key[1]]
-    size = len(states)
+    p, states, error_message = mc_from_dictionary(d)
 
-    if size < 2:  # pragma: no cover
-        return None, None, 'The size of the transition matrix defined by the dictionary must be greater than or equal to 2.'
+    if error_message is not None:
+        return None, None, error_message
 
-    p = _np.zeros((size, size), dtype=float)
-
-    for (state_from, state_to), probability in d.items():
-        p[states.index(state_from), states.index(state_to)] = probability
-
-    if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
-        return None, None, 'The rows of the transition matrix defined by the file must sum to 1.0.'
-
-    return p, states, None
+    return p, states, error_message
 
 
 def mc_from_graph(graph: _tgraphs) -> _tmc_gen_ext:
 
     states = list(graph.nodes)
     size = len(states)
-    p = _np.zeros((size, size), dtype=float)
+    m = _np.zeros((size, size), dtype=float)
 
     edges = list(graph.edges(data='weight', default=0.0))
 
     for edge in edges:
         i = states.index(edge[0])
         j = states.index(edge[1])
-        p[i, j] = float(edge[2])
+        m[i, j] = float(edge[2])
 
-    p_sums = _np.sum(p, axis=1)
-
-    for i in range(size):
-
-        p_sums_i = p_sums[i]
-
-        if _np.isclose(p_sums_i, 0.0):  # pragma: no cover
-            p[i, :] = _np.ones(size, dtype=float) / size
-        else:
-            p[i, :] /= p_sums_i
+    p = mc_from_matrix(m)
 
     return p, states
 
@@ -1362,6 +1379,16 @@ def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_gen:
             p[i, assigned_columns] = p[i, assigned_columns] * ((1.0 - si) / s)
 
     return p, None
+
+
+def mc_random_distribution(size: int, f: _trandfunc_flex, kwargs: dict) -> _tarray:
+
+    p = f(size=(size, size), **kwargs).astype(float)
+    p = _np.clip(_np.nan_to_num(p, copy=False), 0.0, None)
+    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
+    p /= _np.sum(p, axis=1, keepdims=True)
+
+    return p
 
 
 def mc_urn_model(model: str, n: int) -> _tarray:

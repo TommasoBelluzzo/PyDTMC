@@ -33,7 +33,11 @@ from ._analysis import (
     mc_absorption_times as _absorption_times,
     mc_committor_probabilities as _committor_probabilities,
     mc_conductance as _conductance,
+    mc_dobrushin_coefficient as _dobrushin_coefficient,
+    mc_doeblin_coefficient as _doeblin_coefficient,
     mc_entropy_production_rate as _entropy_production_rate,
+    mc_entropy_rate as _entropy_rate,
+    mc_entropy_rate_normalized as _entropy_rate_normalized,
     mc_expected_rewards as _expected_rewards,
     mc_expected_transitions as _expected_transitions,
     mc_first_passage_reward as _first_passage_reward,
@@ -43,16 +47,24 @@ from ._analysis import (
     mc_global_conductance as _global_conductance,
     mc_hitting_probabilities as _hitting_probabilities,
     mc_hitting_times as _hitting_times,
+    mc_implied_timescales as _implied_timescales,
+    mc_is_absorbing as _is_absorbing,
+    mc_is_reversible as _is_reversible,
     mc_mean_number_visits as _mean_number_visits,
     mc_mixing_time as _mixing_time,
     mc_mixing_time_from as _mixing_time_from,
+    mc_ordinary_spectral_gap as _ordinary_spectral_gap,
     mc_quasi_stationary_distribution as _quasi_stationary_distribution,
+    mc_reaction_rate as _reaction_rate,
+    mc_reactive_density as _reactive_density,
+    mc_reactive_flux as _reactive_flux,
     mc_recurrence_times as _recurrence_times,
     mc_sensitivity as _sensitivity,
+    mc_stationary_distributions as _stationary_distributions,
     mc_stationary_perturbation_bound as _stationary_perturbation_bound,
     mc_time_correlations as _time_correlations,
     mc_time_relaxations as _time_relaxations,
-    mc_time_reversal as _time_reversal
+    mc_topological_entropy as _topological_entropy
 )
 
 from ._constants import (
@@ -66,6 +78,7 @@ from ._custom_types import (
     oint as _oint,
     ointerval as _ointerval,
     olist_str as _olist_str,
+    omc_osp as _omc_osp,
     onumeric as _onumeric,
     osequence as _osequence,
     ostate as _ostate,
@@ -149,19 +162,25 @@ from ._generators import (
     mc_metastable_aggregation as _metastable_aggregation,
     mc_population_genetics_model as _population_genetics_model,
     mc_random as _random,
+    mc_random_distribution as _random_distribution,
+    mc_reversibilize as _reversibilize,
     mc_spectral_aggregation_bottom_up as _spectral_aggregation_bottom_up,
     mc_spectral_aggregation_top_down as _spectral_aggregation_top_down,
     mc_sub as _sub,
     mc_teleport as _teleport,
+    mc_time_reversal as _time_reversal,
     mc_urn_model as _urn_model
 )
 
 from ._numerical import (
+    accessibility_matrix as _accessibility_matrix,
     calculate_periods as _calculate_periods,
-    eigenvalues_sorted as _eigenvalues_sorted,
+    communication_matrix as _communication_matrix,
+    density as _density,
     find_cyclic_classes as _find_cyclic_classes,
     find_lumping_partitions as _find_lumping_partitions,
-    gth_solve as _gth_solve,
+    incidence_matrix as _incidence_matrix,
+    is_stochastically_monotone as _is_stochastically_monotone,
     slem as _slem
 )
 
@@ -332,13 +351,6 @@ class MarkovChain(_Model):
         return indices
 
     @_cached_property
-    def __eigenvalues_sorted(self) -> _tarray:
-
-        ev = _eigenvalues_sorted(self.__p)
-
-        return ev
-
-    @_cached_property
     def __recurrent_classes_indices(self) -> _tlists_int:
 
         indices = [index for index in self.__classes_indices if index not in self.__transient_classes_indices]
@@ -440,13 +452,7 @@ class MarkovChain(_Model):
         - Every diagonal entry is 1, since each state is accessible from itself.
         """
 
-        am = self.adjacency_matrix.astype(bool)
-        _np.fill_diagonal(am, True)
-
-        for k in range(self.__size):
-            am |= am[:, [k]] & am[[k], :]
-
-        am = am.astype(int)
+        am = _accessibility_matrix(self.adjacency_matrix)
 
         return am
 
@@ -495,10 +501,7 @@ class MarkovChain(_Model):
         - The matrix is symmetric, with all diagonal entries equal to 1.
         """
 
-        cm = _np.zeros((self.__size, self.__size), dtype=int)
-
-        for index in self.__communicating_classes_indices:
-            cm[_np.ix_(index, index)] = 1
+        cm = _communication_matrix(self.__size, self.__communicating_classes_indices)
 
         return cm
 
@@ -547,12 +550,7 @@ class MarkovChain(_Model):
         - The density ranges from 0 to 1.
         """
 
-        am = _np.copy(self.adjacency_matrix)
-        am[_np.diag_indices_from(am)] = 0
-
-        e = float(_np.sum(am))
-        n = float(self.__size)
-        d = e / (n * (n - 1.0))
+        d = _density(self.adjacency_matrix)
 
         return d
 
@@ -600,11 +598,7 @@ class MarkovChain(_Model):
         | :math:`\delta(P) = \frac{1}{2}\max_{i,j}\sum_k |P_{ik} - P_{jk}|`
         """
 
-        dc = 0.0
-
-        for i in range(self.__size - 1):
-            distances = 0.5 * _np.sum(_np.abs(self.__p[i + 1:, :] - self.__p[i, :]), axis=1)
-            dc = max(dc, float(_np.max(distances)))
+        dc = _dobrushin_coefficient(self)
 
         return dc
 
@@ -622,7 +616,7 @@ class MarkovChain(_Model):
         - Equality does not necessarily hold.
         """
 
-        dc = float(_np.sum(_np.min(self.__p, axis=0)))
+        dc = _doeblin_coefficient(self)
 
         return dc
 
@@ -658,22 +652,7 @@ class MarkovChain(_Model):
         - If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:class:`None` is returned.
         """
 
-        if len(self.pi) > 1:
-            return None
-
-        p = self.__p
-
-        contributions = _np.zeros((self.__size, self.__size), dtype=float)
-        _np.log(p, out=contributions, where=p > 0.0)
-        contributions *= p
-
-        h = -float(_np.dot(self.pi[0], _np.sum(contributions, axis=1)))
-
-        if -_FTOL < h < 0.0:  # pragma: no cover
-            h = 0.0
-
-        if not _np.isfinite(h) or (h < 0.0):  # pragma: no cover
-            h = None
+        h = _entropy_rate(self)
 
         return h
 
@@ -693,18 +672,7 @@ class MarkovChain(_Model):
         - If the entropy rate cannot be computed, then :py:class:`None` is returned.
         """
 
-        h = self.entropy_rate
-
-        if h is None:
-            return None
-
-        ht = self.topological_entropy
-
-        if (h <= _FTOL) or (ht <= _FTOL):
-            hn = 0.0
-        else:
-            hn = h / ht
-            hn = min(1.0, max(0.0, hn))
+        hn = _entropy_rate_normalized(self)
 
         return hn
 
@@ -787,25 +755,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        if not self.is_irreducible:
-            return None
-
-        ev = self.__eigenvalues_sorted[::-1]
-
-        remaining = ev[1:]
-        timescales = _np.zeros(remaining.shape, dtype=float)
-
-        infinite_mask = _np.zeros(remaining.shape, dtype=bool)
-        infinite_mask[:self.period - 1] = True
-
-        zero_mask = (remaining <= _FTOL) & ~infinite_mask
-        finite_mask = ~(infinite_mask | zero_mask)
-
-        timescales[infinite_mask] = _np.inf
-        timescales[zero_mask] = 0.0
-        timescales[finite_mask] = -1.0 / _np.log1p(remaining[finite_mask] - 1.0)
-
-        it = _np.append(_np.inf, timescales)
+        it = _implied_timescales(self)
 
         return it
 
@@ -823,20 +773,7 @@ class MarkovChain(_Model):
         - The matrix includes all possible ordered pairs, independently of their transition probabilities.
         """
 
-        n = self.__size
-        k = n**2
-        im = _np.zeros((n, k), dtype=int)
-
-        us = _np.repeat(self.__states_indices, n)
-        vs = _np.tile(self.__states_indices, n)
-
-        for index, (u, v) in enumerate(zip(us, vs)):
-
-            if u == v:
-                continue
-
-            im[u, index] = 1
-            im[v, index] = 1
+        im = _incidence_matrix(self.__states_indices)
 
         return im
 
@@ -852,16 +789,9 @@ class MarkovChain(_Model):
         - An absorbing state has a self-transition probability equal to 1.
         """
 
-        if len(self.__absorbing_states_indices) == 0:
-            return False
+        ia = _is_absorbing(self.__digraph, self.__states, self.__absorbing_states_indices)
 
-        absorbing_states = [self.__states[index] for index in self.__absorbing_states_indices]
-        graph = self.__digraph.reverse(copy=False)
-
-        reachable = _nx.multi_source_dijkstra_path_length(graph, absorbing_states, weight='weight')
-        result = len(reachable) == self.__size
-
-        return result
+        return ia
 
     @_cached_property
     def is_aperiodic(self) -> bool:
@@ -963,17 +893,9 @@ class MarkovChain(_Model):
         - For **reducible** chains, detailed balance is checked independently within each recurrent class.
         """
 
-        for indices in self.__recurrent_classes_indices:
+        ir = _is_reversible(self, self.__recurrent_classes_indices)
 
-            p = self.__p[_np.ix_(indices, indices)]
-            pi = _gth_solve(p)
-
-            flow = pi[:, _np.newaxis] * p
-
-            if _np.max(_np.abs(flow - _np.transpose(flow))) > _FTOL:
-                return False
-
-        return True
+        return ir
 
     @_cached_property
     @_object_mark(aliases=['is_monotone'])
@@ -989,10 +911,9 @@ class MarkovChain(_Model):
         - The property can also be accessed through the alias **is_monotone**.
         """
 
-        cumulative = _np.cumsum(self.__p[:, ::-1], axis=1)[:, ::-1]
-        result = bool(_np.all(_np.diff(cumulative[:, 1:], axis=0) >= 0.0))
+        ism = _is_stochastically_monotone(self.__p)
 
-        return result
+        return ism
 
     @_cached_property
     def is_symmetric(self) -> bool:
@@ -1157,7 +1078,7 @@ class MarkovChain(_Model):
         return kc
 
     @_cached_property
-    def ordinary_spectral_gap(self) -> _tany:
+    def ordinary_spectral_gap(self) -> _omc_osp:
 
         r"""
         | A property representing the ordinary spectral gap of the Markov chain, together with its Cheeger bounds:
@@ -1175,27 +1096,12 @@ class MarkovChain(_Model):
         - If the Markov chain is not both **irreducible** and **reversible**, then :py:class:`None` is returned.
         """
 
-        if (not self.is_irreducible) or (not self.is_reversible):
+        osp = _ordinary_spectral_gap(self)
+
+        if osp is None:
             return None
 
-        pi = self.pi[0]
-        w = _np.sqrt(pi)
-
-        pw = (w[:, _np.newaxis] * self.__p) / w[_np.newaxis, :]
-        pw = 0.5 * (pw + _np.transpose(pw))
-
-        evalues = _npl.eigvalsh(pw)
-        sg = 1.0 - float(evalues[-2])
-
-        if -_FTOL < sg < 0.0:  # pragma: no cover
-            sg = 0.0
-
-        gc = self.global_conductance
-
-        if self.__size <= 12:
-            cb = [0.5 * gc ** 2.0, 2.0 * gc]
-        else:  # pragma: no cover
-            cb = [0.0, 2.0 * gc]
+        sg, cb = osp
 
         return sg, cb
 
@@ -1263,17 +1169,7 @@ class MarkovChain(_Model):
         - The property can also be accessed through the aliases **stationary_distributions** and **steady_states**.
         """
 
-        if self.is_irreducible:
-            s = _np.reshape(_gth_solve(self.__p), (1, self.__size))
-        else:
-
-            s = _np.zeros((len(self.recurrent_classes), self.__size), dtype=float)
-
-            for index, indices in enumerate(self.__recurrent_classes_indices):
-                pr = self.__p[_np.ix_(indices, indices)]
-                s[index, indices] = _gth_solve(pr)
-
-        pi = [s[i, :] for i in range(s.shape[0])]
+        pi = _stationary_distributions(self, self.__recurrent_classes_indices)
 
         return pi
 
@@ -1409,11 +1305,7 @@ class MarkovChain(_Model):
         - The entropy depends on the possible transitions rather than their probabilities.
         """
 
-        ev = _eigenvalues_sorted(self.adjacency_matrix)
-        ht = float(_np.log(ev[-1]))
-
-        if ht < _FTOL:  # pylint: disable=no-member
-            ht = 0.0
+        ht = _topological_entropy(self)
 
         return ht
 
@@ -2474,6 +2366,42 @@ class MarkovChain(_Model):
 
         return value
 
+    def reaction_rate(self, states1: _tstates, states2: _tstates) -> _ofloat:
+
+        r"""
+        | The method computes the reaction rate between two disjoint subsets of the state space:
+        | :math:`k_{S_1 S_2} = \sum_{i \in S_1}\sum_j f_{ij}` where:
+
+        - :math:`S_1` and :math:`S_2` are the first and second subsets of states, respectively;
+        - :math:`f_{ij}` is the reactive flux from state :math:`i` to state :math:`j`, without net-flow adjustment.
+
+        | **Notes:**
+
+        - The reaction rate represents the expected number of reactive departures from the first subset toward the second per time step in stationarity.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+
+        :param states1: the first subset of the state space.
+        :param states2: the second subset of the state space.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            states1 = _validate_labels_current(states1, self.__states, True)
+            states2 = _validate_labels_current(states2, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        intersection = _np.intersect1d(states1, states2)
+
+        if len(intersection) > 0:  # pragma: no cover
+            raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
+
+        rr = _reaction_rate(self, states1, states2)
+
+        return rr
+
     def reactive_density(self, states1: _tstates, states2: _tstates) -> _oarray:
 
         r"""
@@ -2508,12 +2436,7 @@ class MarkovChain(_Model):
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
-        if not self.is_irreducible:
-            return None
-
-        q_forward = _committor_probabilities(self, 'forward', states1, states2)
-        q_backward = _committor_probabilities(self, 'backward', states1, states2)
-        rd = self.pi[0] * q_backward * q_forward
+        rd = _reactive_density(self, states1, states2)
 
         return rd
 
@@ -2552,60 +2475,9 @@ class MarkovChain(_Model):
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
-        if not self.is_irreducible:
-            return None
-
-        q_forward = _committor_probabilities(self, 'forward', states1, states2)
-        q_backward = _committor_probabilities(self, 'backward', states1, states2)
-        rf = self.stationary_flux[0] * q_backward[:, _np.newaxis] * q_forward[_np.newaxis, :]
-
-        if net:
-            rf = _np.maximum(rf - _np.transpose(rf), 0.0)
+        rf = _reactive_flux(self, states1, states2, net)
 
         return rf
-
-    def reaction_rate(self, states1: _tstates, states2: _tstates) -> _ofloat:
-
-        r"""
-        | The method computes the reaction rate between two disjoint subsets of the state space:
-        | :math:`k_{S_1 S_2} = \sum_{i \in S_1}\sum_j f_{ij}` where:
-
-        - :math:`S_1` and :math:`S_2` are the first and second subsets of states, respectively;
-        - :math:`f_{ij}` is the reactive flux from state :math:`i` to state :math:`j`, without net-flow adjustment.
-
-        | **Notes:**
-
-        - The reaction rate represents the expected number of reactive departures from the first subset toward the second per time step in stationarity.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
-
-        :param states1: the first subset of the state space.
-        :param states2: the second subset of the state space.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            states1 = _validate_labels_current(states1, self.__states, True)
-            states2 = _validate_labels_current(states2, self.__states, True)
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
-
-        intersection = _np.intersect1d(states1, states2)
-
-        if len(intersection) > 0:  # pragma: no cover
-            raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
-
-        if not self.is_irreducible:
-            return None
-
-        q_forward = _committor_probabilities(self, 'forward', states1, states2)
-        q_backward = _committor_probabilities(self, 'backward', states1, states2)
-
-        rf = self.stationary_flux[0] * q_backward[:, _np.newaxis] * q_forward[_np.newaxis, :]
-        rr = float(_np.sum(rf[states1, :]))
-
-        return rr
 
     @_cached_method
     @_object_mark(aliases=['rt'])
@@ -2637,7 +2509,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        return _recurrence_times(self, statistic)
+        rt = _recurrence_times(self, statistic)
+
+        return rt
 
     def redistribute(self, steps: int, initial_status: _ostatus = None, output_last: bool = True) -> _tredists:
 
@@ -2702,17 +2576,8 @@ class MarkovChain(_Model):
         if len(self.transient_states) > 0:  # pragma: no cover
             raise ValueError('The Markov chain has transient states and its stationary time reversal is not defined.')
 
-        p = self.__p
-        pr = self.time_reversal().p
-
-        if method == 'additive':
-            result = 0.5 * (p + pr)
-        elif method == 'multiplicative':
-            result = _np.dot(p, pr)
-        else:
-            result = _np.dot(pr, p)
-
-        mc = MarkovChain(result, self.__states)
+        p_out = _reversibilize(self.__p, self.__recurrent_classes_indices, self.pi, method)
+        mc = MarkovChain(p_out, self.__states)
 
         return mc
 
@@ -3017,13 +2882,8 @@ class MarkovChain(_Model):
         if len(self.transient_states) > 0:  # pragma: no cover
             raise ValueError('The Markov chain has transient states and its stationary time reversal is not defined.')
 
-        p = _np.zeros((self.__size, self.__size), dtype=float)
-
-        for indices, pi in zip(self.__recurrent_classes_indices, self.pi):
-            p_slice = _np.ix_(indices, indices)
-            p[p_slice] = _time_reversal(self.__p[p_slice], pi[indices])
-
-        mc = MarkovChain(p, self.__states)
+        p_out = _time_reversal(self.__p, self.__recurrent_classes_indices, self.pi)
+        mc = MarkovChain(p_out, self.__states)
 
         return mc
 
@@ -3863,12 +3723,8 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p = f(size=(size, size), **kwargs).astype(float)
-        p = _np.clip(_np.nan_to_num(p, copy=False), 0.0, None)
-        p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[1], dtype=float)
-        p /= _np.sum(p, axis=1, keepdims=True)
-
-        mc = MarkovChain(p, states)
+        p_out = _random_distribution(size, f, kwargs)
+        mc = MarkovChain(p_out, states)
 
         return mc
 

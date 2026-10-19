@@ -6,7 +6,11 @@ __all__ = [
     'mc_absorption_times',
     'mc_committor_probabilities',
     'mc_conductance',
+    'mc_dobrushin_coefficient',
+    'mc_doeblin_coefficient',
     'mc_entropy_production_rate',
+    'mc_entropy_rate',
+    'mc_entropy_rate_normalized',
     'mc_expected_rewards',
     'mc_expected_transitions',
     'mc_first_passage_probabilities',
@@ -16,16 +20,25 @@ __all__ = [
     'mc_global_conductance',
     'mc_hitting_probabilities',
     'mc_hitting_times',
+    'mc_implied_timescales',
+    'mc_is_absorbing',
+    'mc_is_reversible',
     'mc_mean_number_visits',
     'mc_mixing_time',
     'mc_mixing_time_from',
+    'mc_ordinary_spectral_gap',
     'mc_quasi_stationary_distribution',
+    'mc_reaction_rate',
+    'mc_reactive_density',
+    'mc_reactive_flux',
     'mc_recurrence_times',
     'mc_sensitivity',
+    'mc_stationary_distributions',
     'mc_stationary_perturbation_bound',
     'mc_time_correlations',
     'mc_time_relaxations',
-    'mc_time_reversal'
+    'mc_time_reversal',
+    'mc_topological_entropy'
 ]
 
 
@@ -45,6 +58,10 @@ import numpy.linalg as _npl
 
 # Internal
 
+from ._numerical import (
+    gth_solve as _gth_solve
+)
+
 from ._constants import (
     FTOL as _FTOL
 )
@@ -55,15 +72,24 @@ from ._custom_types import (
     ofloat as _ofloat,
     oint as _oint,
     olist_int as _olist_int,
+    omc_osp as _omc_osp,
     osequence as _osequence,
     otimes_out as _otimes_out,
     tany as _tany,
     tarray as _tarray,
+    tgraph as _tgraph,
     tmc as _tmc,
+    tlist_array as _tlist_array,
     tlist_float as _tlist_float,
     tlist_int as _tlist_int,
+    tlist_str as _tlist_str,
+    tlists_int as _tlists_int,
     tsequence as _tsequence,
     ttimes_in as _ttimes_in
+)
+
+from ._numerical import (
+    eigenvalues_sorted as _eigenvalues_sorted
 )
 
 
@@ -455,243 +481,239 @@ def mc_hitting_times(mc: _tmc, statistic: str, targets: _tlist_int) -> _tarray:
     return variance
 
 
-# RECURRENCE & EXPECTATIONS
+def mc_is_absorbing(graph: _tgraph, states: _tlist_str, absorbing_states_indices: _tlist_int) -> bool:
 
-def mc_expected_rewards(mc: _tmc, steps: int, rewards: _tarray) -> _tany:
+    if len(absorbing_states_indices) == 0:
+        return False
+
+    absorbing_states = [states[index] for index in absorbing_states_indices]
+    graph = graph.reverse(copy=False)
+
+    reachable = _nx.multi_source_dijkstra_path_length(graph, absorbing_states, weight='weight')
+    result = len(reachable) == len(states)
+
+    return result
+
+
+def mc_reaction_rate(mc: _tmc, states1: _tlist_int, states2: _tlist_int) -> _ofloat:
+
+    if not mc.is_irreducible:
+        return None
+
+    rf = mc_reactive_flux(mc, states1, states2, False)
+    rr = float(_np.sum(rf[states1, :]))
+
+    return rr
+
+
+def mc_reactive_density(mc: _tmc, states1: _tlist_int, states2: _tlist_int) -> _oarray:
+
+    if not mc.is_irreducible:
+        return None
+
+    q_forward = mc_committor_probabilities(mc, 'forward', states1, states2)
+    q_backward = mc_committor_probabilities(mc, 'backward', states1, states2)
+    rd = mc.pi[0] * q_backward * q_forward
+
+    return rd
+
+
+def mc_reactive_flux(mc: _tmc, states1: _tlist_int, states2: _tlist_int, net: bool) -> _oarray:
+
+    if not mc.is_irreducible:
+        return None
+
+    q_forward = mc_committor_probabilities(mc, 'forward', states1, states2)
+    q_backward = mc_committor_probabilities(mc, 'backward', states1, states2)
+
+    rf = mc.stationary_flux[0] * q_backward[:, _np.newaxis] * q_forward[_np.newaxis, :]
+
+    if net:
+        rf = _np.maximum(rf - _np.transpose(rf), 0.0)
+
+    return rf
+
+
+# CONDUCTANCE & ENTROPY
+
+def mc_conductance(mc: _tmc, states: _tlist_int) -> _ofloat:
+
+    if not mc.is_irreducible:
+        return None
+
+    complement = _np.ones(mc.size, dtype=bool)
+    complement[states] = False
+
+    pi = mc.pi[0]
+    sf = mc.stationary_flux[0]
+
+    value = float(_np.sum(sf[_np.ix_(states, complement)]) / _np.sum(pi[states]))
+
+    return value
+
+
+def mc_entropy_rate(mc: _tmc) -> _ofloat:
+
+    if len(mc.pi) > 1:
+        return None
 
     p = mc.p
 
-    original_rewards = _np.copy(rewards)
-    er = _np.copy(rewards)
+    contributions = _np.zeros((mc.size, mc.size), dtype=float)
+    _np.log(p, out=contributions, where=p > 0.0)
+    contributions *= p
 
-    for _ in range(steps):
-        er = original_rewards + _np.dot(p, er)
+    h = -float(_np.dot(mc.pi[0], _np.sum(contributions, axis=1)))
 
-    return er
+    if -_FTOL < h < 0.0:  # pragma: no cover
+        h = 0.0
 
+    if not _np.isfinite(h) or (h < 0.0):  # pragma: no cover
+        h = None
 
-def mc_expected_transitions(mc: _tmc, steps: int, initial_distribution: _tarray) -> _tarray:
-
-    p = mc.p
-
-    idist = _np.copy(initial_distribution)
-    idist_sum = _np.zeros_like(idist)
-
-    for _ in range(steps):
-        idist_sum += idist
-        idist = _np.dot(idist, p)
-
-    et = idist_sum[:, _np.newaxis] * p
-
-    return et
+    return h
 
 
-def mc_mean_number_visits(mc: _tmc) -> _oarray:
+def mc_entropy_rate_normalized(mc: _tmc) -> _ofloat:
 
-    p, size, states = mc.p, mc.size, mc.states
+    h = mc.entropy_rate
 
-    states_indices = {state: index for index, state in enumerate(states)}
-    transient_indices = [states_indices[state] for state in mc.transient_states]
-    recurrent_indices = [states_indices[state] for state in mc.recurrent_states]
+    if h is None:
+        return None
 
-    mnv = _np.zeros((size, size), dtype=float)
+    ht = mc.topological_entropy
 
-    if len(transient_indices) > 0:
+    if (h <= _FTOL) or (ht <= _FTOL):
+        hn = 0.0
+    else:
+        hn = h / ht
+        hn = min(1.0, max(0.0, hn))
 
-        q = p[_np.ix_(transient_indices, transient_indices)]
-        i = _np.eye(len(transient_indices), dtype=float)
-        n = _npl.solve(i - q, i) - i
-
-        mnv[_np.ix_(transient_indices, transient_indices)] = n
-
-    if len(recurrent_indices) > 0:
-
-        accessible = mc.accessibility_matrix[:, recurrent_indices] != 0
-        mnv[:, recurrent_indices] = _np.where(accessible, _np.inf, 0.0)
-
-    return mnv
+    return hn
 
 
-def mc_recurrence_times(mc: _tmc, statistic: str) -> _tarray:
+def mc_global_conductance(mc: _tmc) -> _ofloat:
 
-    if statistic == 'mean':
+    if not mc.is_irreducible:
+        return None
 
-        mean = _np.full(mc.size, _np.inf, dtype=float)
+    size, pi, sf = mc.size, mc.pi[0], mc.stationary_flux[0]
 
-        for pi in mc.pi:
-            mask = pi > 0.0
-            mean[mask] = 1.0 / pi[mask]
+    gc = float('inf')
 
-        return mean
+    if size <= 12:
 
-    p, states = mc.p, mc.states
-    states_indices = {state: index for index, state in enumerate(states)}
+        for i in range(1, size):
+            for c in _it.combinations(range(size), i):
 
-    variance = _np.full(mc.size, _np.nan, dtype=float)
+                states = list(c)
 
-    for recurrent_class in mc.recurrent_classes:
+                mass = _np.sum(pi[states])
 
-        recurrent_indices = [states_indices[state] for state in recurrent_class]
+                if mass > (0.5 + _FTOL):
+                    continue
 
-        for target in recurrent_indices:
+                complement = _np.ones(size, dtype=bool)
+                complement[states] = False
 
-            other = [index for index in recurrent_indices if index != target]
+                flow = _np.sum(sf[_np.ix_(states, complement)])
+                conductance = flow / mass
 
-            if len(other) == 0:
-                variance[target] = 0.0
+                gc = min(gc, float(conductance))
+
+    else:
+
+        flow = 0.5 * (sf + _np.transpose(sf))
+        pi_root = _np.sqrt(pi)
+        normalized = flow / _np.outer(pi_root, pi_root)
+
+        laplacian = _np.eye(size) - normalized
+        _, eigenvectors = _npl.eigh(laplacian)
+
+        fiedler = eigenvectors[:, 1] / pi_root
+        order = _np.argsort(fiedler, kind='stable')
+
+        candidates = [[i] for i in range(size)]
+
+        for ordering in (order, order[::-1]):
+            for count in range(1, size):
+                candidates.append(ordering[:count])
+
+        for states in candidates:
+
+            mass = _np.sum(pi[states])
+
+            if mass > (0.5 + _FTOL):
                 continue
 
-            probabilities = p[target, other]
+            complement = _np.ones(size, dtype=bool)
+            complement[states] = False
 
-            a = _np.eye(len(other)) - p[_np.ix_(other, other)]
-            b = _np.ones(len(other), dtype=float)
-            mean = _npl.solve(a, b)
+            cut = _np.sum(sf[_np.ix_(states, complement)])
+            conductance = cut / mass
 
-            second_moment = _npl.solve(a, (2.0 * mean) - b)
+            gc = min(gc, float(conductance))
 
-            mean_return = 1.0 + _np.dot(probabilities, mean)
-            second_moment_return = 1.0 + (2.0 * _np.dot(probabilities, mean)) + _np.dot(probabilities, second_moment)
-
-            variance[target] = _clean_variance(second_moment_return - mean_return**2.0)
-
-    return variance
+    return gc
 
 
-# STATIONARY & ASYMPTOTIC ANALYSIS
+def mc_entropy_production_rate(mc: _tmc) -> _tlist_float:
 
-def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=too-many-return-statements
+    indices = _np.triu_indices(mc.size, k=1)
 
-    p, size, states = mc.p, mc.size, mc.states
-    transient_indices = [states.index(state) for state in mc.transient_states]
+    epr = []
 
-    if len(transient_indices) == 0:
-        return None
+    for sf in mc.stationary_flux:
 
-    q = p[_np.ix_(transient_indices, transient_indices)]
+        forward = sf[indices]
+        backward = _np.transpose(sf)[indices]
 
-    graph = _nx.from_numpy_array((q > 0.0).astype(int), create_using=_nx.DiGraph)
-    classes = list(_nx.strongly_connected_components(graph))
-    component_of = {state: index for index, component in enumerate(classes) for state in component}
+        if _np.any((forward == 0.0) != (backward == 0.0)):
+            rate = float('inf')
+        else:
 
-    dag = _nx.DiGraph()
-    dag.add_nodes_from(range(len(classes)))
-    dag.add_edges_from(
-        (component_of[i], component_of[j])
-        for i, j in graph.edges
-        if component_of[i] != component_of[j]
-    )
+            mask = (forward > 0.0) & (backward > 0.0)
 
-    radii = []
+            current = forward[mask] - backward[mask]
+            affinity = _np.log(forward[mask]) - _np.log(backward[mask])
 
-    for component in classes:
-        indices = sorted(component)
-        evalues = _npl.eigvals(q[_np.ix_(indices, indices)])
-        radii.append(float(_np.max(_np.abs(evalues))))
+            rate = float(_np.sum(current * affinity))
 
-    distinguished = []
+        epr.append(rate)
 
-    for index, radius in enumerate(radii):
-
-        if radius <= _FTOL:
-            continue
-
-        descendants = _nx.descendants(dag, index)
-
-        if any(0.0 < abs(radius - radii[j]) <= _FTOL for j in descendants):  # pragma: no cover
-            return None
-
-        if all(radius > radii[j] for j in descendants):  # pragma: no cover
-            distinguished.append(index)
-
-    if len(distinguished) != 1:
-        return None
-
-    evalues, evectors = _npl.eig(_np.transpose(q))
-    survival = radii[distinguished[0]]
-    index = _np.argmin(_np.abs(evalues - survival))
-    evalue, evector = evalues[index], evectors[:, index]
-
-    if (_np.abs(evalue.imag) > _FTOL) or (_np.abs(evalue.real - survival) > _FTOL) or (_np.max(_np.abs(evector.imag)) > _FTOL):  # pragma: no cover
-        return None
-
-    evector = evector.real
-
-    if _np.sum(evector) < 0.0:
-        evector = -evector
-
-    if (_np.sum(evector) <= _FTOL) or (_np.min(evector) < -_FTOL):  # pragma: no cover
-        return None
-
-    evector = _np.maximum(evector, 0.0)
-    evector /= evector.sum()
-
-    actual_survival = float(_np.sum(_np.dot(evector, q)))
-
-    if not (0.0 < actual_survival < 1.0) or (not _np.allclose(evector @ q, actual_survival * evector, rtol=_FTOL, atol=_FTOL)):  # pragma: no cover
-        return None
-
-    nu = _np.zeros(size, dtype=float)
-    nu[transient_indices] = evector
-
-    return nu
+    return epr
 
 
-def mc_sensitivity(mc: _tmc, state: int) -> _oarray:
+def mc_topological_entropy(mc: _tmc) -> float:
 
-    if not mc.is_irreducible:
-        return None
+    ev = _eigenvalues_sorted(mc.adjacency_matrix)
+    ht = float(_np.log(ev[-1]))
 
-    p, size, pi = mc.p, mc.size, mc.pi[0]
+    if ht < _FTOL:  # pragma: no cover
+        ht = 0.0
 
-    lev = _np.ones(size, dtype=float)
-    rev = pi
-
-    a = _np.transpose(p) - _np.eye(size)
-    a = _np.transpose(_np.concatenate((a, [lev])))
-
-    b = _np.zeros(size, dtype=float)
-    b[state] = 1.0
-
-    phi = _npl.lstsq(a, b, rcond=-1)
-    phi = _np.delete(phi[0], -1)
-
-    s = -_np.outer(rev, phi) + (_np.dot(phi, rev) * _np.outer(rev, lev))
-
-    return s
+    return ht
 
 
-def mc_stationary_perturbation_bound(mc: _tmc, epsilon: float) -> _ofloat:
+# CONTRACTION
 
-    if not mc.is_irreducible:
-        return None
+def mc_dobrushin_coefficient(mc: _tmc) -> float:
 
-    p, size, pi = mc.p, mc.size, mc.pi[0]
+    p = mc.p
+    dc = 0.0
 
-    a = (_np.eye(size) - p) + _np.outer(_np.ones(size, dtype=float), pi)
-    z = _npl.solve(a, _np.eye(size))
+    for i in range(mc.size - 1):
+        distances = 0.5 * _np.sum(_np.abs(p[i + 1:, :] - p[i, :]), axis=1)
+        dc = max(dc, float(_np.max(distances)))
 
-    differences = z[:, _np.newaxis, :] - z[_np.newaxis, :, :]
-    coefficient = 0.5 * _np.max(_np.sum(_np.abs(differences), axis=2))
-
-    spb = epsilon * coefficient
-
-    differences = p[:, _np.newaxis, :] - p[_np.newaxis, :, :]
-    contraction = 0.5 * _np.max(_np.sum(_np.abs(differences), axis=2))
-
-    if contraction < 1.0:
-        spb = min(spb, epsilon / (1.0 - contraction))
-
-    spb = min(1.0, float(spb))
-
-    return spb
+    return dc
 
 
-def mc_time_reversal(p: _tarray, pi: _tarray) -> _tarray:
+def mc_doeblin_coefficient(mc: _tmc) -> float:
 
-    pr = _np.transpose(p) * pi[_np.newaxis, :]
-    pr /= pi[:, _np.newaxis]
+    dc = float(_np.sum(_np.min(mc.p, axis=0)))
 
-    return pr
+    return dc
 
 
 # MIXING & TEMPORAL ANALYSIS
@@ -901,111 +923,328 @@ def mc_time_relaxations(mc: _tmc, sequence: _tsequence, initial_distribution: _t
     return trs
 
 
-# CONDUCTANCE & ENTROPY
+# RECURRENCE & EXPECTATIONS
 
-def mc_conductance(mc: _tmc, states: _tlist_int) -> _ofloat:
+def mc_expected_rewards(mc: _tmc, steps: int, rewards: _tarray) -> _tany:
 
-    if not mc.is_irreducible:
-        return None
+    p = mc.p
 
-    complement = _np.ones(mc.size, dtype=bool)
-    complement[states] = False
+    original_rewards = _np.copy(rewards)
+    er = _np.copy(rewards)
 
-    pi = mc.pi[0]
-    sf = mc.stationary_flux[0]
+    for _ in range(steps):
+        er = original_rewards + _np.dot(p, er)
 
-    value = float(_np.sum(sf[_np.ix_(states, complement)]) / _np.sum(pi[states]))
-
-    return value
+    return er
 
 
-def mc_global_conductance(mc: _tmc) -> _ofloat:
+def mc_expected_transitions(mc: _tmc, steps: int, initial_distribution: _tarray) -> _tarray:
 
-    if not mc.is_irreducible:
-        return None
+    p = mc.p
 
-    size, pi, sf = mc.size, mc.pi[0], mc.stationary_flux[0]
+    idist = _np.copy(initial_distribution)
+    idist_sum = _np.zeros_like(idist)
 
-    gc = float('inf')
+    for _ in range(steps):
+        idist_sum += idist
+        idist = _np.dot(idist, p)
 
-    if size <= 12:
+    et = idist_sum[:, _np.newaxis] * p
 
-        for i in range(1, size):
-            for c in _it.combinations(range(size), i):
+    return et
 
-                states = list(c)
 
-                mass = _np.sum(pi[states])
+def mc_mean_number_visits(mc: _tmc) -> _oarray:
 
-                if mass > (0.5 + _FTOL):
-                    continue
+    p, size, states = mc.p, mc.size, mc.states
 
-                complement = _np.ones(size, dtype=bool)
-                complement[states] = False
+    states_indices = {state: index for index, state in enumerate(states)}
+    transient_indices = [states_indices[state] for state in mc.transient_states]
+    recurrent_indices = [states_indices[state] for state in mc.recurrent_states]
 
-                flow = _np.sum(sf[_np.ix_(states, complement)])
-                conductance = flow / mass
+    mnv = _np.zeros((size, size), dtype=float)
 
-                gc = min(gc, float(conductance))
+    if len(transient_indices) > 0:
 
-    else:
+        q = p[_np.ix_(transient_indices, transient_indices)]
+        i = _np.eye(len(transient_indices), dtype=float)
+        n = _npl.solve(i - q, i) - i
 
-        flow = 0.5 * (sf + _np.transpose(sf))
-        pi_root = _np.sqrt(pi)
-        normalized = flow / _np.outer(pi_root, pi_root)
+        mnv[_np.ix_(transient_indices, transient_indices)] = n
 
-        laplacian = _np.eye(size) - normalized
-        _, eigenvectors = _npl.eigh(laplacian)
+    if len(recurrent_indices) > 0:
 
-        fiedler = eigenvectors[:, 1] / pi_root
-        order = _np.argsort(fiedler, kind='stable')
+        accessible = mc.accessibility_matrix[:, recurrent_indices] != 0
+        mnv[:, recurrent_indices] = _np.where(accessible, _np.inf, 0.0)
 
-        candidates = [[i] for i in range(size)]
+    return mnv
 
-        for ordering in (order, order[::-1]):
-            for count in range(1, size):
-                candidates.append(ordering[:count])
 
-        for states in candidates:
+def mc_recurrence_times(mc: _tmc, statistic: str) -> _tarray:
 
-            mass = _np.sum(pi[states])
+    if statistic == 'mean':
 
-            if mass > (0.5 + _FTOL):
+        mean = _np.full(mc.size, _np.inf, dtype=float)
+
+        for pi in mc.pi:
+            mask = pi > 0.0
+            mean[mask] = 1.0 / pi[mask]
+
+        return mean
+
+    p, states = mc.p, mc.states
+    states_indices = {state: index for index, state in enumerate(states)}
+
+    variance = _np.full(mc.size, _np.nan, dtype=float)
+
+    for recurrent_class in mc.recurrent_classes:
+
+        recurrent_indices = [states_indices[state] for state in recurrent_class]
+
+        for target in recurrent_indices:
+
+            other = [index for index in recurrent_indices if index != target]
+
+            if len(other) == 0:
+                variance[target] = 0.0
                 continue
 
-            complement = _np.ones(size, dtype=bool)
-            complement[states] = False
+            probabilities = p[target, other]
 
-            cut = _np.sum(sf[_np.ix_(states, complement)])
-            conductance = cut / mass
+            a = _np.eye(len(other)) - p[_np.ix_(other, other)]
+            b = _np.ones(len(other), dtype=float)
+            mean = _npl.solve(a, b)
 
-            gc = min(gc, float(conductance))
+            second_moment = _npl.solve(a, (2.0 * mean) - b)
 
-    return gc
+            mean_return = 1.0 + _np.dot(probabilities, mean)
+            second_moment_return = 1.0 + (2.0 * _np.dot(probabilities, mean)) + _np.dot(probabilities, second_moment)
+
+            variance[target] = _clean_variance(second_moment_return - mean_return**2.0)
+
+    return variance
 
 
-def mc_entropy_production_rate(mc: _tmc) -> _tlist_float:
+# STATIONARY & ASYMPTOTIC ANALYSIS
 
-    indices = _np.triu_indices(mc.size, k=1)
+def mc_implied_timescales(mc: _tmc) -> _oarray:
 
-    epr = []
+    if not mc.is_irreducible:
+        return None
 
-    for sf in mc.stationary_flux:
+    ev = _eigenvalues_sorted(mc.p)[::-1]
 
-        forward = sf[indices]
-        backward = _np.transpose(sf)[indices]
+    remaining = ev[1:]
+    timescales = _np.zeros(remaining.shape, dtype=float)
 
-        if _np.any((forward == 0.0) != (backward == 0.0)):
-            rate = float('inf')
-        else:
+    infinite_mask = _np.zeros(remaining.shape, dtype=bool)
+    infinite_mask[:mc.period - 1] = True
 
-            mask = (forward > 0.0) & (backward > 0.0)
+    zero_mask = (remaining <= _FTOL) & ~infinite_mask
+    finite_mask = ~(infinite_mask | zero_mask)
 
-            current = forward[mask] - backward[mask]
-            affinity = _np.log(forward[mask]) - _np.log(backward[mask])
+    timescales[infinite_mask] = _np.inf
+    timescales[zero_mask] = 0.0
+    timescales[finite_mask] = -1.0 / _np.log1p(remaining[finite_mask] - 1.0)
 
-            rate = float(_np.sum(current * affinity))
+    it = _np.append(_np.inf, timescales)
 
-        epr.append(rate)
+    return it
 
-    return epr
+
+def mc_is_reversible(mc: _tmc, recurrent_classes_indices: _tlists_int) -> bool:
+
+    p = mc.p
+
+    for indices in recurrent_classes_indices:
+
+        pr = p[_np.ix_(indices, indices)]
+        pi = _gth_solve(pr)
+
+        flow = pi[:, _np.newaxis] * pr
+
+        if _np.max(_np.abs(flow - _np.transpose(flow))) > _FTOL:
+            return False
+
+    return True
+
+
+def mc_ordinary_spectral_gap(mc: _tmc) -> _omc_osp:
+
+    if (not mc.is_irreducible) or (not mc.is_reversible):
+        return None
+
+    pi = mc.pi[0]
+    w = _np.sqrt(pi)
+
+    pw = (w[:, _np.newaxis] * mc.p) / w[_np.newaxis, :]
+    pw = 0.5 * (pw + _np.transpose(pw))
+
+    evalues = _npl.eigvalsh(pw)
+    sg = 1.0 - float(evalues[-2])
+
+    if -_FTOL < sg < 0.0:  # pragma: no cover
+        sg = 0.0
+
+    gc = mc.global_conductance
+
+    if mc.size <= 12:
+        cb = (0.5 * gc ** 2.0, 2.0 * gc)
+    else:  # pragma: no cover
+        cb = (0.0, 2.0 * gc)
+
+    return sg, cb
+
+
+def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=too-many-return-statements
+
+    p, size, states = mc.p, mc.size, mc.states
+    transient_indices = [states.index(state) for state in mc.transient_states]
+
+    if len(transient_indices) == 0:
+        return None
+
+    q = p[_np.ix_(transient_indices, transient_indices)]
+
+    graph = _nx.from_numpy_array((q > 0.0).astype(int), create_using=_nx.DiGraph)
+    classes = list(_nx.strongly_connected_components(graph))
+    component_of = {state: index for index, component in enumerate(classes) for state in component}
+
+    dag = _nx.DiGraph()
+    dag.add_nodes_from(range(len(classes)))
+    dag.add_edges_from(
+        (component_of[i], component_of[j])
+        for i, j in graph.edges
+        if component_of[i] != component_of[j]
+    )
+
+    radii = []
+
+    for component in classes:
+        indices = sorted(component)
+        evalues = _npl.eigvals(q[_np.ix_(indices, indices)])
+        radii.append(float(_np.max(_np.abs(evalues))))
+
+    distinguished = []
+
+    for index, radius in enumerate(radii):
+
+        if radius <= _FTOL:
+            continue
+
+        descendants = _nx.descendants(dag, index)
+
+        if any(0.0 < abs(radius - radii[j]) <= _FTOL for j in descendants):  # pragma: no cover
+            return None
+
+        if all(radius > radii[j] for j in descendants):  # pragma: no cover
+            distinguished.append(index)
+
+    if len(distinguished) != 1:
+        return None
+
+    evalues, evectors = _npl.eig(_np.transpose(q))
+    survival = radii[distinguished[0]]
+    index = _np.argmin(_np.abs(evalues - survival))
+    evalue, evector = evalues[index], evectors[:, index]
+
+    if (_np.abs(evalue.imag) > _FTOL) or (_np.abs(evalue.real - survival) > _FTOL) or (_np.max(_np.abs(evector.imag)) > _FTOL):  # pragma: no cover
+        return None
+
+    evector = evector.real
+
+    if _np.sum(evector) < 0.0:
+        evector = -evector
+
+    if (_np.sum(evector) <= _FTOL) or (_np.min(evector) < -_FTOL):  # pragma: no cover
+        return None
+
+    evector = _np.maximum(evector, 0.0)
+    evector /= evector.sum()
+
+    actual_survival = float(_np.sum(_np.dot(evector, q)))
+
+    if not (0.0 < actual_survival < 1.0) or (not _np.allclose(evector @ q, actual_survival * evector, rtol=_FTOL, atol=_FTOL)):  # pragma: no cover
+        return None
+
+    nu = _np.zeros(size, dtype=float)
+    nu[transient_indices] = evector
+
+    return nu
+
+
+def mc_sensitivity(mc: _tmc, state: int) -> _oarray:
+
+    if not mc.is_irreducible:
+        return None
+
+    p, size, pi = mc.p, mc.size, mc.pi[0]
+
+    lev = _np.ones(size, dtype=float)
+    rev = pi
+
+    a = _np.transpose(p) - _np.eye(size)
+    a = _np.transpose(_np.concatenate((a, [lev])))
+
+    b = _np.zeros(size, dtype=float)
+    b[state] = 1.0
+
+    phi = _npl.lstsq(a, b, rcond=-1)
+    phi = _np.delete(phi[0], -1)
+
+    s = -_np.outer(rev, phi) + (_np.dot(phi, rev) * _np.outer(rev, lev))
+
+    return s
+
+
+def mc_stationary_distributions(mc: _tmc, recurrent_classes_indices: _tlists_int) -> _tlist_array:
+
+    p = mc.p
+
+    if mc.is_irreducible:
+        s = _np.reshape(_gth_solve(p), (1, mc.size))
+    else:
+
+        s = _np.zeros((len(mc.recurrent_classes), mc.size), dtype=float)
+
+        for index, indices in enumerate(recurrent_classes_indices):
+            pr = p[_np.ix_(indices, indices)]
+            s[index, indices] = _gth_solve(pr)
+
+    pi = [s[i, :] for i in range(s.shape[0])]
+
+    return pi
+
+
+def mc_stationary_perturbation_bound(mc: _tmc, epsilon: float) -> _ofloat:
+
+    if not mc.is_irreducible:
+        return None
+
+    p, size, pi = mc.p, mc.size, mc.pi[0]
+
+    a = (_np.eye(size) - p) + _np.outer(_np.ones(size, dtype=float), pi)
+    z = _npl.solve(a, _np.eye(size))
+
+    differences = z[:, _np.newaxis, :] - z[_np.newaxis, :, :]
+    coefficient = 0.5 * _np.max(_np.sum(_np.abs(differences), axis=2))
+
+    spb = epsilon * coefficient
+
+    differences = p[:, _np.newaxis, :] - p[_np.newaxis, :, :]
+    contraction = 0.5 * _np.max(_np.sum(_np.abs(differences), axis=2))
+
+    if contraction < 1.0:
+        spb = min(spb, epsilon / (1.0 - contraction))
+
+    spb = min(1.0, float(spb))
+
+    return spb
+
+
+def mc_time_reversal(p: _tarray, pi: _tarray) -> _tarray:
+
+    pr = _np.transpose(p) * pi[_np.newaxis, :]
+    pr /= pi[:, _np.newaxis]
+
+    return pr

@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'accessibility_matrix',
     'calculate_periods',
+    'communication_matrix',
+    'density',
     'eigenvalues_sorted',
     'find_cyclic_classes',
     'find_lumping_partitions',
     'gth_solve',
+    'incidence_matrix',
+    'is_stochastically_monotone',
     'kullback_leibler_divergence',
     'slem'
 ]
@@ -97,6 +102,19 @@ def _calculate_period(graph):
     return g
 
 
+def accessibility_matrix(adm: _tarray) -> _tarray:
+
+    acm = adm.astype(bool)
+    _np.fill_diagonal(acm, True)
+
+    for k in range(acm.shape[0]):
+        acm |= acm[:, [k]] & acm[[k], :]
+
+    acm = acm.astype(int)
+
+    return acm
+
+
 def calculate_periods(graph: _tgraph) -> _tlist_int:
 
     sccs = list(_nx.strongly_connected_components(graph))
@@ -113,6 +131,28 @@ def calculate_periods(graph: _tgraph) -> _tlist_int:
         periods[index] = _calculate_period(graph.subgraph(scc))
 
     return periods
+
+
+def communication_matrix(size: int, communicating_classes_indices: _tlists_int) -> _tarray:
+
+    cm = _np.zeros((size, size), dtype=int)
+
+    for index in communicating_classes_indices:
+        cm[_np.ix_(index, index)] = 1
+
+    return cm
+
+
+def density(adm: _tarray) -> float:
+
+    am = _np.copy(adm)
+    am[_np.diag_indices_from(am)] = 0
+
+    e = float(_np.sum(am))
+    n = float(am.shape[0])
+    d = e / (n * (n - 1.0))
+
+    return d
 
 
 def find_cyclic_classes(p: _tarray) -> _tlists_int:
@@ -207,6 +247,34 @@ def find_lumping_partitions(p: _tarray) -> _tpartitions:
             partitions.append(partition)
 
     return partitions
+
+
+def incidence_matrix(states_indices: _tlist_int) -> _tarray:
+
+    n = len(states_indices)
+    k = n**2
+    im = _np.zeros((n, k), dtype=int)
+
+    us = _np.repeat(states_indices, n)
+    vs = _np.tile(states_indices, n)
+
+    for index, (u, v) in enumerate(zip(us, vs)):
+
+        if u == v:
+            continue
+
+        im[u, index] = 1
+        im[v, index] = 1
+
+    return im
+
+
+def is_stochastically_monotone(m: _tarray) -> bool:
+
+    cumulative = _np.cumsum(m[:, ::-1], axis=1)[:, ::-1]
+    result = bool(_np.all(_np.diff(cumulative[:, 1:], axis=0) >= 0.0))
+
+    return result
 
 
 # SPECTRAL ALGORITHMS
