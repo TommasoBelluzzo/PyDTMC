@@ -28,11 +28,11 @@ import numpy.linalg as _npl
 
 # Internal
 
-from .constants import (
+from ._constants import (
     FTOL as _FTOL
 )
 
-from .custom_types import (
+from ._custom_types import (
     ofloat as _ofloat,
     tarray as _tarray,
     tgraph as _tgraph,

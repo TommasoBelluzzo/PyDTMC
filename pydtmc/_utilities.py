@@ -55,7 +55,7 @@ except ImportError:  # pragma: no cover
 
 # Internal
 
-from .custom_types import (
+from ._custom_types import (
     odtype as _odtype,
     oint as _oint,
     olist_str as _olist_str,
@@ -203,7 +203,7 @@ def extract_numeric(data: _tany, dtype: _odtype = None) -> _tarray:
     else:
         output = None
 
-    if output is None or not _np.issubdtype(output.dtype, _np.number):
+    if (output is None) or (not _np.issubdtype(output.dtype, _np.number)):
         raise TypeError('The data type is not supported.')
 
     if dtype is not None:

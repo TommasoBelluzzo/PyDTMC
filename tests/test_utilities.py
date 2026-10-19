@@ -12,7 +12,8 @@ import pytest as _pt
 
 # Internal
 
-from pydtmc.utilities import (
+# noinspection PyProtectedMember
+from pydtmc._utilities import (
     extract_numeric as _extract_numeric
 )
 

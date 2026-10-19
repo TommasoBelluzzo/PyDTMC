@@ -24,15 +24,15 @@ import scipy.special as _sps
 
 # Internal
 
-from .custom_types import (
+from ._custom_types import (
     tmodel as _tmodel
 )
 
-from .utilities import (
+from ._utilities import (
     create_validation_error as _create_validation_error
 )
 
-from .validation import (
+from ._validation import (
     validate_enumerator as _validate_enumerator,
     validate_model as _validate_model
 )

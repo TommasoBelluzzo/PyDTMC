@@ -58,11 +58,11 @@ import numpy as _np
 
 # Internal
 
-from .constants import (
+from ._constants import (
     ETOL as _ETOL
 )
 
-from .custom_types import (
+from ._custom_types import (
     oint as _oint,
     olimit_float as _olimit_float,
     olimit_int as _olimit_int,
@@ -90,7 +90,7 @@ from .custom_types import (
     ttimes_in as _ttimes_in
 )
 
-from .utilities import (
+from ._utilities import (
     extract_numeric as _extract_numeric,
     get_file_extension as _get_file_extension,
     get_full_name as _get_full_name,
@@ -679,17 +679,17 @@ def validate_matrix(value: _tany, rows: _oint = None, columns: _oint = None) -> 
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
-    if columns is None and rows is None:
-        if value.ndim != 2 or value.shape[0] < 2 or value.shape[0] != value.shape[1]:
+    if (columns is None) and (rows is None):
+        if (value.ndim != 2) or (value.shape[0] < 2) or (value.shape[0] != value.shape[1]):
             raise ValueError('The "@arg@" parameter must be a 2d square matrix with size greater than or equal to 2.')
     elif columns is not None and rows is None:
-        if value.ndim != 2 or value.shape[0] < 2 or value.shape[1] != columns:
+        if (value.ndim != 2) or (value.shape[0] < 2) or (value.shape[1] != columns):
             raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least 2 rows and {columns:d} columns.')
     elif columns is None and rows is not None:
-        if value.ndim != 2 or value.shape[0] != rows or value.shape[1] < 2:
+        if (value.ndim != 2) or (value.shape[0] != rows) or (value.shape[1] < 2):
             raise ValueError(f'The "@arg@" parameter must be a 2d matrix with {rows:d} rows and at least 2 columns.')
     else:
-        if value.ndim != 2 or value.shape[0] != rows or value.shape[1] != columns:
+        if (value.ndim != 2) or (value.shape[0] != rows) or (value.shape[1] != columns):
             raise ValueError(f'The "@arg@" parameter must be a 2d matrix with {rows:d} rows and {columns:d} columns.')
 
     if not _np.all(_np.isfinite(value) & (value >= 0.0)):
@@ -715,7 +715,7 @@ def validate_model(value: _tany) -> _tmodel:
     value_bases = value.__class__.__bases__ or ()
     value_base = None if len(value_bases) == 0 else _get_full_name(value_bases[0])
 
-    if value_base is None or value_base != 'pydtmc.base_classes.Model':
+    if (value_base is None) or (value_base != 'pydtmc._base_classes.Model'):
         raise TypeError('The "@arg@" parameter is wrongly typed.')
 
     return value

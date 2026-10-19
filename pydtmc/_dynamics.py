@@ -25,7 +25,7 @@ from ._analysis import (
     hmm_decode as _hmm_decode
 )
 
-from .custom_types import (
+from ._custom_types import (
     ohmm_prediction as _ohmm_prediction,
     oint as _oint,
     olist_int as _olist_int,

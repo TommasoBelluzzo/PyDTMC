@@ -29,7 +29,7 @@ import scipy.stats as _sps
 
 # Internal
 
-from .custom_types import (
+from ._custom_types import (
     oint as _oint,
     tass_cp as _tass_cp,
     tass_ord as _tass_ord,
@@ -40,12 +40,12 @@ from .custom_types import (
     tsequences as _tsequences
 )
 
-from .utilities import (
+from ._utilities import (
     create_rng as _create_rng,
     create_validation_error as _create_validation_error
 )
 
-from .validation import (
+from ._validation import (
     validate_enumerator as _validate_enumerator,
     validate_float as _validate_float,
     validate_integer as _validate_integer,

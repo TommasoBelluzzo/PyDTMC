@@ -24,7 +24,7 @@ import numpy.linalg as _npl
 
 # Internal
 
-from .base_classes import (
+from ._base_classes import (
     Model as _Model
 )
 
@@ -55,12 +55,12 @@ from ._analysis import (
     mc_time_reversal as _time_reversal
 )
 
-from .constants import (
+from ._constants import (
     ETOL as _ETOL,
     FTOL as _FTOL
 )
 
-from .custom_types import (
+from ._custom_types import (
     oarray as _oarray,
     ofloat as _ofloat,
     oint as _oint,
@@ -100,7 +100,7 @@ from .custom_types import (
     tweights as _tweights
 )
 
-from .decorators import (
+from ._decorators import (
     aliased as _aliased,
     cached_method as _cached_method,
     cached_property as _cached_property,
@@ -119,7 +119,7 @@ from .exceptions import (
     ValidationError as _ValidationError
 )
 
-from .files_io import (
+from ._files_io import (
     read_csv as _read_csv,
     read_json as _read_json,
     read_txt as _read_txt,
@@ -165,7 +165,7 @@ from ._numerical import (
     slem as _slem
 )
 
-from .utilities import (
+from ._utilities import (
     build_mc_graph as _build_mc_graph,
     create_labels as _create_labels,
     create_rng as _create_rng,
@@ -175,7 +175,7 @@ from .utilities import (
     get_numpy_random_distributions as _get_numpy_random_distributions
 )
 
-from .validation import (
+from ._validation import (
     validate_boolean as _validate_boolean,
     validate_boundary_condition as _validate_boundary_condition,
     validate_dictionary as _validate_dictionary,
@@ -1553,12 +1553,12 @@ class MarkovChain(_Model):
         if len(states) < 2:  # pragma: no cover
             raise _ValidationError('At least 2 states must be retained.')
 
-        p, states, error_message = _censor(self.__p, self.__states, states)
+        p_out, states_out, error_message = _censor(self.__p, self.__states, states)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -1593,7 +1593,7 @@ class MarkovChain(_Model):
         if weighted and (zeros > 0):  # pragma: no cover
             raise _ValidationError('If the weighted Frobenius norm is used, the initial distribution must not contain null probabilities.')
 
-        p, _, error_message = _closest_reversible(self.__p, initial_distribution, weighted)
+        p, error_message = _closest_reversible(self.__p, initial_distribution, weighted)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -2170,12 +2170,12 @@ class MarkovChain(_Model):
         if self.__size == 2:  # pragma: no cover
             raise ValueError('The Markov chain defines only 2 states.')
 
-        p, states, error_message = _lump(self.__p, self.__states, partition)
+        p_out, states_out, error_message = _lump(self.__p, self.__states, partition)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -2297,12 +2297,12 @@ class MarkovChain(_Model):
         if not self.is_reversible:  # pragma: no cover
             raise ValueError('The Markov chain is not reversible.')
 
-        p, states, error_message = _metastable_aggregation(self.__p, self.__states, s, robust)
+        p_out, states_out, error_message = _metastable_aggregation(self.__p, self.__states, s, robust)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -2848,12 +2848,12 @@ class MarkovChain(_Model):
                 method = 'bottom-up' if (float(s) / self.__size) <= 0.3 else 'top-down'
 
         func = _spectral_aggregation_bottom_up if method == 'bottom-up' else _spectral_aggregation_top_down
-        p, states, error_message = func(self.p, self.pi[0], s)
+        p_out, states_out, error_message = func(self.p, self.pi[0], s)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -2914,7 +2914,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, _, _ = _teleport(self.__p, probability, distribution)
+        p = _teleport(self.__p, probability, distribution)
         mc = MarkovChain(p, self.__states)
 
         return mc
@@ -3054,7 +3054,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, _, _ = _bounded(self.__p, boundary_condition)
+        p = _bounded(self.__p, boundary_condition)
         mc = MarkovChain(p, self.__states)
 
         return mc
@@ -3072,7 +3072,7 @@ class MarkovChain(_Model):
         - The method can also be accessed through the alias **to_canonical**.
         """
 
-        p, _, _ = _canonical(self.__p, self.__recurrent_classes_indices, self.__transient_states_indices)
+        p = _canonical(self.__p, self.__recurrent_classes_indices, self.__transient_states_indices)
 
         recurrent_indices = list(_it.chain.from_iterable(self.__recurrent_classes_indices))
         indices = self.__transient_states_indices + recurrent_indices
@@ -3175,7 +3175,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, _, _ = _lazy(self.__p, inertial_weights)
+        p = _lazy(self.__p, inertial_weights)
         mc = MarkovChain(p, self.__states)
 
         return mc
@@ -3241,12 +3241,12 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, states_out, error_message = _sub(self.__p, self.__states, self.adjacency_matrix, states)
+        p_out, states_out, error_message = _sub(self.__p, self.__states, self.adjacency_matrix, states)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
-        mc = MarkovChain(p, states_out)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3328,15 +3328,14 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, states_out, error_message = _approximation(size, approximation_type, alpha, sigma, rho, k)
+        p_out, error_message = _approximation(size, approximation_type, alpha, sigma, rho, k)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
-        if states is None:
-            states = states_out
+        states_out = states if states is not None else _create_labels(size)
 
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3375,12 +3374,10 @@ class MarkovChain(_Model):
         if not _np.all(q + p <= 1.0):  # pragma: no cover
             raise _ValidationError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
 
-        p_out, states_out, _ = _birth_death(p, q)
+        p_out = _birth_death(p, q)
+        states_out = states if states is not None else _create_labels(p_out.shape[0])
 
-        if states is None:
-            states = states_out
-
-        mc = MarkovChain(p_out, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3418,12 +3415,10 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, states_out, _ = _dirichlet_process(rng, size, float(diffusion_factor), diagonal_bias_factor, shift_concentration)
+        p_out = _dirichlet_process(rng, size, float(diffusion_factor), diagonal_bias_factor, shift_concentration)
+        states_out = states if states is not None else _create_labels(size)
 
-        if states is None:
-            states = states_out
-
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3767,12 +3762,10 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, states_out, _ = _gamblers_ruin(size, w)
+        p_out = _gamblers_ruin(size, w)
+        states_out = states if states is not None else _create_labels(size)
 
-        if states is None:
-            states = states_out
-
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3844,12 +3837,10 @@ class MarkovChain(_Model):
         if (model == 'wright-fisher') and ((4.0 * n * max(u, v)) > 1.0):  # pragma: no cover
             raise _ValidationError('The highest mutation rate specified is too high for the Wright-Fisher model.')
 
-        p, states_out, _ = _population_genetics_model(model, n, s, u, v)
+        p_out = _population_genetics_model(model, n, s, u, v)
+        states_out = states if states is not None else _create_labels(p_out.shape[0])
 
-        if states is None:
-            states = states_out
-
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3887,15 +3878,14 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, states_out, error_message = _random(rng, size, zeros, mask)
+        p_out, error_message = _random(rng, size, zeros, mask)
 
         if error_message is not None:  # pragma: no cover
             raise _ValidationError(error_message)
 
-        if states is None:
-            states = states_out
+        states_out = states if states is not None else _create_labels(size)
 
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3974,11 +3964,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, states_out, _ = _urn_model(model, n)
+        p_out = _urn_model(model, n)
+        states_out = states if states is not None else _create_labels(p_out.shape[0])
 
-        if states is None:
-            states = states_out
-
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc

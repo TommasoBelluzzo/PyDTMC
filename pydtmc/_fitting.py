@@ -22,7 +22,7 @@ from ._analysis import (
     hmm_decode as _hmm_decode
 )
 
-from .custom_types import (
+from ._custom_types import (
     tany as _tany,
     tarray as _tarray,
     tfitting_res as _tfitting_res,

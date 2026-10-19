@@ -62,7 +62,8 @@ __all__ = [
     'thmm_decoding', 'ohmm_decoding',
     'thmm_dict', 'ohmm_dict',
     'thmm_dict_flex', 'ohmm_dict_flex',
-    'thmm_generation', 'ohmm_generation',
+    'thmm_gen', 'ohmm_gen',
+    'thmm_gen_ext', 'ohmm_gen_ext',
     'thmm_params', 'ohmm_params',
     'thmm_params_res', 'ohmm_params_res',
     'thmm_prediction', 'ohmm_prediction',
@@ -73,7 +74,8 @@ __all__ = [
     'thmm_symbols_ext', 'ohmm_symbols_ext',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
-    'tmc_generation', 'omc_generation',
+    'tmc_gen', 'omc_gen',
+    'tmc_gen_ext', 'omc_gen_ext',
     'tobj_dict', 'oobj_dict',
     'tredists', 'oredists',
     'tsequence', 'osequence',
@@ -293,8 +295,11 @@ ohmm_dict = _tp.Optional[thmm_dict]
 thmm_dict_flex = _tp.Dict[_tp.Tuple[str, str, str], tscalar]
 ohmm_dict_flex = _tp.Optional[thmm_dict_flex]
 
-thmm_generation = _tp.Tuple[oarray, oarray, olist_str, olist_str, ostr]
-ohmm_generation = _tp.Optional[thmm_generation]
+thmm_gen = _tp.Tuple[oarray, oarray, ostr]
+ohmm_gen = _tp.Optional[thmm_gen]
+
+thmm_gen_ext = _tp.Tuple[oarray, oarray, olist_str, olist_str]
+ohmm_gen_ext = _tp.Optional[thmm_gen_ext]
 
 thmm_params = _tp.Tuple[tarray, tarray]
 ohmm_params = _tp.Optional[thmm_params]
@@ -326,8 +331,11 @@ omc_dict = _tp.Optional[tmc_dict]
 tmc_dict_flex = _tp.Dict[_tp.Tuple[str, str], tscalar]
 omc_dict_flex = _tp.Optional[tmc_dict_flex]
 
-tmc_generation = _tp.Tuple[oarray, olist_str, ostr]
-omc_generation = _tp.Optional[tmc_generation]
+tmc_gen = _tp.Tuple[oarray, ostr]
+omc_gen = _tp.Optional[tmc_gen]
+
+tmc_gen_ext = _tp.Tuple[oarray, olist_str, ostr]
+omc_gen_ext = _tp.Optional[tmc_gen_ext]
 
 tobj_dict = _tp.Union[thmm_dict, tmc_dict]
 oobj_dict = _tp.Optional[tobj_dict]

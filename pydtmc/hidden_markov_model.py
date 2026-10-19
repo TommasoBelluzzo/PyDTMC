@@ -25,11 +25,11 @@ from ._analysis import (
     hmm_decode as _decode
 )
 
-from .base_classes import (
+from ._base_classes import (
     Model as _Model
 )
 
-from .custom_types import (
+from ._custom_types import (
     ohmm_decoding as _ohmm_decoding,
     oint as _oint,
     olist_str as _olist_str,
@@ -57,7 +57,7 @@ from .custom_types import (
     tstate as _tstate
 )
 
-from .decorators import (
+from ._decorators import (
     cached_property as _cached_property,
     object_mark as _object_mark
 )
@@ -71,7 +71,7 @@ from .exceptions import (
     ValidationError as _ValidationError
 )
 
-from .files_io import (
+from ._files_io import (
     read_csv as _read_csv,
     read_json as _read_json,
     read_txt as _read_txt,
@@ -96,7 +96,7 @@ from .markov_chain import (
     MarkovChain as _MarkovChain
 )
 
-from .utilities import (
+from ._utilities import (
     build_hmm_graph as _build_hmm_graph,
     create_labels as _create_labels,
     create_rng as _create_rng,
@@ -105,7 +105,7 @@ from .utilities import (
     get_instance_generators as _get_instance_generators
 )
 
-from .validation import (
+from ._validation import (
     validate_boolean as _validate_boolean,
     validate_dictionary as _validate_dictionary,
     validate_emission_matrix as _validate_emission_matrix,
@@ -458,8 +458,8 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, e, states_out, symbols_out, _ = _restrict(self.__p, self.__e, self.__states, self.__symbols, states, symbols)
-        hmm = HiddenMarkovModel(p, e, states_out, symbols_out)
+        p_out, e_out, states_out, symbols_out = _restrict(self.__p, self.__e, self.__states, self.__symbols, states, symbols)
+        hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 
         return hmm
 
@@ -895,8 +895,8 @@ class HiddenMarkovModel(_Model):
 
             mp = _validate_matrix(mp)
             me = _validate_matrix(me, rows=mp.shape[1])
-            states = _create_labels(mp.shape[1], 'P') if states is None else _validate_labels_input(states, mp.shape[1])
-            symbols = _create_labels(me.shape[1], 'E') if symbols is None else _validate_labels_input(symbols, me.shape[1])
+            states = _create_labels(mp.shape[1], prefix='P') if states is None else _validate_labels_input(states, mp.shape[1])
+            symbols = _create_labels(me.shape[1], prefix='E') if symbols is None else _validate_labels_input(symbols, me.shape[1])
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -972,17 +972,17 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p, e, states_out, symbols_out, error_message = _random(rng, n, k, p_zeros, p_mask, e_zeros, e_mask)
+        p_out, e_out, error_message = _random(rng, n, k, p_zeros, p_mask, e_zeros, e_mask)
 
         if error_message is not None:  # pragma: no cover
             raise _ValidationError(error_message)
 
-        states = states_out if states is None else states
-        symbols = symbols_out if symbols is None else symbols
+        states_out = states if states is not None else _create_labels(p_out.shape[1], prefix='P')
+        symbols_out = symbols if symbols is not None else _create_labels(e_out.shape[1], prefix='E')
 
-        if len(list(set(states) & set(symbols))) > 0:  # pragma: no cover
+        if len(list(set(states_out) & set(symbols_out))) > 0:  # pragma: no cover
             raise _ValidationError('State names and symbol names must be different.')
 
-        hmm = HiddenMarkovModel(p, e, states, symbols)
+        hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 
         return hmm

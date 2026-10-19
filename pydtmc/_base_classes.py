@@ -15,7 +15,7 @@ import abc as _abc
 
 # Internal
 
-from .custom_types import (
+from ._custom_types import (
     tarray as _tarray,
     tlist_array as _tlist_array,
     tlist_str as _tlist_str

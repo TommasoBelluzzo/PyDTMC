@@ -25,7 +25,8 @@ from pydtmc import (
     MarkovChain as _MarkovChain
 )
 
-from pydtmc.validation import (
+# noinspection PyProtectedMember
+from pydtmc._validation import (
     validate_boolean as _validate_boolean,
     validate_boundary_condition as _validate_boundary_condition,
     validate_dictionary as _validate_dictionary,

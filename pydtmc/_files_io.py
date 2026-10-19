@@ -35,7 +35,7 @@ import numpy as _np
 
 # Internal
 
-from .custom_types import (
+from ._custom_types import (
     tobj_dict as _tobj_dict,
     tpath as _tpath
 )

@@ -40,18 +40,20 @@ import scipy.stats as _sps
 
 # Internal
 
-from .constants import (
+from ._constants import (
     ETOL as _ETOL,
     FTOL as _FTOL
 )
 
-from .custom_types import (
+from ._custom_types import (
     ofloat as _ofloat,
     tarray as _tarray,
     tbcond as _tbcond,
-    thmm_generation as _thmm_generation,
+    thmm_gen as _thmm_gen,
+    thmm_gen_ext as _thmm_gen_ext,
     thmm_params as _thmm_params,
-    tmc_generation as _tmc_generation,
+    tmc_gen as _tmc_gen,
+    tmc_gen_ext as _tmc_gen_ext,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
@@ -71,7 +73,7 @@ from ._numerical import (
 
 # HMM INSTANCE GENERATORS
 
-def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str, sub_states: _tlist_int, sub_symbols: _tlist_int) -> _thmm_generation:
+def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str, sub_states: _tlist_int, sub_symbols: _tlist_int) -> _thmm_gen_ext:
 
     p, e = _np.copy(p), _np.copy(e)
 
@@ -91,7 +93,7 @@ def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str
     state_names = [*map(states.__getitem__, sub_states)]
     symbol_names = [*map(symbols.__getitem__, sub_symbols)]
 
-    return p, e, state_names, symbol_names, None
+    return p, e, state_names, symbol_names
 
 
 # HMM STATIC GENERATORS
@@ -127,7 +129,7 @@ def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: 
     return p, e
 
 
-def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: int, e_mask: _tarray) -> _thmm_generation:
+def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zeros: int, e_mask: _tarray) -> _thmm_gen:
 
     def process_matrix(pm_rows, pm_columns, pm_mask, pm_full_rows, pm_mask_unassigned, pm_zeros, pm_zeros_required):
 
@@ -184,25 +186,22 @@ def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zer
     p_full_rows, p_mask_unassigned, p_zeros_required, p_result = process_zeros(n, p_zeros, p_mask)
 
     if p_result:  # pragma: no cover
-        return None, None, None, None, f'The number of null transition probabilities exceeds the maximum threshold of {p_zeros_required:d}.'
+        return None, None, f'The number of null transition probabilities exceeds the maximum threshold of {p_zeros_required:d}.'
 
     e_full_rows, e_mask_unassigned, e_zeros_required, e_result = process_zeros(k, e_zeros, e_mask)
 
     if e_result:  # pragma: no cover
-        return None, None, None, None, f'The number of null emission probabilities exceeds the maximum threshold of {e_zeros_required:d}.'
+        return None, None, f'The number of null emission probabilities exceeds the maximum threshold of {e_zeros_required:d}.'
 
     p = process_matrix(n, n, p_mask, p_full_rows, p_mask_unassigned, p_zeros, p_zeros_required)
-    states = [f'P{i:d}' for i in range(1, n + 1)]
-
     e = process_matrix(n, k, e_mask, e_full_rows, e_mask_unassigned, e_zeros, e_zeros_required)
-    symbols = [f'E{i:d}' for i in range(1, k + 1)]
 
-    return p, e, states, symbols, None
+    return p, e, None
 
 
 # MC INSTANCE GENERATORS
 
-def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
+def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tarray:
 
     size = p.shape[0]
 
@@ -225,18 +224,14 @@ def mc_bounded(p: _tarray, boundary_condition: _tbcond) -> _tmc_generation:
             first[1] = 1.0
             last[-2] = 1.0
 
-    p_adjusted = _np.copy(p)
-    p_adjusted[0] = first
-    p_adjusted[-1] = last
-
-    state_names = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
-
-    return p_adjusted, state_names, None
-
-
-def mc_canonical(p: _tarray, recurrent_classes_indices: _tlists_int, transient_indices: _tlist_int) -> _tmc_generation:
-
     p = _np.copy(p)
+    p[0] = first
+    p[-1] = last
+
+    return p
+
+
+def mc_canonical(p: _tarray, recurrent_classes_indices: _tlists_int, transient_indices: _tlist_int) -> _tarray:
 
     recurrent_indices = [
         index
@@ -246,15 +241,15 @@ def mc_canonical(p: _tarray, recurrent_classes_indices: _tlists_int, transient_i
 
     indices = transient_indices + recurrent_indices
 
+    p = _np.copy(p)
+
     if indices != list(range(p.shape[0])):
         p = p[_np.ix_(indices, indices)]
 
-    state_names = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
-
-    return p, state_names, None
+    return p
 
 
-def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _tmc_generation:
+def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _tmc_gen_ext:
 
     size = p.shape[0]
     removed_states = [i for i in range(size) if i not in retained_states]
@@ -277,7 +272,7 @@ def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _t
     return p_censored, state_names, None
 
 
-def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tmc_generation:
+def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted: bool) -> _tmc_gen:
 
     def _is_reversible_with(irw_p, irw_d, irw_tolerance):
 
@@ -301,10 +296,8 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
     size = p.shape[0]
     size_m1 = size - 1
 
-    state_names = [f'{i:d}' for i in range(1, size + 1)]
-
     if _is_reversible_with(p, initial_distribution, _FTOL):
-        return _np.copy(p), state_names, None
+        return _np.copy(p), None
 
     support = _np.flatnonzero(initial_distribution)
 
@@ -312,11 +305,11 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
 
         index = support[0]
 
-        pcr = _np.copy(p)
-        pcr[index, :] = 0.0
-        pcr[index, index] = 1.0
+        p = _np.copy(p)
+        p[index, :] = 0.0
+        p[index, index] = 1.0
 
-        return pcr, state_names, None
+        return p, None
 
     zeros = len(initial_distribution) - _np.count_nonzero(initial_distribution)
 
@@ -465,24 +458,24 @@ def mc_closest_reversible(p: _tarray, initial_distribution: _tnumeric, weighted:
     )
 
     if not solution['success']:  # pragma: no cover
-        return None, None, 'The closest reversible could not be computed.'
+        return None, 'The closest reversible could not be computed.'
 
-    pcr = _np.zeros((size, size), dtype=float)
+    p = _np.zeros((size, size), dtype=float)
     solution = solution['x']
 
     for i in range(m):
-        pcr += solution[i] * basis_vectors[i]
+        p += solution[i] * basis_vectors[i]
 
-    pcr[_np.where(~pcr.any(axis=1)), :] = _np.ones(size, dtype=float)
-    pcr /= _np.sum(pcr, axis=1, keepdims=True)
+    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
+    p /= _np.sum(p, axis=1, keepdims=True)
 
-    if not _is_reversible_with(pcr, initial_distribution, _ETOL):  # pragma: no cover
-        return None, None, 'The closest reversible could not be computed.'
+    if not _is_reversible_with(p, initial_distribution, _ETOL):  # pragma: no cover
+        return None, 'The closest reversible could not be computed.'
 
-    return pcr, state_names, None
+    return p, None
 
 
-def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
+def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tarray:
 
     size = p.shape[0]
 
@@ -490,11 +483,11 @@ def mc_lazy(p: _tarray, inertial_weights: _tarray) -> _tmc_generation:
     p2 = _np.eye(size) * inertial_weights
     p = p1 + p2
 
-    return p, None, None
+    return p
 
 
 # noinspection PyBroadException
-def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_generation:
+def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen_ext:
 
     size = p.shape[0]
 
@@ -524,7 +517,7 @@ def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen
     return p_lump, state_names, None
 
 
-def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bool) -> _tmc_generation:  # pylint: disable=too-many-return-statements
+def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bool) -> _tmc_gen_ext:  # pylint: disable=too-many-return-statements
 
     def _memberships(m_flat, m_x, m_s):
 
@@ -649,6 +642,7 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
             _spo.LinearConstraint(inequality, 0.0, _np.inf)
         )
 
+        # noinspection PyTypeChecker
         result = _spo.minimize(
             _objective, x0,
             args=(x, pi, s),
@@ -701,7 +695,7 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
     return p, state_names, None
 
 
-def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
+def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen_ext:
 
     def _calculate_q(cq_p, cq_pi, cq_phi):
 
@@ -785,7 +779,7 @@ def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_g
     return q, states, None
 
 
-def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_generation:
+def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gen_ext:
 
     def _calculate_invariant(ci_q):
 
@@ -898,7 +892,7 @@ def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_ge
     return q, states, None
 
 
-def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_generation:
+def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states: _tlist_int) -> _tmc_gen_ext:
 
     size = p.shape[0]
 
@@ -932,16 +926,16 @@ def mc_sub(p: _tarray, states: _tlist_str, adjacency_matrix: _tarray, sub_states
     return p, state_names, None
 
 
-def mc_teleport(p: _tarray, probability: float, distribution: _tarray) -> _tmc_generation:
+def mc_teleport(p: _tarray, probability: float, distribution: _tarray) -> _tarray:
 
     p = ((1.0 - probability) * p) + (probability * distribution[_np.newaxis, :])
 
-    return p, None, None
+    return p
 
 
 # MC STATIC GENERATORS
 
-def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tmc_generation:
+def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ofloat) -> _tmc_gen:
 
     def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
 
@@ -1055,7 +1049,7 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
                     break
 
             if iterations == 100:  # pragma: no cover
-                return None, None, 'The gaussian quadrature failed to converge.'
+                return None, 'The gaussian quadrature failed to converge.'
 
             offset = size_m1 - i
 
@@ -1109,12 +1103,10 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
                 z = x[j] - rx
                 p[i, j] = _sps.norm.cdf((z + step) / sigma) - _sps.norm.cdf((z - step) / sigma)
 
-    states = [f'{i:d}' for i in range(1, p.shape[0] + 1)]
-
-    return p, states, None
+    return p, None
 
 
-def mc_birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
+def mc_birth_death(p: _tarray, q: _tarray) -> _tarray:
 
     r = 1.0 - q - p
 
@@ -1123,13 +1115,10 @@ def mc_birth_death(p: _tarray, q: _tarray) -> _tmc_generation:
     p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[0], dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)
 
-    size = {p.shape[0], q.shape[0]}.pop()
-    state_names = [f'{i:d}' for i in range(1, size + 1)]
-
-    return p, state_names, None
+    return p
 
 
-def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool) -> _tmc_generation:
+def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool) -> _tarray:
 
     def _gem_allocation(ga_draws):
 
@@ -1157,12 +1146,10 @@ def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagon
         p += + _np.diagflat(diagonal)
         p /= _np.sum(p, axis=1, keepdims=True)
 
-    state_names = [f'{i:d}' for i in range(1, size + 1)]
-
-    return p, state_names, None
+    return p
 
 
-def mc_gamblers_ruin(size: int, w: float) -> _tmc_generation:
+def mc_gamblers_ruin(size: int, w: float) -> _tarray:
 
     wc = 1.0 - w
 
@@ -1174,12 +1161,10 @@ def mc_gamblers_ruin(size: int, w: float) -> _tmc_generation:
         p[i, i - 1] = wc
         p[i, i + 1] = w
 
-    state_names = [f'{i:d}' for i in range(1, size + 1)]
-
-    return p, state_names, None
+    return p
 
 
-def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _tmc_generation:
+def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _tarray:
 
     size = n + 1
 
@@ -1220,12 +1205,10 @@ def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: floa
 
     p /= _np.sum(p, axis=1, keepdims=True)
 
-    state_names = [f'{i:d}' for i in range(1, size + 1)]
-
-    return p, state_names, None
+    return p
 
 
-def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generation:
+def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_gen:
 
     full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0)
 
@@ -1236,7 +1219,7 @@ def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generat
     zeros_required = (_np.sum(mask_unassigned) - _np.sum(~full_rows)).item()
 
     if zeros > zeros_required:  # pragma: no cover
-        return None, None, f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.'
+        return None, f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.'
 
     n = _np.arange(size)
 
@@ -1270,12 +1253,10 @@ def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_generat
             si = _np.sum(p[i, ~assigned_columns])
             p[i, assigned_columns] = p[i, assigned_columns] * ((1.0 - si) / s)
 
-    state_names = [f'{i:d}' for i in range(1, size + 1)]
-
-    return p, state_names, None
+    return p, None
 
 
-def mc_urn_model(model: str, n: int) -> _tmc_generation:
+def mc_urn_model(model: str, n: int) -> _tarray:
 
     dn = n * 2
     size = dn + 1
@@ -1316,6 +1297,4 @@ def mc_urn_model(model: str, n: int) -> _tmc_generation:
 
             p[i, :] = r
 
-    state_names = [f'{i:d}' for i in range(1, size + 1)]
-
-    return p, state_names, None
+    return p

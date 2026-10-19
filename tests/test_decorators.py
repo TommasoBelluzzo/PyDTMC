@@ -20,7 +20,7 @@ import pytest as _pt
 
 # Internal
 
-from pydtmc.decorators import (
+from pydtmc._decorators import (
     cached_method as _cached_method,
     cached_property as _cached_property
 )

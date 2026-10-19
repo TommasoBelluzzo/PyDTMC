@@ -45,11 +45,11 @@ import numpy.linalg as _npl
 
 # Internal
 
-from .constants import (
+from ._constants import (
     FTOL as _FTOL
 )
 
-from .custom_types import (
+from ._custom_types import (
     oarray as _oarray,
     ohmm_decoding as _ohmm_decoding,
     ofloat as _ofloat,

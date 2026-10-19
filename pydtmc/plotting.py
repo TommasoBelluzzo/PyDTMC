@@ -46,7 +46,7 @@ except ImportError:  # pragma: no cover
 
 # Internal
 
-from .custom_types import (
+from ._custom_types import (
     oint as _oint,
     olist_str as _olist_str,
     ostate as _ostate,
@@ -57,7 +57,7 @@ from .custom_types import (
     tplot as _tplot
 )
 
-from .decorators import (
+from ._decorators import (
     interactive_plot as _interactive_plot
 )
 
@@ -77,12 +77,12 @@ from ._numerical import (
     slem as _slem
 )
 
-from .utilities import (
+from ._utilities import (
     create_validation_error as _create_validation_error,
     create_models_names as _create_models_names
 )
 
-from .validation import (
+from ._validation import (
     validate_boolean as _validate_boolean,
     validate_dpi as _validate_dpi,
     validate_enumerator as _validate_enumerator,
