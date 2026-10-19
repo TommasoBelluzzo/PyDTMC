@@ -11,6 +11,10 @@ __all__ = [
     'mc_censor',
     'mc_closest_reversible',
     'mc_dirichlet_process',
+    'mc_from_dictionary',
+    'mc_from_file',
+    'mc_from_graph',
+    'mc_from_matrix',
     'mc_gamblers_ruin',
     'mc_lazy',
     'mc_lump',
@@ -49,17 +53,27 @@ from ._custom_types import (
     ofloat as _ofloat,
     tarray as _tarray,
     tbcond as _tbcond,
+    tgraphs as _tgraphs,
     thmm_gen as _thmm_gen,
     thmm_gen_ext as _thmm_gen_ext,
     thmm_params as _thmm_params,
-    tmc_gen as _tmc_gen,
-    tmc_gen_ext as _tmc_gen_ext,
-    tmc_gen_full as _tmc_gen_full,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
+    tmc_dict_flex as _tmc_dict_flex,
+    tmc_gen as _tmc_gen,
+    tmc_gen_ext as _tmc_gen_ext,
+    tmc_gen_full as _tmc_gen_full,
     tnumeric as _tnumeric,
+    tpath as _tpath,
     trand as _trand
+)
+
+from ._files_io import (
+    read_csv as _read_csv,
+    read_json as _read_json,
+    read_txt as _read_txt,
+    read_xml as _read_xml
 )
 
 from ._numerical import (
@@ -1146,6 +1160,99 @@ def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagon
         diagonal = rng.beta(diagonal_bias_factor, 1.0, size)
         p += + _np.diagflat(diagonal)
         p /= _np.sum(p, axis=1, keepdims=True)
+
+    return p
+
+
+def mc_from_dictionary(d: _tmc_dict_flex) -> _tmc_gen_full:
+
+    states = [key[0] for key in d.keys() if key[0] == key[1]]
+    size = len(states)
+
+    if size < 2:  # pragma: no cover
+        return None, None, 'The size of the transition matrix defined by the dictionary must be greater than or equal to 2.'
+
+    p = _np.zeros((size, size), dtype=float)
+
+    for (state_from, state_to), probability in d.items():
+        p[states.index(state_from), states.index(state_to)] = probability
+
+    if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
+        return None, None, 'The rows of the transition matrix defined by the dictionary must sum to 1.0.'
+
+    return p, states, None
+
+
+def mc_from_file(file_path: _tpath, file_extension: str) -> _tmc_gen_full:
+
+    if file_extension == '.csv':
+        d = _read_csv(True, file_path)
+    elif file_extension == '.json':
+        d = _read_json(True, file_path)
+    elif file_extension == '.txt':
+        d = _read_txt(True, file_path)
+    else:
+        d = _read_xml(True, file_path)
+
+    states = [key[0] for key in d if key[0] == key[1]]
+    size = len(states)
+
+    if size < 2:  # pragma: no cover
+        return None, None, 'The size of the transition matrix defined by the dictionary must be greater than or equal to 2.'
+
+    p = _np.zeros((size, size), dtype=float)
+
+    for (state_from, state_to), probability in d.items():
+        p[states.index(state_from), states.index(state_to)] = probability
+
+    if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
+        return None, None, 'The rows of the transition matrix defined by the file must sum to 1.0.'
+
+    return p, states, None
+
+
+def mc_from_graph(graph: _tgraphs) -> _tmc_gen_ext:
+
+    states = list(graph.nodes)
+    size = len(states)
+    p = _np.zeros((size, size), dtype=float)
+
+    edges = list(graph.edges(data='weight', default=0.0))
+
+    for edge in edges:
+        i = states.index(edge[0])
+        j = states.index(edge[1])
+        p[i, j] = float(edge[2])
+
+    p_sums = _np.sum(p, axis=1)
+
+    for i in range(size):
+
+        p_sums_i = p_sums[i]
+
+        if _np.isclose(p_sums_i, 0.0):  # pragma: no cover
+            p[i, :] = _np.ones(size, dtype=float) / size
+        else:
+            p[i, :] /= p_sums_i
+
+    return p, states
+
+
+def mc_from_matrix(m: _tarray) -> _tarray:
+
+    size = m.shape[0]
+
+    p = _np.copy(m)
+    p_sums = _np.sum(p, axis=1)
+
+    for i in range(size):
+
+        p_sums_i = p_sums[i]
+
+        if _np.isclose(p_sums_i, 0.0):  # pragma: no cover
+            p[i, :] = _np.ones(size, dtype=float) / size
+        else:
+            p[i, :] /= p_sums_i
 
     return p
 

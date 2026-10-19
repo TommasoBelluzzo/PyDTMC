@@ -120,10 +120,6 @@ from .exceptions import (
 )
 
 from ._files_io import (
-    read_csv as _read_csv,
-    read_json as _read_json,
-    read_txt as _read_txt,
-    read_xml as _read_xml,
     write_csv as _write_csv,
     write_json as _write_json,
     write_txt as _write_txt,
@@ -143,6 +139,10 @@ from ._generators import (
     mc_censor as _censor,
     mc_closest_reversible as _closest_reversible,
     mc_dirichlet_process as _dirichlet_process,
+    mc_from_dictionary as _from_dictionary,
+    mc_from_file as _from_file,
+    mc_from_graph as _from_graph,
+    mc_from_matrix as _from_matrix,
     mc_gamblers_ruin as _gamblers_ruin,
     mc_lazy as _lazy,
     mc_lump as _lump,
@@ -3551,21 +3551,12 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        states = [key[0] for key in d.keys() if key[0] == key[1]]
-        size = len(states)
+        p_out, states_out, error_message = _from_dictionary(d)
 
-        if size < 2:  # pragma: no cover
-            raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
 
-        p = _np.zeros((size, size), dtype=float)
-
-        for (state_from, state_to), probability in d.items():
-            p[states.index(state_from), states.index(state_to)] = probability
-
-        if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
-            raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.0.')
-
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3617,30 +3608,12 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        if file_extension == '.csv':
-            d = _read_csv(True, file_path)
-        elif file_extension == '.json':
-            d = _read_json(True, file_path)
-        elif file_extension == '.txt':
-            d = _read_txt(True, file_path)
-        else:
-            d = _read_xml(True, file_path)
+        p_out, states_out, error_message = _from_file(file_path, file_extension)
 
-        states = [key[0] for key in d if key[0] == key[1]]
-        size = len(states)
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
 
-        if size < 2:  # pragma: no cover
-            raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
-
-        p = _np.zeros((size, size), dtype=float)
-
-        for (state_from, state_to), probability in d.items():
-            p[states.index(state_from), states.index(state_to)] = probability
-
-        if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
-            raise ValueError('The rows of the transition matrix defined by the file must sum to 1.0.')
-
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3666,29 +3639,8 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        states = list(graph.nodes)
-        size = len(states)
-        p = _np.zeros((size, size), dtype=float)
-
-        edges = list(graph.edges(data='weight', default=0.0))
-
-        for edge in edges:
-            i = states.index(edge[0])
-            j = states.index(edge[1])
-            p[i, j] = float(edge[2])
-
-        p_sums = _np.sum(p, axis=1)
-
-        for i in range(size):
-
-            p_sums_i = p_sums[i]
-
-            if _np.isclose(p_sums_i, 0.0):  # pragma: no cover
-                p[i, :] = _np.ones(size, dtype=float) / size
-            else:
-                p[i, :] /= p_sums_i
-
-        mc = MarkovChain(p, states)
+        p_out, states_out = _from_graph(graph)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3711,26 +3663,17 @@ class MarkovChain(_Model):
         try:
 
             m = _validate_matrix(m)
-            states = _create_labels(m.shape[1]) if states is None else _validate_labels_input(states, m.shape[1])
+
+            if states is not None:
+                states = _validate_labels_input(states, m.shape[0])
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p = _np.copy(m)
-        p_sums = _np.sum(p, axis=1)
+        p_out = _from_matrix(m)
+        states_out = states if states is not None else _create_labels(p_out.shape[0])
 
-        size = p.shape[1]
-
-        for i in range(size):
-
-            p_sums_i = p_sums[i]
-
-            if _np.isclose(p_sums_i, 0.0):  # pragma: no cover
-                p[i, :] = _np.ones(size, dtype=float) / size
-            else:
-                p[i, :] /= p_sums_i
-
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
