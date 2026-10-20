@@ -1380,7 +1380,8 @@ def mc_stationary_distributions(mc: _tmc, recurrent_classes_indices: _tlists_int
 
 def mc_stationary_flux(mc: _tmc) -> _tlist_array:
 
-    sf = [pi[:, _np.newaxis] * mc.p for pi in mc.pi]
+    p = mc.p
+    sf = [pi[:, _np.newaxis] * p for pi in mc.pi]
 
     return sf
 
