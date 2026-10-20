@@ -70,7 +70,9 @@ from ._analysis import (
     mc_recurrence_times as _recurrence_times,
     mc_relaxation_rate as _relaxation_rate,
     mc_sensitivity as _sensitivity,
+    mc_stationary_current as _stationary_current,
     mc_stationary_distributions as _stationary_distributions,
+    mc_stationary_flux as _stationary_flux,
     mc_stationary_perturbation_bound as _stationary_perturbation_bound,
     mc_time_correlations as _time_correlations,
     mc_time_relaxations as _time_relaxations,
@@ -1204,7 +1206,7 @@ class MarkovChain(_Model):
         - One matrix is returned for each stationary distribution.
         """
 
-        sc = [f - _np.transpose(f) for f in self.stationary_flux]
+        sc = _stationary_current(self)
 
         return sc
 
@@ -1220,7 +1222,7 @@ class MarkovChain(_Model):
         - One matrix is returned for each stationary distribution.
         """
 
-        sf = [pi[:, _np.newaxis] * self.__p for pi in self.pi]
+        sf = _stationary_flux(self)
 
         return sf
 
@@ -1288,7 +1290,9 @@ class MarkovChain(_Model):
         - The method can also be accessed through the alias **ap**.
         """
 
-        return _absorption_probabilities(self)
+        ap = _absorption_probabilities(self)
+
+        return ap
 
     @_cached_method
     @_object_mark(aliases=['at'])
@@ -1321,7 +1325,9 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        return _absorption_times(self, statistic)
+        at = _absorption_times(self, statistic)
+
+        return at
 
     def are_communicating(self, state1: _tstate, state2: _tstate) -> bool:
 

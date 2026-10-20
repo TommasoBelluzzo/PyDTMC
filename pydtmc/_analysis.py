@@ -44,7 +44,9 @@ __all__ = [
     'mc_recurrence_times',
     'mc_relaxation_rate',
     'mc_sensitivity',
+    'mc_stationary_current',
     'mc_stationary_distributions',
+    'mc_stationary_flux',
     'mc_stationary_perturbation_bound',
     'mc_time_correlations',
     'mc_time_relaxations',
@@ -1350,6 +1352,13 @@ def mc_sensitivity(mc: _tmc, state: int) -> _oarray:
     return s
 
 
+def mc_stationary_current(mc: _tmc) -> _tlist_array:
+
+    sc = [f - _np.transpose(f) for f in mc.stationary_flux]
+
+    return sc
+
+
 def mc_stationary_distributions(mc: _tmc, recurrent_classes_indices: _tlists_int) -> _tlist_array:
 
     p = mc.p
@@ -1367,6 +1376,13 @@ def mc_stationary_distributions(mc: _tmc, recurrent_classes_indices: _tlists_int
     pi = [s[i, :] for i in range(s.shape[0])]
 
     return pi
+
+
+def mc_stationary_flux(mc: _tmc) -> _tlist_array:
+
+    sf = [pi[:, _np.newaxis] * mc.p for pi in mc.pi]
+
+    return sf
 
 
 def mc_stationary_perturbation_bound(mc: _tmc, epsilon: float) -> _ofloat:
