@@ -54,7 +54,7 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
 
     def _predict_map(pv_p, pv_e, pv_initial_distribution, pv_symbols):
 
-        result = _hmm_decode(pv_p, pv_e, pv_initial_distribution, pv_symbols, True)
+        result = _hmm_decode(pv_p, pv_e, pv_initial_distribution, pv_symbols, True, False)
 
         if result is None:
             return None
@@ -148,20 +148,29 @@ def hmm_propagate(hmm: _thmm, target: str, steps: int, initial_distribution: _ta
 
     p, e = hmm.p, hmm.e
 
+    if output_last:
+
+        distribution = _np.copy(initial_distribution)
+
+        for _ in range(steps):
+            distribution = _np.dot(distribution, p)
+            distribution /= _np.sum(distribution)
+
+        if target == 'symbols':
+            distribution = _np.dot(distribution, e)
+
+        return distribution
+
     distributions = _np.zeros((steps + 1, hmm.n), dtype=float)
     distributions[0, :] = initial_distribution
 
     for i in range(1, steps + 1):
-        value_i = _np.dot(distributions[i - 1, :], p)
-        distributions[i, :] = value_i / _np.sum(value_i)
+        distributions[i, :] = _np.dot(distributions[i - 1, :], p)
 
     if target == 'symbols':
         distributions = _np.dot(distributions, e)
 
-    if output_last:
-        return distributions[-1]
-
-    distributions = [_np.ravel(distribution) for distribution in _np.split(distributions, distributions.shape[0])]
+    distributions = list(distributions)
 
     return distributions
 
@@ -170,7 +179,7 @@ def hmm_propagate(hmm: _thmm, target: str, steps: int, initial_distribution: _ta
 
 def hmm_simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint, final_symbol: _oint, rng: _trand) -> _thmm_sequence:
 
-    n, k = hmm.size
+    _, k = hmm.size
     check_final_state = final_state is not None
     check_final_symbol = final_symbol is not None
 
@@ -180,35 +189,23 @@ def hmm_simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint,
 
     pr = rng.random(steps)
     pc = _np.cumsum(hmm.p, axis=1)
-    pc /= _np.tile(_np.take(pc, [-1], axis=1), n)
+    pc /= pc[:, [-1]]
 
     er = rng.random(steps)
     ec = _np.cumsum(hmm.e, axis=1)
-    ec /= _np.tile(_np.take(ec, [-1], axis=1), k)
+    ec /= ec[:, [-1]]
 
     for i in range(steps):
 
-        pr_i = pr[i]
-        state = 0
-
-        for j in range(n - 2, -1, -1):
-            if pr_i > pc[current_state, j]:
-                state = j + 1
-                break
-
-        er_i = er[i]
-        symbol = 0
-
-        for j in range(k - 2, -1, -1):
-            if er_i > ec[state, j]:
-                symbol = j + 1
-                break
+        state = int(_np.searchsorted(pc[current_state, :-1], pr[i], side='left'))
+        symbol = int(_np.searchsorted(ec[state, :-1], er[i], side='left'))
 
         current_state = state
+
         states.append(state)
         symbols.append(symbol)
 
-        if (check_final_state and state == final_state) or (check_final_symbol and symbol == final_symbol):
+        if (check_final_state and (state == final_state)) or (check_final_symbol and (symbol == final_symbol)):
             break
 
     return states, symbols
@@ -220,18 +217,19 @@ def mc_predict(mc: _tmc, steps: int, initial_state: int) -> _olist_int:
 
     p = mc.p
 
+    successors = _np.argmax(p, axis=1)
+    maxima = p[_np.arange(mc.size), successors]
+    has_ties = _np.sum(p == maxima[:, _np.newaxis], axis=1) > 1
+
     current_state = initial_state
     prediction = [initial_state]
 
     for _ in range(steps):
 
-        d = p[current_state, :]
-        d_max = _np.argwhere(d == _np.max(d))
-
-        if d_max.size > 1:
+        if has_ties[current_state]:
             return None
 
-        current_state = d_max.item()
+        current_state = int(successors[current_state])
         prediction.append(current_state)
 
     return prediction
@@ -298,17 +296,23 @@ def mc_propagate(mc: _tmc, steps: int, initial_distribution: _tarray, output_las
 
     p = mc.p
 
+    if output_last:
+
+        distribution = _np.copy(initial_distribution)
+
+        for _ in range(steps):
+            distribution = distribution.dot(p)
+            distribution /= _np.sum(distribution)
+
+        return distribution
+
     distributions = _np.zeros((steps + 1, mc.size), dtype=float)
     distributions[0, :] = initial_distribution
 
     for i in range(1, steps + 1):
-        value_i = distributions[i - 1, :].dot(p)
-        distributions[i, :] = value_i / _np.sum(value_i)
+        distributions[i, :] = _np.dot(distributions[i - 1, :], p)
 
-    if output_last:
-        return distributions[-1]
-
-    distributions = [_np.ravel(distribution) for distribution in _np.split(distributions, distributions.shape[0])]
+    distributions = list(distributions)
 
     return distributions
 
@@ -336,19 +340,22 @@ def mc_sequence_probability(mc: _tmc, walk_param: _tlist_int) -> float:
 
 def mc_simulate(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rng: _trand) -> _tlist_int:
 
-    p, n = mc.p, mc.size
+    p = mc.p
+
     check_final_state = final_state is not None
+
+    cumulative = _np.cumsum(p, axis=1)
+    cumulative[:, -1] = 1.0
 
     current_state = initial_state
     value = [initial_state]
 
     for _ in range(steps):
 
-        w = p[current_state, :]
-        current_state = rng.choice(n, size=1, p=w).item()
+        current_state = int(_np.searchsorted(cumulative[current_state, :-1], rng.random_sample(), side='left'))
         value.append(current_state)
 
-        if check_final_state and current_state == final_state:
+        if check_final_state and (current_state == final_state):
             break
 
     return value

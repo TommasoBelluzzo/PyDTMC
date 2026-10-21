@@ -12,7 +12,9 @@ __all__ = [
     'incidence_matrix',
     'is_stochastically_monotone',
     'kullback_leibler_divergence',
-    'slem'
+    'matrix_geometric_sum',
+    'slem',
+    'verify_reachability'
 ]
 
 
@@ -225,21 +227,29 @@ def find_lumping_partitions(p: _tarray) -> _tpartitions:
         if partition_length < 2 or partition_length >= size:
             continue
 
-        r = _np.zeros((size, partition_length), dtype=float)
-
-        for index, lumping in enumerate(partition):
-            r[lumping, index] = 1.0
-
-        pr = _np.dot(p, r)
-
         is_lumpable = True
 
         for lumping in partition:
 
-            reference = pr[lumping[0], :]
+            if len(lumping) == 1:
+                continue
 
-            if not _np.all(pr[lumping, :] == reference):
-                is_lumpable = False
+            rows = p[lumping[1:], :]
+            reference = p[lumping[0], :]
+
+            for block in partition:
+
+                start = block[0]
+                stop = block[-1] + 1
+
+                expected = _np.sum(reference[start:stop])
+                actual = _np.sum(rows[:, start:stop], axis=1)
+
+                if not _np.all(actual == expected):
+                    is_lumpable = False
+                    break
+
+            if not is_lumpable:
                 break
 
         if is_lumpable:
@@ -274,6 +284,34 @@ def is_stochastically_monotone(m: _tarray) -> bool:
     result = bool(_np.all(_np.diff(cumulative[:, 1:], axis=0) >= 0.0))
 
     return result
+
+
+def verify_reachability(p: _tarray, targets: _tarray) -> _tarray:
+
+    size = p.shape[0]
+
+    predecessors = [[] for _ in range(size)]
+
+    for i in range(size):
+        for j in _np.flatnonzero(p[i, :] > 0.0):
+            predecessors[j].append(i)
+
+    reachable = _np.zeros(size, dtype=bool)
+    reachable[targets] = True
+
+    stack = list(targets)
+
+    while stack:
+
+        j = stack.pop()
+
+        for i in predecessors[j]:
+
+            if not reachable[i]:
+                reachable[i] = True
+                stack.append(i)
+
+    return reachable
 
 
 # SPECTRAL ALGORITHMS
@@ -324,6 +362,31 @@ def gth_solve(p: _tarray) -> _tarray:
     x /= _np.sum(x)
 
     return x
+
+
+def matrix_geometric_sum(m: _tarray, terms: int) -> _tarray:
+
+    size = m.shape[0]
+
+    result_power = _np.eye(size, dtype=float)
+    result_sum = _np.zeros_like(m)
+
+    block_power = _np.copy(m)
+    block_sum = _np.eye(size, dtype=float)
+
+    while terms > 0:
+
+        if terms & 1:
+            result_sum += _np.dot(result_power, block_sum)
+            result_power = _np.dot(result_power, block_power)
+
+        terms >>= 1
+
+        if terms > 0:
+            block_sum += _np.dot(block_power, block_sum)
+            block_power = _np.dot(block_power, block_power)
+
+    return result_sum
 
 
 # INFORMATION THEORY

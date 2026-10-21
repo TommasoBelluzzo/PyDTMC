@@ -74,12 +74,9 @@ import math as _mt
 import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
+import scipy.linalg as _spl
 
 # Internal
-
-from ._numerical import (
-    gth_solve as _gth_solve
-)
 
 from ._constants import (
     FTOL as _FTOL
@@ -110,7 +107,10 @@ from ._custom_types import (
 )
 
 from ._numerical import (
-    eigenvalues_sorted as _eigenvalues_sorted
+    gth_solve as _gth_solve,
+    eigenvalues_sorted as _eigenvalues_sorted,
+    matrix_geometric_sum as _matrix_geometric_sum,
+    verify_reachability as _verify_reachability
 )
 
 
@@ -131,9 +131,12 @@ def _hitting_times_statistics(p: _tarray, states: _tarray) -> _tany:
 
     a = _np.eye(states.size) - p[_np.ix_(states, states)]
     b = _np.ones(states.size, dtype=float)
-    mean = _npl.solve(a, b)
 
-    second_moment = _npl.solve(a, (2.0 * mean) - b)
+    lu, piv = _spl.lu_factor(a)
+
+    mean = _spl.lu_solve((lu, piv), b)
+    second_moment = _spl.lu_solve((lu, piv), (2.0 * mean) - b)
+
     variance = _clean_variance(second_moment - mean**2.0)
 
     return mean, variance
@@ -178,7 +181,7 @@ def hmm_conditional_probabilities(hmm: _thmm, symbol: int) -> _tlist_array:
 
 # HMM INFERENCE
 
-def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int, use_scaling: bool) -> _ohmm_decoding:
+def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int, use_scaling: bool, compute_transitions: bool) -> _ohmm_decoding:
 
     n, k = p.shape[1], e.shape[1]
 
@@ -217,14 +220,18 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
         backward[:, i] = _np.dot(p, backward_i * e_i) / scaling_factor
 
-    posterior_transitions = _np.zeros((n, n, f - 1), dtype=float)
+    if not compute_transitions:
+        posterior_transitions = None
+    else:
 
-    for i in range(1, f):
+        posterior_transitions = _np.zeros((n, n, f - 1), dtype=float)
 
-        source = forward[:, i - 1, _np.newaxis]
-        destination = (e[:, symbols[i]] * backward[:, i])[_np.newaxis, :]
+        for i in range(1, f):
 
-        posterior_transitions[:, :, i - 1] = (source * p * destination) / scaling_factors[i]
+            source = forward[:, i - 1, _np.newaxis]
+            destination = (e[:, symbols[i]] * backward[:, i])[_np.newaxis, :]
+
+            posterior_transitions[:, :, i - 1] = (source * p * destination) / scaling_factors[i]
 
     posterior = _np.multiply(backward, forward)
     posterior = posterior[:, 1:]
@@ -255,16 +262,8 @@ def hmm_hitting_probabilities(hmm: _thmm, targets: _tlist_int) -> _tarray:
     r = _np.sum(e[:, targets], axis=1)
     q = (1.0 - r[:, _np.newaxis]) * p
 
-    reachable = r > 0.0
-
-    for _ in range(n):
-
-        updated = reachable | _np.any((q > 0.0) & reachable[_np.newaxis, :], axis=1)
-
-        if _np.array_equal(updated, reachable):
-            break
-
-        reachable = updated
+    initial = _np.flatnonzero(r > 0.0)
+    reachable = _verify_reachability(q, initial)
 
     solve = _np.flatnonzero(reachable)
 
@@ -288,13 +287,14 @@ def mc_absorption_probabilities(mc: _tmc) -> _oarray:
         return None
 
     p, states = mc.p, mc.states
-    transient_indices = [states.index(state) for state in mc.transient_states]
+    states_indices = {state: index for index, state in enumerate(states)}
+    transient_indices = [states_indices[state] for state in mc.transient_states]
 
     ap = _np.zeros((len(mc.recurrent_classes), len(transient_indices)), dtype=float)
 
     for i, recurrent_class in enumerate(mc.recurrent_classes):
 
-        recurrent_indices = [states.index(state) for state in recurrent_class]
+        recurrent_indices = [states_indices[state] for state in recurrent_class]
         r = p[_np.ix_(transient_indices, recurrent_indices)]
 
         ap[i, :] = _np.dot(om, _np.sum(r, axis=1))
@@ -538,7 +538,7 @@ def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
     if non_target.size == 0:
         return hp
 
-    reachable = _np.any(mc.accessibility_matrix[:, target] != 0, axis=1)
+    reachable = _verify_reachability(p, target)
     solve = non_target[reachable[non_target]]
 
     if solve.size > 0:
@@ -694,23 +694,41 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
 
     if size <= 12:
 
-        for i in range(1, size):
-            for c in _it.combinations(range(size), i):
+        selected = _np.zeros(size, dtype=bool)
+        mass = 0.0
+        flow = 0.0
+        previous = 0
 
-                states = list(c)
+        for i in range(1, 1 << size):
 
-                mass = _np.sum(pi[states])
+            current = i ^ (i >> 1)
+            changed = current ^ previous
+            index = changed.bit_length() - 1
 
-                if mass > (0.5 + _FTOL):
-                    continue
+            if current & changed:
 
-                complement = _np.ones(size, dtype=bool)
-                complement[states] = False
+                flow -= _np.sum(sf[selected, index])
+                selected[index] = True
+                flow += _np.sum(sf[index, ~selected])
+                mass += pi[index]
 
-                flow = _np.sum(sf[_np.ix_(states, complement)])
-                conductance = flow / mass
+            else:
 
-                gc = min(gc, float(conductance))
+                flow -= _np.sum(sf[index, ~selected])
+                selected[index] = False
+                flow += _np.sum(sf[selected, index])
+                mass -= pi[index]
+
+            previous = current
+
+            if current == ((1 << size) - 1):
+                continue
+
+            if mass > (0.5 + _FTOL):
+                continue
+
+            conductance = flow / mass
+            gc = min(gc, float(conductance))
 
     else:
 
@@ -719,31 +737,41 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
         normalized = flow / _np.outer(pi_root, pi_root)
 
         laplacian = _np.eye(size) - normalized
-        _, eigenvectors = _npl.eigh(laplacian)
+        _, evectors = _npl.eigh(laplacian)
 
-        fiedler = eigenvectors[:, 1] / pi_root
+        fiedler = evectors[:, 1] / pi_root
         order = _np.argsort(fiedler, kind='stable')
 
-        candidates = [[i] for i in range(size)]
+        for i in range(size):
 
-        for ordering in (order, order[::-1]):
-            for count in range(1, size):
-                candidates.append(ordering[:count])
-
-        for states in candidates:
-
-            mass = _np.sum(pi[states])
+            mass = pi[i]
 
             if mass > (0.5 + _FTOL):
                 continue
 
-            complement = _np.ones(size, dtype=bool)
-            complement[states] = False
-
-            cut = _np.sum(sf[_np.ix_(states, complement)])
+            cut = _np.sum(sf[i, :]) - sf[i, i]
             conductance = cut / mass
 
             gc = min(gc, float(conductance))
+
+        for ordering in (order, order[::-1]):
+
+            selected = _np.zeros(size, dtype=bool)
+            cut, mass = 0.0, 0.0
+
+            for index in ordering[:-1]:
+
+                cut -= _np.sum(sf[selected, index])
+                selected[index] = True
+
+                cut += _np.sum(sf[index, ~selected])
+                mass += pi[index]
+
+                if mass > (0.5 + _FTOL):
+                    continue
+
+                conductance = cut / mass
+                gc = min(gc, float(conductance))
 
     return gc
 
@@ -813,6 +841,12 @@ def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obound_float
     n, k = hmm.size
     p, e = hmm.p, hmm.e
 
+    pc = _np.cumsum(p, axis=1)
+    pc[:, -1] = 1.0
+
+    ec = _np.cumsum(e, axis=1)
+    ec[:, -1] = 1.0
+
     emission_entropies = _np.zeros(n, dtype=float)
 
     for i in range(n):
@@ -850,9 +884,12 @@ def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obound_float
 
         losses = []
 
+        pic = _np.cumsum(pi)
+        pic[-1] = 1.0
+
         for _ in range(samples):
 
-            state = rng.choice(n, p=pi)
+            state = int(_np.searchsorted(pic, rng.random_sample(), side='left'))
 
             filtered = _np.array(pi, dtype=float, copy=True)
             loss = 0.0
@@ -860,17 +897,18 @@ def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obound_float
             for t in range(steps):
 
                 if t > 0:
-                    state = rng.choice(n, p=p[state])
+                    state = int(_np.searchsorted(pc[state], rng.random_sample(), side='left'))
                     filtered = _np.dot(filtered, p)
 
-                symbol = rng.choice(k, p=e[state])
-                probability = _np.dot(filtered, e[:, symbol])
+                symbol = int(_np.searchsorted(ec[state], rng.random_sample(), side='left'))
+                emissions = e[:, symbol]
+                probability = _np.dot(filtered, emissions)
 
                 if (probability <= 0.0) or (not _np.isfinite(probability)):
                     return None
 
                 loss -= _np.log(probability)
-                filtered = (filtered * e[:, symbol]) / probability
+                filtered = (filtered * emissions) / probability
 
             losses.append(loss / steps)
 
@@ -1229,11 +1267,8 @@ def mc_expected_rewards(mc: _tmc, steps: int, rewards: _tarray) -> _tany:
 
     p = mc.p
 
-    original_rewards = _np.copy(rewards)
-    er = _np.copy(rewards)
-
-    for _ in range(steps):
-        er = original_rewards + _np.dot(p, er)
+    mg_sum = _matrix_geometric_sum(p, steps + 1)
+    er = _np.dot(mg_sum, rewards)
 
     return er
 
@@ -1242,13 +1277,8 @@ def mc_expected_transitions(mc: _tmc, steps: int, initial_distribution: _tarray)
 
     p = mc.p
 
-    idist = _np.copy(initial_distribution)
-    idist_sum = _np.zeros_like(idist)
-
-    for _ in range(steps):
-        idist_sum += idist
-        idist = _np.dot(idist, p)
-
+    mg_sum = _matrix_geometric_sum(p, steps)
+    idist_sum = _np.dot(initial_distribution, mg_sum)
     et = idist_sum[:, _np.newaxis] * p
 
     return et

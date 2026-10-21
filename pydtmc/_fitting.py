@@ -75,7 +75,7 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
     # noinspection PyUnusedLocal
     def _fit_baum_welch(fbw_fitting_type, fwb_p_guess, fwb_e_guess, fwb_initial_distribution, fbw_symbols):  # pylint: disable=unused-argument
 
-        decoding = _hmm_decode(fwb_p_guess, fwb_e_guess, fwb_initial_distribution, fbw_symbols, True)
+        decoding = _hmm_decode(fwb_p_guess, fwb_e_guess, fwb_initial_distribution, fbw_symbols, True, False)
 
         if decoding is None:  # pragma: no cover
             return None

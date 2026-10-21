@@ -419,7 +419,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _decode(self.__p, self.__e, initial_status, symbols, use_scaling)
+        value = _decode(self.__p, self.__e, initial_status, symbols, use_scaling, True)
 
         return value
 
@@ -668,7 +668,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        decoding = _decode(self.__p, self.__e, initial_status, symbols, True)
+        decoding = _decode(self.__p, self.__e, initial_status, symbols, True, False)
 
         if decoding is None:
             return float('inf')
@@ -966,7 +966,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        decoding = _decode(self.__p, self.__e, initial_status, sequence, True)
+        decoding = _decode(self.__p, self.__e, initial_status, sequence, True, False)
 
         if decoding is None:
             return 0.0

@@ -126,11 +126,11 @@ def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: 
 
     p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
 
-    for i, j in zip(sequence_states[:-1], sequence_states[1:]):
-        p[i, j] += 1.0
+    states_array = _np.asarray(sequence_states, dtype=int)
+    symbols_array = _np.asarray(sequence_symbols, dtype=int)
 
-    for i, j in zip(sequence_states, sequence_symbols):
-        e[i, j] += 1.0
+    _np.add.at(p, (states_array[:-1], states_array[1:]), 1.0)
+    _np.add.at(e, (states_array, symbols_array), 1.0)
 
     if handle_nulls:
 
