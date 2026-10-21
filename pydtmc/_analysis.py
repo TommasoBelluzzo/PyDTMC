@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'hmm_conditional_probabilities',
     'hmm_decode',
     'hmm_entropy',
+    'hmm_entropy_rate',
+    'hmm_hitting_probabilities',
     'hmm_mutual_information',
     'mc_absolute_spectral_gap',
     'mc_absorption_probabilities',
     'mc_absorption_times',
     'mc_committor_probabilities',
     'mc_commute_times',
-    'hmm_conditional_probabilities',
     'mc_conductance',
     'mc_deviation_matrix',
     'mc_dobrushin_coefficient',
@@ -85,11 +87,12 @@ from ._constants import (
 
 from ._custom_types import (
     oarray as _oarray,
-    ohmm_decoding as _ohmm_decoding,
+    obound_float as _obound_float,
+    obound_floats as _obound_floats,
     ofloat as _ofloat,
     oint as _oint,
+    ohmm_decoding as _ohmm_decoding,
     olist_int as _olist_int,
-    omc_osp as _omc_osp,
     osequence as _osequence,
     otimes_out as _otimes_out,
     tany as _tany,
@@ -242,6 +245,40 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
 
 # ABSORPTION & PASSAGE
+
+
+def hmm_hitting_probabilities(hmm: _thmm, targets: _tlist_int) -> _tarray:
+
+    p, e = hmm.p, hmm.e
+    n = p.shape[0]
+
+    r = _np.sum(e[:, targets], axis=1)
+    q = (1.0 - r[:, _np.newaxis]) * p
+
+    reachable = r > 0.0
+
+    for _ in range(n):
+
+        updated = reachable | _np.any((q > 0.0) & reachable[_np.newaxis, :], axis=1)
+
+        if _np.array_equal(updated, reachable):
+            break
+
+        reachable = updated
+
+    solve = _np.flatnonzero(reachable)
+
+    hp = _np.zeros(n, dtype=float)
+
+    if solve.size > 0:
+        a = _np.eye(solve.size) - q[_np.ix_(solve, solve)]
+        b = r[solve]
+        hp[solve] = _npl.solve(a, b)
+
+    hp = _np.clip(hp, 0.0, 1.0)
+
+    return hp
+
 
 def mc_absorption_probabilities(mc: _tmc) -> _oarray:
 
@@ -509,6 +546,8 @@ def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
         b = _np.sum(p[_np.ix_(solve, target)], axis=1)
         hp[solve] = _npl.solve(a, b)
 
+    hp = _np.clip(hp, 0.0, 1.0)
+
     return hp
 
 
@@ -767,6 +806,84 @@ def hmm_entropy(hmm: _thmm, target: str, conditional: bool) -> _tlist_float:
         results.append(value)
 
     return results
+
+
+def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obound_floats:
+
+    n, k = hmm.size
+    p, e = hmm.p, hmm.e
+
+    emission_entropies = _np.zeros(n, dtype=float)
+
+    for i in range(n):
+        probabilities = e[i, e[i] > 0.0]
+        emission_entropies[i] = -float(_np.sum(probabilities * _np.log(probabilities)))
+
+    h = []
+
+    for pi in hmm.pi:
+
+        q = _np.dot(pi, e)
+        joint = _np.dot(_np.transpose(e), _np.dot(pi[:, _np.newaxis] * p, e))
+
+        lower_bound = float(_np.dot(pi, emission_entropies))
+        upper_bound = 0.0
+
+        for i in range(k):
+
+            if q[i] <= 0.0:
+                continue
+
+            positive = joint[i] > 0.0
+            probabilities = _np.clip(joint[i, positive] / q[i], 0.0, 1.0)
+
+            upper_bound -= float(_np.sum(joint[i, positive] * _np.log(probabilities)))
+
+        lower_bound = max(0.0, lower_bound)
+        upper_bound = max(0.0, upper_bound)
+
+        if (not _np.isfinite(lower_bound)) or (not _np.isfinite(upper_bound)):
+            return None
+
+        if upper_bound < lower_bound:
+            lower_bound, upper_bound = upper_bound, lower_bound
+
+        losses = []
+
+        for _ in range(samples):
+
+            state = rng.choice(n, p=pi)
+
+            filtered = _np.array(pi, dtype=float, copy=True)
+            loss = 0.0
+
+            for t in range(steps):
+
+                if t > 0:
+                    state = rng.choice(n, p=p[state])
+                    filtered = _np.dot(filtered, p)
+
+                symbol = rng.choice(k, p=e[state])
+                probability = _np.dot(filtered, e[:, symbol])
+
+                if (probability <= 0.0) or (not _np.isfinite(probability)):
+                    return None
+
+                loss -= _np.log(probability)
+                filtered = (filtered * e[:, symbol]) / probability
+
+            losses.append(loss / steps)
+
+        value = _np.mean(losses)
+
+        if not _np.isfinite(value):
+            return None
+
+        value = max(lower_bound, min(upper_bound, float(value)))
+
+        h.append((value, (lower_bound, upper_bound)))
+
+    return h
 
 
 def hmm_mutual_information(hmm: _thmm, process1: str, process2: str, steps: int) -> _tlist_float:
@@ -1321,7 +1438,7 @@ def mc_kemeny_constant(mc: _tmc) -> _ofloat:
     return kc
 
 
-def mc_ordinary_spectral_gap(mc: _tmc) -> _omc_osp:
+def mc_ordinary_spectral_gap(mc: _tmc) -> _obound_float:
 
     if (not mc.is_irreducible) or (not mc.is_reversible):
         return None

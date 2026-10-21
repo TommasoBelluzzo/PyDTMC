@@ -25,6 +25,8 @@ from ._analysis import (
     hmm_conditional_probabilities as _conditional_probabilities,
     hmm_decode as _decode,
     hmm_entropy as _entropy,
+    hmm_entropy_rate as _entropy_rate,
+    hmm_hitting_probabilities as _hitting_probabilities,
     hmm_mutual_information as _mutual_information
 )
 
@@ -33,6 +35,7 @@ from ._base_classes import (
 )
 
 from ._custom_types import (
+    obound_floats as _obound_floats,
     ohmm_decoding as _ohmm_decoding,
     oint as _oint,
     olist_str as _olist_str,
@@ -63,12 +66,14 @@ from ._custom_types import (
 )
 
 from ._decorators import (
+    cached_method as _cached_method,
     cached_property as _cached_property,
     object_mark as _object_mark
 )
 
 from ._dynamics import (
     hmm_predict as _predict,
+    hmm_predict_trajectory as _predict_trajectory,
     hmm_propagate as _propagate,
     hmm_simulate as _simulate
 )
@@ -138,13 +143,22 @@ from ._validation import (
 
 class HiddenMarkovModel(_Model):
 
-    """
-    Defines a hidden Markov model with the given transition and emission matrices.
+    r"""
+    Defines a hidden Markov model with the given hidden-state transition matrix and emission matrix.
 
-    :param p: the transition matrix.
+    | **Mathematical Notation:**
+
+    - :math:`P` is the row-stochastic hidden-state transition matrix;
+    - :math:`P_{ij}` is the probability of moving from hidden state :math:`i` to hidden state :math:`j`;
+    - :math:`E` is the row-stochastic emission matrix;
+    - :math:`E_{ia}` is the probability of emitting symbol :math:`a` from hidden state :math:`i`;
+    - :math:`n` is the number of hidden states;
+    - :math:`k` is the number of emitted symbols.
+
+    :param p: the hidden-state transition matrix.
     :param e: the emission matrix.
-    :param states: the name of each hidden state (*if omitted, an increasing sequence of integers starting at 1 with prefix P*).
-    :param symbols: the name of each emitted symbol (*if omitted, an increasing sequence of integers starting at 1 with prefix E*).
+    :param states: the hidden-state names (*if omitted, an increasing sequence of integers starting at 1 with prefix P is generated*).
+    :param symbols: the emitted-symbol names (*if omitted, an increasing sequence of integers starting at 1 with prefix E is generated*).
     :raises ValidationError: if any input argument is not compliant.
     """
 
@@ -202,6 +216,7 @@ class HiddenMarkovModel(_Model):
         lines.append(f' STATES:  {self.n:d}')
         lines.append(f' SYMBOLS: {self.k:d}')
         lines.append(f' ERGODIC: {("YES" if self.is_ergodic else "NO")}')
+        lines.append(f' REGULAR: {("YES" if self.is_regular else "NO")}')
         lines.append('')
 
         value = '\n'.join(lines)
@@ -218,11 +233,38 @@ class HiddenMarkovModel(_Model):
         return _np.copy(self.__e)
 
     @_cached_property
+    def emissive_overlap(self) -> _tarray:
+
+        r"""
+        | A property representing the pairwise overlap matrix of the emission distributions of the hidden Markov model:
+        | :math:`O_{ij} = \sum_{a=1}^{k} \min(E_{ia}, E_{ja})`
+        """
+
+        e = self.__e
+
+        eo = _np.sum(_np.minimum(e[:, _np.newaxis, :], e[_np.newaxis, :, :]), axis=2)
+        eo = _np.clip(eo, 0.0, 1.0)
+
+        return eo
+
+    @_cached_property
+    def emissive_rank(self) -> int:
+
+        r"""
+        | A property representing the rank of the emission matrix of the hidden Markov model:
+        | :math:`\operatorname{rank}(E)`
+        """
+
+        er = int(_npl.matrix_rank(self.__e))
+
+        return er
+
+    @_cached_property
     def is_ergodic(self) -> bool:
 
         """
         | A property indicating whether the hidden Markov model is ergodic.
-        | A hidden Markov model is ergodic when the underlying Markov chain is ergodic and every emission probability is strictly positive.
+        | A hidden Markov model is ergodic when the underlying hidden-state Markov chain is both **irreducible** and **aperiodic**, and every entry of the emission matrix is strictly positive.
         """
 
         mc = _MarkovChain(self.__p, self.__states)
@@ -233,9 +275,9 @@ class HiddenMarkovModel(_Model):
     @_cached_property
     def is_regular(self) -> bool:
 
-        """
+        r"""
         | A property indicating whether the hidden Markov model is regular.
-        | A hidden Markov model is regular when the emission matrix has rank equal to the number of symbols.
+        | A hidden Markov model is regular when the emission matrix has full column rank: :math:`\operatorname{rank}(E) = k`.
         """
 
         result = _npl.matrix_rank(self.__e) == self.__size[1]
@@ -246,7 +288,7 @@ class HiddenMarkovModel(_Model):
     def k(self) -> int:
 
         """
-        A property representing the size of the hidden Markov model symbol space.
+        A property representing the number of emitted symbols of the hidden Markov model.
         """
 
         return self.__size[1]
@@ -255,7 +297,7 @@ class HiddenMarkovModel(_Model):
     def n(self) -> int:
 
         """
-        A property representing the size of the hidden Markov model state space.
+        A property representing the number of hidden states of the hidden Markov model.
         """
 
         return self.__size[0]
@@ -264,7 +306,7 @@ class HiddenMarkovModel(_Model):
     def p(self) -> _tarray:
 
         """
-        A property representing the transition matrix of the hidden Markov model.
+        A property representing the hidden-state transition matrix of the hidden Markov model.
         """
 
         return _np.copy(self.__p)
@@ -275,12 +317,12 @@ class HiddenMarkovModel(_Model):
 
         r"""
         | A property representing the stationary distributions of the hidden-state transition matrix:
-        | :math:`\pi P = \pi` where :math:`\pi` is a stationary probability distribution represented as a row vector.
+        | :math:`\pi P=\pi`, where :math:`\pi` is a stationary hidden-state distribution represented as a row vector.
 
         | **Notes:**
 
-        - For an **irreducible** underlying Markov chain, the stationary distribution is unique.
-        - For a **reducible** underlying Markov chain, one stationary distribution is returned for each recurrent class.
+        - If the underlying Markov chain is **irreducible**, its stationary distribution is unique.
+        - If the underlying Markov chain is **reducible**, one stationary distribution is returned for each recurrent class.
         - The property can also be accessed through the aliases **stationary_distributions** and **steady_states**.
         """
 
@@ -294,7 +336,7 @@ class HiddenMarkovModel(_Model):
 
         """
         | A property representing the size of the hidden Markov model.
-        | The first value represents the number of hidden states, the second value represents the number of emitted symbols.
+        | The first value is the number of hidden states, and the second is the number of emitted symbols.
         """
 
         return self.__size
@@ -303,7 +345,7 @@ class HiddenMarkovModel(_Model):
     def states(self) -> _tlist_str:
 
         """
-        A property representing the hidden states of the hidden Markov model.
+        A property representing the hidden-state names of the hidden Markov model.
         """
 
         return self.__states.copy()
@@ -312,7 +354,7 @@ class HiddenMarkovModel(_Model):
     def symbols(self) -> _tlist_str:
 
         """
-        A property representing the emitted symbols of the hidden Markov model.
+        A property representing the emitted-symbol names of the hidden Markov model.
         """
 
         return self.__symbols.copy()
@@ -321,16 +363,16 @@ class HiddenMarkovModel(_Model):
     def conditional_probabilities(self, symbol: _tstate) -> _tlist_array:
 
         r"""
-        | The method computes the stationary one-step conditional probabilities of the observable symbols of the hidden Markov model:
-        | :math:`Q_{ab} = \mathbb{P}(Y_{t+1}=b \mid Y_t=a)` where :math:`a` is the given symbol.
+        | The method computes the stationary one-step conditional probabilities of emitted symbols:
+        | :math:`Q_{ab}=\mathbb{P}(Y_{t+1}=b\mid Y_t=a)`, where :math:`a` is the given emitted symbol.
 
         | **Notes:**
 
-        - The method returns one probability distribution for each recurrent class.
-        - If the given symbol has zero stationary probability within a recurrent class, the corresponding distribution is returned as a zero vector.
+        - One probability distribution is returned for each recurrent class of the underlying Markov chain.
+        - If the given emitted symbol has zero stationary probability in a recurrent class, the corresponding distribution is a zero vector.
         - The method can also be accessed through the aliases **conditional_distribution**, **cd** and **cp**.
 
-        :param symbol: the current observable symbol.
+        :param symbol: the current emitted symbol.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -348,23 +390,23 @@ class HiddenMarkovModel(_Model):
     def decode(self, symbols: _tsequence, initial_status: _ostatus = None, use_scaling: bool = True) -> _ohmm_decoding:
 
         """
-        The method decodes an observed sequence of symbols and returns:
+        | The method decodes an observed sequence of emitted symbols using the forward-backward algorithm and returns, in order:
 
         - the log probability of the observed sequence;
-        - the posterior state probabilities conditioned on the complete observation sequence;
-        - the posterior transition probabilities conditioned on the complete observation sequence;
+        - the posterior hidden-state probabilities conditioned on the complete observed sequence;
+        - the posterior hidden-state transition probabilities conditioned on the complete observed sequence;
         - the backward probabilities;
         - the forward probabilities;
-        - the scaling factors used by the forward-backward algorithm.
+        - the scaling factors used by the algorithm.
 
         | **Notes:**
 
-        - The posterior transition probabilities are returned as a matrix of shape :math:`(n,n,T)`, where :math:`n` is the number of hidden states and :math:`T` is the number of observed symbols.
-        - If the observed sequence of symbols cannot be decoded, then :py:class:`None` is returned.
+        - The posterior transition probabilities have shape :math:`(n,n,T)`, where :math:`T` is the number of observed emitted symbols.
+        - If the observed sequence has zero probability under the model, :py:obj:`None` is returned.
 
-        :param symbols: the observed sequence of symbols.
-        :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
-        :param use_scaling: a boolean indicating whether to return scaled backward and forward probabilities together with their scaling factors.
+        :param symbols: the observed sequence of emitted symbols.
+        :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
+        :param use_scaling: a boolean indicating whether to return scaled forward and backward probabilities together with their scaling factors.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -383,11 +425,15 @@ class HiddenMarkovModel(_Model):
 
     def emission_probability(self, symbol: _tstate, state: _tstate) -> float:
 
-        """
-        The method computes the probability of a given symbol, conditioned on the process being at a given state.
+        r"""
+        | The method computes the emission probability of a given emitted symbol conditioned on a given hidden state:
+        | :math:`E_{ia}=\mathbb{P}(Y_t=a\mid X_t=i)`, where:
 
-        :param symbol: the target symbol.
-        :param state: the origin state.
+        - :math:`i` is the given hidden state;
+        - :math:`a` is the given emitted symbol.
+
+        :param symbol: the target emitted symbol.
+        :param state: the conditioning hidden state.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -403,6 +449,7 @@ class HiddenMarkovModel(_Model):
 
         return value
 
+    @_cached_method
     @_object_mark(aliases=['h'])
     def entropy(self, target: str, conditional: bool = False) -> _tlist_float:
 
@@ -412,10 +459,9 @@ class HiddenMarkovModel(_Model):
 
         | **Notes:**
 
-        - If **conditional** is :py:obj:`True`, the entropy is conditioned on the other process at the same time step.
-        - Terms with zero probability contribute 0.
+        - If **conditional** is :py:obj:`True`, the entropy is conditioned on the other process.
         - One value is returned for each stationary distribution of the hidden-state transition matrix.
-        - Entropies are expressed in nats.
+        - Entropies are expressed in nats; zero-probability terms contribute 0.
         - The method can also be accessed through the alias **h**.
 
         :param target:
@@ -437,19 +483,104 @@ class HiddenMarkovModel(_Model):
 
         return h
 
+    def entropy_rate(self, normalized: bool, steps: int = 10000, samples: int = 10, seed: _oint = None) -> _obound_floats:
+
+        r"""
+        | The method estimates the stationary entropy rate of the emitted-symbol process, optionally normalized between 0 and 1:
+        | :math:`\begin{cases} h = \lim_{T \to \infty} \frac{H(Y_1,\ldots,Y_T)}{T} & \text{if not normalized} \\ h_{\mathrm{n}} = \frac{h}{\log k} & \text{if normalized} \end{cases}`
+
+        | **Notes:**
+
+        - One result is returned for each stationary distribution of the hidden-state transition matrix.
+        - Each result contains the estimated entropy rate and its analytical lower and upper bounds.
+        - The estimates are obtained through Monte Carlo sampling and depend on the sampling parameters, whereas the bounds are computed analytically.
+        - The entropy rate is expressed in nats per emitted symbol.
+        - If the entropy rate cannot be estimated due to numerical inconsistencies, then :py:obj:`None` is returned.
+
+        :param normalized: a boolean indicating whether to normalize the entropy rate.
+        :param steps: the number of emitted symbols sampled per estimate.
+        :param samples: the number of independent sampled sequences per stationary distribution.
+        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            rng = _create_rng(seed)
+            normalized = _validate_boolean(normalized)
+            steps = _validate_integer(steps, lower_limit=(10, False))
+            samples = _validate_integer(samples, lower_limit=(1, False))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        h = _entropy_rate(self, steps, samples, rng)
+
+        if h is None:
+            return None
+
+        if normalized:
+
+            _, k = self.__size
+            divisor = float(_np.log(k))
+
+            hn = []
+
+            for value, (lower, upper) in h:
+                value = min(1.0, max(0.0, value / divisor))
+                lower = min(1.0, max(0.0, lower / divisor))
+                upper = min(1.0, max(0.0, upper / divisor))
+
+                hn.append((value, (lower, upper)))
+
+            return hn
+
+        return h
+
+    @_object_mark(aliases=['hp'])
+    def hitting_probabilities(self, targets: _ostates = None) -> _tarray:
+
+        r"""
+        | The method computes the probability of eventually emitting the target symbols, starting from each hidden state:
+        | :math:`h_i=\mathbb{P}(\exists t\geq 0:Y_t\in S\mid X_0=i)`, where :math:`S` is the set of target emitted symbols.
+
+        | **Notes:**
+
+        - The returned vector contains the probability of eventually emitting any symbol in the target set, starting from each hidden state.
+        - Hidden states from which the target set cannot be emitted have hitting probability equal to 0.
+        - If all emitted symbols are targeted, all hitting probabilities are equal to 1.
+        - The method can also be accessed through the alias **hp**.
+
+        :param targets: the target emitted symbols (*if omitted, all emitted symbols are targeted*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            if targets is None:
+                targets = list(range(self.__size[1]))
+            else:
+                targets = _validate_labels_current(targets, self.__states, False)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        hp = _hitting_probabilities(self, targets)
+
+        return hp
+
     @_object_mark(aliases=['mi'])
     def mutual_information(self, process1: str, process2: str, steps: int = 0) -> _tlist_float:
 
         r"""
         | The method computes the stationary mutual information between two selected processes at a specified time lag:
-        | :math:`I(Z_t;W_{t+h})`, where :math:`Z` and :math:`W` represent the selected processes and :math:`h` is the non-negative time lag.
+        | :math:`I(Z_t;W_{t+h})`, where :math:`Z` and :math:`W` are the selected processes and :math:`h` is the non-negative time lag.
 
         | **Notes:**
 
-        - At step 0, the mutual information between simultaneous variables is computed.
-        - Terms with zero joint probability contribute 0.
+        - At lag 0, the mutual information is computed between simultaneous variables.
         - One value is returned for each stationary distribution of the hidden-state transition matrix.
-        - Mutual information is expressed in nats.
+        - Mutual information is expressed in nats; zero-probability terms contribute 0.
         - The method can also be accessed through the alias **mi**.
 
         :param process1:
@@ -458,7 +589,7 @@ class HiddenMarkovModel(_Model):
         :param process2:
          - **states** for hidden states;
          - **symbols** for emitted symbols.
-        :param steps: the non-negative time lag between the two processes (*default: 0*).
+        :param steps: the non-negative time lag between the selected processes.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -479,14 +610,14 @@ class HiddenMarkovModel(_Model):
     def next(self, initial_state: _tstate, target: str = 'both', output_index: bool = False, seed: _oint = None) -> _thmm_step:
 
         """
-        The method simulates a single step in a random walk.
+        | The method randomly selects the next hidden-state and emitted symbol of the hidden Markov model from the given initial hidden state.
 
-        :param initial_state: the initial state.
+        :param initial_state: the initial hidden state.
         :param target:
-         - **state** for a random state;
-         - **symbol** for a random symbol;
-         - **both** for a random state and a random symbol.
-        :param output_index: a boolean indicating whether to output the state index.
+         - **state** for the next hidden state;
+         - **symbol** for the next emitted symbol;
+         - **both** for the next hidden state and emitted symbol.
+        :param output_index: a boolean indicating whether to return indices instead of hidden-state and emitted-symbol labels.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -514,22 +645,56 @@ class HiddenMarkovModel(_Model):
 
         return value
 
-    def predict(self, prediction_type: str, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_prediction:
+    def perplexity(self, symbols: _tsequence, initial_status: _ostatus = None) -> float:
 
-        """
-        The method calculates the log probability and the most probable states path of an observed sequence of symbols.
+        r"""
+        | The method computes the perplexity of an observed sequence of emitted symbols:
+        | :math:`\operatorname{PP}(y_{1:T})=\exp(-\ell/T)`, where :math:`\ell` is its log probability.
 
         | **Notes:**
 
-        - If the maximum a posteriori prediction is used and the observed sequence of symbols cannot be decoded, then :py:class:`None` is returned.
-        - If the maximum likelihood prediction is used and the observed sequence of symbols produces null transition probabilities, then :py:class:`None` is returned.
+        - An impossible observed sequence has infinite perplexity.
+
+        :param symbols: the observed sequence of emitted symbols.
+        :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            symbols = _validate_sequence(symbols, self.__symbols)
+            initial_status = _validate_status(initial_status, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        decoding = _decode(self.__p, self.__e, initial_status, symbols, True)
+
+        if decoding is None:
+            return float('inf')
+
+        log_prob, _, _, _, _, _ = decoding
+        px = float(_np.exp(-log_prob / len(symbols)))
+
+        return px
+
+    def predict(self, prediction_type: str, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_prediction:
+
+        """
+        | The method computes the log probability and a predicted hidden-state path for an observed sequence of emitted symbols.
+
+        | **Notes:**
+
+        - The maximum a posteriori prediction selects the most probable hidden state at each time step given the complete observed sequence.
+        - The maximum likelihood predictions select the most probable complete hidden-state path.
+        - If the requested prediction cannot be computed, :py:obj:`None` is returned.
 
         :param prediction_type:
-         - **map** for the maximum a posteriori prediction;
-         - **mle** or **viterbi** for the maximum likelihood prediction.
-        :param symbols: the observed sequence of symbols.
-        :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
-        :param output_indices: a boolean indicating whether to output the state indices.
+         - **map** for maximum a posteriori prediction;
+         - **mle** or **viterbi** for maximum likelihood path prediction.
+        :param symbols: the observed sequence of emitted symbols.
+        :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
+        :param output_indices: a boolean indicating whether to return hidden-state indices instead of hidden-state labels.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -550,26 +715,60 @@ class HiddenMarkovModel(_Model):
 
         return value
 
+    def predict_trajectory(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _tsequence:
+
+        r"""
+        | The method predicts the globally most probable sequence of emitted symbols over the given number of hidden-state transitions, with the initial hidden state fixed.
+
+        | **Notes:**
+
+        - Exact search has exponential time complexity in the number of emitted symbols and transitions, making it computationally expensive for long sequences.
+        - Probabilities are marginalized over all possible hidden-state paths; this is not a Viterbi hidden-path prediction.
+        - If multiple emitted sequences share the maximum probability, :py:obj:`None` is returned.
+        - The returned sequence includes the initial emission.
+
+        :param steps: the number of hidden-state transitions.
+        :param initial_state: the initial hidden state.
+        :param output_indices: a boolean indicating whether to return emitted-symbol indices instead of labels.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            steps = _validate_integer(steps, lower_limit=(1, False))
+            initial_state = _validate_label(initial_state, self.__states)
+            output_indices = _validate_boolean(output_indices)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        trajectory = _predict_trajectory(self, steps, initial_state)
+
+        if (trajectory is not None) and (not output_indices):
+            trajectory = [self.__symbols[index] for index in trajectory]
+
+        return trajectory
+
     def propagate(self, target: str, steps: int, initial_status: _ostatus = None, output_last: bool = True) -> _tredists:
 
         r"""
         | The method computes the evolution of the hidden-state or emitted-symbol probability distribution of the hidden Markov model:
-        | :math:`\mu^{(t)} = \mu P^t` for hidden states and :math:`q^{(t)} = \mu P^t E` for emitted symbols, where:
+        | :math:`\mu^{(t)}=\mu P^t` for hidden states and :math:`q^{(t)}=\mu P^tE` for emitted symbols, where:
 
         - :math:`\mu` is the initial hidden-state distribution;
-        - :math:`\mu^{(t)}` is the hidden-state probability distribution after :math:`t` transitions;
-        - :math:`q^{(t)}` is the emitted-symbol probability distribution after :math:`t` transitions.
+        - :math:`\mu^{(t)}` is the hidden-state distribution after :math:`t` transitions;
+        - :math:`q^{(t)}` is the emitted-symbol distribution after :math:`t` transitions.
 
         | **Notes:**
 
-        - An initial state is interpreted as a distribution concentrated on that state.
-        - If **output_last** is :py:obj:`False`, the distributions from time 0 through the specified number of steps are returned.
+        - An initial hidden state is interpreted as a distribution concentrated on that hidden state.
+        - If **output_last** is :py:obj:`False`, distributions from time 0 through the specified number of steps are returned.
 
-        :param steps: the number of steps.
-        :param initial_status: the initial state or initial state distribution (*if omitted, the states are assumed to be uniformly distributed*).
         :param target:
-         - **state** for hidden states;
-         - **symbol** for emitted symbols.
+         - **states** for hidden states;
+         - **symbols** for emitted symbols.
+        :param steps: the number of steps.
+        :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
         :param output_last: a boolean indicating whether to return only the final distribution.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -592,15 +791,15 @@ class HiddenMarkovModel(_Model):
     def restrict(self, states: _ostates = None, symbols: _ostates = None) -> _thmm:
 
         """
-        The method returns a submodel restricted to the given states and symbols.
+        | The method returns a submodel restricted to the given hidden states and emitted symbols.
 
         | **Notes:**
 
-        - Submodel transition and emission matrices are normalized so that their rows sum to 1.0.
-        - Submodel transition and emission matrices whose rows sum to 0.0 are replaced by uniformly distributed probabilities.
+        - The transition and emission matrices are renormalized after restriction so that each row sums to 1.
+        - A zero-sum row after restriction is replaced by a uniform probability distribution.
 
-        :param states: the states to include in the submodel.
-        :param symbols: the symbols to include in the submodel.
+        :param states: the hidden states to include in the submodel.
+        :param symbols: the emitted symbols to include in the submodel.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -624,13 +823,17 @@ class HiddenMarkovModel(_Model):
     def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, final_symbol: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _thmm_sequence_ext:
 
         """
-        The method simulates a random sequence of states and symbols of the given number of steps.
+        | The method simulates a random sequence of hidden states and emitted symbols for the given number of steps.
+
+        | **Notes:**
+
+        - The returned sequences include the initial hidden state and an emitted symbol sampled from that hidden state.
 
         :param steps: the number of steps.
-        :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
-        :param final_state: the final state of the simulation (*if specified, the simulation stops as soon as it is reached*).
-        :param final_symbol: the final state of the simulation (*if specified, the simulation stops as soon as it is reached*).
-        :param output_indices: a boolean indicating whether to output the state indices.
+        :param initial_state: the initial hidden state (*if omitted, it is chosen uniformly at random*).
+        :param final_state: the early-stop target hidden state (*if specified, the simulation stops upon reaching it*).
+        :param final_symbol: the early-stop target emitted symbol (*if specified, the simulation stops upon emitting it*).
+        :param output_indices: a boolean indicating whether to return hidden-state and emitted-symbol indices instead of labels.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -659,7 +862,13 @@ class HiddenMarkovModel(_Model):
     def to_dictionary(self) -> _thmm_dict:
 
         """
-        The method returns a dictionary representing the hidden Markov model.
+        | The method returns a dictionary representing the transition and emission matrices of the hidden Markov model.
+
+        | **Notes:**
+
+        - Transition entries use keys of the form **('P', origin hidden state, target hidden state)**.
+        - Emission entries use keys of the form **('E', hidden state, emitted symbol)**.
+        - All transition and emission entries are included, even when their probabilities are 0.
         """
 
         n, k = self.__size
@@ -678,11 +887,14 @@ class HiddenMarkovModel(_Model):
     def to_file(self, file_path: _tpath):
 
         """
-        The method writes a hidden Markov model to the given file.
+        | The method writes the hidden Markov model to the given file.
 
-        | Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension.
+        | **Notes:**
 
-        :param file_path: the location of the file in which the hidden Markov model must be written.
+        - The supported formats are **csv**, **json**, **txt** and **xml**.
+        - The output format is determined by the file extension.
+
+        :param file_path: the path of the file to which the hidden Markov model is written.
         :raises OSError: if the file cannot be written.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -708,7 +920,11 @@ class HiddenMarkovModel(_Model):
     def to_graph(self) -> _tgraph:
 
         """
-        The method returns a directed graph representing the hidden Markov model.
+        | The method returns a directed graph representing the hidden Markov model.
+
+        | **Notes:**
+
+        - Nodes represent hidden states and emitted symbols; weighted edges represent transition and emission probabilities.
         """
 
         graph = _cp.deepcopy(self.__digraph)
@@ -718,22 +934,59 @@ class HiddenMarkovModel(_Model):
     def to_matrices(self) -> _tpair_array:
 
         """
-        The method returns a tuple of two items representing the underlying matrices of the hidden Markov model.
-
-        | The first item is the transition matrix and the second item is the emission matrix.
+        | The method returns a tuple containing the transition and emission matrices of the hidden Markov model.
+        | The first item is the hidden-state transition matrix and the second is the emission matrix.
         """
 
         m = (_np.copy(self.__p), _np.copy(self.__e))
 
         return m
 
+    def sequence_probability(self, sequence: _tsequence, initial_status: _ostatus = None) -> float:
+
+        r"""
+        | The method computes the probability of an observed sequence of emitted symbols:
+        | :math:`\mathbb{P}(Y_1=y_1,\ldots,Y_T=y_T)`.
+
+        | **Notes:**
+
+        - The initial hidden-state distribution is applied before the first transition, consistently with **decode**.
+        - An impossible observed sequence has probability 0.
+
+        :param sequence: the observed sequence of emitted symbols.
+        :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            sequence = _validate_sequence(sequence, self.__symbols)
+            initial_status = _validate_status(initial_status, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        decoding = _decode(self.__p, self.__e, initial_status, sequence, True)
+
+        if decoding is None:
+            return 0.0
+
+        log_prob, _, _, _, _, _ = decoding
+        sp = float(_np.exp(log_prob))
+
+        return sp
+
     def transition_probability(self, state_target: _tstate, state_origin: _tstate) -> float:
 
-        """
-        The method computes the probability of a given state, conditioned on the process being at a given state.
+        r"""
+        | The method computes the one-step transition probability between two hidden states:
+        | :math:`P_{ij}=\mathbb{P}(X_{t+1}=j\mid X_t=i)`, where:
 
-        :param state_target: the target state.
-        :param state_origin: the origin state.
+        - :math:`i` is the origin hidden state;
+        - :math:`j` is the target hidden state.
+
+        :param state_target: the target hidden state.
+        :param state_origin: the origin hidden state.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -754,13 +1007,18 @@ class HiddenMarkovModel(_Model):
     def estimate(possible_states: _tlist_str, possible_symbols: _tlist_str, sequence_states: _tsequence, sequence_symbols: _tsequence) -> _thmm:
 
         """
-        The method performs the maximum likelihood estimation of transition and emission probabilities from an observed sequence of states and symbols.
+        | The method performs maximum likelihood estimation of transition and emission probabilities from observed sequences of hidden states and emitted symbols.
 
-        :param possible_states: the possible states of the model.
-        :param possible_symbols: the possible symbols of the model.
-        :param sequence_states: the observed sequence of states.
-        :param sequence_symbols: the observed sequence of symbols.
+        | **Notes:**
+
+        - If a hidden state has no observed outgoing transitions or emissions, the corresponding probability distribution is uniform.
+
+        :param possible_states: the possible hidden states of the model.
+        :param possible_symbols: the possible emitted symbols of the model.
+        :param sequence_states: the observed sequence of hidden states.
+        :param sequence_symbols: the observed sequence of emitted symbols.
         :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the observed hidden-state and emitted-symbol sequences have different lengths.
         """
 
         try:
@@ -789,18 +1047,18 @@ class HiddenMarkovModel(_Model):
     def fit(fitting_type: str, possible_states: _tlist_str, possible_symbols: _tlist_str, p_guess: _tarray, e_guess: _tarray, symbols: _thmm_symbols_ext, initial_status: _ostatus = None, regularization: float = 0.0, maximum_iterations: int = 500) -> _thmm:
 
         """
-        The method fits a hidden Markov model from an initial guess and one or more observed sequences of symbols.
+        | The method fits a hidden Markov model from initial transition and emission matrices and one or more observed sequences of emitted symbols.
 
         :param fitting_type:
-         - **baum-welch** for the Baum-Welch fitting;
-         - **map** for the maximum a posteriori fitting;
-         - **mle** or **viterbi** for the maximum likelihood fitting.
-        :param possible_states: the possible states of the model.
-        :param possible_symbols: the possible symbols of the model.
-        :param p_guess: the initial transition matrix guess.
-        :param e_guess: the initial emission matrix guess.
-        :param symbols: the observed sequence(s) of symbols.
-        :param initial_status: the initial state or the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
+         - **baum-welch** for Baum-Welch fitting;
+         - **map** for maximum a posteriori fitting;
+         - **mle** or **viterbi** for maximum likelihood fitting.
+        :param possible_states: the possible hidden states of the model.
+        :param possible_symbols: the possible emitted symbols of the model.
+        :param p_guess: the initial hidden-state transition matrix.
+        :param e_guess: the initial emission matrix.
+        :param symbols: the observed sequence(s) of emitted symbols.
+        :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
         :param regularization: a non-negative pseudocount added to initially positive transition and emission probabilities during fitting.
         :param maximum_iterations: the maximum number of iterations.
         :raises ValidationError: if any input argument is not compliant.
@@ -839,11 +1097,18 @@ class HiddenMarkovModel(_Model):
     def from_dictionary(d: _thmm_dict_flex) -> _thmm:
 
         """
-        The method generates a hidden Markov model from the given dictionary, whose keys represent state pairs and whose values represent transition probabilities.
+        | The method generates a hidden Markov model from a dictionary defining transition and emission probabilities.
 
-        :param d: the dictionary to transform into the transition matrix.
+        | **Notes:**
+
+        - Transition entries use keys of the form **('P', origin hidden state, target hidden state)**.
+        - Emission entries use keys of the form **('E', hidden state, emitted symbol)**.
+        - Missing entries are assigned probability 0.
+        - Noth resulting matrices must be stochastic; no normalization is performed.
+
+        :param d: the dictionary defining the transition and emission probabilities.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the transition matrix defined by the dictionary is not valid.
+        :raises ValueError: if either resulting probability matrix is not valid.
         """
 
         try:
@@ -888,17 +1153,16 @@ class HiddenMarkovModel(_Model):
     def from_file(file_path: _tpath) -> _thmm:
 
         r"""
-        The method reads a hidden Markov model from the given file.
+        The method reads a hidden Markov model from a file in **csv**, **json**, **txt** or **xml** format, inferred from its extension.
 
-        | Only **csv**, **json**, **txt** and **xml** files are supported; data format is inferred from the file extension.
-        | Transition probabilities are associated to reference attribute "P", emission probabilities are associated to reference attribute "E".
+        | The reference attribute **P** identifies hidden-state transitions, and **E** identifies emission probabilities.
 
         | In **csv** files, data must be structured as follows:
 
         - *Delimiter:* **comma**
         - *Quoting:* **minimal**
         - *Quote Character:* **double quote**
-        - *Header Row:* state names (prefixed with "P\_") and symbol names (prefixed with "E\_")
+        - *Header Row:* **hidden-state names (prefixed with "P\_") and emitted-symbol names (prefixed with "E\_")**
         - *Data Rows:* **probabilities**
 
         | In **json** files, data must be structured as an array of objects with the following properties:
@@ -908,9 +1172,9 @@ class HiddenMarkovModel(_Model):
         - **element_to** *(string)*
         - **probability** *(float or int)*
 
+        |
         | In **txt** files, every line of the file must have the following format:
-
-        - **<reference> <element_from> <element_to> <probability>**
+        | **<reference> <element_from> <element_to> <probability>**
 
         | In **xml** files, the structure must be defined as follows:
 
@@ -922,7 +1186,7 @@ class HiddenMarkovModel(_Model):
           - **element_to** *(string)*
           - **probability** *(float or int)*
 
-        :param file_path: the location of the file that defines the hidden Markov model.
+        :param file_path: the path of the file containing the hidden Markov model.
         :raises FileNotFoundError: if the file does not exist.
         :raises OSError: if the file cannot be read or is empty.
         :raises ValidationError: if any input argument is not compliant.
@@ -980,8 +1244,14 @@ class HiddenMarkovModel(_Model):
     def from_graph(graph: _tgraphs) -> _thmm:
 
         """
-        The method generates a hidden Markov model from the given directed graph, whose transition and emission matrices are obtained through the normalization of edge weights.
+        | The method generates a hidden Markov model from a directed graph by normalizing edge weights into transition and emission probabilities.
 
+        | **Notes:**
+
+        - Hidden states and emitted symbols are represented by separate node layers.
+        - Rows with total outgoing transition or emission weight equal to 0 are assigned uniform probability distributions.
+
+        :param graph: the directed graph defining the hidden Markov model.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1043,12 +1313,16 @@ class HiddenMarkovModel(_Model):
     def from_matrices(mp: _tnumeric, me: _tnumeric, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:
 
         """
-        The method generates a hidden Markov model whose transition and emission matrices are obtained through the normalization of the given matrices.
+        | The method generates a hidden Markov model by normalizing the given matrices into transition and emission probabilities.
 
-        :param mp: the matrix to transform into the transition matrix.
+        | **Notes:**
+
+        - Rows with total weight equal to 0 are assigned uniform probability distributions.
+
+        :param mp: the matrix to transform into the hidden-state transition matrix.
         :param me: the matrix to transform into the emission matrix.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1 with prefix P*).
-        :param symbols: the name of each symbol (*if omitted, an increasing sequence of integers starting at 1 with prefix E*).
+        :param states: the hidden-state names (*if omitted, an increasing sequence of integers starting at 1 with prefix P is generated*).
+        :param symbols: the emitted-symbol names (*if omitted, an increasing sequence of integers starting at 1 with prefix E is generated*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1094,20 +1368,21 @@ class HiddenMarkovModel(_Model):
     def random(n: int, k: int, states: _olist_str = None, p_zeros: int = 0, p_mask: _onumeric = None, symbols: _olist_str = None, e_zeros: int = 0, e_mask: _onumeric = None, seed: _oint = None) -> _thmm:
 
         """
-        The method generates a Markov chain of given size with random transition probabilities.
+        | The method generates a hidden Markov model with random transition and emission probabilities, optionally subject to fixed values and zero-probability constraints.
 
         | **Notes:**
 
-        - In the mask parameter, undefined transition probabilities are represented by *NaN* values.
+        - In the masks, *NaN* entries represent unspecified transition or emission probabilities.
+        - Specified mask entries remain fixed, while the remaining probability mass is distributed among unspecified entries.
 
-        :param n: the number of states.
-        :param k: the number of symbols.
-        :param states: the name of each state (*if omitted, an increasing sequence of integers starting at 1 with prefix P*).
-        :param p_zeros: the number of null transition probabilities.
-        :param p_mask: a matrix representing locations and values of fixed transition probabilities.
-        :param symbols: the name of each symbol (*if omitted, an increasing sequence of integers starting at 1 with prefix E*).
-        :param e_zeros: the number of null emission probabilities.
-        :param e_mask: a matrix representing locations and values of fixed emission probabilities.
+        :param n: the number of hidden states of the hidden Markov model.
+        :param k: the number of emitted symbols of the hidden Markov model.
+        :param states: the hidden-state names (*if omitted, an increasing sequence of integers starting at 1 with prefix P is generated*).
+        :param p_zeros: the number of additional zero transition probabilities.
+        :param p_mask: a matrix specifying fixed transition probabilities and unspecified entries.
+        :param symbols: the emitted-symbol names (*if omitted, an increasing sequence of integers starting at 1 with prefix E is generated*).
+        :param e_zeros: the number of additional zero emission probabilities.
+        :param e_mask: a matrix specifying fixed emission probabilities and unspecified entries.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """

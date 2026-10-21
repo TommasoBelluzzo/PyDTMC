@@ -16,6 +16,10 @@ __all__ = [
 # IMPORTS #
 ###########
 
+# Standard
+
+import itertools as _it
+
 # Libraries
 
 import numpy as _np
@@ -100,6 +104,40 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
         prediction = _predict_map(p, e, initial_distribution, symbols)
     else:
         prediction = _predict_viterbi(p, e, initial_distribution, symbols)
+
+    return prediction
+
+
+def hmm_predict_trajectory(hmm: _thmm, steps, initial_state):
+
+    p, e = hmm.p, hmm.e
+
+    initial = _np.zeros(p.shape[0], dtype=float)
+    initial[initial_state] = 1.0
+
+    best_trajectory = None
+    best_score = -1.0
+    tied = False
+
+    for trajectory in _it.product(range(e.shape[1]), repeat=steps + 1):
+
+        vector = initial * e[:, trajectory[0]]
+
+        for symbol in trajectory[1:]:
+            vector = _np.dot(vector, p) * e[:, symbol]
+
+        probability = float(_np.sum(vector))
+        is_close = _np.isclose(probability, best_score, rtol=1e-12, atol=1e-15)
+
+        if (probability > best_score) and (not is_close):
+            best_trajectory, best_score, tied = trajectory, probability, False
+        elif is_close:
+            tied = True
+
+    if tied or (best_score == 0.0):
+        prediction = None
+    else:
+        prediction = list(best_trajectory)
 
     return prediction
 

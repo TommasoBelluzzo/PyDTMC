@@ -16,7 +16,6 @@ import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
 import numpy.testing as _npt
-import pytest as _pt
 
 # Internal
 
@@ -273,18 +272,17 @@ def test_global_conductance_metastability(p, global_conductance, global_metastab
 def test_irreducibility(p):
 
     mc = _MarkovChain(p)
+    is_irreducible = mc.is_irreducible
 
-    if not mc.is_irreducible:
-        _pt.skip('The Markov chain is not irreducible.')
-    else:
+    actual = is_irreducible
+    expected = len(mc.communicating_classes) == 1
+
+    assert actual == expected
+
+    if is_irreducible:
 
         actual = mc.states
         expected = mc.recurrent_states
-
-        assert actual == expected
-
-        actual = len(mc.communicating_classes)
-        expected = 1
 
         assert actual == expected
 

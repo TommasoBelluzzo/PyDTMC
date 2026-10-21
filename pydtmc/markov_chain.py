@@ -85,11 +85,11 @@ from ._constants import (
 
 from ._custom_types import (
     oarray as _oarray,
+    obound_float as _obound_float,
     ofloat as _ofloat,
     oint as _oint,
     ointerval as _ointerval,
     olist_str as _olist_str,
-    omc_osp as _omc_osp,
     onumeric as _onumeric,
     osequence as _osequence,
     ostate as _ostate,
@@ -1030,7 +1030,7 @@ class MarkovChain(_Model):
         return kc
 
     @_cached_property
-    def ordinary_spectral_gap(self) -> _omc_osp:
+    def ordinary_spectral_gap(self) -> _obound_float:
 
         r"""
         | A property representing the ordinary spectral gap of the Markov chain, together with its Cheeger bounds:
@@ -1448,9 +1448,9 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - The **backward** committor is computed using the stationary time-reversed chain.
-        - It requires an **irreducible** Markov chain; otherwise, :py:class:`None` is returned.
         - The **forward** committor is the probability of reaching the second subset before the first.
         - It is 0 on the first subset and 1 on the second; the backward committor has the opposite boundary values.
+        - If the Markov chain is not **irreducible**, then for backward committor probabilities :py:class:`None` is returned.
         - The method can also be accessed through the alias **crp**.
 
         :param committor_type:
@@ -2234,8 +2234,8 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - The method does not necessarily maximize the probability of the entire sequence, unlike **predict_trajectory**.
-        - If multiple states share the highest transition probability at any step, then :py:class:`None` is returned.
         - The returned sequence includes the initial state.
+        - If multiple states share the highest transition probability at any step, then :py:class:`None` is returned.
 
         :param steps: the number of transitions.
         :param initial_state: the initial state.
@@ -2269,8 +2269,8 @@ class MarkovChain(_Model):
 
         - The method maximizes the probability of the entire sequence, unlike **predict**.
         - The most probable sequence does not necessarily pass through the most probable state at each time step.
-        - If multiple distinct sequences share the maximum probability, then :py:class:`None` is returned.
         - The returned sequence includes the initial state.
+        - If multiple distinct sequences share the maximum probability, then :py:class:`None` is returned.
 
         :param steps: the number of transitions.
         :param initial_state: the initial state.
@@ -2287,12 +2287,12 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _predict_trajectory(self, steps, initial_state)
+        trajectory = _predict_trajectory(self, steps, initial_state)
 
-        if (value is not None) and (not output_indices):
-            value = [*map(self.__states.__getitem__, value)]
+        if (trajectory is not None) and (not output_indices):
+            trajectory = [*map(self.__states.__getitem__, trajectory)]
 
-        return value
+        return trajectory
 
     def propagate(self, steps: int, initial_status: _ostatus = None, output_last: bool = True) -> _tredists:
 
@@ -3323,8 +3323,8 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Missing transitions are assigned probability 0.
         - The state space is determined by the diagonal entries of the dictionary.
+        - Missing transitions are assigned probability 0.
         - The resulting transition matrix must already be stochastic; no row normalization is performed.
 
         :param d: the dictionary defining the transition probabilities.
@@ -3360,8 +3360,8 @@ class MarkovChain(_Model):
         - *Delimiter:* **comma**
         - *Quoting:* **minimal**
         - *Quote Character:* **double quote**
-        - *Header Row:* state names
-        - *Data Rows:* probabilities
+        - *Header Row:* **state names**
+        - *Data Rows:* **probabilities**
 
         | In **json** files, data must be structured as an array of objects with the following properties:
 

@@ -98,6 +98,36 @@ def test_entropy(p, e, target, conditional, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_entropy_rate(p, e, normalized, seed, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+    _, k = hmm.size
+
+    actual = hmm.entropy_rate(normalized, 3000, 5, seed)
+    expected = value
+
+    if (actual is not None) and (expected is not None):
+
+        assert len(actual) == len(expected)
+
+        for value_actual, (lower_bound_actual, upper_bound_actual) in actual:
+
+            assert 0.0 <= lower_bound_actual <= value_actual <= upper_bound_actual
+
+            if normalized:
+                assert upper_bound_actual <= 1.0
+            else:
+                assert upper_bound_actual <= _np.log(k)
+
+        for (value_actual, bounds_actual), (value_expected, bounds_expected) in zip(actual, expected):
+
+            assert _np.isclose(value_actual, value_expected, rtol=1e-5, atol=1e-8)
+            _npt.assert_allclose(_np.array(bounds_actual), _np.array(bounds_expected), rtol=1e-5, atol=1e-8)
+
+    else:
+        assert actual == expected
+
+
 # noinspection PyBroadException
 def test_estimate(possible_states, possible_symbols, sequence_states, sequence_symbols, value):
 
@@ -154,23 +184,23 @@ def test_fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, 
 
 def test_fit_baum_welch_monotonicity():
 
-    def expectation(initial_distribution, p_current, e_current):
+    def expectation(ex_initial_distribution, ex_p_current, ex_e_current):
 
-        tc = _np.zeros_like(p_current)
-        ec = _np.zeros_like(e_current)
+        tc = _np.zeros_like(ex_p_current)
+        ec = _np.zeros_like(ex_e_current)
         llt = 0.0
 
         for symbols in sequences:
 
-            ll, forward, backward, scaling = _forward_backward(initial_distribution, p_current, e_current, symbols)
+            ll, forward, backward, scaling = _forward_backward(ex_initial_distribution, ex_p_current, ex_e_current, symbols)
             llt += ll
 
             for t, symbol in enumerate(symbols):
 
-                destination = e_current[:, symbol] * backward[t + 1]
+                destination = ex_e_current[:, symbol] * backward[t + 1]
                 posterior = forward[t + 1] * backward[t + 1]
 
-                tc += (forward[t, :, _np.newaxis] * p_current * destination[_np.newaxis, :]) / scaling[t + 1]
+                tc += (forward[t, :, _np.newaxis] * ex_p_current * destination[_np.newaxis, :]) / scaling[t + 1]
                 ec[:, symbol] += posterior
 
         return llt, tc, ec
@@ -220,7 +250,6 @@ def test_fit_baum_welch_monotonicity():
     ]
 
     initial_distribution = _np.array([0.5, 0.5])
-
     previous_likelihood = None
 
     for _ in range(20):
@@ -243,6 +272,16 @@ def test_fit_baum_welch_monotonicity():
 
         _npt.assert_allclose(_np.sum(p, axis=1), 1.0, atol=1e-12)
         _npt.assert_allclose(_np.sum(e, axis=1), 1.0, atol=1e-12)
+
+
+def test_hitting_probabilities(p, e, targets, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.hitting_probabilities(targets)
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_mutual_information(p, e, process1, process2, steps, value):
@@ -456,7 +495,7 @@ def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-    if p_zeros > 0 and p_mask is None:
+    if (p_zeros > 0) and (p_mask is None):
 
         actual = n**2 - _np.count_nonzero(hmm.p)
         expected = p_zeros

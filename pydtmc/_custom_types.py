@@ -44,6 +44,8 @@ __all__ = [
     'tass_cp', 'oass_cp',
     'tass_ord', 'oass_ord',
     'tass_stat', 'oass_stat',
+    'tbound_float', 'obound_float',
+    'tbound_floats', 'obound_floats',
     'tcache', 'ocache',
     'tdtype', 'odtype',
     'tedge_attributes', 'oedge_attributes',
@@ -77,7 +79,6 @@ __all__ = [
     'tmc_gen', 'omc_gen',
     'tmc_gen_ext', 'omc_gen_ext',
     'tmc_gen_full', 'omc_gen_full',
-    'tmc_osp', 'omc_osp',
     'tobj_dict', 'oobj_dict',
     'tredists', 'oredists',
     'tsequence', 'osequence',
@@ -244,6 +245,12 @@ oass_ord = _tp.Optional[tass_ord]
 tass_stat = _tp.Tuple[obool, float, _tp.Dict[str, tany]]
 oass_stat = _tp.Optional[tass_stat]
 
+tbound_float = _tp.Tuple[float, _tp.Tuple[float, float]]
+obound_float = _tp.Optional[tbound_float]
+
+tbound_floats = _tp.List[_tp.Tuple[float, _tp.Tuple[float, float]]]
+obound_floats = _tp.Optional[tbound_float]
+
 tcache = _tp.Dict[str, tany]
 ocache = _tp.Optional[tcache]
 
@@ -341,9 +348,6 @@ omc_gen_ext = _tp.Optional[tmc_gen_ext]
 
 tmc_gen_full = _tp.Tuple[oarray, olist_str, ostr]
 omc_gen_full = _tp.Optional[tmc_gen_full]
-
-tmc_osp = _tp.Tuple[float, _tp.Tuple[float, float]]
-omc_osp = _tp.Optional[tmc_osp]
 
 tobj_dict = _tp.Union[thmm_dict, tmc_dict]
 oobj_dict = _tp.Optional[tobj_dict]
