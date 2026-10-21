@@ -14,7 +14,6 @@ __all__ = [
 # Libraries
 
 import numpy as _np
-import numpy.linalg as _npl
 
 # Internal
 
@@ -49,21 +48,24 @@ from ._generators import (
 
 # HMM FITTING
 
-def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distribution: _tarray, symbols: _tlists_int) -> _thmm_params_res:
+def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distribution: _tarray, symbols: _tlists_int, regularization: float, maximum_iterations: int) -> _thmm_params_res:  # pylint: disable=too-many-return-statements
 
     def _check_convergence(cc_ll, cc_ll_previous, cc_p_guess, cc_p_guess_previous, cc_e_guess, cc_e_guess_previous):
+
+        if cc_ll_previous is None:
+            return False
 
         delta = abs(cc_ll - cc_ll_previous) / (1.0 + abs(cc_ll_previous))
 
         if delta >= 1e-6:
             return False
 
-        delta = _npl.norm(cc_p_guess - cc_p_guess_previous, ord=_np.inf) / cc_p_guess.shape[1]
+        delta = _np.max(_np.abs(cc_p_guess - cc_p_guess_previous))
 
         if delta >= 1e-6:
             return False
 
-        delta = _npl.norm(cc_e_guess - cc_e_guess_previous, ord=_np.inf) / cc_e_guess.shape[1]
+        delta = _np.max(_np.abs(cc_e_guess - cc_e_guess_previous))
 
         if delta >= 1e-6:
             return False
@@ -78,7 +80,7 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
         if decoding is None:  # pragma: no cover
             return None
 
-        log_prob, _, backward, forward, s = decoding
+        log_prob, _, _, backward, forward, s = decoding
 
         pc = _np.zeros_like(fwb_p_guess)
         ec = _np.zeros_like(fwb_e_guess)
@@ -111,16 +113,18 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
 
         return log_prob, pc, ec
 
-    n, k = p_guess.shape[1], e_guess.shape[1]
-    p, e = _np.zeros_like(p_guess), _np.zeros_like(e_guess)
-    ll, iterations = 1.0, 0
-
     if fitting_type == 'baum-welch':
         fitting_func = _fit_baum_welch
     else:
         fitting_func = _fit_prediction
 
-    while iterations < 500:
+    n, k = p_guess.shape[1], e_guess.shape[1]
+    p_support, e_support = p_guess > 0.0, e_guess > 0.0
+    p, e = _np.zeros_like(p_guess), _np.zeros_like(e_guess)
+
+    ll, iterations = None, 0
+
+    while iterations < maximum_iterations:
 
         ll_previous, p_guess_previous, e_guess_previous = ll, _np.copy(p_guess), _np.copy(e_guess)
         ll = 0.0
@@ -130,29 +134,49 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
             result = fitting_func(fitting_type, p_guess, e_guess, initial_distribution, symbols_current)
 
             if result is None:
-                continue
+                return None, None, 'The fitting algorithm encountered an observation sequence with zero probability.'
 
             log_prob_current, p_current, e_current = result
+
+            if not _np.isfinite(log_prob_current):
+                return None, None, 'The fitting algorithm produced a non-finite log likelihood.'
+
             ll += log_prob_current
             p += p_current
             e += e_current
 
+        if not _np.isfinite(ll):
+            return None, None, 'The fitting algorithm produced a non-finite log likelihood.'
+
+        if not _np.all(_np.isfinite(p)) or not _np.all(_np.isfinite(e)):
+            return None, None, 'The fitting algorithm produced non-finite expected counts.'
+
+        if regularization > 0.0:
+            p = (p + regularization) * p_support
+            e = (e + regularization) * e_support
+
         total_transitions = _np.sum(p, axis=1, keepdims=True)
 
+        if not _np.all(_np.isfinite(total_transitions)):
+            return None, None, 'The fitting algorithm produced non-finite transition counts.'
+
         if _np.any(total_transitions == 0.0):  # pragma: no cover
-            return None, None, 'The fitting algorithm produced null transition probabilities.'
+            return None, None, 'The fitting algorithm produced zero total transition counts for at least one state.'
 
         p_guess = p / total_transitions
 
         total_emissions = _np.sum(e, axis=1, keepdims=True)
 
+        if not _np.all(_np.isfinite(total_emissions)):
+            return None, None, 'The fitting algorithm produced non-finite emission counts.'
+
         if _np.any(total_emissions == 0.0):  # pragma: no cover
-            return None, None, 'The fitting algorithm produced null emission probabilities.'
+            return None, None, 'The fitting algorithm produced zero total emission counts for at least one state.'
 
         e_guess = e / total_emissions
 
-        p_guess[_np.isnan(p_guess)] = 0.0
-        e_guess[_np.isnan(e_guess)] = 0.0
+        if not _np.all(_np.isfinite(p_guess)) or not _np.all(_np.isfinite(e_guess)):
+            return None, None, 'The fitting algorithm produced non-finite parameter estimates.'
 
         converged = _check_convergence(ll, ll_previous, p_guess, p_guess_previous, e_guess, e_guess_previous)
 

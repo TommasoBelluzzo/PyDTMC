@@ -28,7 +28,7 @@ The model can evaluate emission probabilities and infer hidden-state probabiliti
 
    print(hmm.emission_probability('H1', 'A'))
 
-   log_probability, posterior, _, _, _ = hmm.decode(['H1', 'H2', 'H3'])
+   log_probability, posterior, _, _, _, _ = hmm.decode(['H1', 'H2', 'H3'])
    print(posterior)
 
 | State ``A`` emits symbol ``H1`` with probability ``0.5``.

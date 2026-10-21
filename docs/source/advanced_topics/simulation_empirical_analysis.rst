@@ -120,12 +120,12 @@ Simulation & Probability
 
 | Simulation and probability calculations answer different questions.
 | The ``simulate`` method generates a single random history.
-| The ``redistribute`` method calculates the probability of each state after a specified number of transitions.
+| The ``propagate`` method calculates the probability of each state after a specified number of transitions.
 
 .. code-block:: python
 
    print(sequence[:11])
-   print(np.round(mc.redistribute(10, 'Sunny'), 4))
+   print(np.round(mc.propagate(10, 'Sunny'), 4))
 
 | The first result shows the states visited in one simulation during ten transitions.
 | The second gives the state probabilities after ten transitions, starting from ``Sunny``.

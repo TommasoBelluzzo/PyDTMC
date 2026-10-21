@@ -5,6 +5,10 @@
 # IMPORTS #
 ###########
 
+# Standard
+
+import itertools as _it
+
 # Libraries
 
 import numpy as _np
@@ -57,12 +61,27 @@ def test_decode(p, e, symbols, initial_status, use_scaling, value):
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
+        actual = decoding[4]
+        expected = _np.array(value[4])
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
         if use_scaling:
 
-            actual = decoding[4]
-            expected = _np.array(value[4])
+            actual = decoding[5]
+            expected = _np.array(value[5])
 
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_entropy(p, e, target, conditional, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = _np.array(hmm.entropy(target, conditional))
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 # noinspection PyBroadException
@@ -119,6 +138,109 @@ def test_fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_fit_baum_welch_monotonicity():
+
+    def expectation(initial_distribution, p_current, e_current):
+
+        tc = _np.zeros_like(p_current)
+        ec = _np.zeros_like(e_current)
+        llt = 0.0
+
+        for symbols in sequences:
+
+            ll, forward, backward, scaling = _forward_backward(initial_distribution, p_current, e_current, symbols)
+            llt += ll
+
+            for t, symbol in enumerate(symbols):
+
+                destination = e_current[:, symbol] * backward[t + 1]
+                posterior = forward[t + 1] * backward[t + 1]
+
+                tc += (forward[t, :, _np.newaxis] * p_current * destination[_np.newaxis, :]) / scaling[t + 1]
+                ec[:, symbol] += posterior
+
+        return llt, tc, ec
+
+    def _forward_backward(fb_initial_distribution, fb_p, fb_e, fb_symbols):
+
+        n = fb_p.shape[0]
+        f = len(fb_symbols)
+
+        forward = _np.zeros((f + 1, n), dtype=float)
+        backward = _np.ones((f + 1, n), dtype=float)
+        scaling = _np.ones(f + 1, dtype=float)
+
+        forward[0] = fb_initial_distribution
+
+        for t, symbol in enumerate(fb_symbols, start=1):
+
+            forward[t] = _np.dot(forward[t - 1], fb_p) * fb_e[:, symbol]
+            scaling[t] = _np.sum(forward[t])
+
+            assert scaling[t] > 0.0
+
+            forward[t] /= scaling[t]
+
+        for t in reversed(range(f)):
+
+            backward[t] = _np.dot(fb_p, (fb_e[:, fb_symbols[t]] * backward[t + 1]))
+            backward[t] /= scaling[t + 1]
+
+        log_likelihood = _np.sum(_np.log(scaling[1:]))
+
+        return log_likelihood, forward, backward, scaling
+
+    p = _np.array([
+        [0.7, 0.3],
+        [0.4, 0.6]
+    ])
+
+    e = _np.array([
+        [0.6, 0.3, 0.1],
+        [0.2, 0.3, 0.5]
+    ])
+
+    sequences = [
+        [0, 1, 2, 1, 0, 2, 1],
+        [2, 2, 1, 0, 1, 2, 0]
+    ]
+
+    initial_distribution = _np.array([0.5, 0.5])
+
+    previous_likelihood = None
+
+    for _ in range(20):
+
+        likelihood, transition_counts, emission_counts = expectation(initial_distribution, p, e)
+
+        if previous_likelihood is not None:
+            assert likelihood >= previous_likelihood - 1e-10
+
+        previous_likelihood = likelihood
+
+        transition_sums = _np.sum(transition_counts, axis=1, keepdims=True)
+        emission_sums = _np.sum(emission_counts, axis=1, keepdims=True)
+
+        assert _np.all(transition_sums > 0.0)
+        assert _np.all(emission_sums > 0.0)
+
+        p = transition_counts / transition_sums
+        e = emission_counts / emission_sums
+
+        _npt.assert_allclose(_np.sum(p, axis=1), 1.0, atol=1e-12)
+        _npt.assert_allclose(_np.sum(e, axis=1), 1.0, atol=1e-12)
+
+
+def test_mutual_information(p, e, process1, process2, steps, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = _np.array(hmm.mutual_information(process1, process2, steps))
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_next(p, e, seed, initial_state, target, output_index, value):
 
     hmm = _HiddenMarkovModel(p, e)
@@ -147,6 +269,113 @@ def test_predict(p, e, algorithm, symbols, initial_distribution, output_indices,
     assert actual == expected
 
 
+def test_predict_viterbi_bruteforce():
+
+    models = [
+        (
+            [[0.95, 0.05], [0.1, 0.9]],
+            [[0.2, 0.2, 0.2, 0.2, 0.2], [0.1, 0.1, 0.1, 0.1, 0.6]],
+            [4, 1, 1, 4]
+        ),
+        (
+            [[0.6, 0.4], [0.7, 0.3]],
+            [[0.5, 0.1, 0.4], [0.2, 0.2, 0.6]],
+            [2, 2, 2, 2]
+        ),
+        (
+            [[0.6, 0.4], [0.7, 0.3]],
+            [[1.0, 0.0, 0.0], [0.2, 0.2, 0.6]],
+            [2, 0, 2, 2]
+        ),
+        (
+            [[0.5, 0.5], [0.5, 0.5]],
+            [[0.5, 0.5], [0.5, 0.5]],
+            [0, 1, 0, 1]
+        )
+    ]
+
+    for p, e, symbols in models:
+
+        hmm = _HiddenMarkovModel(p, e)
+        p = _np.array(p)
+        e = _np.array(e)
+
+        initial_distributions = [
+            _np.ones(hmm.n) / hmm.n,
+            _np.eye(hmm.n)[0],
+            _np.eye(hmm.n)[-1]
+        ]
+
+        for initial_distribution in initial_distributions:
+
+            probabilities = {}
+
+            for path in _it.product(range(hmm.n), repeat=len(symbols) + 1):
+
+                probability = initial_distribution[path[0]]
+
+                for t, symbol in enumerate(symbols, start=1):
+
+                    probability *= p[path[t - 1], path[t]]
+                    probability *= e[path[t], symbol]
+
+                states = path[1:]
+                probabilities[states] = max(probabilities.get(states, 0.0), probability)
+
+            maximum_probability = max(probabilities.values())
+
+            actual = hmm.predict('viterbi', symbols, initial_distribution, True)
+
+            if maximum_probability == 0.0:
+                assert actual is None
+            else:
+
+                assert actual is not None
+
+                log_probability, states = actual
+                predicted_path = tuple(states)
+
+                expected = _np.log(maximum_probability)
+
+                _npt.assert_allclose(log_probability, expected, rtol=1e-10, atol=1e-12)
+                _npt.assert_allclose(probabilities[predicted_path], maximum_probability, rtol=1e-10, atol=1e-12)
+
+
+def test_predict_viterbi_log_probability():
+
+    p = [[0.6, 0.4], [0.7, 0.3]]
+    e = [[0.5, 0.1, 0.4], [0.2, 0.2, 0.6]]
+    symbols = [2, 2, 2, 2]
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    for initial_distribution in [None, 0, 1, [0.7, 0.3]]:
+
+        prediction = hmm.predict('viterbi', symbols, initial_distribution, True)
+        assert prediction is not None
+
+        decoding = hmm.decode(symbols, initial_distribution)
+        assert decoding is not None
+
+        viterbi_log_probability = prediction[0]
+        observation_log_probability = decoding[0]
+
+        assert viterbi_log_probability <= observation_log_probability + 1e-12
+
+
+def test_predict_viterbi_unfeasibility():
+
+    p = [[1.0, 0.0], [0.0, 1.0]]
+    e = [[1.0, 0.0], [0.0, 1.0]]
+    symbols = [0, 1]
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.predict('viterbi', symbols, None, True)
+
+    assert actual is None
+
+
 def test_probabilities(p, e):
 
     hmm = _HiddenMarkovModel(p, e)
@@ -172,6 +401,20 @@ def test_probabilities(p, e):
             expected = emission_matrix[index1, index2]
 
             assert _np.isclose(actual, expected)
+
+
+def test_propagate(p, e, target, steps, initial_status, output_last, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    distributions = hmm.propagate(target, steps, initial_status, output_last)
+    distributions = distributions if isinstance(distributions, list) else [distributions]
+
+    actual = _np.vstack(distributions)
+    print(actual)
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected)
 
 
 def test_properties(p, e, value):

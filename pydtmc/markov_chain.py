@@ -134,7 +134,7 @@ from ._decorators import (
 from ._dynamics import (
     mc_predict as _predict,
     mc_predict_trajectory as _predict_trajectory,
-    mc_redistribute as _redistribute,
+    mc_propagate as _propagate,
     mc_sequence_probability as _sequence_probability,
     mc_simulate as _simulate
 )
@@ -1672,15 +1672,15 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - Rewards at the initial state and at the first passage states are excluded.
+        - Rewards at time zero and at the first passage states are excluded.
+        - Rewards at the initial state are included for subsequent visits before first passage.
         - The method can also be accessed through the alias **fpr**.
 
         :param steps: the number of steps.
         :param initial_state: the initial state.
         :param first_passage_states: the first passage states.
-        :param rewards: the reward value of each state.
+        :param rewards: the reward value    of each state.
         :raises ValidationError: if any input argument is not compliant, if the target states include the initial state, or if the target states comprise all states except the initial state.
-        :raises ValueError: if the Markov chain defines only 2 states.
         """
 
         try:
@@ -1693,14 +1693,8 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        if self.__size == 2:  # pragma: no cover
-            raise ValueError('The Markov chain defines only 2 states and the first passage rewards cannot be computed.')
-
         if initial_state in first_passage_states:  # pragma: no cover
             raise _ValidationError('The first passage states cannot include the initial state.')
-
-        if len(first_passage_states) == (self.__size - 1):  # pragma: no cover
-            raise _ValidationError('The first passage states cannot include all the states except the initial one.')
 
         fpr = _first_passage_reward(self, steps, initial_state, first_passage_states, rewards)
 
@@ -2300,6 +2294,39 @@ class MarkovChain(_Model):
 
         return value
 
+    def propagate(self, steps: int, initial_status: _ostatus = None, output_last: bool = True) -> _tredists:
+
+        r"""
+        | The method computes the evolution of the state distribution of the Markov chain:
+        | :math:`\mu^{(t)} = \mu P^t` where:
+
+        - :math:`\mu` is the initial state distribution;
+        - :math:`\mu^{(t)}` is the state probability distribution after :math:`t` transition
+
+        | **Notes:**
+
+        - An initial state is interpreted as a distribution concentrated on that state.
+        - If **output_last** is :py:obj:`False`, the distributions from time 0 through the specified number of steps are returned.
+
+        :param steps: the number of steps.
+        :param initial_status: the initial state or initial state distribution (*if omitted, the states are assumed to be uniformly distributed*).
+        :param output_last: a boolean indicating whether to return only the final distribution.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            steps = _validate_integer(steps, lower_limit=(1, False))
+            initial_status = _validate_status(initial_status, self.__states, True)
+            output_last = _validate_boolean(output_last)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        value = _propagate(self, steps, initial_status, output_last)
+
+        return value
+
     def reaction_rate(self, states1: _tstates, states2: _tstates) -> _ofloat:
 
         r"""
@@ -2446,39 +2473,6 @@ class MarkovChain(_Model):
         rt = _recurrence_times(self, statistic)
 
         return rt
-
-    def redistribute(self, steps: int, initial_status: _ostatus = None, output_last: bool = True) -> _tredists:
-
-        r"""
-        | The method computes the evolution of the state distribution of the Markov chain:
-        | :math:`\mu^{(t)} = \mu P^t` where:
-
-        - :math:`\mu` is the initial state distribution;
-        - :math:`\mu^{(t)}` is the state probability distribution after :math:`t` transition
-
-        | **Notes:**
-
-        - An initial state is interpreted as a distribution concentrated on that state.
-        - If **output_last** is :py:obj:`False`, the distributions from time 0 through the specified number of steps are returned.
-
-        :param steps: the number of steps.
-        :param initial_status: the initial state or initial state distribution (*if omitted, the states are assumed to be uniformly distributed*).
-        :param output_last: a boolean indicating whether to return only the final distribution.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            steps = _validate_integer(steps, lower_limit=(1, False))
-            initial_status = _validate_status(initial_status, self.__states, True)
-            output_last = _validate_boolean(output_last)
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
-
-        value = _redistribute(self, steps, initial_status, output_last)
-
-        return value
 
     @_object_mark(instance_generator=True)
     def reversibilize(self, method: str = 'additive') -> _tmc:

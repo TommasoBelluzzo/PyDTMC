@@ -112,15 +112,15 @@ For this chain, the unique stationary distribution is:
 Distribution Evolution
 ----------------------
 
-| The ``redistribute`` method computes how state probabilities change after a given number of transitions.
+| The ``propagate`` method computes how state probabilities change after a given number of transitions.
 | Suppose today is certainly sunny, so the initial distribution is ``[1.0, 0.0, 0.0]``.
 
 .. code-block:: python
 
    import numpy as np
 
-   print(np.round(mc.redistribute(2, 'Sunny'), 4))
-   print(np.round(mc.redistribute(10, 'Sunny'), 4))
+   print(np.round(mc.propagate(2, 'Sunny'), 4))
+   print(np.round(mc.propagate(10, 'Sunny'), 4))
 
 The resulting distributions are:
 
@@ -142,5 +142,5 @@ A simulation generates one possible sequence of weather conditions:
 
    print(mc.simulate(10, initial_state='Sunny', seed=42))
 
-| Unlike ``redistribute``, which calculates probabilities, ``simulate`` produces one random sequence of states.
+| Unlike ``propagate``, which calculates probabilities, ``simulate`` produces one random sequence of states.
 | Over a very long simulation, the proportions of time spent in each state approach those of the stationary distribution.

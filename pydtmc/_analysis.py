@@ -2,6 +2,8 @@
 
 __all__ = [
     'hmm_decode',
+    'hmm_entropy',
+    'hmm_mutual_information',
     'mc_absolute_spectral_gap',
     'mc_absorption_probabilities',
     'mc_absorption_times',
@@ -92,6 +94,7 @@ from ._custom_types import (
     tany as _tany,
     tarray as _tarray,
     tgraph as _tgraph,
+    thmm as _thmm,
     tmc as _tmc,
     tlist_array as _tlist_array,
     tlist_float as _tlist_float,
@@ -132,6 +135,20 @@ def _hitting_times_statistics(p: _tarray, states: _tarray) -> _tany:
     return mean, variance
 
 
+def _mutual_information(joint: _tarray) -> float:
+
+    marginal_rows = _np.sum(joint, axis=1)
+    marginal_columns = _np.sum(joint, axis=0)
+    independent = _np.outer(marginal_rows, marginal_columns)
+
+    positive = joint > 0.0
+    values = joint[positive] * (_np.log(joint[positive]) - _np.log(independent[positive]))
+
+    mi = float(_np.sum(values))
+
+    return mi
+
+
 # HMM INFERENCE
 
 def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int, use_scaling: bool) -> _ohmm_decoding:
@@ -156,7 +173,7 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
         scaling_factor = _np.sum(forward[:, i])
 
-        if scaling_factor < 1e-300:
+        if scaling_factor == 0.0:
             return None
 
         scaling_factors[i] = scaling_factor
@@ -168,10 +185,19 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
         symbol = symbols[i + 1]
         e_i = e[:, symbol]
-        scaling_factor = 1.0 / scaling_factors[i + 1]
+        scaling_factor = scaling_factors[i + 1]
         backward_i = backward[:, i + 1]
 
-        backward[:, i] = scaling_factor * _np.dot(p, backward_i * e_i)
+        backward[:, i] = _np.dot(p, backward_i * e_i) / scaling_factor
+
+    posterior_transitions = _np.zeros((n, n, f - 1), dtype=float)
+
+    for i in range(1, f):
+
+        source = forward[:, i - 1, _np.newaxis]
+        destination = (e[:, symbols[i]] * backward[:, i])[_np.newaxis, :]
+
+        posterior_transitions[:, :, i - 1] = (source * p * destination) / scaling_factors[i]
 
     posterior = _np.multiply(backward, forward)
     posterior = posterior[:, 1:]
@@ -188,7 +214,7 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
         scaling_factors = None
 
-    return log_prob, posterior, backward, forward, scaling_factors
+    return log_prob, posterior, posterior_transitions, backward, forward, scaling_factors
 
 
 # ABSORPTION & PASSAGE
@@ -576,7 +602,7 @@ def mc_reactive_flux(mc: _tmc, states1: _tlist_int, states2: _tlist_int, net: bo
     return rf
 
 
-# CONDUCTANCE & ENTROPY
+# CONDUCTANCE
 
 def mc_conductance(mc: _tmc, states: _tlist_int) -> _ofloat:
 
@@ -592,46 +618,6 @@ def mc_conductance(mc: _tmc, states: _tlist_int) -> _ofloat:
     value = float(_np.sum(sf[_np.ix_(states, complement)]) / _np.sum(pi[states]))
 
     return value
-
-
-def mc_entropy_rate(mc: _tmc) -> _ofloat:
-
-    if len(mc.pi) > 1:
-        return None
-
-    p = mc.p
-
-    contributions = _np.zeros((mc.size, mc.size), dtype=float)
-    _np.log(p, out=contributions, where=p > 0.0)
-    contributions *= p
-
-    h = -float(_np.dot(mc.pi[0], _np.sum(contributions, axis=1)))
-
-    if -_FTOL < h < 0.0:  # pragma: no cover
-        h = 0.0
-
-    if not _np.isfinite(h) or (h < 0.0):  # pragma: no cover
-        h = None
-
-    return h
-
-
-def mc_entropy_rate_normalized(mc: _tmc) -> _ofloat:
-
-    h = mc.entropy_rate
-
-    if h is None:
-        return None
-
-    ht = mc.topological_entropy
-
-    if (h <= _FTOL) or (ht <= _FTOL):
-        hn = 0.0
-    else:
-        hn = h / ht
-        hn = min(1.0, max(0.0, hn))
-
-    return hn
 
 
 def mc_global_conductance(mc: _tmc) -> _ofloat:
@@ -699,6 +685,130 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
     return gc
 
 
+# CONTRACTION
+
+def mc_dobrushin_coefficient(mc: _tmc) -> float:
+
+    p = mc.p
+    dc = 0.0
+
+    for i in range(mc.size - 1):
+        distances = 0.5 * _np.sum(_np.abs(p[i + 1:, :] - p[i, :]), axis=1)
+        dc = max(dc, float(_np.max(distances)))
+
+    return dc
+
+
+def mc_doeblin_coefficient(mc: _tmc) -> float:
+
+    dc = float(_np.sum(_np.min(mc.p, axis=0)))
+
+    return dc
+
+
+# INFORMATION THEORY
+
+def hmm_entropy(hmm: _thmm, target: str, conditional: bool) -> _tlist_float:
+
+    def _entropy(probabilities):
+
+        probabilities = probabilities[probabilities > 0.0]
+        h = float(-_np.sum(probabilities * _np.log(probabilities)))
+
+        return h
+
+    e = hmm.e
+
+    results = []
+
+    for pi in hmm.pi:
+
+        if target == 'states':
+
+            if conditional:
+                q = _np.dot(pi, e)
+                joint = pi[:, _np.newaxis] * e
+                value = _entropy(joint) - _entropy(q)
+            else:
+                value = _entropy(pi)
+
+        else:
+
+            if conditional:
+                value = _np.dot(pi, [_entropy(row) for row in e]).item()
+            else:
+                q = _np.dot(pi, e)
+                value = _entropy(q)
+
+        results.append(value)
+
+    return results
+
+
+def hmm_mutual_information(hmm: _thmm, process1: str, process2: str, steps: int) -> _tlist_float:
+
+    p, e = hmm.p, hmm.e
+    transition = _npl.matrix_power(p, steps)
+
+    results = []
+
+    for pi in hmm.pi:
+
+        joint = pi[:, _np.newaxis] * transition
+
+        if process1 == 'symbols':
+            joint = _np.dot(_np.transpose(e), joint)
+
+        if process2 == 'symbols':
+            joint = _np.dot(joint, e)
+
+        mi = _mutual_information(joint)
+
+        results.append(mi)
+
+    return results
+
+
+def mc_entropy_rate(mc: _tmc) -> _ofloat:
+
+    if len(mc.pi) > 1:
+        return None
+
+    p = mc.p
+
+    contributions = _np.zeros((mc.size, mc.size), dtype=float)
+    _np.log(p, out=contributions, where=p > 0.0)
+    contributions *= p
+
+    h = -float(_np.dot(mc.pi[0], _np.sum(contributions, axis=1)))
+
+    if -_FTOL < h < 0.0:  # pragma: no cover
+        h = 0.0
+
+    if not _np.isfinite(h) or (h < 0.0):  # pragma: no cover
+        h = None
+
+    return h
+
+
+def mc_entropy_rate_normalized(mc: _tmc) -> _ofloat:
+
+    h = mc.entropy_rate
+
+    if h is None:
+        return None
+
+    ht = mc.topological_entropy
+
+    if (h <= _FTOL) or (ht <= _FTOL):
+        hn = 0.0
+    else:
+        hn = h / ht
+        hn = min(1.0, max(0.0, hn))
+
+    return hn
+
+
 def mc_entropy_production_rate(mc: _tmc) -> _tlist_float:
 
     indices = _np.triu_indices(mc.size, k=1)
@@ -735,27 +845,6 @@ def mc_topological_entropy(mc: _tmc) -> float:
         ht = 0.0
 
     return ht
-
-
-# CONTRACTION
-
-def mc_dobrushin_coefficient(mc: _tmc) -> float:
-
-    p = mc.p
-    dc = 0.0
-
-    for i in range(mc.size - 1):
-        distances = 0.5 * _np.sum(_np.abs(p[i + 1:, :] - p[i, :]), axis=1)
-        dc = max(dc, float(_np.max(distances)))
-
-    return dc
-
-
-def mc_doeblin_coefficient(mc: _tmc) -> float:
-
-    dc = float(_np.sum(_np.min(mc.p, axis=0)))
-
-    return dc
 
 
 # MIXING & TEMPORAL ANALYSIS
@@ -1319,7 +1408,10 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=to
 
     actual_survival = float(_np.sum(_np.dot(evector, q)))
 
-    if not (0.0 < actual_survival < 1.0) or (not _np.allclose(evector @ q, actual_survival * evector, rtol=_FTOL, atol=_FTOL)):  # pragma: no cover
+    if not 0.0 < actual_survival < 1.0:  # pragma: no cover
+        return None
+
+    if not _np.allclose(_np.dot(evector, q), actual_survival * evector, rtol=_FTOL, atol=_FTOL):  # pragma: no cover
         return None
 
     nu = _np.zeros(size, dtype=float)

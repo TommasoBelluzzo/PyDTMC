@@ -51,21 +51,21 @@ def test_next(p, seed, initial_state, output_index, value):
     assert actual == expected
 
 
-def test_redistribute(p, steps, initial_status, output_last, value):
+def test_propagate(p, steps, initial_status, output_last, value):
 
     mc = _MarkovChain(p)
 
-    r = mc.redistribute(steps, initial_status, output_last)
-    r = r if isinstance(r, list) else [r]
+    distributions = mc.propagate(steps, initial_status, output_last)
+    distributions = distributions if isinstance(distributions, list) else [distributions]
 
-    actual = _np.vstack(r)
+    actual = _np.vstack(distributions)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected)
 
     if initial_status is not None:
 
-        actual = r[0]
+        actual = distributions[0]
 
         if isinstance(initial_status, int):
             expected = _np.eye(mc.size)[initial_status]

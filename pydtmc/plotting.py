@@ -296,7 +296,7 @@ def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None
 
     stationary_distribution = mc.pi[0]
 
-    distributions = mc.redistribute(steps, initial_status=initial_status, output_last=False)
+    distributions = mc.propagate(steps, initial_status=initial_status, output_last=False)
     distributions = _np.asarray(distributions, dtype=float)
 
     distances = 0.5 * _np.sum(_np.abs(distributions - stationary_distribution), axis=1)
@@ -582,7 +582,7 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
     p = mc.p
 
     indices = list(range(0, (steps * interval) + 1, interval))
-    distributions = mc.redistribute(indices[-1], initial_status=initial_status, output_last=False)
+    distributions = mc.propagate(indices[-1], initial_status=initial_status, output_last=False)
     distributions = _np.transpose(_np.stack([distribution for index, distribution in enumerate(distributions) if index in indices]))
 
     d = distributions * 0.9
@@ -1176,7 +1176,7 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
     else:
         mc = _MarkovChain(model.p, model.states)
 
-    distributions = mc.redistribute(redistributions, initial_status=initial_status, output_last=False)
+    distributions = mc.propagate(redistributions, initial_status=initial_status, output_last=False)
     distributions_length = 1 if isinstance(distributions, _np.ndarray) else len(distributions)
     distributions = _np.array([distributions]) if isinstance(distributions, _np.ndarray) else _np.array(distributions)
 
@@ -1609,7 +1609,7 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
     if decoding is None:  # pragma: no cover
         raise ValueError('The computation of backward and forward probabilities failed.')
 
-    _, _, backward, forward, _ = decoding
+    _, _, _, backward, forward, _ = decoding
 
     prediction = hmm.predict('mle', symbols, initial_status=initial_distribution, output_indices=True)
 

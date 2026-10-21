@@ -2,10 +2,11 @@
 
 __all__ = [
     'hmm_predict',
+    'hmm_propagate',
     'hmm_simulate',
     'mc_predict',
     'mc_predict_trajectory',
-    'mc_redistribute',
+    'mc_propagate',
     'mc_sequence_probability',
     'mc_simulate'
 ]
@@ -54,7 +55,7 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
         if result is None:
             return None
 
-        log_prob, posterior = result[0], result[1]
+        log_prob, posterior, _, _, _, _ = result
         states = list(_np.argmax(posterior, axis=0))
 
         return log_prob, states
@@ -66,10 +67,7 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
         with _np.errstate(divide='ignore'):
             p_log = _np.log(pv_p)
             e_log = _np.log(pv_e)
-            omega_0 = _np.log(pv_initial_distribution * pv_e[:, pv_symbols[0]])
-
-        if _np.all(omega_0 == -_np.inf):
-            return None
+            omega_0 = _np.log(pv_initial_distribution)
 
         omega = _np.vstack((omega_0, _np.zeros((f, n), dtype=float)))
         path = _np.full((f, n), -1, dtype=int)
@@ -80,7 +78,7 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
             omega_prev = omega[im1, :]
             symbol = pv_symbols[im1]
 
-            prob = _np.round(omega_prev[:, _np.newaxis] + p_log, 12)
+            prob = omega_prev[:, _np.newaxis] + p_log
 
             path[im1, :] = _np.argmax(prob, axis=0)
             omega[i, :] = _np.max(prob, axis=0) + e_log[:, symbol]
@@ -104,6 +102,30 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
         prediction = _predict_viterbi(p, e, initial_distribution, symbols)
 
     return prediction
+
+
+# HMM DISTRIBUTIONS & PROBABILITIES
+
+def hmm_propagate(hmm: _thmm, target: str, steps: int, initial_distribution: _tarray, output_last: bool) -> _tredists:
+
+    p, e = hmm.p, hmm.e
+
+    distributions = _np.zeros((steps + 1, hmm.n), dtype=float)
+    distributions[0, :] = initial_distribution
+
+    for i in range(1, steps + 1):
+        value_i = _np.dot(distributions[i - 1, :], p)
+        distributions[i, :] = value_i / _np.sum(value_i)
+
+    if target == 'symbols':
+        distributions = _np.dot(distributions, e)
+
+    if output_last:
+        return distributions[-1]
+
+    distributions = [_np.ravel(distribution) for distribution in _np.split(distributions, distributions.shape[0])]
+
+    return distributions
 
 
 # HMM SIMULATION
@@ -234,23 +256,23 @@ def mc_predict_trajectory(mc: _tmc, steps: int, initial_state: int) -> _olist_in
 
 # MC DISTRIBUTIONS & PROBABILITIES
 
-def mc_redistribute(mc: _tmc, steps: int, initial_distribution: _tarray, output_last: bool) -> _tredists:
+def mc_propagate(mc: _tmc, steps: int, initial_distribution: _tarray, output_last: bool) -> _tredists:
 
     p = mc.p
 
-    value = _np.zeros((steps + 1, mc.size), dtype=float)
-    value[0, :] = initial_distribution
+    distributions = _np.zeros((steps + 1, mc.size), dtype=float)
+    distributions[0, :] = initial_distribution
 
     for i in range(1, steps + 1):
-        value_i = value[i - 1, :].dot(p)
-        value[i, :] = value_i / _np.sum(value_i)
+        value_i = distributions[i - 1, :].dot(p)
+        distributions[i, :] = value_i / _np.sum(value_i)
 
     if output_last:
-        return value[-1]
+        return distributions[-1]
 
-    value = [_np.ravel(distribution) for distribution in _np.split(value, value.shape[0])]
+    distributions = [_np.ravel(distribution) for distribution in _np.split(distributions, distributions.shape[0])]
 
-    return value
+    return distributions
 
 
 def mc_sequence_probability(mc: _tmc, walk_param: _tlist_int) -> float:

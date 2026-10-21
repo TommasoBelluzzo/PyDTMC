@@ -102,7 +102,7 @@ def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str
     p, e = _np.copy(p), _np.copy(e)
 
     p_decrease = len(sub_states) < p.shape[0]
-    e_decrease = p_decrease or len(sub_symbols) < e.shape[0]
+    e_decrease = p_decrease or len(sub_symbols) < e.shape[1]
 
     if p_decrease:
         p = p[_np.ix_(sub_states, sub_states)]

@@ -288,7 +288,7 @@ obcond = _tp.Optional[tbcond]
 tfitting_res = _tp.Tuple[oarray, ostr]
 ofitting_res = _tp.Optional[tfitting_res]
 
-thmm_decoding = _tp.Tuple[float, tarray, tarray, tarray, oarray]
+thmm_decoding = _tp.Tuple[float, tarray, tarray, tarray, tarray, oarray]
 ohmm_decoding = _tp.Optional[thmm_decoding]
 
 thmm_dict = _tp.Dict[_tp.Tuple[str, str, str], float]

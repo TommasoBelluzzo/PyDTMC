@@ -86,16 +86,16 @@
       {
         "steps": 3,
         "initial_state": 0,
-        "first_passage_states": null,
-        "rewards": null,
-        "value": null
+        "first_passage_states": 1,
+        "rewards": [-0.1, 0.2],
+        "value": 0.0
       },
       {
         "steps": 8,
         "initial_state": 1,
-        "first_passage_states": null,
-        "rewards": null,
-        "value": null
+        "first_passage_states": 0,
+        "rewards": [0.2, -0.1],
+        "value": 0.0
       }
     ],
     "first_passage_times_between_data": [
@@ -379,17 +379,17 @@
     "first_passage_reward_data": [
       {
         "steps": 3,
-        "initial_state": 1,
-        "first_passage_states": null,
-        "rewards": null,
-        "value": null
+        "initial_state": 0,
+        "first_passage_states": 1,
+        "rewards": [-0.2, 0.3],
+        "value": -0.0834
       },
       {
-        "steps": 5,
-        "initial_state": 1,
-        "first_passage_states": null,
-        "rewards": null,
-        "value": null
+        "steps": 7,
+        "initial_state": 0,
+        "first_passage_states": 1,
+        "rewards": [-0.2, 0.3],
+        "value": -0.08569554
       }
     ],
     "first_passage_times_between_data": [

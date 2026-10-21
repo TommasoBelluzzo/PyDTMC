@@ -62,8 +62,8 @@ Distribution Evolution
 
    import numpy as np
 
-   print(np.round(mc.redistribute(2, 'Operational'), 4))
-   print(np.round(mc.redistribute(10, 'Operational'), 4))
+   print(np.round(mc.propagate(2, 'Operational'), 4))
+   print(np.round(mc.propagate(10, 'Operational'), 4))
 
 The resulting distributions are:
 

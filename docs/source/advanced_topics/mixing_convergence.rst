@@ -56,7 +56,7 @@ Convergence of State Probabilities
    import numpy as np
 
    for steps in [1, 2, 3]:
-       print(np.round(mc.redistribute(steps, 'Low'), 4))
+       print(np.round(mc.propagate(steps, 'Low'), 4))
 
 The resulting distributions are:
 

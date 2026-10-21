@@ -8,8 +8,11 @@ Instance Methods
    :members:
       decode,
       emission_probability,
+      entropy,
+      mutual_information,
       next,
       predict,
+      propagate,
       restrict,
       simulate,
       to_dictionary,

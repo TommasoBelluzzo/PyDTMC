@@ -46,7 +46,7 @@
         "value": 1
       }
     ],
-    "redistribute_data": [
+    "propagate_data": [
       {
         "steps": 8,
         "initial_status": null,
@@ -163,7 +163,7 @@
         "value": 0
       }
     ],
-    "redistribute_data": [
+    "propagate_data": [
       {
         "steps": 4,
         "initial_status": null,
@@ -279,7 +279,7 @@
         "value": 0
       }
     ],
-    "redistribute_data": [
+    "propagate_data": [
       {
         "steps": 17,
         "initial_status": null,
@@ -399,7 +399,7 @@
         "value": 1
       }
     ],
-    "redistribute_data": [
+    "propagate_data": [
       {
         "steps": 13,
         "initial_status": null,
@@ -515,7 +515,7 @@
         "value": 2
       }
     ],
-    "redistribute_data": [
+    "propagate_data": [
       {
         "steps": 23,
         "initial_status": null,
@@ -633,7 +633,7 @@
         "value": 1
       }
     ],
-    "redistribute_data": [
+    "propagate_data": [
       {
         "steps": 49,
         "initial_status": null,
@@ -752,7 +752,7 @@
         "value": 0
       }
     ],
-    "redistribute_data": [
+    "propagate_data": [
       {
         "steps": 35,
         "initial_status": null,
@@ -868,7 +868,7 @@
         "value": 2
       }
     ],
-    "redistribute_data": [
+    "propagate_data": [
       {
         "steps": 14,
         "initial_status": null,
@@ -988,7 +988,7 @@
         "value": 1
       }
     ],
-    "redistribute_data": [
+    "propagate_data": [
       {
         "steps": 3,
         "initial_status": null,
@@ -1109,7 +1109,7 @@
         "value": 4
       }
     ],
-    "redistribute_data": [
+    "propagate_data": [
       {
         "steps": 26,
         "initial_status": null,

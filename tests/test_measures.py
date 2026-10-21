@@ -9,7 +9,6 @@
 
 import numpy as _np
 import numpy.testing as _npt
-import pytest as _pt
 
 # Internal
 
@@ -162,14 +161,10 @@ def test_first_passage_reward(p, steps, initial_state, first_passage_states, rew
 
     mc = _MarkovChain(p)
 
-    if mc.size <= 2:
-        _pt.skip('The size of the Markov chain is less than or equal to 2.')
-    else:
+    actual = mc.first_passage_reward(steps, initial_state, first_passage_states, rewards)
+    expected = value
 
-        actual = mc.first_passage_reward(steps, initial_state, first_passage_states, rewards)
-        expected = value
-
-        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_first_passage_times_between(p, origins, targets, value_mean, value_variance):

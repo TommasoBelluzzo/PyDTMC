@@ -95,7 +95,7 @@ Suppose we observe the following sequence:
 
    import numpy as np
 
-   log_probability, posterior, _, _, _ = hmm.decode(
+   log_probability, posterior, _, _, _, _ = hmm.decode(
        observations,
        initial_status=[0.5, 0.5]
    )
