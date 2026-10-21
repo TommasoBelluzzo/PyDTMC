@@ -22,6 +22,7 @@ import numpy.linalg as _npl
 # Internal
 
 from ._analysis import (
+    hmm_conditional_probabilities as _conditional_probabilities,
     hmm_decode as _decode,
     hmm_entropy as _entropy,
     hmm_mutual_information as _mutual_information
@@ -316,6 +317,34 @@ class HiddenMarkovModel(_Model):
 
         return self.__symbols.copy()
 
+    @_object_mark(aliases=['conditional_distribution', 'cd', 'cp'])
+    def conditional_probabilities(self, symbol: _tstate) -> _tlist_array:
+
+        r"""
+        | The method computes the stationary one-step conditional probabilities of the observable symbols of the hidden Markov model:
+        | :math:`Q_{ab} = \mathbb{P}(Y_{t+1}=b \mid Y_t=a)` where :math:`a` is the given symbol.
+
+        | **Notes:**
+
+        - The method returns one probability distribution for each recurrent class.
+        - If the given symbol has zero stationary probability within a recurrent class, the corresponding distribution is returned as a zero vector.
+        - The method can also be accessed through the aliases **conditional_distribution**, **cd** and **cp**.
+
+        :param symbol: the current observable symbol.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            symbol = _validate_label(symbol, self.__symbols)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        cp = _conditional_probabilities(self, symbol)
+
+        return cp
+
     def decode(self, symbols: _tsequence, initial_status: _ostatus = None, use_scaling: bool = True) -> _ohmm_decoding:
 
         """
@@ -387,6 +416,7 @@ class HiddenMarkovModel(_Model):
         - Terms with zero probability contribute 0.
         - One value is returned for each stationary distribution of the hidden-state transition matrix.
         - Entropies are expressed in nats.
+        - The method can also be accessed through the alias **h**.
 
         :param target:
          - **states** for hidden states;
@@ -420,6 +450,7 @@ class HiddenMarkovModel(_Model):
         - Terms with zero joint probability contribute 0.
         - One value is returned for each stationary distribution of the hidden-state transition matrix.
         - Mutual information is expressed in nats.
+        - The method can also be accessed through the alias **mi**.
 
         :param process1:
          - **states** for hidden states;
@@ -536,7 +567,9 @@ class HiddenMarkovModel(_Model):
 
         :param steps: the number of steps.
         :param initial_status: the initial state or initial state distribution (*if omitted, the states are assumed to be uniformly distributed*).
-        :param target: **states** for hidden states or **symbols** for emitted symbols (*default: symbols*).
+        :param target:
+         - **state** for hidden states;
+         - **symbol** for emitted symbols.
         :param output_last: a boolean indicating whether to return only the final distribution.
         :raises ValidationError: if any input argument is not compliant.
         """

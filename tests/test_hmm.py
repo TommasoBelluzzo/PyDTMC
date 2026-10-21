@@ -25,6 +25,20 @@ from pydtmc import (
 # TESTS #
 #########
 
+def test_conditional_probabilities(p, e, symbol, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.conditional_probabilities(symbol)
+    expected = value
+
+    assert len(actual) == len(expected)
+
+    for actual_i, expected_i in zip(actual, expected):
+        expected_i = _np.array(expected_i)
+        _npt.assert_allclose(actual_i, expected_i, rtol=1e-5, atol=1e-8)
+
+
 def test_decode(p, e, symbols, initial_status, use_scaling, value):
 
     hmm = _HiddenMarkovModel(p, e)
@@ -411,7 +425,6 @@ def test_propagate(p, e, target, steps, initial_status, output_last, value):
     distributions = distributions if isinstance(distributions, list) else [distributions]
 
     actual = _np.vstack(distributions)
-    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected)

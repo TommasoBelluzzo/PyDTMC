@@ -9,6 +9,7 @@ __all__ = [
     'mc_absorption_times',
     'mc_committor_probabilities',
     'mc_commute_times',
+    'hmm_conditional_probabilities',
     'mc_conductance',
     'mc_deviation_matrix',
     'mc_dobrushin_coefficient',
@@ -147,6 +148,29 @@ def _mutual_information(joint: _tarray) -> float:
     mi = float(_np.sum(values))
 
     return mi
+
+
+# HMM DISTRIBUTIONS & PROBABILITIES
+
+def hmm_conditional_probabilities(hmm: _thmm, symbol: int) -> _tlist_array:
+
+    p, e = hmm.p, hmm.e
+
+    results = []
+
+    for pi in hmm.pi:
+
+        marginal = _np.dot(pi, e[:, symbol])
+
+        if marginal > 0.0:
+            joint = _np.dot(pi * e[:, symbol], _np.dot(p, e))
+            probabilities = joint / marginal
+        else:
+            probabilities = _np.zeros(e.shape[1], dtype=float)
+
+        results.append(probabilities)
+
+    return results
 
 
 # HMM INFERENCE
