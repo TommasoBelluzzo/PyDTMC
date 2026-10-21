@@ -7,6 +7,8 @@ Properties
    :noindex:
    :members:
       e,
+      emissive_overlap,
+      emissive_rank,
       is_ergodic,
       is_regular,
       k,

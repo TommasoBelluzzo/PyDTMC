@@ -88,6 +88,21 @@ def test_decode(p, e, symbols, initial_status, use_scaling, value):
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_emissive(p, e, value_overlap, value_rank):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.emissive_overlap
+    expected = _np.array(value_overlap)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+    actual = hmm.emissive_rank
+    expected = value_rank
+
+    assert actual == expected
+
+
 def test_entropy(p, e, target, conditional, value):
 
     hmm = _HiddenMarkovModel(p, e)

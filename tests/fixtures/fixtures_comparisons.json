@@ -194,11 +194,11 @@
         [0.0, 1.0],
         [1.0, 0.0]
       ],
-      "value_f": 2.00000000,
-      "value_h": 1.00000000,
-      "value_m": 1.00000000,
-      "value_s": 2.00000000,
-      "value_tv": 1.00000000
+      "value_f": 2.0,
+      "value_h": 1.0,
+      "value_m": 1.0,
+      "value_s": 2.0,
+      "value_tv": 1.0
     },
     {
       "id": "three_state_cyclic",
