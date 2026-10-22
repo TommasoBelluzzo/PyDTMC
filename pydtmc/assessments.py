@@ -8,7 +8,8 @@ __all__ = [
     'assess_order',
     'assess_stationarity',
     'assess_theoretical_compatibility',
-    'assess_time_homogeneity'
+    'assess_time_homogeneity',
+    'assess_vamp_score'
 ]
 
 
