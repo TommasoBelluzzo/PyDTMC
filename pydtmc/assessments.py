@@ -821,7 +821,7 @@ def assess_vamp_score(method: str, possible_states: _tlist_str, sequences: _tseq
     - The assessment uses one-hot encoding of the observed states.
     - Time-lagged observations are paired within each sequence independently.
     - Singular covariance matrices are handled by discarding eigenvalues below a numerical tolerance.
-    - If **center** is :py:class:`True`, the empirical means are subtracted independently from the initial and lagged features.
+    - If **center** is :py:obj:`True`, the empirical means are subtracted independently from the initial and lagged features.
     - The **vamp1** score returns the sum of the singular values; the **vamp2** score returns the sum of their squares.
     - The methodology is described in `Variational Approach for Learning Markov Processes from Time Series Data (Wu et al., 2019) <https://doi.org/10.1007/s00332-019-09567-y>`_.
 
