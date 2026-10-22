@@ -25,6 +25,7 @@ import math as _mt
 # Libraries
 
 import numpy as _np
+import numpy.linalg as _npl
 import scipy.stats as _sps
 
 # Internal
@@ -46,6 +47,7 @@ from ._utilities import (
 )
 
 from ._validation import (
+    validate_boolean as _validate_boolean,
     validate_enumerator as _validate_enumerator,
     validate_float as _validate_float,
     validate_integer as _validate_integer,
@@ -804,3 +806,100 @@ def assess_time_homogeneity(possible_states: _tlist_str, sequence: _tsequence, b
     rejection = p_value < significance
 
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
+
+
+def assess_vamp_score(method: str, possible_states: _tlist_str, sequences: _tsequences, lag: int = 1, center: bool = False) -> float:
+
+    r"""
+    | The function computes a Variational Approach for Markov Processes (VAMP) score from one or more observed sequences of states.
+    | The score is computed from the singular values of the whitened time-lagged covariance matrix:
+    | :math:`K = C_{00}^{-1/2} C_{01} C_{11}^{-1/2}`.
+
+    | **Notes:**
+
+    - The assessment uses one-hot encoding of the observed states.
+    - Time-lagged observations are paired within each sequence independently.
+    - Singular covariance matrices are handled by discarding eigenvalues below a numerical tolerance.
+    - If **center** is :py:class:`True`, the empirical means are subtracted independently from the initial and lagged features.
+    - The **vamp1** score returns the sum of the singular values; the **vamp2** score returns the sum of their squares.
+    - The methodology is described in `Variational Approach for Learning Markov Processes from Time Series Data (Wu et al., 2019) <https://doi.org/10.1007/s00332-019-09567-y>`_.
+
+    :param method: the scoring method.
+    :param possible_states: the possible states of the process.
+    :param sequences: the observed sequence(s) of states.
+    :param lag: the positive integer time lag.
+    :param center: a boolean indicating whether to center the feature vectors.
+    :raises ValidationError: if any input argument is not compliant.
+    :raises ValueError: if the observed sequences contain no valid time-lagged pairs.
+    """
+
+    def _inverse_sqrt(is_matrix):
+
+        evalues, evectors = _npl.eigh(is_matrix)
+
+        tolerance = _np.finfo(_np.float64).eps * len(evalues) * max(1.0, _np.max(evalues))  # pylint: disable=no-member
+        positive = evalues > tolerance
+
+        if not _np.any(positive):
+            return _np.zeros_like(is_matrix)
+
+        vectors = evectors[:, positive]
+        values = evalues[positive]**-0.5
+
+        isqrt = _np.dot((vectors * values), _np.transpose(vectors))
+
+        return isqrt
+
+    try:
+
+        method = _validate_enumerator(method, ['vamp1', 'vamp2'])
+        possible_states = _validate_labels_input(possible_states)
+        sequences = _validate_sequences(sequences, possible_states, True)
+        lag = _validate_integer(lag, lower_limit=(1, False))
+        center = _validate_boolean(center)
+
+    except Exception as ex:  # pragma: no cover
+        raise _create_validation_error(ex, _ins.trace()) from None
+
+    n = len(possible_states)
+    counts = _np.zeros((n, n), dtype=float)
+
+    for sequence in sequences:
+
+        if len(sequence) <= lag:
+            continue
+
+        _np.add.at(counts, (sequence[:-lag], sequence[lag:]), 1.0)
+
+    total = _np.sum(counts)
+
+    if total == 0.0:  # pragma: no cover
+        raise ValueError('The observed sequences do not contain any valid time-lagged pairs.')
+
+    frequencies = counts / total
+
+    mean_initial = _np.sum(frequencies, axis=1)
+    mean_lagged = _np.sum(frequencies, axis=0)
+
+    c00 = _np.diag(mean_initial)
+    c01 = frequencies
+    c11 = _np.diag(mean_lagged)
+
+    if center:
+
+        c00 -= _np.outer(mean_initial, mean_initial)
+        c01 -= _np.outer(mean_initial, mean_lagged)
+        c11 -= _np.outer(mean_lagged, mean_lagged)
+
+    inverse00 = _inverse_sqrt(c00)
+    inverse11 = _inverse_sqrt(c11)
+
+    operator = inverse00 @ c01 @ inverse11
+    singular_values = _npl.svd(operator, compute_uv=False)
+
+    if method == 'vamp1':
+        score = float(_np.sum(singular_values))
+    else:
+        score = float(_np.sum(singular_values**2.0))
+
+    return score

@@ -942,5 +942,113 @@
       "significance": 0.05,
       "value": [false, 0.22309029, 15.34537037, 12]
     }
+  ],
+  "assess_vamp_score_data": [
+    {
+      "method": "vamp1",
+      "possible_states": ["A", "B", "C"],
+      "sequences": ["A", "A", "B", "C", "B", "A", "C", "C", "B", "A", "B", "C", "A", "A"],
+      "lag": 1,
+      "center": false,
+      "value": 1.56789083
+    },
+    {
+      "method": "vamp2",
+      "possible_states": ["A", "B", "C"],
+      "sequences": ["A", "A", "B", "C", "B", "A", "C", "C", "B", "A", "B", "C", "A", "A"],
+      "lag": 1,
+      "center": false,
+      "value": 1.2225
+    },
+    {
+      "method": "vamp1",
+      "possible_states": ["A", "B", "C"],
+      "sequences": ["A", "A", "B", "C", "B", "A", "C", "C", "B", "A", "B", "C", "A", "A"],
+      "lag": 1,
+      "center": true,
+      "value": 0.56789083
+    },
+    {
+      "method": "vamp2",
+      "possible_states": ["A", "B", "C"],
+      "sequences": ["A", "A", "B", "C", "B", "A", "C", "C", "B", "A", "B", "C", "A", "A"],
+      "lag": 1,
+      "center": true,
+      "value": 0.2225
+    },
+    {
+      "method": "vamp1",
+      "possible_states": ["A", "B"],
+      "sequences": ["A", "B", "A", "B", "A", "B", "A"],
+      "lag": 1,
+      "center": false,
+      "value": 2.0
+    },
+    {
+      "method": "vamp2",
+      "possible_states": ["A", "B"],
+      "sequences": ["A", "B", "A", "B", "A", "B", "A"],
+      "lag": 1,
+      "center": true,
+      "value": 1.0
+    },
+    {
+      "method": "vamp1",
+      "possible_states": ["A", "B", "C"],
+      "sequences": ["A", "B", "C", "A", "B", "C", "A", "B", "C"],
+      "lag": 2,
+      "center": false,
+      "value": 3.0
+    },
+    {
+      "method": "vamp2",
+      "possible_states": ["A", "B", "C"],
+      "sequences": ["A", "B", "C", "A", "B", "C", "A", "B", "C"],
+      "lag": 2,
+      "center": true,
+      "value": 2.0
+    },
+    {
+      "method": "vamp1",
+      "possible_states": ["A", "B"],
+      "sequences": [
+        ["A", "A"],
+        ["A", "B"],
+        ["B", "A"],
+        ["B", "B"]
+      ],
+      "lag": 1,
+      "center": false,
+      "value": 1.0
+    },
+    {
+      "method": "vamp2",
+      "possible_states": ["A", "B"],
+      "sequences": [
+        ["A", "A"],
+        ["A", "B"],
+        ["B", "A"],
+        ["B", "B"]
+      ],
+      "lag": 1,
+      "center": true,
+      "value": 0.0
+    },
+    {
+      "method": "vamp1",
+      "possible_states": ["A", "B", "C", "D"],
+      "sequences": ["A", "B", "A", "B", "A"],
+      "lag": 1,
+      "center": true,
+      "value": 1.0
+    },
+    {
+      "method": "vamp2",
+      "possible_states": ["A", "B", "C"],
+      "sequences": ["A", "A", "A", "A", "A"],
+      "lag": 1,
+      "center": true,
+      "value": 0.0
+    }
   ]
 }

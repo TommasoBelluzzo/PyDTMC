@@ -16,6 +16,7 @@ __all__ = [
     'assess_stationarity',
     'assess_theoretical_compatibility',
     'assess_time_homogeneity',
+    'assess_vamp_score',
     # Comparisons
     'calculate_stationary_distance',
     'calculate_transition_distance',
@@ -52,7 +53,8 @@ from pydtmc.assessments import (
     assess_order,
     assess_stationarity,
     assess_theoretical_compatibility,
-    assess_time_homogeneity
+    assess_time_homogeneity,
+    assess_vamp_score
 )
 
 from pydtmc.comparisons import (

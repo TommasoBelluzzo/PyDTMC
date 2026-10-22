@@ -11,3 +11,4 @@ Assessment Functions
 .. autofunction:: assess_stationarity
 .. autofunction:: assess_theoretical_compatibility
 .. autofunction:: assess_time_homogeneity
+.. autofunction:: assess_vamp_score

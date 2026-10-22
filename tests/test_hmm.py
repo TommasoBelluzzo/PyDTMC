@@ -167,13 +167,13 @@ def test_estimate(possible_states, possible_symbols, sequence_states, sequence_s
 
 
 # noinspection PyBroadException
-def test_fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, symbols, initial_status, value):
+def test_fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, symbols, initial_status, regularization, fitting_param, value):
 
     p_guess = _np.array(p_guess)
     e_guess = _np.array(e_guess)
 
     try:
-        hmm_fit = _HiddenMarkovModel.fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, symbols, initial_status)
+        hmm_fit = _HiddenMarkovModel.fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, symbols, initial_status, regularization, fitting_param)
     except Exception:
         hmm_fit = None
 

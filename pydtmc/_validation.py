@@ -24,6 +24,7 @@ __all__ = [
     'validate_matrix',
     'validate_model',
     'validate_models',
+    'validate_none',
     'validate_partition',
     'validate_random_distribution',
     'validate_rewards',
@@ -736,6 +737,14 @@ def validate_models(value: _tany) -> _tlist_model:
             validate_model(value[i])
         except Exception as ex:
             raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
+
+    return value
+
+
+def validate_none(value: _tany) -> _tany:
+
+    if value is not None:
+        raise TypeError('The "@arg@" parameter must be None.')
 
     return value
 

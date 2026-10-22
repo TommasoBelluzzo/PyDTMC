@@ -19,7 +19,8 @@ from pydtmc.assessments import (
     assess_order as _assess_order,
     assess_stationarity as _assess_stationarity,
     assess_theoretical_compatibility as _assess_theoretical_compatibility,
-    assess_time_homogeneity as _assess_time_homogeneity
+    assess_time_homogeneity as _assess_time_homogeneity,
+    assess_vamp_score as _assess_vamp_score
 )
 
 from pydtmc.markov_chain import (
@@ -151,5 +152,15 @@ def test_assess_time_homogeneity(possible_states, sequence, blocks, significance
 
     result = _assess_time_homogeneity(possible_states, sequence, blocks, significance)
     actual, expected = _extract_data_statistic(result, value)
+
+    assert actual == expected
+
+
+def test_assess_vamp_score(method, possible_states, sequences, lag, center, value):
+
+    result = _assess_vamp_score(method, possible_states, sequences, lag, center)
+
+    actual = round(result, 8)
+    expected = round(value, 8)
 
     assert actual == expected

@@ -5,7 +5,7 @@ __all__ = [
     'hmm_propagate',
     'hmm_simulate',
     'mc_predict',
-    'mc_predict_trajectory',
+    'hmm_predict_trajectory',
     'mc_propagate',
     'mc_sequence_probability',
     'mc_simulate'

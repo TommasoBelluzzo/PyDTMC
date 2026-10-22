@@ -43,6 +43,7 @@ from ._custom_types import (
     ostate as _ostate,
     ostates as _ostates,
     ostatus as _ostatus,
+    tany as _tany,
     tarray as _tarray,
     tgraph as _tgraph,
     tgraphs as _tgraphs,
@@ -1044,30 +1045,38 @@ class HiddenMarkovModel(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def fit(fitting_type: str, possible_states: _tlist_str, possible_symbols: _tlist_str, p_guess: _tarray, e_guess: _tarray, symbols: _thmm_symbols_ext, initial_status: _ostatus = None, regularization: float = 0.0, maximum_iterations: int = 500) -> _thmm:
+    def fit(fitting_type: str, possible_states: _tlist_str, possible_symbols: _tlist_str, p_guess: _tarray, e_guess: _tarray, symbols: _thmm_symbols_ext, initial_status: _ostatus = None, regularization: float = 0.0, fitting_param: _tany = None) -> _thmm:
 
         """
         | The method fits a hidden Markov model from initial transition and emission matrices and one or more observed sequences of emitted symbols.
 
+        | **Notes:**
+
+        - The **oem** approach processes observations sequentially and recursively updates the model parameters without repeatedly applying the forward-backward algorithm to the complete observation sequences.
+        - The **oem** approach is described in `Online EM Algorithm for Hidden Markov Models (Cappé, 2012) <https://doi.org/10.1198/jcgs.2011.09109>`_.
+
         :param fitting_type:
-         - **baum-welch** for Baum-Welch fitting;
+         - **bw** for Baum-Welch fitting;
          - **map** for maximum a posteriori fitting;
-         - **mle** or **viterbi** for maximum likelihood fitting.
+         - **mle** or **vit** for maximum likelihood fitting;
+         - **oem** for online expectation-maximization fitting.
         :param possible_states: the possible hidden states of the model.
         :param possible_symbols: the possible emitted symbols of the model.
         :param p_guess: the initial hidden-state transition matrix.
         :param e_guess: the initial emission matrix.
         :param symbols: the observed sequence(s) of emitted symbols.
         :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
-        :param regularization: a non-negative pseudocount added to initially positive transition and emission probabilities during fitting.
-        :param maximum_iterations: the maximum number of iterations.
+        :param regularization: a non-negative floating-point value specifying additive smoothing of the estimated transition and emission probabilities, restricted to the support of the initial matrices.
+        :param fitting_param:
+         - For **bw**, **map**, **mle**, and **viterbi**, a positive integer specifying the maximum number of iterations (*if omitted, 500 iterations are used*).
+         - For **oem**, a floating-point value in the interval (0.5, 1.0] specifying the learning-rate decay exponent (*if omitted, 0.7 is used*).
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the fitting algorithm fails to converge.
         """
 
         try:
 
-            fitting_type = _validate_enumerator(fitting_type, ['baum-welch', 'map', 'mle', 'viterbi'])
+            fitting_type = _validate_enumerator(fitting_type, ['bw', 'map', 'mle', 'oem', 'vit'])
             possible_states = _validate_labels_input(possible_states)
             possible_symbols = _validate_labels_input(possible_symbols)
             p_guess = _validate_transition_matrix(p_guess, len(possible_states))
@@ -1075,7 +1084,12 @@ class HiddenMarkovModel(_Model):
             symbols = _validate_sequences(symbols, possible_symbols, True)
             initial_status = _validate_status(initial_status, possible_states, True)
             regularization = _validate_float(regularization, lower_limit=(0.0, False))
-            maximum_iterations = _validate_integer(maximum_iterations, lower_limit=(100, False))
+
+            if fitting_param is not None:
+                if fitting_type == 'oem':
+                    fitting_param = _validate_float(fitting_param, lower_limit=(0.5, True), upper_limit=(1.0, False))
+                else:
+                    fitting_param = _validate_integer(fitting_param, lower_limit=(100, False))
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -1083,7 +1097,13 @@ class HiddenMarkovModel(_Model):
         if len(list(set(possible_states) & set(possible_symbols))) > 0:  # pragma: no cover
             raise _ValidationError('State names and symbol names must be different.')
 
-        p, e, error_message = _fit(fitting_type, p_guess, e_guess, initial_status, symbols, regularization, maximum_iterations)
+        if fitting_param is None:
+            if fitting_type == 'oem':
+                fitting_param = 0.7
+            else:
+                fitting_param = 500
+
+        p, e, error_message = _fit(fitting_type, p_guess, e_guess, initial_status, symbols, regularization, fitting_param)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)

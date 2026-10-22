@@ -3088,7 +3088,7 @@ class MarkovChain(_Model):
         :param rho: the autoregressive coefficient of the process.
         :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :param k:
-         - For the Tauchen approximation, the number of standard deviations defining the discretization range (*if omitted, the value is set to 3*);
+         - For the Tauchen approximation, the number of standard deviations defining the discretization range (*if omitted, 3 is used*);
          - For the Tauchen-Hussey approximation, the standard deviation used for Gaussian quadrature (*if omitted, an automatically computed value is used*).
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Gaussian quadrature fails to converge in the Tauchen-Hussey approximation.
@@ -3272,32 +3272,38 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The transition probabilities are estimated independently for each origin state.
-        - States with no observed outgoing transitions are assigned a uniform transition distribution.
-        - Maximum-likelihood estimation optionally supports additive smoothing.
+        - For **map** and **mle** approaches, transition probabilities are estimated independently for each origin state.
+        - For **map** and **mle** approaches, states with no observed outgoing transitions are assigned a uniform transition distribution.
+        - The **mle** approach optionally supports additive smoothing.
+        - The **rmle** approach enforces detailed balance during estimation and requires at least one observed outgoing transition from every state.
 
         :param fitting_type:
          - **map** for maximum a posteriori estimation;
-         - **mle** for maximum-likelihood estimation.
+         - **mle** for maximum-likelihood estimation;
+         - **rmle** for reversible maximum-likelihood estimation.
         :param possible_states: the possible states of the process.
         :param sequence: the observed sequence of states.
         :param fitting_param:
-         - For **map**, a matrix of Dirichlet prior parameters (*if omitted, all entries are set to 1*);
+         - For **map**, a matrix of Dirichlet prior parameters (*if omitted, all entries are set to 1*).
          - For **mle**, a boolean indicating whether to apply additive smoothing (*if omitted, smoothing is disabled*).
+         - For **rmle**, a positive integer specifying the maximum number of iterations (*if omitted, 100000 iterations are used*).
         :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if reversible maximum-likelihood estimation fails to converge or cannot be computed.
         """
 
         try:
 
             possible_states = _validate_labels_input(possible_states)
             sequence = _validate_sequence(sequence, possible_states)
-            fitting_type = _validate_enumerator(fitting_type, ['map', 'mle'])
+            fitting_type = _validate_enumerator(fitting_type, ['map', 'mle', 'rmle'])
 
             if fitting_param is not None:
                 if fitting_type == 'map':
                     fitting_param = _validate_hyperparameter(fitting_param, len(possible_states))
-                else:
+                elif fitting_type == 'mle':
                     fitting_param = _validate_boolean(fitting_param)
+                else:
+                    fitting_param = _validate_integer(fitting_param, lower_limit=(1000, False))
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -3306,10 +3312,16 @@ class MarkovChain(_Model):
             if fitting_type == 'map':
                 possible_states_length = len(possible_states)
                 fitting_param = _np.ones((possible_states_length, possible_states_length), dtype=float)
-            else:
+            elif fitting_type == 'mle':
                 fitting_param = False
+            else:
+                fitting_param = 100000
 
-        p, _ = _fit_sequence(fitting_type, fitting_param, possible_states, sequence)
+        p, error_message = _fit_sequence(fitting_type, fitting_param, possible_states, sequence)
+
+        if error_message is not None:  # pragma: no cover
+            raise ValueError(error_message)
+
         mc = MarkovChain(p, possible_states)
 
         return mc
