@@ -74,7 +74,7 @@ def assess_change_point(possible_states: _tlist_str, sequence: _tsequence, signi
     - The change point identifies the first transition of the second regime, using zero-based indexing, and is returned only when the null hypothesis is rejected.
     - The returned tuple contains the detected change-point index, the p-value, and the likelihood-ratio test statistic.
     - If an observed state has no outgoing transitions, then :py:class:`None` and *NaN* are returned for the change-point index and p-value, respectively.
-    - The methodology is described in `Detecting change-points in Markov chains. (Polansky, 2007) <https://doi.org/10.1016/j.csda.2006.11.040>`_.
+    - The methodology is described in `Detecting change-points in Markov chains (Polansky, 2007) <https://doi.org/10.1016/j.csda.2006.11.040>`_.
 
     :param possible_states: the possible states of the process.
     :param sequence: the observed sequence of states.

@@ -2,13 +2,15 @@
 
 __all__ = [
     'hmm_predict',
+    'hmm_predict_trajectory',
     'hmm_propagate',
     'hmm_simulate',
     'mc_predict',
-    'hmm_predict_trajectory',
+    'mc_predict_trajectory',
     'mc_propagate',
     'mc_sequence_probability',
-    'mc_simulate'
+    'mc_simulate',
+    'mc_stationary_sampling'
 ]
 
 
@@ -359,3 +361,36 @@ def mc_simulate(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rn
             break
 
     return value
+
+
+def mc_stationary_sampling(mc: _tmc, maximum_steps: int, rng: _trand) -> _oint:
+
+    p, n = mc.p, mc.size
+
+    cumulative = _np.cumsum(p, axis=1)
+    cumulative[:, -1] = 1.0
+
+    states = _np.arange(n, dtype=int)
+    mappings = []
+    horizon = 0
+
+    while horizon < maximum_steps:
+
+        extension = min(max(1, horizon), maximum_steps - horizon)
+
+        for _ in range(extension):
+            uniforms = rng.random_sample(n)
+            mapping = _np.sum(uniforms[:, _np.newaxis] > cumulative[:, :-1], axis=1)
+            mappings.append(mapping)
+
+        horizon += extension
+
+        trajectories = _np.copy(states)
+
+        for mapping in reversed(mappings):
+            trajectories = mapping[trajectories]
+
+        if _np.all(trajectories == trajectories[0]):
+            return int(trajectories[0])
+
+    return None

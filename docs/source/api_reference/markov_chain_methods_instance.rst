@@ -49,6 +49,7 @@ Instance Methods
       simulate,
       spectral_aggregation,
       stationary_perturbation_bound,
+      stationary_sampling,
       teleport,
       time_correlations,
       time_relaxations,

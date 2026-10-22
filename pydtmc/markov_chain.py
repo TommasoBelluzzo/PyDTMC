@@ -136,7 +136,8 @@ from ._dynamics import (
     mc_predict_trajectory as _predict_trajectory,
     mc_propagate as _propagate,
     mc_sequence_probability as _sequence_probability,
-    mc_simulate as _simulate
+    mc_simulate as _simulate,
+    mc_stationary_sampling as _stationary_sampling
 )
 
 from .exceptions import (
@@ -2676,6 +2677,45 @@ class MarkovChain(_Model):
         spb = _stationary_perturbation_bound(self, epsilon)
 
         return spb
+
+    @_object_mark(random_output=True)
+    def stationary_sampling(self, maximum_doublings: int = 10, output_index: bool = False, seed: _oint = None) -> _tstate:
+
+        r"""
+        | The method samples a state from the stationary distribution of the Markov chain using the Coupling from the Past (CFTP) algorithm.
+
+        | **Notes:**
+
+        - The method uses random mappings and backward coupling to sample from the stationary distribution without requiring a burn-in period.
+        - If coalescence is not achieved within the maximum backward simulation horizon, :py:class:`None` is returned.
+        - The methodology is described in `Exact sampling with coupled Markov chains and applications to statistical mechanics (Propp and Wilson, 1996) <https://doi.org/10.1002/(SICI)1098-2418(199608/09)9:1/2%3C223::AID-RSA14%3E3.0.CO;2-O>`_.
+
+        :param maximum_doublings: the maximum number of horizon doublings, corresponding to a backward simulation limit of :math:`2^{md}` steps.
+        :param output_index: a boolean indicating whether to return the state index instead of the state label.
+        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the Markov chain is not **ergodic**.
+        """
+
+        try:
+
+            rng = _create_rng(seed)
+            maximum_doublings = _validate_integer(maximum_doublings, lower_limit=(0, False))
+            output_index = _validate_boolean(output_index)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if not self.is_ergodic:  # pragma: no cover
+            raise ValueError('The Markov chain is not ergodic.')
+
+        maximum_steps = 2**maximum_doublings
+        value = _stationary_sampling(self, maximum_steps, rng)
+
+        if (value is not None) and (not output_index):
+            value = self.__states[value]
+
+        return value
 
     @_object_mark(instance_generator=True)
     def teleport(self, probability: float, distribution: _onumeric = None) -> _tmc:

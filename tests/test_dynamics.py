@@ -9,6 +9,7 @@
 
 import numpy as _np
 import numpy.testing as _npt
+import pytest as _pt
 
 # Internal
 
@@ -110,3 +111,20 @@ def test_simulate(p, seed, steps, initial_state, final_state, output_indices, va
         expected = len(expected_sequence)
 
         assert actual == expected
+
+
+def test_stationary_sampling(p, seed, maximum_doublings, output_index, value):
+
+    mc = _MarkovChain(p)
+
+    if not mc.is_ergodic:
+
+        with _pt.raises(ValueError):
+            mc.stationary_sampling(maximum_doublings, output_index, seed)
+
+        return
+
+    actual = mc.stationary_sampling(maximum_doublings, output_index, seed)
+    expected = value
+
+    assert actual == expected
