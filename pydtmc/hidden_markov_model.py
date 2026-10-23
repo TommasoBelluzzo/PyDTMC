@@ -528,6 +528,7 @@ class HiddenMarkovModel(_Model):
             hn = []
 
             for value, (lower, upper) in h:
+
                 value = min(1.0, max(0.0, value / divisor))
                 lower = min(1.0, max(0.0, lower / divisor))
                 upper = min(1.0, max(0.0, upper / divisor))

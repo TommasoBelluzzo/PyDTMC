@@ -1263,11 +1263,11 @@ def mc_time_relaxations(mc: _tmc, sequence: _tsequence, initial_distribution: _t
 
 # RECURRENCE & EXPECTATIONS
 
-def mc_expected_rewards(mc: _tmc, steps: int, rewards: _tarray) -> _tany:
+def mc_expected_rewards(mc: _tmc, steps: int, rewards: _tarray, discount_factor: float) -> _tarray:
 
     p = mc.p
 
-    mg_sum = _matrix_geometric_sum(p, steps + 1)
+    mg_sum = _matrix_geometric_sum(discount_factor * p, steps + 1)
     er = _np.dot(mg_sum, rewards)
 
     return er

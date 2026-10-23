@@ -117,12 +117,12 @@
     ],
     "stationary_sampling_data": [
       {
-        "maximum_doublings": 8,
+        "maximum_doublings": 3,
         "output_index": false,
         "value": null
       },
       {
-        "maximum_doublings": 1024,
+        "maximum_doublings": 10,
         "output_index": false,
         "value": null
       }
@@ -244,12 +244,12 @@
     ],
     "stationary_sampling_data": [
       {
-        "maximum_doublings": 16,
+        "maximum_doublings": 4,
         "output_index": false,
         "value": "2"
       },
       {
-        "maximum_doublings": 64,
+        "maximum_doublings": 6,
         "output_index": false,
         "value": "2"
       }
@@ -376,12 +376,12 @@
     ],
     "stationary_sampling_data": [
       {
-        "maximum_doublings": 16,
+        "maximum_doublings": 0,
         "output_index": true,
         "value": null
       },
       {
-        "maximum_doublings": 64,
+        "maximum_doublings": 2,
         "output_index": true,
         "value": null
       }
@@ -509,7 +509,7 @@
         "value": null
       },
       {
-        "maximum_doublings": 8,
+        "maximum_doublings": 3,
         "output_index": true,
         "value": 0
       }
@@ -764,12 +764,12 @@
     ],
     "stationary_sampling_data": [
       {
-        "maximum_doublings": 1,
+        "maximum_doublings": 0,
         "output_index": false,
         "value": null
       },
       {
-        "maximum_doublings": 32,
+        "maximum_doublings": 5,
         "output_index": false,
         "value": null
       }
@@ -891,12 +891,12 @@
     ],
     "stationary_sampling_data": [
       {
-        "maximum_doublings": 16,
+        "maximum_doublings": 0,
         "output_index": false,
-        "value": "1"
+        "value": null
       },
       {
-        "maximum_doublings": 32,
+        "maximum_doublings": 4,
         "output_index": false,
         "value": "1"
       }
@@ -1023,12 +1023,12 @@
     ],
     "stationary_sampling_data": [
       {
-        "maximum_doublings": 1,
+        "maximum_doublings": 3,
         "output_index": false,
         "value": null
       },
       {
-        "maximum_doublings": 64,
+        "maximum_doublings": 5,
         "output_index": true,
         "value": null
       }
@@ -1155,12 +1155,12 @@
     ],
     "stationary_sampling_data": [
       {
-        "maximum_doublings": 8,
+        "maximum_doublings": 3,
         "output_index": false,
         "value": null
       },
       {
-        "maximum_doublings": 64,
+        "maximum_doublings": 5,
         "output_index": true,
         "value": null
       }
@@ -1290,12 +1290,12 @@
     ],
     "stationary_sampling_data": [
       {
-        "maximum_doublings": 3,
+        "maximum_doublings": 2,
         "output_index": false,
         "value": null
       },
       {
-        "maximum_doublings": 16,
+        "maximum_doublings": 4,
         "output_index": false,
         "value": "5"
       }

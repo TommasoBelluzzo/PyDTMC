@@ -117,11 +117,12 @@ def test_conductance(p, states, value):
         assert actual == expected
 
 
-def test_expected_rewards(p, steps, rewards, value):
+def test_expected_rewards(p, steps, rewards, discount_factor, value):
 
     mc = _MarkovChain(p)
 
-    actual = mc.expected_rewards(steps, rewards)
+    actual = mc.expected_rewards(steps, rewards, discount_factor)
+    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

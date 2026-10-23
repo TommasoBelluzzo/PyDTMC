@@ -1118,6 +1118,28 @@ class MarkovChain(_Model):
         return pi
 
     @_cached_property
+    def predictability(self) -> _ofloat:
+
+        r"""
+        | A property representing the predictability of the Markov chain, normalized between 0 and 1:
+        | :math:`R = 1 - \frac{h}{\log n}` where :math:`h` is the entropy rate.
+
+        | **Notes:**
+
+        - A value of 0 indicates maximum transition uncertainty, whereas a value of 1 indicates deterministic transitions.
+        - If the entropy rate cannot be computed, then :py:class:`None` is returned.
+        """
+
+        h = self.entropy_rate
+
+        if h is None:
+            return None
+
+        py = float(_np.clip(1.0 - (h / _np.log(self.__size)), 0.0, 1.0))
+
+        return py
+
+    @_cached_property
     def rank(self) -> int:
 
         r"""
@@ -1557,15 +1579,15 @@ class MarkovChain(_Model):
         return c
 
     @_object_mark(aliases=['er'])
-    def expected_rewards(self, steps: int, rewards: _tnumeric) -> _tarray:
+    def expected_rewards(self, steps: int, rewards: _tnumeric, discount_factor: float = 1.0) -> _tarray:
 
         r"""
-        | The method computes the expected cumulative rewards of the Markov chain over a given number of steps:
-        | :math:`v^{(t)} = \sum_{k=0}^{t} P^k r` where:
+        | The method computes the expected cumulative rewards of the Markov chain over a given number of steps, optionally applying a discount factor:
+        | :math:`v^{(t)} = \sum_{k=0}^{t} \gamma^k P^k r` where:
 
-        - :math:`v^{(t)}` is the vector of expected cumulative rewards;
         - :math:`t` is the number of steps;
-        - :math:`r` is the vector of state rewards.
+        - :math:`r` is the vector of state rewards;
+        - :math:`\gamma` is the discount factor.
 
         | **Notes:**
 
@@ -1575,6 +1597,7 @@ class MarkovChain(_Model):
 
         :param steps: the number of steps.
         :param rewards: the reward value of each state.
+        :param discount_factor: the discount factor, in the interval [0, 1] (*if omitted, 1 is used*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1582,11 +1605,12 @@ class MarkovChain(_Model):
 
             steps = _validate_integer(steps, lower_limit=(0, True))
             rewards = _validate_rewards(rewards, self.__size)
+            discount_factor = _validate_float(discount_factor, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        er = _expected_rewards(self, steps, rewards)
+        er = _expected_rewards(self, steps, rewards, discount_factor)
 
         return er
 
@@ -2700,7 +2724,7 @@ class MarkovChain(_Model):
         try:
 
             rng = _create_rng(seed)
-            maximum_doublings = _validate_integer(maximum_doublings, lower_limit=(0, False))
+            maximum_doublings = _validate_integer(maximum_doublings, lower_limit=(0, False), upper_limit=(20, False))
             output_index = _validate_boolean(output_index)
 
         except Exception as ex:  # pragma: no cover
