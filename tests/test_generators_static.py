@@ -47,7 +47,6 @@ def test_closest_reversible(p, distribution, weighted, value):
     cr = mc.closest_reversible(distribution, weighted)
 
     actual = cr.p
-    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

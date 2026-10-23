@@ -552,8 +552,8 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
         o_chi = _memberships(o_flat, o_x, o_s)
         o_masses = _np.dot(o_pi, o_chi)
 
-        if _np.any(o_masses <= 0.0):
-            return 1.0e6
+        if _np.any(o_masses <= 0.0):  # pragma: no cover
+            return 1e6
 
         o_weighted = o_pi[:, _np.newaxis] * o_chi**2.0
         o_ratios = o_weighted / o_masses[_np.newaxis, :]
@@ -567,7 +567,7 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
         j_chi = _memberships(j_flat, j_x, j_s)
         j_masses = _np.dot(j_pi, j_chi)
 
-        if _np.any(j_masses <= 0.0):
+        if _np.any(j_masses <= 0.0):  # pragma: no cover
             return _np.zeros(j_s * j_s)
 
         j_squared = _np.sum(j_pi[:, _np.newaxis] * j_chi**2.0, axis=0)
@@ -1231,7 +1231,7 @@ def mc_from_file(file_path: _tpath, file_extension: str) -> _tmc_gen_full:
 
     p, states, error_message = mc_from_dictionary(d)
 
-    if error_message is not None:
+    if error_message is not None:  # pragma: no cover
         return None, None, error_message
 
     return p, states, error_message

@@ -20,9 +20,12 @@ import pytest as _pt
 
 # Internal
 
+# noinspection PyProtectedMember
 from pydtmc._decorators import (
+    aliased as _aliased,
     cached_method as _cached_method,
-    cached_property as _cached_property
+    cached_property as _cached_property,
+    object_mark as _object_mark
 )
 
 
@@ -347,3 +350,25 @@ def test_cached_property_readonly():
 
     with _pt.raises(AttributeError):
         del sample.value
+
+
+def test_object_mark_invalid():
+
+    def check(aliases):
+
+        class Sample:  # pylint: disable=missing-class-docstring
+
+            @_object_mark(aliases=aliases)
+            def method(self):
+                return None
+
+            # noinspection PyMethodMayBeStatic
+            def existing_method(self):
+                return None
+
+        with _pt.raises(AttributeError):
+            _aliased(Sample)
+
+    check(['duplicate', 'duplicate'])
+    check(['InvalidAlias'])
+    check(['existing_method'])

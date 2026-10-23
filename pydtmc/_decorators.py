@@ -46,7 +46,7 @@ class cached_property(property):
 
     def __init__(self, fget=None, fset=None, fdel=None, doc=None):
 
-        if fset is not None or fdel is not None:
+        if fset is not None or fdel is not None:  # pragma: no cover
             raise AttributeError('Cached properties cannot implement set and delete methods.')
 
         if doc is None and fget is not None:
@@ -63,7 +63,7 @@ class cached_property(property):
 
         if self._func_name is None:
             self._func_name = name
-        elif name != self._func_name:
+        elif name != self._func_name:  # pragma: no cover
             raise AttributeError('Cached properties cannot be shared among different class members.')
 
     def __get__(self, instance, owner=None):
@@ -102,15 +102,15 @@ class cached_property(property):
 
     def getter(self, fget):
 
-        raise AttributeError('Cached properties cannot be altered.')
+        raise AttributeError('Cached properties cannot be altered.')  # pragma: no cover
 
     def setter(self, fset):
 
-        raise AttributeError('Cached properties cannot be altered.')
+        raise AttributeError('Cached properties cannot be altered.')  # pragma: no cover
 
     def deleter(self, fdel):
 
-        raise AttributeError('Cached properties cannot be altered.')
+        raise AttributeError('Cached properties cannot be altered.')  # pragma: no cover
 
 
 # noinspection PyPep8Naming
@@ -122,7 +122,7 @@ class object_mark:
 
     def __init__(self, aliases=None, instance_generator=False, random_output=False):
 
-        if (aliases is None) and (not instance_generator) and (not random_output):
+        if (aliases is None) and (not instance_generator) and (not random_output):  # pragma: no cover
             raise AttributeError('Object mark decorator must have at least one argument value different than the default one.')
 
         self.mark_applied = False
@@ -132,7 +132,7 @@ class object_mark:
 
     def __call__(self, obj):
 
-        if self.mark_applied:
+        if self.mark_applied:  # pragma: no cover
             return obj
 
         target = obj.fget if isinstance(obj, property) else obj

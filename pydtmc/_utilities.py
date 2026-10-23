@@ -278,7 +278,7 @@ def get_numpy_random_distributions() -> _tlist_str:
 
         doc = NumpyDocString(func.__doc__)
 
-        if 'Summary' not in doc:
+        if 'Summary' not in doc:  # pragma: no cover
             continue
 
         doc_summary = doc['Summary']

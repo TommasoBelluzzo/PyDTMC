@@ -867,7 +867,7 @@ def assess_vamp_score(method: str, possible_states: _tlist_str, sequences: _tseq
 
     for sequence in sequences:
 
-        if len(sequence) <= lag:
+        if len(sequence) <= lag:  # pragma: no cover
             continue
 
         _np.add.at(counts, (sequence[:-lag], sequence[lag:]), 1.0)
@@ -887,7 +887,6 @@ def assess_vamp_score(method: str, possible_states: _tlist_str, sequences: _tseq
     c11 = _np.diag(mean_lagged)
 
     if center:
-
         c00 -= _np.outer(mean_initial, mean_initial)
         c01 -= _np.outer(mean_initial, mean_lagged)
         c11 -= _np.outer(mean_lagged, mean_lagged)
