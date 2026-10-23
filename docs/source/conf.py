@@ -103,7 +103,9 @@ toc_object_entries = False
 linkcheck_ignore = [
     r'hidden_markov_model\.html',
     r'markov_chain\.html',
-    r'.*10\.1002\/nla\.1967'
+    r'.*10\.1002\/nla\.1967',
+    r'.*10\.1002/\(SICI\)1098',
+    r'.*10\.1198/jcgs\.2011'
 ]
 
 # InterSphinx
