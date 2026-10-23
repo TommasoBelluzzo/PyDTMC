@@ -337,6 +337,16 @@ def test_predict(p, e, algorithm, symbols, initial_distribution, output_indices,
     assert actual == expected
 
 
+def test_predict_trajectories(p, e, steps, initial_state, output_indices, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.predict_trajectory(steps, initial_state, output_indices)
+    expected = value
+
+    assert actual == expected
+
+
 def test_predict_viterbi_bruteforce():
 
     models = [

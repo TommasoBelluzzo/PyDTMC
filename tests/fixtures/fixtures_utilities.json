@@ -1,4 +1,91 @@
 {
+  "create_labels_from_data_data": [
+    {
+      "data": ["gamma", "alpha", "beta"],
+      "prefix": "",
+      "value": ["alpha", "beta", "gamma"]
+    },
+    {
+      "data": ["gamma", "alpha", "beta"],
+      "prefix": "P",
+      "value": ["P_alpha", "P_beta", "P_gamma"]
+    },
+    {
+      "data": ["GAMMA", "ALPHA", "BETA", "ALPHA"],
+      "prefix": "E",
+      "value": ["E_ALPHA", "E_BETA", "E_GAMMA"]
+    },
+    {
+      "data": ["A", "B"],
+      "prefix": "State",
+      "value": ["State_A", "State_B"]
+    },
+    {
+      "data": ["A", "A"],
+      "prefix": "",
+      "value": null
+    },
+    {
+      "data": [1],
+      "prefix": "P",
+      "value": null
+    },
+    {
+      "data": [10, 20, 30],
+      "prefix": "",
+      "value": ["1", "2", "3"]
+    },
+    {
+      "data": [4, 4, 4],
+      "prefix": "P",
+      "value": null
+    },
+    {
+      "data": [0, 1, 2],
+      "prefix": "P",
+      "value": ["P1", "P2", "P3"]
+    },
+    {
+      "data": [5, 5, 9, 9, 2],
+      "prefix": "S",
+      "value": ["S1", "S2", "S3"]
+    },
+    {
+      "data": [1.5, 2.5],
+      "prefix": "",
+      "value": null
+    },
+    {
+      "data": [1, "A", 2],
+      "prefix": "",
+      "value": null
+    },
+    {
+      "data": [true, false],
+      "prefix": "P",
+      "value": null
+    },
+    {
+      "data": {"A": 1, "B": 2},
+      "prefix": "",
+      "value": null
+    },
+    {
+      "data": "ABC",
+      "prefix": "",
+      "value": null
+    },
+    {
+      "data": [],
+      "prefix": "P",
+      "value": null
+    },
+    {
+      "data": null,
+      "prefix": "",
+      "value": null
+    }
+  ],
   "extract_numeric_data": [
     {
       "value": [],

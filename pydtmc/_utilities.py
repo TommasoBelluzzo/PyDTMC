@@ -142,19 +142,14 @@ def create_labels_from_data(data: _tany, prefix: str = '') -> _olist_str:
     if labels_length < 2:
         return None
 
-    labels_unique_length = len(set(data))
-
-    if labels_unique_length < labels_length:
-        return None
-
     return labels
 
 
 def create_models_names(models: _tlist_model) -> _tlist_str:
 
-    if all(model.__class__.__name__ == 'HiddenMarkovModel' for model in models):
+    if all(model.__class__.__name__ == 'HiddenMarkovModel' for model in models):  # pragma: no cover
         models_label = 'HMM'
-    elif all(model.__class__.__name__ == 'MarkovChain' for model in models):
+    elif all(model.__class__.__name__ == 'MarkovChain' for model in models):  # pragma: no cover
         models_label = 'MC'
     else:
         models_label = 'MODEL'
@@ -171,7 +166,7 @@ def create_rng(seed: _oint) -> _trand:
         rng = _nprm._rand  # pylint: disable=c-extension-no-member
     elif is_integer(seed):
         rng = _npr.RandomState(int(seed))  # pylint: disable=no-member
-    else:
+    else:  # pragma: no cover
         raise TypeError('The specified seed is not a valid RNG initializer.')
 
     return rng
@@ -221,7 +216,7 @@ def get_caller(stack: _tstack) -> str:
 
 def get_file_extension(file_path: _tpath) -> str:
 
-    if isinstance(file_path, str):
+    if isinstance(file_path, str):  # pragma: no cover
         file_path = _pl.Path(file_path)
 
     file_extension = ''.join(file_path.suffixes).lower()
@@ -246,12 +241,12 @@ def get_full_name(obj: _tany) -> str:
 
     try:
         module = obj.__module__
-    except Exception:
+    except Exception:  # pragma: no cover
         module = obj.__class__.__module__
 
     try:
         name = obj.__qualname__
-    except Exception:
+    except Exception:  # pragma: no cover
         name = obj.__class__.__qualname__
 
     if module is None or module == 'builtins':
