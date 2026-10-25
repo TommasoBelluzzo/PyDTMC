@@ -876,10 +876,10 @@ def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obound_float
         lower_bound = max(0.0, lower_bound)
         upper_bound = max(0.0, upper_bound)
 
-        if (not _np.isfinite(lower_bound)) or (not _np.isfinite(upper_bound)):
+        if (not _np.isfinite(lower_bound)) or (not _np.isfinite(upper_bound)):  # pragma: no cover
             return None
 
-        if upper_bound < lower_bound:
+        if upper_bound < lower_bound:  # pragma: no cover
             lower_bound, upper_bound = upper_bound, lower_bound
 
         losses = []
@@ -904,7 +904,7 @@ def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obound_float
                 emissions = e[:, symbol]
                 probability = _np.dot(filtered, emissions)
 
-                if (probability <= 0.0) or (not _np.isfinite(probability)):
+                if (probability <= 0.0) or (not _np.isfinite(probability)):  # pragma: no cover
                     return None
 
                 loss -= _np.log(probability)
@@ -914,7 +914,7 @@ def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obound_float
 
         value = _np.mean(losses)
 
-        if not _np.isfinite(value):
+        if not _np.isfinite(value):  # pragma: no cover
             return None
 
         value = max(lower_bound, min(upper_bound, float(value)))

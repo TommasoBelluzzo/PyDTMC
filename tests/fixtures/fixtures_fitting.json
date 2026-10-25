@@ -209,7 +209,7 @@
       "possible_states": ["A", "B", "C", "D"],
       "sequence": ["A", "B", "C", "D", "A", "C", "B", "D", "C", "A", "D", "B", "A", "C", "D", "B", "A", "B", "C", "D", "A"],
       "fitting_type": "rmle",
-      "fitting_param": 10000,
+      "fitting_param": null,
       "value": [[0.0, 0.4, 0.3, 0.3], [0.4, 0.0, 0.3, 0.3], [0.3, 0.3, 0.0, 0.4], [0.3, 0.3, 0.4, 0.0]]
     }
   ]

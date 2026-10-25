@@ -1970,6 +1970,32 @@
       "is_valid": false
     }
   ],
+  "validate_none_data": [
+    {
+      "value": 1,
+      "is_valid": false
+    },
+    {
+      "value": 3.33,
+      "is_valid": false
+    },
+    {
+      "value": "A",
+      "is_valid": false
+    },
+    {
+      "value": "",
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "is_valid": true
+    }
+  ],
   "validate_partition_data": [
     {
       "value": [["A", "B"], ["C"]],

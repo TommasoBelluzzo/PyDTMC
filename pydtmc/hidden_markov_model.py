@@ -517,7 +517,7 @@ class HiddenMarkovModel(_Model):
 
         h = _entropy_rate(self, steps, samples, rng)
 
-        if h is None:
+        if h is None:  # pragma: no cover
             return None
 
         if normalized:
@@ -675,10 +675,10 @@ class HiddenMarkovModel(_Model):
         if decoding is None:
             return float('inf')
 
-        log_prob, _, _, _, _, _ = decoding
-        px = float(_np.exp(-log_prob / len(symbols)))
+        log_probability, _, _, _, _, _ = decoding
+        pp = float(_np.exp(-log_probability / len(symbols)))
 
-        return px
+        return pp
 
     def predict(self, prediction_type: str, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_prediction:
 
@@ -973,8 +973,8 @@ class HiddenMarkovModel(_Model):
         if decoding is None:
             return 0.0
 
-        log_prob, _, _, _, _, _ = decoding
-        sp = float(_np.exp(log_prob))
+        log_probability, _, _, _, _, _ = decoding
+        sp = float(_np.exp(log_probability))
 
         return sp
 

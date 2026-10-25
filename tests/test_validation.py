@@ -50,6 +50,7 @@ from pydtmc._validation import (
     validate_matrix as _validate_matrix,
     validate_model as _validate_model,
     validate_models as _validate_models,
+    validate_none as _validate_none,
     validate_partition as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
@@ -654,6 +655,19 @@ def test_validate_models(value, is_valid):
         if result_is_valid:
             result_check = isinstance(result, list) and all(isinstance(v, (_HiddenMarkovModel, _MarkovChain)) for v in result)
             assert result_check
+
+
+def test_validate_none(value, is_valid):
+
+    if is_valid:
+
+        actual = _validate_none(value)
+        assert actual is None
+
+    else:
+
+        with _pt.raises(TypeError):
+            _validate_none(value)
 
 
 # noinspection PyBroadException

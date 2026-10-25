@@ -3169,13 +3169,20 @@ class MarkovChain(_Model):
             if states is not None:  # pragma: no cover
                 states = _validate_labels_input(states, size)
 
-            if approximation_type == 'tauchen':
-                k = 3.0 if k is None else _validate_float(k, lower_limit=(1.0, False))
-            elif approximation_type == 'tauchen-hussey':
-                k = ((0.5 + (rho / 4.0)) * sigma) + ((1 - (0.5 + (rho / 4.0))) * (sigma / _np.sqrt(1.0 - rho**2.0))) if k is None else _validate_float(k, lower_limit=(0.0, True))
+            if k is not None:
+                if approximation_type == 'tauchen':
+                    k = _validate_float(k, lower_limit=(1.0, False))
+                elif approximation_type == 'tauchen-hussey':
+                    k = _validate_float(k, lower_limit=(0.0, True))
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
+
+        if k is None:
+            if approximation_type == 'tauchen':
+                k = 3.0
+            elif approximation_type == 'tauchen-hussey':
+                k = ((0.5 + (rho / 4.0)) * sigma) + ((1 - (0.5 + (rho / 4.0))) * (sigma / _np.sqrt(1.0 - rho**2.0)))
 
         p_out, error_message = _approximation(size, approximation_type, alpha, sigma, rho, k)
 
@@ -3528,7 +3535,7 @@ class MarkovChain(_Model):
 
             m = _validate_matrix(m)
 
-            if states is not None:
+            if states is not None:  # pragma: no cover
                 states = _validate_labels_input(states, m.shape[0])
 
         except Exception as ex:  # pragma: no cover

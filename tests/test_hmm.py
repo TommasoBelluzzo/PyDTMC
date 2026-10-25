@@ -319,6 +319,16 @@ def test_next(p, e, seed, initial_state, target, output_index, value):
     assert actual == expected
 
 
+def test_perplexity(p, e, symbols, initial_status, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.perplexity(symbols, initial_status)
+    expected = value
+
+    assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 # noinspection PyBroadException
 def test_predict(p, e, algorithm, symbols, initial_distribution, output_indices, value):
 
@@ -467,7 +477,7 @@ def test_probabilities(p, e):
             actual = hmm.transition_probability(state1, state2)
             expected = transition_matrix[index2, index1]
 
-            assert _np.isclose(actual, expected)
+            assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     emission_matrix = hmm.e
     symbols = hmm.symbols
@@ -478,7 +488,7 @@ def test_probabilities(p, e):
             actual = hmm.emission_probability(symbol, state)
             expected = emission_matrix[index1, index2]
 
-            assert _np.isclose(actual, expected)
+            assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_propagate(p, e, target, steps, initial_status, output_last, value):
@@ -586,6 +596,16 @@ def test_restrict(p, e, states, symbols, value):
         expected = _np.array(value[1])
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_sequence_probability(p, e, symbols, initial_status, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.sequence_probability(symbols, initial_status)
+    expected = _np.array(value)
+
+    assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_simulate(p, e, seed, steps, initial_state, final_state, final_symbol, output_indices, value):

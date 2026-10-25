@@ -256,6 +256,9 @@ def test_global_conductance_metastability(p, global_conductance, global_metastab
 
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
+        if (mc.size > 12) and (_np.any(mc.pi[0] > 0.5)):
+            assert 0.0 <= gc <= 1.0
+
     else:
 
         actual = gc
@@ -591,7 +594,7 @@ def test_topological_entropy(p, topological_entropy):
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-def test_uncertainty_entropy(p, entropy_rate, entropy_rate_normalized):
+def test_uncertainty_entropy(p, entropy_rate, entropy_rate_normalized, predictability):
 
     mc = _MarkovChain(p)
 
@@ -605,6 +608,14 @@ def test_uncertainty_entropy(p, entropy_rate, entropy_rate_normalized):
 
     actual = mc.entropy_rate_normalized
     expected = entropy_rate_normalized
+
+    if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+    actual = mc.predictability
+    expected = predictability
 
     if (actual is not None) and (expected is not None):
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
