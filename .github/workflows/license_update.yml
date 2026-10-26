@@ -8,6 +8,8 @@ jobs:
   license_update:
     name: License Update
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Repository Checkout
       uses: actions/checkout@v7
