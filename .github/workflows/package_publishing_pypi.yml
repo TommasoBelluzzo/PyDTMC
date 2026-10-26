@@ -20,19 +20,24 @@ concurrency:
 jobs:
   package_publishing:
     name: Package Publishing - PyPI
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
     - name: Repository Checkout
       uses: actions/checkout@v7
+      with:
+        persist-credentials: true
     - name: Version Bump
       id: bump
+      shell: bash
       env:
         TARGET: ${{ github.event.inputs.target }}
         VERSION_REGEX: ^__version__ = '[0-9]+\.[0-9]+\.[0-9]+'$
         VERSION_FILE: pydtmc/__init__.py
       run: |
+        set -euo pipefail
         TARGET="${TARGET^^}"
         MATCH_COUNT=$(grep -Pc "$VERSION_REGEX" "$VERSION_FILE" || true)
         if [[ "$MATCH_COUNT" -ne 1 ]]; then
@@ -52,6 +57,9 @@ jobs:
           VERSION_RELEASE=0
         elif [[ "$TARGET" == "RELEASE" ]]; then
           VERSION_RELEASE=$((VERSION_RELEASE + 1))
+        else
+          echo "INVALID TARGET ($TARGET)"
+          exit 1
         fi
         VERSION=$(printf "%d.%d.%d" "$VERSION_MAJOR" "$VERSION_MINOR" "$VERSION_RELEASE")
         sed -i -E "s/^__version__ = '[0-9]+\.[0-9]+\.[0-9]+'$/__version__ = '$VERSION'/" "$VERSION_FILE"
@@ -105,9 +113,8 @@ jobs:
       env:
         VERSION: ${{ steps.bump.outputs.version }}
       run: |
-        git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
         git config --local user.name "${{ secrets.BOT_USERNAME }}"
         git config --local user.email "${{ secrets.BOT_EMAIL }}"
         git add pydtmc/__init__.py
         git commit -m "Release $VERSION"
-        git push
+        git push origin HEAD:master
