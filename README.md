@@ -15,7 +15,7 @@ PyDTMC is a lightweight Python library focused on discrete-time Markov chains an
     <td align="right">Info:</td>
     <td align="left">
       <a href="https://github.com/TommasoBelluzzo/PyDTMC/blob/master/LICENSE.md"><img alt="License" src="https://img.shields.io/github/license/TommasoBelluzzo/PyDTMC?style=flat&label=License&color=1081C2"/></a>
-      <a href="https://doi.org/10.5281/zenodo.23363778"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.23363778.svg"/></a>
+      <a href="https://doi.org/10.5281/zenodo.23423407"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.23423407.svg"/></a>
       <a href="#"><img alt="Size" src="https://img.shields.io/github/repo-size/TommasoBelluzzo/PyDTMC?style=flat&label=Size&color=1081C2"/></a>
     </td>
   </tr>
@@ -73,7 +73,7 @@ pip install git+https://github.com/TommasoBelluzzo/PyDTMC.git
 
 For additional functionality, mathematical definitions, and usage examples, refer to the [documentation](https://pydtmc.readthedocs.io/).
 
-If you use PyDTMC in your work, please cite the software using its [Zenodo DOI](https://doi.org/10.5281/zenodo.23363778).\
+If you use PyDTMC in your work, please cite the software using its [Zenodo DOI](https://doi.org/10.5281/zenodo.23423407).\
 Citation metadata is also available in the [CITATION.cff](https://github.com/TommasoBelluzzo/PyDTMC/blob/master/CITATION.cff) file.
 
 ## Quick Start
