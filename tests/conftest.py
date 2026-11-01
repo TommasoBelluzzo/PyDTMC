@@ -293,7 +293,7 @@ def pytest_generate_tests(metafunc):
         elif isinstance(fixtures, list):
             values, ids = _parse_fixtures_list(fixtures, names, func)
 
-    metafunc.parametrize(names, values, False, ids)
+    metafunc.parametrize(names, values, indirect=False, ids=ids)
 
 
 def pytest_unconfigure():
