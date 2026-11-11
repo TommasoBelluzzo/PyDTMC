@@ -103,7 +103,6 @@ def test_validate_boundary_condition(value, is_valid):
             _validate_boundary_condition(value)
 
 
-# noinspection PyBroadException
 def test_validate_dictionary(dictionary_elements, attributes, is_valid):
 
     if dictionary_elements is None:
@@ -118,21 +117,12 @@ def test_validate_dictionary(dictionary_elements, attributes, is_valid):
             else:
                 d[tuple(dictionary_element[:-1])] = dictionary_element[-1]
 
-    try:
+    if is_valid:
         result = _validate_dictionary(d, attributes)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-        result_check = isinstance(result, dict) and all(isinstance(k, tuple) and all(isinstance(x, str) for x in k) and isinstance(v, float) for k, v in result.items())
-        assert result_check
+        assert isinstance(result, dict) and all(isinstance(k, tuple) and all(isinstance(x, str) for x in k) and isinstance(v, float) for k, v in result.items())
+    else:
+        with _pt.raises(Exception):
+            _validate_dictionary(d, attributes)
 
 
 def test_validate_dpi(value, is_valid):
@@ -195,7 +185,6 @@ def test_validate_float(value, lower_limit, upper_limit, is_valid):
             _validate_float(value, lower_limit, upper_limit)
 
 
-# noinspection PyBroadException
 def test_validate_graph(multi, graph_nodes, layers, edge_attributes, is_valid):
 
     if not isinstance(graph_nodes, list):
@@ -204,7 +193,7 @@ def test_validate_graph(multi, graph_nodes, layers, edge_attributes, is_valid):
 
         graph = _nx.MultiDiGraph() if multi else _nx.DiGraph()
 
-        if isinstance(graph_nodes, list) and all(isinstance(x, list) for x in graph_nodes):
+        if all(isinstance(x, list) for x in graph_nodes):
 
             for index, nodes in enumerate(graph_nodes):
                 graph.add_nodes_from(nodes, layer=index)
@@ -231,24 +220,14 @@ def test_validate_graph(multi, graph_nodes, layers, edge_attributes, is_valid):
     if isinstance(edge_attributes, str):
         edge_attributes = eval(edge_attributes)
 
-    try:
+    if is_valid:
         result = _validate_graph(graph, layers, edge_attributes)
-        result_is_valid = True
-    except Exception:
-        result = None
-        result_is_valid = False
-
-    actual = result_is_valid
-    expected = is_valid
-
-    assert actual == expected
-
-    if result_is_valid:
-        result_check = isinstance(result, _nx.DiGraph)
-        assert result_check
+        assert isinstance(result, _nx.DiGraph)
+    else:
+        with _pt.raises(Exception):
+            _validate_graph(graph, layers, edge_attributes)
 
 
-# noinspection PyBroadException
 def test_validate_hidden_markov_model(value, is_valid):
 
     if isinstance(value, str):
@@ -259,25 +238,14 @@ def test_validate_hidden_markov_model(value, is_valid):
     if skip:
         _pt.skip('Pandas library could not be imported.')
     else:
-
-        try:
+        if is_valid:
             result = _validate_hidden_markov_model(value)
-            result_is_valid = True
-        except Exception:
-            result = None
-            result_is_valid = False
-
-        actual = result_is_valid
-        expected = is_valid
-
-        assert actual == expected
-
-        if result_is_valid:
-            result_check = isinstance(result, _HiddenMarkovModel)
-            assert result_check
+            assert isinstance(result, _HiddenMarkovModel)
+        else:
+            with _pt.raises(Exception):
+                _validate_hidden_markov_model(value)
 
 
-# noinspection PyBroadException
 def test_validate_hidden_markov_models(value, is_valid):
 
     if isinstance(value, str):
@@ -288,22 +256,12 @@ def test_validate_hidden_markov_models(value, is_valid):
     if skip:
         _pt.skip('Pandas library could not be imported.')
     else:
-
-        try:
+        if is_valid:
             result = _validate_hidden_markov_models(value)
-            result_is_valid = True
-        except Exception:
-            result = None
-            result_is_valid = False
-
-        actual = result_is_valid
-        expected = is_valid
-
-        assert actual == expected
-
-        if result_is_valid:
-            result_check = isinstance(result, list) and all(isinstance(v, _HiddenMarkovModel) for v in result)
-            assert result_check
+            assert isinstance(result, list) and all(isinstance(v, _HiddenMarkovModel) for v in result)
+        else:
+            with _pt.raises(Exception):
+                _validate_hidden_markov_models(value)
 
 
 def test_validate_hyperparameter(value, size, is_valid):
@@ -372,7 +330,6 @@ def test_validate_labels_input(value, size, is_valid):
             _validate_labels_input(value, size)
 
 
-# noinspection PyBroadException
 def test_validate_markov_chain(value, size, is_valid):
 
     if isinstance(value, str):
@@ -383,25 +340,14 @@ def test_validate_markov_chain(value, size, is_valid):
     if skip:
         _pt.skip('Pandas library could not be imported.')
     else:
-
-        try:
+        if is_valid:
             result = _validate_markov_chain(value, size)
-            result_is_valid = True
-        except Exception:
-            result = None
-            result_is_valid = False
-
-        actual = result_is_valid
-        expected = is_valid
-
-        assert actual == expected
-
-        if result_is_valid:
-            result_check = isinstance(result, _MarkovChain)
-            assert result_check
+            assert isinstance(result, _MarkovChain)
+        else:
+            with _pt.raises(Exception):
+                _validate_markov_chain(value, size)
 
 
-# noinspection PyBroadException
 def test_validate_markov_chains(value, is_valid):
 
     if isinstance(value, str):
@@ -412,22 +358,12 @@ def test_validate_markov_chains(value, is_valid):
     if skip:
         _pt.skip('Pandas library could not be imported.')
     else:
-
-        try:
+        if is_valid:
             result = _validate_markov_chains(value)
-            result_is_valid = True
-        except Exception:
-            result = None
-            result_is_valid = False
-
-        actual = result_is_valid
-        expected = is_valid
-
-        assert actual == expected
-
-        if result_is_valid:
-            result_check = isinstance(result, list) and all(isinstance(v, _MarkovChain) for v in result)
-            assert result_check
+            assert isinstance(result, list) and all(isinstance(v, _MarkovChain) for v in result)
+        else:
+            with _pt.raises(Exception):
+                _validate_markov_chains(value)
 
 
 def test_validate_mask(value, rows, columns, is_valid):
@@ -454,7 +390,6 @@ def test_validate_matrix(value, rows, columns, is_valid):
             _validate_matrix(value, rows, columns)
 
 
-# noinspection PyBroadException
 def test_validate_model(value, is_valid):
 
     if isinstance(value, str):
@@ -465,25 +400,14 @@ def test_validate_model(value, is_valid):
     if skip:
         _pt.skip('Pandas library could not be imported.')
     else:
-
-        try:
+        if is_valid:
             result = _validate_model(value)
-            result_is_valid = True
-        except Exception:
-            result = None
-            result_is_valid = False
-
-        actual = result_is_valid
-        expected = is_valid
-
-        assert actual == expected
-
-        if result_is_valid:
-            result_check = isinstance(result, (_HiddenMarkovModel, _MarkovChain))
-            assert result_check
+            assert isinstance(result, (_HiddenMarkovModel, _MarkovChain))
+        else:
+            with _pt.raises(Exception):
+                _validate_model(value)
 
 
-# noinspection PyBroadException
 def test_validate_models(value, is_valid):
 
     if isinstance(value, str):
@@ -494,22 +418,12 @@ def test_validate_models(value, is_valid):
     if skip:
         _pt.skip('Pandas library could not be imported.')
     else:
-
-        try:
+        if is_valid:
             result = _validate_models(value)
-            result_is_valid = True
-        except Exception:
-            result = None
-            result_is_valid = False
-
-        actual = result_is_valid
-        expected = is_valid
-
-        assert actual == expected
-
-        if result_is_valid:
-            result_check = isinstance(result, list) and all(isinstance(v, (_HiddenMarkovModel, _MarkovChain)) for v in result)
-            assert result_check
+            assert isinstance(result, list) and all(isinstance(v, (_HiddenMarkovModel, _MarkovChain)) for v in result)
+        else:
+            with _pt.raises(Exception):
+                _validate_models(value)
 
 
 def test_validate_none(value, is_valid):
@@ -656,3 +570,4 @@ def test_validate_vector_stochastic(value, size, is_valid):
     else:
         with _pt.raises(Exception):
             _validate_vector_stochastic(value, size, False)
+
