@@ -126,19 +126,17 @@ def test_cached(p):
     def statement(st_mc, st_member_name):
         return getattr(st_mc, st_member_name)
 
-    lcl = locals()
-    lcl['mc'] = _MarkovChain(p)
-    lcl['statement'] = statement
+    g = {'mc': _MarkovChain(p), 'statement': statement}
 
     for member_name, member in _MarkovChain.__dict__.items():
 
         if (not isinstance(member, property)) or (not hasattr(member.fget, '_aliases')) or (member_name in getattr(member.fget, '_aliases')):
             continue
 
-        lcl['member_name'] = member_name
+        g['member_name'] = member_name
 
-        time1 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=lcl), 10)
-        time2 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=lcl), 10)
+        time1 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=g), 10)
+        time2 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=g), 10)
 
         if time1 <= time2:
             _wn.warn(f"Cached property '{member_name}' was not faster on the second access.", RuntimeWarning)
