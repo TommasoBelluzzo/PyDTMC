@@ -37,12 +37,6 @@ PyDTMC is a lightweight Python library focused on discrete-time Markov chains an
       <a href="https://anaconda.org/conda-forge/pydtmc/"><img alt="Downloads" src="https://img.shields.io/conda/dn/conda-forge/pydtmc?style=flat&label=Downloads&color=1081C2"/></a>
     </td>
   </tr>
-  <tr>
-    <td align="right">Donation:</td>
-    <td align="left">
-      <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=D8LH6DNYN7EN8"><img alt="PayPal" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif"/></a>
-    </td>
-  </tr>
 </table>
 
 ## Installation

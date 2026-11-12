@@ -570,4 +570,3 @@ def test_validate_vector_stochastic(value, size, is_valid):
     else:
         with _pt.raises(Exception):
             _validate_vector_stochastic(value, size, False)
-
