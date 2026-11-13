@@ -176,7 +176,6 @@ def test_entropy_production_rate(p, entropy_production_rate):
 
     mc = _MarkovChain(p)
 
-    # noinspection PyTypeChecker
     actual = len(mc.pi)
     expected = len(entropy_production_rate)
 
@@ -396,19 +395,16 @@ def test_pi(p, stationary_distributions):
     mc = _MarkovChain(p)
     stationary_distributions = [_np.array(stationary_distribution) for stationary_distribution in stationary_distributions]
 
-    # noinspection PyTypeChecker
     actual = len(mc.pi)
     expected = len(stationary_distributions)
 
     assert actual == expected
 
-    # noinspection PyTypeChecker
     actual = len(mc.pi)
     expected = len(mc.recurrent_classes)
 
     assert actual == expected
 
-    # noinspection PyTypeChecker
     ss_matrix = _np.vstack(mc.pi)
     actual = _npl.matrix_rank(ss_matrix)
     expected = min(ss_matrix.shape)
@@ -492,7 +488,6 @@ def test_stationary_current(p, stationary_current):
     mc = _MarkovChain(p)
     stationary_current = [_np.array(x) for x in stationary_current]
 
-    # noinspection PyTypeChecker
     actual = len(mc.pi)
     expected = len(stationary_current)
 
@@ -526,7 +521,6 @@ def test_stationary_flux(p, stationary_flux):
     mc = _MarkovChain(p)
     stationary_flux = [_np.array(x) for x in stationary_flux]
 
-    # noinspection PyTypeChecker
     actual = len(mc.pi)
     expected = len(stationary_flux)
 

@@ -43,6 +43,7 @@ from pydtmc._validation import (
     validate_interval as _validate_interval,
     validate_label as _validate_label,
     validate_labels_current as _validate_labels_current,
+    validate_labels_pair as _validate_labels_pair,
     validate_labels_input as _validate_labels_input,
     validate_markov_chain as _validate_markov_chain,
     validate_markov_chains as _validate_markov_chains,
@@ -51,6 +52,7 @@ from pydtmc._validation import (
     validate_model as _validate_model,
     validate_models as _validate_models,
     validate_none as _validate_none,
+    validate_observable as _validate_observable,
     validate_partition as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
@@ -330,6 +332,16 @@ def test_validate_labels_input(value, size, is_valid):
             _validate_labels_input(value, size)
 
 
+def test_validate_labels_pair(value, labels, is_valid):
+
+    if is_valid:
+        result = _validate_labels_pair(value, labels)
+        assert isinstance(result, list) and all(isinstance(v, int) for v in result)
+    else:
+        with _pt.raises(Exception):
+            _validate_labels_pair(value, labels)
+
+
 def test_validate_markov_chain(value, size, is_valid):
 
     if isinstance(value, str):
@@ -434,6 +446,16 @@ def test_validate_none(value, is_valid):
     else:
         with _pt.raises(TypeError):
             _validate_none(value)
+
+
+def test_validate_observable(value, size, is_valid):
+
+    if is_valid:
+        result = _validate_observable(value, size)
+        assert isinstance(result, (str, _np.ndarray))
+    else:
+        with _pt.raises(Exception):
+            _validate_observable(value, size)
 
 
 def test_validate_partition(value, labels, is_valid):

@@ -46,6 +46,7 @@ from ._analysis import (
     mc_first_passage_probabilities as _first_passage_probabilities,
     mc_first_passage_times_between as _first_passage_times_between,
     mc_first_passage_times_to as _first_passage_times_to,
+    mc_fundamental_cycle_profile as _fundamental_cycle_profile,
     mc_fundamental_matrix as _fundamental_matrix,
     mc_global_conductance as _global_conductance,
     mc_hitting_probabilities as _hitting_probabilities,
@@ -56,6 +57,7 @@ from ._analysis import (
     mc_is_canonical as _is_canonical,
     mc_is_reversible as _is_reversible,
     mc_kemeny_constant as _kemeny_constant,
+    mc_large_deviation_rate as _large_deviation_rate,
     mc_mean_number_visits as _mean_number_visits,
     mc_mixing_rate as _mixing_rate,
     mc_mixing_time as _mixing_time,
@@ -85,11 +87,12 @@ from ._constants import (
 
 from ._custom_types import (
     oarray as _oarray,
-    obound_float as _obound_float,
+    obndval as _obndval,
     ofloat as _ofloat,
     oint as _oint,
     ointerval as _ointerval,
     olist_str as _olist_str,
+    ofcprof as _ofcpro,
     onumeric as _onumeric,
     osequence as _osequence,
     ostate as _ostate,
@@ -111,10 +114,11 @@ from ._custom_types import (
     tmc_dict as _tmc_dict,
     tmc_dict_flex as _tmc_dict_flex,
     tnumeric as _tnumeric,
-    tpartition as _tpartition,
-    tpartitions as _tpartitions,
+    tobs as _tobs,
+    tpart as _tpart,
+    tparts as _tparts,
     tpath as _tpath,
-    trandfunc_flex as _trandfunc_flex,
+    trfunc_flex as _trfunc_flex,
     tredists as _tredists,
     tsequence as _tsequence,
     tstate as _tstate,
@@ -219,10 +223,13 @@ from ._validation import (
     validate_interval as _validate_interval,
     validate_label as _validate_label,
     validate_labels_current as _validate_labels_current,
+    validate_labels_pair as _validate_labels_pair,
     validate_labels_input as _validate_labels_input,
     validate_mask as _validate_mask,
     validate_markov_chain as _validate_markov_chain,
     validate_matrix as _validate_matrix,
+    validate_none as _validate_none,
+    validate_observable as _validate_observable,
     validate_partition as _validate_partitions,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
@@ -922,7 +929,7 @@ class MarkovChain(_Model):
         return kc
 
     @_cached_property
-    def lumping_partitions(self) -> _tpartitions:
+    def lumping_partitions(self) -> _tparts:
 
         r"""
         | A property representing the partitions of the Markov chain that satisfy the ordinary lumpability criterion:
@@ -1031,7 +1038,7 @@ class MarkovChain(_Model):
         return kc
 
     @_cached_property
-    def ordinary_spectral_gap(self) -> _obound_float:
+    def ordinary_spectral_gap(self) -> _obndval:
 
         r"""
         | A property representing the ordinary spectral gap of the Markov chain, together with its Cheeger bounds:
@@ -1257,7 +1264,7 @@ class MarkovChain(_Model):
         | :math:`h_{\mathrm{t}} = \log\rho(A)` where:
 
         - :math:`A` is the adjacency matrix of the Markov chain;
-        - :math:`\rho(A)` is its spectral radius.
+        - :math:`\rho(A)` is its spectral radius of the adjacency matrix.
 
         | **Notes:**
 
@@ -1793,6 +1800,50 @@ class MarkovChain(_Model):
 
         return fptt
 
+    @_cached_method
+    def fundamental_cycle_profile(self, output_indices: bool = False) -> _ofcpro:
+
+        r"""
+        | A property representing the fundamental-cycle affinities :math:`\mathcal{A}` and current coefficients :math:`j` of the Markov chain:
+        | :math:`\mathcal{A}_C = \sum_{(i,j) \in C}\log\frac{P_{ij}}{P_{ji}}`
+        | :math:`j_C = J_{uv}`
+        | where:
+
+        - :math:`C` is an oriented fundamental cycle defined by a chord :math:`(u,v)`;
+        - :math:`J` is the stationary probability current matrix.
+
+        | **Notes:**
+
+        - A deterministic, spanning-tree-dependent fundamental-cycle basis is constructed independently for each recurrent class, excluding self-transitions.
+        - The returned tuple contains a dictionary of cycle affinities and a list of dictionaries of cycle current coefficients, one for each stationary distribution.
+        - If no fundamental cycles exist, the dictionaries are empty.
+        - If any recurrent class contains a transition without a positive reverse transition, then :py:class:`None` is returned.
+
+        :param output_indices: a boolean indicating whether to return zero-based state indices instead of state labels.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            output_indices = _validate_boolean(output_indices)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        value = _fundamental_cycle_profile(self)
+
+        if (value is not None) and output_indices:
+
+            indices = {state: index for index, state in enumerate(self.states)}
+
+            affinities, currents = value
+            affinities = {tuple(indices[state] for state in cycle): affinity for cycle, affinity in affinities.items()}
+            currents = [{tuple(indices[state] for state in cycle): coefficient for cycle, coefficient in current.items()} for current in currents]
+
+            value = affinities, currents
+
+        return value
+
     @_object_mark(aliases=['hp'])
     def hitting_probabilities(self, targets: _ostates = None) -> _tarray:
 
@@ -1988,8 +2039,63 @@ class MarkovChain(_Model):
 
         return result
 
+    def large_deviation_rate(self, target_average: float, observable: _tobs, observable_param: _tany = None) -> _ofloat:
+
+        r"""
+        | The method computes the large-deviation rate of the Markov chain given a time-additive observable and a target average:
+        | :math:`I(a) = \sup_{k \in \mathbb{R}} \left\{ka - \log \rho(T_k)\right\}` where:
+
+        - :math:`a` is the target average;
+        - :math:`k` is the exponential tilting parameter;
+        - :math:`(T_k)_{ij} = P_{ij}e^{kg(i,j)}` is the tilted matrix defined by the observable :math:`g`;
+        - :math:`\rho(T_k)` is the spectral radius of the tilted matrix.
+
+        | **Notes:**
+
+        - A time-additive observable assigns a numerical contribution to each transition of the Markov chain.
+        - The large-deviation rate is non-negative; it equals 0 at the typical average, and can be infinite for unattainable averages.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+
+        :param target_average: the target average at which the large-deviation rate is evaluated.
+        :param observable:
+         - **entropy_production** to analyze fluctuations in entropy production;
+         - **state_occupation** to analyze fluctuations in the occupation frequency of a specified state;
+         - **transition_count** to analyze fluctuations in the frequency of transitions between two specified states;
+         - **transition_current** to analyze fluctuations in the net frequency of transitions between two specified states;
+         - a custom numerical matrix, with the same size as the transition matrix, defining the contribution of each transition.
+        :param observable_param:
+         - For **state_occupation**, a single state;
+         - For **transition_count** and **transition_current**, a list of two distinct states defining an ordered transition;
+         - For the other observables, no parameter should be provided.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the entropy production observable has asymmetric transition support or the large-deviation rate cannot be computed.
+        """
+
+        try:
+
+            target_average = _validate_float(target_average)
+            observable = _validate_observable(observable, self.__size)
+
+            if not isinstance(observable, str):
+                observable_param = _validate_none(observable_param)
+            else:
+                if observable == 'state_occupation':
+                    observable_param = _validate_label(observable_param, self.__states)
+                elif observable in ['transition_count', 'transition_current']:
+                    observable_param = _validate_labels_pair(observable_param, self.__states)
+                else:
+                    observable_param = _validate_none(observable_param)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if not self.is_irreducible:
+            return None
+
+        return _large_deviation_rate(self, target_average, observable, observable_param)
+
     @_object_mark(instance_generator=True)
-    def lump(self, partition: _tpartition) -> _tmc:
+    def lump(self, partition: _tpart) -> _tmc:
 
         """
         | The method attempts to reduce the state space of the Markov chain using the given partition.
@@ -2264,7 +2370,7 @@ class MarkovChain(_Model):
 
         :param steps: the number of transitions.
         :param initial_state: the initial state.
-        :param output_indices: a boolean indicating whether to return the state indices instead of the state labels.
+        :param output_indices: a boolean indicating whether to return zero-based state indices instead of state labels.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2299,7 +2405,7 @@ class MarkovChain(_Model):
 
         :param steps: the number of transitions.
         :param initial_state: the initial state.
-        :param output_indices: a boolean indicating whether to return the state indices instead of the state labels.
+        :param output_indices: a boolean indicating whether to return zero-based state indices instead of state labels.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2602,7 +2708,7 @@ class MarkovChain(_Model):
         :param steps: the number of steps.
         :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
         :param final_state: the early-stop target state (*if specified, the simulation stops upon reaching it*).
-        :param output_indices: a boolean indicating whether to return the state indices instead of the state labels.
+        :param output_indices: a boolean indicating whether to return zero-based state indices instead of state labels.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -3703,7 +3809,7 @@ class MarkovChain(_Model):
     # noinspection PyIncorrectDocstring
     @staticmethod
     @_object_mark(instance_generator=True, random_output=True)
-    def random_distribution(size: int, f: _trandfunc_flex, states: _olist_str = None, seed: _oint = None, **kwargs) -> _tmc:
+    def random_distribution(size: int, f: _trfunc_flex, states: _olist_str = None, seed: _oint = None, **kwargs) -> _tmc:
 
         r"""
         | The method generates a random Markov chain by sampling transition weights from a NumPy random distribution and normalizing them row-wise.

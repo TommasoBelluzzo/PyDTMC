@@ -35,7 +35,7 @@ from ._base_classes import (
 )
 
 from ._custom_types import (
-    obound_floats as _obound_floats,
+    obndvals as _obndvals,
     ohmm_decoding as _ohmm_decoding,
     oint as _oint,
     olist_str as _olist_str,
@@ -484,7 +484,7 @@ class HiddenMarkovModel(_Model):
 
         return h
 
-    def entropy_rate(self, normalized: bool, steps: int = 10000, samples: int = 10, seed: _oint = None) -> _obound_floats:
+    def entropy_rate(self, normalized: bool, steps: int = 10000, samples: int = 10, seed: _oint = None) -> _obndvals:
 
         r"""
         | The method estimates the stationary entropy rate of the emitted-symbol process, optionally normalized between 0 and 1:

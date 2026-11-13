@@ -75,7 +75,7 @@ from ._custom_types import (
     tnumeric as _tnumeric,
     tpath as _tpath,
     trand as _trand,
-    trandfunc_flex as _trandfunc_flex
+    trfunc_flex as _trfunc_flex
 )
 
 from ._files_io import (
@@ -1381,7 +1381,7 @@ def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_gen:
     return p, None
 
 
-def mc_random_distribution(size: int, f: _trandfunc_flex, kwargs: dict) -> _tarray:
+def mc_random_distribution(size: int, f: _trfunc_flex, kwargs: dict) -> _tarray:
 
     p = f(size=(size, size), **kwargs).astype(float)
     p = _np.clip(_np.nan_to_num(p, copy=False), 0.0, None)

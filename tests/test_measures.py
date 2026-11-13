@@ -5,6 +5,10 @@
 # IMPORTS #
 ###########
 
+# Standard
+
+import ast as _ast
+
 # Libraries
 
 import numpy as _np
@@ -217,6 +221,41 @@ def test_first_passage_times_to(p, targets, value_mean, value_variance):
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8, equal_nan=True)
     else:
         assert actual == expected
+
+
+def test_fundamental_cycle_profile(p, fundamental_cycle_profile_data):
+
+    mc = _MarkovChain(p)
+
+    for data in fundamental_cycle_profile_data:
+
+        output_indices = data['output_indices']
+
+        actual = mc.fundamental_cycle_profile(output_indices)
+        expected = data['value']
+
+        if expected is None:
+            assert actual is None
+            continue
+
+        affinities_actual, currents_actual = actual
+
+        affinities_expected, currents_expected = expected
+        affinities_expected = {_ast.literal_eval(cycle): value for cycle, value in affinities_expected.items()}
+        currents_expected = [{_ast.literal_eval(cycle): value for cycle, value in current.items()} for current in currents_expected]
+
+        assert list(affinities_actual) == list(affinities_expected)
+        assert len(currents_actual) == len(currents_expected)
+
+        for cycle in affinities_expected:
+            assert _np.isclose(affinities_actual[cycle], affinities_expected[cycle], rtol=1e-5, atol=1e-8)
+
+        for current_actual, current_expected in zip(currents_actual, currents_expected):
+
+            assert list(current_actual) == list(current_expected)
+
+            for cycle in current_expected:
+                assert _np.isclose(current_actual[cycle], current_expected[cycle], rtol=1e-5, atol=1e-8)
 
 
 def test_hitting_probabilities(p, targets, value):

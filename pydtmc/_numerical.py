@@ -45,7 +45,7 @@ from ._custom_types import (
     tgraph as _tgraph,
     tlist_int as _tlist_int,
     tlists_int as _tlists_int,
-    tpartitions as _tpartitions
+    tparts as _tparts
 )
 
 
@@ -197,7 +197,7 @@ def find_cyclic_classes(p: _tarray) -> _tlists_int:
     return indices
 
 
-def find_lumping_partitions(p: _tarray) -> _tpartitions:
+def find_lumping_partitions(p: _tarray) -> _tparts:
 
     size = p.shape[0]
 

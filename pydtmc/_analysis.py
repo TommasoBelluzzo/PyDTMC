@@ -25,6 +25,7 @@ __all__ = [
     'mc_first_passage_reward',
     'mc_first_passage_times_between',
     'mc_first_passage_times_to',
+    'mc_fundamental_cycle_profile',
     'mc_fundamental_matrix',
     'mc_global_conductance',
     'mc_hitting_probabilities',
@@ -35,6 +36,7 @@ __all__ = [
     'mc_is_canonical',
     'mc_is_reversible',
     'mc_kemeny_constant',
+    'mc_large_deviation_rate',
     'mc_mean_number_visits',
     'mc_mixing_rate',
     'mc_mixing_time',
@@ -75,6 +77,7 @@ import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
 import scipy.linalg as _spl
+import scipy.optimize as _spo
 
 # Internal
 
@@ -84,24 +87,26 @@ from ._constants import (
 
 from ._custom_types import (
     oarray as _oarray,
-    obound_float as _obound_float,
-    obound_floats as _obound_floats,
+    obndval as _obound_float,
+    obndvals as _obound_floats,
     ofloat as _ofloat,
     oint as _oint,
     ohmm_decoding as _ohmm_decoding,
+    ofcprof as _omc_fc_profile,
     olist_int as _olist_int,
     osequence as _osequence,
     otimes_out as _otimes_out,
     tany as _tany,
     tarray as _tarray,
     tgraph as _tgraph,
-    thmm as _thmm,
-    tmc as _tmc,
     tlist_array as _tlist_array,
     tlist_float as _tlist_float,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
+    thmm as _thmm,
+    tmc as _tmc,
+    tobs as _tobs,
     tsequence as _tsequence,
     ttimes_in as _ttimes_in
 )
@@ -252,7 +257,6 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
 
 # ABSORPTION & PASSAGE
-
 
 def hmm_hitting_probabilities(hmm: _thmm, targets: _tlist_int) -> _tarray:
 
@@ -1015,6 +1019,148 @@ def mc_entropy_production_rate(mc: _tmc) -> _tlist_float:
     return epr
 
 
+def mc_large_deviation_rate(mc: _tmc, target_average: float, observable: _tobs, observable_param: _tany) -> float:
+
+    def _evaluate_tilt(et_tilt, et_bound, et_increments):
+
+        et_matrix = _np.zeros_like(p)
+        et_matrix[origins, targets] = probabilities * _np.exp(et_tilt * et_increments)
+
+        et_eigenvalues, et_left, et_right = _spl.eig(et_matrix, left=True, right=True)
+
+        et_index = int(_np.argmax(et_eigenvalues.real))
+        et_radius = float(et_eigenvalues[et_index].real)
+
+        et_left = et_left[:, et_index].real
+        et_right = et_right[:, et_index].real
+
+        et_weights = et_left[origins] * et_matrix[origins, targets] * et_right[targets]
+
+        et_derivative = float(_np.dot(et_weights, values) / (et_radius * _np.dot(et_left, et_right)))
+        et_scgf = float(et_tilt * et_bound + _np.log(et_radius))
+
+        return et_scgf, et_derivative
+
+    def _prepare_tilt(pt_p, pt_origins, pt_targets, pt_values, pt_bound):
+
+        pt_size = pt_p.shape[0]
+        pt_potentials = _np.zeros(pt_size, dtype=float)
+
+        for _ in range(pt_size - 1):
+            for i, j, v in zip(pt_origins, pt_targets, pt_values):
+                pt_potentials[j] = min(pt_potentials[j], pt_potentials[i] + pt_bound - v)
+
+        pt_increments = pt_values + pt_potentials[pt_targets] - pt_potentials[pt_origins] - pt_bound
+        pt_probabilities = pt_p[pt_origins, pt_targets]
+
+        pt_critical = _np.zeros_like(pt_p)
+        pt_critical[pt_origins, pt_targets] = _np.where(_np.abs(pt_increments) <= 1e-9, pt_probabilities, 0.0)
+
+        pt_radius = float(_np.max(_np.abs(_npl.eigvals(pt_critical))))
+
+        return pt_increments, pt_radius
+
+    p, size = mc.p, mc.size
+
+    if not isinstance(observable, str):
+        g = observable
+    else:
+
+        g = _np.zeros((size, size), dtype=float)
+
+        if observable == 'state_occupation':
+            g[:, observable_param] = 1.0
+        elif observable == 'transition_count':
+            origin, target = observable_param
+            g[origin, target] = 1.0
+        elif observable == 'transition_current':
+            origin, target = observable_param
+            g[origin, target] = 1.0
+            g[target, origin] = -1.0
+        else:
+
+            positive = p > 0.0
+
+            if _np.any(positive != positive.T):
+                raise ValueError('The entropy production observable requires bidirectional transition support.')
+
+            g[positive] = _np.log(p[positive]) - _np.log(p.T[positive])
+
+    origins, targets = _np.nonzero(p > 0.0)
+    values = g[origins, targets]
+    probabilities = p[origins, targets]
+    count = values.size
+
+    constraints = _np.zeros((size + 1, count), dtype=float)
+    constraints[origins, _np.arange(count)] += 1.0
+    constraints[targets, _np.arange(count)] -= 1.0
+    constraints[-1, :] = 1.0
+
+    rhs = _np.zeros(size + 1, dtype=float)
+    rhs[-1] = 1.0
+
+    minimum = _spo.linprog(values, A_eq=constraints, b_eq=rhs, bounds=(0.0, None), method='highs')
+
+    if not minimum.success:
+        raise ValueError('The attainable range of the observable could not be computed.')
+
+    maximum = _spo.linprog(-values, A_eq=constraints, b_eq=rhs, bounds=(0.0, None), method='highs')
+
+    if not maximum.success:
+        raise ValueError('The attainable range of the observable could not be computed.')
+
+    lower = float(minimum.fun)
+    upper = float(-maximum.fun)
+    tolerance = 1e-10 * max(1.0, abs(lower), abs(upper))
+
+    if (target_average < (lower - tolerance)) or (target_average > (upper + tolerance)):
+        return float('inf')
+
+    increments_upper, radius_upper = _prepare_tilt(p, origins, targets, values, upper)
+    increments_lower, radius_lower = _prepare_tilt(p, origins, targets, -values, -lower)
+
+    if abs(target_average - lower) <= tolerance:
+        return max(0.0, float(-_np.log(radius_lower)))
+
+    if abs(target_average - upper) <= tolerance:
+        return max(0.0, float(-_np.log(radius_upper)))
+
+    _, typical = _evaluate_tilt(0.0, upper, increments_upper)
+
+    if abs(target_average - typical) <= tolerance:
+        return 0.0
+
+    if target_average > typical:
+
+        bound = 1.0
+
+        while _evaluate_tilt(bound, upper, increments_upper)[1] < target_average:
+            bound *= 2.0
+
+            if bound > 1e8:
+                raise ValueError('The large-deviation optimization did not converge.')
+
+        tilt = _spo.brentq(lambda k: _evaluate_tilt(k, upper, increments_upper)[1] - target_average, 0.0, bound)
+        scgf, _ = _evaluate_tilt(tilt, upper, increments_upper)
+
+    else:
+
+        bound = 1.0
+
+        while _evaluate_tilt(bound, -lower, increments_lower)[1] > target_average:
+            bound *= 2.0
+
+            if bound > 1e8:
+                raise ValueError('The large-deviation optimization did not converge.')
+
+        tilt = -_spo.brentq(lambda k: _evaluate_tilt(k, -lower, increments_lower)[1] - target_average, 0.0, bound)
+        scgf, _ = _evaluate_tilt(-tilt, -lower, increments_lower)
+
+    ldr = max(0.0, float(tilt * target_average - scgf))
+
+    return ldr
+
+
 def mc_topological_entropy(mc: _tmc) -> float:
 
     ev = _eigenvalues_sorted(mc.adjacency_matrix)
@@ -1380,6 +1526,112 @@ def mc_deviation_matrix(mc: _tmc) -> _oarray:
     dm = fm - mc.pi[0]
 
     return dm
+
+
+def mc_fundamental_cycle_profile(mc: _tmc) -> _omc_fc_profile:
+
+    p, states = mc.p, mc.states
+    indices = {state: index for index, state in enumerate(states)}
+
+    cycles, chords = [], []
+
+    for recurrent_class in sorted(mc.recurrent_classes, key=lambda c: min(indices[state] for state in c)):
+
+        start = len(cycles)
+
+        vertices = sorted(indices[state] for state in recurrent_class)
+        neighbors = {vertex: [] for vertex in vertices}
+        edges = []
+
+        for position, origin in enumerate(vertices):
+            for target in vertices[position + 1:]:
+
+                forward = p[origin, target] > 0.0
+                backward = p[target, origin] > 0.0
+
+                if forward != backward:
+                    return None
+
+                if forward:
+                    neighbors[origin].append(target)
+                    neighbors[target].append(origin)
+                    edges.append((origin, target))
+
+        root = vertices[0]
+        parent = {root: None}
+        queue = [root]
+        tree_edges = set()
+
+        index = 0
+
+        while index < len(queue):
+
+            origin = queue[index]
+            index += 1
+
+            for target in sorted(neighbors[origin]):
+
+                if target not in parent:
+                    parent[target] = origin
+                    queue.append(target)
+                    tree_edges.add((min(origin, target), max(origin, target)))
+
+        for origin, target in edges:
+
+            if (origin, target) in tree_edges:
+                continue
+
+            origin_ancestors = []
+            vertex = origin
+
+            while vertex is not None:
+                origin_ancestors.append(vertex)
+                vertex = parent[vertex]
+
+            target_ancestors = []
+            vertex = target
+
+            while vertex is not None:
+                target_ancestors.append(vertex)
+                vertex = parent[vertex]
+
+            common = next(vertex for vertex in target_ancestors if vertex in origin_ancestors)
+            path = (target_ancestors[:target_ancestors.index(common) + 1] + list(reversed(origin_ancestors[:origin_ancestors.index(common)])))
+            cycle = [origin] + path[:-1]
+
+            offset = cycle.index(min(cycle))
+            cycle = cycle[offset:] + cycle[:offset]
+
+            cycles.append(tuple(cycle))
+            chords.append((origin, target))
+
+        ordered = sorted(zip(cycles[start:], chords[start:]), key=lambda item: (len(item[0]), item[0]))
+        cycles[start:] = [cycle for cycle, chord in ordered]
+        chords[start:] = [chord for cycle, chord in ordered]
+
+    affinities = {}
+    currents = []
+
+    if len(cycles) == 0:
+        return affinities, currents
+
+    for cycle in cycles:
+
+        affinity = float(sum(
+            _mt.log(p[origin, target]) - _mt.log(p[target, origin])
+            for origin, target in zip(cycle, cycle[1:] + cycle[:1])
+        ))
+
+        affinities[tuple(states[index] for index in cycle)] = float(affinity)
+
+    for current in mc.stationary_current:
+
+        currents.append({
+            tuple(states[index] for index in cycle): float(current[origin, target])
+            for cycle, (origin, target) in zip(cycles, chords)
+        })
+
+    return affinities, currents
 
 
 def mc_fundamental_matrix(mc: _tmc) -> _oarray:

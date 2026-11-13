@@ -40,25 +40,23 @@ __all__ = [
     'tlists_float', 'olists_float',
     'tlists_int', 'olists_int',
     'tlists_str', 'olists_str',
-    # Compound Types - Generic
-    'tass_cp', 'oass_cp',
-    'tass_ord', 'oass_ord',
-    'tass_stat', 'oass_stat',
-    'tbound_float', 'obound_float',
-    'tbound_floats', 'obound_floats',
+    # Compound Types -
+    'tbndval', 'obndval',
+    'tbndvals', 'obndvals',
     'tcache', 'ocache',
     'tdtype', 'odtype',
     'tedge_attributes', 'oedge_attributes',
     'tfile', 'ofile',
     'tinterval', 'ointerval',
-    'tlimit_float', 'olimit_float',
-    'tlimit_int', 'olimit_int',
-    'tlimit_scalar', 'olimit_scalar',
-    'tpartition', 'opartition',
-    'tpartitions', 'opartitions',
-    'trandfunc', 'orandfunc',
-    'trandfunc_flex', 'orandfunc_flex',
+    'tlim_float', 'olim_float',
+    'tlim_int', 'olim_int',
+    'tlim_scalar', 'olim_scalar',
+    'trfunc', 'orfunc',
+    'trfunc_flex', 'orfunc_flex',
     # Compound Types - Specific
+    'tass_cp', 'oass_cp',
+    'tass_ord', 'oass_ord',
+    'tass_stat', 'oass_stat',
     'tbcond', 'obcond',
     'tfitting_res', 'ofitting_res',
     'thmm_decoding', 'ohmm_decoding',
@@ -79,7 +77,11 @@ __all__ = [
     'tmc_gen', 'omc_gen',
     'tmc_gen_ext', 'omc_gen_ext',
     'tmc_gen_full', 'omc_gen_full',
+    'tfcpro', 'ofcprof',
     'tobj_dict', 'oobj_dict',
+    'tobs', 'oobs',
+    'tpart', 'opart',
+    'tparts', 'oparts',
     'tredists', 'oredists',
     'tsequence', 'osequence',
     'tsequences', 'osequences',
@@ -163,11 +165,9 @@ orand = _tp.Optional[trand]
 tstack = _tp.List[_ins.FrameInfo]
 ostack = _tp.Optional[tstack]
 
-# noinspection PyTypeHints
 thmm = _tp.ForwardRef('HiddenMarkovModel')
 ohmm = _tp.Optional[thmm]
 
-# noinspection PyTypeHints
 tmc = _tp.ForwardRef('MarkovChain')
 omc = _tp.Optional[tmc]
 
@@ -236,20 +236,11 @@ olists_str = _tp.Optional[tlists_str]
 
 # COMPOUND TYPES - GENERIC
 
-tass_cp = _tp.Tuple[oint, float, float]
-oass_cp = _tp.Optional[tass_cp]
+tbndval = _tp.Tuple[float, _tp.Tuple[float, float]]
+obndval = _tp.Optional[tbndval]
 
-tass_ord = _tp.Tuple[int, _tp.Dict[int, float]]
-oass_ord = _tp.Optional[tass_ord]
-
-tass_stat = _tp.Tuple[obool, float, _tp.Dict[str, tany]]
-oass_stat = _tp.Optional[tass_stat]
-
-tbound_float = _tp.Tuple[float, _tp.Tuple[float, float]]
-obound_float = _tp.Optional[tbound_float]
-
-tbound_floats = _tp.List[_tp.Tuple[float, _tp.Tuple[float, float]]]
-obound_floats = _tp.Optional[tbound_float]
+tbndvals = _tp.List[_tp.Tuple[float, _tp.Tuple[float, float]]]
+obndvals = _tp.Optional[tbndval]
 
 tcache = _tp.Dict[str, tany]
 ocache = _tp.Optional[tcache]
@@ -263,31 +254,34 @@ ofile = _tp.Optional[tfile]
 tinterval = _tp.Tuple[tscalar, tscalar]
 ointerval = _tp.Optional[tinterval]
 
-tlimit_float = _tp.Tuple[float, bool]
-olimit_float = _tp.Optional[tlimit_float]
+tlim_float = _tp.Tuple[float, bool]
+olim_float = _tp.Optional[tlim_float]
 
-tlimit_int = _tp.Tuple[int, bool]
-olimit_int = _tp.Optional[tlimit_int]
+tlim_int = _tp.Tuple[int, bool]
+olim_int = _tp.Optional[tlim_int]
 
-tlimit_scalar = _tp.Tuple[tscalar, bool]
-olimit_scalar = _tp.Optional[tlimit_scalar]
+tlim_scalar = _tp.Tuple[tscalar, bool]
+olim_scalar = _tp.Optional[tlim_scalar]
 
-tpartition = _tp.Union[tlists_int, tlists_str]
-opartition = _tp.Optional[tpartition]
+trfunc = _tp.Callable
+orfunc = _tp.Optional[trfunc]
 
-tpartitions = _tp.List[tpartition]
-opartitions = _tp.Optional[tpartitions]
-
-trandfunc = _tp.Callable
-orandfunc = _tp.Optional[trandfunc]
-
-trandfunc_flex = _tp.Union[_tp.Callable, str]
-orandfunc_flex = _tp.Optional[trandfunc_flex]
+trfunc_flex = _tp.Union[_tp.Callable, str]
+orfunc_flex = _tp.Optional[trfunc_flex]
 
 tedge_attributes = _tp.List[_tp.Tuple[str, _tp.Tuple[str, ...]]]
 oedge_attributes = _tp.Optional[tedge_attributes]
 
 # COMPOUND TYPES - SPECIFIC
+
+tass_cp = _tp.Tuple[oint, float, float]
+oass_cp = _tp.Optional[tass_cp]
+
+tass_ord = _tp.Tuple[int, _tp.Dict[int, float]]
+oass_ord = _tp.Optional[tass_ord]
+
+tass_stat = _tp.Tuple[obool, float, _tp.Dict[str, tany]]
+oass_stat = _tp.Optional[tass_stat]
 
 tbcond = _tp.Union[float, int, str]
 obcond = _tp.Optional[tbcond]
@@ -349,8 +343,23 @@ omc_gen_ext = _tp.Optional[tmc_gen_ext]
 tmc_gen_full = _tp.Tuple[oarray, olist_str, ostr]
 omc_gen_full = _tp.Optional[tmc_gen_full]
 
+tfcpro = _tp.Union[
+    _tp.Tuple[_tp.Dict[_tp.Tuple[int, ...], float], _tp.List[_tp.Dict[_tp.Tuple[int, ...], float]]],
+    _tp.Tuple[_tp.Dict[_tp.Tuple[str, ...], float], _tp.List[_tp.Dict[_tp.Tuple[str, ...], float]]]
+]
+ofcprof = _tp.Optional[tfcpro]
+
 tobj_dict = _tp.Union[thmm_dict, tmc_dict]
 oobj_dict = _tp.Optional[tobj_dict]
+
+tobs = _tp.Union[str, tarray]
+oobs = _tp.Optional[tobs]
+
+tpart = _tp.Union[tlists_int, tlists_str]
+opart = _tp.Optional[tpart]
+
+tparts = _tp.List[tpart]
+oparts = _tp.Optional[tparts]
 
 tredists = _tp.Union[tarray, tlist_array]
 oredists = _tp.Optional[tredists]

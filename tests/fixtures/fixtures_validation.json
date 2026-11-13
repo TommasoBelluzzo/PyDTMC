@@ -1420,6 +1420,36 @@
   ],
   "validate_labels_input_data": [
     {
+      "value": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "size": 0,
+      "is_valid": false
+    },
+    {
+      "value": "A",
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": [false, true],
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": [0, 1, 2],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [1.0, 0.5, 0.3],
+      "size": 3,
+      "is_valid": false
+    },
+    {
       "value": ["1", "2", "3"],
       "size": 3,
       "is_valid": true
@@ -1448,26 +1478,83 @@
       "value": ["1", "", "2"],
       "size": 3,
       "is_valid": false
-    },
-    {
-      "value": [false, true, 2],
-      "size": 3,
-      "is_valid": false
-    },
+    }
+  ],
+  "validate_labels_pair_data": [
     {
       "value": null,
-      "size": null,
+      "labels": ["A", "B", "C"],
       "is_valid": false
     },
     {
-      "value": "A",
-      "size": null,
+      "value": 0,
+      "labels": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": "B",
+      "labels": ["A", "B", "C"],
       "is_valid": false
     },
     {
       "value": [],
-      "size": 0,
+      "labels": ["A", "B", "C"],
       "is_valid": false
+    },
+    {
+      "value": [2, false, "NaN"],
+      "labels": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [0],
+      "labels": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [1, 5],
+      "labels": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [0, 0],
+      "labels": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [0, 2],
+      "labels": ["A", "B", "C"],
+      "is_valid": true
+    },
+    {
+      "value": [2, 0],
+      "labels": ["A", "B", "C"],
+      "is_valid": true
+    },
+    {
+      "value": ["C"],
+      "labels": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": ["B", "D"],
+      "labels": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": ["A", "A"],
+      "labels": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": ["A", "C"],
+      "labels": ["A", "B", "C"],
+      "is_valid": true
+    },
+    {
+      "value": ["C", "A"],
+      "labels": ["A", "B", "C"],
+      "is_valid": true
     }
   ],
   "validate_markov_chain_data": [
@@ -1994,6 +2081,102 @@
     {
       "value": null,
       "is_valid": true
+    }
+  ],
+  "validate_observable_data": [
+    {
+      "value": "entropy_production",
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": "occupation",
+      "size": 11,
+      "is_valid": false
+    },
+    {
+      "value": "state_occupation",
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": "transition_count",
+      "size": 2,
+      "is_valid": true
+    },
+    {
+      "value": "transition_current",
+      "size": 4,
+      "is_valid": true
+    },
+    {
+      "value": "weights",
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": [
+        [0.0, 0.0],
+        [0.0, 0.0]
+      ],
+      "size": 2,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [0.0, -1.5],
+        [2.0,  0.0]
+      ],
+      "size": 2,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [0, 1],
+        [1, 0]
+      ],
+      "size": 2,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [0, 1],
+        [1, 0]
+      ],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [
+        [0, "NaN"],
+        [1,     0]
+      ],
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": [
+        [ 0.0, 1.0,  0.0],
+        [-2.0, 0.0,  3.0],
+        [ 1.5, 0.0, -0.5]
+      ],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": [0.0, 1.0],
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": 0.5,
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "size": 5,
+      "is_valid": false
     }
   ],
   "validate_partition_data": [

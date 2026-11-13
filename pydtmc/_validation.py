@@ -17,6 +17,7 @@ __all__ = [
     'validate_interval',
     'validate_label',
     'validate_labels_current',
+    'validate_labels_pair',
     'validate_labels_input',
     'validate_markov_chain',
     'validate_markov_chains',
@@ -25,6 +26,7 @@ __all__ = [
     'validate_model',
     'validate_models',
     'validate_none',
+    'validate_observable',
     'validate_partition',
     'validate_random_distribution',
     'validate_rewards',
@@ -65,9 +67,9 @@ from ._constants import (
 
 from ._custom_types import (
     oint as _oint,
-    olimit_float as _olimit_float,
-    olimit_int as _olimit_int,
-    olimit_scalar as _olimit_scalar,
+    olim_float as _olimit_float,
+    olim_int as _olimit_int,
+    olim_scalar as _olimit_scalar,
     tlist_model as _tlist_model,
     olist_str as _olist_str,
     tany as _tany,
@@ -84,8 +86,9 @@ from ._custom_types import (
     tmc as _tmc,
     tmc_dict as _tmc_dict,
     tmodel as _tmodel,
+    tobs as _tobs,
     trand as _trand,
-    trandfunc as _trandfunc,
+    trfunc as _trfunc,
     tscalar as _tscalar,
     ttfunc as _ttfunc,
     ttimes_in as _ttimes_in
@@ -448,7 +451,7 @@ def validate_hyperparameter(value: _tany, size: int) -> _tarray:
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
-    if value.ndim != 2 or value.shape[0] != size or value.shape[1] != size:
+    if (value.ndim != 2) or (value.shape[0] != size) or (value.shape[1] != size):
         raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
 
     if not _np.all(_np.isfinite(value) & (value >= 1.0) & (value == _np.floor(value))):
@@ -546,14 +549,14 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
 
             value = [int(label) for label in value]
 
-            if any(label < 0 or label >= labels_length for label in value):
+            if any((label < 0) or (label >= labels_length) for label in value):
                 raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {labels_length - 1:d}.')
 
         else:
 
             value = [labels.index(label) if label in labels else -1 for label in value]
 
-            if any(label == -1 for label in value):
+            if any((label == -1) for label in value):
                 raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the following strings: {", ".join(labels)}.')
 
         value_length = len(value)
@@ -566,12 +569,12 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
 
         maximum_length = labels_length - 1 if subset else labels_length
 
-        if minimum_length is None or minimum_length == 1:
+        if (minimum_length is None) or (minimum_length == 1):
             if value_length > maximum_length:
                 raise ValueError(f'The "@arg@" parameter must contain no more than {maximum_length:d} elements.')
         else:
 
-            if value_length < minimum_length or value_length > maximum_length:
+            if (value_length < minimum_length) or (value_length > maximum_length):
 
                 if minimum_length == maximum_length:
                     length = {minimum_length, maximum_length}.pop()
@@ -593,6 +596,43 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
         return value
 
     raise TypeError('The "@arg@" parameter must be either an integer, a non-empty string, a list of integers or a list of non-empty strings.')
+
+
+def validate_labels_pair(value: _tany, labels: _tlist_str) -> _tlist_int:
+
+    if not _is_list(value):
+        raise ValueError('The "@arg@" parameter must be a list.')
+
+    if len(value) != 2:
+        raise ValueError('The "@arg@" parameter must contain 2 elements.')
+
+    if all(_is_integer(label) for label in value):
+        value_type = 'integer'
+    elif all(_is_string(label) for label in value):
+        value_type = 'string'
+    else:
+        raise TypeError('The "@arg@" parameter contains invalid elements.')
+
+    labels_length = len(labels)
+
+    if value_type == 'integer':
+
+        value = [int(label) for label in value]
+
+        if any((label < 0) or (label >= labels_length) for label in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {labels_length - 1:d}.')
+
+    else:
+
+        value = [labels.index(label) if label in labels else -1 for label in value]
+
+        if any((label == -1) for label in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the following strings: {", ".join(labels)}.')
+
+    if value[0] == value[1]:
+        raise ValueError('The "@arg@" parameter must contain 2 distinct elements.')
+
+    return value
 
 
 def validate_labels_input(value: _tany, size: _oint = None) -> _tlist_str:
@@ -656,7 +696,7 @@ def validate_mask(value: _tany, rows: int, columns: int) -> _tarray:
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
-    if value.ndim != 2 or value.shape[0] != rows or value.shape[1] != columns:
+    if (value.ndim != 2) or (value.shape[0] != rows) or (value.shape[1] != columns):
 
         if rows == columns:
             size = {rows, columns}.pop()
@@ -749,6 +789,31 @@ def validate_none(value: _tany) -> _tany:
     return value
 
 
+def validate_observable(value: _tany, size: int) -> _tobs:
+
+    if _is_string(value):
+
+        possible_values = ['entropy_production', 'state_occupation', 'transition_count', 'transition_current']
+
+        if value not in possible_values:
+            raise ValueError(f'The "@arg@" parameter value must be one of the following: {", ".join(possible_values)}.')
+
+    else:
+
+        try:
+            value = _extract_numeric(value, float)
+        except Exception as ex:
+            raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+        if (value.ndim != 2) or (value.shape[0] != size) or (value.shape[1] != size):
+            raise ValueError(f'The "@arg@" parameter must be a 2d square matrix with size equal to {size:d}.')
+
+        if not _np.all(_np.isfinite(value)):
+            raise ValueError('The "@arg@" parameter must contain only finite real values.')
+
+    return value
+
+
 def validate_partition(value: _tany, labels: _tlist_str) -> _tlists_int:
 
     if not _is_list(value):
@@ -810,7 +875,7 @@ def validate_partition(value: _tany, labels: _tlist_str) -> _tlists_int:
     return result
 
 
-def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tlist_str) -> _trandfunc:
+def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tlist_str) -> _trfunc:
 
     if value is None:
         raise TypeError('The "@arg@" parameter is null.')

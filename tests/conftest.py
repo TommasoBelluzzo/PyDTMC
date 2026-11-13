@@ -114,7 +114,7 @@ def _parse_fixtures_dictionary(fixtures, names, func):
 
             for case_index, case in enumerate(fixture):
 
-                case_id = f'_{case["id"]}' if 'id' in case else f' #{str(case_index + 1)}'
+                case_id = f' {case["id"]}' if 'id' in case else f' #{str(case_index + 1)}'
                 case_values = tuple(case[name] for name in names if name in case)
 
                 if len(case_values) == expected_args:
@@ -284,7 +284,7 @@ def pytest_generate_tests(metafunc):
     fixtures = _fixtures[reference]
     values, ids = [], []
 
-    if fixtures is not None and len(fixtures) > 0:
+    if (fixtures is not None) and (len(fixtures) > 0):
         if reference == 'benchmarks':
             names = [name for name in names if name not in _benchmark_exclusions]
             values, ids = _parse_fixtures_benchmark(fixtures, func)
