@@ -288,6 +288,19 @@ def test_hitting_times(p, targets, value_mean, value_variance):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8, equal_nan=True)
 
 
+def test_large_deviation_rate(p, target_average, observable, observable_param, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.large_deviation_rate(target_average, observable, observable_param)
+    expected = value
+
+    if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
 def test_mean_number_visits(p, mean_number_visits):
 
     mc = _MarkovChain(p)

@@ -164,6 +164,41 @@
         "value_variance": [0.0, 0.0]
       }
     ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.2,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.5,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": 0.0
+      },
+      {
+        "target_average": 0.1,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.1,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": "Infinity"
+      },
+      {
+        "target_average": 1.0,
+        "observable": [
+          [2.0, 2.0],
+          [2.0, 2.0]
+        ],
+        "observable_param": null,
+        "value": "Infinity"
+      }
+    ],
     "mean_number_visits": [
       ["Infinity", "Infinity"],
       ["Infinity", "Infinity"]
@@ -468,6 +503,86 @@
         "targets": 1,
         "value_mean": [1.42857143, 0.00000000],
         "value_variance": [0.6122449, 0.0000000]
+      }
+    ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.0,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": 0.0
+      },
+      {
+        "target_average": 0.0,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": 0.28768207
+      },
+      {
+        "target_average": 0.5,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": 0.11353645
+      },
+      {
+        "target_average": 1.0,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": 1.20397280
+      },
+      {
+        "target_average": 0.65,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": 0.01646599
+      },
+      {
+        "target_average": 0.1,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": 0.04677526
+      },
+      {
+        "target_average": 0.5,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": 0.87148465
+      },
+      {
+        "target_average": 0.2,
+        "observable": "transition_count",
+        "observable_param": [1, 0],
+        "value": 0.00157797
+      },
+      {
+        "target_average": -0.1,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.25,
+        "observable": "transition_current",
+        "observable_param": [1, 0],
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.0,
+        "observable": [
+          [0.0, 0.0],
+          [0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": 0.0
+      },
+      {
+        "target_average": -0.15,
+        "observable": [
+          [0.00, -1.00],
+          [0.25,  0.00]
+        ],
+        "observable_param": null,
+        "value": 0.00157797
       }
     ],
     "mean_number_visits": [
@@ -777,6 +892,42 @@
         "value_variance": ["NaN", 0.0, 0.0]
       }
     ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.0,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "target_average": 0.1,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": null
+      },
+      {
+        "target_average": 0.0,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": null
+      },
+      {
+        "target_average": 0.35,
+        "observable": "transition_current",
+        "observable_param": [1, 2],
+        "value": null
+      },
+      {
+        "target_average": 0.0,
+        "observable": [
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": null
+      }
+    ],
     "mean_number_visits": [
       ["Infinity", 0.0, 0.0],
       [0.0, "Infinity", 0.0],
@@ -1080,6 +1231,46 @@
         "targets": 2,
         "value_mean": [2.0, 1.0, 0.0],
         "value_variance": [0.0, 0.0, 0.0]
+      }
+    ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.33,
+        "observable": "state_occupation",
+        "observable_param": 2,
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.33,
+        "observable": "transition_count",
+        "observable_param": [2, 0],
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.15,
+        "observable": "transition_current",
+        "observable_param": [2, 1],
+        "value": "Infinity"
+      },
+      {
+        "target_average": -1.0,
+        "observable": [
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": "Infinity"
+      },
+      {
+        "target_average": 2.0,
+        "observable": [
+          [2.0, 2.0, 2.0],
+          [2.0, 2.0, 2.0],
+          [2.0, 2.0, 2.0]
+        ],
+        "observable_param": null,
+        "value": 0.0
       }
     ],
     "mean_number_visits": [
@@ -1389,6 +1580,42 @@
         "targets": 1,
         "value_mean": ["Infinity", 0.0, 2.0],
         "value_variance": ["NaN", 0.0, 2.0]
+      }
+    ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "target_average": 0.4,
+        "observable": "state_occupation",
+        "observable_param": 2,
+        "value": null
+      },
+      {
+        "target_average": 0.75,
+        "observable": "transition_count",
+        "observable_param": [1, 0],
+        "value": null
+      },
+      {
+        "target_average": 0.2,
+        "observable": "transition_current",
+        "observable_param": [1, 2],
+        "value": null
+      },
+      {
+        "target_average": 0.0,
+        "observable": [
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": null
       }
     ],
     "mean_number_visits": [
@@ -1709,6 +1936,88 @@
         "targets": [0, 2],
         "value_mean": [0.00000000, 1.42857143, 0.00000000],
         "value_variance": [0.0000000, 0.6122449, 0.0000000]
+      }
+    ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.0,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": 0.07254351
+      },
+      {
+        "target_average": 0.15,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": 0.01695204
+      },
+      {
+        "target_average": 0.5,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": 0.03942192
+      },
+      {
+        "target_average": 0.4,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": 0.06270245
+      },
+      {
+        "target_average": 1.0,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": 1.20397280
+      },
+      {
+        "target_average": 0.2,
+        "observable": "state_occupation",
+        "observable_param": 2,
+        "value": 0.02579254
+      },
+      {
+        "target_average": 0.5,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": 1.40670536
+      },
+      {
+        "target_average": 0.12,
+        "observable": "transition_count",
+        "observable_param": [2, 0],
+        "value": 0.00090659
+      },
+      {
+        "target_average": -0.1,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": 0.34230715
+      },
+      {
+        "target_average": -0.12,
+        "observable": "transition_current",
+        "observable_param": [1, 0],
+        "value": 0.01228395
+      },
+      {
+        "target_average": -0.15,
+        "observable": [
+          [0.00, -1.00, 0.00],
+          [0.25,  0.00, 0.00],
+          [0.00,  0.00, 0.00]
+        ],
+        "observable_param": null,
+        "value": 0.00942645
+      },
+      {
+        "target_average": 0.45,
+        "observable": [
+          [ 0.00, -1.00, 0.25],
+          [-0.05,  0.00, 0.00],
+          [ 0.00,  0.00, 1.00]
+        ],
+        "observable_param": null,
+        "value": 0.13304338
       }
     ],
     "mean_number_visits": [
@@ -2052,6 +2361,89 @@
         "value_variance": [0.0, 0.0, 0.0]
       }
     ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.0,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": 0.0
+      },
+      {
+        "target_average": 0.2,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": 0.06240001
+      },
+      {
+        "target_average": 0.3,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": 0.05292546
+      },
+      {
+        "target_average": 0.5,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": 0.69314718
+      },
+      {
+        "target_average": 0.5,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": 1.03972077
+      },
+      {
+        "target_average": 0.3,
+        "observable": "transition_count",
+        "observable_param": [0, 2],
+        "value": 0.29051861
+      },
+      {
+        "target_average": -0.1,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": 0.07584214
+      },
+      {
+        "target_average": -0.2,
+        "observable": "transition_current",
+        "observable_param": [1, 0],
+        "value": 0.31747665
+      },
+      {
+        "target_average": 0.1,
+        "observable": "transition_current",
+        "observable_param": [1, 0],
+        "value": 0.07584214
+      },
+      {
+        "target_average": 0.3,
+        "observable": "transition_count",
+        "observable_param": [2, 0],
+        "value": 0.29051861
+      },
+
+      {
+        "target_average": -0.7,
+        "observable": [
+          [-0.7, -0.7, -0.7],
+          [-0.7, -0.7, -0.7],
+          [-0.7, -0.7, -0.7]
+        ],
+        "observable_param": null,
+        "value": 0.0
+      },
+      {
+        "target_average": -0.15,
+        "observable": [
+          [0.00, -1.00,  0.00],
+          [0.35,  0.80,  0.00],
+          [0.00,  0.00, -0.12]
+        ],
+        "observable_param": null,
+        "value": 0.03661054
+      }
+    ],
     "mean_number_visits": [
       ["Infinity", "Infinity", "Infinity"],
       ["Infinity", "Infinity", "Infinity"],
@@ -2364,6 +2756,43 @@
         "targets": [1, 2],
         "value_mean": ["Infinity", 0.0, 0.0, "Infinity"],
         "value_variance": ["NaN", 0.0, 0.0, "NaN"]
+      }
+    ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.75,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "target_average": 0.25,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": null
+      },
+      {
+        "target_average": 0.0,
+        "observable": "transition_count",
+        "observable_param": [3, 2],
+        "value": null
+      },
+      {
+        "target_average": 0.1,
+        "observable": "transition_current",
+        "observable_param": [0, 3],
+        "value": null
+      },
+      {
+        "target_average": 0.0,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": null
       }
     ],
     "mean_number_visits": [
@@ -2696,6 +3125,90 @@
         "targets": [0, 2, 3],
         "value_mean": [0.00000000, 1.05263158, 0.00000000, 0.00000000],
         "value_variance": [0.00000000, 0.05540166, 0.00000000, 0.00000000]
+      }
+    ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.0,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": 0.03685883
+      },
+      {
+        "target_average": 0.2,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": 0.00275696
+      },
+      {
+        "target_average": 1.0,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": 0.35667494
+      },
+      {
+        "target_average": 0.35,
+        "observable": "state_occupation",
+        "observable_param": 2,
+        "value": 0.03067461
+      },
+      {
+        "target_average": 0.25,
+        "observable": "state_occupation",
+        "observable_param": 3,
+        "value": 0.10403538
+      },
+      {
+        "target_average": 0.5,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": 1.23255201
+      },
+      {
+        "target_average": 0.04,
+        "observable": "transition_count",
+        "observable_param": [0, 3],
+        "value": 0.004384340
+      },
+      {
+        "target_average": -0.1,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": 0.02465335
+      },
+      {
+        "target_average": -0.04,
+        "observable": "transition_current",
+        "observable_param": [1, 2],
+        "value": 0.00132780
+      },
+      {
+        "target_average": 0.42,
+        "observable": "transition_current",
+        "observable_param": [1, 3],
+        "value": "Infinity"
+      },
+      {
+        "target_average": -0.1,
+        "observable": [
+          [0.00, -1.00, 0.00, 0.00],
+          [0.25,  0.00, 0.00, 0.00],
+          [0.00,  0.00, 0.00, 0.00],
+          [0.00,  0.00, 0.00, 0.00]
+        ],
+        "observable_param": null,
+        "value": 0.04938227
+      },
+      {
+        "target_average": 0.1,
+        "observable": [
+          [ 0.00, 1.00, 0.00, -0.75],
+          [ 0.00, 0.00, 0.00,  0.00],
+          [ 0.00, 0.15, 0.20,  0.00],
+          [-0.01, 0.00, 0.00,  0.00]
+        ],
+        "observable_param": null,
+        "value": 0.01916998
       }
     ],
     "mean_number_visits": [
@@ -3038,6 +3551,98 @@
         "value_variance": [0.0, 0.0, 0.0, 0.0, 0.0]
       }
     ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.33,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": 0.10991906
+      },
+      {
+        "target_average": 0.12,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": 0.00160799
+      },
+      {
+        "target_average": 0.25,
+        "observable": "state_occupation",
+        "observable_param": 4,
+        "value": 0.02977104
+      },
+      {
+        "target_average": 0.6,
+        "observable": "state_occupation",
+        "observable_param": 4,
+        "value": 0.07902044
+      },
+      {
+        "target_average": 0.08,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": 0.02224611
+      },
+      {
+        "target_average": 0.33,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": 0.36296506
+      },
+      {
+        "target_average": 0.05,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": 0.05609145
+      },
+      {
+        "target_average": 0.2,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": 0.02919071
+      },
+      {
+        "target_average": 0.45,
+        "observable": "transition_current",
+        "observable_param": [1, 0],
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.0,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": 0.0
+      },
+      {
+        "target_average": -0.1,
+        "observable": [
+          [-0.5, 0.0,  0.0,  0.0, -0.5],
+          [ 0.0, 0.0, -0.5,  0.0,  0.0],
+          [ 0.0, 0.0,  0.0,  0.0,  0.0],
+          [ 0.0, 0.0,  0.0, -0.5,  0.0],
+          [ 0.0, 0.0,  0.0,  0.0,  0.0]
+        ],
+        "observable_param": null,
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.25,
+        "observable": [
+          [-1.0, 0.0, 0.0, 0.0, 0.0],
+          [ 0.0, 0.0, 0.5, 0.0, 0.0],
+          [ 0.0, 0.0, 0.0, 0.0, 0.0],
+          [ 0.0, 0.0, 0.0, 0.5, 0.0],
+          [ 0.0, 0.0, 0.0, 0.0, 1.0]
+        ],
+        "observable_param": null,
+        "value": 0.00582494
+      }
+    ],
     "mean_number_visits": [
       ["Infinity", "Infinity", "Infinity", "Infinity", "Infinity"],
       ["Infinity", "Infinity", "Infinity", "Infinity", "Infinity"],
@@ -3373,6 +3978,45 @@
         "value_variance": ["NaN", "NaN", "NaN", 0.0, "NaN", "NaN"]
       }
     ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.35,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "target_average": 0.1,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": null
+      },
+      {
+        "target_average": 0.4,
+        "observable": "transition_count",
+        "observable_param": [0, 2],
+        "value": null
+      },
+      {
+        "target_average": 0.15,
+        "observable": "transition_current",
+        "observable_param": [3, 1],
+        "value": null
+      },
+      {
+        "target_average": -0.2,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": null
+      }
+    ],
     "mean_number_visits": [
       ["Infinity", 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
       [0.00000000, "Infinity", 0.00000000, 0.00000000, 0.00000000, 0.00000000],
@@ -3671,6 +4315,45 @@
         "targets": [3, 5],
         "value_mean": ["Infinity", "Infinity", "Infinity", 0.0, 1.0, 0.0],
         "value_variance": ["NaN", "NaN", "NaN", 0.0, 0.0, 0.0]
+      }
+    ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "target_average": 0.35,
+        "observable": "state_occupation",
+        "observable_param": 3,
+        "value": null
+      },
+      {
+        "target_average": 0.25,
+        "observable": "transition_count",
+        "observable_param": [1, 2],
+        "value": null
+      },
+      {
+        "target_average": 0.8,
+        "observable": "transition_current",
+        "observable_param": [0, 3],
+        "value": null
+      },
+      {
+        "target_average": 1.0,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": null
       }
     ],
     "mean_number_visits": [
@@ -3997,6 +4680,45 @@
         "targets": [3, 4, 5],
         "value_mean": ["Infinity", "Infinity", "Infinity" ,0.0, 0.0, 0.0],
         "value_variance": ["NaN", "NaN", "NaN", 0.0, 0.0, 0.0]
+      }
+    ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.4,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "target_average": 0.35,
+        "observable": "state_occupation",
+        "observable_param": 3,
+        "value": null
+      },
+      {
+        "target_average": 0.1,
+        "observable": "transition_count",
+        "observable_param": [3, 5],
+        "value": null
+      },
+      {
+        "target_average": 0.1,
+        "observable": "transition_current",
+        "observable_param": [4, 1],
+        "value": null
+      },
+      {
+        "target_average": 0.35,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": null
       }
     ],
     "mean_number_visits": [
@@ -4394,6 +5116,52 @@
         "targets": [6, 9, 12],
         "value_mean": ["Infinity", "Infinity", "Infinity", "Infinity", "Infinity", "Infinity", 0.000000, 2.313926, 2.230766, 0.000000, 2.271295, 2.275094, 0.000000],
         "value_variance": ["NaN", "NaN", "NaN", "NaN", "NaN", "NaN", 0.000000, 2.924235, 2.855621, 0.000000, 2.889051, 2.899118, 0.000000]
+      }
+    ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.25,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "target_average": 0.1,
+        "observable": "state_occupation",
+        "observable_param": 3,
+        "value": null
+      },
+      {
+        "target_average": 0.3,
+        "observable": "transition_count",
+        "observable_param": [3, 5],
+        "value": null
+      },
+      {
+        "target_average": -0.65,
+        "observable": "transition_current",
+        "observable_param": [4, 1],
+        "value": null
+      },
+      {
+        "target_average": 0.15,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": null
       }
     ],
     "mean_number_visits": [
