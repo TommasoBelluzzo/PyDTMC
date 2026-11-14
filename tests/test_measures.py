@@ -25,15 +25,16 @@ from pydtmc import (
 # TESTS #
 #########
 
-def test_absorption_probabilities(p, absorption_probabilities):
+def test_absorption_probabilities(p, initial_distribution, value):
 
     mc = _MarkovChain(p)
 
-    actual = mc.absorption_probabilities()
-    expected = absorption_probabilities
+    actual = mc.absorption_probabilities(initial_distribution)
+    expected = value
 
     if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
+        print(actual)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected

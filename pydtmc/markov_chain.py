@@ -1249,21 +1249,32 @@ class MarkovChain(_Model):
 
         return states
 
-    @_cached_method
     @_object_mark(aliases=['ap'])
-    def absorption_probabilities(self) -> _oarray:
+    def absorption_probabilities(self, initial_distribution: _onumeric = None) -> _oarray:
 
         """
-        | The method computes the probabilities of eventual absorption into each recurrent class of the Markov chain.
+        | The method computes the probabilities of eventual absorption into each recurrent class of the Markov chain, optionally given an initial distribution.
 
         | **Notes:**
 
-        - Each matrix entry gives the probability of eventual absorption into the recurrent class identified by its row, starting from the transient state identified by its column.
+        - If no initial distribution is specified, each matrix entry gives the absorption probability for the recurrent class in its row and the transient state in its column.
+        - If an initial distribution is specified, each vector entry gives the probability of eventual absorption into the recurrent class identified by its position.
         - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
         - The method can also be accessed through the alias **ap**.
+
+        :param initial_distribution: the initial probability distribution.
+        :raises ValidationError: if any input argument is not compliant.
         """
 
-        return _absorption_probabilities(self)
+        try:
+
+            if initial_distribution is not None:
+                initial_distribution = _validate_vector_stochastic(initial_distribution, self.__size, False)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _absorption_probabilities(self, initial_distribution)
 
     @_cached_method
     @_object_mark(aliases=['at'])

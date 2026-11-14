@@ -355,7 +355,7 @@ def hmm_hitting_probabilities(hmm: _thmm, targets: _tlist_int) -> _tarray:
     return hp
 
 
-def mc_absorption_probabilities(mc: _tmc) -> _oarray:
+def mc_absorption_probabilities(mc: _tmc, initial_distribution: _oarray = None) -> _oarray:
 
     om = mc.occupation_matrix
 
@@ -374,6 +374,15 @@ def mc_absorption_probabilities(mc: _tmc) -> _oarray:
         r = p[_np.ix_(transient_indices, recurrent_indices)]
 
         ap[i, :] = _np.dot(om, _np.sum(r, axis=1))
+
+    if initial_distribution is None:
+        return ap
+
+    ap = _np.dot(ap, initial_distribution[transient_indices])
+
+    for i, recurrent_class in enumerate(mc.recurrent_classes):
+        recurrent_indices = [states_indices[state] for state in recurrent_class]
+        ap[i] += _np.sum(initial_distribution[recurrent_indices])
 
     return ap
 

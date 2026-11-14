@@ -5,7 +5,16 @@
       [0.0, 1.0],
       [1.0, 0.0]
     ],
-    "absorption_probabilities": null,
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": null
+      },
+      {
+        "initial_distribution": [0.5, 0.5],
+        "value": null
+      }
+    ],
     "absorption_times": null,
     "committor_probabilities_data": [
       {
@@ -399,7 +408,16 @@
       [0.30, 0.70],
       [0.25, 0.75]
     ],
-    "absorption_probabilities": null,
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": null
+      },
+      {
+        "initial_distribution": [0.3, 0.7],
+        "value": null
+      }
+    ],
     "absorption_times": null,
     "committor_probabilities_data": [
       {
@@ -896,7 +914,16 @@
       [0.0, 1.0, 0.0],
       [0.0, 0.0, 1.0]
     ],
-    "absorption_probabilities": null,
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": null
+      },
+      {
+        "initial_distribution": [0.2, 0.0, 0.8],
+        "value": null
+      }
+    ],
     "absorption_times": null,
     "committor_probabilities_data": [
       {
@@ -1280,7 +1307,16 @@
       [0.0, 0.0, 1.0],
       [1.0, 0.0, 0.0]
     ],
-    "absorption_probabilities": null,
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": null
+      },
+      {
+        "initial_distribution": [0.0, 0.9, 0.1],
+        "value": null
+      }
+    ],
     "absorption_times": null,
     "committor_probabilities_data": [
       {
@@ -1697,7 +1733,16 @@
       [0.5, 0.5, 0.0],
       [0.0, 0.5, 0.5]
     ],
-    "absorption_probabilities": [[1.0, 1.0]],
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": [[1.0, 1.0]]
+      },
+      {
+        "initial_distribution": [0.6, 0.1, 0.3],
+        "value": [1.0]
+      }
+    ],
     "absorption_times": [2.0, 4.0],
     "committor_probabilities_data": [
       {
@@ -2086,7 +2131,16 @@
       [0.2, 0.3, 0.5],
       [0.4, 0.1, 0.5]
     ],
-    "absorption_probabilities": null,
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": null
+      },
+      {
+        "initial_distribution": [0.0, 1.0, 0.0],
+        "value": null
+      }
+    ],
     "absorption_times": null,
     "committor_probabilities_data": [
       {
@@ -2622,7 +2676,16 @@
       [0.50, 0.00, 0.50],
       [0.25, 0.25, 0.50]
     ],
-    "absorption_probabilities": null,
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": null
+      },
+      {
+        "initial_distribution": [0.25, 0.00, 0.75],
+        "value": null
+      }
+    ],
     "absorption_times": null,
     "committor_probabilities_data": [
       {
@@ -3149,9 +3212,18 @@
       [0.0, 0.5, 0.0, 0.5],
       [0.0, 0.0, 0.0, 1.0]
     ],
-    "absorption_probabilities": [
-      [0.66666667, 0.33333333],
-      [0.33333333, 0.66666667]
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": [
+          [0.66666667, 0.33333333],
+          [0.33333333, 0.66666667]
+        ]
+      },
+      {
+        "initial_distribution": [0.25, 0.00, 0.25, 0.50],
+        "value": [0.33333333, 0.66666667]
+      }
     ],
     "absorption_times": {
       "value_mean": [2.0, 2.0],
@@ -3544,7 +3616,16 @@
       [0.20, 0.20, 0.50, 0.10],
       [0.30, 0.30, 0.30, 0.10]
     ],
-    "absorption_probabilities": null,
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": null
+      },
+      {
+        "initial_distribution": [1.0, 0.0, 0.0, 0.0],
+        "value": null
+      }
+    ],
     "absorption_times": null,
     "committor_probabilities_data": [
       {
@@ -4099,7 +4180,16 @@
       [1.0, 0.0, 0.0, 0.0, 0.0],
       [0.5, 0.0, 0.0, 0.0, 0.5]
     ],
-    "absorption_probabilities": null,
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": null
+      },
+      {
+        "initial_distribution": [0.5, 0.0, 0.5, 0.0, 0.0],
+        "value": null
+      }
+    ],
     "absorption_times": null,
     "committor_probabilities_data": [
       {
@@ -4661,9 +4751,18 @@
       [0.0, 0.0, 0.0, 0.6, 0.0, 0.4],
       [0.0, 0.4, 0.0, 0.0, 0.6, 0.0]
     ],
-    "absorption_probabilities": [
-      [0.92417062, 0.81042654, 0.63981043, 0.38388626],
-      [0.07582938, 0.18957346, 0.36018957, 0.61611374]
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": [
+          [0.92417062, 0.81042654, 0.63981043, 0.38388626],
+          [0.07582938, 0.18957346, 0.36018957, 0.61611374]
+        ]
+      },
+      {
+        "initial_distribution": [0.1, 0.1, 0.0, 0.3, 0.3, 0.2],
+        "value": [0.61184834, 0.38815166]
+      }
     ],
     "absorption_times": {
       "value_mean": [3.10426540, 5.26066351, 5.99526066, 4.59715640],
@@ -5069,9 +5168,18 @@
       [0.0, 0.0, 0.0, 0.6, 0.0, 0.4],
       [0.0, 0.4, 0.0, 0.0, 0.6, 0.0]
     ],
-    "absorption_probabilities": [
-      [0.92417100, 0.81042700, 0.63981000, 0.38388600],
-      [0.07582900, 0.18957300, 0.36019000, 0.61611400]
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": [
+          [0.92417100, 0.81042700, 0.63981000, 0.38388600],
+          [0.07582900, 0.18957300, 0.36019000, 0.61611400]
+        ]
+      },
+      {
+        "initial_distribution": [0.5, 0.0, 0.0, 0.0, 0.0, 0.5],
+        "value": [0.69194313, 0.30805687]
+      }
     ],
     "absorption_times": {
       "value_mean": [3.10426500, 5.26066400, 5.99526100, 4.59715600],
@@ -5477,7 +5585,16 @@
       [0.00, 0.00, 0.00, 0.50, 0.20, 0.30],
       [0.00, 0.00, 0.00, 0.30, 0.50, 0.20]
     ],
-    "absorption_probabilities": null,
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": null
+      },
+      {
+        "initial_distribution": [0.0, 0.0, 0.0, 0.2, 0.3, 0.5],
+        "value": null
+      }
+    ],
     "absorption_times": null,
     "committor_probabilities_data": [
       {
@@ -5918,7 +6035,16 @@
       [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.09, 0.17, 0.11, 0.15, 0.18, 0.10, 0.20],
       [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.20, 0.09, 0.17, 0.11, 0.15, 0.18, 0.10]
     ],
-    "absorption_probabilities": null,
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": null
+      },
+      {
+        "initial_distribution": [0.0, 0.0, 0.2, 0.2, 0.0, 0.0, 0.0, 0.2, 0.2, 0.0, 0.0, 0.2, 0.0],
+        "value": null
+      }
+    ],
     "absorption_times": null,
     "committor_probabilities_data": [
       {
