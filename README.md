@@ -128,9 +128,9 @@ print(mc.entropy_rate)
 print(mc.absorption_probabilities())
 print(mc.expected_rewards(10, [2.0, -3.0, 8.0, -7.0]))
 print(mc.expected_transitions(2))
+print(mc.expected_visits())
 print(mc.first_passage_probabilities(5, 3))
 print(mc.hitting_probabilities([0, 1]))
-print(mc.mean_number_visits())
 print(mc.simulate(10, seed=32))
 ```
 

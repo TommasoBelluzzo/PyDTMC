@@ -146,6 +146,16 @@ def test_expected_transitions(p, steps, initial_distribution, value):
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_expected_visits(p, steps, discount_factor, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.expected_visits(steps, discount_factor)
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_first_passage_probabilities(p, steps, initial_state, first_passage_states, value):
 
     mc = _MarkovChain(p)
@@ -299,16 +309,6 @@ def test_large_deviation_rate(p, target_average, observable, observable_param, v
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
-
-
-def test_mean_number_visits(p, mean_number_visits):
-
-    mc = _MarkovChain(p)
-
-    actual = mc.mean_number_visits()
-    expected = _np.array(mean_number_visits)
-
-    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_metastability(p, states, value):

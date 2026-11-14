@@ -42,6 +42,7 @@ from ._analysis import (
     mc_entropy_rate_normalized as _entropy_rate_normalized,
     mc_expected_rewards as _expected_rewards,
     mc_expected_transitions as _expected_transitions,
+    mc_expected_visits as _expected_visits,
     mc_first_passage_reward as _first_passage_reward,
     mc_first_passage_probabilities as _first_passage_probabilities,
     mc_first_passage_times_between as _first_passage_times_between,
@@ -58,7 +59,6 @@ from ._analysis import (
     mc_is_reversible as _is_reversible,
     mc_kemeny_constant as _kemeny_constant,
     mc_large_deviation_rate as _large_deviation_rate,
-    mc_mean_number_visits as _mean_number_visits,
     mc_mixing_rate as _mixing_rate,
     mc_mixing_time as _mixing_time,
     mc_mixing_time_from as _mixing_time_from,
@@ -430,9 +430,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
-        asg = _absolute_spectral_gap(self.__slem)
-
-        return asg
+        return _absolute_spectral_gap(self.__slem)
 
     @_cached_property
     def absorbing_states(self) -> _tlists_str:
@@ -462,9 +460,7 @@ class MarkovChain(_Model):
         - Every diagonal entry is 1, since each state is accessible from itself.
         """
 
-        am = _accessibility_matrix(self.adjacency_matrix)
-
-        return am
+        return _accessibility_matrix(self.adjacency_matrix)
 
     @_cached_property
     def adjacency_matrix(self) -> _tarray:
@@ -511,9 +507,7 @@ class MarkovChain(_Model):
         - The matrix is symmetric, with all diagonal entries equal to 1.
         """
 
-        cm = _communication_matrix(self.__size, self.__communicating_classes_indices)
-
-        return cm
+        return _communication_matrix(self.__size, self.__communicating_classes_indices)
 
     @_cached_property
     def cyclic_classes(self) -> _tlists_str:
@@ -560,9 +554,7 @@ class MarkovChain(_Model):
         - The density ranges from 0 to 1.
         """
 
-        d = _density(self.adjacency_matrix)
-
-        return d
+        return _density(self.adjacency_matrix)
 
     @_cached_property
     def determinant(self) -> float:
@@ -591,9 +583,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        dm = _deviation_matrix(self)
-
-        return dm
+        return _deviation_matrix(self)
 
     @_cached_property
     def dobrushin_coefficient(self) -> float:
@@ -604,9 +594,7 @@ class MarkovChain(_Model):
         | :math:`\delta(P) = \frac{1}{2}\max_{i,j}\sum_k |P_{ik} - P_{jk}|`
         """
 
-        dc = _dobrushin_coefficient(self)
-
-        return dc
+        return _dobrushin_coefficient(self)
 
     @_cached_property
     def doeblin_coefficient(self) -> float:
@@ -622,9 +610,7 @@ class MarkovChain(_Model):
         - Equality does not necessarily hold.
         """
 
-        dc = _doeblin_coefficient(self)
-
-        return dc
+        return _doeblin_coefficient(self)
 
     @_cached_property
     def entropy_production_rate(self) -> _tlist_float:
@@ -640,9 +626,7 @@ class MarkovChain(_Model):
         - One value is returned for each stationary distribution.
         """
 
-        epr = _entropy_production_rate(self)
-
-        return epr
+        return _entropy_production_rate(self)
 
     @_cached_property
     def entropy_rate(self) -> _ofloat:
@@ -658,9 +642,7 @@ class MarkovChain(_Model):
         - If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:class:`None` is returned.
         """
 
-        h = _entropy_rate(self)
-
-        return h
+        return _entropy_rate(self)
 
     @_cached_property
     def entropy_rate_normalized(self) -> _ofloat:
@@ -678,9 +660,7 @@ class MarkovChain(_Model):
         - If the entropy rate cannot be computed, then :py:class:`None` is returned.
         """
 
-        hn = _entropy_rate_normalized(self)
-
-        return hn
+        return _entropy_rate_normalized(self)
 
     @_cached_property
     def fundamental_matrix(self) -> _oarray:
@@ -694,9 +674,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        fm = _fundamental_matrix(self)
-
-        return fm
+        return _fundamental_matrix(self)
 
     @_cached_property
     def global_conductance(self) -> _ofloat:
@@ -717,9 +695,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        gc = _global_conductance(self)
-
-        return gc
+        return _global_conductance(self)
 
     @_cached_property
     def global_metastability(self) -> _ofloat:
@@ -754,9 +730,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        it = _implied_timescales(self)
-
-        return it
+        return _implied_timescales(self)
 
     @_cached_property
     def incidence_matrix(self) -> _tarray:
@@ -772,9 +746,7 @@ class MarkovChain(_Model):
         - The matrix includes all possible ordered pairs, independently of their transition probabilities.
         """
 
-        im = _incidence_matrix(self.__states_indices)
-
-        return im
+        return _incidence_matrix(self.__states_indices)
 
     @_cached_property
     def is_absorbing(self) -> bool:
@@ -788,9 +760,7 @@ class MarkovChain(_Model):
         - An absorbing state has a self-transition probability equal to 1.
         """
 
-        ia = _is_absorbing(self.__digraph, self.__states, self.__absorbing_states_indices)
-
-        return ia
+        return _is_absorbing(self.__digraph, self.__states, self.__absorbing_states_indices)
 
     @_cached_property
     def is_aperiodic(self) -> bool:
@@ -804,9 +774,7 @@ class MarkovChain(_Model):
         - Transient classes do not affect the aperiodicity of the Markov chain.
         """
 
-        ia = _is_aperiodic(self)
-
-        return ia
+        return _is_aperiodic(self)
 
     @_cached_property
     def is_canonical(self) -> bool:
@@ -821,9 +789,7 @@ class MarkovChain(_Model):
         - Recurrent classes must follow the ordering determined by their first state index.
         """
 
-        ic = _is_canonical(self, self.__transient_states_indices, self.__recurrent_classes_indices)
-
-        return ic
+        return _is_canonical(self, self.__transient_states_indices, self.__recurrent_classes_indices)
 
     @_cached_property
     def is_doubly_stochastic(self) -> bool:
@@ -878,9 +844,7 @@ class MarkovChain(_Model):
         - For **reducible** chains, detailed balance is checked independently within each recurrent class.
         """
 
-        ir = _is_reversible(self, self.__recurrent_classes_indices)
-
-        return ir
+        return _is_reversible(self, self.__recurrent_classes_indices)
 
     @_cached_property
     @_object_mark(aliases=['is_monotone'])
@@ -896,9 +860,7 @@ class MarkovChain(_Model):
         - The property can also be accessed through the alias **is_monotone**.
         """
 
-        ism = _is_stochastically_monotone(self.__p)
-
-        return ism
+        return _is_stochastically_monotone(self.__p)
 
     @_cached_property
     def is_symmetric(self) -> bool:
@@ -924,9 +886,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the value cannot be computed, then :py:class:`None` is returned.
         """
 
-        kc = _kemeny_constant(self)
-
-        return kc
+        return _kemeny_constant(self)
 
     @_cached_property
     def lumping_partitions(self) -> _tparts:
@@ -963,9 +923,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
-        mr = _mixing_rate(self.__slem)
-
-        return mr
+        return _mixing_rate(self.__slem)
 
     @property
     def n(self) -> int:
@@ -995,9 +953,7 @@ class MarkovChain(_Model):
         - The property can also be accessed through the alias **quasi_stationary_distribution**.
         """
 
-        nu = _quasi_stationary_distribution(self)
-
-        return nu
+        return _quasi_stationary_distribution(self)
 
     @_cached_property
     def occupation_matrix(self) -> _oarray:
@@ -1012,9 +968,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
         """
 
-        om = _occupation_matrix(self, self.__transient_states_indices)
-
-        return om
+        return _occupation_matrix(self, self.__transient_states_indices)
 
     @_cached_property
     def occupation_trace(self) -> _ofloat:
@@ -1087,9 +1041,7 @@ class MarkovChain(_Model):
         - An **aperiodic** Markov chain has period 1.
         """
 
-        p = _period(self)
-
-        return p
+        return _period(self)
 
     @_cached_property
     def periods(self) -> _tlist_int:
@@ -1120,9 +1072,7 @@ class MarkovChain(_Model):
         - The property can also be accessed through the aliases **stationary_distributions** and **steady_states**.
         """
 
-        pi = _stationary_distributions(self, self.__recurrent_classes_indices)
-
-        return pi
+        return _stationary_distributions(self, self.__recurrent_classes_indices)
 
     @_cached_property
     def predictability(self) -> _ofloat:
@@ -1202,9 +1152,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
-        rr = _relaxation_rate(self)
-
-        return rr
+        return _relaxation_rate(self)
 
     @property
     def size(self) -> int:
@@ -1236,9 +1184,7 @@ class MarkovChain(_Model):
         - One matrix is returned for each stationary distribution.
         """
 
-        sc = _stationary_current(self)
-
-        return sc
+        return _stationary_current(self)
 
     @_cached_property
     def stationary_flux(self) -> _tlist_array:
@@ -1252,9 +1198,7 @@ class MarkovChain(_Model):
         - One matrix is returned for each stationary distribution.
         """
 
-        sf = _stationary_flux(self)
-
-        return sf
+        return _stationary_flux(self)
 
     @_cached_property
     def topological_entropy(self) -> float:
@@ -1271,9 +1215,7 @@ class MarkovChain(_Model):
         - The entropy depends on the possible transitions rather than their probabilities.
         """
 
-        ht = _topological_entropy(self)
-
-        return ht
+        return _topological_entropy(self)
 
     @_cached_property
     def transient_classes(self) -> _tlists_str:
@@ -1320,9 +1262,7 @@ class MarkovChain(_Model):
         - The method can also be accessed through the alias **ap**.
         """
 
-        ap = _absorption_probabilities(self)
-
-        return ap
+        return _absorption_probabilities(self)
 
     @_cached_method
     @_object_mark(aliases=['at'])
@@ -1355,9 +1295,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        at = _absorption_times(self, statistic)
-
-        return at
+        return _absorption_times(self, statistic)
 
     def are_communicating(self, state1: _tstate, state2: _tstate) -> bool:
 
@@ -1505,9 +1443,7 @@ class MarkovChain(_Model):
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
-        crp = _committor_probabilities(self, committor_type, states1, states2)
-
-        return crp
+        return _committor_probabilities(self, committor_type, states1, states2)
 
     @_cached_method
     @_object_mark(aliases=['ct'])
@@ -1524,9 +1460,7 @@ class MarkovChain(_Model):
         - The method can also be accessed through the alias **ct**.
         """
 
-        ct = _commute_times(self)
-
-        return ct
+        return _commute_times(self)
 
     @_object_mark(aliases=['conditional_distribution', 'cd', 'cp'])
     def conditional_probabilities(self, state: _tstate) -> _tarray:
@@ -1581,9 +1515,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        c = _conductance(self, states)
-
-        return c
+        return _conductance(self, states)
 
     @_object_mark(aliases=['er'])
     def expected_rewards(self, steps: int, rewards: _tnumeric, discount_factor: float = 1.0) -> _tarray:
@@ -1617,24 +1549,22 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        er = _expected_rewards(self, steps, rewards, discount_factor)
-
-        return er
+        return _expected_rewards(self, steps, rewards, discount_factor)
 
     @_object_mark(aliases=['et'])
     def expected_transitions(self, steps: int, initial_distribution: _onumeric = None) -> _tarray:
 
         r"""
-        | The method computes the expected numbers of transitions between all pairs of states of the Markov chain:
+        | The method computes the expected numbers of transitions between all pairs of states of the Markov chain over a given number of steps:
         | :math:`E_{ij}^{(t)} = \sum_{k=0}^{t-1}(\mu P^k)_i P_{ij}` where:
 
-        - :math:`E^{(t)}` is the expected transition-count matrix;
         - :math:`t` is the number of steps;
         - :math:`\mu` is the initial state distribution.
 
         | **Notes:**
 
-        - At time 0, the expected transition-count matrix is 0.
+        - The returned matrix contains the expected number of transitions from each origin state to each destination state.
+        - At 0 steps, the expected transition-count matrix is null.
         - The method can also be accessed through the alias **et**.
 
         :param steps: the number of steps.
@@ -1650,9 +1580,40 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        et = _expected_transitions(self, steps, initial_distribution)
+        return _expected_transitions(self, steps, initial_distribution)
 
-        return et
+    @_object_mark(aliases=['ev'])
+    def expected_visits(self, steps: _oint = None, discount_factor: float = 1.0) -> _tarray:
+
+        r"""
+        | The method computes the expected numbers of visits between all pairs of states of the Markov chain over a given number of steps, optionally applying a discount factor:
+        | :math:`V_{ij}^{(t,\gamma)} = \sum_{k=1}^{t}\gamma^k(P^k)_{ij}` where:
+
+        - :math:`t` is the number of steps, possibly infinite;
+        - :math:`\gamma` is the discount factor.
+
+        | **Notes:**
+
+        - The returned matrix contains the expected number of visits to each destination state from each initial state.
+        - At 0 steps or with a discount factor of 0, the returned matrix is null.
+        - The method can also be accessed through the alias **ev**.
+
+        :param steps: the number of steps (*if omitted, the infinite-horizon expectation is computed*).
+        :param discount_factor: the discount factor, in the interval [0, 1] (*if omitted, 1 is used*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            if steps is not None:
+                steps = _validate_integer(steps, lower_limit=(0, False))
+
+            discount_factor = _validate_float(discount_factor, lower_limit=(0.0, False), upper_limit=(1.0, False))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _expected_visits(self, steps, discount_factor)
 
     @_object_mark(aliases=['fpp'])
     def first_passage_probabilities(self, steps: int, initial_state: _tstate, first_passage_states: _ostates = None) -> _tarray:
@@ -1685,9 +1646,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        fpp = _first_passage_probabilities(self, steps, initial_state, first_passage_states)
-
-        return fpp
+        return _first_passage_probabilities(self, steps, initial_state, first_passage_states)
 
     @_object_mark(aliases=['fpr'])
     def first_passage_reward(self, steps: int, initial_state: _tstate, first_passage_states: _tstates, rewards: _tnumeric) -> float:
@@ -1728,9 +1687,7 @@ class MarkovChain(_Model):
         if initial_state in first_passage_states:  # pragma: no cover
             raise _ValidationError('The first passage states cannot include the initial state.')
 
-        fpr = _first_passage_reward(self, steps, initial_state, first_passage_states, rewards)
-
-        return fpr
+        return _first_passage_reward(self, steps, initial_state, first_passage_states, rewards)
 
     @_object_mark(aliases=['fpt_between', 'fptb'])
     def first_passage_times_between(self, statistic: str, origins: _tstates, targets: _tstates) -> _ofloat:
@@ -1762,9 +1719,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        fptb = _first_passage_times_between(self, statistic, origins, targets)
-
-        return fptb
+        return _first_passage_times_between(self, statistic, origins, targets)
 
     @_object_mark(aliases=['fpt_to', 'fptt'])
     def first_passage_times_to(self, statistic: str, targets: _ostates = None) -> _oarray:
@@ -1796,11 +1751,10 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        fptt = _first_passage_times_to(self, statistic, targets)
-
-        return fptt
+        return _first_passage_times_to(self, statistic, targets)
 
     @_cached_method
+    @_object_mark(aliases=['fcp'])
     def fundamental_cycle_profile(self, output_indices: bool = False) -> _ofcpro:
 
         r"""
@@ -1818,6 +1772,7 @@ class MarkovChain(_Model):
         - The returned tuple contains a dictionary of cycle affinities and a list of dictionaries of cycle current coefficients, one for each stationary distribution.
         - If no fundamental cycles exist, the dictionaries are empty.
         - If any recurrent class contains a transition without a positive reverse transition, then :py:class:`None` is returned.
+        - The method can also be accessed through the alias **fcp**.
 
         :param output_indices: a boolean indicating whether to return zero-based state indices instead of state labels.
         :raises ValidationError: if any input argument is not compliant.
@@ -1875,9 +1830,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        hp = _hitting_probabilities(self, targets)
-
-        return hp
+        return _hitting_probabilities(self, targets)
 
     @_object_mark(aliases=['ht'])
     def hitting_times(self, statistic: str, targets: _ostates = None) -> _tarray:
@@ -1913,9 +1866,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        ht = _hitting_times(self, statistic, targets)
-
-        return ht
+        return _hitting_times(self, statistic, targets)
 
     def is_absorbing_state(self, state: _tstate) -> bool:
 
@@ -2130,24 +2081,6 @@ class MarkovChain(_Model):
 
         return mc
 
-    @_cached_method
-    @_object_mark(aliases=['mnv'])
-    def mean_number_visits(self) -> _oarray:
-
-        r"""
-        | The method computes the expected numbers of visits between all pairs of states of the Markov chain:
-        | :math:`V_{ij} = \mathbb{E}_i\left[\sum_{t=1}^{\infty}\mathbb{1}_{\{X_t=j\}}\right]` where :math:`X_t` is the state occupied at time :math:`t`.
-
-        | **Notes:**
-
-        - The initial visit at time 0 is excluded.
-        - Visits to transient states have finite expectations.
-        - Visits to recurrent states have infinite expectation when those states are accessible, and 0 otherwise.
-        - The method can also be accessed through the alias **mnv**.
-        """
-
-        return _mean_number_visits(self)
-
     @_object_mark(instance_generator=True)
     def merge_with(self, other: _tmc, gamma: float) -> _tmc:
 
@@ -2286,9 +2219,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        mt = _mixing_time(self, cutoff, maximum_iterations)
-
-        return mt
+        return _mixing_time(self, cutoff, maximum_iterations)
 
     @_object_mark(aliases=['mtf'])
     def mixing_time_from(self, initial_distribution: _onumeric = None, jump: int = 1, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
@@ -2324,9 +2255,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        mtf = _mixing_time_from(self, initial_distribution, jump, cutoff, maximum_iterations)
-
-        return mtf
+        return _mixing_time_from(self, initial_distribution, jump, cutoff, maximum_iterations)
 
     @_object_mark(random_output=True)
     def next(self, initial_state: _tstate, output_index: bool = False, seed: _oint = None) -> _tstate:
@@ -2454,9 +2383,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _propagate(self, steps, initial_status, output_last)
-
-        return value
+        return _propagate(self, steps, initial_status, output_last)
 
     def reaction_rate(self, states1: _tstates, states2: _tstates) -> _ofloat:
 
@@ -2490,9 +2417,7 @@ class MarkovChain(_Model):
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
-        rr = _reaction_rate(self, states1, states2)
-
-        return rr
+        return _reaction_rate(self, states1, states2)
 
     def reactive_density(self, states1: _tstates, states2: _tstates) -> _oarray:
 
@@ -2528,9 +2453,7 @@ class MarkovChain(_Model):
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
-        rd = _reactive_density(self, states1, states2)
-
-        return rd
+        return _reactive_density(self, states1, states2)
 
     def reactive_flux(self, net: bool, states1: _tstates, states2: _tstates) -> _oarray:
 
@@ -2567,9 +2490,7 @@ class MarkovChain(_Model):
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
-        rf = _reactive_flux(self, states1, states2, net)
-
-        return rf
+        return _reactive_flux(self, states1, states2, net)
 
     @_cached_method
     @_object_mark(aliases=['rt'])
@@ -2601,9 +2522,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        rt = _recurrence_times(self, statistic)
-
-        return rt
+        return _recurrence_times(self, statistic)
 
     @_object_mark(instance_generator=True)
     def reversibilize(self, method: str = 'additive') -> _tmc:
@@ -2666,9 +2585,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        s = _sensitivity(self, state)
-
-        return s
+        return _sensitivity(self, state)
 
     def sequence_probability(self, sequence: _tsequence) -> float:
 
@@ -2691,9 +2608,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        sp = _sequence_probability(self, sequence)
-
-        return sp
+        return _sequence_probability(self, sequence)
 
     @_object_mark(random_output=True)
     def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _tsequence:
@@ -2804,9 +2719,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        spb = _stationary_perturbation_bound(self, epsilon)
-
-        return spb
+        return _stationary_perturbation_bound(self, epsilon)
 
     @_object_mark(random_output=True)
     def stationary_sampling(self, maximum_doublings: int = 10, output_index: bool = False, seed: _oint = None) -> _tstate:
@@ -2917,9 +2830,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        tc = _time_correlations(self, sequence1, sequence2, time_points)
-
-        return tc
+        return _time_correlations(self, sequence1, sequence2, time_points)
 
     @_object_mark(aliases=['tr'])
     def time_relaxations(self, sequence: _tsequence, initial_distribution: _onumeric = None, time_points: _ttimes_in = 1) -> _otimes_out:
@@ -2955,9 +2866,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        tr = _time_relaxations(self, sequence, initial_distribution, time_points)
-
-        return tr
+        return _time_relaxations(self, sequence, initial_distribution, time_points)
 
     @_object_mark(instance_generator=True)
     def time_reversal(self) -> _tmc:
@@ -3100,9 +3009,7 @@ class MarkovChain(_Model):
         - Edge weights represent transition probabilities.
         """
 
-        graph = _cp.deepcopy(self.__digraph)
-
-        return graph
+        return _cp.deepcopy(self.__digraph)
 
     @_object_mark(aliases=['to_lazy'], instance_generator=True)
     def to_lazy_chain(self, inertial_weights: _tweights = 0.5) -> _tmc:
@@ -3141,9 +3048,7 @@ class MarkovChain(_Model):
         The method returns a copy of the transition matrix of the Markov chain.
         """
 
-        m = _np.copy(self.__p)
-
-        return m
+        return _np.copy(self.__p)
 
     # noinspection GrazieInspection
     @_object_mark(aliases=['to_nth'], instance_generator=True)

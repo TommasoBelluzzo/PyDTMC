@@ -21,6 +21,7 @@ __all__ = [
     'mc_entropy_rate_normalized',
     'mc_expected_rewards',
     'mc_expected_transitions',
+    'mc_expected_visits',
     'mc_first_passage_probabilities',
     'mc_first_passage_reward',
     'mc_first_passage_times_between',
@@ -37,7 +38,6 @@ __all__ = [
     'mc_is_reversible',
     'mc_kemeny_constant',
     'mc_large_deviation_rate',
-    'mc_mean_number_visits',
     'mc_mixing_rate',
     'mc_mixing_time',
     'mc_mixing_time_from',
@@ -87,8 +87,8 @@ from ._constants import (
 
 from ._custom_types import (
     oarray as _oarray,
-    obndval as _obound_float,
-    obndvals as _obound_floats,
+    obndval as _obndval,
+    obndvals as _obndvals,
     ofloat as _ofloat,
     oint as _oint,
     ohmm_decoding as _ohmm_decoding,
@@ -840,7 +840,7 @@ def hmm_entropy(hmm: _thmm, target: str, conditional: bool) -> _tlist_float:
     return results
 
 
-def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obound_floats:
+def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obndvals:
 
     n, k = hmm.size
     p, e = hmm.p, hmm.e
@@ -1430,15 +1430,38 @@ def mc_expected_transitions(mc: _tmc, steps: int, initial_distribution: _tarray)
     return et
 
 
-def mc_mean_number_visits(mc: _tmc) -> _oarray:
+def mc_expected_visits(mc: _tmc, steps: _oint, discount_factor: float) -> _tarray:
 
-    p, size, states = mc.p, mc.size, mc.states
+    p, size = mc.p, mc.size
+
+    if (steps == 0) or (discount_factor == 0.0):
+        return _np.zeros((size, size), dtype=float)
+
+    if steps is not None:
+
+        m = discount_factor * p
+        mg_sum = _matrix_geometric_sum(m, steps)
+
+        ev = _np.dot(m, mg_sum)
+
+        return ev
+
+    if discount_factor < 1.0:
+
+        m = discount_factor * p
+        i = _np.eye(size, dtype=float)
+
+        ev = _npl.solve(i - m, m)
+
+        return ev
+
+    states = mc.states
 
     states_indices = {state: index for index, state in enumerate(states)}
     transient_indices = [states_indices[state] for state in mc.transient_states]
     recurrent_indices = [states_indices[state] for state in mc.recurrent_states]
 
-    mnv = _np.zeros((size, size), dtype=float)
+    ev = _np.zeros((size, size), dtype=float)
 
     if len(transient_indices) > 0:
 
@@ -1446,14 +1469,14 @@ def mc_mean_number_visits(mc: _tmc) -> _oarray:
         i = _np.eye(len(transient_indices), dtype=float)
         n = _npl.solve(i - q, i) - i
 
-        mnv[_np.ix_(transient_indices, transient_indices)] = n
+        ev[_np.ix_(transient_indices, transient_indices)] = n
 
     if len(recurrent_indices) > 0:
 
         accessible = mc.accessibility_matrix[:, recurrent_indices] != 0
-        mnv[:, recurrent_indices] = _np.where(accessible, _np.inf, 0.0)
+        ev[:, recurrent_indices] = _np.where(accessible, _np.inf, 0.0)
 
-    return mnv
+    return ev
 
 
 def mc_recurrence_times(mc: _tmc, statistic: str) -> _tarray:
@@ -1720,7 +1743,7 @@ def mc_kemeny_constant(mc: _tmc) -> _ofloat:
     return kc
 
 
-def mc_ordinary_spectral_gap(mc: _tmc) -> _obound_float:
+def mc_ordinary_spectral_gap(mc: _tmc) -> _obndval:
 
     if (not mc.is_irreducible) or (not mc.is_reversible):
         return None
