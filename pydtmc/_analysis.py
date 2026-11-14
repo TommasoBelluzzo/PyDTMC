@@ -1195,7 +1195,7 @@ def hmm_synchronization_information(hmm: _thmm) -> _tarray:
                 si[index] = information
                 break
 
-            if (sequence_count * symbols) > 100000:
+            if (sequence_count * symbols) > 1000000:
                 si[index] = _np.nan
                 break
 
