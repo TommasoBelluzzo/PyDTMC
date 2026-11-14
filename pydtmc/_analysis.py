@@ -10,6 +10,8 @@ __all__ = [
     'hmm_excess_entropy',
     'hmm_hitting_probabilities',
     'hmm_mutual_information',
+    'hmm_synchronization_entropy',
+    'hmm_synchronization_information',
     'mc_absolute_spectral_gap',
     'mc_absorption_probabilities',
     'mc_absorption_times',
@@ -149,11 +151,12 @@ def _build_observable_matrix(p: _tarray, observable: _tobs, observable_param: _t
     else:
 
         positive = p > 0.0
+        positive_transposed = _np.transpose(positive)
 
-        if _np.any(positive != positive.T):
+        if _np.any(positive != positive_transposed):  # pragma: no cover
             raise ValueError('The entropy production observable requires bidirectional transition support.')
 
-        g[positive] = _np.log(p[positive]) - _np.log(p.T[positive])
+        g[positive] = _np.log(p[positive]) - _np.log(positive_transposed[positive])
 
     return g
 
@@ -192,6 +195,43 @@ def _mutual_information(joint: _tarray) -> float:
     mi = float(_np.sum(values))
 
     return mi
+
+
+def _synchronization_entropies_iterator(p: _tarray, e: _tarray, pi: _tarray):
+
+    sequences = [pi.copy()]
+
+    while True:
+
+        entropy = 0.0
+
+        for probabilities in sequences:
+
+            probability = _np.sum(probabilities)
+
+            if probability > 0.0:
+
+                posterior = probabilities / probability
+                positive = posterior > 0.0
+
+                entropy -= float(probability * _np.sum(posterior[positive] * _np.log(posterior[positive])))
+
+        yield entropy, len(sequences)
+
+        next_sequences = []
+
+        for probabilities in sequences:
+
+            predicted = _np.dot(probabilities, p)
+
+            for symbol in range(e.shape[1]):
+
+                updated = predicted * e[:, symbol]
+
+                if _np.any(updated > 0.0):
+                    next_sequences.append(updated)
+
+        sequences = next_sequences
 
 
 # HMM DISTRIBUTIONS & PROBABILITIES
@@ -836,20 +876,20 @@ def mc_doeblin_coefficient(mc: _tmc) -> float:
 
 # INFORMATION THEORY
 
-def hmm_block_entropy(hmm: _thmm, length: int) -> _tlist_float:
+def hmm_block_entropy(hmm: _thmm, length: int) -> _tarray:
 
-    p, e = hmm.p, hmm.e
+    p, e, pi = hmm.p, hmm.e, hmm.pi
     k = e.shape[1]
 
-    results = []
+    hb = _np.zeros(len(pi), dtype=float)
 
-    for pi in hmm.pi:
+    for index, pi_current in enumerate(pi):
 
         entropy = 0.0
 
         for sequence in _it.product(range(k), repeat=length):
 
-            probabilities = pi.copy()
+            probabilities = pi_current.copy()
 
             for t, symbol in enumerate(sequence):
 
@@ -863,46 +903,46 @@ def hmm_block_entropy(hmm: _thmm, length: int) -> _tlist_float:
             if probability > 0.0:
                 entropy -= probability * _np.log(probability)
 
-        results.append(float(entropy))
+        hb[index] = float(entropy)
 
-    return results
+    return hb
 
 
-def hmm_entropy(hmm: _thmm, target: str, conditional: bool) -> _tlist_float:
+def hmm_entropy(hmm: _thmm, target: str, conditional: bool) -> _tarray:
 
     def _entropy(probabilities):
 
         probabilities = probabilities[probabilities > 0.0]
-        h = float(-_np.sum(probabilities * _np.log(probabilities)))
+        hv = float(-_np.sum(probabilities * _np.log(probabilities)))
 
-        return h
+        return hv
 
-    e = hmm.e
+    e, pi = hmm.e, hmm.pi
 
-    results = []
+    h = _np.zeros(len(pi), dtype=float)
 
-    for pi in hmm.pi:
+    for index, pi_current in enumerate(pi):
 
         if target == 'states':
 
             if conditional:
-                q = _np.dot(pi, e)
-                joint = pi[:, _np.newaxis] * e
+                q = _np.dot(pi_current, e)
+                joint = pi_current[:, _np.newaxis] * e
                 value = _entropy(joint) - _entropy(q)
             else:
-                value = _entropy(pi)
+                value = _entropy(pi_current)
 
         else:
 
             if conditional:
-                value = _np.dot(pi, [_entropy(row) for row in e]).item()
+                value = _np.dot(pi_current, [_entropy(row) for row in e]).item()
             else:
-                q = _np.dot(pi, e)
+                q = _np.dot(pi_current, e)
                 value = _entropy(q)
 
-        results.append(value)
+        h[index] = value
 
-    return results
+    return h
 
 
 def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obndvals:
@@ -1015,35 +1055,27 @@ def hmm_entropy_rate_normalized(hmm: _thmm, steps: int, samples: int, rng) -> _o
     return hn
 
 
-def hmm_excess_entropy(hmm: _thmm, length: int) -> _tlist_float:
+def hmm_excess_entropy(hmm: _thmm, length: int) -> _tarray:
 
     h1 = hmm.block_entropy(length)
     h2 = hmm.block_entropy(2 * length)
 
-    results = []
+    he = (2.0 * h1) - h2
+    he[(-_FTOL < he) & (he < 0.0)] = 0.0
 
-    for value1, value2 in zip(h1, h2):
-
-        entropy = (2.0 * value1) - value2
-
-        if -_FTOL < entropy < 0.0:
-            entropy = 0.0
-
-        results.append(float(entropy))
-
-    return results
+    return he
 
 
-def hmm_mutual_information(hmm: _thmm, process1: str, process2: str, steps: int) -> _tlist_float:
+def hmm_mutual_information(hmm: _thmm, process1: str, process2: str, steps: int) -> _tarray:
 
-    p, e = hmm.p, hmm.e
+    p, e, pi = hmm.p, hmm.e, hmm.pi
     transition = _npl.matrix_power(p, steps)
 
-    results = []
+    mi = _np.zeros(len(pi), dtype=float)
 
-    for pi in hmm.pi:
+    for index, pi_current in enumerate(pi):
 
-        joint = pi[:, _np.newaxis] * transition
+        joint = pi_current[:, _np.newaxis] * transition
 
         if process1 == 'symbols':
             joint = _np.dot(_np.transpose(e), joint)
@@ -1051,11 +1083,127 @@ def hmm_mutual_information(hmm: _thmm, process1: str, process2: str, steps: int)
         if process2 == 'symbols':
             joint = _np.dot(joint, e)
 
-        mi = _mutual_information(joint)
+        mi[index] = _mutual_information(joint)
 
-        results.append(mi)
+    return mi
 
-    return results
+
+def hmm_synchronization_entropy(hmm: _thmm, length: int) -> _tarray:
+
+    p, e, pi = hmm.p, hmm.e, hmm.pi
+
+    hs = _np.zeros(len(pi), dtype=float)
+
+    for index, pi_current in enumerate(pi):
+
+        entropies = _synchronization_entropies_iterator(p, e, pi_current)
+
+        for _ in range(length):
+            next(entropies)
+
+        hs[index] = next(entropies)[0]
+
+    return hs
+
+
+def hmm_synchronization_information(hmm: _thmm) -> _tarray:
+
+    p, e, pi = hmm.p, hmm.e, hmm.pi
+    si = _np.zeros(len(hmm.pi), dtype=float)
+
+    for index, pi_current in enumerate(pi):
+
+        states = _np.flatnonzero(pi_current > 0.0)
+
+        pr = p[_np.ix_(states, states)]
+        er = e[states, :]
+
+        initial = pi_current[states]
+        size, symbols = er.shape
+
+        if size == 1:
+            continue
+
+        destinations = _np.full((size, symbols), -1, dtype=int)
+        weights = _np.zeros((size, symbols), dtype=float)
+        ambiguous = False
+
+        for i in range(size):
+
+            for symbol in range(symbols):
+
+                probabilities = pr[i, :] * er[:, symbol]
+                targets = _np.flatnonzero(probabilities > 0.0)
+
+                if targets.size > 1:
+                    ambiguous = True
+                    break
+
+                if targets.size == 1:
+                    destinations[i, symbol] = targets[0]
+                    weights[i, symbol] = probabilities[targets[0]]
+
+            if ambiguous:
+                break
+
+        if ambiguous:
+            si[index] = _np.inf
+            continue
+
+        pairs = [(i, j) for i in range(size) for j in range(size) if i != j]
+        indices = {pair: i for i, pair in enumerate(pairs)}
+        count = len(pairs)
+
+        q = _np.zeros((count, count), dtype=float)
+        distribution = _np.zeros(count, dtype=float)
+
+        for position, (i, j) in enumerate(pairs):
+
+            distribution[position] = initial[i]
+
+            for symbol in range(symbols):
+
+                target_i = destinations[i, symbol]
+                target_j = destinations[j, symbol]
+
+                if (target_i < 0) or (target_j < 0) or (target_i == target_j):
+                    continue
+
+                target = indices[(target_i, target_j)]
+                q[position, target] += weights[i, symbol]
+
+        radius = _np.max(_np.abs(_npl.eigvals(q)))
+
+        if (1.0 - radius) <= 1e-10:
+            si[index] = _np.nan
+            continue
+
+        tail = _npl.solve(_np.eye(count) - q, _np.ones(count, dtype=float))
+        iterator = _synchronization_entropies_iterator(pr, er, initial)
+
+        information = 0.0
+
+        for _ in range(33):
+
+            uncertainty, sequence_count = next(iterator)
+            information += uncertainty
+
+            distribution = _np.dot(distribution, q)
+            remaining = float(_np.log(size) * _np.dot(distribution, tail))
+
+            if remaining <= 1e-10:
+                si[index] = information
+                break
+
+            if (sequence_count * symbols) > 100000:
+                si[index] = _np.nan
+                break
+
+        else:
+
+            si[index] = _np.nan
+
+    return si
 
 
 def mc_cumulants(mc: _tmc, order: int, observable: _tobs, observable_param: _tany) -> _tarray:
@@ -1228,12 +1376,12 @@ def mc_large_deviation_rate(mc: _tmc, target_average: float, observable: _tobs, 
 
     minimum = _spo.linprog(values, A_eq=constraints, b_eq=rhs, bounds=(0.0, None), method='highs')
 
-    if not minimum.success:
+    if not minimum.success:  # pragma: no cover
         raise ValueError('The attainable range of the observable could not be computed.')
 
     maximum = _spo.linprog(-values, A_eq=constraints, b_eq=rhs, bounds=(0.0, None), method='highs')
 
-    if not maximum.success:
+    if not maximum.success:  # pragma: no cover
         raise ValueError('The attainable range of the observable could not be computed.')
 
     lower = float(minimum.fun)
@@ -1254,7 +1402,7 @@ def mc_large_deviation_rate(mc: _tmc, target_average: float, observable: _tobs, 
 
     _, typical = _evaluate_tilt(0.0, upper, increments_upper)
 
-    if abs(target_average - typical) <= tolerance:
+    if abs(target_average - typical) <= tolerance:  # pragma: no cover
         return 0.0
 
     if target_average > typical:
@@ -1262,9 +1410,10 @@ def mc_large_deviation_rate(mc: _tmc, target_average: float, observable: _tobs, 
         bound = 1.0
 
         while _evaluate_tilt(bound, upper, increments_upper)[1] < target_average:
+
             bound *= 2.0
 
-            if bound > 1e8:
+            if bound > 1e8:  # pragma: no cover
                 raise ValueError('The large-deviation optimization did not converge.')
 
         tilt = _spo.brentq(lambda k: _evaluate_tilt(k, upper, increments_upper)[1] - target_average, 0.0, bound)
@@ -1275,9 +1424,10 @@ def mc_large_deviation_rate(mc: _tmc, target_average: float, observable: _tobs, 
         bound = 1.0
 
         while _evaluate_tilt(bound, -lower, increments_lower)[1] > target_average:
+
             bound *= 2.0
 
-            if bound > 1e8:
+            if bound > 1e8:  # pragma: no cover
                 raise ValueError('The large-deviation optimization did not converge.')
 
         tilt = -_spo.brentq(lambda k: _evaluate_tilt(k, -lower, increments_lower)[1] - target_average, 0.0, bound)

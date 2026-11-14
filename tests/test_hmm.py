@@ -29,7 +29,7 @@ def test_block_entropy(p, e, length, value):
 
     hmm = _HiddenMarkovModel(p, e)
 
-    actual = _np.array(hmm.block_entropy(length))
+    actual = hmm.block_entropy(length)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -180,7 +180,7 @@ def test_excess_entropy(p, e, length, value):
 
     hmm = _HiddenMarkovModel(p, e)
 
-    actual = _np.array(hmm.excess_entropy(length))
+    actual = hmm.excess_entropy(length)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-7, atol=1e-8)
@@ -323,7 +323,7 @@ def test_mutual_information(p, e, process1, process2, steps, value):
 
     hmm = _HiddenMarkovModel(p, e)
 
-    actual = _np.array(hmm.mutual_information(process1, process2, steps))
+    actual = hmm.mutual_information(process1, process2, steps)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -643,3 +643,23 @@ def test_simulate(p, e, seed, steps, initial_state, final_state, final_symbol, o
         expected = initial_state
 
         assert actual == expected
+
+
+def test_synchronization_entropy(p, e, length, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.synchronization_entropy(length)
+    expected = _np.asarray(value, dtype=float)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8, equal_nan=True)
+
+
+def test_synchronization_information(p, e, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.synchronization_information()
+    expected = _np.asarray(value, dtype=float)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8, equal_nan=True)

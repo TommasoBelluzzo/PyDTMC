@@ -30,7 +30,9 @@ from ._analysis import (
     hmm_entropy_rate_normalized as _entropy_rate_normalized,
     hmm_excess_entropy as _excess_entropy,
     hmm_hitting_probabilities as _hitting_probabilities,
-    hmm_mutual_information as _mutual_information
+    hmm_mutual_information as _mutual_information,
+    hmm_synchronization_entropy as _synchronization_entropy,
+    hmm_synchronization_information as _synchronization_information
 )
 
 from ._base_classes import (
@@ -58,7 +60,6 @@ from ._custom_types import (
     thmm_step as _thmm_step,
     thmm_symbols_ext as _thmm_symbols_ext,
     tlist_array as _tlist_array,
-    tlist_float as _tlist_float,
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
     tpair_array as _tpair_array,
@@ -366,7 +367,7 @@ class HiddenMarkovModel(_Model):
         return self.__symbols.copy()
 
     @_object_mark(aliases=['hb'])
-    def block_entropy(self, length: int) -> _tlist_float:
+    def block_entropy(self, length: int) -> _tarray:
 
         r"""
         | The method computes the stationary block entropy of the emitted-symbol process over a given number of observations:
@@ -377,9 +378,9 @@ class HiddenMarkovModel(_Model):
 
         | **Notes:**
 
-        - At length 0, the block entropy is 0.
         - One value is returned for each stationary distribution of the hidden-state transition matrix.
         - Block entropies are expressed in nats; zero-probability terms contribute 0.
+        - At length 0, the block entropy is 0.
         - The computation has exponential time complexity in the number of observations.
         - The method can also be accessed through the alias **hb**.
 
@@ -484,7 +485,7 @@ class HiddenMarkovModel(_Model):
 
     @_cached_method
     @_object_mark(aliases=['h'])
-    def entropy(self, target: str, conditional: bool = False) -> _tlist_float:
+    def entropy(self, target: str, conditional: bool = False) -> _tarray:
 
         r"""
         | The method computes the conditional or unconditional stationary entropy of the selected process:
@@ -523,9 +524,9 @@ class HiddenMarkovModel(_Model):
         | **Notes:**
 
         - One result is returned for each stationary distribution of the hidden-state transition matrix.
+        - The entropy rate is expressed in nats per emitted symbol.
         - Each result contains the estimated entropy rate and its analytical lower and upper bounds.
         - The estimates are obtained through Monte Carlo sampling and depend on the sampling parameters, whereas the bounds are computed analytically.
-        - The entropy rate is expressed in nats per emitted symbol.
         - If the entropy rate cannot be estimated due to numerical inconsistencies, then :py:obj:`None` is returned.
 
         :param normalized: a boolean indicating whether to normalize the entropy rate.
@@ -553,7 +554,7 @@ class HiddenMarkovModel(_Model):
         return h
 
     @_object_mark(aliases=['he'])
-    def excess_entropy(self, length: int) -> _tlist_float:
+    def excess_entropy(self, length: int) -> _tarray:
 
         r"""
         | The method computes the stationary finite-length excess entropy of the emitted-symbol process.
@@ -565,16 +566,15 @@ class HiddenMarkovModel(_Model):
 
         | **Notes:**
 
-        - At length 0, the excess entropy is 0.
         - One value is returned for each stationary distribution of the hidden-state transition matrix.
         - Excess entropies are expressed in nats.
+        - At length 0, the excess entropy is 0.
         - The computation has exponential time complexity in the number of observations.
         - The method can also be accessed through the alias **he**.
 
         :param length: the number of observations in each block.
         :raises ValidationError: if any input argument is not compliant.
         """
-
 
         try:
 
@@ -616,7 +616,7 @@ class HiddenMarkovModel(_Model):
         return _hitting_probabilities(self, targets)
 
     @_object_mark(aliases=['mi'])
-    def mutual_information(self, process1: str, process2: str, steps: int = 0) -> _tlist_float:
+    def mutual_information(self, process1: str, process2: str, steps: int = 0) -> _tarray:
 
         r"""
         | The method computes the stationary mutual information between two selected processes at a specified time lag:
@@ -624,9 +624,9 @@ class HiddenMarkovModel(_Model):
 
         | **Notes:**
 
-        - At lag 0, the mutual information is computed between simultaneous variables.
         - One value is returned for each stationary distribution of the hidden-state transition matrix.
         - Mutual information is expressed in nats; zero-probability terms contribute 0.
+        - At lag 0, the mutual information is computed between simultaneous variables.
         - The method can also be accessed through the alias **mi**.
 
         :param process1:
@@ -1479,3 +1479,57 @@ class HiddenMarkovModel(_Model):
         hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 
         return hmm
+
+    @_object_mark(aliases=['hs'])
+    def synchronization_entropy(self, length: int) -> _tarray:
+
+        r"""
+        | The method computes the stationary synchronization entropy of the hidden Markov model after a given number of observations.
+        | This is achieved by measuring the expected uncertainty about the hidden state after observing a sequence of emitted symbols:
+        | :math:`U(t) = H(X_t \mid Y_1,\ldots,Y_t)` where:
+
+        - :math:`t` is the number of observations;
+        - :math:`X_t` is the hidden state associated with the last observation;
+        - :math:`Y_1,\ldots,Y_t` is the observed symbol sequence.
+
+        | **Notes:**
+
+        - One value is returned for each stationary distribution of the hidden-state transition matrix.
+        - Synchronization entropies are expressed in nats; zero-probability terms contribute 0.
+        - At length 0, the synchronization entropy equals the entropy of the initial stationary distribution.
+        - The computation has exponential time complexity in the number of observations.
+        - The method can also be accessed through the alias **hs**.
+
+        :param length: the number of consecutive observations.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            length = _validate_integer(length, lower_limit=(0, False))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _synchronization_entropy(self, length)
+
+    @_cached_method
+    def synchronization_information(self) -> _tarray:
+
+        r"""
+        | The method computes the stationary synchronization information of the hidden Markov model.
+        | This is achieved by measuring the total expected uncertainty about the hidden state accumulated during synchronization:
+        | :math:`\mathcal{S} = \sum_{t=0}^{\infty} U(t)` where:
+
+        - :math:`t` is the number of observations;
+        - :math:`U(t)` is the synchronization entropy after :math:`t` observations.
+
+        | **Notes:**
+
+        - One value is returned for each stationary distribution of the hidden-state transition matrix.
+        - Synchronization information is expressed in nats.
+        - The result is infinite if the synchronization entropy does not converge to 0.
+        - The result is *NaN* if convergence or divergence cannot be established numerically.
+        """
+
+        return _synchronization_information(self)
