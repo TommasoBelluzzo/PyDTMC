@@ -151,12 +151,11 @@ def _build_observable_matrix(p: _tarray, observable: _tobs, observable_param: _t
     else:
 
         positive = p > 0.0
-        positive_transposed = _np.transpose(positive)
 
-        if _np.any(positive != positive_transposed):  # pragma: no cover
+        if _np.any(positive != _np.transpose(positive)):  # pragma: no cover
             raise ValueError('The entropy production observable requires bidirectional transition support.')
 
-        g[positive] = _np.log(p[positive]) - _np.log(positive_transposed[positive])
+        g[positive] = _np.log(p[positive]) - _np.log(_np.transpose(p)[positive])
 
     return g
 

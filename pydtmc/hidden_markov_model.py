@@ -1514,6 +1514,7 @@ class HiddenMarkovModel(_Model):
         return _synchronization_entropy(self, length)
 
     @_cached_method
+    @_object_mark(aliases=['si'])
     def synchronization_information(self) -> _tarray:
 
         r"""
@@ -1530,6 +1531,7 @@ class HiddenMarkovModel(_Model):
         - Synchronization information is expressed in nats.
         - The result is infinite if the synchronization entropy does not converge to 0.
         - The result is *NaN* if convergence or divergence cannot be established numerically.
+        - The method can also be accessed through the alias **si**.
         """
 
         return _synchronization_information(self)

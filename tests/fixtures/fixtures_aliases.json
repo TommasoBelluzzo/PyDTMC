@@ -17,7 +17,9 @@
         "entropy": ["symbols", false],
         "excess_entropy": [2],
         "hitting_probabilities": [null],
-        "mutual_information": ["states", "symbols", 0]
+        "mutual_information": ["states", "symbols", 0],
+        "synchronization_entropy": [1],
+        "synchronization_information": null
       }
     },
     {
@@ -37,7 +39,9 @@
         "entropy": ["states", true],
         "excess_entropy": [3],
         "hitting_probabilities": [null],
-        "mutual_information": ["symbols", "symbols", 2]
+        "mutual_information": ["symbols", "symbols", 2],
+        "synchronization_entropy": [2],
+        "synchronization_information": null
       }
     },
     {
@@ -59,7 +63,9 @@
         "entropy": ["symbols", false],
         "excess_entropy": [2],
         "hitting_probabilities": [null],
-        "mutual_information": ["states", "symbols", 1]
+        "mutual_information": ["states", "symbols", 1],
+        "synchronization_entropy": [1],
+        "synchronization_information": null
       }
     }
   ],
