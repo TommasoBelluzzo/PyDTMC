@@ -861,6 +861,40 @@ class HiddenMarkovModel(_Model):
 
         return hmm
 
+    def sequence_probability(self, sequence: _tsequence, initial_status: _ostatus = None) -> float:
+
+        r"""
+        | The method computes the probability of an observed sequence of emitted symbols:
+        | :math:`\mathbb{P}(Y_1=y_1,\ldots,Y_T=y_T)`.
+
+        | **Notes:**
+
+        - The initial hidden-state distribution is applied before the first transition, consistently with **decode**.
+        - An impossible observed sequence has probability 0.
+
+        :param sequence: the observed sequence of emitted symbols.
+        :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            sequence = _validate_sequence(sequence, self.__symbols)
+            initial_status = _validate_status(initial_status, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        decoding = _decode(self.__p, self.__e, initial_status, sequence, True, False)
+
+        if decoding is None:
+            return 0.0
+
+        log_probability, _, _, _, _, _ = decoding
+        sp = float(_np.exp(log_probability))
+
+        return sp
+
     @_object_mark(random_output=True)
     def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, final_symbol: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _thmm_sequence_ext:
 
@@ -900,6 +934,72 @@ class HiddenMarkovModel(_Model):
             value = (v0, v1)
 
         return value
+
+    @_object_mark(aliases=['hs'])
+    def synchronization_entropy(self, length: int) -> _tarray:
+
+        r"""
+        | The method computes the stationary synchronization entropy of the hidden Markov model after a given number of observations.
+        | This is achieved by measuring the expected uncertainty about the hidden state after observing a sequence of emitted symbols:
+        | :math:`U(t) = H(X_t \mid Y_1,\ldots,Y_t)` where:
+
+        - :math:`t` is the number of observations;
+        - :math:`X_t` is the hidden state associated with the last observation;
+        - :math:`Y_1,\ldots,Y_t` is the observed symbol sequence.
+
+        | **Notes:**
+
+        - One value is returned for each stationary distribution of the hidden-state transition matrix.
+        - Synchronization entropies are expressed in nats; zero-probability terms contribute 0.
+        - At length 0, the synchronization entropy equals the entropy of the initial stationary distribution.
+        - The computation has exponential time complexity in the number of observations.
+        - The method can also be accessed through the alias **hs**.
+
+        :param length: the number of consecutive observations.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            length = _validate_integer(length, lower_limit=(0, False))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _synchronization_entropy(self, length)
+
+    @_cached_method
+    @_object_mark(aliases=['si'])
+    def synchronization_information(self, extended: bool = True) -> _tarray:
+
+        r"""
+        | The method computes the stationary synchronization information of the hidden Markov model.
+        | This is achieved by measuring the total expected uncertainty about the hidden state accumulated during synchronization:
+        | :math:`\mathcal{S} = \sum_{t=0}^{\infty} U(t)` where:
+
+        - :math:`t` is the number of observations;
+        - :math:`U(t)` is the synchronization entropy after :math:`t` observations.
+
+        | **Notes:**
+
+        - One value is returned for each stationary distribution of the hidden-state transition matrix.
+        - Synchronization information is expressed in nats.
+        - The result is infinite if the synchronization entropy does not converge to 0.
+        - The result is *NaN* if convergence or divergence cannot be established numerically.
+        - The method can also be accessed through the alias **si**.
+
+        :param extended: a boolean indicating whether to allow a larger computational budget for the calculation.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            extended = _validate_boolean(extended)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _synchronization_information(self, extended)
 
     def to_dictionary(self) -> _thmm_dict:
 
@@ -979,40 +1079,6 @@ class HiddenMarkovModel(_Model):
         """
 
         return _np.copy(self.__p), _np.copy(self.__e)
-
-    def sequence_probability(self, sequence: _tsequence, initial_status: _ostatus = None) -> float:
-
-        r"""
-        | The method computes the probability of an observed sequence of emitted symbols:
-        | :math:`\mathbb{P}(Y_1=y_1,\ldots,Y_T=y_T)`.
-
-        | **Notes:**
-
-        - The initial hidden-state distribution is applied before the first transition, consistently with **decode**.
-        - An impossible observed sequence has probability 0.
-
-        :param sequence: the observed sequence of emitted symbols.
-        :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            sequence = _validate_sequence(sequence, self.__symbols)
-            initial_status = _validate_status(initial_status, self.__states, True)
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
-
-        decoding = _decode(self.__p, self.__e, initial_status, sequence, True, False)
-
-        if decoding is None:
-            return 0.0
-
-        log_probability, _, _, _, _, _ = decoding
-        sp = float(_np.exp(log_probability))
-
-        return sp
 
     def transition_probability(self, state_target: _tstate, state_origin: _tstate) -> float:
 
@@ -1175,13 +1241,13 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        states = [key[1] for key in d.keys() if key[0] == 'P' and key[1] == key[2]]
+        states = [key[1] for key in d.keys() if (key[0] == 'P') and (key[1] == key[2])]
         n = len(states)
 
         if n < 2:  # pragma: no cover
             raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
 
-        symbols = [key[2] for key in d.keys() if key[0] == 'E' and key[1] == states[0]]
+        symbols = [key[2] for key in d.keys() if (key[0] == 'E') and (key[1] == states[0])]
         k = len(symbols)
 
         if k < 2:  # pragma: no cover
@@ -1479,59 +1545,3 @@ class HiddenMarkovModel(_Model):
         hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 
         return hmm
-
-    @_object_mark(aliases=['hs'])
-    def synchronization_entropy(self, length: int) -> _tarray:
-
-        r"""
-        | The method computes the stationary synchronization entropy of the hidden Markov model after a given number of observations.
-        | This is achieved by measuring the expected uncertainty about the hidden state after observing a sequence of emitted symbols:
-        | :math:`U(t) = H(X_t \mid Y_1,\ldots,Y_t)` where:
-
-        - :math:`t` is the number of observations;
-        - :math:`X_t` is the hidden state associated with the last observation;
-        - :math:`Y_1,\ldots,Y_t` is the observed symbol sequence.
-
-        | **Notes:**
-
-        - One value is returned for each stationary distribution of the hidden-state transition matrix.
-        - Synchronization entropies are expressed in nats; zero-probability terms contribute 0.
-        - At length 0, the synchronization entropy equals the entropy of the initial stationary distribution.
-        - The computation has exponential time complexity in the number of observations.
-        - The method can also be accessed through the alias **hs**.
-
-        :param length: the number of consecutive observations.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            length = _validate_integer(length, lower_limit=(0, False))
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
-
-        return _synchronization_entropy(self, length)
-
-    @_cached_method
-    @_object_mark(aliases=['si'])
-    def synchronization_information(self) -> _tarray:
-
-        r"""
-        | The method computes the stationary synchronization information of the hidden Markov model.
-        | This is achieved by measuring the total expected uncertainty about the hidden state accumulated during synchronization:
-        | :math:`\mathcal{S} = \sum_{t=0}^{\infty} U(t)` where:
-
-        - :math:`t` is the number of observations;
-        - :math:`U(t)` is the synchronization entropy after :math:`t` observations.
-
-        | **Notes:**
-
-        - One value is returned for each stationary distribution of the hidden-state transition matrix.
-        - Synchronization information is expressed in nats.
-        - The result is infinite if the synchronization entropy does not converge to 0.
-        - The result is *NaN* if convergence or divergence cannot be established numerically.
-        - The method can also be accessed through the alias **si**.
-        """
-
-        return _synchronization_information(self)

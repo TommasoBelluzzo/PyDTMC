@@ -1502,6 +1502,11 @@
       "is_valid": false
     },
     {
+      "value": "",
+      "labels": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
       "value": "B",
       "labels": ["A", "B", "C"],
       "is_valid": false
@@ -1512,12 +1517,17 @@
       "is_valid": false
     },
     {
-      "value": [false, true, true],
+      "value": [false, false],
       "labels": ["A", "B", "C"],
       "is_valid": false
     },
     {
-      "value": [6.0, 42.0, 67.0],
+      "value": [42.0, 67.0],
+      "labels": ["A", "B", "C"],
+      "is_valid": false
+    },
+    {
+      "value": [2, "NaN", false],
       "labels": ["A", "B", "C"],
       "is_valid": false
     },

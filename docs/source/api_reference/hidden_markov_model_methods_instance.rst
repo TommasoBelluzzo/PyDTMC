@@ -23,6 +23,8 @@ Instance Methods
       restrict,
       sequence_probability,
       simulate,
+      synchronization_entropy,
+      synchronization_information,
       to_dictionary,
       to_graph,
       to_file,

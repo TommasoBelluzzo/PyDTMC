@@ -655,11 +655,11 @@ def test_synchronization_entropy(p, e, length, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8, equal_nan=True)
 
 
-def test_synchronization_information(p, e, value):
+def test_synchronization_information(p, e, extended, value):
 
     hmm = _HiddenMarkovModel(p, e)
 
-    actual = hmm.synchronization_information()
+    actual = hmm.synchronization_information(extended)
     expected = _np.asarray(value, dtype=float)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8, equal_nan=True)

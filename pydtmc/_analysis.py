@@ -1095,20 +1095,27 @@ def hmm_synchronization_entropy(hmm: _thmm, length: int) -> _tarray:
 
     for index, pi_current in enumerate(pi):
 
-        entropies = _synchronization_entropies_iterator(p, e, pi_current)
+        iterator = _synchronization_entropies_iterator(p, e, pi_current)
 
         for _ in range(length):
-            next(entropies)
+            next(iterator)
 
-        hs[index] = next(entropies)[0]
+        hs[index] = next(iterator)[0]
 
     return hs
 
 
-def hmm_synchronization_information(hmm: _thmm) -> _tarray:
+def hmm_synchronization_information(hmm: _thmm, extended: bool) -> _tarray:
 
     p, e, pi = hmm.p, hmm.e, hmm.pi
     si = _np.zeros(len(hmm.pi), dtype=float)
+
+    if extended:
+        maximum_length = 100
+        maximum_sequences = 1000000
+    else:
+        maximum_length = 50
+        maximum_sequences = 100000
 
     for index, pi_current in enumerate(pi):
 
@@ -1182,9 +1189,9 @@ def hmm_synchronization_information(hmm: _thmm) -> _tarray:
 
         information = 0.0
 
-        for _ in range(33):
+        for _ in range(maximum_length + 1):
 
-            uncertainty, sequence_count = next(iterator)
+            uncertainty, sequences_count = next(iterator)
             information += uncertainty
 
             distribution = _np.dot(distribution, q)
@@ -1194,11 +1201,11 @@ def hmm_synchronization_information(hmm: _thmm) -> _tarray:
                 si[index] = information
                 break
 
-            if (sequence_count * symbols) > 1000000:
+            if (sequences_count * symbols) > maximum_sequences:  # pragma: no cover
                 si[index] = _np.nan
                 break
 
-        else:
+        else:  # pragma: no cover
 
             si[index] = _np.nan
 
