@@ -35,6 +35,41 @@
         "value": 1.0
       }
     ],
+    "cumulants_data": [
+      {
+        "order": 1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": [0.0]
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": [0.5, 0.0]
+      },
+      {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": [0.5, 0.0, 0.0]
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": [0.0, 0.0, 0.0, 0.0]
+      },
+      {
+        "order": 2,
+        "observable": [
+          [2.0, 2.0],
+          [2.0, 2.0]
+        ],
+        "observable_param": null,
+        "value": [2.0, 0.0]
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 1,
@@ -392,6 +427,86 @@
       {
         "states": 1,
         "value": 0.25
+      }
+    ],
+    "cumulants_data": [
+      {
+        "order": 1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": [0.0]
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": [0.26315789, 0.21431696]
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": [0.73684211, 0.21431696]
+      },
+      {
+        "order": 3,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": [0.26315789, 0.21431696, 0.12238202]
+      },
+      {
+        "order": 4,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": [0.26315789, 0.21431696, 0.12238202, -0.03068531]
+      },
+      {
+        "order": 1,
+        "observable": "transition_count",
+        "observable_param": [1, 0],
+        "value": [0.18421053]
+      },
+      {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": [0.18421053, 0.07883802, 0.00318889]
+      },
+      {
+        "order": 4,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": [0.18421053, 0.07883802, 0.00318889, -0.01653778]
+      },
+      {
+        "order": 2,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": [0.0, 0.0]
+      },
+      {
+        "order": 3,
+        "observable": "transition_current",
+        "observable_param": [1, 0],
+        "value": [0.0, 0.0, 0.0]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [0.0, 0.0],
+          [0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": [0.0, 0.0, 0.0, 0.0]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [0.0, -1.0],
+          [0.25, 0.0]
+        ],
+        "observable_param": null,
+        "value": [-0.13815789, 0.04434639, -0.00134531, -0.00523266]
       }
     ],
     "expected_rewards_data": [
@@ -808,6 +923,42 @@
         "value": null
       }
     ],
+    "cumulants_data": [
+      {
+        "order": 3,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": null
+      },
+      {
+        "order": 1,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": null
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [1, 2],
+        "value": null
+      },
+      {
+        "order": 5,
+        "observable": [
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": null
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 3,
@@ -1160,6 +1311,46 @@
         "value": 1.0
       }
     ],
+    "cumulants_data": [
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 2,
+        "value": [0.33333333, 0.00000000]
+      },
+      {
+        "order": 2,
+        "observable": "transition_count",
+        "observable_param": [2, 0],
+        "value": [0.33333333, 0.00000000]
+      },
+      {
+        "order": 3,
+        "observable": "transition_current",
+        "observable_param": [2, 1],
+        "value": [-0.33333333, 0.00000000, 0.00000000]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": [0.0, 0.0, 0.0, 0.0]
+      },
+      {
+        "order": 2,
+        "observable": [
+          [2.0, 2.0, 2.0],
+          [2.0, 2.0, 2.0],
+          [2.0, 2.0, 2.0]
+        ],
+        "observable_param": null,
+        "value": [2.0, 0.0]
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 9,
@@ -1177,11 +1368,7 @@
     "expected_transitions_data": [
       {
         "steps": 0,
-        "initial_distribution": [
-          1.0,
-          0.0,
-          0.0
-        ],
+        "initial_distribution": [1.0, 0.0, 0.0],
         "value": [
           [0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0],
@@ -1190,11 +1377,7 @@
       },
       {
         "steps": 4,
-        "initial_distribution": [
-          1.0,
-          0.0,
-          0.0
-        ],
+        "initial_distribution": [1.0, 0.0, 0.0],
         "value": [
           [0.0, 2.0, 0.0],
           [0.0, 0.0, 1.0],
@@ -1538,6 +1721,42 @@
       },
       {
         "states": 2,
+        "value": null
+      }
+    ],
+    "cumulants_data": [
+      {
+        "order": 2,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "order": 1,
+        "observable": "state_occupation",
+        "observable_param": 2,
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": "transition_count",
+        "observable_param": [1, 0],
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": "transition_current",
+        "observable_param": [1, 2],
+        "value": null
+      },
+      {
+        "order": 3,
+        "observable": [
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
         "value": null
       }
     ],
@@ -1896,6 +2115,92 @@
       {
         "states": [1, 2],
         "value": 0.3157894737
+      }
+    ],
+    "cumulants_data": [
+      {
+        "order": 3,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": [0.29010213, 0.57453975, -0.08166272]
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": [0.44117647, 0.39461632]
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": [0.23529412, 0.1823733]
+      },
+      {
+        "order": 4,
+        "observable": "state_occupation",
+        "observable_param": 2,
+        "value": [0.32352941, 0.33528394, 0.27346275, -0.09316619]
+      },
+      {
+        "order": 4,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": [0.13235294, 0.05575768, 0.00495406, -0.00690738]
+      },
+      {
+        "order": 1,
+        "observable": "transition_count",
+        "observable_param": [2, 0],
+        "value": [0.12941176]
+      },
+      {
+        "order": 2,
+        "observable": "transition_count",
+        "observable_param": [2, 1],
+        "value": [0.03235294, 0.03113831]
+      },
+      {
+        "order": 2,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": [0.08529412, 0.04966568]
+      },
+      {
+        "order": 3,
+        "observable": "transition_current",
+        "observable_param": [1, 0],
+        "value": [-0.08529412, 0.04966568, 0.00207553]
+      },
+      {
+        "order": 3,
+        "observable": [
+          [ 0.75, -3.22,  0.67],
+          [-0.05,  0.00, -0.17],
+          [ 3.55,  6.04, -1.22]
+        ],
+        "observable_param": null,
+        "value": [0.23702941, 2.33915137, 2.91263864]
+      },
+      {
+        "order": 3,
+        "observable": [
+          [ 0.00, -1.00, 0.25],
+          [-0.05,  0.00, 0.00],
+          [ 0.00,  0.00, 1.00]
+        ],
+        "observable_param": null,
+        "value": [0.03808824, 0.44137638, 0.80840364]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [0.00, -1.00, 0.00],
+          [0.25,  0.00, 0.00],
+          [0.00,  0.00, 0.00]
+        ],
+        "observable_param": null,
+        "value": [-0.12058824, 0.04622329, 0.00057492, -0.00692136]
       }
     ],
     "expected_rewards_data": [
@@ -2348,6 +2653,88 @@
         "value": 0.25
       }
     ],
+    "cumulants_data": [
+      {
+        "order": 1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": [0.0]
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": [0.40000000, 0.35733333]
+      },
+      {
+        "order": 3,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": [0.20000, 0.09600, 0.00384]
+      },
+      {
+        "order": 4,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": [0.200000, 0.096000, 0.003840, -0.033024]
+      },
+      {
+        "order": 2,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": [0.100, 0.074]
+      },
+      {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [0, 2],
+        "value": [0.10000000, 0.06066667, 0.01808000]
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": [0.00000000, 0.06666667, 0.00000000, -0.00355556]
+      },
+      {
+        "order": 2,
+        "observable": "transition_current",
+        "observable_param": [1, 0],
+        "value": [0.00000000, 0.06666667]
+      },
+      {
+        "order": 2,
+        "observable": "transition_current",
+        "observable_param": [2, 0],
+        "value": [0.00000000, 0.06666667]
+      },
+      {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [2, 0],
+        "value": [0.10000000, 0.06066667, 0.01808000]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [-0.7, -0.7, -0.7],
+          [-0.7, -0.7, -0.7],
+          [-0.7, -0.7, -0.7]
+        ],
+        "observable_param": null,
+        "value": [-0.7, 0.0, 0.0, 0.0]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [0.00, -1.00,  0.00],
+          [0.35,  0.80,  0.00],
+          [0.00,  0.00, -0.12]
+        ],
+        "observable_param": null,
+        "value": [-0.08900000, 0.04886073, -0.00787266, -0.00854388]
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 2,
@@ -2795,6 +3182,43 @@
         "value": null
       }
     ],
+    "cumulants_data": [
+      {
+        "order": 1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": null
+      },
+      {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [3, 2],
+        "value": null
+      },
+      {
+        "order": 3,
+        "observable": "transition_current",
+        "observable_param": [0, 3],
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": null
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 2,
@@ -3150,6 +3574,90 @@
       {
         "states": [1, 2],
         "value": 0.5470588235
+      }
+    ],
+    "cumulants_data": [
+      {
+        "order": 1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": [0.15475834]
+      },
+      {
+        "order": 2,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": [0.15475834, 0.36173554]
+      },
+      {
+        "order": 3,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": [0.58878505, 0.44340158, -0.25056621]
+      },
+      {
+        "order": 4,
+        "observable": "state_occupation",
+        "observable_param": 2,
+        "value": [0.18691589, 0.34356889, 0.68188907, 1.0467659]
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 3,
+        "value": [0.09345794, 0.08429092]
+      },
+      {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": [0.0588785, 0.05291249, 0.04126622]
+      },
+      {
+        "order": 4,
+        "observable": "transition_count",
+        "observable_param": [0, 3],
+        "value": [0.0588785, 0.04438336, 0.02372845, -0.00025792]
+      },
+      {
+        "order": 1,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": [-0.05233645]
+      },
+      {
+        "order": 2,
+        "observable": "transition_current",
+        "observable_param": [1, 2],
+        "value": [-0.03084112, 0.03037834]
+      },
+      {
+        "order": 3,
+        "observable": "transition_current",
+        "observable_param": [1, 3],
+        "value": [-0.02149533, 0.02624587, -0.01320549]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [0.0, -1.0, 0.0, 0.0],
+          [0.25, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": [-0.03107477, 0.03800957, -0.02138666, 0.00617955]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [0.0, 1.0, 0.0, -0.75],
+          [0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.15, 0.2, 0.0],
+          [-0.01, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": [0.03873832, 0.09521989, 0.01423736, -0.00931554]
       }
     ],
     "expected_rewards_data": [
@@ -3624,6 +4132,98 @@
         "value": 0.6666666667
       }
     ],
+    "cumulants_data": [
+      {
+        "order": 1,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": [0.27027027]
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": [0.13513514, 0.07186149]
+      },
+      {
+        "order": 3,
+        "observable": "state_occupation",
+        "observable_param": 4,
+        "value": [0.37837838, 0.29546128, 0.09917406]
+      },
+      {
+        "order": 4,
+        "observable": "state_occupation",
+        "observable_param": 4,
+        "value": [0.37837838, 0.29546128, 0.09917406, -0.18319434]
+      },
+      {
+        "order": 2,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": [0.13513514, 0.07186149]
+      },
+      {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": [0.13513514, 0.07186149, 0.00736243]
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": [0.13513514, 0.07186149, 0.00736243, -0.02934495]
+      },
+      {
+        "order": 1,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": [0.13513514]
+      },
+      {
+        "order": 2,
+        "observable": "transition_current",
+        "observable_param": [1, 0],
+        "value": [-0.13513514, 0.07186149]
+      },
+      {
+        "order": 3,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": [0.0, 0.0, 0.0]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [-0.5, 0.0, 0.0, 0.0, -0.5],
+          [0.0, 0.0, -0.5, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, -0.5, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": [0.0, 0.0, 0.0, 0.0]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [-1.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.5, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.5, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 1.0]
+        ],
+        "observable_param": null,
+        "value": [0.18918919, 0.286064, 0.47170989, 0.68650516]
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 3,
@@ -4094,6 +4694,45 @@
         "value": null
       }
     ],
+    "cumulants_data": [
+      {
+        "order": 1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": null
+      },
+      {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [0, 2],
+        "value": null
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [3, 1],
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": null
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 100,
@@ -4463,6 +5102,45 @@
         "value": null
       }
     ],
+    "cumulants_data": [
+      {
+        "order": 1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 3,
+        "value": null
+      },
+      {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [1, 2],
+        "value": null
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [0, 3],
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
+        "value": null
+      }
+    ],
     "expected_rewards_data": [
       {
         "steps": 10,
@@ -4823,6 +5501,45 @@
       },
       {
         "states": [3, 4, 5],
+        "value": null
+      }
+    ],
+    "cumulants_data": [
+      {
+        "order": 1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 3,
+        "value": null
+      },
+      {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [3, 5],
+        "value": null
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [4, 1],
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
         "value": null
       }
     ],
@@ -5225,6 +5942,52 @@
       },
       {
         "states": [6, 7, 8, 11, 12],
+        "value": null
+      }
+    ],
+    "cumulants_data": [
+      {
+        "order": 1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 3,
+        "value": null
+      },
+      {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [3, 5],
+        "value": null
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [4, 1],
+        "value": null
+      },
+      {
+        "order": 2,
+        "observable": [
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ],
+        "observable_param": null,
         "value": null
       }
     ],

@@ -15,6 +15,7 @@ Instance Methods
       commute_times,
       conditional_probabilities,
       conductance,
+      cumulants,
       expected_rewards,
       expected_transitions,
       expected_visits,

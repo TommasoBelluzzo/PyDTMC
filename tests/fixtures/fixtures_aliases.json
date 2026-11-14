@@ -1,5 +1,69 @@
 {
-  "aliased_methods_data": [
+  "aliased_methods_hmm_data": [
+    {
+      "p": [
+        [0.7, 0.2, 0.1],
+        [0.2, 0.7, 0.1],
+        [0.2, 0.1, 0.7]
+      ],
+      "e": [
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0]
+      ],
+      "params": {
+        "block_entropy": [3],
+        "conditional_probabilities": [0],
+        "entropy": ["symbols", false],
+        "excess_entropy": [2],
+        "hitting_probabilities": [null],
+        "mutual_information": ["states", "symbols", 0]
+      }
+    },
+    {
+      "p": [
+        [0.6, 0.3, 0.1],
+        [0.2, 0.3, 0.5],
+        [0.4, 0.1, 0.5]
+      ],
+      "e": [
+        [0.8, 0.2],
+        [0.3, 0.7],
+        [0.5, 0.5]
+      ],
+      "params": {
+        "block_entropy": [4],
+        "conditional_probabilities": [1],
+        "entropy": ["states", true],
+        "excess_entropy": [3],
+        "hitting_probabilities": [null],
+        "mutual_information": ["symbols", "symbols", 2]
+      }
+    },
+    {
+      "p": [
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.5, 0.5, 0.0, 0.0],
+        [0.0, 0.5, 0.0, 0.5]
+      ],
+      "e": [
+        [1.0, 0.0],
+        [0.0, 1.0],
+        [0.5, 0.5],
+        [0.5, 0.5]
+      ],
+      "params": {
+        "block_entropy": [2],
+        "conditional_probabilities": [0],
+        "entropy": ["symbols", false],
+        "excess_entropy": [2],
+        "hitting_probabilities": [null],
+        "mutual_information": ["states", "symbols", 1]
+      }
+    }
+  ],
+  "aliased_methods_mc_data": [
     {
       "p": [
         [1.0, 0.0, 0.0],
@@ -109,7 +173,43 @@
       }
     }
   ],
-  "aliased_properties_data": [
+  "aliased_properties_hmm_data": [
+    {
+      "p": [
+        [0.7, 0.3],
+        [0.3, 0.7]
+      ],
+      "e": [
+        [0.5, 0.5],
+        [0.5, 0.5]
+      ]
+    },
+    {
+      "p": [
+        [0.3, 0.5, 0.2],
+        [1.0, 0.0, 0.0],
+        [0.1, 0.9, 0.0]
+      ],
+      "e": [
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0]
+      ]
+    },
+    {
+      "p": [
+        [0.2, 0.2, 0.6],
+        [0.7, 0.2, 0.1],
+        [0.2, 0.5, 0.3]
+      ],
+      "e": [
+        [0.5, 0.1, 0.4],
+        [0.0, 1.0, 0.0],
+        [0.1, 0.8, 0.1]
+      ]
+    }
+  ],
+  "aliased_properties_mc_data": [
     {
       "p": [
         [1.0, 0.0],

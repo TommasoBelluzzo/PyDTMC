@@ -240,7 +240,7 @@ tbndval = _tp.Tuple[float, _tp.Tuple[float, float]]
 obndval = _tp.Optional[tbndval]
 
 tbndvals = _tp.List[_tp.Tuple[float, _tp.Tuple[float, float]]]
-obndvals = _tp.Optional[tbndval]
+obndvals = _tp.Optional[tbndvals]
 
 tcache = _tp.Dict[str, tany]
 ocache = _tp.Optional[tcache]

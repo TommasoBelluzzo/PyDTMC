@@ -121,6 +121,19 @@ def test_conductance(p, states, value):
         assert actual == expected
 
 
+def test_cumulants(p, order, observable, observable_param, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.cumulants(order, observable, observable_param)
+    expected = value
+
+    if (actual is not None) and (expected is not None):
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
 def test_expected_rewards(p, steps, rewards, discount_factor, value):
 
     mc = _MarkovChain(p)

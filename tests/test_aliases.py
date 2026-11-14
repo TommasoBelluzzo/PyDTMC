@@ -13,6 +13,7 @@ import numpy.testing as _npt
 # Internal
 
 from pydtmc import (
+    HiddenMarkovModel as _HiddenMarkovModel,
     MarkovChain as _MarkovChain
 )
 
@@ -87,7 +88,27 @@ def _compare_values(actual, expected):
 # TESTS #
 #########
 
-def test_aliased_methods(p, params):
+def test_aliased_methods_hmm(p, e, params):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    for member_name, member in _HiddenMarkovModel.__dict__.items():
+
+        if isinstance(member, property) or not hasattr(member, '_aliases') or hasattr(member, '_random_output') or member.__name__ != member_name:
+            continue
+
+        if member_name not in params:
+            raise KeyError(f'Undefined parameters for method "{member_name}".')
+
+        actual = getattr(hmm, member_name)() if params[member_name] is None else getattr(hmm, member_name)(*params[member_name])
+
+        for member_alias in member._aliases:
+
+            expected = getattr(hmm, member_alias)() if params[member_name] is None else getattr(hmm, member_alias)(*params[member_name])
+            assert _compare_values(actual, expected)
+
+
+def test_aliased_methods_mc(p, params):
 
     mc = _MarkovChain(p)
 
@@ -107,7 +128,55 @@ def test_aliased_methods(p, params):
             assert _compare_values(actual, expected)
 
 
-def test_aliased_properties(p):
+def test_aliased_properties_hmm(p, e):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    for member_name, member in _HiddenMarkovModel.__dict__.items():
+
+        if not isinstance(member, property) or not hasattr(member.fget, '_aliases'):
+            continue
+
+        actual = getattr(hmm, member_name)
+
+        for member_alias in getattr(member.fget, '_aliases'):
+
+            expected = getattr(hmm, member_alias)
+            assert _compare_values(actual, expected)
+
+
+def test_aliased_properties_hmm_caching():
+
+    from pydtmc import _analysis as _analysis_module
+    from unittest.mock import patch as _patch
+
+    p = _np.array([[0.8, 0.2], [0.3, 0.7]])
+    e = _np.array([[0.7, 0.3], [0.4, 0.6]])
+
+    for first, second in [
+        ('pi', 'stationary_distributions'),
+        ('steady_states', 'stationary_distributions'),
+        ('stationary_distributions', 'pi')
+    ]:
+
+        hmm = _HiddenMarkovModel(p, e)
+
+        with _patch.object(_analysis_module, '_gth_solve', wraps=_analysis_module._gth_solve) as solve:
+
+            actual = getattr(hmm, first)
+            expected = getattr(hmm, second)
+
+            assert _compare_values(actual, expected)
+            assert actual is not expected
+            assert solve.call_count == 1
+
+            for alias in ('pi', 'stationary_distributions', 'steady_states'):
+                assert _compare_values(getattr(hmm, alias), actual)
+
+            assert solve.call_count == 1
+
+
+def test_aliased_properties_mc(p):
 
     mc = _MarkovChain(p)
 
@@ -124,7 +193,7 @@ def test_aliased_properties(p):
             assert _compare_values(actual, expected)
 
 
-def test_aliased_properties_caching():
+def test_aliased_properties_mc_caching():
 
     from pydtmc import _analysis as _analysis_module
     from unittest.mock import patch as _patch

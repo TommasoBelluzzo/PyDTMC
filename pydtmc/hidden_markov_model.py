@@ -22,10 +22,13 @@ import numpy.linalg as _npl
 # Internal
 
 from ._analysis import (
+    hmm_block_entropy as _block_entropy,
     hmm_conditional_probabilities as _conditional_probabilities,
     hmm_decode as _decode,
     hmm_entropy as _entropy,
     hmm_entropy_rate as _entropy_rate,
+    hmm_entropy_rate_normalized as _entropy_rate_normalized,
+    hmm_excess_entropy as _excess_entropy,
     hmm_hitting_probabilities as _hitting_probabilities,
     hmm_mutual_information as _mutual_information
 )
@@ -67,6 +70,7 @@ from ._custom_types import (
 )
 
 from ._decorators import (
+    aliased as _aliased,
     cached_method as _cached_method,
     cached_property as _cached_property,
     object_mark as _object_mark
@@ -142,6 +146,7 @@ from ._validation import (
 # CLASSES #
 ###########
 
+@_aliased
 class HiddenMarkovModel(_Model):
 
     r"""
@@ -360,6 +365,37 @@ class HiddenMarkovModel(_Model):
 
         return self.__symbols.copy()
 
+    @_object_mark(aliases=['hb'])
+    def block_entropy(self, length: int) -> _tlist_float:
+
+        r"""
+        | The method computes the stationary block entropy of the emitted-symbol process over a given number of observations:
+        | :math:`H(t) = -\sum_{y_1,\ldots,y_t} p(y_1,\ldots,y_t)\log p(y_1,\ldots,y_t)` where:
+
+        - :math:`t` is the number of observations;
+        - :math:`p(y_1,\ldots,y_t)` is the stationary probability of the observed sequence.
+
+        | **Notes:**
+
+        - At length 0, the block entropy is 0.
+        - One value is returned for each stationary distribution of the hidden-state transition matrix.
+        - Block entropies are expressed in nats; zero-probability terms contribute 0.
+        - The computation has exponential time complexity in the number of observations.
+        - The method can also be accessed through the alias **hb**.
+
+        :param length: the number of consecutive observations.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            length = _validate_integer(length, lower_limit=(0, False))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _block_entropy(self, length)
+
     @_object_mark(aliases=['conditional_distribution', 'cd', 'cp'])
     def conditional_probabilities(self, symbol: _tstate) -> _tlist_array:
 
@@ -384,9 +420,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        cp = _conditional_probabilities(self, symbol)
-
-        return cp
+        return _conditional_probabilities(self, symbol)
 
     def decode(self, symbols: _tsequence, initial_status: _ostatus = None, use_scaling: bool = True) -> _ohmm_decoding:
 
@@ -420,9 +454,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _decode(self.__p, self.__e, initial_status, symbols, use_scaling, True)
-
-        return value
+        return _decode(self.__p, self.__e, initial_status, symbols, use_scaling, True)
 
     def emission_probability(self, symbol: _tstate, state: _tstate) -> float:
 
@@ -480,9 +512,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        h = _entropy(self, target, conditional)
-
-        return h
+        return _entropy(self, target, conditional)
 
     def entropy_rate(self, normalized: bool, steps: int = 10000, samples: int = 10, seed: _oint = None) -> _obndvals:
 
@@ -515,29 +545,45 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        h = _entropy_rate(self, steps, samples, rng)
-
-        if h is None:  # pragma: no cover
-            return None
-
         if normalized:
-
-            _, k = self.__size
-            divisor = float(_np.log(k))
-
-            hn = []
-
-            for value, (lower, upper) in h:
-
-                value = min(1.0, max(0.0, value / divisor))
-                lower = min(1.0, max(0.0, lower / divisor))
-                upper = min(1.0, max(0.0, upper / divisor))
-
-                hn.append((value, (lower, upper)))
-
-            return hn
+            h = _entropy_rate_normalized(self, steps, samples, rng)
+        else:
+            h = _entropy_rate(self, steps, samples, rng)
 
         return h
+
+    @_object_mark(aliases=['he'])
+    def excess_entropy(self, length: int) -> _tlist_float:
+
+        r"""
+        | The method computes the stationary finite-length excess entropy of the emitted-symbol process.
+        | This is achieved by measuring the mutual information between two consecutive blocks of observations of equal length:
+        | :math:`\mathcal{E}(t) = 2H(t) - H(2t)` where:
+
+        - :math:`t` is the number of observations in each block;
+        - :math:`H(t)` is the block entropy.
+
+        | **Notes:**
+
+        - At length 0, the excess entropy is 0.
+        - One value is returned for each stationary distribution of the hidden-state transition matrix.
+        - Excess entropies are expressed in nats.
+        - The computation has exponential time complexity in the number of observations.
+        - The method can also be accessed through the alias **he**.
+
+        :param length: the number of observations in each block.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+
+        try:
+
+            length = _validate_integer(length, lower_limit=(0, False))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _excess_entropy(self, length)
 
     @_object_mark(aliases=['hp'])
     def hitting_probabilities(self, targets: _ostates = None) -> _tarray:
@@ -567,9 +613,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        hp = _hitting_probabilities(self, targets)
-
-        return hp
+        return _hitting_probabilities(self, targets)
 
     @_object_mark(aliases=['mi'])
     def mutual_information(self, process1: str, process2: str, steps: int = 0) -> _tlist_float:
@@ -604,9 +648,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        mi = _mutual_information(self, process1, process2, steps)
-
-        return mi
+        return _mutual_information(self, process1, process2, steps)
 
     @_object_mark(random_output=True)
     def next(self, initial_state: _tstate, target: str = 'both', output_index: bool = False, seed: _oint = None) -> _thmm_step:
@@ -785,9 +827,7 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        value = _propagate(self, target, steps, initial_status, output_last)
-
-        return value
+        return _propagate(self, target, steps, initial_status, output_last)
 
     @_object_mark(instance_generator=True)
     def restrict(self, states: _ostates = None, symbols: _ostates = None) -> _thmm:
@@ -929,9 +969,7 @@ class HiddenMarkovModel(_Model):
         - Nodes represent hidden states and emitted symbols; weighted edges represent transition and emission probabilities.
         """
 
-        graph = _cp.deepcopy(self.__digraph)
-
-        return graph
+        return _cp.deepcopy(self.__digraph)
 
     def to_matrices(self) -> _tpair_array:
 
@@ -940,9 +978,7 @@ class HiddenMarkovModel(_Model):
         | The first item is the hidden-state transition matrix and the second is the emission matrix.
         """
 
-        m = (_np.copy(self.__p), _np.copy(self.__e))
-
-        return m
+        return _np.copy(self.__p), _np.copy(self.__e)
 
     def sequence_probability(self, sequence: _tsequence, initial_status: _ostatus = None) -> float:
 

@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'hmm_block_entropy',
     'hmm_conditional_probabilities',
     'hmm_decode',
     'hmm_entropy',
     'hmm_entropy_rate',
+    'hmm_entropy_rate_normalized',
+    'hmm_excess_entropy',
     'hmm_hitting_probabilities',
     'hmm_mutual_information',
     'mc_absolute_spectral_gap',
@@ -13,6 +16,7 @@ __all__ = [
     'mc_committor_probabilities',
     'mc_commute_times',
     'mc_conductance',
+    'mc_cumulants',
     'mc_deviation_matrix',
     'mc_dobrushin_coefficient',
     'mc_doeblin_coefficient',
@@ -124,6 +128,35 @@ from ._numerical import (
 #############
 
 # PRIVATE HELPERS
+
+def _build_observable_matrix(p: _tarray, observable: _tobs, observable_param: _tany) -> _tarray:
+
+    if not isinstance(observable, str):
+        return observable
+
+    size = p.shape[0]
+    g = _np.zeros((size, size), dtype=float)
+
+    if observable == 'state_occupation':
+        g[:, observable_param] = 1.0
+    elif observable == 'transition_count':
+        origin, target = observable_param
+        g[origin, target] = 1.0
+    elif observable == 'transition_current':
+        origin, target = observable_param
+        g[origin, target] = 1.0
+        g[target, origin] = -1.0
+    else:
+
+        positive = p > 0.0
+
+        if _np.any(positive != positive.T):
+            raise ValueError('The entropy production observable requires bidirectional transition support.')
+
+        g[positive] = _np.log(p[positive]) - _np.log(p.T[positive])
+
+    return g
+
 
 def _clean_variance(variance: _tarray) -> _tarray:
 
@@ -803,6 +836,38 @@ def mc_doeblin_coefficient(mc: _tmc) -> float:
 
 # INFORMATION THEORY
 
+def hmm_block_entropy(hmm: _thmm, length: int) -> _tlist_float:
+
+    p, e = hmm.p, hmm.e
+    k = e.shape[1]
+
+    results = []
+
+    for pi in hmm.pi:
+
+        entropy = 0.0
+
+        for sequence in _it.product(range(k), repeat=length):
+
+            probabilities = pi.copy()
+
+            for t, symbol in enumerate(sequence):
+
+                if t > 0:
+                    probabilities = _np.dot(probabilities, p)
+
+                probabilities *= e[:, symbol]
+
+            probability = float(_np.sum(probabilities))
+
+            if probability > 0.0:
+                entropy -= probability * _np.log(probability)
+
+        results.append(float(entropy))
+
+    return results
+
+
 def hmm_entropy(hmm: _thmm, target: str, conditional: bool) -> _tlist_float:
 
     def _entropy(probabilities):
@@ -928,6 +993,47 @@ def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obndvals:
     return h
 
 
+def hmm_entropy_rate_normalized(hmm: _thmm, steps: int, samples: int, rng) -> _obndvals:
+
+    h = hmm_entropy_rate(hmm, steps, samples, rng)
+
+    if h is None:  # pragma: no cover
+        return None
+
+    _, k = hmm.size
+    divisor = float(_np.log(k))
+
+    hn = []
+
+    for value, (lower, upper) in h:
+        value = min(1.0, max(0.0, value / divisor))
+        lower = min(1.0, max(0.0, lower / divisor))
+        upper = min(1.0, max(0.0, upper / divisor))
+
+        hn.append((value, (lower, upper)))
+
+    return hn
+
+
+def hmm_excess_entropy(hmm: _thmm, length: int) -> _tlist_float:
+
+    h1 = hmm.block_entropy(length)
+    h2 = hmm.block_entropy(2 * length)
+
+    results = []
+
+    for value1, value2 in zip(h1, h2):
+
+        entropy = (2.0 * value1) - value2
+
+        if -_FTOL < entropy < 0.0:
+            entropy = 0.0
+
+        results.append(float(entropy))
+
+    return results
+
+
 def hmm_mutual_information(hmm: _thmm, process1: str, process2: str, steps: int) -> _tlist_float:
 
     p, e = hmm.p, hmm.e
@@ -950,6 +1056,50 @@ def hmm_mutual_information(hmm: _thmm, process1: str, process2: str, steps: int)
         results.append(mi)
 
     return results
+
+
+def mc_cumulants(mc: _tmc, order: int, observable: _tobs, observable_param: _tany) -> _tarray:
+
+    p, size, pi = mc.p, mc.size, mc.pi[0]
+    g = _build_observable_matrix(p, observable, observable_param)
+
+    matrices = [p]
+
+    for _ in range(order):
+        matrices.append(matrices[-1] * g)
+
+    system = _np.eye(size) - p + _np.outer(_np.ones(size), pi)
+    lu, piv = _spl.lu_factor(system)
+
+    evalues = [1.0]
+    evectors = [_np.ones(size, dtype=float)]
+
+    cumulants = _np.zeros(order, dtype=float)
+
+    for n in range(1, order + 1):
+
+        rhs = _np.zeros(size, dtype=float)
+
+        for k in range(1, n + 1):
+            rhs += _mt.comb(n, k) * _np.dot(matrices[k], evectors[n - k])
+
+        evalue = float(_np.dot(pi, rhs))
+        evalues.append(evalue)
+
+        for k in range(1, n + 1):
+            rhs -= _mt.comb(n, k) * evalues[k] * evectors[n - k]
+
+        eigenvector = _spl.lu_solve((lu, piv), rhs)
+        evectors.append(eigenvector)
+
+        cumulant = evalue
+
+        for k in range(1, n):
+            cumulant -= _mt.comb(n - 1, k - 1) * cumulants[k - 1] * evalues[n - k]
+
+        cumulants[n - 1] = cumulant
+
+    return cumulants
 
 
 def mc_entropy_rate(mc: _tmc) -> _ofloat:
@@ -1061,35 +1211,12 @@ def mc_large_deviation_rate(mc: _tmc, target_average: float, observable: _tobs, 
         return pt_increments, pt_radius
 
     p, size = mc.p, mc.size
-
-    if not isinstance(observable, str):
-        g = observable
-    else:
-
-        g = _np.zeros((size, size), dtype=float)
-
-        if observable == 'state_occupation':
-            g[:, observable_param] = 1.0
-        elif observable == 'transition_count':
-            origin, target = observable_param
-            g[origin, target] = 1.0
-        elif observable == 'transition_current':
-            origin, target = observable_param
-            g[origin, target] = 1.0
-            g[target, origin] = -1.0
-        else:
-
-            positive = p > 0.0
-
-            if _np.any(positive != positive.T):
-                raise ValueError('The entropy production observable requires bidirectional transition support.')
-
-            g[positive] = _np.log(p[positive]) - _np.log(p.T[positive])
+    g = _build_observable_matrix(p, observable, observable_param)
 
     origins, targets = _np.nonzero(p > 0.0)
     values = g[origins, targets]
-    probabilities = p[origins, targets]
     count = values.size
+    probabilities = p[origins, targets]
 
     constraints = _np.zeros((size + 1, count), dtype=float)
     constraints[origins, _np.arange(count)] += 1.0

@@ -34,6 +34,7 @@ from ._analysis import (
     mc_committor_probabilities as _committor_probabilities,
     mc_commute_times as _commute_times,
     mc_conductance as _conductance,
+    mc_cumulants as _cumulants,
     mc_deviation_matrix as _deviation_matrix,
     mc_dobrushin_coefficient as _dobrushin_coefficient,
     mc_doeblin_coefficient as _doeblin_coefficient,
@@ -1516,6 +1517,62 @@ class MarkovChain(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         return _conductance(self, states)
+
+    def cumulants(self, order: int, observable: _tobs, observable_param: _tany = None) -> _oarray:
+
+        r"""
+        | The method computes the first :math:`n` asymptotic cumulants per transition of the Markov chain for a time-additive observable:
+        | :math:`\kappa_m = \left.\frac{d^m}{dk^m}\log\rho(T_k)\right|_{k=0}` where:
+
+        - :math:`m = 1,\ldots,n` is the cumulant order;
+        - :math:`k` is the exponential tilting parameter;
+        - :math:`(T_k)_{ij} = P_{ij}e^{kg(i,j)}` is the tilted matrix defined by the observable :math:`g`;
+        - :math:`\rho(T_k)` is the spectral radius of the tilted matrix.
+
+        | **Notes:**
+
+        - A time-additive observable assigns a numerical contribution to each transition of the Markov chain.
+        - The first cumulant gives the long-run mean contribution per transition, while the second gives the long-run variance growth per transition.
+        - The returned array contains all cumulants up to the specified order, starting with the first.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+
+        :param order: the maximum cumulant order, as a positive integer.
+        :param observable:
+         - **entropy_production** to analyze fluctuations in entropy production;
+         - **state_occupation** to analyze fluctuations in the occupation frequency of a specified state;
+         - **transition_count** to analyze fluctuations in the frequency of transitions between two specified states;
+         - **transition_current** to analyze fluctuations in the net frequency of transitions between two specified states;
+         - a custom numerical matrix, with the same size as the transition matrix, defining the contribution of each transition.
+        :param observable_param:
+         - For **state_occupation**, a single state;
+         - For **transition_count** and **transition_current**, a list of two distinct states defining an ordered transition;
+         - For the other observables, no parameter should be provided.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the entropy production observable has asymmetric transition support.
+        """
+
+        try:
+
+            order = _validate_integer(order, lower_limit=(1, False))
+            observable = _validate_observable(observable, self.__size)
+
+            if not isinstance(observable, str):
+                observable_param = _validate_none(observable_param)
+            else:
+                if observable == 'state_occupation':
+                    observable_param = _validate_label(observable_param, self.__states)
+                elif observable in ['transition_count', 'transition_current']:
+                    observable_param = _validate_labels_pair(observable_param, self.__states)
+                else:
+                    observable_param = _validate_none(observable_param)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if not self.is_irreducible:
+            return None
+
+        return _cumulants(self, order, observable, observable_param)
 
     @_object_mark(aliases=['er'])
     def expected_rewards(self, steps: int, rewards: _tnumeric, discount_factor: float = 1.0) -> _tarray:

@@ -6,11 +6,13 @@ Instance Methods
 .. autoclass:: HiddenMarkovModel
    :noindex:
    :members:
+      block_entropy,
       conditional_probabilities,
       decode,
       emission_probability,
       entropy,
       entropy_rate,
+      excess_entropy,
       hitting_probabilities,
       mutual_information,
       next,

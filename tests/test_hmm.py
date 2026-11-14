@@ -25,6 +25,16 @@ from pydtmc import (
 # TESTS #
 #########
 
+def test_block_entropy(p, e, length, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = _np.array(hmm.block_entropy(length))
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_conditional_probabilities(p, e, symbol, value):
 
     hmm = _HiddenMarkovModel(p, e)
@@ -164,6 +174,16 @@ def test_estimate(possible_states, possible_symbols, sequence_states, sequence_s
         expected = _np.array(value[1])
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_excess_entropy(p, e, length, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = _np.array(hmm.excess_entropy(length))
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-7, atol=1e-8)
 
 
 # noinspection PyBroadException
