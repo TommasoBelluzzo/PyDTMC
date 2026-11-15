@@ -458,7 +458,7 @@ def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_in
             return None
 
         pi = mc.pi[0]
-        p = mc_time_reversal(p, pi)
+        p = mc_time_reversal('standard', p, pi)
         cp = _solve_committor_probabilities(p, size, states2, states1)
 
     return cp
@@ -2326,10 +2326,24 @@ def mc_stationary_perturbation_bound(mc: _tmc, epsilon: float) -> _ofloat:
     return spb
 
 
-def mc_time_reversal(p: _tarray, pi: _tarray) -> _tarray:
+def mc_time_reversal(method: str, p: _tarray, pi: _tarray) -> _tarray:
 
-    pr = _np.transpose(p) * pi[_np.newaxis, :]
-    pr /= pi[:, _np.newaxis]
+    if method == 'standard':
+
+        pr = _np.transpose(p) * pi[_np.newaxis, :]
+        pr /= pi[:, _np.newaxis]
+
+    elif method == 'log':
+
+        with _np.errstate(divide='ignore'):
+            log_p = _np.log(p)
+            log_pi = _np.log(pi)
+
+        log_pr = _np.transpose(log_p) + log_pi[_np.newaxis, :] - log_pi[:, _np.newaxis]
+        pr = _np.exp(log_pr)
+
+    else:  # pragma: no cover
+        raise ValueError('The time reversal method is not supported.')
 
     return pr
 

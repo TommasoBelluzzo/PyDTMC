@@ -95,6 +95,205 @@ from ._numerical import (
 # FUNCTIONS #
 #############
 
+# PRIVATE HELPERS
+
+def _spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen_ext:
+
+    def _calculate_q(cq_p, cq_pi, cq_phi):
+
+        cq_pi = _np.diag(cq_pi)
+        z = cq_phi.shape[1]
+
+        q_num = _np.dot(_np.dot(_np.dot(_np.transpose(cq_phi), cq_pi), cq_p), cq_phi)
+        q_den = _np.zeros((z, 1), dtype=float)
+
+        for zi in range(z):
+            cq_phi_zi = cq_phi[:, zi]
+            q_den[zi] = _np.dot(_np.dot(_np.transpose(cq_phi_zi), cq_pi), cq_phi_zi)
+
+        q_den = _np.repeat(q_den, z, 1)
+
+        q_value = q_num / q_den
+
+        return q_value
+
+    def _create_bipartition_candidate(cbc_p, cbc_pi, cbc_phi, cbc_index):
+
+        v = cbc_phi[:, cbc_index]
+
+        if _np.sum(v) <= 1.0:  # pragma: no cover
+            return None
+
+        indices = v > 0.0
+        p_sub = cbc_p[_np.ix_(indices, indices)]
+        pi_sub = _np.diag(cbc_pi[indices])
+
+        ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
+
+        evalues, evectors = _npl.eig(ar)
+        index = _np.argsort(_np.abs(evalues))[-2]
+
+        evector = evectors[:, index]
+        evector = _np.transpose(evector[_np.newaxis, :])
+
+        vt = _np.transpose(v[_np.newaxis, :])
+
+        v1 = _np.copy(vt)
+        v1[indices] = evector >= 0.0
+
+        v2 = _np.copy(vt)
+        v2[indices] = evector < 0.0
+
+        bc_stack = _np.hstack((cbc_phi[:, :cbc_index], v1, v2, cbc_phi[:, (cbc_index + 1):]))
+
+        return bc_stack
+
+    size = p.shape[0]
+
+    phi = _np.ones((size, 1), dtype=float)
+    q = _np.full((size, size), 1.0 / size, dtype=float)
+    k = 1
+
+    while k < s:
+
+        phi_k, r_k = phi, _np.inf
+
+        for i in range(phi.shape[1]):
+
+            bc = _create_bipartition_candidate(p, pi, phi, i)
+
+            if bc is None:  # pragma: no cover
+                continue
+
+            bc_q = _calculate_q(p, pi, bc)
+            bc_r = _kullback_leibler_divergence(p, pi, bc, bc_q)
+
+            if bc_r < r_k:
+                phi_k, r_k, q = bc, bc_r, bc_q
+
+        phi = phi_k
+        k += 1
+
+    q /= _np.sum(q, axis=1, keepdims=True)
+
+    states = [f'{i:d}' for i in range(1, q.shape[0] + 1)]
+
+    return q, states
+
+
+def _spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gen_ext:
+
+    def _calculate_invariant(ci_q):
+
+        size = ci_q.shape[0]
+
+        kappa = _np.ones(size, dtype=float) / size
+        theta = _np.dot(kappa, ci_q)
+
+        z = 0
+
+        while (_np.amax(_np.abs(kappa - theta)) > 1e-8) and (z < 1000):
+            kappa = (kappa + theta) / 2.0
+            theta = _np.dot(kappa, ci_q)
+            z += 1
+
+        return theta
+
+    def _build_pair_candidates(bpc_q, bpc_pi):
+
+        worklist = [_np.arange(bpc_q.shape[0])]
+        pair_candidates = []
+
+        while len(worklist) > 0:
+
+            indices = worklist.pop(0)
+
+            if indices.size <= 1:
+                continue
+
+            if indices.size == 2:
+                pair_candidates.append(_np.sort(indices))
+                continue
+
+            p_sub = bpc_q[_np.ix_(indices, indices)]
+            pi_sub = _np.diag(bpc_pi[indices])
+
+            ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
+
+            evalues, evectors = _npl.eig(ar)
+            index = _np.argsort(_np.abs(evalues))[-2]
+
+            evector = _np.real(evectors[:, index])
+
+            positions = evector >= 0.0
+
+            if _np.all(positions) or (not _np.any(positions)):  # pragma: no cover
+                indices_order = _np.argsort(evector)
+                positions = _np.zeros(indices.size, dtype=bool)
+                positions[indices_order[:indices.size // 2]] = True
+
+            worklist.append(indices[positions].astype(int))
+            worklist.append(indices[~positions].astype(int))
+
+        return pair_candidates
+
+    def _calculate_q(cq_p, cq_pi, cq_eta, cq_vi0, cq_vi1):
+
+        cq_pi = _np.diag(cq_pi)
+
+        merged = _np.maximum(cq_eta[:, cq_vi0], cq_eta[:, cq_vi1])[:, _np.newaxis]
+
+        phi_i = _np.hstack((
+            cq_eta[:, :cq_vi0],
+            merged,
+            cq_eta[:, (cq_vi0 + 1):cq_vi1],
+            cq_eta[:, (cq_vi1 + 1):]
+        ))
+
+        z = phi_i.shape[1]
+
+        q_num = _np.dot(_np.dot(_np.dot(_np.transpose(phi_i), cq_pi), cq_p), phi_i)
+        q_den = _np.zeros((z, 1), dtype=float)
+
+        for zi in range(z):
+            q_eta_zi = phi_i[:, zi]
+            q_den[zi] = _np.dot(_np.dot(_np.transpose(q_eta_zi), cq_pi), q_eta_zi)
+
+        q_den = _np.repeat(q_den, z, 1)
+
+        q_value = q_num / q_den
+
+        return q_value, phi_i
+
+    q = _np.copy(p)
+    k = q.shape[0]
+    eta = _np.eye(k)
+
+    for i in range(k - s):
+
+        q_pi = pi if i == 0 else _calculate_invariant(q)
+        pairs = _build_pair_candidates(q, q_pi)
+
+        u = []
+
+        for vi in pairs:
+
+            vi0, vi1 = vi[0], vi[1]
+
+            q_j, phi_j = _calculate_q(p, pi, eta, vi0, vi1)
+            r_j = _kullback_leibler_divergence(p, pi, phi_j, q_j)
+
+            u.append((r_j, q_j, phi_j))
+
+        _, q, eta = min(u, key=lambda x: x[0])
+
+    q /= _np.sum(q, axis=1, keepdims=True)
+
+    states = [f'{i:d}' for i in range(1, q.shape[0] + 1)]
+
+    return q, states
+
+
 # HMM INSTANCE GENERATORS
 
 def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str, sub_states: _tlist_int, sub_symbols: _tlist_int) -> _thmm_gen_ext:
@@ -737,7 +936,7 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, is_irreducible: bo
 
 def mc_reversibilize(p: _tarray, recurrent_classes_indices: _tlists_int, transient_states: _tlists_str, pi: _tlist_array, method: str) -> _tarray:
 
-    pr = mc_time_reversal(p, recurrent_classes_indices, transient_states, pi)
+    pr = mc_time_reversal('standard', p, recurrent_classes_indices, transient_states, pi)
 
     if method == 'additive':
         result = 0.5 * (p + pr)
@@ -765,205 +964,8 @@ def mc_spectral_aggregation(method: str, p: _tarray, is_ergodic: bool, pi: _tlis
         else:
             method = 'bottom-up' if (float(s) / size) <= 0.3 else 'top-down'
 
-    func = mc_spectral_aggregation_bottom_up if method == 'bottom-up' else mc_spectral_aggregation_top_down
+    func = _spectral_aggregation_bottom_up if method == 'bottom-up' else _spectral_aggregation_top_down
     q, states = func(p, pi[0], s)
-
-    return q, states
-
-
-def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen_ext:
-
-    def _calculate_q(cq_p, cq_pi, cq_phi):
-
-        cq_pi = _np.diag(cq_pi)
-        z = cq_phi.shape[1]
-
-        q_num = _np.dot(_np.dot(_np.dot(_np.transpose(cq_phi), cq_pi), cq_p), cq_phi)
-        q_den = _np.zeros((z, 1), dtype=float)
-
-        for zi in range(z):
-            cq_phi_zi = cq_phi[:, zi]
-            q_den[zi] = _np.dot(_np.dot(_np.transpose(cq_phi_zi), cq_pi), cq_phi_zi)
-
-        q_den = _np.repeat(q_den, z, 1)
-
-        q_value = q_num / q_den
-
-        return q_value
-
-    def _create_bipartition_candidate(cbc_p, cbc_pi, cbc_phi, cbc_index):
-
-        v = cbc_phi[:, cbc_index]
-
-        if _np.sum(v) <= 1.0:  # pragma: no cover
-            return None
-
-        indices = v > 0.0
-        p_sub = cbc_p[_np.ix_(indices, indices)]
-        pi_sub = _np.diag(cbc_pi[indices])
-
-        ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
-
-        evalues, evectors = _npl.eig(ar)
-        index = _np.argsort(_np.abs(evalues))[-2]
-
-        evector = evectors[:, index]
-        evector = _np.transpose(evector[_np.newaxis, :])
-
-        vt = _np.transpose(v[_np.newaxis, :])
-
-        v1 = _np.copy(vt)
-        v1[indices] = evector >= 0.0
-
-        v2 = _np.copy(vt)
-        v2[indices] = evector < 0.0
-
-        bc_stack = _np.hstack((cbc_phi[:, :cbc_index], v1, v2, cbc_phi[:, (cbc_index + 1):]))
-
-        return bc_stack
-
-    size = p.shape[0]
-
-    phi = _np.ones((size, 1), dtype=float)
-    q = _np.full((size, size), 1.0 / size, dtype=float)
-    k = 1
-
-    while k < s:
-
-        phi_k, r_k = phi, _np.inf
-
-        for i in range(phi.shape[1]):
-
-            bc = _create_bipartition_candidate(p, pi, phi, i)
-
-            if bc is None:  # pragma: no cover
-                continue
-
-            bc_q = _calculate_q(p, pi, bc)
-            bc_r = _kullback_leibler_divergence(p, pi, bc, bc_q)
-
-            if bc_r < r_k:
-                phi_k, r_k, q = bc, bc_r, bc_q
-
-        phi = phi_k
-        k += 1
-
-    q /= _np.sum(q, axis=1, keepdims=True)
-
-    states = [f'{i:d}' for i in range(1, q.shape[0] + 1)]
-
-    return q, states
-
-
-def mc_spectral_aggregation_top_down(p: _tarray, pi: _tarray, s: int) -> _tmc_gen_ext:
-
-    def _calculate_invariant(ci_q):
-
-        size = ci_q.shape[0]
-
-        kappa = _np.ones(size, dtype=float) / size
-        theta = _np.dot(kappa, ci_q)
-
-        z = 0
-
-        while (_np.amax(_np.abs(kappa - theta)) > 1e-8) and (z < 1000):
-            kappa = (kappa + theta) / 2.0
-            theta = _np.dot(kappa, ci_q)
-            z += 1
-
-        return theta
-
-    def _build_pair_candidates(bpc_q, bpc_pi):
-
-        worklist = [_np.arange(bpc_q.shape[0])]
-        pair_candidates = []
-
-        while len(worklist) > 0:
-
-            indices = worklist.pop(0)
-
-            if indices.size <= 1:
-                continue
-
-            if indices.size == 2:
-                pair_candidates.append(_np.sort(indices))
-                continue
-
-            p_sub = bpc_q[_np.ix_(indices, indices)]
-            pi_sub = _np.diag(bpc_pi[indices])
-
-            ar = 0.5 * (p_sub + _np.dot(_npl.solve(pi_sub, _np.transpose(p_sub)), pi_sub))
-
-            evalues, evectors = _npl.eig(ar)
-            index = _np.argsort(_np.abs(evalues))[-2]
-
-            evector = _np.real(evectors[:, index])
-
-            positions = evector >= 0.0
-
-            if _np.all(positions) or (not _np.any(positions)):  # pragma: no cover
-                indices_order = _np.argsort(evector)
-                positions = _np.zeros(indices.size, dtype=bool)
-                positions[indices_order[:indices.size // 2]] = True
-
-            worklist.append(indices[positions].astype(int))
-            worklist.append(indices[~positions].astype(int))
-
-        return pair_candidates
-
-    def _calculate_q(cq_p, cq_pi, cq_eta, cq_vi0, cq_vi1):
-
-        cq_pi = _np.diag(cq_pi)
-
-        merged = _np.maximum(cq_eta[:, cq_vi0], cq_eta[:, cq_vi1])[:, _np.newaxis]
-
-        phi_i = _np.hstack((
-            cq_eta[:, :cq_vi0],
-            merged,
-            cq_eta[:, (cq_vi0 + 1):cq_vi1],
-            cq_eta[:, (cq_vi1 + 1):]
-        ))
-
-        z = phi_i.shape[1]
-
-        q_num = _np.dot(_np.dot(_np.dot(_np.transpose(phi_i), cq_pi), cq_p), phi_i)
-        q_den = _np.zeros((z, 1), dtype=float)
-
-        for zi in range(z):
-            q_eta_zi = phi_i[:, zi]
-            q_den[zi] = _np.dot(_np.dot(_np.transpose(q_eta_zi), cq_pi), q_eta_zi)
-
-        q_den = _np.repeat(q_den, z, 1)
-
-        q_value = q_num / q_den
-
-        return q_value, phi_i
-
-    q = _np.copy(p)
-    k = q.shape[0]
-    eta = _np.eye(k)
-
-    for i in range(k - s):
-
-        q_pi = pi if i == 0 else _calculate_invariant(q)
-        pairs = _build_pair_candidates(q, q_pi)
-
-        u = []
-
-        for vi in pairs:
-
-            vi0, vi1 = vi[0], vi[1]
-
-            q_j, phi_j = _calculate_q(p, pi, eta, vi0, vi1)
-            r_j = _kullback_leibler_divergence(p, pi, phi_j, q_j)
-
-            u.append((r_j, q_j, phi_j))
-
-        _, q, eta = min(u, key=lambda x: x[0])
-
-    q /= _np.sum(q, axis=1, keepdims=True)
-
-    states = [f'{i:d}' for i in range(1, q.shape[0] + 1)]
 
     return q, states
 
@@ -1009,7 +1011,7 @@ def mc_teleport(p: _tarray, probability: float, distribution: _tarray) -> _tarra
     return p
 
 
-def mc_time_reversal(p: _tarray, recurrent_classes_indices: _tlists_int, transient_states: _tlists_str, pi: _tlist_array) -> _tarray:
+def mc_time_reversal(method: str, p: _tarray, recurrent_classes_indices: _tlists_int, transient_states: _tlists_str, pi: _tlist_array) -> _tarray:
 
     if len(transient_states) > 0:  # pragma: no cover
         raise ValueError('The Markov chain has transient states, therefore its stationary time reversal is not defined.')
@@ -1017,9 +1019,9 @@ def mc_time_reversal(p: _tarray, recurrent_classes_indices: _tlists_int, transie
     size = p.shape[0]
     pr = _np.zeros((size, size), dtype=float)
 
-    for indices, pi_i in zip(recurrent_classes_indices, pi):
+    for indices, pi_current in zip(recurrent_classes_indices, pi):
         p_slice = _np.ix_(indices, indices)
-        pr[p_slice] = _time_reversal(p[p_slice], pi_i[indices])
+        pr[p_slice] = _time_reversal(method, p[p_slice], pi_current[indices])
 
     return pr
 

@@ -1458,6 +1458,7 @@ class MarkovChain(_Model):
         | The method computes a statistic of the commute time (round-trip duration) between the given subsets of the state space.
 
         | **Notes:**
+
         - The origin states are weighted according to the stationary distribution conditioned on the origin set.
         - The return passage begins at the state first reached in the target set.
         - States belonging to both the origin and target sets have a commute time of 0.
@@ -1491,6 +1492,7 @@ class MarkovChain(_Model):
         | The method computes a statistic of the commute times (round-trip durations) from every state to the given target states of the Markov chain.
 
         | **Notes:**
+
         - If target states are omitted, an n-by-n matrix is returned, with origin states as rows and destination states as columns.
         - If target states are specified, a vector is returned containing the commute time statistic for the entire target set, starting from each state.
         - The return passage begins at the state first reached in the target set.
@@ -2948,7 +2950,7 @@ class MarkovChain(_Model):
         return _time_relaxations(self, sequence, initial_distribution, time_points)
 
     @_object_mark(instance_generator=True)
-    def time_reversal(self) -> _tmc:
+    def time_reversal(self, method: str = 'standard') -> _tmc:
 
         r"""
         | The method returns the stationary time reversal of the Markov chain:
@@ -2962,11 +2964,22 @@ class MarkovChain(_Model):
         - For **reducible** chains, the reversal is computed independently within each recurrent class.
         - The time-reversed chain preserves the stationary distributions of the original chain.
 
+        :param method:
+         - **standard** for the direct vectorized calculation;
+         - **log** for the logarithmic calculation.
+        :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the Markov chain has transient states.
         """
 
-        p_out = _time_reversal(self.__p, self.__recurrent_classes_indices, self.transient_states, self.pi)
-        mc = MarkovChain(p_out, self.__states)
+        try:
+
+            method = _validate_enumerator(method, ['log', 'standard'])
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        p = _time_reversal(method, self.__p, self.__recurrent_classes_indices, self.transient_states, self.pi)
+        mc = MarkovChain(p, self.__states)
 
         return mc
 

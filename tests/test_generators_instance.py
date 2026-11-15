@@ -253,24 +253,27 @@ def test_time_reversal(p, value):
 
     else:
 
-        mc_reversed = mc.time_reversal()
-        actual = mc_reversed.p
-        expected = _np.array(value)
+        for method in ['log', 'standard']:
 
-        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-
-        mc_rereversed = mc_reversed.time_reversal()
-        actual = mc_rereversed.p
-        expected = mc.p
-
-        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-
-        if mc.is_irreducible:
-
-            states1 = [mc.states[0]]
-            states2 = [mc.states[-1]]
-
-            actual = mc.committor_probabilities('backward', states1, states2)
-            expected = mc_reversed.committor_probabilities('forward', states2, states1)
+            mc_reversed = mc.time_reversal(method)
+            actual = mc_reversed.p
+            expected = _np.array(value)
 
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+            _npt.assert_allclose(_np.sum(actual, axis=1), 1.0, rtol=1e-5, atol=1e-8)
+
+            mc_rereversed = mc_reversed.time_reversal(method)
+            actual = mc_rereversed.p
+            expected = mc.p
+
+            _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+            if mc.is_irreducible:
+
+                states1 = [mc.states[0]]
+                states2 = [mc.states[-1]]
+
+                actual = mc.committor_probabilities('backward', states1, states2)
+                expected = mc_reversed.committor_probabilities('forward', states2, states1)
+
+                _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
