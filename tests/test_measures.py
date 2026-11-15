@@ -34,7 +34,6 @@ def test_absorption_probabilities(p, initial_distribution, value):
 
     if (actual is not None) and (expected is not None):
         expected = _np.array(expected)
-        print(actual)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
@@ -93,17 +92,56 @@ def test_committor_probabilities(p, states1, states2, value_backward, value_forw
         assert actual == expected
 
 
-def test_commute_times(p, commute_times):
+def test_commute_times_between(p, origins, targets, value_mean, value_variance):
 
     mc = _MarkovChain(p)
 
-    actual = mc.commute_times()
-    expected = commute_times
+    actual = mc.commute_times_between('mean', origins, targets)
+    expected = value_mean
 
     if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+    actual = mc.commute_times_between('variance', origins, targets)
+    expected = value_variance
+
+    if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
+def test_commute_times_to(p, targets, value_mean, value_variance):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.commute_times_to('mean', targets)
+    expected = value_mean
+
+    if (actual is not None) and (expected is not None):
+
         expected = _np.array(expected)
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-        _npt.assert_allclose(actual, _np.transpose(actual), rtol=1e-5, atol=1e-8)
+
+        if expected.ndim == 2:
+            _npt.assert_allclose(actual, _np.transpose(actual), rtol=1e-5, atol=1e-8)
+
+    else:
+        assert actual == expected
+
+    actual = mc.commute_times_to('variance', targets)
+    expected = value_variance
+
+    if (actual is not None) and (expected is not None):
+
+        expected = _np.array(expected)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8, equal_nan=True)
+
+        if expected.ndim == 2:
+            _npt.assert_allclose(actual, _np.transpose(actual), rtol=1e-5, atol=1e-8)
+
     else:
         assert actual == expected
 
@@ -203,8 +241,7 @@ def test_first_passage_times_between(p, origins, targets, value_mean, value_vari
     expected = value_mean
 
     if (actual is not None) and (expected is not None):
-        expected = _np.array(expected)
-        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 
@@ -212,8 +249,7 @@ def test_first_passage_times_between(p, origins, targets, value_mean, value_vari
     expected = value_variance
 
     if (actual is not None) and (expected is not None):
-        expected = _np.array(expected)
-        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8, equal_nan=True)
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
     else:
         assert actual == expected
 

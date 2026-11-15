@@ -32,7 +32,8 @@ from ._analysis import (
     mc_absorption_times as _absorption_times,
     mc_absolute_spectral_gap as _absolute_spectral_gap,
     mc_committor_probabilities as _committor_probabilities,
-    mc_commute_times as _commute_times,
+    mc_commute_times_between as _commute_times_between,
+    mc_commute_times_to as _commute_times_to,
     mc_conductance as _conductance,
     mc_cumulants as _cumulants,
     mc_deviation_matrix as _deviation_matrix,
@@ -181,8 +182,7 @@ from ._generators import (
     mc_random as _random,
     mc_random_distribution as _random_distribution,
     mc_reversibilize as _reversibilize,
-    mc_spectral_aggregation_bottom_up as _spectral_aggregation_bottom_up,
-    mc_spectral_aggregation_top_down as _spectral_aggregation_top_down,
+    mc_spectral_aggregation as _spectral_aggregation,
     mc_sub as _sub,
     mc_teleport as _teleport,
     mc_time_reversal as _time_reversal,
@@ -1359,12 +1359,6 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        if self.__size == 2:  # pragma: no cover
-            raise ValueError('The Markov chain defines only 2 states.')
-
-        if len(states) < 2:  # pragma: no cover
-            raise _ValidationError('At least 2 states must be retained.')
-
         p_out, states_out, error_message = _censor(self.__p, self.__states, states)
 
         if error_message is not None:  # pragma: no cover
@@ -1457,22 +1451,71 @@ class MarkovChain(_Model):
 
         return _committor_probabilities(self, committor_type, states1, states2)
 
-    @_cached_method
-    @_object_mark(aliases=['ct'])
-    def commute_times(self) -> _oarray:
+    @_object_mark(aliases=['ct_between', 'ctb'])
+    def commute_times_between(self, statistic: str, origins: _tstates, targets: _tstates) -> _ofloat:
 
         r"""
-        | The method computes the commute times between all pairs of states of the Markov chain:
-        | :math:`\kappa_{ij} = m_{ij} + m_{ji}` where :math:`m_{ij}` is the mean first passage time from state :math:`i` to state :math:`j`.
+        | The method computes a statistic of the commute time (round-trip duration) between the given subsets of the state space.
 
         | **Notes:**
-
-        - The returned matrix is symmetric, with diagonal entries equal to 0.
+        - The origin states are weighted according to the stationary distribution conditioned on the origin set.
+        - The return passage begins at the state first reached in the target set.
+        - States belonging to both the origin and target sets have a commute time of 0.
+        - The result is not necessarily symmetric when the origin and target sets are exchanged.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
-        - The method can also be accessed through the alias **ct**.
+        - The method can also be accessed through the aliases **ct_between** and **ctb**.
+
+        :param statistic:
+         - **mean** to compute the mean;
+         - **variance** to compute the variance.
+        :param origins: the states defining the initial distribution obtained by conditioning the stationary distribution on the origin set.
+        :param targets: the states defining the target set for the first hitting-time computation.
+        :raises ValidationError: if any input argument is not compliant.
         """
 
-        return _commute_times(self)
+        try:
+
+            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
+            origins = _validate_labels_current(origins, self.__states, True)
+            targets = _validate_labels_current(targets, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _commute_times_between(self, statistic, origins, targets)
+
+    @_object_mark(aliases=['ct_to', 'ctt'])
+    def commute_times_to(self, statistic: str, targets: _ostates = None) -> _oarray:
+
+        r"""
+        | The method computes a statistic of the commute times (round-trip durations) from every state to the given target states of the Markov chain.
+
+        | **Notes:**
+        - If target states are omitted, an n-by-n matrix is returned, with origin states as rows and destination states as columns.
+        - If target states are specified, a vector is returned containing the commute time statistic for the entire target set, starting from each state.
+        - The return passage begins at the state first reached in the target set.
+        - States belonging to the target set have a commute time of 0.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - The method can also be accessed through the aliases **ct_to** and **ctt**.
+
+        :param statistic:
+         - **mean** to compute the mean;
+         - **variance** to compute the variance.
+        :param targets: the target states (*if omitted, all the states are targeted*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
+
+            if targets is not None:
+                targets = _validate_labels_current(targets, self.__states, False)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _commute_times_to(self, statistic, targets)
 
     @_object_mark(aliases=['conditional_distribution', 'cd', 'cp'])
     def conditional_probabilities(self, state: _tstate) -> _tarray:
@@ -2137,9 +2180,6 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        if self.__size == 2:  # pragma: no cover
-            raise ValueError('The Markov chain defines only 2 states.')
-
         p_out, states_out, error_message = _lump(self.__p, self.__states, partition)
 
         if error_message is not None:  # pragma: no cover
@@ -2240,16 +2280,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        if self.__size == 2:  # pragma: no cover
-            raise ValueError('The Markov chain defines only 2 states.')
-
-        if not self.is_irreducible:  # pragma: no cover
-            raise ValueError('The Markov chain is not irreducible.')
-
-        if not self.is_reversible:  # pragma: no cover
-            raise ValueError('The Markov chain is not reversible.')
-
-        p_out, states_out, error_message = _metastable_aggregation(self.__p, self.__states, s, robust)
+        p_out, states_out, error_message = _metastable_aggregation(self.__p, self.__states, self.is_irreducible, self.is_reversible, s, robust)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -2619,10 +2650,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        if len(self.transient_states) > 0:  # pragma: no cover
-            raise ValueError('The Markov chain has transient states and its stationary time reversal is not defined.')
-
-        p_out = _reversibilize(self.__p, self.__recurrent_classes_indices, self.pi, method)
+        p_out = _reversibilize(self.__p, self.__recurrent_classes_indices, self.transient_states, self.pi, method)
         mc = MarkovChain(p_out, self.__states)
 
         return mc
@@ -2742,21 +2770,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        if self.__size == 2:  # pragma: no cover
-            raise ValueError('The Markov chain defines only 2 states.')
-
-        if not self.is_ergodic:  # pragma: no cover
-            raise ValueError('The Markov chain is not ergodic.')
-
-        if method == 'adaptive':  # pragma: no cover
-            if self.__size < 30:
-                method = 'top-down'
-            else:
-                method = 'bottom-up' if (float(s) / self.__size) <= 0.3 else 'top-down'
-
-        func = _spectral_aggregation_bottom_up if method == 'bottom-up' else _spectral_aggregation_top_down
-        p_out, states_out = func(self.p, self.pi[0], s)
-
+        p_out, states_out = _spectral_aggregation(method, self.p, self.is_ergodic, self.pi, s)
         mc = MarkovChain(p_out, states_out)
 
         return mc
@@ -2790,7 +2804,7 @@ class MarkovChain(_Model):
         return _stationary_perturbation_bound(self, epsilon)
 
     @_object_mark(random_output=True)
-    def stationary_sampling(self, maximum_doublings: int = 10, output_index: bool = False, seed: _oint = None) -> _tstate:
+    def stationary_sampling(self, maximum_doublings: int = 10, output_index: bool = False, seed: _oint = None) -> _ostate:
 
         r"""
         | The method samples a state from the stationary distribution of the Markov chain using the Coupling from the Past (CFTP) algorithm.
@@ -2816,9 +2830,6 @@ class MarkovChain(_Model):
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
-
-        if not self.is_ergodic:  # pragma: no cover
-            raise ValueError('The Markov chain is not ergodic.')
 
         maximum_steps = 2**maximum_doublings
         value = _stationary_sampling(self, maximum_steps, rng)
@@ -2954,10 +2965,7 @@ class MarkovChain(_Model):
         :raises ValueError: if the Markov chain has transient states.
         """
 
-        if len(self.transient_states) > 0:  # pragma: no cover
-            raise ValueError('The Markov chain has transient states and its stationary time reversal is not defined.')
-
-        p_out = _time_reversal(self.__p, self.__recurrent_classes_indices, self.pi)
+        p_out = _time_reversal(self.__p, self.__recurrent_classes_indices, self.transient_states, self.pi)
         mc = MarkovChain(p_out, self.__states)
 
         return mc
@@ -3460,8 +3468,7 @@ class MarkovChain(_Model):
 
         if fitting_param is None:
             if fitting_type == 'map':
-                possible_states_length = len(possible_states)
-                fitting_param = _np.ones((possible_states_length, possible_states_length), dtype=float)
+                fitting_param = _np.ones((len(possible_states), len(possible_states)), dtype=float)
             elif fitting_type == 'mle':
                 fitting_param = False
             else:

@@ -121,26 +121,22 @@ Commute Times
 | The **commute time** between two states is the expected time to travel from one to the other and then return.
 | Unlike a hitting time, it describes a complete round trip.
 
-PyDTMC computes the commute times for every pair of states:
+PyDTMC can compute the mean commute time between two subsets of the state space:
 
 .. code-block:: python
 
-   print(mc.commute_times())
+   print(mc.commute_times_between('mean', ['Low'], ['High']))
 
-The resulting matrix is:
+The result is:
 
 .. code-block:: text
 
-   [[ 0.0, 8.0, 16.0]
-    [ 8.0, 0.0,  8.0]
-    [16.0, 8.0,  0.0]]
+   16.0
 
-| Each entry represents the expected round-trip time between two states, following their order in the transition matrix.
-| For example, the value ``16.0`` represents the commute time between ``Low`` and ``High``.
+| The value ``16.0`` represents the expected round-trip time between ``Low`` and ``High``.
 | This includes eight expected steps to reach ``High`` and another eight to return to ``Low``.
-| The matrix is symmetric because the round-trip time is the same in either direction.
 
-The relationship is expressed by:
+For individual states, the mean commute time is symmetric and satisfies:
 
 .. math::
 

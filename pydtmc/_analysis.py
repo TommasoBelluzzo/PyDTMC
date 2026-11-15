@@ -16,7 +16,8 @@ __all__ = [
     'mc_absorption_probabilities',
     'mc_absorption_times',
     'mc_committor_probabilities',
-    'mc_commute_times',
+    'mc_commute_times_between',
+    'mc_commute_times_to',
     'mc_conductance',
     'mc_cumulants',
     'mc_deviation_matrix',
@@ -463,17 +464,100 @@ def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_in
     return cp
 
 
-def mc_commute_times(mc: _tmc) -> _oarray:
+def mc_commute_times_between(mc: _tmc, statistic: str, origins: _tlist_int, targets: _tlist_int) -> _ofloat:
 
-    fptt_mean = mc.first_passage_times_to(statistic='mean')
+    if not mc.is_irreducible:
+        return None
 
-    if fptt_mean is None:
-        ct = None
-    else:
-        ct = fptt_mean + _np.transpose(fptt_mean)
+    p, size, pi = mc.p, mc.size, mc.pi[0]
+
+    pi_origins = pi[origins]
+    mu = pi_origins / _np.sum(pi_origins)
+
+    origin = _np.array(origins, dtype=int)
+    non_origin = _np.setdiff1d(_np.arange(size, dtype=int), origin)
+
+    target = _np.array(targets, dtype=int)
+    non_target = _np.setdiff1d(_np.arange(size, dtype=int), target)
+
+    mean = _np.zeros(size, dtype=float)
+    variance = _np.zeros(size, dtype=float)
+
+    if non_origin.size > 0:
+        ht_mean, ht_variance = _hitting_times_statistics(p, non_origin)
+        mean[non_origin] = ht_mean
+        variance[non_origin] = ht_variance
+
+    second_moment = variance + mean**2.0
+
+    if non_target.size > 0:
+
+        q = p[_np.ix_(non_target, non_target)]
+        r = p[_np.ix_(non_target, target)]
+        a = _np.eye(non_target.size) - q
+
+        mean[non_target] = _npl.solve(a, _np.dot(r, mean[target]) + 1.0)
+
+        if statistic == 'variance':
+            second_moment[non_target] = _npl.solve(a, (2.0 * mean[non_target]) + _np.dot(r, second_moment[target]) - 1.0)
+
+    mean_between = _np.dot(mu, mean[origins])
+
+    if statistic == 'mean':
+        mean_between = float(mean_between)
+        return mean_between
+
+    second_moment_between = _np.dot(mu, second_moment[origins])
+    variance_between = float(_clean_variance(second_moment_between - mean_between**2.0))
+
+    return variance_between
+
+
+def mc_commute_times_to(mc: _tmc, statistic: str, targets: _olist_int) -> _oarray:
+
+    if not mc.is_irreducible:
+        return None
+
+    if targets is None:
+
+        fptt = mc_first_passage_times_to(mc, statistic, None)
+        ct = fptt + _np.transpose(fptt)
+
         _np.fill_diagonal(ct, 0.0)
 
-    return ct
+        return ct
+
+    p, size = mc.p, mc.size
+
+    target = _np.array(targets, dtype=int)
+    non_target = _np.setdiff1d(_np.arange(size, dtype=int), target)
+
+    fptt_mean = mc_first_passage_times_to(mc, 'mean', None)
+    mean = fptt_mean.copy()
+
+    fptt_variance = mc_first_passage_times_to(mc, 'variance', None)
+    second_moment = fptt_variance + fptt_mean**2.0
+
+    if non_target.size > 0:
+
+        q = p[_np.ix_(non_target, non_target)]
+        r = p[_np.ix_(non_target, target)]
+        a = _np.eye(non_target.size) - q
+
+        mean[non_target, :] = _npl.solve(a, 1.0 + _np.dot(r, mean[target, :]))
+
+        if statistic == 'variance':
+            second_moment[non_target, :] = _npl.solve(a, (2.0 * mean[non_target, :]) + _np.dot(r, second_moment[target, :]) - 1.0)
+
+    mean_to = _np.diag(mean)
+
+    if statistic == 'mean':
+        return mean_to
+
+    second_moment_to = _np.diag(second_moment)
+    variance_to = _clean_variance(second_moment_to - mean_to**2.0)
+
+    return variance_to
 
 
 def mc_first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, first_passage_states: _olist_int) -> _tarray:

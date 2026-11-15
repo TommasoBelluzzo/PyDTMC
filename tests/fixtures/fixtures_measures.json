@@ -30,9 +30,37 @@
         "value_forward": [1.0, 0.0]
       }
     ],
-    "commute_times": [
-      [0.0, 2.0],
-      [2.0, 0.0]
+    "commute_times_between_data": [
+      {
+        "origins": 0,
+        "targets": 1,
+        "value_mean": 2.0,
+        "value_variance": 0.0
+      },
+      {
+        "origins": 1,
+        "targets": 0,
+        "value_mean": 2.0,
+        "value_variance": 0.0
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": [
+          [0.0, 2.0],
+          [2.0, 0.0]
+        ],
+        "value_variance": [
+          [0.0, 0.0],
+          [0.0, 0.0]
+        ]
+      },
+      {
+        "targets": 1,
+        "value_mean": [2.0, 0.0],
+        "value_variance": [0.0, 0.0]
+      }
     ],
     "conductance_data": [
       {
@@ -433,9 +461,37 @@
         "value_forward": [1.0, 0.0]
       }
     ],
-    "commute_times": [
-      [0.00000000, 5.42857143],
-      [5.42857143, 0.00000000]
+    "commute_times_between_data": [
+      {
+        "origins": 0,
+        "targets": 1,
+        "value_mean": 5.42857143,
+        "value_variance": 12.6122449
+      },
+      {
+        "origins": 1,
+        "targets": 0,
+        "value_mean": 5.42857143,
+        "value_variance": 12.6122449
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": [
+          [0.00000000, 5.42857143],
+          [5.42857143, 0.00000000]
+        ],
+        "value_variance": [
+          [ 0.0000000, 12.6122449],
+          [12.6122449,  0.0000000]
+        ]
+      },
+      {
+        "targets": 0,
+        "value_mean": [0.00000000, 5.42857143],
+        "value_variance": [0.00000000, 12.6122449]
+      }
     ],
     "conductance_data": [
       {
@@ -939,7 +995,32 @@
         "value_forward": [1.0, 0.0, 1.0]
       }
     ],
-    "commute_times": null,
+    "commute_times_between_data": [
+      {
+        "origins": 0,
+        "targets": 2,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "origins": [0, 1],
+        "targets": 2,
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "targets": 2,
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
     "conductance_data": [
       {
         "states": 0,
@@ -1332,10 +1413,39 @@
         "value_forward": [0.0, 1.0, 1.0]
       }
     ],
-    "commute_times": [
-      [0.0, 3.0, 3.0],
-      [3.0, 0.0, 3.0],
-      [3.0, 3.0, 0.0]
+    "commute_times_between_data": [
+      {
+        "origins": 1,
+        "targets": [0, 2],
+        "value_mean": 3.0,
+        "value_variance": 0.0
+      },
+      {
+        "origins": [1, 2],
+        "targets": 0,
+        "value_mean": 2.5,
+        "value_variance": 0.25
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": [
+          [0.0, 3.0, 3.0],
+          [3.0, 0.0, 3.0],
+          [3.0, 3.0, 0.0]
+        ],
+        "value_variance": [
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0]
+        ]
+      },
+      {
+        "targets": 2,
+        "value_mean": [3.0, 3.0, 0.0],
+        "value_variance": [0.0, 0.0, 0.0]
+      }
     ],
     "conductance_data": [
       {
@@ -1758,7 +1868,32 @@
         "value_forward": [0.0, 0.0, 1.0]
       }
     ],
-    "commute_times": null,
+    "commute_times_between_data": [
+      {
+        "origins": 0,
+        "targets": 1,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "origins": 2,
+        "targets": [1, 2],
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "targets": 0,
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
     "conductance_data": [
       {
         "states": 0,
@@ -2156,10 +2291,39 @@
         "value_forward": [0.75, 1.00, 0.00]
       }
     ],
-    "commute_times": [
-      [0.00000000, 7.08333333, 7.21212121],
-      [7.08333333, 0.00000000, 7.72727273],
-      [7.21212121, 7.72727273, 0.00000000]
+    "commute_times_between_data": [
+      {
+        "origins": 2,
+        "targets": 0,
+        "value_mean": 7.21212121,
+        "value_variance": 16.04591368
+      },
+      {
+        "origins": 2,
+        "targets": 1,
+        "value_mean": 7.72727273,
+        "value_variance": 21.76652893
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": [
+          [0.00000000, 7.08333333, 7.21212121],
+          [7.08333333, 0.00000000, 7.72727273],
+          [7.21212121, 7.72727273, 0.00000000]
+        ],
+        "value_variance": [
+          [ 0.00000000, 17.43055556, 16.04591368],
+          [17.43055556,  0.00000000, 21.76652893],
+          [16.04591368, 21.76652893,  0.00000000]
+        ]
+      },
+      {
+        "targets": [0, 2],
+        "value_mean": [0.00000000, 6.07142857, 0.00000000],
+        "value_variance": [0.00000000, 14.14540816, 0.00000000]
+      }
     ],
     "conductance_data": [
       {
@@ -2701,10 +2865,39 @@
         "value_forward": [1.0, 0.0, 0.0]
       }
     ],
-    "commute_times": [
-      [0.00000000, 6.66666667, 6.66666667],
-      [6.66666667, 0.00000000, 6.66666667],
-      [6.66666667, 6.66666667, 0.00000000]
+    "commute_times_between_data": [
+      {
+        "origins": 0,
+        "targets": 1,
+        "value_mean": 6.66666667,
+        "value_variance": 18.22222222
+      },
+      {
+        "origins": 0,
+        "targets": [0, 2],
+        "value_mean": 0.0,
+        "value_variance": 0.0
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": [
+          [0.00000000, 6.66666667, 6.66666667],
+          [6.66666667, 0.00000000, 6.66666667],
+          [6.66666667, 6.66666667, 0.00000000]
+        ],
+        "value_variance": [
+          [ 0.00000000, 18.22222222, 13.77777778],
+          [18.22222222,  0.00000000, 18.22222222],
+          [13.77777778, 18.22222222,  0.00000000]
+        ]
+      },
+      {
+        "targets": 1,
+        "value_mean": [6.66666667, 0.00000000, 6.66666667],
+        "value_variance": [18.22222222,  0.00000000, 18.22222222]
+      }
     ],
     "conductance_data": [
       {
@@ -3243,7 +3436,32 @@
         "value_forward": [0.0, 1.0, 1.0, 0.0]
       }
     ],
-    "commute_times": null,
+    "commute_times_between_data": [
+      {
+        "origins": 0,
+        "targets": [1, 2],
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "origins": 0,
+        "targets": [2, 3],
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "targets": [0, 1],
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
     "conductance_data": [
       {
         "states": 1,
@@ -3641,11 +3859,31 @@
         "value_forward": [0.46153846, 0.00000000, 0.38461538, 1.00000000]
       }
     ],
-    "commute_times": [
-      [ 0.00000000,  8.49206349, 11.88888889, 13.16269841],
-      [ 8.49206349,  0.00000000, 15.28571429, 16.55952381],
-      [11.88888889, 15.28571429,  0.00000000, 17.83333333],
-      [13.16269841, 16.55952381, 17.83333333,  0.00000000]
+    "commute_times_between_data": [
+      {
+        "origins": 0,
+        "targets": [1, 2],
+        "value_mean": 6.36904762,
+        "value_variance": 15.19770408
+      },
+      {
+        "origins": [0, 3],
+        "targets": 2,
+        "value_mean": 11.07814111,
+        "value_variance": 69.74557482
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": [0, 1],
+        "value_mean": [0.00000000, 0.00000000, 11.46428571, 12.73809524],
+        "value_variance": [0.00000000, 0.00000000, 70.66539116, 105.45918367]
+      },
+      {
+        "targets": [1, 0],
+        "value_mean": [0.00000000, 0.00000000, 11.46428571, 12.73809524],
+        "value_variance": [0.00000000, 0.00000000, 70.66539116, 105.45918367]
+      }
     ],
     "conductance_data": [
       {
@@ -3875,7 +4113,7 @@
         ]
       },
       {
-        "targets": [1, 3],
+        "targets": [3, 1],
         "value_mean": [4.61538462, 0.00000000, 3.84615385, 0.00000000],
         "value_variance": [15.50295858, 0.00000000, 13.31360947, 0.00000000]
       }
@@ -4205,12 +4443,31 @@
         "value_forward": [0.55555556, 0.11111111, 1.00000000, 0.55555556, 0.00000000]
       }
     ],
-    "commute_times": [
-      [ 0.00000000,  7.40000000,  7.40000000, 12.33333333,  5.28571429],
-      [ 7.40000000,  0.00000000, 14.80000000, 17.26666667,  8.45714286],
-      [ 7.40000000, 14.80000000,  0.00000000, 14.80000000,  9.51428571],
-      [12.33333333, 17.26666667, 14.80000000,  0.00000000, 17.61904762],
-      [ 5.28571429,  8.45714286,  9.51428571, 17.61904762,  0.00000000]
+    "commute_times_between_data": [
+      {
+        "origins": [0, 1],
+        "targets": [3, 4],
+        "value_mean": 3.39999999,
+        "value_variance": 1.84
+      },
+      {
+        "origins": 3,
+        "targets": [0, 2, 4],
+        "value_mean": 12.33333333,
+        "value_variance": 129.11111111
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": [0, 1, 2],
+        "value_mean": [0.00000000, 0.00000000, 0.00000000, 12.33333333, 5.28571429],
+        "value_variance": [0.00000000, 0.00000000, 0.00000000, 129.11111111, 7.51020408]
+      },
+      {
+        "targets": [2, 3, 4],
+        "value_mean": [3.70000000, 7.40000000, 0.00000000, 0.00000000, 0.00000000],
+        "value_variance": [1.61000000, 29.12000000, 0.00000000, 0.00000000, 0.00000000]
+      }
     ],
     "conductance_data": [
       {
@@ -4782,7 +5039,32 @@
         "value_forward": [0.000000, 0.000000, 1.000000, 0.000000, 1.000000, 0.600000]
       }
     ],
-    "commute_times": null,
+    "commute_times_between_data": [
+      {
+        "origins": 0,
+        "targets": 1,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "origins": 2,
+        "targets": 0,
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "targets": 3,
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
     "conductance_data": [
       {
         "states": [0, 2],
@@ -5199,7 +5481,32 @@
         "value_forward": [0.0, 0.0, 1.0, 0.0, 1.0, 0.6]
       }
     ],
-    "commute_times": null,
+    "commute_times_between_data": [
+      {
+        "origins": 0,
+        "targets": 1,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "origins": 2,
+        "targets": 0,
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "targets": [1, 0],
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
     "conductance_data": [
       {
         "states": 1,
@@ -5610,7 +5917,32 @@
         "value_forward": [1.0, 1.0, 1.0, 0.0, 0.0, 0.0]
       }
     ],
-    "commute_times": null,
+    "commute_times_between_data": [
+      {
+        "origins": 0,
+        "targets": 1,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "origins": 2,
+        "targets": 0,
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "targets": [1, 4],
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
     "conductance_data": [
       {
         "states": 0,
@@ -6060,7 +6392,32 @@
         "value_forward": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
       }
     ],
-    "commute_times": null,
+    "commute_times_between_data": [
+      {
+        "origins": 0,
+        "targets": 1,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "origins": 2,
+        "targets": 0,
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": null,
+        "value_variance": null
+      },
+      {
+        "targets": [0, 5, 6],
+        "value_mean": null,
+        "value_variance": null
+      }
+    ],
     "conductance_data": [
       {
         "states": 0,

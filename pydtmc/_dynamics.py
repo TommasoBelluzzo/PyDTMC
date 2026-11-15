@@ -365,6 +365,9 @@ def mc_simulate(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rn
 
 def mc_stationary_sampling(mc: _tmc, maximum_steps: int, rng: _trand) -> _oint:
 
+    if not mc.is_ergodic:  # pragma: no cover
+        raise ValueError('The Markov chain is not ergodic.')
+
     p, n = mc.p, mc.size
 
     cumulative = _np.cumsum(p, axis=1)

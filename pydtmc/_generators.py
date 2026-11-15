@@ -23,8 +23,7 @@ __all__ = [
     'mc_random',
     'mc_random_distribution',
     'mc_reversibilize',
-    'mc_spectral_aggregation_bottom_up',
-    'mc_spectral_aggregation_top_down',
+    'mc_spectral_aggregation',
     'mc_sub',
     'mc_teleport',
     'mc_time_reversal',
@@ -68,6 +67,7 @@ from ._custom_types import (
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
+    tlists_str as _tlists_str,
     tmc_dict_flex as _tmc_dict_flex,
     tmc_gen as _tmc_gen,
     tmc_gen_ext as _tmc_gen_ext,
@@ -276,6 +276,10 @@ def mc_canonical(p: _tarray, recurrent_classes_indices: _tlists_int, transient_i
 def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _tmc_gen_full:
 
     size = p.shape[0]
+
+    if size == 2:  # pragma: no cover
+        return None, None, 'The Markov chain defines only 2 states.'
+
     removed_states = [i for i in range(size) if i not in retained_states]
 
     p_aa = p[_np.ix_(retained_states, retained_states)]
@@ -515,6 +519,9 @@ def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen
 
     size = p.shape[0]
 
+    if size == 2:  # pragma: no cover
+        return None, None, 'The Markov chain defines only 2 states.'
+
     r = _np.zeros((size, len(partitions)), dtype=float)
 
     for index, partition in enumerate(partitions):
@@ -541,7 +548,7 @@ def mc_lump(p: _tarray, states: _tlist_str, partitions: _tlists_int) -> _tmc_gen
     return p_lump, state_names, None
 
 
-def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bool) -> _tmc_gen_full:  # pylint: disable=too-many-return-statements
+def mc_metastable_aggregation(p: _tarray, states: _tlist_str, is_irreducible: bool, is_reversible: bool, s: int, robust: bool) -> _tmc_gen_full:  # pylint: disable=too-many-return-statements
 
     def _memberships(m_flat, m_x, m_s):
 
@@ -582,7 +589,16 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
 
         return output
 
-    n = p.shape[0]
+    size = p.shape[0]
+
+    if size == 2:  # pragma: no cover
+        return None, None, 'The Markov chain defines only 2 states.'
+
+    if not is_irreducible:  # pragma: no cover
+        return None, None, 'The Markov chain is not irreducible.'
+
+    if not is_reversible:  # pragma: no cover
+        return None, None, 'The Markov chain is not reversible.'
 
     pi = _gth_solve(p)
     root = _np.sqrt(pi)
@@ -590,13 +606,13 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
     sym = (root[:, _np.newaxis] * p) / root[_np.newaxis, :]
     evalues, evectors = _spl.eigh(0.5 * (sym + _np.transpose(sym)))
 
-    x = evectors[:, _np.arange(n - 1, n - s - 1, -1)] / root[:, _np.newaxis]
+    x = evectors[:, _np.arange(size - 1, size - s - 1, -1)] / root[:, _np.newaxis]
     x[:, 0] = 1.0
 
-    if _np.abs(evalues[n - s] - evalues[n - s - 1]) < 1e-10:  # pragma: no cover
+    if _np.abs(evalues[size - s] - evalues[size - s - 1]) < 1e-10:  # pragma: no cover
         return None, None, 'The requested dimension splits a degenerate eigenspace.'
 
-    n, s = x.shape
+    s = x.shape[1]
     coordinates = x[:, 1:]
     center = _np.mean(coordinates, axis=0)
     scale = max(1.0, float(_npl.norm(coordinates, ord=2)))
@@ -719,9 +735,9 @@ def mc_metastable_aggregation(p: _tarray, states: _tlist_str, s: int, robust: bo
     return p, state_names, None
 
 
-def mc_reversibilize(p: _tarray, recurrent_classes_indices: _tlists_int, pi: _tlist_array, method: str) -> _tarray:
+def mc_reversibilize(p: _tarray, recurrent_classes_indices: _tlists_int, transient_states: _tlists_str, pi: _tlist_array, method: str) -> _tarray:
 
-    pr = mc_time_reversal(p, recurrent_classes_indices, pi)
+    pr = mc_time_reversal(p, recurrent_classes_indices, transient_states, pi)
 
     if method == 'additive':
         result = 0.5 * (p + pr)
@@ -731,6 +747,28 @@ def mc_reversibilize(p: _tarray, recurrent_classes_indices: _tlists_int, pi: _tl
         result = _np.dot(pr, p)
 
     return result
+
+
+def mc_spectral_aggregation(method: str, p: _tarray, is_ergodic: bool, pi: _tlist_array, s: int) -> _tmc_gen_ext:
+
+    size = p.shape[0]
+
+    if size == 2:  # pragma: no cover
+        raise ValueError('The Markov chain defines only 2 states.')
+
+    if not is_ergodic:  # pragma: no cover
+        raise ValueError('The Markov chain is not ergodic.')
+
+    if method == 'adaptive':  # pragma: no cover
+        if size < 30:
+            method = 'top-down'
+        else:
+            method = 'bottom-up' if (float(s) / size) <= 0.3 else 'top-down'
+
+    func = mc_spectral_aggregation_bottom_up if method == 'bottom-up' else mc_spectral_aggregation_top_down
+    q, states = func(p, pi[0], s)
+
+    return q, states
 
 
 def mc_spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen_ext:
@@ -971,7 +1009,10 @@ def mc_teleport(p: _tarray, probability: float, distribution: _tarray) -> _tarra
     return p
 
 
-def mc_time_reversal(p: _tarray, recurrent_classes_indices: _tlists_int, pi: _tlist_array) -> _tarray:
+def mc_time_reversal(p: _tarray, recurrent_classes_indices: _tlists_int, transient_states: _tlists_str, pi: _tlist_array) -> _tarray:
+
+    if len(transient_states) > 0:  # pragma: no cover
+        raise ValueError('The Markov chain has transient states, therefore its stationary time reversal is not defined.')
 
     size = p.shape[0]
     pr = _np.zeros((size, size), dtype=float)
