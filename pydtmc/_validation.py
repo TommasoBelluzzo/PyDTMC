@@ -530,7 +530,7 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
         if (value < 0) or (value > limit):
             raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and {limit:d}.')
 
-        if (minimum_length is not None) and (minimum_length > 1):
+        if (minimum_length is not None) and (minimum_length > 1):  # pragma: no cover
             raise ValueError(f'The "@arg@" parameter must contain at least {minimum_length:d} elements.')
 
         value = [value]
@@ -542,7 +542,7 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
         if value not in labels:
             raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(labels)}.')
 
-        if (minimum_length is not None) and (minimum_length > 1):
+        if (minimum_length is not None) and (minimum_length > 1):  # pragma: no cover
             raise ValueError(f'The "@arg@" parameter must contain at least {minimum_length:d} elements.')
 
         value = [labels.index(value)]
