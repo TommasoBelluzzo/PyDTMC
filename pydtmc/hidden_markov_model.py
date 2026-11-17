@@ -104,7 +104,10 @@ from ._fitting import (
 )
 
 from ._generators import (
+    hmm_cpg_islands as _cpg_islands,
+    hmm_dishonest_casino as _dishonest_casino,
     hmm_estimate as _estimate,
+    hmm_gilbert_elliott as _gilbert_elliott,
     hmm_random as _random,
     hmm_restrict as _restrict
 )
@@ -184,14 +187,20 @@ class HiddenMarkovModel(_Model):
 
                 p = _validate_transition_matrix(p)
                 e = _validate_emission_matrix(e, p.shape[1])
-                states = _create_labels(p.shape[1], 'P') if states is None else _validate_labels_input(states, p.shape[1])
-                symbols = _create_labels(e.shape[1], 'E') if symbols is None else _validate_labels_input(symbols, e.shape[1])
+
+                if states is not None:
+                    states = _validate_labels_input(states, p.shape[1])
+
+                symbols = _create_labels(e.shape[1], prefix='E') if symbols is None else _validate_labels_input(symbols, e.shape[1])
 
             except Exception as ex:  # pragma: no cover
                 raise _create_validation_error(ex, _ins.trace()) from None
 
-        if len(list(set(states) & set(symbols))) > 0:  # pragma: no cover
-            raise _ValidationError('State names and symbol names must be different.')
+            states = states if states is not None else _create_labels(p.shape[1], prefix='P')
+            symbols = symbols if symbols is not None else _create_labels(e.shape[1], prefix='E')
+
+            if len(list(set(states) & set(symbols))) > 0:  # pragma: no cover
+                raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
 
         self.__digraph: _tgraph = _build_hmm_graph(p, e, states, symbols)
         self.__e: _tarray = e
@@ -1108,6 +1117,107 @@ class HiddenMarkovModel(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
+    def cpg_islands(p_enter: float, p_exit: float, island_transitions: _tarray, background_transitions: _tarray, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:
+
+        r"""
+        | The method generates a hidden Markov model for CpG islands and background genomic regions.
+
+        | **Notes:**
+
+        - The model has 8 hidden states representing the four nucleotides (**A**, **C**, **G**, **T**) within each of the two genomic regions (island and background).
+        - Each hidden state emits its associated nucleotide with probability 1.
+        - Nucleotide transitions follow region-specific, 4-by-4 row-stochastic matrices.
+        - At each step, the next region is selected first, followed by the next nucleotide according to the destination region's transition matrix.
+        - The model captures dinucleotide dependencies rather than assuming independent nucleotide emissions.
+
+        :param p_enter: the probability of transitioning from a background region to a CpG island.
+        :param p_exit: the probability of transitioning from a CpG island to a background region.
+        :param island_transitions: the nucleotide transition matrix within CpG islands, with rows and columns ordered A, C, G, T.
+        :param background_transitions: the nucleotide transition matrix within background regions, with rows and columns ordered A, C, G, T.
+        :param states: the hidden-state names (*if omitted, the nucleotide names prefixed by I or B are used for island and background states, respectively*).
+        :param symbols: the emitted-symbol names (*if omitted, the labels A, C, G, T are used*).
+        :raises ValidationError: if any input argument is not compliant, including non-stochastic nucleotide matrices or overlapping state and symbol labels.
+        """
+
+        try:
+
+            p_enter = _validate_float(p_enter, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            p_exit = _validate_float(p_exit, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            island_transitions = _validate_transition_matrix(island_transitions, 4)
+            background_transitions = _validate_transition_matrix(background_transitions, 4)
+
+            if states is not None:
+                states = _validate_labels_input(states, 8)
+
+            if symbols is not None:
+                symbols = _validate_labels_input(symbols, 4)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        states_out = states if states is not None else ['I-A', 'I-C', 'I-G', 'I-T', 'B-A', 'B-C', 'B-G', 'B-T']
+        symbols_out = symbols if symbols is not None else ['A', 'C', 'G', 'T']
+
+        if len(list(set(states_out) & set(symbols_out))) > 0:  # pragma: no cover
+            raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
+
+        p_out, e_out = _cpg_islands(p_enter, p_exit, island_transitions, background_transitions)
+
+        hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
+
+        return hmm
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def dishonest_casino(p_switch: float, p_return: float, p_six: float = 0.5, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:
+
+        r"""
+        | The method generates a dishonest casino hidden Markov model with two dice.
+
+        | **Notes:**
+
+        - The model has 2 hidden states, representing a fair die and a loaded die, and 6 emitted symbols, representing the die faces.
+        - The fair die assigns equal probability to each face.
+        - The loaded die assigns probability :math:`q` to face 6 and :math:`(1-q) / 5` to each remaining face, where :math:`q` is the loaded-six probability.
+        - Extreme probability values are allowed; these may produce deterministic or reducible models.
+
+        :param p_switch: the probability of switching from the fair die to the loaded die.
+        :param p_return: the probability of switching from the loaded die to the fair die.
+        :param p_six: the probability of rolling a six with the loaded die (*if omitted, 0.5 is used*).
+        :param states: the hidden-state names (*if omitted, the labels F and L are used*).
+        :param symbols: the emitted-symbol names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            p_switch = _validate_float(p_switch, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            p_return = _validate_float(p_return, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            p_six = _validate_float(p_six, lower_limit=(0.0, False), upper_limit=(1.0, False))
+
+            if states is not None:
+                states = _validate_labels_input(states, 2)
+
+            if symbols is not None:
+                symbols = _validate_labels_input(symbols, 6)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        states_out = states if states is not None else ['F', 'L']
+        symbols_out = symbols if symbols is not None else _create_labels(6)
+
+        if len(list(set(states_out) & set(symbols_out))) > 0:  # pragma: no cover
+            raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
+
+        p_out, e_out = _dishonest_casino(p_switch, p_return, p_six)
+
+        hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
+
+        return hmm
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
     def estimate(possible_states: _tlist_str, possible_symbols: _tlist_str, sequence_states: _tsequence, sequence_symbols: _tsequence) -> _thmm:
 
         """
@@ -1136,7 +1246,7 @@ class HiddenMarkovModel(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         if len(list(set(possible_states) & set(possible_symbols))) > 0:  # pragma: no cover
-            raise _ValidationError('State names and symbol names must be different.')
+            raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
 
         if len(sequence_states) != len(sequence_symbols):
             raise ValueError('The observed sequence of states and the observed sequence of symbols must have the same length.')
@@ -1198,7 +1308,7 @@ class HiddenMarkovModel(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         if len(list(set(possible_states) & set(possible_symbols))) > 0:  # pragma: no cover
-            raise _ValidationError('State names and symbol names must be different.')
+            raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
 
         if fitting_param is None:
             if fitting_type == 'oem':
@@ -1487,6 +1597,58 @@ class HiddenMarkovModel(_Model):
         return hmm
 
     @staticmethod
+    @_object_mark(instance_generator=True)
+    def gilbert_elliott(p_good_bad: float, p_bad_good: float, error_good: float, error_bad: float, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:
+
+        r"""
+        | The method generates a Gilbert-Elliott hidden Markov model for a communication channel.
+
+        | **Notes:**
+
+        - The model has 2 hidden states, representing good and bad channel conditions, and 2 emitted symbols, representing successful and erroneous transmissions.
+        - The good regime has a lower or equal error probability than the bad regime.
+        - Extreme probability values are allowed; these may produce deterministic or reducible models.
+
+        :param p_good_bad: the probability of transitioning from the good regime to the bad regime.
+        :param p_bad_good: the probability of transitioning from the bad regime to the good regime.
+        :param error_good: the conditional error probability in the good regime.
+        :param error_bad: the conditional error probability in the bad regime.
+        :param states: the hidden-state names (*if omitted, the labels G and B are used*).
+        :param symbols: the emitted-symbol names (*if omitted, the labels S and E are used*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            p_good_bad = _validate_float(p_good_bad, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            p_bad_good = _validate_float(p_bad_good, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            error_good = _validate_float(error_good, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            error_bad = _validate_float(error_bad, lower_limit=(0.0, False), upper_limit=(1.0, False))
+
+            if states is not None:
+                states = _validate_labels_input(states, 2)
+
+            if symbols is not None:
+                symbols = _validate_labels_input(symbols, 2)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if error_good > error_bad:  # pragma: no cover
+            raise _ValidationError('The error probability in the good regime must not exceed the error probability in the bad regime.')
+
+        states_out = states if states is not None else ['G', 'B']
+        symbols_out = symbols if symbols is not None else ['S', 'E']
+
+        if len(list(set(states_out) & set(symbols_out))) > 0:  # pragma: no cover
+            raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
+
+        p_out, e_out = _gilbert_elliott(p_good_bad, p_bad_good, error_good, error_bad)
+        hmm = HiddenMarkovModel(p_out, e_out, states, symbols)
+
+        return hmm
+
+    @staticmethod
     @_object_mark(instance_generator=True, random_output=True)
     def random(n: int, k: int, states: _olist_str = None, p_zeros: int = 0, p_mask: _onumeric = None, symbols: _olist_str = None, e_zeros: int = 0, e_mask: _onumeric = None, seed: _oint = None) -> _thmm:
 
@@ -1531,16 +1693,16 @@ class HiddenMarkovModel(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
+        states_out = states if states is not None else _create_labels(n, prefix='P')
+        symbols_out = symbols if symbols is not None else _create_labels(k, prefix='E')
+
+        if len(list(set(states_out) & set(symbols_out))) > 0:  # pragma: no cover
+            raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
+
         p_out, e_out, error_message = _random(rng, n, k, p_zeros, p_mask, e_zeros, e_mask)
 
         if error_message is not None:  # pragma: no cover
             raise _ValidationError(error_message)
-
-        states_out = states if states is not None else _create_labels(p_out.shape[1], prefix='P')
-        symbols_out = symbols if symbols is not None else _create_labels(e_out.shape[1], prefix='E')
-
-        if len(list(set(states_out) & set(symbols_out))) > 0:  # pragma: no cover
-            raise _ValidationError('State names and symbol names must be different.')
 
         hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 

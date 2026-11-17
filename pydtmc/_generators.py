@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'hmm_cpg_islands',
+    'hmm_dishonest_casino',
     'hmm_estimate',
+    'hmm_gilbert_elliott',
     'hmm_restrict',
     'hmm_random',
     'mc_approximation',
+    'mc_bernoulli_trials',
     'mc_birth_death',
     'mc_bounded',
     'mc_canonical',
@@ -26,7 +30,6 @@ __all__ = [
     'mc_random_distribution',
     'mc_random_walk',
     'mc_reversibilize',
-    'mc_runs',
     'mc_spectral_aggregation',
     'mc_sub',
     'mc_teleport',
@@ -325,6 +328,38 @@ def hmm_restrict(p: _tarray, e: _tarray, states: _tlist_str, symbols: _tlist_str
 
 # HMM STATIC GENERATORS
 
+def hmm_cpg_islands(p_enter: float, p_exit: float, island_transitions: _tarray, background_transitions: _tarray) -> _thmm_params:
+
+    regime = _np.array([[1.0 - p_exit, p_exit], [p_enter, 1.0 - p_enter]], dtype=float)
+    transitions = (island_transitions, background_transitions)
+    p = _np.zeros((8, 8), dtype=float)
+
+    for source_region in range(2):
+        for target_region in range(2):
+            p[(source_region * 4):((source_region + 1) * 4), (target_region * 4):((target_region + 1) * 4)] = regime[source_region, target_region] * transitions[target_region]
+
+    e = _np.vstack((_np.eye(4, dtype=float), _np.eye(4, dtype=float)))
+
+    return p, e
+
+
+def hmm_dishonest_casino(p_switch: float, p_return: float, p_six: float) -> _thmm_params:
+
+    p = [
+        [1.0 - p_switch, p_switch],
+        [p_return, 1.0 - p_return]
+    ]
+    p = _np.array(p, dtype=float)
+
+    e = [
+        [1.0 / 6.0] * 6,
+        ([(1.0 - p_six) / 5.0] * 5) + [p_six]
+    ]
+    e = _np.array(e, dtype=float)
+
+    return p, e
+
+
 def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: _tlist_int, handle_nulls: bool) -> _thmm_params:
 
     p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
@@ -352,6 +387,17 @@ def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: 
         e_rows = _np.sum(e, axis=1, keepdims=True)
         e_rows[e_rows == 0.0] = -_np.inf
         e = _np.abs(e / e_rows)
+
+    return p, e
+
+
+def hmm_gilbert_elliott(p_good_bad: float, p_bad_good: float, error_good: float, error_bad: float) -> _thmm_params:
+
+    p = [[1.0 - p_good_bad, p_good_bad], [p_bad_good, 1.0 - p_bad_good]]
+    p = _np.array(p, dtype=float)
+
+    e = [[1.0 - error_good, error_good], [1.0 - error_bad, error_bad]]
+    e = _np.array(e, dtype=float)
 
     return p, e
 
@@ -1203,6 +1249,19 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
     return p, None
 
 
+def mc_bernoulli_trials(n: int, p_success: float) -> _tarray:
+
+    p = _np.zeros((n + 1, n + 1), dtype=float)
+
+    for i in range(n):
+        p[i, 0] += 1.0 - p_success
+        p[i, i + 1] += p_success
+
+    p[n, n] = 1.0
+
+    return p
+
+
 def mc_birth_death(p: _tarray, q: _tarray) -> _tarray:
 
     r = 1.0 - q - p
@@ -1486,19 +1545,6 @@ def mc_random_walk(size: int, topology: str, lazy: bool) -> _tarray:
 
     if lazy:
         p = 0.5 * (p + _np.eye(size, dtype=float))
-
-    return p
-
-
-def mc_runs(n: int, p_success: float) -> _tarray:
-
-    p = _np.zeros((n + 1, n + 1), dtype=float)
-
-    for i in range(n):
-        p[i, 0] += 1.0 - p_success
-        p[i, i + 1] += p_success
-
-    p[n, n] = 1.0
 
     return p
 

@@ -64,6 +64,7 @@ __all__ = [
     'thmm_dict_flex', 'ohmm_dict_flex',
     'thmm_gen', 'ohmm_gen',
     'thmm_gen_ext', 'ohmm_gen_ext',
+    'thmm_gen_full', 'ohmm_gen_full',
     'thmm_params', 'ohmm_params',
     'thmm_params_res', 'ohmm_params_res',
     'thmm_prediction', 'ohmm_prediction',
@@ -142,7 +143,11 @@ oscalar = _tp.Optional[tscalar]
 tarray = _np.ndarray
 oarray = _tp.Optional[tarray]
 
-tnumeric = _tp.Union[_np.ndarray, _spsp.spmatrix] if not _pandas_found else _tp.Union[_np.ndarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
+if _pandas_found:
+    tnumeric = _tp.Union[_np.ndarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
+else:
+    tnumeric = _tp.Union[_np.ndarray, _spsp.spmatrix]
+
 onumeric = _tp.Optional[tnumeric]
 
 texception = Exception
@@ -304,6 +309,9 @@ ohmm_gen = _tp.Optional[thmm_gen]
 
 thmm_gen_ext = _tp.Tuple[oarray, oarray, olist_str, olist_str]
 ohmm_gen_ext = _tp.Optional[thmm_gen_ext]
+
+thmm_gen_full = _tp.Tuple[oarray, oarray, olist_str, olist_str, ostr]
+ohmm_gen_full = _tp.Optional[thmm_gen_full]
 
 thmm_params = _tp.Tuple[tarray, tarray]
 ohmm_params = _tp.Optional[thmm_params]

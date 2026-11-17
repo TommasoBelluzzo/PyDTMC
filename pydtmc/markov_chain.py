@@ -165,6 +165,7 @@ from ._fitting import (
 
 from ._generators import (
     mc_approximation as _approximation,
+    mc_bernoulli_trials as _bernoulli_trials,
     mc_birth_death as _birth_death,
     mc_bounded as _bounded,
     mc_canonical as _canonical,
@@ -186,7 +187,6 @@ from ._generators import (
     mc_random_distribution as _random_distribution,
     mc_random_walk as _random_walk,
     mc_reversibilize as _reversibilize,
-    mc_runs as _runs,
     mc_spectral_aggregation as _spectral_aggregation,
     mc_sub as _sub,
     mc_teleport as _teleport,
@@ -288,10 +288,14 @@ class MarkovChain(_Model):
             try:
 
                 p = _validate_transition_matrix(p)
-                states = _create_labels(p.shape[1]) if states is None else _validate_labels_input(states, p.shape[1])
+
+                if states is not None:  # pragma: no cover
+                    states = _validate_labels_input(states, p.shape[1])
 
             except Exception as ex:  # pragma: no cover
                 raise _create_validation_error(ex, _ins.trace()) from None
+
+            states = states if states is not None else _create_labels(p.shape[1])
 
         self.__digraph: _tgraph = _build_mc_graph(p, states)
         self.__p: _tarray = p
@@ -2226,12 +2230,10 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p_current = self.__p
-        p_other = other.p
+        p_out = ((1.0 - gamma) * self.__p) + (gamma * other.p)
+        states_out = _create_labels(self.__size, prefix='M')
 
-        p = ((1.0 - gamma) * p_current) + (gamma * p_other)
-        states = _create_labels(self.__size, 'M')
-        mc = MarkovChain(p, states)
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3304,6 +3306,52 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
+    def bernoulli_trials(n: int, p_success: float, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a Markov chain for consecutive successes in independent Bernoulli trials:
+        | :math:`P_{ij} = \begin{cases} p & j=i+1,\ i<n \\ 1-p & j=0,\ i<n \\ 1 & i=j=n \\ 0 & \text{otherwise} \end{cases}`
+        | where:
+
+        - :math:`n` is the number of consecutive successes required;
+        - :math:`p` is the probability of success;
+        - :math:`i` is the current number of consecutive successes;
+        - :math:`j` is the number of consecutive successes after the next trial.
+
+        | **Notes:**
+
+        - The chain has :math:`n+1` states, representing run lengths from 0 to :math:`n`.
+        - A success increments the run length, while a failure resets it to zero.
+        - The first state represents no consecutive successes, while the last state represents a completed run.
+        - The last state is absorbing and its hitting time represents the waiting time until :math:`n` consecutive successes occur.
+        - When :math:`p=0`, the last state cannot be reached from the first state.
+
+        :param n: the number of consecutive successes required.
+        :param p_success: the probability of success on each independent Bernoulli trial.
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 0 is generated*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            n = _validate_integer(n, lower_limit=(1, False))
+            p_success = _validate_float(p_success, lower_limit=(0.0, False), upper_limit=(1.0, False))
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, n + 1)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        p_out = _bernoulli_trials(n, p_success)
+        states_out = states if states is not None else [str(i) for i in range(n + 1)]
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
     def birth_death(p: _tarray, q: _tarray, states: _olist_str = None) -> _tmc:
 
         r"""
@@ -3744,13 +3792,17 @@ class MarkovChain(_Model):
         try:
 
             size = _validate_integer(size, lower_limit=(2, False))
-            states = _create_labels(size) if states is None else _validate_labels_input(states, size)
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p = _np.eye(size)
-        mc = MarkovChain(p, states)
+        p_out = _np.eye(size)
+        states_out = states if states is not None else _create_labels(size)
+
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3806,8 +3858,8 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The state space represents allele counts from 0 to n, resulting in n+1 states.
-        - The boundary states, corresponding to fixation and loss of the allele, are absorbing.
+        - The chain has :math:`n+1` states, representing allele counts from 0 to :math:`n`.
+        - The boundary states, corresponding to allele loss and fixation, are absorbing regardless of the mutation rates.
         - The Moran model permits changes of at most one allele count per transition.
         - The Wright-Fisher model uses binomially distributed allele counts in each generation.
 
@@ -3818,8 +3870,8 @@ class MarkovChain(_Model):
         :param s: the selection intensity.
         :param u: the backward mutation rate.
         :param v: the forward mutation rate.
-        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
-        :raises ValidationError: if any input argument is not compliant or if the Wright-Fisher model has a maximum mutation rate exceeding 1/(4n).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 0 is generated*).
+        :raises ValidationError: if any input argument is not compliant or if the Wright-Fisher model has a maximum mutation rate exceeding :math:`1 / (4n)`.
         """
 
         try:
@@ -3840,7 +3892,7 @@ class MarkovChain(_Model):
             raise _ValidationError('The highest mutation rate specified is too high for the Wright-Fisher model.')
 
         p_out = _population_genetics_model(model, n, s, u, v)
-        states_out = states if states is not None else _create_labels(p_out.shape[0])
+        states_out = states if states is not None else [str(i) for i in range(n + 1)]
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3920,13 +3972,17 @@ class MarkovChain(_Model):
             rng = _create_rng(seed)
             size = _validate_integer(size, lower_limit=(2, False))
             f = _validate_random_distribution(f, rng, MarkovChain.__random_distributions)
-            states = _create_labels(size) if states is None else _validate_labels_input(states, size)
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
         p_out = _random_distribution(size, f, kwargs)
-        mc = MarkovChain(p_out, states)
+        states_out = states if states is not None else _create_labels(size)
+
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
@@ -3970,52 +4026,6 @@ class MarkovChain(_Model):
 
         p_out = _random_walk(size, topology, lazy)
         states_out = states if states is not None else _create_labels(size)
-
-        mc = MarkovChain(p_out, states_out)
-
-        return mc
-
-    @staticmethod
-    @_object_mark(instance_generator=True)
-    def runs(n: int, p_success: float, states: _olist_str = None) -> _tmc:
-
-        r"""
-        | The method generates a Markov chain for consecutive successes in independent Bernoulli trials:
-        | :math:`P_{ij} = \begin{cases} p & j=i+1,\ i<n \\ 1-p & j=0,\ i<n \\ 1 & i=j=n \\ 0 & \text{otherwise} \end{cases}`
-        | where:
-
-        - :math:`n` is the number of consecutive successes required;
-        - :math:`p` is the probability of success;
-        - :math:`i` is the current number of consecutive successes;
-        - :math:`j` is the number of consecutive successes after the next trial.
-
-        | **Notes:**
-
-        - The chain has :math:`n+1` states, representing run lengths from 0 to :math:`n`.
-        - A success increments the run length, while a failure resets it to zero.
-        - The first state represents no consecutive successes, while the last state represents a completed run.
-        - The last state is absorbing and its hitting time represents the waiting time until :math:`n` consecutive successes occur.
-        - When :math:`p=0`, the last state cannot be reached from the first state.
-
-        :param n: the number of consecutive successes required.
-        :param p_success: the probability of success on each independent Bernoulli trial.
-        :param states: the state names (*if omitted, an increasing sequence of integers starting at 0 is generated*).
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            n = _validate_integer(n, lower_limit=(1, False))
-            p_success = _validate_float(p_success, lower_limit=(0.0, False), upper_limit=(1.0, False))
-
-            if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, n + 1)
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
-
-        p_out = _runs(n, p_success)
-        states_out = states if states is not None else [str(i) for i in range(n + 1)]
 
         mc = MarkovChain(p_out, states_out)
 
