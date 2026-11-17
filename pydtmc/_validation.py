@@ -28,11 +28,13 @@ __all__ = [
     'validate_none',
     'validate_observable',
     'validate_partition',
+    'validate_pattern_probabilities',
     'validate_random_distribution',
     'validate_rewards',
     'validate_sequence',
     'validate_sequences',
     'validate_status',
+    'validate_string',
     'validate_strings',
     'validate_time_points',
     'validate_transition_function',
@@ -87,6 +89,7 @@ from ._custom_types import (
     tmc_dict as _tmc_dict,
     tmodel as _tmodel,
     tobs as _tobs,
+    tpprob as _tpprob,
     trand as _trand,
     trfunc as _trfunc,
     tscalar as _tscalar,
@@ -881,6 +884,25 @@ def validate_partition(value: _tany, labels: _tlist_str) -> _tlists_int:
     return result
 
 
+def validate_pattern_probabilities(value: _tany) -> _tpprob:
+
+    if not _is_dictionary(value) or len(value) == 0:
+        raise ValueError('The "@arg@" parameter must be a non-empty dictionary.')
+
+    if not all(_is_string(s) and (len(s) == 1) for s in value):
+        raise ValueError('The "@arg@" parameter keys must be single-character strings.')
+
+    if not all(_is_number(v) and _np.isfinite(v) and (0.0 <= v <= 1.0) for v in value.values()):
+        raise ValueError('The "@arg@" parameter values must be finite real numbers between 0.0 and 1.0.')
+
+    if not _np.isclose(sum(value.values()), 1.0, rtol=0.0, atol=_ETOL):
+        raise ValueError('The "@arg@" parameter values must sum to 1.0.')
+
+    value = {k: float(v) for k, v in value.items()}
+
+    return value
+
+
 def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tlist_str) -> _trfunc:
 
     if value is None:
@@ -925,7 +947,7 @@ def validate_rewards(value: _tany, size: int) -> _tarray:
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
-    if value.ndim > 2 or (value.ndim == 2 and value.shape[0] != 1) or (value.ndim == 1 and value.shape[0] == 0):
+    if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)) or ((value.ndim == 1) and (value.shape[0] == 0)):
         raise ValueError('The "@arg@" parameter must be a valid vector.')
 
     value = _np.ravel(value)
@@ -1058,6 +1080,17 @@ def validate_status(value: _tany, labels: _tlist_str, emit_uniform: bool) -> _ta
     return value
 
 
+def validate_string(value: _tany, excluded_chars: _olist_str = None) -> str:
+
+    if not _is_string(value):
+        raise TypeError('The "@arg@" parameter must be a non-empty string.')
+
+    if (excluded_chars is not None) and any(c in value for c in excluded_chars):
+        raise ValueError(f'The "@arg@" parameter must not contain any of the following characters: {", ".join(excluded_chars)}.')
+
+    return value
+
+
 def validate_strings(value: _tany, size: _oint = None) -> _tlist_str:
 
     if not _is_list(value):
@@ -1071,7 +1104,7 @@ def validate_strings(value: _tany, size: _oint = None) -> _tlist_str:
     if value_length == 0:
         raise ValueError('The "@arg@" parameter must contain at least an element.')
 
-    if size is not None and value_length != size:
+    if (size is not None) and (value_length != size):
         raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {size:d}.')
 
     return value

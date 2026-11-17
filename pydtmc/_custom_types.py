@@ -82,6 +82,7 @@ __all__ = [
     'tobs', 'oobs',
     'tpart', 'opart',
     'tparts', 'oparts',
+    'tpprob', 'opprob',
     'tredists', 'oredists',
     'tsequence', 'osequence',
     'tsequences', 'osequences',
@@ -360,6 +361,9 @@ opart = _tp.Optional[tpart]
 
 tparts = _tp.List[tpart]
 oparts = _tp.Optional[tparts]
+
+tpprob = _tp.Dict[str, float]
+opprob = _tp.Optional[tpprob]
 
 tredists = _tp.Union[tarray, tlist_array]
 oredists = _tp.Optional[tredists]

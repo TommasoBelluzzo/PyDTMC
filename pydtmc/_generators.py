@@ -10,6 +10,7 @@ __all__ = [
     'mc_canonical',
     'mc_censor',
     'mc_closest_reversible',
+    'mc_coupon_collector',
     'mc_dirichlet_process',
     'mc_from_dictionary',
     'mc_from_file',
@@ -19,10 +20,13 @@ __all__ = [
     'mc_lazy',
     'mc_lump',
     'mc_metastable_aggregation',
+    'mc_pattern_matching',
     'mc_population_genetics_model',
     'mc_random',
     'mc_random_distribution',
+    'mc_random_walk',
     'mc_reversibilize',
+    'mc_runs',
     'mc_spectral_aggregation',
     'mc_sub',
     'mc_teleport',
@@ -1211,6 +1215,19 @@ def mc_birth_death(p: _tarray, q: _tarray) -> _tarray:
     return p
 
 
+def mc_coupon_collector(n: int) -> _tarray:
+
+    p = _np.zeros((n + 1, n + 1), dtype=float)
+
+    for i in range(n):
+        p[i, i] = i / n
+        p[i, i + 1] = (n - i) / n
+
+    p[n, n] = 1.0
+
+    return p
+
+
 def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ofloat, shift_concentration: bool) -> _tarray:
 
     def _gem_allocation(ga_draws):
@@ -1332,6 +1349,24 @@ def mc_gamblers_ruin(size: int, w: float) -> _tarray:
     return p
 
 
+def mc_pattern_matching(pattern: str, probabilities: dict) -> _tarray:
+
+    size = len(pattern)
+    p = _np.zeros((size + 1, size + 1), dtype=float)
+
+    for i in range(size):
+        prefix = pattern[:i]
+
+        for symbol, probability in probabilities.items():
+            candidate = prefix + symbol
+            next_state = next(k for k in range(size, -1, -1) if candidate.endswith(pattern[:k]))
+            p[i, next_state] += probability
+
+    p[size, size] = 1.0
+
+    return p
+
+
 def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _tarray:
 
     size = n + 1
@@ -1430,6 +1465,40 @@ def mc_random_distribution(size: int, f: _trfunc_flex, kwargs: dict) -> _tarray:
     p = _np.clip(_np.nan_to_num(p, copy=False), 0.0, None)
     p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)
+
+    return p
+
+
+def mc_random_walk(size: int, topology: str, lazy: bool) -> _tarray:
+
+    p = _np.zeros((size, size), dtype=float)
+
+    for i in range(size):
+
+        if topology == 'path':
+            neighbors = [j for j in (i - 1, i + 1) if 0 <= j < size]
+        elif topology == 'cycle':
+            neighbors = [(i - 1) % size, (i + 1) % size]
+        else:
+            neighbors = [j for j in range(size) if j != i]
+
+        p[i, neighbors] = 1.0 / len(neighbors)
+
+    if lazy:
+        p = 0.5 * (p + _np.eye(size, dtype=float))
+
+    return p
+
+
+def mc_runs(n: int, p_success: float) -> _tarray:
+
+    p = _np.zeros((n + 1, n + 1), dtype=float)
+
+    for i in range(n):
+        p[i, 0] += 1.0 - p_success
+        p[i, i + 1] += p_success
+
+    p[n, n] = 1.0
 
     return p
 

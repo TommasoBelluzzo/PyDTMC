@@ -120,6 +120,7 @@ from ._custom_types import (
     tpart as _tpart,
     tparts as _tparts,
     tpath as _tpath,
+    tpprob as _tpprob,
     trfunc_flex as _trfunc_flex,
     tredists as _tredists,
     tsequence as _tsequence,
@@ -169,6 +170,7 @@ from ._generators import (
     mc_canonical as _canonical,
     mc_censor as _censor,
     mc_closest_reversible as _closest_reversible,
+    mc_coupon_collector as _coupon_collector,
     mc_dirichlet_process as _dirichlet_process,
     mc_from_dictionary as _from_dictionary,
     mc_from_file as _from_file,
@@ -178,10 +180,13 @@ from ._generators import (
     mc_lazy as _lazy,
     mc_lump as _lump,
     mc_metastable_aggregation as _metastable_aggregation,
+    mc_pattern_matching as _pattern_matching,
     mc_population_genetics_model as _population_genetics_model,
     mc_random as _random,
     mc_random_distribution as _random_distribution,
+    mc_random_walk as _random_walk,
     mc_reversibilize as _reversibilize,
+    mc_runs as _runs,
     mc_spectral_aggregation as _spectral_aggregation,
     mc_sub as _sub,
     mc_teleport as _teleport,
@@ -232,10 +237,12 @@ from ._validation import (
     validate_none as _validate_none,
     validate_observable as _validate_observable,
     validate_partition as _validate_partitions,
+    validate_pattern_probabilities as _validate_pattern_probabilities,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
     validate_sequence as _validate_sequence,
     validate_status as _validate_status,
+    validate_string as _validate_string,
     validate_time_points as _validate_time_points,
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
@@ -3339,6 +3346,48 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
+    def coupon_collector(n: int, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a coupon collector Markov chain:
+        | :math:`P_{ij} = \begin{cases} i/n & j=i<n \\ (n-i)/n & j=i+1,\ i<n \\ 1 & i=j=n \\ 0 & \text{otherwise} \end{cases}`
+        | where:
+
+        - :math:`n` is the number of coupon types;
+        - :math:`i` is the number of coupon types already collected;
+        - :math:`j` is the number of coupon types after the next draw.
+
+        | **Notes:**
+
+        - The Markov chain has :math:`n+1` states, representing the number of coupon types collected.
+        - At each step, a coupon is sampled uniformly and independently from the :math:`n` types.
+        - The first state represents an empty collection, while the last state represents a completed collection.
+        - The last state is absorbing and its hitting time represents the time required to collect all coupon types.
+
+        :param n: the number of coupon types.
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 0 is generated*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            n = _validate_integer(n, lower_limit=(1, False))
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, n + 1)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        p_out = _coupon_collector(n)
+        states_out = states if states is not None else [f'{i:d}' for i in range(n + 1)]
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
     def dirichlet_process(size: int, diffusion_factor: int, states: _olist_str = None, diagonal_bias_factor: _ofloat = None, shift_concentration: bool = False, seed: _oint = None) -> _tmc:
 
         """
@@ -3707,6 +3756,49 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
+    def pattern_matching(pattern: str, probabilities: _tpprob, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a pattern-matching Markov chain for a prescribed sequence of random symbols.
+
+        | **Notes:**
+
+        - The chain has :math:`m+1` states, where :math:`m` is the pattern length.
+        - Each state represents the length of the longest suffix of the observed symbols that matches a prefix of the pattern.
+        - Symbols are sampled independently according to the specified probability distribution.
+        - Partial matches account for overlapping occurrences of the pattern.
+        - The first state represents an empty match, while the last state represents a complete match.
+        - The last state is absorbing and its hitting time represents the waiting time until the first occurrence of the pattern.
+
+        :param pattern: the pattern to match, expressed as a non-empty string.
+        :param probabilities: the probability distribution over the symbols, expressed as a dictionary mapping individual characters to probabilities.
+        :param states: the state names (*if omitted, the matching prefixes of the pattern are used, with ∅ representing the empty prefix*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            pattern = _validate_string(pattern, excluded_chars=['∅'])
+            probabilities = _validate_pattern_probabilities(probabilities)
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, len(pattern) + 1)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if not set(pattern).issubset(probabilities):
+            raise _ValidationError('The probability distribution must define all the symbols appearing in the pattern.')
+
+        p_out = _pattern_matching(pattern, probabilities)
+        states_out = states if states is not None else ['∅'] + [pattern[:i] for i in range(1, len(pattern) + 1)]
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
     def population_genetics_model(model: str, n: int, s: float = 0.0, u: float = 1.0e-9, v: float = 1.0e-9, states: _olist_str = None) -> _tmc:
 
         """
@@ -3835,6 +3927,97 @@ class MarkovChain(_Model):
 
         p_out = _random_distribution(size, f, kwargs)
         mc = MarkovChain(p_out, states)
+
+        return mc
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def random_walk(size: int, topology: str = 'path', lazy: bool = False, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a random walk Markov chain on a standard undirected graph.
+
+        | **Notes:**
+
+        - At each step, the walker moves uniformly to one of the neighboring vertices.
+        - If **lazy** is :py:obj:`True`, the walker has a 0.5 probability of remaining at the current vertex.
+        - At least 2 vertices are needed for a path graph or a complete graph, and at least 3 for a cycle graph.
+
+        :param size: the number of graph vertices, corresponding to the states of the Markov chain.
+        :param topology:
+         - **complete** for a fully connected graph without self-loops, where every vertex has :math:`n-1` neighbors;
+         - **cycle** for a circular graph, where every vertex has two neighbors;
+         - **path** for a linear graph, where boundary vertices have one neighbor.
+        :param lazy: whether to construct a lazy random walk (*if omitted, False is used*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            size = _validate_integer(size, lower_limit=(2, False))
+            topology = _validate_enumerator(topology, ['complete', 'cycle', 'path'])
+            lazy = _validate_boolean(lazy)
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, size)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if (topology == 'cycle') and (size < 3):
+            raise _ValidationError('The cycle topology requires at least 3 states.')
+
+        p_out = _random_walk(size, topology, lazy)
+        states_out = states if states is not None else _create_labels(size)
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def runs(n: int, p_success: float, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a Markov chain for consecutive successes in independent Bernoulli trials:
+        | :math:`P_{ij} = \begin{cases} p & j=i+1,\ i<n \\ 1-p & j=0,\ i<n \\ 1 & i=j=n \\ 0 & \text{otherwise} \end{cases}`
+        | where:
+
+        - :math:`n` is the number of consecutive successes required;
+        - :math:`p` is the probability of success;
+        - :math:`i` is the current number of consecutive successes;
+        - :math:`j` is the number of consecutive successes after the next trial.
+
+        | **Notes:**
+
+        - The chain has :math:`n+1` states, representing run lengths from 0 to :math:`n`.
+        - A success increments the run length, while a failure resets it to zero.
+        - The first state represents no consecutive successes, while the last state represents a completed run.
+        - The last state is absorbing and its hitting time represents the waiting time until :math:`n` consecutive successes occur.
+        - When :math:`p=0`, the last state cannot be reached from the first state.
+
+        :param n: the number of consecutive successes required.
+        :param p_success: the probability of success on each independent Bernoulli trial.
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 0 is generated*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            n = _validate_integer(n, lower_limit=(1, False))
+            p_success = _validate_float(p_success, lower_limit=(0.0, False), upper_limit=(1.0, False))
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, n + 1)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        p_out = _runs(n, p_success)
+        states_out = states if states is not None else [str(i) for i in range(n + 1)]
+
+        mc = MarkovChain(p_out, states_out)
 
         return mc
 
