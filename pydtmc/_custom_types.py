@@ -8,11 +8,11 @@ __all__ = [
     'obool', 'ofloat', 'oint', 'ostr',
     'tscalar', 'oscalar',
     'tarray', 'oarray',
-    'tnum', 'onum',
     'tdtype', 'odtype',
     'texc', 'oexc',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
+    'tnum', 'onum',
     'tpath', 'opath',
     'tplot', 'oplot',
     'trand', 'orand',
@@ -380,6 +380,12 @@ opprobs = _tp.Optional[tpprobs]
 tredists = _tp.Union[tarray, tlist_array]
 oredists = _tp.Optional[tredists]
 
+tseq = _tp.Union[tlist_int, tlist_str]
+oseq = _tp.Optional[tseq]
+
+tseqs = _tp.List[tseq]
+oseqs = _tp.Optional[tseqs]
+
 tstate = _tp.Union[int, _np.integer, str]
 ostate = _tp.Optional[tstate]
 
@@ -391,12 +397,6 @@ ostatus = _tp.Optional[tstatus]
 
 ttfunc = _tp.Callable[[int, float, int, float], tscalar]
 otfunc = _tp.Optional[ttfunc]
-
-tseq = _tp.Union[tlist_int, tlist_str]
-oseq = _tp.Optional[tseq]
-
-tseqs = _tp.List[tseq]
-oseqs = _tp.Optional[tseqs]
 
 ttimes_in = _tp.Union[int, tlist_int]
 otimes_in = _tp.Optional[ttimes_in]
@@ -426,8 +426,8 @@ omc_dict = _tp.Optional[tmc_dict]
 tmc_dict_f = tmdl_dict_f[tpair_str]
 omc_dict_f = _tp.Optional[tmc_dict_f]
 
-_fc_prof_int = _tp.Tuple[_tp.Dict[ttup_int, float], _tp.List[_tp.Dict[ttup_int, float]]]
-_fc_prof_str = _tp.Tuple[_tp.Dict[ttup_str, float], _tp.List[_tp.Dict[ttup_str, float]]]
+_fck = _tp.TypeVar('_fck', ttup_int, ttup_str)
+_fc_prof = _tp.Tuple[_tp.Dict[_fck, float], _tp.List[_tp.Dict[_fck, float]]]
 
-tfc_prof = _tp.Union[_fc_prof_int, _fc_prof_str]
+tfc_prof = _tp.Union[_fc_prof[ttup_int], _fc_prof[ttup_str]]
 ofc_prof = _tp.Optional[tfc_prof]

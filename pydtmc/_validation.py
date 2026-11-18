@@ -1191,7 +1191,7 @@ def validate_transition_function(value: _tany) -> _ttfunc:
     except Exception as ex:  # pragma: no cover
         raise ValueError('The "@arg@" parameter behavior is not compliant.') from ex
 
-    if (not _is_number(result)) or (not _np.isfinite(result)) or (not _np.isreal(result)):
+    if (not _is_number(result)) or (not _np.isfinite(result)):
         raise ValueError('The "@arg@" parameter behavior is not compliant.')
 
     return value

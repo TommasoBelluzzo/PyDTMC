@@ -45,6 +45,10 @@ from ._generators import (
     hmm_estimate as _hmm_estimate
 )
 
+from ._utilities import (
+    is_number as _is_number
+)
+
 
 #############
 # FUNCTIONS #
@@ -381,11 +385,11 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _tival, possible_
             node_j = float(nodes[j])
 
             try:
-                f_result = float(f(i, node_i, j, node_j))
+                f_result = f(i, node_i, j, node_j)
             except Exception:  # pragma: no cover
                 return None, 'The transition function returned an invalid value.'
 
-            if (not _np.isfinite(f_result)) or (not _np.isreal(f_result)):  # pragma: no cover
+            if (not _is_number(f_result)) or (not _np.isfinite(f_result)):  # pragma: no cover
                 return None, 'The transition function returned an invalid value.'
 
             p[i, j] = float(f_result * weights[j])
