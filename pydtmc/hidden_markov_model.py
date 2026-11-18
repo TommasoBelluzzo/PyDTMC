@@ -127,7 +127,7 @@ from ._utilities import (
 
 from ._validation import (
     validate_boolean as _validate_boolean,
-    validate_dictionary as _validate_dictionary,
+    validate_dictionary_hmm as _validate_dictionary_hmm,
     validate_emission_matrix as _validate_emission_matrix,
     validate_enumerator as _validate_enumerator,
     validate_file_path as _validate_file_path,
@@ -1346,7 +1346,7 @@ class HiddenMarkovModel(_Model):
 
         try:
 
-            d = _validate_dictionary(d, ['P', 'E'])
+            d = _validate_dictionary_hmm(d)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None

@@ -35,6 +35,12 @@ __all__ = [
     'tlists_int', 'olists_int',
     'tlists_str', 'olists_str',
     # Pairs
+    'tpair_array', 'opair_array',
+    'tpair_bool', 'opair_bool',
+    'tpair_float', 'opair_float',
+    'tpair_int', 'opair_int',
+    'tpair_str', 'opair_str',
+    # Tuples
     'ttup_array', 'otup_array',
     'ttup_bool', 'otup_bool',
     'ttup_float', 'otup_float',
@@ -60,8 +66,6 @@ __all__ = [
     'tbcond', 'obcond',
     'tfit_r', 'ofit_r',
     'thmm_dec', 'ohmm_dec',
-    'thmm_dict', 'ohmm_dict',
-    'thmm_dict_f', 'ohmm_dict_f',
     'thmm_gen', 'ohmm_gen',
     'thmm_gen_ext', 'ohmm_gen_ext',
     'thmm_gen_full', 'ohmm_gen_full',
@@ -73,17 +77,13 @@ __all__ = [
     'thmm_step', 'ohmm_step',
     'thmm_sym', 'ohmm_sym',
     'thmm_sym_x', 'ohmm_sym_x',
-    'tmc_dict', 'omc_dict',
-    'tmc_dict_f', 'omc_dict_f',
     'tmc_gen', 'omc_gen',
     'tmc_gen_ext', 'omc_gen_ext',
     'tmc_gen_full', 'omc_gen_full',
-    'tfc_prof', 'ofc_prof',
-    'tobj_dict', 'oobj_dict',
     'tobs', 'oobs',
     'tpart', 'opart',
     'tparts', 'oparts',
-    'tpprob', 'opprob',
+    'tpprobs', 'opprobs',
     'tredists', 'oredists',
     'tsequence', 'osequence',
     'tsequences', 'osequences',
@@ -93,7 +93,15 @@ __all__ = [
     'ttfunc', 'otfunc',
     'ttimes_in', 'otimes_in',
     'ttimes_out', 'otimes_out',
-    'tweights', 'oweights'
+    'tweights', 'oweights',
+    # Compound Types - Nested
+    'tmodel_dict', 'omodel_dict',
+    'tmodel_dict_f', 'omodel_dict_f',
+    'thmm_dict', 'ohmm_dict',
+    'thmm_dict_f', 'ohmm_dict_f',
+    'tmc_dict', 'omc_dict',
+    'tmc_dict_f', 'omc_dict_f',
+    'tfc_prof', 'ofc_prof'
 ]
 
 
@@ -144,9 +152,9 @@ tarray = _np.ndarray
 oarray = _tp.Optional[tarray]
 
 if _pandas_found:
-    tnumeric = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], _np.ndarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
+    tnumeric = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], tarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
 else:
-    tnumeric = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], _np.ndarray, _spsp.spmatrix]
+    tnumeric = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], tarray, _spsp.spmatrix]
 
 onumeric = _tp.Optional[tnumeric]
 
@@ -292,7 +300,7 @@ orfunc = _tp.Optional[trfunc]
 trfunc_f = _tp.Union[trfunc, str]
 orfunc_f = _tp.Optional[trfunc_f]
 
-tedge_attrs = _tp.List[_tp.Tuple[str, _tp.Tuple[str, ...]]]
+tedge_attrs = _tp.List[_tp.Tuple[str, ttup_str]]
 oedge_attrs = _tp.Optional[tedge_attrs]
 
 # COMPOUND TYPES - SPECIFIC
@@ -314,12 +322,6 @@ ofit_r = _tp.Optional[tfit_r]
 
 thmm_dec = _tp.Tuple[float, tarray, tarray, tarray, tarray, oarray]
 ohmm_dec = _tp.Optional[thmm_dec]
-
-thmm_dict = _tp.Dict[_tp.Tuple[str, str, str], float]
-ohmm_dict = _tp.Optional[thmm_dict]
-
-thmm_dict_f = _tp.Dict[_tp.Tuple[str, str, str], tscalar]
-ohmm_dict_f = _tp.Optional[thmm_dict_f]
 
 thmm_gen = _tp.Tuple[oarray, oarray, ostr]
 ohmm_gen = _tp.Optional[thmm_gen]
@@ -354,12 +356,6 @@ ohmm_sym = _tp.Optional[thmm_sym]
 thmm_sym_x = _tp.Union[thmm_sym, tlists_int, tlists_str]
 ohmm_sym_x = _tp.Optional[thmm_sym_x]
 
-tmc_dict = _tp.Dict[tpair_str, float]
-omc_dict = _tp.Optional[tmc_dict]
-
-tmc_dict_f = _tp.Dict[tpair_str, tscalar]
-omc_dict_f = _tp.Optional[tmc_dict_f]
-
 tmc_gen = _tp.Tuple[oarray, ostr]
 omc_gen = _tp.Optional[tmc_gen]
 
@@ -368,15 +364,6 @@ omc_gen_ext = _tp.Optional[tmc_gen_ext]
 
 tmc_gen_full = _tp.Tuple[oarray, olist_str, ostr]
 omc_gen_full = _tp.Optional[tmc_gen_full]
-
-tfc_prof = _tp.Union[
-    _tp.Tuple[_tp.Dict[ttup_int, float], _tp.List[_tp.Dict[ttup_int, float]]],
-    _tp.Tuple[_tp.Dict[ttup_str, float], _tp.List[_tp.Dict[ttup_str, float]]]
-]
-ofc_prof = _tp.Optional[tfc_prof]
-
-tobj_dict = _tp.Union[thmm_dict, tmc_dict]
-oobj_dict = _tp.Optional[tobj_dict]
 
 tobs = _tp.Union[str, tarray]
 oobs = _tp.Optional[tobs]
@@ -387,8 +374,8 @@ opart = _tp.Optional[tpart]
 tparts = _tp.List[tpart]
 oparts = _tp.Optional[tparts]
 
-tpprob = _tp.Dict[str, float]
-opprob = _tp.Optional[tpprob]
+tpprobs = _tp.Dict[str, float]
+opprobs = _tp.Optional[tpprobs]
 
 tredists = _tp.Union[tarray, tlist_array]
 oredists = _tp.Optional[tredists]
@@ -399,10 +386,10 @@ ostate = _tp.Optional[tstate]
 tstates = _tp.Union[tstate, tlist_int, tlist_str]
 ostates = _tp.Optional[tstates]
 
-tstatus = _tp.Union[int, _np.integer, str, tnumeric]
+tstatus = _tp.Union[tstate, tnumeric]
 ostatus = _tp.Optional[tstatus]
 
-ttfunc = _tp.Callable[[int, float, int, float], float]
+ttfunc = _tp.Callable[[int, float, int, float], tscalar]
 otfunc = _tp.Optional[ttfunc]
 
 tsequence = _tp.Union[tlist_int, tlist_str]
@@ -419,3 +406,28 @@ otimes_out = _tp.Optional[ttimes_out]
 
 tweights = _tp.Union[tscalar, tnumeric]
 oweights = _tp.Optional[tweights]
+
+# COMPOUND TYPES - ADVANCED
+
+_mdk = _tp.TypeVar('_mdk', tpair_str, _tp.Tuple[str, str, str])
+
+tmodel_dict = _tp.Dict[_mdk, float]
+omodel_dict = _tp.Optional[tmodel_dict]
+tmodel_dict_f = _tp.Dict[_mdk, tscalar]
+omodel_dict_f = _tp.Optional[tmodel_dict_f]
+
+thmm_dict = tmodel_dict[_tp.Tuple[str, str, str]]
+ohmm_dict = _tp.Optional[thmm_dict]
+thmm_dict_f = tmodel_dict_f[_tp.Tuple[str, str, str]]
+ohmm_dict_f = _tp.Optional[thmm_dict_f]
+
+tmc_dict = tmodel_dict[tpair_str]
+omc_dict = _tp.Optional[tmc_dict]
+tmc_dict_f = tmodel_dict_f[tpair_str]
+omc_dict_f = _tp.Optional[tmc_dict_f]
+
+_fc_prof_int = _tp.Tuple[_tp.Dict[ttup_int, float], _tp.List[_tp.Dict[ttup_int, float]]]
+_fc_prof_str = _tp.Tuple[_tp.Dict[ttup_str, float], _tp.List[_tp.Dict[ttup_str, float]]]
+
+tfc_prof = _tp.Union[_fc_prof_int, _fc_prof_str]
+ofc_prof = _tp.Optional[tfc_prof]

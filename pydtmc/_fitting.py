@@ -374,19 +374,21 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _tinterval, possi
 
     for i in range(size):
 
-        node_i = nodes[i]
+        node_i = float(nodes[i])
 
         for j in range(size):
 
+            node_j = float(nodes[j])
+
             try:
-                f_result = float(f(i, node_i, j, nodes[j]))
+                f_result = float(f(i, node_i, j, node_j))
             except Exception:  # pragma: no cover
                 return None, 'The transition function returned an invalid value.'
 
             if (not _np.isfinite(f_result)) or (not _np.isreal(f_result)):  # pragma: no cover
                 return None, 'The transition function returned an invalid value.'
 
-            p[i, j] = f_result * weights[j]
+            p[i, j] = float(f_result * weights[j])
 
     p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)

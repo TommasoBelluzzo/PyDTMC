@@ -3,7 +3,8 @@
 __all__ = [
     'validate_boolean',
     'validate_boundary_condition',
-    'validate_dictionary',
+    'validate_dictionary_mc',
+    'validate_dictionary_hmm',
     'validate_dpi',
     'validate_emission_matrix',
     'validate_enumerator',
@@ -81,6 +82,7 @@ from ._custom_types import (
     tfile as _tfile,
     tgraphs as _tgraphs,
     thmm as _thmm,
+    thmm_dict as _thmm_dict,
     tinterval as _tinterval,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
@@ -88,8 +90,9 @@ from ._custom_types import (
     tmc as _tmc,
     tmc_dict as _tmc_dict,
     tmodel as _tmodel,
+    tmodel_dict as _tmodel_dict,
     tobs as _tobs,
-    tpprob as _tpprob,
+    tpprobs as _tpprobs,
     trand as _trand,
     trfunc as _trfunc,
     tscalar as _tscalar,
@@ -116,6 +119,36 @@ from ._utilities import (
 #############
 # FUNCTIONS #
 #############
+
+def _validate_dictionary_keys(value: _tany, keys_length: int):
+
+    if (not _is_dictionary(value)) or (len(value) == 0):
+        raise ValueError('The "@arg@" parameter must be a non-empty dictionary.')
+
+    if not all(_is_tuple(k) and len(k) == keys_length and all(_is_string(x) for x in k) for k in value.keys()):
+        raise ValueError(f'The "@arg@" parameter keys must be defined as tuples of {keys_length:d} non-empty strings.')
+
+
+def _validate_dictionary_values(value: _tany) -> _tmodel_dict:
+
+    values = value.values()
+
+    if not all(_is_number(v) for v in values):
+        raise ValueError('The "@arg@" parameter values must be float or integer numbers.')
+
+    result = {}
+
+    for k, v in value.items():
+
+        v = float(v)
+
+        if _np.isfinite(v) and (0.0 <= v <= 1.0):
+            result[k] = v
+        else:
+            raise ValueError('The "@arg@" parameter values can contain only finite real numbers between 0.0 and 1.0.')
+
+    return result
+
 
 def _validate_limits(value: _tscalar, value_type: str, lower_limit: _olimit_scalar, upper_limit: _olimit_scalar):
 
@@ -179,64 +212,48 @@ def validate_boundary_condition(value: _tany) -> _tbcond:
     raise TypeError('The "@arg@" parameter must be either a float representing the first probability of the semi-reflecting condition or a non-empty string representing the boundary condition type.')
 
 
-def validate_dictionary(value: _tany, attributes: _olist_str = None) -> _tmc_dict:
+def validate_dictionary_hmm(value: _tany) -> _thmm_dict:
 
-    if not _is_dictionary(value) or len(value) == 0:
-        raise ValueError('The "@arg@" parameter must be a non-empty dictionary.')
+    _validate_dictionary_keys(value, 3)
 
-    keys_length = 2 if attributes is None else 3
-    keys = value.keys()
+    attributes = ['P', 'E']
+    labels_by_attribute = {attribute: set() for attribute in attributes}
 
-    if not all(_is_tuple(k) and len(k) == keys_length and all(_is_string(x) for x in k) for k in keys):
-        raise ValueError(f'The "@arg@" parameter keys must be defined as tuples of {keys_length:d} non-empty strings.')
+    for k in value.keys():
+
+        key_attribute = k[0]
+
+        if key_attribute not in attributes:
+            raise ValueError(f'The "@arg@" parameter keys must be defined as tuples of non-empty strings whose first item matches one of the following values: {", ".join(attributes)}.')
+
+        labels_by_attribute['P'].add(k[1])
+        labels_by_attribute[key_attribute].add(k[2])
+
+    labels_first = labels_by_attribute['P']
+
+    for attribute, labels in labels_by_attribute.items():
+        if not all((attribute,) + combination in value for combination in _it.product(labels_first, labels)):
+            raise ValueError(f'The "@arg@" parameter keys must contain all the possible combinations of labels P and {attribute}.')
+
+    result = _validate_dictionary_values(value)
+
+    return result
+
+
+def validate_dictionary_mc(value: _tany) -> _tmc_dict:
+
+    _validate_dictionary_keys(value, 2)
 
     labels = set()
 
-    if attributes is not None:
+    for key in value.keys():
+        labels.add(key[0])
+        labels.add(key[1])
 
-        attribute_first = attributes[0]
-        labels_by_attribute = {attribute: set() for attribute in attributes}
+    if not all(combination in value for combination in _it.product(labels, repeat=2)):
+        raise ValueError('The "@arg@" parameter keys must contain all the possible combinations of labels.')
 
-        for k in keys:
-
-            key_attribute = k[0]
-
-            if key_attribute not in attributes:
-                raise ValueError(f'The "@arg@" parameter keys must be defined as tuples of non-empty strings whose first item matches one of the following values: {", ".join(attributes)}.')
-
-            labels_by_attribute[attribute_first].add(k[1])
-            labels_by_attribute[key_attribute].add(k[2])
-
-        labels_first = labels_by_attribute[attribute_first]
-
-        for attribute, labels in labels_by_attribute.items():
-            if not all((attribute,) + combination in value for combination in _it.product(labels_first, labels)):
-                raise ValueError(f'The "@arg@" parameter keys must contain all the possible combinations of labels {attribute_first} and {attribute}.')
-
-    else:
-
-        for key in keys:
-            labels.add(key[0])
-            labels.add(key[1])
-
-        if not all(combination in value for combination in _it.product(labels, repeat=2)):
-            raise ValueError('The "@arg@" parameter keys must contain all the possible combinations of labels.')
-
-    values = value.values()
-
-    if not all(_is_number(v) for v in values):
-        raise ValueError('The "@arg@" parameter values must be float or integer numbers.')
-
-    result = {}
-
-    for k, v in value.items():
-
-        v = float(v)
-
-        if _np.isfinite(v) and (0.0 <= v <= 1.0):
-            result[k] = v
-        else:
-            raise ValueError('The "@arg@" parameter values can contain only finite real numbers between 0.0 and 1.0.')
+    result = _validate_dictionary_values(value)
 
     return result
 
@@ -884,7 +901,7 @@ def validate_partition(value: _tany, labels: _tlist_str) -> _tlists_int:
     return result
 
 
-def validate_pattern_probabilities(value: _tany) -> _tpprob:
+def validate_pattern_probabilities(value: _tany) -> _tpprobs:
 
     if not _is_dictionary(value) or len(value) == 0:
         raise ValueError('The "@arg@" parameter must be a non-empty dictionary.')
@@ -1172,7 +1189,7 @@ def validate_transition_function(value: _tany) -> _ttfunc:
     except Exception as ex:  # pragma: no cover
         raise ValueError('The "@arg@" parameter behavior is not compliant.') from ex
 
-    if (not _is_number(result)) or (not _np.isfinite(result)):
+    if (not _is_number(result)) or (not _np.isfinite(result)) or (not _np.isreal(result)):
         raise ValueError('The "@arg@" parameter behavior is not compliant.')
 
     return value

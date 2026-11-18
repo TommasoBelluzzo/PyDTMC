@@ -120,7 +120,7 @@ from ._custom_types import (
     tpart as _tpart,
     tparts as _tparts,
     tpath as _tpath,
-    tpprob as _tpprob,
+    tpprobs as _tpprobs,
     trfunc_f as _trfunc_f,
     tredists as _tredists,
     tsequence as _tsequence,
@@ -221,7 +221,7 @@ from ._utilities import (
 from ._validation import (
     validate_boolean as _validate_boolean,
     validate_boundary_condition as _validate_boundary_condition,
-    validate_dictionary as _validate_dictionary,
+    validate_dictionary_mc as _validate_dictionary_mc,
     validate_enumerator as _validate_enumerator,
     validate_file_path as _validate_file_path,
     validate_float as _validate_float,
@@ -3553,6 +3553,7 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - The transition function receives 4 arguments, in order: **x_index**, **x_value**, **y_index** and **y_value**, representing the indices and values of the origin and destination quadrature nodes.
+        - The transition function must return a finite real scalar.
         - If all transition weights in a row are 0, a uniform transition distribution is assigned.
 
         :param quadrature_type:
@@ -3674,7 +3675,7 @@ class MarkovChain(_Model):
 
         try:
 
-            d = _validate_dictionary(d)
+            d = _validate_dictionary_mc(d)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -3913,7 +3914,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def pattern_matching(pattern: str, probabilities: _tpprob, states: _olist_str = None) -> _tmc:
+    def pattern_matching(pattern: str, probabilities: _tpprobs, states: _olist_str = None) -> _tmc:
 
         r"""
         | The method generates a pattern-matching Markov chain for a prescribed sequence of random symbols.
