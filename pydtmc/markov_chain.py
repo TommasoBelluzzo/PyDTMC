@@ -94,7 +94,7 @@ from ._custom_types import (
     oint as _oint,
     ointerval as _ointerval,
     olist_str as _olist_str,
-    ofcprof as _ofcpro,
+    ofc_prof as _ofc_prof,
     onumeric as _onumeric,
     osequence as _osequence,
     ostate as _ostate,
@@ -114,7 +114,7 @@ from ._custom_types import (
     tlists_str as _tlists_str,
     tmc as _tmc,
     tmc_dict as _tmc_dict,
-    tmc_dict_flex as _tmc_dict_flex,
+    tmc_dict_f as _tmc_dict_f,
     tnumeric as _tnumeric,
     tobs as _tobs,
     tpart as _tpart,
@@ -1940,7 +1940,7 @@ class MarkovChain(_Model):
 
     @_cached_method
     @_object_mark(aliases=['fcp'])
-    def fundamental_cycle_profile(self, output_indices: bool = False) -> _ofcpro:
+    def fundamental_cycle_profile(self, output_indices: bool = False) -> _ofc_prof:
 
         r"""
         | A property representing the fundamental-cycle affinities :math:`\mathcal{A}` and current coefficients :math:`j` of the Markov chain:
@@ -3656,7 +3656,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def from_dictionary(d: _tmc_dict_flex) -> _tmc:
+    def from_dictionary(d: _tmc_dict_f) -> _tmc:
 
         """
         | The method generates a Markov chain from a dictionary mapping ordered pairs of states to transition probabilities.

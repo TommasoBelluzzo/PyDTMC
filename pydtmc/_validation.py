@@ -77,7 +77,7 @@ from ._custom_types import (
     tany as _tany,
     tarray as _tarray,
     tbcond as _tbcond,
-    oedge_attributes as _oedge_attributes,
+    oedge_attrs as _oedge_attrs,
     tfile as _tfile,
     tgraphs as _tgraphs,
     thmm as _thmm,
@@ -357,7 +357,7 @@ def validate_float(value: _tany, lower_limit: _olimit_float = None, upper_limit:
     return value
 
 
-def validate_graph(value: _tany, layers: _oint = None, edge_attributes: _oedge_attributes = None) -> _tgraphs:
+def validate_graph(value: _tany, layers: _oint = None, edge_attributes: _oedge_attrs = None) -> _tgraphs:
 
     result, multi = _is_graph(value)
 

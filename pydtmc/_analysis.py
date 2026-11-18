@@ -99,7 +99,7 @@ from ._custom_types import (
     ofloat as _ofloat,
     oint as _oint,
     ohmm_dec as _ohmm_dec,
-    ofcprof as _omc_fc_profile,
+    ofc_prof as _ofc_prof,
     olist_int as _olist_int,
     osequence as _osequence,
     otimes_out as _otimes_out,
@@ -1927,7 +1927,7 @@ def mc_deviation_matrix(mc: _tmc) -> _oarray:
     return dm
 
 
-def mc_fundamental_cycle_profile(mc: _tmc) -> _omc_fc_profile:
+def mc_fundamental_cycle_profile(mc: _tmc) -> _ofc_prof:
 
     p, states = mc.p, mc.states
     indices = {state: index for index, state in enumerate(states)}

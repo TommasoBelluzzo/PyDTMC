@@ -78,7 +78,7 @@ from ._custom_types import (
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
     tlists_str as _tlists_str,
-    tmc_dict_flex as _tmc_dict_flex,
+    tmc_dict_f as _tmc_dict_f,
     tmc_gen as _tmc_gen,
     tmc_gen_ext as _tmc_gen_ext,
     tmc_gen_full as _tmc_gen_full,
@@ -1377,7 +1377,7 @@ def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery
     return p
 
 
-def mc_from_dictionary(d: _tmc_dict_flex) -> _tmc_gen_full:
+def mc_from_dictionary(d: _tmc_dict_f) -> _tmc_gen_full:
 
     states = [key[0] for key in d.keys() if key[0] == key[1]]
     size = len(states)

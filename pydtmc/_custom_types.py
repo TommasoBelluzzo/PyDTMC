@@ -45,7 +45,7 @@ __all__ = [
     'tbndvals', 'obndvals',
     'tcache', 'ocache',
     'tdtype', 'odtype',
-    'tedge_attributes', 'oedge_attributes',
+    'tedge_attrs', 'oedge_attrs',
     'tfile', 'ofile',
     'tinterval', 'ointerval',
     'tlim_float', 'olim_float',
@@ -74,11 +74,11 @@ __all__ = [
     'thmm_sym', 'ohmm_sym',
     'thmm_sym_x', 'ohmm_sym_x',
     'tmc_dict', 'omc_dict',
-    'tmc_dict_flex', 'omc_dict_flex',
+    'tmc_dict_f', 'omc_dict_f',
     'tmc_gen', 'omc_gen',
     'tmc_gen_ext', 'omc_gen_ext',
     'tmc_gen_full', 'omc_gen_full',
-    'tfcpro', 'ofcprof',
+    'tfc_prof', 'ofc_prof',
     'tobj_dict', 'oobj_dict',
     'tobs', 'oobs',
     'tpart', 'opart',
@@ -93,7 +93,6 @@ __all__ = [
     'ttfunc', 'otfunc',
     'ttimes_in', 'otimes_in',
     'ttimes_out', 'otimes_out',
-    'tvalid_states', 'ovalid_states',
     'tweights', 'oweights'
 ]
 
@@ -241,6 +240,16 @@ olists_int = _tp.Optional[tlists_int]
 tlists_str = _tp.List[tlist_str]
 olists_str = _tp.Optional[tlists_str]
 
+
+
+
+
+
+
+
+
+
+
 # COMPOUND TYPES - GENERIC
 
 tbndval = _tp.Tuple[float, _tp.Tuple[float, float]]
@@ -276,8 +285,8 @@ orfunc = _tp.Optional[trfunc]
 trfunc_f = _tp.Union[_tp.Callable, str]
 orfunc_f = _tp.Optional[trfunc_f]
 
-tedge_attributes = _tp.List[_tp.Tuple[str, _tp.Tuple[str, ...]]]
-oedge_attributes = _tp.Optional[tedge_attributes]
+tedge_attrs = _tp.List[_tp.Tuple[str, _tp.Tuple[str, ...]]]
+oedge_attrs = _tp.Optional[tedge_attrs]
 
 # COMPOUND TYPES - SPECIFIC
 
@@ -341,8 +350,8 @@ ohmm_sym_x = _tp.Optional[thmm_sym_x]
 tmc_dict = _tp.Dict[_tp.Tuple[str, str], float]
 omc_dict = _tp.Optional[tmc_dict]
 
-tmc_dict_flex = _tp.Dict[_tp.Tuple[str, str], tscalar]
-omc_dict_flex = _tp.Optional[tmc_dict_flex]
+tmc_dict_f = _tp.Dict[_tp.Tuple[str, str], tscalar]
+omc_dict_f = _tp.Optional[tmc_dict_f]
 
 tmc_gen = _tp.Tuple[oarray, ostr]
 omc_gen = _tp.Optional[tmc_gen]
@@ -353,11 +362,11 @@ omc_gen_ext = _tp.Optional[tmc_gen_ext]
 tmc_gen_full = _tp.Tuple[oarray, olist_str, ostr]
 omc_gen_full = _tp.Optional[tmc_gen_full]
 
-tfcpro = _tp.Union[
+tfc_prof = _tp.Union[
     _tp.Tuple[_tp.Dict[_tp.Tuple[int, ...], float], _tp.List[_tp.Dict[_tp.Tuple[int, ...], float]]],
     _tp.Tuple[_tp.Dict[_tp.Tuple[str, ...], float], _tp.List[_tp.Dict[_tp.Tuple[str, ...], float]]]
 ]
-ofcprof = _tp.Optional[tfcpro]
+ofc_prof = _tp.Optional[tfc_prof]
 
 tobj_dict = _tp.Union[thmm_dict, tmc_dict]
 oobj_dict = _tp.Optional[tobj_dict]
@@ -400,9 +409,6 @@ otimes_in = _tp.Optional[ttimes_in]
 
 ttimes_out = _tp.Union[float, tlist_float]
 otimes_out = _tp.Optional[ttimes_out]
-
-tvalid_states = _tp.Tuple[tlist_int, tlist_str]
-ovalid_states = _tp.Optional[tvalid_states]
 
 tweights = _tp.Union[tscalar, tnumeric]
 oweights = _tp.Optional[tweights]
