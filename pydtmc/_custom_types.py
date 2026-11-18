@@ -370,8 +370,8 @@ tmc_gen_full = _tp.Tuple[oarray, olist_str, ostr]
 omc_gen_full = _tp.Optional[tmc_gen_full]
 
 tfc_prof = _tp.Union[
-    _tp.Tuple[_tp.Dict[_tp.Tuple[int, ...], float], _tp.List[_tp.Dict[_tp.Tuple[int, ...], float]]],
-    _tp.Tuple[_tp.Dict[_tp.Tuple[str, ...], float], _tp.List[_tp.Dict[_tp.Tuple[str, ...], float]]]
+    _tp.Tuple[_tp.Dict[ttup_int, float], _tp.List[_tp.Dict[ttup_int, float]]],
+    _tp.Tuple[_tp.Dict[ttup_str, float], _tp.List[_tp.Dict[ttup_str, float]]]
 ]
 ofc_prof = _tp.Optional[tfc_prof]
 
@@ -393,7 +393,7 @@ opprob = _tp.Optional[tpprob]
 tredists = _tp.Union[tarray, tlist_array]
 oredists = _tp.Optional[tredists]
 
-tstate = _tp.Union[int, str]
+tstate = _tp.Union[int, _np.integer, str]
 ostate = _tp.Optional[tstate]
 
 tstates = _tp.Union[tstate, tlist_int, tlist_str]
