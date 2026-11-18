@@ -8,8 +8,9 @@ __all__ = [
     'obool', 'ofloat', 'oint', 'ostr',
     'tscalar', 'oscalar',
     'tarray', 'oarray',
-    'tnumeric', 'onumeric',
-    'texception', 'oexception',
+    'tnum', 'onum',
+    'tdtype', 'odtype',
+    'texc', 'oexc',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
     'tpath', 'opath',
@@ -18,7 +19,7 @@ __all__ = [
     'tstack', 'ostack',
     'thmm', 'ohmm',
     'tmc', 'omc',
-    'tmodel', 'omodel',
+    'tmdl', 'omdl',
     # Lists
     'tlist_any', 'olist_any',
     'tlist_array', 'olist_array',
@@ -27,7 +28,7 @@ __all__ = [
     'tlist_str', 'olist_str',
     'tlist_hmm', 'olist_hmm',
     'tlist_mc', 'olist_mc',
-    'tlist_model', 'olist_model',
+    'tlist_mdl', 'olist_mdl',
     # Lists of Lists
     'tlists_any', 'olists_any',
     'tlists_array', 'olists_array',
@@ -50,10 +51,9 @@ __all__ = [
     'tbndval', 'obndval',
     'tbndvals', 'obndvals',
     'tcache', 'ocache',
-    'tdtype', 'odtype',
     'tedge_attrs', 'oedge_attrs',
     'tfile', 'ofile',
-    'tinterval', 'ointerval',
+    'tival', 'oival',
     'tlim_float', 'olim_float',
     'tlim_int', 'olim_int',
     'tlim_scalar', 'olim_scalar',
@@ -85,18 +85,18 @@ __all__ = [
     'tparts', 'oparts',
     'tpprobs', 'opprobs',
     'tredists', 'oredists',
-    'tsequence', 'osequence',
-    'tsequences', 'osequences',
+    'tseq', 'oseq',
+    'tseqs', 'oseqs',
     'tstate', 'ostate',
     'tstates', 'ostates',
     'tstatus', 'ostatus',
     'ttfunc', 'otfunc',
     'ttimes_in', 'otimes_in',
     'ttimes_out', 'otimes_out',
-    'tweights', 'oweights',
+    'twgts', 'owgts',
     # Compound Types - Nested
-    'tmodel_dict', 'omodel_dict',
-    'tmodel_dict_f', 'omodel_dict_f',
+    'tmdl_dict', 'omdl_dict',
+    'tmdl_dict_f', 'omdl_dict_f',
     'thmm_dict', 'ohmm_dict',
     'thmm_dict_f', 'ohmm_dict_f',
     'tmc_dict', 'omc_dict',
@@ -151,21 +151,24 @@ oscalar = _tp.Optional[tscalar]
 tarray = _np.ndarray
 oarray = _tp.Optional[tarray]
 
-if _pandas_found:
-    tnumeric = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], tarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
-else:
-    tnumeric = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], tarray, _spsp.spmatrix]
+tdtype = _npt.DTypeLike
+odtype = _tp.Optional[tdtype]
 
-onumeric = _tp.Optional[tnumeric]
-
-texception = Exception
-oexception = _tp.Optional[texception]
+texc = Exception
+oexc = _tp.Optional[texc]
 
 tgraph = _nx.DiGraph
 ograph = _tp.Optional[tgraph]
 
 tgraphs = _tp.Union[tgraph, _nx.MultiDiGraph]
 ographs = _tp.Optional[tgraphs]
+
+if _pandas_found:
+    tnum = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], tarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
+else:
+    tnum = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], tarray, _spsp.spmatrix]
+
+onum = _tp.Optional[tnum]
 
 tpath = _tp.Union[str, _pl.Path]
 opath = _tp.Optional[tpath]
@@ -185,8 +188,8 @@ ohmm = _tp.Optional[thmm]
 tmc = _tp.ForwardRef('MarkovChain')
 omc = _tp.Optional[tmc]
 
-tmodel = _tp.Union[thmm, tmc]
-omodel = _tp.Optional[tmodel]
+tmdl = _tp.Union[thmm, tmc]
+omdl = _tp.Optional[tmdl]
 
 # LISTS
 
@@ -211,8 +214,8 @@ olist_hmm = _tp.Optional[tlist_hmm]
 tlist_mc = _tp.List[tmc]
 olist_mc = _tp.Optional[tlist_mc]
 
-tlist_model = _tp.List[tmodel]
-olist_model = _tp.Optional[tlist_model]
+tlist_mdl = _tp.List[tmdl]
+olist_mdl = _tp.Optional[tlist_mdl]
 
 # LISTS OF LISTS
 
@@ -276,14 +279,14 @@ obndvals = _tp.Optional[tbndvals]
 tcache = _tp.Dict[str, tany]
 ocache = _tp.Optional[tcache]
 
-tdtype = _npt.DTypeLike
-odtype = _tp.Optional[tdtype]
+tedge_attrs = _tp.List[_tp.Tuple[str, ttup_str]]
+oedge_attrs = _tp.Optional[tedge_attrs]
 
 tfile = _tp.Tuple[_pl.Path, str]
 ofile = _tp.Optional[tfile]
 
-tinterval = _tp.Tuple[tscalar, tscalar]
-ointerval = _tp.Optional[tinterval]
+tival = _tp.Tuple[tscalar, tscalar]
+oival = _tp.Optional[tival]
 
 tlim_float = _tp.Tuple[float, bool]
 olim_float = _tp.Optional[tlim_float]
@@ -299,9 +302,6 @@ orfunc = _tp.Optional[trfunc]
 
 trfunc_f = _tp.Union[trfunc, str]
 orfunc_f = _tp.Optional[trfunc_f]
-
-tedge_attrs = _tp.List[_tp.Tuple[str, ttup_str]]
-oedge_attrs = _tp.Optional[tedge_attrs]
 
 # COMPOUND TYPES - SPECIFIC
 
@@ -386,17 +386,17 @@ ostate = _tp.Optional[tstate]
 tstates = _tp.Union[tstate, tlist_int, tlist_str]
 ostates = _tp.Optional[tstates]
 
-tstatus = _tp.Union[tstate, tnumeric]
+tstatus = _tp.Union[tstate, tnum]
 ostatus = _tp.Optional[tstatus]
 
 ttfunc = _tp.Callable[[int, float, int, float], tscalar]
 otfunc = _tp.Optional[ttfunc]
 
-tsequence = _tp.Union[tlist_int, tlist_str]
-osequence = _tp.Optional[tsequence]
+tseq = _tp.Union[tlist_int, tlist_str]
+oseq = _tp.Optional[tseq]
 
-tsequences = _tp.List[tsequence]
-osequences = _tp.Optional[tsequences]
+tseqs = _tp.List[tseq]
+oseqs = _tp.Optional[tseqs]
 
 ttimes_in = _tp.Union[int, tlist_int]
 otimes_in = _tp.Optional[ttimes_in]
@@ -404,26 +404,26 @@ otimes_in = _tp.Optional[ttimes_in]
 ttimes_out = _tp.Union[float, tlist_float]
 otimes_out = _tp.Optional[ttimes_out]
 
-tweights = _tp.Union[tscalar, tnumeric]
-oweights = _tp.Optional[tweights]
+twgts = _tp.Union[tscalar, tnum]
+owgts = _tp.Optional[twgts]
 
-# COMPOUND TYPES - ADVANCED
+# COMPOUND TYPES - NESTED
 
 _mdk = _tp.TypeVar('_mdk', tpair_str, _tp.Tuple[str, str, str])
 
-tmodel_dict = _tp.Dict[_mdk, float]
-omodel_dict = _tp.Optional[tmodel_dict]
-tmodel_dict_f = _tp.Dict[_mdk, tscalar]
-omodel_dict_f = _tp.Optional[tmodel_dict_f]
+tmdl_dict = _tp.Dict[_mdk, float]
+omdl_dict = _tp.Optional[tmdl_dict]
+tmdl_dict_f = _tp.Dict[_mdk, tscalar]
+omdl_dict_f = _tp.Optional[tmdl_dict_f]
 
-thmm_dict = tmodel_dict[_tp.Tuple[str, str, str]]
+thmm_dict = tmdl_dict[_tp.Tuple[str, str, str]]
 ohmm_dict = _tp.Optional[thmm_dict]
-thmm_dict_f = tmodel_dict_f[_tp.Tuple[str, str, str]]
+thmm_dict_f = tmdl_dict_f[_tp.Tuple[str, str, str]]
 ohmm_dict_f = _tp.Optional[thmm_dict_f]
 
-tmc_dict = tmodel_dict[tpair_str]
+tmc_dict = tmdl_dict[tpair_str]
 omc_dict = _tp.Optional[tmc_dict]
-tmc_dict_f = tmodel_dict_f[tpair_str]
+tmc_dict_f = tmdl_dict_f[tpair_str]
 omc_dict_f = _tp.Optional[tmc_dict_f]
 
 _fc_prof_int = _tp.Tuple[_tp.Dict[ttup_int, float], _tp.List[_tp.Dict[ttup_int, float]]]

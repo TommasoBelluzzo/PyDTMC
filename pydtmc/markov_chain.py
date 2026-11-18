@@ -92,11 +92,11 @@ from ._custom_types import (
     obndval as _obndval,
     ofloat as _ofloat,
     oint as _oint,
-    ointerval as _ointerval,
+    oival as _oival,
     olist_str as _olist_str,
     ofc_prof as _ofc_prof,
-    onumeric as _onumeric,
-    osequence as _osequence,
+    onum as _onum,
+    oseq as _oseq,
     ostate as _ostate,
     ostates as _ostates,
     ostatus as _ostatus,
@@ -115,7 +115,7 @@ from ._custom_types import (
     tmc as _tmc,
     tmc_dict as _tmc_dict,
     tmc_dict_f as _tmc_dict_f,
-    tnumeric as _tnumeric,
+    tnum as _tnum,
     tobs as _tobs,
     tpart as _tpart,
     tparts as _tparts,
@@ -123,12 +123,12 @@ from ._custom_types import (
     tpprobs as _tpprobs,
     trfunc_f as _trfunc_f,
     tredists as _tredists,
-    tsequence as _tsequence,
+    tseq as _tseq,
     tstate as _tstate,
     tstates as _tstates,
     ttfunc as _ttfunc,
     ttimes_in as _ttimes_in,
-    tweights as _tweights
+    twgts as _twgts
 )
 
 from ._decorators import (
@@ -278,7 +278,7 @@ class MarkovChain(_Model):
     __instance_generators: _olist_str = None
     __random_distributions: _olist_str = None
 
-    def __init__(self, p: _tnumeric, states: _olist_str = None):
+    def __init__(self, p: _tnum, states: _olist_str = None):
 
         if MarkovChain.__instance_generators is None:
             MarkovChain.__instance_generators = _get_instance_generators(self.__class__)
@@ -1263,7 +1263,7 @@ class MarkovChain(_Model):
         return states
 
     @_object_mark(aliases=['ap'])
-    def absorption_probabilities(self, initial_distribution: _onumeric = None) -> _oarray:
+    def absorption_probabilities(self, initial_distribution: _onum = None) -> _oarray:
 
         """
         | The method computes the probabilities of eventual absorption into each recurrent class of the Markov chain, optionally given an initial distribution.
@@ -1382,7 +1382,7 @@ class MarkovChain(_Model):
         return mc
 
     @_object_mark(instance_generator=True)
-    def closest_reversible(self, initial_distribution: _onumeric = None, weighted: bool = False) -> _tmc:
+    def closest_reversible(self, initial_distribution: _onum = None, weighted: bool = False) -> _tmc:
 
         """
         | The method computes a reversible Markov chain closest to the original Markov chain under the selected Frobenius norm.
@@ -1703,7 +1703,7 @@ class MarkovChain(_Model):
         return mc
 
     @_object_mark(aliases=['er'])
-    def expected_rewards(self, steps: int, rewards: _tnumeric, discount_factor: float = 1.0) -> _tarray:
+    def expected_rewards(self, steps: int, rewards: _tnum, discount_factor: float = 1.0) -> _tarray:
 
         r"""
         | The method computes the expected cumulative rewards of the Markov chain over a given number of steps, optionally applying a discount factor:
@@ -1737,7 +1737,7 @@ class MarkovChain(_Model):
         return _expected_rewards(self, steps, rewards, discount_factor)
 
     @_object_mark(aliases=['et'])
-    def expected_transitions(self, steps: int, initial_distribution: _onumeric = None) -> _tarray:
+    def expected_transitions(self, steps: int, initial_distribution: _onum = None) -> _tarray:
 
         r"""
         | The method computes the expected numbers of transitions between all pairs of states of the Markov chain over a given number of steps:
@@ -1834,7 +1834,7 @@ class MarkovChain(_Model):
         return _first_passage_probabilities(self, steps, initial_state, first_passage_states)
 
     @_object_mark(aliases=['fpr'])
-    def first_passage_reward(self, steps: int, initial_state: _tstate, first_passage_states: _tstates, rewards: _tnumeric) -> float:
+    def first_passage_reward(self, steps: int, initial_state: _tstate, first_passage_states: _tstates, rewards: _tnum) -> float:
 
         r"""
         | The method computes the expected cumulative reward before reaching the given first passage states:
@@ -2393,7 +2393,7 @@ class MarkovChain(_Model):
         return _mixing_time(self, cutoff, maximum_iterations)
 
     @_object_mark(aliases=['mtf'])
-    def mixing_time_from(self, initial_distribution: _onumeric = None, jump: int = 1, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
+    def mixing_time_from(self, initial_distribution: _onum = None, jump: int = 1, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
 
         r"""
         | The method computes the mixing time of the Markov chain from a given initial distribution:
@@ -2456,7 +2456,7 @@ class MarkovChain(_Model):
 
         return value
 
-    def predict(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _osequence:
+    def predict(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _oseq:
 
         r"""
         | The method predicts a sequence of states by greedily selecting the most probable transition at each step:
@@ -2490,7 +2490,7 @@ class MarkovChain(_Model):
 
         return value
 
-    def predict_trajectory(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _osequence:
+    def predict_trajectory(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _oseq:
 
         r"""
         | The method predicts the globally most probable sequence of states over the given number of transitions:
@@ -2755,7 +2755,7 @@ class MarkovChain(_Model):
 
         return _sensitivity(self, state)
 
-    def sequence_probability(self, sequence: _tsequence) -> float:
+    def sequence_probability(self, sequence: _tseq) -> float:
 
         r"""
         | The method computes the probability of the given sequence of states:
@@ -2779,7 +2779,7 @@ class MarkovChain(_Model):
         return _sequence_probability(self, sequence)
 
     @_object_mark(random_output=True)
-    def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _tsequence:
+    def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _tseq:
 
         """
         | The method simulates a random walk of the Markov chain for the given number of steps.
@@ -2912,7 +2912,7 @@ class MarkovChain(_Model):
         return value
 
     @_object_mark(instance_generator=True)
-    def teleport(self, p_teleport: float, distribution: _onumeric = None) -> _tmc:
+    def teleport(self, p_teleport: float, distribution: _onum = None) -> _tmc:
 
         r"""
         | The method returns a Markov chain obtained by teleportation:
@@ -2944,7 +2944,7 @@ class MarkovChain(_Model):
         return mc
 
     @_object_mark(aliases=['tc'])
-    def time_correlations(self, sequence1: _tsequence, sequence2: _osequence = None, time_points: _ttimes_in = 1) -> _otimes_out:
+    def time_correlations(self, sequence1: _tseq, sequence2: _oseq = None, time_points: _ttimes_in = 1) -> _otimes_out:
 
         r"""
         | The method computes the stationary time autocorrelations or cross-correlations of the given sequences of states:
@@ -2984,7 +2984,7 @@ class MarkovChain(_Model):
         return _time_correlations(self, sequence1, sequence2, time_points)
 
     @_object_mark(aliases=['tr'])
-    def time_relaxations(self, sequence: _tsequence, initial_distribution: _onumeric = None, time_points: _ttimes_in = 1) -> _otimes_out:
+    def time_relaxations(self, sequence: _tseq, initial_distribution: _onum = None, time_points: _ttimes_in = 1) -> _otimes_out:
 
         r"""
         | The method computes the time-dependent expected value of a state observable of the Markov chain:
@@ -3171,7 +3171,7 @@ class MarkovChain(_Model):
         return _cp.deepcopy(self.__digraph)
 
     @_object_mark(aliases=['to_lazy'], instance_generator=True)
-    def to_lazy_chain(self, inertial_weights: _tweights = 0.5) -> _tmc:
+    def to_lazy_chain(self, inertial_weights: _twgts = 0.5) -> _tmc:
 
         r"""
         | The method returns a lazy Markov chain by adjusting the inertia of each state:
@@ -3538,7 +3538,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def fit_function(quadrature_type: str, possible_states: _tlist_str, f: _ttfunc, quadrature_interval: _ointerval = None) -> _tmc:
+    def fit_function(quadrature_type: str, possible_states: _tlist_str, f: _ttfunc, quadrature_interval: _oival = None) -> _tmc:
 
         r"""
         | The method fits a Markov chain by evaluating the given transition function using numerical quadrature:
@@ -3594,7 +3594,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def fit_sequence(fitting_type: str, possible_states: _tlist_str, sequence: _tsequence, fitting_param: _tany = None) -> _tmc:
+    def fit_sequence(fitting_type: str, possible_states: _tlist_str, sequence: _tseq, fitting_param: _tany = None) -> _tmc:
 
         r"""
         | The method fits a Markov chain from an observed sequence of states using transition counts:
@@ -3775,7 +3775,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def from_matrix(m: _tnumeric, states: _olist_str = None) -> _tmc:
+    def from_matrix(m: _tnum, states: _olist_str = None) -> _tmc:
 
         """
         | The method generates a Markov chain by normalizing the rows of the given matrix into transition probabilities.
@@ -3870,7 +3870,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def metropolis_hastings(size: int, target_pi: _tnumeric, proposal: _oarray = None, states: _olist_str = None) -> _tmc:
+    def metropolis_hastings(size: int, target_pi: _tnum, proposal: _oarray = None, states: _olist_str = None) -> _tmc:
 
         r"""
         | The method generates a Metropolis-Hastings Markov chain with a prescribed stationary distribution.
@@ -4006,7 +4006,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True, random_output=True)
-    def random(size: int, states: _olist_str = None, zeros: int = 0, mask: _onumeric = None, seed: _oint = None) -> _tmc:
+    def random(size: int, states: _olist_str = None, zeros: int = 0, mask: _onum = None, seed: _oint = None) -> _tmc:
 
         """
         | The method generates a Markov chain with random transition probabilities, optionally subject to fixed values and zero-probability constraints.

@@ -70,10 +70,10 @@ from ._constants import (
 
 from ._custom_types import (
     oint as _oint,
-    olim_float as _olimit_float,
-    olim_int as _olimit_int,
-    olim_scalar as _olimit_scalar,
-    tlist_model as _tlist_model,
+    olim_float as _olim_float,
+    olim_int as _olim_int,
+    olim_scalar as _olim_scalar,
+    tlist_mdl as _tlist_mdl,
     olist_str as _olist_str,
     tany as _tany,
     tarray as _tarray,
@@ -83,14 +83,16 @@ from ._custom_types import (
     tgraphs as _tgraphs,
     thmm as _thmm,
     thmm_dict as _thmm_dict,
-    tinterval as _tinterval,
+    tival as _tival,
     tlist_int as _tlist_int,
+    tlist_hmm as _tlist_hmm,
+    tlist_mc as _tlist_mc,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
     tmc as _tmc,
     tmc_dict as _tmc_dict,
-    tmodel as _tmodel,
-    tmodel_dict as _tmodel_dict,
+    tmdl as _tmdl,
+    tmdl_dict as _tmdl_dict,
     tobs as _tobs,
     tpprobs as _tpprobs,
     trand as _trand,
@@ -129,7 +131,7 @@ def _validate_dictionary_keys(value: _tany, keys_length: int):
         raise ValueError(f'The "@arg@" parameter keys must be defined as tuples of {keys_length:d} non-empty strings.')
 
 
-def _validate_dictionary_values(value: _tany) -> _tmodel_dict:
+def _validate_dictionary_values(value: _tany) -> _tmdl_dict:
 
     values = value.values()
 
@@ -150,7 +152,7 @@ def _validate_dictionary_values(value: _tany) -> _tmodel_dict:
     return result
 
 
-def _validate_limits(value: _tscalar, value_type: str, lower_limit: _olimit_scalar, upper_limit: _olimit_scalar):
+def _validate_limits(value: _tscalar, value_type: str, lower_limit: _olim_scalar, upper_limit: _olim_scalar):
 
     def _get_limit_text(glt_value_type, glt_limit_value):
 
@@ -359,7 +361,7 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
     return file_path, file_extension
 
 
-def validate_float(value: _tany, lower_limit: _olimit_float = None, upper_limit: _olimit_float = None) -> float:
+def validate_float(value: _tany, lower_limit: _olim_float = None, upper_limit: _olim_float = None) -> float:
 
     if not _is_float(value):
         raise TypeError('The "@arg@" parameter must be a float.')
@@ -445,7 +447,7 @@ def validate_hidden_markov_model(value: _tany) -> _thmm:
     return value
 
 
-def validate_hidden_markov_models(value: _tany) -> _tmc:
+def validate_hidden_markov_models(value: _tany) -> _tlist_hmm:
 
     if not _is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
@@ -480,7 +482,7 @@ def validate_hyperparameter(value: _tany, size: int) -> _tarray:
     return value
 
 
-def validate_integer(value: _tany, lower_limit: _olimit_int = None, upper_limit: _olimit_int = None) -> int:
+def validate_integer(value: _tany, lower_limit: _olim_int = None, upper_limit: _olim_int = None) -> int:
 
     if not _is_integer(value):
         raise TypeError('The "@arg@" parameter must be an integer.')
@@ -492,7 +494,7 @@ def validate_integer(value: _tany, lower_limit: _olimit_int = None, upper_limit:
     return value
 
 
-def validate_interval(value: _tany) -> _tinterval:
+def validate_interval(value: _tany) -> _tival:
 
     if not _is_tuple(value):
         raise TypeError('The "@arg@" parameter must be a tuple.')
@@ -696,7 +698,7 @@ def validate_markov_chain(value: _tany, size: _oint = None) -> _tmc:
     return value
 
 
-def validate_markov_chains(value: _tany) -> _tmc:
+def validate_markov_chains(value: _tany) -> _tlist_mc:
 
     if not _is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
@@ -766,7 +768,7 @@ def validate_matrix(value: _tany, rows: _oint = None, columns: _oint = None) -> 
 
 
 # noinspection PyBroadException
-def validate_model(value: _tany) -> _tmodel:
+def validate_model(value: _tany) -> _tmdl:
 
     if value is None:
         raise TypeError('The "@arg@" parameter is null.')
@@ -788,7 +790,7 @@ def validate_model(value: _tany) -> _tmodel:
     return value
 
 
-def validate_models(value: _tany) -> _tlist_model:
+def validate_models(value: _tany) -> _tlist_mdl:
 
     if not _is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')

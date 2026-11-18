@@ -30,7 +30,7 @@ from ._custom_types import (
     tarray as _tarray,
     tfit_r as _tfit_r,
     thmm_params_res as _thmm_params_res,
-    tinterval as _tinterval,
+    tival as _tival,
     tlist_int as _tlist_int,
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
@@ -278,7 +278,7 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
 # MC FITTING
 
 # noinspection PyBroadException
-def mc_fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible_states: _tlist_str, f: _ttfunc) -> _tfit_r:
+def mc_fit_function(quadrature_type: str, quadrature_interval: _tival, possible_states: _tlist_str, f: _ttfunc) -> _tfit_r:
 
     size = len(possible_states)
 

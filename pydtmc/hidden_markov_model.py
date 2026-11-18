@@ -44,7 +44,7 @@ from ._custom_types import (
     ohmm_dec as _ohmm_dec,
     oint as _oint,
     olist_str as _olist_str,
-    onumeric as _onumeric,
+    onum as _onum,
     ostate as _ostate,
     ostates as _ostates,
     ostatus as _ostatus,
@@ -61,12 +61,12 @@ from ._custom_types import (
     thmm_sym_x as _thmm_sym_x,
     tlist_array as _tlist_array,
     tlist_str as _tlist_str,
-    tnumeric as _tnumeric,
+    tnum as _tnum,
     tpair_array as _tpair_array,
     tpair_int as _tpair_int,
     tpath as _tpath,
     tredists as _tredists,
-    tsequence as _tsequence,
+    tseq as _tseq,
     tstate as _tstate
 )
 
@@ -174,7 +174,7 @@ class HiddenMarkovModel(_Model):
 
     __instance_generators: _olist_str = None
 
-    def __init__(self, p: _tnumeric, e: _tnumeric, states: _olist_str = None, symbols: _olist_str = None):
+    def __init__(self, p: _tnum, e: _tnum, states: _olist_str = None, symbols: _olist_str = None):
 
         if HiddenMarkovModel.__instance_generators is None:
             HiddenMarkovModel.__instance_generators = _get_instance_generators(self.__class__)
@@ -432,7 +432,7 @@ class HiddenMarkovModel(_Model):
 
         return _conditional_probabilities(self, symbol)
 
-    def decode(self, symbols: _tsequence, initial_status: _ostatus = None, use_scaling: bool = True) -> _ohmm_dec:
+    def decode(self, symbols: _tseq, initial_status: _ostatus = None, use_scaling: bool = True) -> _ohmm_dec:
 
         """
         | The method decodes an observed sequence of emitted symbols using the forward-backward algorithm and returns, in order:
@@ -698,7 +698,7 @@ class HiddenMarkovModel(_Model):
 
         return value
 
-    def perplexity(self, symbols: _tsequence, initial_status: _ostatus = None) -> float:
+    def perplexity(self, symbols: _tseq, initial_status: _ostatus = None) -> float:
 
         r"""
         | The method computes the perplexity of an observed sequence of emitted symbols:
@@ -731,7 +731,7 @@ class HiddenMarkovModel(_Model):
 
         return pp
 
-    def predict(self, prediction_type: str, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_pred:
+    def predict(self, prediction_type: str, symbols: _tseq, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_pred:
 
         """
         | The method computes the log probability and a predicted hidden-state path for an observed sequence of emitted symbols.
@@ -768,7 +768,7 @@ class HiddenMarkovModel(_Model):
 
         return value
 
-    def predict_trajectory(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _tsequence:
+    def predict_trajectory(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _tseq:
 
         r"""
         | The method predicts the globally most probable sequence of emitted symbols over the given number of hidden-state transitions, with the initial hidden state fixed.
@@ -870,7 +870,7 @@ class HiddenMarkovModel(_Model):
 
         return hmm
 
-    def sequence_probability(self, sequence: _tsequence, initial_status: _ostatus = None) -> float:
+    def sequence_probability(self, sequence: _tseq, initial_status: _ostatus = None) -> float:
 
         r"""
         | The method computes the probability of an observed sequence of emitted symbols:
@@ -1218,7 +1218,7 @@ class HiddenMarkovModel(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def estimate(possible_states: _tlist_str, possible_symbols: _tlist_str, sequence_states: _tsequence, sequence_symbols: _tsequence) -> _thmm:
+    def estimate(possible_states: _tlist_str, possible_symbols: _tlist_str, sequence_states: _tseq, sequence_symbols: _tseq) -> _thmm:
 
         """
         | The method performs maximum likelihood estimation of transition and emission probabilities from observed sequences of hidden states and emitted symbols.
@@ -1543,7 +1543,7 @@ class HiddenMarkovModel(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def from_matrices(mp: _tnumeric, me: _tnumeric, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:
+    def from_matrices(mp: _tnum, me: _tnum, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:
 
         """
         | The method generates a hidden Markov model by normalizing the given matrices into transition and emission probabilities.
@@ -1650,7 +1650,7 @@ class HiddenMarkovModel(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True, random_output=True)
-    def random(n: int, k: int, states: _olist_str = None, p_zeros: int = 0, p_mask: _onumeric = None, symbols: _olist_str = None, e_zeros: int = 0, e_mask: _onumeric = None, seed: _oint = None) -> _thmm:
+    def random(n: int, k: int, states: _olist_str = None, p_zeros: int = 0, p_mask: _onum = None, symbols: _olist_str = None, e_zeros: int = 0, e_mask: _onum = None, seed: _oint = None) -> _thmm:
 
         """
         | The method generates a hidden Markov model with random transition and emission probabilities, optionally subject to fixed values and zero-probability constraints.

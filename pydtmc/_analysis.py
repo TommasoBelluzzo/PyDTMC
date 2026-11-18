@@ -101,7 +101,7 @@ from ._custom_types import (
     ohmm_dec as _ohmm_dec,
     ofc_prof as _ofc_prof,
     olist_int as _olist_int,
-    osequence as _osequence,
+    oseq as _oseq,
     otimes_out as _otimes_out,
     tany as _tany,
     tarray as _tarray,
@@ -114,7 +114,7 @@ from ._custom_types import (
     thmm as _thmm,
     tmc as _tmc,
     tobs as _tobs,
-    tsequence as _tsequence,
+    tseq as _tseq,
     ttimes_in as _ttimes_in
 )
 
@@ -1627,7 +1627,7 @@ def mc_relaxation_rate(mc: _tmc) -> _ofloat:
     return rr
 
 
-def mc_time_correlations(mc: _tmc, sequence1: _tsequence, sequence2: _osequence, time_points: _ttimes_in) -> _otimes_out:
+def mc_time_correlations(mc: _tmc, sequence1: _tseq, sequence2: _oseq, time_points: _ttimes_in) -> _otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 
@@ -1714,7 +1714,7 @@ def mc_time_correlations(mc: _tmc, sequence1: _tsequence, sequence2: _osequence,
     return tcs
 
 
-def mc_time_relaxations(mc: _tmc, sequence: _tsequence, initial_distribution: _tarray, time_points: _ttimes_in) -> _otimes_out:
+def mc_time_relaxations(mc: _tmc, sequence: _tseq, initial_distribution: _tarray, time_points: _ttimes_in) -> _otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 

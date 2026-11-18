@@ -52,8 +52,8 @@ from ._custom_types import (
     ostate as _ostate,
     ostatus as _ostatus,
     thmm as _thmm,
-    tlist_model as _tlist_model,
-    tmodel as _tmodel,
+    tlist_mdl as _tlist_mdl,
+    tmdl as _tmdl,
     tplot as _tplot
 )
 
@@ -191,7 +191,7 @@ def _yticks_labels(ax, size, labels_name, labels):
 
 
 @_interactive_plot
-def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition', names: _olist_str = None, dpi: int = 100) -> _tplot:
+def plot_comparison(models: _tlist_mdl, underlying_matrices: str = 'transition', names: _olist_str = None, dpi: int = 100) -> _tplot:
 
     """
     | The function plots a heatmap comparison of the transition or emission matrices of the given models.
@@ -257,7 +257,7 @@ def plot_comparison(models: _tlist_model, underlying_matrices: str = 'transition
 
 
 @_interactive_plot
-def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None, dpi: int = 100) -> _tplot:
+def plot_convergence(model: _tmdl, steps: int, initial_status: _ostatus = None, dpi: int = 100) -> _tplot:
 
     """
     | The function plots the total variation distance between the evolving state distribution and the stationary distribution of the given model.
@@ -318,7 +318,7 @@ def plot_convergence(model: _tmodel, steps: int, initial_status: _ostatus = None
 
 
 @_interactive_plot
-def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _tplot:
+def plot_eigenvalues(model: _tmdl, dpi: int = 100) -> _tplot:
 
     """
     | The function plots the eigenvalues of the transition matrix of the given model on the complex plane.
@@ -415,7 +415,7 @@ def plot_eigenvalues(model: _tmodel, dpi: int = 100) -> _tplot:
 
 
 @_interactive_plot
-def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatus = None, dpi: int = 100) -> _tplot:
+def plot_flow(model: _tmdl, steps: int, interval: int, initial_status: _ostatus = None, dpi: int = 100) -> _tplot:
 
     """
     | The function plots an alluvial diagram representing the evolution of state probabilities and their redistribution between displayed time points.
@@ -625,7 +625,7 @@ def plot_flow(model: _tmodel, steps: int, interval: int, initial_status: _ostatu
 
 # noinspection PyBroadException
 @_interactive_plot
-def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _tplot:
+def plot_graph(model: _tmdl, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _tplot:
 
     """
     | The function plots the directed graph of the given model, representing state transitions and, for hidden Markov models, symbol emissions.
@@ -1088,7 +1088,7 @@ def plot_graph(model: _tmodel, nodes_color: bool = True, nodes_shape: bool = Tru
 
 
 @_interactive_plot
-def plot_matrix(model: _tmodel, underlying_matrix: str = 'transition', dpi: int = 100) -> _tplot:
+def plot_matrix(model: _tmdl, underlying_matrix: str = 'transition', dpi: int = 100) -> _tplot:
 
     """
     | The function plots a heatmap of the transition or emission matrix of the given model.
@@ -1140,7 +1140,7 @@ def plot_matrix(model: _tmodel, underlying_matrix: str = 'transition', dpi: int 
 
 
 @_interactive_plot
-def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _tplot:
+def plot_redistributions(model: _tmdl, redistributions: int, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _tplot:
 
     """
     | The function plots the evolution of the state probability distribution over successive steps of the given model.
@@ -1228,7 +1228,7 @@ def plot_redistributions(model: _tmodel, redistributions: int, initial_status: _
 
 
 @_interactive_plot
-def plot_sequence(model: _tmodel, steps: int, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _tplot:
+def plot_sequence(model: _tmdl, steps: int, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _tplot:
 
     """
     | The function plots a random sequence of states and, for hidden Markov models, emitted symbols.

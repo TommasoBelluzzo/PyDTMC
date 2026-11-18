@@ -25,7 +25,7 @@ import scipy.special as _sps
 # Internal
 
 from ._custom_types import (
-    tmodel as _tmodel
+    tmdl as _tmdl
 )
 
 from ._utilities import (
@@ -42,7 +42,7 @@ from ._validation import (
 # FUNCTIONS #
 #############
 
-def _extract_stationary_distribution(model1: _tmodel, model2: _tmodel):
+def _extract_stationary_distribution(model1: _tmdl, model2: _tmdl):
 
     if model1.n != model2.n:  # pragma: no cover
         raise ValueError('The models must have the same number of states in order to be compared.')
@@ -57,7 +57,7 @@ def _extract_stationary_distribution(model1: _tmodel, model2: _tmodel):
     return pi1_unique, pi2_unique
 
 
-def _extract_transition_matrices(model1: _tmodel, model2: _tmodel):
+def _extract_transition_matrices(model1: _tmdl, model2: _tmdl):
 
     if model1.n != model2.n:  # pragma: no cover
         raise ValueError('The models must have the same number of states in order to be compared.')
@@ -65,7 +65,7 @@ def _extract_transition_matrices(model1: _tmodel, model2: _tmodel):
     return model1.p, model2.p
 
 
-def calculate_stationary_distance(model1: _tmodel, model2: _tmodel) -> float:
+def calculate_stationary_distance(model1: _tmdl, model2: _tmdl) -> float:
 
     r"""
     | The function computes the total variation distance between the unique stationary distributions of the given models.
@@ -91,7 +91,7 @@ def calculate_stationary_distance(model1: _tmodel, model2: _tmodel) -> float:
     return d
 
 
-def calculate_transition_distance(distance_type: str, model1: _tmodel, model2: _tmodel) -> float:
+def calculate_transition_distance(distance_type: str, model1: _tmdl, model2: _tmdl) -> float:
 
     r"""
     | The function computes the selected distance between the transition matrices of the given models.
@@ -150,7 +150,7 @@ def calculate_transition_distance(distance_type: str, model1: _tmodel, model2: _
     return d
 
 
-def calculate_transition_divergence(divergence_type: str, model1: _tmodel, model2: _tmodel) -> float:
+def calculate_transition_divergence(divergence_type: str, model1: _tmdl, model2: _tmdl) -> float:
 
     r"""
     | The function computes the selected maximum row-wise divergence between the transition matrices of the given models.

@@ -38,8 +38,8 @@ from ._custom_types import (
     tass_stat as _tass_stat,
     tlist_str as _tlist_str,
     tmc as _tmc,
-    tsequence as _tsequence,
-    tsequences as _tsequences
+    tseq as _tseq,
+    tseqs as _tseqs
 )
 
 from ._utilities import (
@@ -63,7 +63,7 @@ from ._validation import (
 # FUNCTIONS #
 #############
 
-def assess_change_point(possible_states: _tlist_str, sequence: _tsequence, significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _tass_cp:
+def assess_change_point(possible_states: _tlist_str, sequence: _tseq, significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _tass_cp:
 
     r"""
     | The function assesses whether the transition probabilities of the given sequence change at a single unknown point:
@@ -181,7 +181,7 @@ def assess_change_point(possible_states: _tlist_str, sequence: _tsequence, signi
     return change_point, p_value, statistic
 
 
-def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, significance: float = 0.05) -> _tass_stat:
+def assess_homogeneity(possible_states: _tlist_str, sequences: _tseqs, significance: float = 0.05) -> _tass_stat:
 
     r"""
     | The function assesses whether the given sequences share the same transition probabilities:
@@ -264,7 +264,7 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tsequences, sign
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_independence(possible_states: _tlist_str, sequence: _tsequence, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _tass_stat:
+def assess_independence(possible_states: _tlist_str, sequence: _tseq, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _tass_stat:
 
     r"""
     | The function assesses whether consecutive observations of the given sequence are independent:
@@ -357,7 +357,7 @@ def assess_independence(possible_states: _tlist_str, sequence: _tsequence, metho
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _tass_stat:
+def assess_markov_property(possible_states: _tlist_str, sequence: _tseq, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _tass_stat:
 
     r"""
     | The function assesses whether the given sequence is compatible with a first-order Markov process:
@@ -476,7 +476,7 @@ def assess_markov_property(possible_states: _tlist_str, sequence: _tsequence, me
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_order(possible_states: _tlist_str, sequence: _tsequence, maximum_order: int = 3, criterion: str = 'bic') -> _tass_ord:
+def assess_order(possible_states: _tlist_str, sequence: _tseq, maximum_order: int = 3, criterion: str = 'bic') -> _tass_ord:
 
     r"""
     | The function assesses the preferred Markov order of the given sequence using maximum-likelihood estimation and the selected criterion.
@@ -553,7 +553,7 @@ def assess_order(possible_states: _tlist_str, sequence: _tsequence, maximum_orde
     return selected_order, scores
 
 
-def assess_stationarity(mc: _tmc, sequences: _tsequences, significance: float = 0.05) -> _tass_stat:
+def assess_stationarity(mc: _tmc, sequences: _tseqs, significance: float = 0.05) -> _tass_stat:
 
     r"""
     | The function assesses whether independent sequences of the given Markov chain are initialized according to its stationary distribution:
@@ -673,7 +673,7 @@ def assess_stationarity(mc: _tmc, sequences: _tsequences, significance: float = 
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_theoretical_compatibility(mc: _tmc, sequence: _tsequence, significance: float = 0.05) -> _tass_stat:
+def assess_theoretical_compatibility(mc: _tmc, sequence: _tseq, significance: float = 0.05) -> _tass_stat:
 
     r"""
     | The function assesses whether the given sequence is compatible with the transition probabilities of the specified Markov chain:
@@ -740,7 +740,7 @@ def assess_theoretical_compatibility(mc: _tmc, sequence: _tsequence, significanc
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_time_homogeneity(possible_states: _tlist_str, sequence: _tsequence, blocks: int = 2, significance: float = 0.05) -> _tass_stat:
+def assess_time_homogeneity(possible_states: _tlist_str, sequence: _tseq, blocks: int = 2, significance: float = 0.05) -> _tass_stat:
 
     r"""
     | The function assesses whether the transition probabilities of the given sequence remain constant across consecutive time blocks:
@@ -809,7 +809,7 @@ def assess_time_homogeneity(possible_states: _tlist_str, sequence: _tsequence, b
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_vamp_score(method: str, possible_states: _tlist_str, sequences: _tsequences, lag: int = 1, center: bool = False) -> float:
+def assess_vamp_score(method: str, possible_states: _tlist_str, sequences: _tseqs, lag: int = 1, center: bool = False) -> float:
 
     r"""
     | The function computes a Variational Approach for Markov Processes (VAMP) score from one or more observed sequences of states.
