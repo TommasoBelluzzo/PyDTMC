@@ -33,13 +33,13 @@ from ._analysis import (
 )
 
 from ._custom_types import (
-    ohmm_prediction as _ohmm_prediction,
+    ohmm_pred as _ohmm_pred,
     oint as _oint,
     olist_int as _olist_int,
     tarray as _tarray,
     tlist_int as _tlist_int,
     thmm as _thmm,
-    thmm_sequence as _thmm_sequence,
+    thmm_seq as _thmm_seq,
     tmc as _tmc,
     trand as _trand,
     tredists as _tredists
@@ -52,7 +52,7 @@ from ._custom_types import (
 
 # HMM PREDICTION
 
-def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int) -> _ohmm_prediction:
+def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int) -> _ohmm_pred:
 
     def _predict_map(pv_p, pv_e, pv_initial_distribution, pv_symbols):
 
@@ -179,7 +179,7 @@ def hmm_propagate(hmm: _thmm, target: str, steps: int, initial_distribution: _ta
 
 # HMM SIMULATION
 
-def hmm_simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint, final_symbol: _oint, rng: _trand) -> _thmm_sequence:
+def hmm_simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint, final_symbol: _oint, rng: _trand) -> _thmm_seq:
 
     _, k = hmm.size
     check_final_state = final_state is not None

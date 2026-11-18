@@ -41,7 +41,7 @@ from ._base_classes import (
 
 from ._custom_types import (
     obndvals as _obndvals,
-    ohmm_decoding as _ohmm_decoding,
+    ohmm_dec as _ohmm_dec,
     oint as _oint,
     olist_str as _olist_str,
     onumeric as _onumeric,
@@ -54,11 +54,11 @@ from ._custom_types import (
     tgraphs as _tgraphs,
     thmm as _thmm,
     thmm_dict as _thmm_dict,
-    thmm_dict_flex as _thmm_dict_flex,
-    thmm_prediction as _thmm_prediction,
-    thmm_sequence_ext as _thmm_sequence_ext,
+    thmm_dict_f as _thmm_dict_f,
+    thmm_pred as _thmm_pred,
+    thmm_seq_f as _thmm_seq_f,
     thmm_step as _thmm_step,
-    thmm_symbols_ext as _thmm_symbols_ext,
+    thmm_sym_x as _thmm_sym_x,
     tlist_array as _tlist_array,
     tlist_str as _tlist_str,
     tnumeric as _tnumeric,
@@ -432,7 +432,7 @@ class HiddenMarkovModel(_Model):
 
         return _conditional_probabilities(self, symbol)
 
-    def decode(self, symbols: _tsequence, initial_status: _ostatus = None, use_scaling: bool = True) -> _ohmm_decoding:
+    def decode(self, symbols: _tsequence, initial_status: _ostatus = None, use_scaling: bool = True) -> _ohmm_dec:
 
         """
         | The method decodes an observed sequence of emitted symbols using the forward-backward algorithm and returns, in order:
@@ -731,7 +731,7 @@ class HiddenMarkovModel(_Model):
 
         return pp
 
-    def predict(self, prediction_type: str, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_prediction:
+    def predict(self, prediction_type: str, symbols: _tsequence, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_pred:
 
         """
         | The method computes the log probability and a predicted hidden-state path for an observed sequence of emitted symbols.
@@ -905,7 +905,7 @@ class HiddenMarkovModel(_Model):
         return sp
 
     @_object_mark(random_output=True)
-    def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, final_symbol: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _thmm_sequence_ext:
+    def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, final_symbol: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _thmm_seq_f:
 
         """
         | The method simulates a random sequence of hidden states and emitted symbols for the given number of steps.
@@ -1258,7 +1258,7 @@ class HiddenMarkovModel(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def fit(fitting_type: str, possible_states: _tlist_str, possible_symbols: _tlist_str, p_guess: _tarray, e_guess: _tarray, symbols: _thmm_symbols_ext, initial_status: _ostatus = None, regularization: float = 0.0, fitting_param: _tany = None) -> _thmm:
+    def fit(fitting_type: str, possible_states: _tlist_str, possible_symbols: _tlist_str, p_guess: _tarray, e_guess: _tarray, symbols: _thmm_sym_x, initial_status: _ostatus = None, regularization: float = 0.0, fitting_param: _tany = None) -> _thmm:
 
         """
         | The method fits a hidden Markov model from initial transition and emission matrices and one or more observed sequences of emitted symbols.
@@ -1327,7 +1327,7 @@ class HiddenMarkovModel(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def from_dictionary(d: _thmm_dict_flex) -> _thmm:
+    def from_dictionary(d: _thmm_dict_f) -> _thmm:
 
         """
         | The method generates a hidden Markov model from a dictionary defining transition and emission probabilities.

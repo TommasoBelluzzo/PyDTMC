@@ -52,27 +52,27 @@ __all__ = [
     'tlim_int', 'olim_int',
     'tlim_scalar', 'olim_scalar',
     'trfunc', 'orfunc',
-    'trfunc_flex', 'orfunc_flex',
+    'trfunc_f', 'orfunc_f',
     # Compound Types - Specific
     'tass_cp', 'oass_cp',
     'tass_ord', 'oass_ord',
     'tass_stat', 'oass_stat',
     'tbcond', 'obcond',
-    'tfitting_res', 'ofitting_res',
-    'thmm_decoding', 'ohmm_decoding',
+    'tfit_r', 'ofit_r',
+    'thmm_dec', 'ohmm_dec',
     'thmm_dict', 'ohmm_dict',
-    'thmm_dict_flex', 'ohmm_dict_flex',
+    'thmm_dict_f', 'ohmm_dict_f',
     'thmm_gen', 'ohmm_gen',
     'thmm_gen_ext', 'ohmm_gen_ext',
     'thmm_gen_full', 'ohmm_gen_full',
     'thmm_params', 'ohmm_params',
     'thmm_params_res', 'ohmm_params_res',
-    'thmm_prediction', 'ohmm_prediction',
-    'thmm_sequence', 'ohmm_sequence',
-    'thmm_sequence_ext', 'ohmm_sequence_ext',
+    'thmm_pred', 'ohmm_pred',
+    'thmm_seq', 'ohmm_seq',
+    'thmm_seq_f', 'ohmm_seq_f',
     'thmm_step', 'ohmm_step',
-    'thmm_symbols', 'ohmm_symbols',
-    'thmm_symbols_ext', 'ohmm_symbols_ext',
+    'thmm_sym', 'ohmm_sym',
+    'thmm_sym_x', 'ohmm_sym_x',
     'tmc_dict', 'omc_dict',
     'tmc_dict_flex', 'omc_dict_flex',
     'tmc_gen', 'omc_gen',
@@ -273,8 +273,8 @@ olim_scalar = _tp.Optional[tlim_scalar]
 trfunc = _tp.Callable
 orfunc = _tp.Optional[trfunc]
 
-trfunc_flex = _tp.Union[_tp.Callable, str]
-orfunc_flex = _tp.Optional[trfunc_flex]
+trfunc_f = _tp.Union[_tp.Callable, str]
+orfunc_f = _tp.Optional[trfunc_f]
 
 tedge_attributes = _tp.List[_tp.Tuple[str, _tp.Tuple[str, ...]]]
 oedge_attributes = _tp.Optional[tedge_attributes]
@@ -293,17 +293,17 @@ oass_stat = _tp.Optional[tass_stat]
 tbcond = _tp.Union[float, int, str]
 obcond = _tp.Optional[tbcond]
 
-tfitting_res = _tp.Tuple[oarray, ostr]
-ofitting_res = _tp.Optional[tfitting_res]
+tfit_r = _tp.Tuple[oarray, ostr]
+ofit_r = _tp.Optional[tfit_r]
 
-thmm_decoding = _tp.Tuple[float, tarray, tarray, tarray, tarray, oarray]
-ohmm_decoding = _tp.Optional[thmm_decoding]
+thmm_dec = _tp.Tuple[float, tarray, tarray, tarray, tarray, oarray]
+ohmm_dec = _tp.Optional[thmm_dec]
 
 thmm_dict = _tp.Dict[_tp.Tuple[str, str, str], float]
 ohmm_dict = _tp.Optional[thmm_dict]
 
-thmm_dict_flex = _tp.Dict[_tp.Tuple[str, str, str], tscalar]
-ohmm_dict_flex = _tp.Optional[thmm_dict_flex]
+thmm_dict_f = _tp.Dict[_tp.Tuple[str, str, str], tscalar]
+ohmm_dict_f = _tp.Optional[thmm_dict_f]
 
 thmm_gen = _tp.Tuple[oarray, oarray, ostr]
 ohmm_gen = _tp.Optional[thmm_gen]
@@ -320,23 +320,23 @@ ohmm_params = _tp.Optional[thmm_params]
 thmm_params_res = _tp.Tuple[oarray, oarray, ostr]
 ohmm_params_res = _tp.Optional[thmm_params_res]
 
-thmm_prediction = _tp.Tuple[float, _tp.Union[tlist_int, tlist_str]]
-ohmm_prediction = _tp.Optional[thmm_prediction]
+thmm_pred = _tp.Tuple[float, _tp.Union[tlist_int, tlist_str]]
+ohmm_pred = _tp.Optional[thmm_pred]
 
-thmm_sequence = _tp.Tuple[tlist_int, tlist_int]
-ohmm_sequence = _tp.Optional[thmm_sequence]
+thmm_seq = _tp.Tuple[tlist_int, tlist_int]
+ohmm_seq = _tp.Optional[thmm_seq]
 
-thmm_sequence_ext = _tp.Union[_tp.Tuple[tlist_int, tlist_int], _tp.Tuple[tlist_str, tlist_str]]
-ohmm_sequence_ext = _tp.Optional[thmm_sequence_ext]
+thmm_seq_f = _tp.Union[_tp.Tuple[tlist_int, tlist_int], _tp.Tuple[tlist_str, tlist_str]]
+ohmm_seq_f = _tp.Optional[thmm_seq_f]
 
 thmm_step = _tp.Union[int, str, _tp.Tuple[int, int], _tp.Tuple[str, str]]
 ohmm_step = _tp.Optional[thmm_step]
 
-thmm_symbols = _tp.Union[tlist_int, tlist_str]
-ohmm_symbols = _tp.Optional[thmm_symbols]
+thmm_sym = _tp.Union[tlist_int, tlist_str]
+ohmm_sym = _tp.Optional[thmm_sym]
 
-thmm_symbols_ext = _tp.Union[tlist_int, tlist_str, tlists_int, tlists_str]
-ohmm_symbols_ext = _tp.Optional[thmm_symbols_ext]
+thmm_sym_x = _tp.Union[tlist_int, tlist_str, tlists_int, tlists_str]
+ohmm_sym_x = _tp.Optional[thmm_sym_x]
 
 tmc_dict = _tp.Dict[_tp.Tuple[str, str], float]
 omc_dict = _tp.Optional[tmc_dict]

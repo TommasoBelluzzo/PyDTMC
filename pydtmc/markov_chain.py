@@ -121,7 +121,7 @@ from ._custom_types import (
     tparts as _tparts,
     tpath as _tpath,
     tpprob as _tpprob,
-    trfunc_flex as _trfunc_flex,
+    trfunc_f as _trfunc_f,
     tredists as _tredists,
     tsequence as _tsequence,
     tstate as _tstate,
@@ -4051,7 +4051,7 @@ class MarkovChain(_Model):
     # noinspection PyIncorrectDocstring
     @staticmethod
     @_object_mark(instance_generator=True, random_output=True)
-    def random_distribution(size: int, f: _trfunc_flex, states: _olist_str = None, seed: _oint = None, **kwargs) -> _tmc:
+    def random_distribution(size: int, f: _trfunc_f, states: _olist_str = None, seed: _oint = None, **kwargs) -> _tmc:
 
         r"""
         | The method generates a random Markov chain by sampling transition weights from a NumPy random distribution and normalizing them row-wise.

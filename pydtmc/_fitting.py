@@ -28,7 +28,7 @@ from ._analysis import (
 from ._custom_types import (
     tany as _tany,
     tarray as _tarray,
-    tfitting_res as _tfitting_res,
+    tfit_r as _tfit_r,
     thmm_params_res as _thmm_params_res,
     tinterval as _tinterval,
     tlist_int as _tlist_int,
@@ -278,7 +278,7 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
 # MC FITTING
 
 # noinspection PyBroadException
-def mc_fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible_states: _tlist_str, f: _ttfunc) -> _tfitting_res:
+def mc_fit_function(quadrature_type: str, quadrature_interval: _tinterval, possible_states: _tlist_str, f: _ttfunc) -> _tfit_r:
 
     size = len(possible_states)
 
@@ -394,7 +394,7 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _tinterval, possi
     return p, None
 
 
-def mc_fit_sequence(fitting_type: str, fitting_param: _tany, possible_states: _tlist_str, sequence: _tlist_int) -> _tfitting_res:  # pylint: disable=too-many-return-statements
+def mc_fit_sequence(fitting_type: str, fitting_param: _tany, possible_states: _tlist_str, sequence: _tlist_int) -> _tfit_r:  # pylint: disable=too-many-return-statements
 
     size = len(possible_states)
     p = _np.zeros((size, size), dtype=float)

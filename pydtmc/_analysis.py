@@ -98,7 +98,7 @@ from ._custom_types import (
     obndvals as _obndvals,
     ofloat as _ofloat,
     oint as _oint,
-    ohmm_decoding as _ohmm_decoding,
+    ohmm_dec as _ohmm_dec,
     ofcprof as _omc_fc_profile,
     olist_int as _olist_int,
     osequence as _osequence,
@@ -259,7 +259,7 @@ def hmm_conditional_probabilities(hmm: _thmm, symbol: int) -> _tlist_array:
 
 # HMM INFERENCE
 
-def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int, use_scaling: bool, compute_transitions: bool) -> _ohmm_decoding:
+def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int, use_scaling: bool, compute_transitions: bool) -> _ohmm_dec:
 
     n, k = p.shape[1], e.shape[1]
 
