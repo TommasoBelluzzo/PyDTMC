@@ -59,6 +59,7 @@ from pydtmc._validation import (
     validate_sequence as _validate_sequence,
     validate_sequences as _validate_sequences,
     validate_status as _validate_status,
+    validate_string as _validate_string,
     validate_strings as _validate_strings,
     validate_time_points as _validate_time_points,
     validate_transition_function as _validate_transition_function,
@@ -518,14 +519,24 @@ def test_validate_status(value, labels, is_valid):
             _validate_status(value, labels, False)
 
 
-def test_validate_strings(value, size, is_valid):
+def test_validate_string(value, excluded_chars, is_valid):
 
     if is_valid:
-        result = _validate_strings(value, size)
+        result = _validate_string(value, excluded_chars)
+        assert isinstance(result, str)
+    else:
+        with _pt.raises(Exception):
+            _validate_strings(value, excluded_chars)
+
+
+def test_validate_strings(value, excluded_chars, size, is_valid):
+
+    if is_valid:
+        result = _validate_strings(value, excluded_chars, size)
         assert isinstance(result, list) and all(isinstance(v, str) for v in result)
     else:
         with _pt.raises(Exception):
-            _validate_strings(value, size)
+            _validate_strings(value, excluded_chars, size)
 
 
 def test_validate_time_points(value, is_valid):

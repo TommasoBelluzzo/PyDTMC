@@ -485,7 +485,7 @@ def validate_interval(value: _tany) -> _tinterval:
 
     a, b = value
 
-    if not _is_number(a) or not _is_number(b):
+    if (not _is_number(a)) or (not _is_number(b)):
         raise ValueError('The "@arg@" parameter must contain only floats and integers.')
 
     a, b = float(a), float(b)
@@ -1063,7 +1063,7 @@ def validate_status(value: _tany, labels: _tlist_str, emit_uniform: bool) -> _ta
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
-    if value.ndim > 2 or (value.ndim == 2 and value.shape[0] != 1):
+    if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)):
         raise ValueError('The "@arg@" parameter must be a valid vector.')
 
     value = _np.ravel(value)
@@ -1091,13 +1091,16 @@ def validate_string(value: _tany, excluded_chars: _olist_str = None) -> str:
     return value
 
 
-def validate_strings(value: _tany, size: _oint = None) -> _tlist_str:
+def validate_strings(value: _tany, excluded_chars: _olist_str = None, size: _oint = None) -> _tlist_str:
 
     if not _is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
     if not all(_is_string(s) for s in value):
         raise TypeError('The "@arg@" parameter must contain only non-empty strings.')
+
+    if (excluded_chars is not None) and any(c in s for s in value for c in excluded_chars):
+        raise ValueError(f'The "@arg@" parameter must not contain strings with any of the following characters: {", ".join(excluded_chars)}.')
 
     value_length = len(value)
 

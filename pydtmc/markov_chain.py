@@ -173,6 +173,7 @@ from ._generators import (
     mc_closest_reversible as _closest_reversible,
     mc_coupon_collector as _coupon_collector,
     mc_dirichlet_process as _dirichlet_process,
+    mc_epidemic_model as _epidemic_model,
     mc_from_dictionary as _from_dictionary,
     mc_from_file as _from_file,
     mc_from_graph as _from_graph,
@@ -181,6 +182,7 @@ from ._generators import (
     mc_lazy as _lazy,
     mc_lump as _lump,
     mc_metastable_aggregation as _metastable_aggregation,
+    mc_metropolis_hastings as _metropolis_hastings,
     mc_pattern_matching as _pattern_matching,
     mc_population_genetics_model as _population_genetics_model,
     mc_random as _random,
@@ -1641,6 +1643,65 @@ class MarkovChain(_Model):
 
         return _cumulants(self, order, observable, observable_param)
 
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def epidemic_model(model: str, n: int, p_infection: float, p_recovery: float = 0.0, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a Markov chain according to the specified epidemic model.
+
+        | **Notes:**
+
+        - The SI and SIS models produce a chain with :math:`n+1` states, representing the number of infected individuals.
+        - The SIR model produces a chain with :math:`((n+1)(n+2)) / 2` states, representing all valid combinations of susceptible and infected individuals.
+        - The population does not contemplate births, deaths, or external infections.
+        - At each step, every susceptible-infected pair transmits infection independently with the specified infection probability.
+        - Infections and recoveries occur independently and are applied simultaneously.
+        - States without infected individuals are absorbing.
+
+        :param model:
+         - **si** for the Susceptible-Infected model, without recovery;
+         - **sir** for the Susceptible-Infected-Recovered model, with permanent immunity;
+         - **sis** for the Susceptible-Infected-Susceptible model, with recovery to susceptibility.
+        :param n: the number of individuals.
+        :param p_infection: the probability of infection transmission per susceptible-infected pair in each step.
+        :param p_recovery: the probability of recovery for each infected individual in each step (*if omitted, 0.0 is used*).
+        :param states: the state names (*if omitted, the infected counts are used for SI and SIS, while susceptible-infected pairs are used for SIR*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            model = _validate_enumerator(model, ['si', 'sir', 'sis'])
+            n = _validate_integer(n, lower_limit=(1, False))
+            p_infection = _validate_float(p_infection, lower_limit=(0.0, False), upper_limit=(1.0, False))
+
+            if model != 'si':
+                p_recovery = _validate_float(p_recovery, lower_limit=(0.0, False), upper_limit=(1.0, False))
+
+            if states is not None:  # pragma: no cover
+                size = ((n + 1) * (n + 2)) // 2 if model == 'sir' else n + 1
+                states = _validate_labels_input(states, size)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if (model == 'si') and (p_recovery != 0.0):  # pragma: no cover
+            raise _ValidationError('The recovery probability must be zero for the SI model.')
+
+        p_out = _epidemic_model(model, n, p_infection, p_recovery)
+
+        if states is not None:
+            states_out = states
+        elif model == 'sir':
+            states_out = [f'S{s}_I{i}' for s in range(n + 1) for i in range(n - s + 1)]
+        else:
+            states_out = [str(i) for i in range(n + 1)]
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
     @_object_mark(aliases=['er'])
     def expected_rewards(self, steps: int, rewards: _tnumeric, discount_factor: float = 1.0) -> _tarray:
 
@@ -2851,7 +2912,7 @@ class MarkovChain(_Model):
         return value
 
     @_object_mark(instance_generator=True)
-    def teleport(self, probability: float, distribution: _onumeric = None) -> _tmc:
+    def teleport(self, p_teleport: float, distribution: _onumeric = None) -> _tmc:
 
         r"""
         | The method returns a Markov chain obtained by teleportation:
@@ -2864,20 +2925,20 @@ class MarkovChain(_Model):
 
         - A positive teleportation probability and a strictly positive destination distribution guarantee an **ergodic** Markov chain.
 
-        :param probability: the teleportation probability.
+        :param p_teleport: the teleportation probability.
         :param distribution: the destination distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            probability = _validate_float(probability, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            p_teleport = _validate_float(p_teleport, lower_limit=(0.0, False), upper_limit=(1.0, False))
             distribution = _validate_vector_stochastic(distribution, self.__size, True)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        p = _teleport(self.__p, probability, distribution)
+        p = _teleport(self.__p, p_teleport, distribution)
         mc = MarkovChain(p, self.__states)
 
         return mc
@@ -3808,6 +3869,50 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
+    def metropolis_hastings(size: int, target_pi: _tnumeric, proposal: _oarray = None, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a Metropolis-Hastings Markov chain with a prescribed stationary distribution.
+
+        | **Notes:**
+
+        - The proposal matrix determines the candidate transitions and their probabilities, which are adjusted by the Metropolis-Hastings acceptance rule.
+        - If the proposal matrix is omitted, transitions are proposed uniformly among all other states.
+        - Rejected proposals result in remaining at the current state.
+        - The resulting chain is reversible with respect to the target distribution, but is not necessarily irreducible or aperiodic.
+
+        :param size: the number of states of the Markov chain.
+        :param target_pi: the target stationary probability distribution, with strictly positive entries.
+        :param proposal: the proposal transition matrix (*if omitted, a uniform proposal among all other states is used*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            target_pi = _validate_vector_stochastic(target_pi, size, False)
+
+            if proposal is not None:
+                proposal = _validate_transition_matrix(proposal, size)
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, size)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if _np.any(target_pi <= 0.0):
+            raise _ValidationError('The target stationary probability distribution must contain strictly positive probabilities.')
+
+        p_out = _metropolis_hastings(target_pi, proposal)
+        states_out = states if states is not None else _create_labels(size)
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
     def pattern_matching(pattern: str, probabilities: _tpprob, states: _olist_str = None) -> _tmc:
 
         r"""
@@ -3830,7 +3935,7 @@ class MarkovChain(_Model):
 
         try:
 
-            pattern = _validate_string(pattern, excluded_chars=['∅'])
+            pattern = _validate_string(pattern, excluded_chars=[' ', '∅'])
             probabilities = _validate_pattern_probabilities(probabilities)
 
             if states is not None:  # pragma: no cover

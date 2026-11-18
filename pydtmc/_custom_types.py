@@ -115,6 +115,7 @@ import networkx as _nx
 import numpy as _np
 import numpy.random as _npr
 import scipy.sparse as _spsp
+import numpy.typing as _npt
 
 try:
     import pandas as _pd
@@ -137,16 +138,16 @@ ofloat = _tp.Optional[float]
 oint = _tp.Optional[int]
 ostr = _tp.Optional[str]
 
-tscalar = _tp.Union[float, int]
+tscalar = _tp.Union[float, int, _np.integer, _np.floating]
 oscalar = _tp.Optional[tscalar]
 
 tarray = _np.ndarray
 oarray = _tp.Optional[tarray]
 
 if _pandas_found:
-    tnumeric = _tp.Union[_np.ndarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
+    tnumeric = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], _np.ndarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
 else:
-    tnumeric = _tp.Union[_np.ndarray, _spsp.spmatrix]
+    tnumeric = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], _np.ndarray, _spsp.spmatrix]
 
 onumeric = _tp.Optional[tnumeric]
 
@@ -251,7 +252,7 @@ obndvals = _tp.Optional[tbndvals]
 tcache = _tp.Dict[str, tany]
 ocache = _tp.Optional[tcache]
 
-tdtype = _tp.Union[object, str]
+tdtype = _npt.DTypeLike
 odtype = _tp.Optional[tdtype]
 
 tfile = _tp.Tuple[tpath, str]
@@ -382,7 +383,7 @@ ostate = _tp.Optional[tstate]
 tstates = _tp.Union[tstate, tlist_int, tlist_str]
 ostates = _tp.Optional[tstates]
 
-tstatus = _tp.Union[int, str, tnumeric]
+tstatus = _tp.Union[int, _np.integer, str, tnumeric]
 ostatus = _tp.Optional[tstatus]
 
 ttfunc = _tp.Callable[[int, float, int, float], float]
@@ -403,5 +404,5 @@ otimes_out = _tp.Optional[ttimes_out]
 tvalid_states = _tp.Tuple[tlist_int, tlist_str]
 ovalid_states = _tp.Optional[tvalid_states]
 
-tweights = _tp.Union[float, int, tnumeric]
+tweights = _tp.Union[tscalar, tnumeric]
 oweights = _tp.Optional[tweights]

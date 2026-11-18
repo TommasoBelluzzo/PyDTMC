@@ -1146,10 +1146,10 @@ class HiddenMarkovModel(_Model):
             island_transitions = _validate_transition_matrix(island_transitions, 4)
             background_transitions = _validate_transition_matrix(background_transitions, 4)
 
-            if states is not None:
+            if states is not None:  # pragma: no cover
                 states = _validate_labels_input(states, 8)
 
-            if symbols is not None:
+            if symbols is not None:  # pragma: no cover
                 symbols = _validate_labels_input(symbols, 4)
 
         except Exception as ex:  # pragma: no cover

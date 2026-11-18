@@ -2847,104 +2847,281 @@
       "is_valid": false
     }
   ],
-  "validate_strings_data": [
+  "validate_string_data": [
     {
-      "value": ["S1", "S2", "S3", "S4"],
-      "size": null,
-      "is_valid": true
-    },
-    {
-      "value": ["S1", "S2", "S3", "S4"],
-      "size": 4,
-      "is_valid": true
-    },
-    {
-      "value": ["S1", "S2", "S3", "S4"],
-      "size": 3,
-      "is_valid": false
-    },
-    {
-      "value": ["S1", "S2", "S3", "S4"],
-      "size": 5,
-      "is_valid": false
-    },
-    {
-      "value": ["S1", " ", "S3", " "],
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": ["S1", " ", "S3", ""],
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": [null, "S2", "S3", "S4"],
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": ["", "", "", ""],
-      "size": 4,
-      "is_valid": false
-    },
-    {
-      "value": ["S1", "S2", false, "S4"],
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": ["S1", 1, "S3", 3],
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": ["S1", "S2", 8.12, "S4"],
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": ["S1", "S2", "S3", []],
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": ["S1"],
-      "size": null,
-      "is_valid": true
-    },
-    {
-      "value": ["S1"],
-      "size": 2,
+      "value": null,
+      "excluded_chars": null,
       "is_valid": false
     },
     {
       "value": [],
+      "excluded_chars": null,
+      "is_valid": false
+    },
+    {
+      "value": true,
+      "excluded_chars": null,
+      "is_valid": false
+    },
+    {
+      "value": -3,
+      "excluded_chars": null,
+      "is_valid": false
+    },
+    {
+      "value": 1.333,
+      "excluded_chars": null,
+      "is_valid": false
+    },
+    {
+      "value": "",
+      "excluded_chars": null,
+      "is_valid": false
+    },
+    {
+      "value": " ",
+      "excluded_chars": null,
+      "is_valid": false
+    },
+    {
+      "value": " ",
+      "excluded_chars": [" "],
+      "is_valid": false
+    },
+    {
+      "value": "     ",
+      "excluded_chars": [" "],
+      "is_valid": false
+    },
+    {
+      "value": "A",
+      "excluded_chars": null,
+      "is_valid": true
+    },
+    {
+      "value": "A",
+      "excluded_chars": ["A"],
+      "is_valid": false
+    },
+    {
+      "value": "A ",
+      "excluded_chars": null,
+      "is_valid": true
+    },
+    {
+      "value": "A ",
+      "excluded_chars": [" "],
+      "is_valid": false
+    },
+    {
+      "value": "A:",
+      "excluded_chars": null,
+      "is_valid": true
+    },
+    {
+      "value": "A:",
+      "excluded_chars": [":"],
+      "is_valid": false
+    },
+    {
+      "value": "ABCDEFG",
+      "excluded_chars": ["?"],
+      "is_valid": true
+    },
+    {
+      "value": "  ABCDEFG",
+      "excluded_chars": ["?"],
+      "is_valid": true
+    },
+    {
+      "value": "ABCDEFG  ",
+      "excluded_chars": ["?"],
+      "is_valid": true
+    },
+    {
+      "value": "  ABCDEFG  ",
+      "excluded_chars": ["?"],
+      "is_valid": true
+    },
+    {
+      "value": "  ABC  D  EFG  ",
+      "excluded_chars": ["?"],
+      "is_valid": true
+    },
+    {
+      "value": "?ABCDEFG?",
+      "excluded_chars": ["?"],
+      "is_valid": false
+    },
+    {
+      "value": "##ABC@@",
+      "excluded_chars": ["?"],
+      "is_valid": true
+    },
+    {
+      "value": "##ABC@@",
+      "excluded_chars": ["#"],
+      "is_valid": false
+    },
+    {
+      "value": "##ABC@@",
+      "excluded_chars": ["@"],
+      "is_valid": false
+    },
+    {
+      "value": "##ABC@@",
+      "excluded_chars": ["#", "@"],
+      "is_valid": false
+    }
+  ],
+  "validate_strings_data": [
+    {
+      "value": null,
+      "excluded_chars": null,
       "size": null,
       "is_valid": false
     },
     {
-      "value": null,
+      "value": [],
+      "excluded_chars": null,
       "size": null,
       "is_valid": false
     },
     {
       "value": true,
+      "excluded_chars": null,
       "size": null,
       "is_valid": false
     },
     {
       "value": 0,
+      "excluded_chars": null,
       "size": null,
       "is_valid": false
     },
     {
       "value": -1.33,
+      "excluded_chars": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": "",
+      "excluded_chars": null,
       "size": null,
       "is_valid": false
     },
     {
       "value": "S1",
+      "excluded_chars": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": ["S1"],
+      "excluded_chars": null,
+      "size": null,
+      "is_valid": true
+    },
+    {
+      "value": ["S1"],
+      "excluded_chars": null,
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", "S2", "S3", "S4"],
+      "excluded_chars": null,
+      "size": null,
+      "is_valid": true
+    },
+    {
+      "value": ["S1", "S2", "S3", "S4"],
+      "excluded_chars": null,
+      "size": 4,
+      "is_valid": true
+    },
+    {
+      "value": ["S1", "S2", "S3", "S4"],
+      "excluded_chars": ["S"],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", "S2", "S3", "S4"],
+      "excluded_chars": ["1"],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", "S2", "S3", "S4"],
+      "excluded_chars": null,
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", "S2", "S3", "S4"],
+      "excluded_chars": null,
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": ["_S1", "_S2", "_S3", "_S4"],
+      "excluded_chars": ["@"],
+      "size": 4,
+      "is_valid": true
+    },
+    {
+      "value": ["_S1", "_S2", "_S3", "_S4"],
+      "excluded_chars": ["_"],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", " ", "S3", " "],
+      "excluded_chars": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", " ", "S3", ""],
+      "excluded_chars": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": [null, "S2", "S3", "S4"],
+      "excluded_chars": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": ["", "", "", ""],
+      "excluded_chars": null,
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", "S2", false, "S4"],
+      "excluded_chars": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", 1, "S3", 3],
+      "excluded_chars": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", "S2", 8.12, "S4"],
+      "excluded_chars": null,
+      "size": null,
+      "is_valid": false
+    },
+    {
+      "value": ["S1", "S2", "S3", []],
+      "excluded_chars": null,
       "size": null,
       "is_valid": false
     }

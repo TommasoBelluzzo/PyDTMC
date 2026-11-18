@@ -16,6 +16,7 @@ __all__ = [
     'mc_closest_reversible',
     'mc_coupon_collector',
     'mc_dirichlet_process',
+    'mc_epidemic_model',
     'mc_from_dictionary',
     'mc_from_file',
     'mc_from_graph',
@@ -24,6 +25,7 @@ __all__ = [
     'mc_lazy',
     'mc_lump',
     'mc_metastable_aggregation',
+    'mc_metropolis_hastings',
     'mc_pattern_matching',
     'mc_population_genetics_model',
     'mc_random',
@@ -63,6 +65,7 @@ from ._constants import (
 )
 
 from ._custom_types import (
+    oarray as _oarray,
     ofloat as _ofloat,
     tarray as _tarray,
     tbcond as _tbcond,
@@ -1318,6 +1321,62 @@ def mc_dirichlet_process(rng: _trand, size: int, diffusion_factor: float, diagon
     return p
 
 
+def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery_probability: _ofloat) -> _tarray:
+
+    if model == 'si':
+
+        size = n + 1
+        p = _np.zeros((size, size), dtype=float)
+
+        for i in range(size):
+
+            s = n - i
+            q = 1.0 - (1.0 - infection_probability)**i
+
+            infections = _sps.binom.pmf(_np.arange(s + 1), s, q)
+            p[i, i:(i + s + 1)] = infections
+
+    elif model == 'sir':
+
+        configurations = [(s, i) for s in range(n + 1) for i in range(n - s + 1)]
+        indices = {state: index for index, state in enumerate(configurations)}
+
+        size = len(configurations)
+        p = _np.zeros((size, size), dtype=float)
+
+        for row, (s, i) in enumerate(configurations):
+
+            q = 1.0 - (1.0 - infection_probability)**i
+
+            infections = _sps.binom.pmf(_np.arange(s + 1), s, q)
+            recoveries = _sps.binom.pmf(_np.arange(i + 1), i, recovery_probability)
+
+            for x, px in enumerate(infections):
+                for y, py in enumerate(recoveries):
+                    p[row, indices[(s - x, i + x - y)]] += px * py
+
+    else:
+
+        size = n + 1
+        p = _np.zeros((size, size), dtype=float)
+
+        for i in range(size):
+
+            s = n - i
+            q = 1.0 - (1.0 - infection_probability)**i
+
+            infections = _sps.binom.pmf(_np.arange(s + 1), s, q)
+            recoveries = _sps.binom.pmf(_np.arange(i + 1), i, recovery_probability)
+
+            for x, px in enumerate(infections):
+                for y, py in enumerate(recoveries):
+                    p[i, i + x - y] += px * py
+
+    p /= _np.sum(p, axis=1, keepdims=True)
+
+    return p
+
+
 def mc_from_dictionary(d: _tmc_dict_flex) -> _tmc_gen_full:
 
     states = [key[0] for key in d.keys() if key[0] == key[1]]
@@ -1404,6 +1463,29 @@ def mc_gamblers_ruin(size: int, w: float) -> _tarray:
     for i in range(1, size - 1):
         p[i, i - 1] = wc
         p[i, i + 1] = w
+
+    return p
+
+
+def mc_metropolis_hastings(target: _tarray, proposal: _oarray) -> _tarray:
+
+    size = target.size
+
+    if proposal is None:
+        proposal = _np.full((size, size), 1.0 / (size - 1), dtype=float)
+        _np.fill_diagonal(proposal, 0.0)
+
+    p = _np.zeros((size, size), dtype=float)
+    log_target = _np.log(target)
+
+    for i in range(size):
+        for j in range(size):
+
+            if (i != j) and (proposal[i, j] > 0.0) and (proposal[j, i] > 0.0):
+                log_ratio = log_target[j] - log_target[i] + _np.log(proposal[j, i]) - _np.log(proposal[i, j])
+                p[i, j] = proposal[i, j] * (1.0 if log_ratio >= 0.0 else _np.exp(log_ratio))
+
+        p[i, i] = max(0.0, 1.0 - _np.sum(p[i, :]))
 
     return p
 
