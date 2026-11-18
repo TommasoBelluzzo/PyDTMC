@@ -19,12 +19,6 @@ __all__ = [
     'thmm', 'ohmm',
     'tmc', 'omc',
     'tmodel', 'omodel',
-    # Pairs
-    'tpair_array', 'opair_array',
-    'tpair_bool', 'opair_bool',
-    'tpair_float', 'opair_float',
-    'tpair_int', 'opair_int',
-    'tpair_str', 'opair_str',
     # Lists
     'tlist_any', 'olist_any',
     'tlist_array', 'olist_array',
@@ -40,7 +34,13 @@ __all__ = [
     'tlists_float', 'olists_float',
     'tlists_int', 'olists_int',
     'tlists_str', 'olists_str',
-    # Compound Types -
+    # Pairs
+    'ttup_array', 'otup_array',
+    'ttup_bool', 'otup_bool',
+    'ttup_float', 'otup_float',
+    'ttup_int', 'otup_int',
+    'ttup_str', 'otup_str',
+    # Compound Types - Generic
     'tbndval', 'obndval',
     'tbndvals', 'obndvals',
     'tcache', 'ocache',
@@ -113,8 +113,8 @@ import matplotlib.pyplot as _mplp
 import networkx as _nx
 import numpy as _np
 import numpy.random as _npr
-import scipy.sparse as _spsp
 import numpy.typing as _npt
+import scipy.sparse as _spsp
 
 try:
     import pandas as _pd
@@ -180,23 +180,6 @@ omc = _tp.Optional[tmc]
 tmodel = _tp.Union[thmm, tmc]
 omodel = _tp.Optional[tmodel]
 
-# PAIRS
-
-tpair_array = _tp.Tuple[tarray, tarray]
-opair_array = _tp.Optional[tpair_array]
-
-tpair_bool = _tp.Tuple[bool, bool]
-opair_bool = _tp.Optional[tpair_bool]
-
-tpair_float = _tp.Tuple[float, float]
-opair_float = _tp.Optional[tpair_float]
-
-tpair_int = _tp.Tuple[int, int]
-opair_int = _tp.Optional[tpair_int]
-
-tpair_str = _tp.Tuple[str, str]
-opair_str = _tp.Optional[tpair_str]
-
 # LISTS
 
 tlist_any = _tp.List[tany]
@@ -240,22 +223,46 @@ olists_int = _tp.Optional[tlists_int]
 tlists_str = _tp.List[tlist_str]
 olists_str = _tp.Optional[tlists_str]
 
+# PAIRS
 
+tpair_array = _tp.Tuple[tarray, tarray]
+opair_array = _tp.Optional[tpair_array]
 
+tpair_bool = _tp.Tuple[bool, bool]
+opair_bool = _tp.Optional[tpair_bool]
 
+tpair_float = _tp.Tuple[float, float]
+opair_float = _tp.Optional[tpair_float]
 
+tpair_int = _tp.Tuple[int, int]
+opair_int = _tp.Optional[tpair_int]
 
+tpair_str = _tp.Tuple[str, str]
+opair_str = _tp.Optional[tpair_str]
 
+# TUPLES
 
+ttup_array = _tp.Tuple[tarray, ...]
+otup_array = _tp.Optional[ttup_array]
 
+ttup_bool = _tp.Tuple[bool, ...]
+otup_bool = _tp.Optional[ttup_bool]
 
+ttup_float = _tp.Tuple[float, ...]
+otup_float = _tp.Optional[ttup_float]
+
+ttup_int = _tp.Tuple[int, ...]
+otup_int = _tp.Optional[ttup_int]
+
+ttup_str = _tp.Tuple[str, ...]
+otup_str = _tp.Optional[ttup_str]
 
 # COMPOUND TYPES - GENERIC
 
-tbndval = _tp.Tuple[float, _tp.Tuple[float, float]]
+tbndval = _tp.Tuple[float, tpair_float]
 obndval = _tp.Optional[tbndval]
 
-tbndvals = _tp.List[_tp.Tuple[float, _tp.Tuple[float, float]]]
+tbndvals = _tp.List[tbndval]
 obndvals = _tp.Optional[tbndvals]
 
 tcache = _tp.Dict[str, tany]
@@ -264,7 +271,7 @@ ocache = _tp.Optional[tcache]
 tdtype = _npt.DTypeLike
 odtype = _tp.Optional[tdtype]
 
-tfile = _tp.Tuple[tpath, str]
+tfile = _tp.Tuple[_pl.Path, str]
 ofile = _tp.Optional[tfile]
 
 tinterval = _tp.Tuple[tscalar, tscalar]
@@ -282,7 +289,7 @@ olim_scalar = _tp.Optional[tlim_scalar]
 trfunc = _tp.Callable
 orfunc = _tp.Optional[trfunc]
 
-trfunc_f = _tp.Union[_tp.Callable, str]
+trfunc_f = _tp.Union[trfunc, str]
 orfunc_f = _tp.Optional[trfunc_f]
 
 tedge_attrs = _tp.List[_tp.Tuple[str, _tp.Tuple[str, ...]]]
@@ -335,22 +342,22 @@ ohmm_pred = _tp.Optional[thmm_pred]
 thmm_seq = _tp.Tuple[tlist_int, tlist_int]
 ohmm_seq = _tp.Optional[thmm_seq]
 
-thmm_seq_f = _tp.Union[_tp.Tuple[tlist_int, tlist_int], _tp.Tuple[tlist_str, tlist_str]]
+thmm_seq_f = _tp.Union[thmm_seq, _tp.Tuple[tlist_str, tlist_str]]
 ohmm_seq_f = _tp.Optional[thmm_seq_f]
 
-thmm_step = _tp.Union[int, str, _tp.Tuple[int, int], _tp.Tuple[str, str]]
+thmm_step = _tp.Union[int, str, tpair_int, tpair_str]
 ohmm_step = _tp.Optional[thmm_step]
 
 thmm_sym = _tp.Union[tlist_int, tlist_str]
 ohmm_sym = _tp.Optional[thmm_sym]
 
-thmm_sym_x = _tp.Union[tlist_int, tlist_str, tlists_int, tlists_str]
+thmm_sym_x = _tp.Union[thmm_sym, tlists_int, tlists_str]
 ohmm_sym_x = _tp.Optional[thmm_sym_x]
 
-tmc_dict = _tp.Dict[_tp.Tuple[str, str], float]
+tmc_dict = _tp.Dict[tpair_str, float]
 omc_dict = _tp.Optional[tmc_dict]
 
-tmc_dict_f = _tp.Dict[_tp.Tuple[str, str], tscalar]
+tmc_dict_f = _tp.Dict[tpair_str, tscalar]
 omc_dict_f = _tp.Optional[tmc_dict_f]
 
 tmc_gen = _tp.Tuple[oarray, ostr]
