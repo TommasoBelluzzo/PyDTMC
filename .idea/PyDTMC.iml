@@ -13,7 +13,7 @@
       <excludeFolder url="file://$MODULE_DIR$/dist_new" />
       <excludeFolder url="file://$MODULE_DIR$/examples" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.11 (Python311-VEnv)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.13 (Python313-VEnv)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

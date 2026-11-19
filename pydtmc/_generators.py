@@ -12,6 +12,7 @@ __all__ = [
     'mc_birth_death',
     'mc_bounded',
     'mc_canonical',
+    'mc_card_shuffling',
     'mc_censor',
     'mc_closest_reversible',
     'mc_coupon_collector',
@@ -22,6 +23,7 @@ __all__ = [
     'mc_from_graph',
     'mc_from_matrix',
     'mc_gamblers_ruin',
+    'mc_gibbs_sampling',
     'mc_lazy',
     'mc_lump',
     'mc_metastable_aggregation',
@@ -43,6 +45,10 @@ __all__ = [
 ###########
 # IMPORTS #
 ###########
+
+# Standard
+
+import itertools as _it
 
 # Libraries
 
@@ -415,7 +421,7 @@ def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zer
             if not pm_full_rows[i]:
                 row = pm_mask_unassigned[i, :]
                 columns = _np.flatnonzero(row)
-                j = columns[rng.randint(0, _np.sum(row).item())]
+                j = columns[rng.randint(0, int(_np.sum(row)))]
                 pm_mask_internal[i, j] = _np.inf
 
         pm_mask_unassigned = _np.isnan(pm_mask_internal)
@@ -430,7 +436,7 @@ def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zer
 
         m = _np.copy(pm_mask_internal)
         m_unassigned = _np.isnan(pm_mask_internal)
-        m[m_unassigned] = _np.ravel(rng.rand(1, _np.sum(m_unassigned, dtype=int).item()))
+        m[m_unassigned] = _np.ravel(rng.rand(1, int(_np.sum(m_unassigned, dtype=int))))
 
         for i in rows_range:
 
@@ -453,7 +459,7 @@ def hmm_random(rng: _trand, n: int, k: int, p_zeros: int, p_mask: _tarray, e_zer
         pz_mask_internal[_np.isnan(pz_mask_internal) & mask_full] = 0.0
 
         mask_unassigned = _np.isnan(pz_mask_internal)
-        zeros_required = (_np.sum(mask_unassigned) - _np.sum(~full_rows)).item()
+        zeros_required = int(_np.sum(mask_unassigned) - _np.sum(~full_rows))
         result = pz_zeros > zeros_required
 
         return full_rows, mask_unassigned, zeros_required, result
@@ -1276,6 +1282,86 @@ def mc_birth_death(p: _tarray, q: _tarray) -> _tarray:
     return p
 
 
+def mc_card_shuffling(model: str, n: int) -> _tarray:
+
+    positions = tuple(range(n))
+    configurations = list(_it.permutations(positions))
+    indices = {state: index for index, state in enumerate(configurations)}
+
+    size = len(configurations)
+    p = _np.zeros((size, size), dtype=float)
+
+    transitions = {}
+
+    if model == 'adjacent-transpositions':
+
+        probability = 1.0 / (n - 1.0)
+
+        for i in range(n - 1):
+
+            permutation = list(positions)
+            permutation[i], permutation[i + 1] = permutation[i + 1], permutation[i]
+
+            transitions[tuple(permutation)] = probability
+
+    elif model == 'random-transpositions':
+
+        transitions[positions] = 1.0 / n
+        probability = 2.0 / n**2.0
+
+        for i in range(n):
+
+            for j in range(i + 1, n):
+
+                permutation = list(positions)
+                permutation[i], permutation[j] = permutation[j], permutation[i]
+
+                transitions[tuple(permutation)] = probability
+
+    elif model == 'riffle':
+
+        probability = 1.0 / 2.0**n
+
+        for k in range(n + 1):
+
+            for first in _it.combinations(positions, k):
+
+                permutation = [0] * n
+                second = [i for i in positions if i not in first]
+
+                for i, j in enumerate(first):
+                    permutation[j] = i
+
+                for i, j in enumerate(second):
+                    permutation[j] = k + i
+
+                permutation = tuple(permutation)
+
+                transitions[permutation] = transitions.get(permutation, 0.0) + probability
+
+    else:
+
+        probability = 1.0 / n
+
+        for i in range(n):
+
+            permutation = list(positions[1:])
+            permutation.insert(i, positions[0])
+
+            transitions[tuple(permutation)] = probability
+
+    for i, state in enumerate(configurations):
+
+        for permutation, probability in transitions.items():
+
+            next_state = tuple(state[j] for j in permutation)
+            j = indices[next_state]
+
+            p[i, j] = probability
+
+    return p
+
+
 def mc_coupon_collector(n: int) -> _tarray:
 
     p = _np.zeros((n + 1, n + 1), dtype=float)
@@ -1466,6 +1552,39 @@ def mc_gamblers_ruin(size: int, w: float) -> _tarray:
     return p
 
 
+def mc_gibbs_sampling(dimensions: _tlist_int, target_pi: _tarray) -> _tarray:
+
+    dimensions_count = len(dimensions)
+    size = target_pi.size
+
+    target_pi = _np.reshape(target_pi, dimensions)
+
+    configurations = list(_np.ndindex(*dimensions))
+    indices = {state: index for index, state in enumerate(configurations)}
+
+    p = _np.zeros((size, size), dtype=float)
+
+    for i, state in enumerate(configurations):
+
+        for k in range(dimensions_count):
+
+            candidates = []
+
+            for v in range(dimensions[k]):
+                candidate = list(state)
+                candidate[k] = v
+                candidates.append(tuple(candidate))
+
+            probabilities = _np.array([target_pi[candidate] for candidate in candidates], dtype=float)
+            probabilities /= _np.sum(probabilities)
+
+            for candidate, probability in zip(candidates, probabilities):
+                j = indices[candidate]
+                p[i, j] += probability / dimensions_count
+
+    return p
+
+
 def mc_metropolis_hastings(target: _tarray, proposal: _oarray) -> _tarray:
 
     size = target.size
@@ -1559,7 +1678,7 @@ def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_gen:
     mask[_np.isnan(mask) & mask_full] = 0.0
 
     mask_unassigned = _np.isnan(mask)
-    zeros_required = (_np.sum(mask_unassigned) - _np.sum(~full_rows)).item()
+    zeros_required = int(_np.sum(mask_unassigned) - _np.sum(~full_rows))
 
     if zeros > zeros_required:  # pragma: no cover
         return None, f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.'
@@ -1570,7 +1689,7 @@ def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_gen:
         if not full_rows[i]:
             row = mask_unassigned[i, :]
             columns = _np.flatnonzero(row)
-            j = columns[rng.randint(0, _np.sum(row).item())]
+            j = columns[rng.randint(0, int(_np.sum(row)))]
             mask[i, j] = _np.inf
 
     mask_unassigned = _np.isnan(mask)
@@ -1585,7 +1704,7 @@ def mc_random(rng: _trand, size: int, zeros: int, mask: _tarray) -> _tmc_gen:
 
     p = _np.copy(mask)
     p_unassigned = _np.isnan(mask)
-    p[p_unassigned] = _np.ravel(rng.rand(1, _np.sum(p_unassigned, dtype=int).item()))
+    p[p_unassigned] = _np.ravel(rng.rand(1, int(_np.sum(p_unassigned, dtype=int))))
 
     for i in n:
 

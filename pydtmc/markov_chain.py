@@ -14,6 +14,7 @@ __all__ = [
 import copy as _cp
 import inspect as _ins
 import itertools as _it
+import math as _mt
 
 # Libraries
 
@@ -171,6 +172,7 @@ from ._generators import (
     mc_birth_death as _birth_death,
     mc_bounded as _bounded,
     mc_canonical as _canonical,
+    mc_card_shuffling as _card_shuffling,
     mc_censor as _censor,
     mc_closest_reversible as _closest_reversible,
     mc_coupon_collector as _coupon_collector,
@@ -181,6 +183,7 @@ from ._generators import (
     mc_from_graph as _from_graph,
     mc_from_matrix as _from_matrix,
     mc_gamblers_ruin as _gamblers_ruin,
+    mc_gibbs_sampling as _gibbs_sampling,
     mc_lazy as _lazy,
     mc_lump as _lump,
     mc_metastable_aggregation as _metastable_aggregation,
@@ -224,6 +227,7 @@ from ._validation import (
     validate_boolean as _validate_boolean,
     validate_boundary_condition as _validate_boundary_condition,
     validate_dictionary_mc as _validate_dictionary_mc,
+    validate_dimensions as _validate_dimensions,
     validate_enumerator as _validate_enumerator,
     validate_file_path as _validate_file_path,
     validate_float as _validate_float,
@@ -1644,65 +1648,6 @@ class MarkovChain(_Model):
             return None
 
         return _cumulants(self, order, observable, observable_param)
-
-    @staticmethod
-    @_object_mark(instance_generator=True)
-    def epidemic_model(model: str, n: int, p_infection: float, p_recovery: float = 0.0, states: _olist_str = None) -> _tmc:
-
-        r"""
-        | The method generates a Markov chain according to the specified epidemic model.
-
-        | **Notes:**
-
-        - The SI and SIS models produce a chain with :math:`n+1` states, representing the number of infected individuals.
-        - The SIR model produces a chain with :math:`((n+1)(n+2)) / 2` states, representing all valid combinations of susceptible and infected individuals.
-        - The population does not contemplate births, deaths, or external infections.
-        - At each step, every susceptible-infected pair transmits infection independently with the specified infection probability.
-        - Infections and recoveries occur independently and are applied simultaneously.
-        - States without infected individuals are absorbing.
-
-        :param model:
-         - **si** for the Susceptible-Infected model, without recovery;
-         - **sir** for the Susceptible-Infected-Recovered model, with permanent immunity;
-         - **sis** for the Susceptible-Infected-Susceptible model, with recovery to susceptibility.
-        :param n: the number of individuals.
-        :param p_infection: the probability of infection transmission per susceptible-infected pair in each step.
-        :param p_recovery: the probability of recovery for each infected individual in each step (*if omitted, 0.0 is used*).
-        :param states: the state names (*if omitted, the infected counts are used for SI and SIS, while susceptible-infected pairs are used for SIR*).
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            model = _validate_enumerator(model, ['si', 'sir', 'sis'])
-            n = _validate_integer(n, lower_limit=(1, False))
-            p_infection = _validate_float(p_infection, lower_limit=(0.0, False), upper_limit=(1.0, False))
-
-            if model != 'si':
-                p_recovery = _validate_float(p_recovery, lower_limit=(0.0, False), upper_limit=(1.0, False))
-
-            if states is not None:  # pragma: no cover
-                size = ((n + 1) * (n + 2)) // 2 if model == 'sir' else n + 1
-                states = _validate_labels_input(states, size)
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
-
-        if (model == 'si') and (p_recovery != 0.0):  # pragma: no cover
-            raise _ValidationError('The recovery probability must be zero for the SI model.')
-
-        p_out = _epidemic_model(model, n, p_infection, p_recovery)
-
-        if states is not None:
-            states_out = states
-        elif model == 'sir':
-            states_out = [f'S{s}_I{i}' for s in range(n + 1) for i in range(n - s + 1)]
-        else:
-            states_out = [str(i) for i in range(n + 1)]
-
-        mc = MarkovChain(p_out, states_out)
-
-        return mc
 
     @_object_mark(aliases=['er'])
     def expected_rewards(self, steps: int, rewards: _tvec, discount_factor: float = 1.0) -> _tarray:
@@ -3455,6 +3400,49 @@ class MarkovChain(_Model):
 
         return mc
 
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def card_shuffling(model: str, n: int, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a Markov chain according to the specified card shuffling model.
+
+        | **Notes:**
+
+        - The chain has :math:`n!` states, representing all possible permutations of the deck.
+        - The uniform distribution over all permutations is the unique stationary distribution for each model.
+        - The adjacent transpositions model is periodic with period 2, while the other models are aperiodic.
+        - The number of cards is restricted due to the factorial growth of the state space.
+
+        :param model:
+         - **adjacent-transpositions** for exchanging two uniformly selected neighboring cards;
+         - **random-transpositions** for exchanging two independently and uniformly selected cards;
+         - **riffle** for the Gilbert-Shannon-Reeds riffle shuffle;
+         - **top-to-random** for moving the top card to a uniformly selected position.
+        :param n: the number of cards in the deck.
+        :param states: the state names (*if omitted, the permutations of the card numbers starting at 1 are used in lexicographic order*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            model = _validate_enumerator(model, ['adjacent-transpositions', 'random-transpositions', 'riffle', 'top-to-random'])
+            n = _validate_integer(n, lower_limit=(2, False))
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, _mt.factorial(n))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        p_out = _card_shuffling(model, n)
+        states_out = states if states is not None else [''.join(str(i) for i in permutation) for permutation in _it.permutations(range(1, n + 1))]
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
     @staticmethod
     @_object_mark(instance_generator=True)
     def coupon_collector(n: int, states: _olist_str = None) -> _tmc:
@@ -3533,6 +3521,65 @@ class MarkovChain(_Model):
 
         p_out = _dirichlet_process(rng, size, float(diffusion_factor), diagonal_bias_factor, shift_concentration)
         states_out = states if states is not None else _create_labels(size)
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def epidemic_model(model: str, n: int, p_infection: float, p_recovery: float = 0.0, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a Markov chain according to the specified epidemic model.
+
+        | **Notes:**
+
+        - The SI and SIS models produce a chain with :math:`n+1` states, representing the number of infected individuals.
+        - The SIR model produces a chain with :math:`((n+1)(n+2)) / 2` states, representing all valid combinations of susceptible and infected individuals.
+        - The population does not contemplate births, deaths, or external infections.
+        - At each step, every susceptible-infected pair transmits infection independently with the specified infection probability.
+        - Infections and recoveries occur independently and are applied simultaneously.
+        - States without infected individuals are absorbing.
+
+        :param model:
+         - **si** for the Susceptible-Infected model, without recovery;
+         - **sir** for the Susceptible-Infected-Recovered model, with permanent immunity;
+         - **sis** for the Susceptible-Infected-Susceptible model, with recovery to susceptibility.
+        :param n: the number of individuals.
+        :param p_infection: the probability of infection transmission per susceptible-infected pair in each step.
+        :param p_recovery: the probability of recovery for each infected individual in each step (*if omitted, 0.0 is used*).
+        :param states: the state names (*if omitted, the infected counts are used for SI and SIS, while susceptible-infected pairs are used for SIR*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            model = _validate_enumerator(model, ['si', 'sir', 'sis'])
+            n = _validate_integer(n, lower_limit=(1, False))
+            p_infection = _validate_float(p_infection, lower_limit=(0.0, False), upper_limit=(1.0, False))
+
+            if model != 'si':
+                p_recovery = _validate_float(p_recovery, lower_limit=(0.0, False), upper_limit=(1.0, False))
+
+            if states is not None:  # pragma: no cover
+                size = ((n + 1) * (n + 2)) // 2 if model == 'sir' else n + 1
+                states = _validate_labels_input(states, size)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if (model == 'si') and (p_recovery != 0.0):  # pragma: no cover
+            raise _ValidationError('The recovery probability must be zero for the SI model.')
+
+        p_out = _epidemic_model(model, n, p_infection, p_recovery)
+
+        if states is not None:
+            states_out = states
+        elif model == 'sir':
+            states_out = [f'S{s}_I{i}' for s in range(n + 1) for i in range(n - s + 1)]
+        else:
+            states_out = [str(i) for i in range(n + 1)]
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3835,6 +3882,55 @@ class MarkovChain(_Model):
 
         p_out = _gamblers_ruin(size, w)
         states_out = states if states is not None else _create_labels(size)
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def gibbs_sampling(dimensions: _tlist_int, target_pi: _tvec, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a Markov chain with a prescribed stationary distribution using the random-scan Gibbs sampling algorithm:
+        | :math:`P_{xy} = \frac{1}{d} \sum_{k=1}^{d}\mathbb{I}(x_{-k} = y_{-k})\pi^t(y_k \mid x_{-k})`
+        | where:
+
+        - :math:`d` is the number of discrete random variables;
+        - :math:`x` and :math:`y` are configurations of the random variables;
+        - :math:`x_{-k}` is the configuration excluding the :math:`k`-th variable;
+        - :math:`\mathbb{I}` is the indicator function;
+        - :math:`\pi^t` is the target stationary probability distribution.
+
+        | **Notes:**
+
+        - Each state represents a possible configuration of the random variables.
+        - At each step, a variable is selected uniformly and sampled from its conditional distribution given the current values of all other variables.
+        - At most one variable changes its value at each transition.
+        - The resulting chain is irreducible, aperiodic and reversible with respect to :math:`\pi^t`.
+
+        :param dimensions: the number of possible values for each discrete random variable.
+        :param target_pi: the target stationary distribution, with strictly positive entries.
+        :param states: the state names (*if omitted, the configurations of the variable indices starting at 0 are used in lexicographic order*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            dimensions = _validate_dimensions(dimensions)
+            target_pi = _validate_vector_stochastic(target_pi, _mt.prod(dimensions), False)
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, _mt.prod(dimensions))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if _np.any(target_pi <= 0.0):  # pragma: no cover
+            raise _ValidationError('The target stationary distribution must contain strictly positive probabilities.')
+
+        p_out = _gibbs_sampling(dimensions, target_pi)
+        states_out = states if states is not None else ['_'.join(str(i) for i in configuration) for configuration in _np.ndindex(*dimensions)]
 
         mc = MarkovChain(p_out, states_out)
 

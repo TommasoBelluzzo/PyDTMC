@@ -5,6 +5,7 @@ __all__ = [
     'validate_boundary_condition',
     'validate_dictionary_hmm',
     'validate_dictionary_mc',
+    'validate_dimensions',
     'validate_dpi',
     'validate_emission_matrix',
     'validate_enumerator',
@@ -339,6 +340,25 @@ def validate_dictionary_mc(value: _tany) -> _tmc_dict:
     result = _validate_dictionary_values(value)
 
     return result
+
+
+def validate_dimensions(value: _tany) -> _tlist_int:
+
+    if not _is_list(value):
+        raise ValueError('The "@arg@" parameter must be a list.')
+
+    if len(value) < 2:
+        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
+
+    if not all(_is_integer(v) for v in value):
+        raise TypeError('The "@arg@" parameter must contain only integers.')
+
+    value = [int(v) for v in value]
+
+    if any(v < 2 for v in value):
+        raise ValueError('The "@arg@" parameter values must be greater than or equal to 2.')
+
+    return value
 
 
 def validate_dpi(value: _tany) -> int:
