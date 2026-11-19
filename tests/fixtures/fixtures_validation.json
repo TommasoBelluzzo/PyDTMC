@@ -83,94 +83,7 @@
       "is_valid": false
     }
   ],
-  "validate_dictionary_data": [
-    {
-      "dictionary_elements": [
-        ["A", "A", 0.50],
-        ["A", "B", 0.50],
-        ["B", "A", 0.25],
-        ["B", "B", 0.75]
-      ],
-      "attributes": null,
-      "is_valid": true
-    },
-    {
-      "dictionary_elements": [
-        ["A", "A", 1],
-        ["A", "B", 0],
-        ["B", "A", 0],
-        ["B", "B", 1]
-      ],
-      "attributes": null,
-      "is_valid": true
-    },
-    {
-      "dictionary_elements": [
-        ["A", null, 1],
-        ["A", "B", 0],
-        ["B", "A", 0],
-        ["B", "B", 1]
-      ],
-      "attributes": null,
-      "is_valid": false
-    },
-    {
-      "dictionary_elements": [
-        ["A", 0.8],
-        ["B", 0.2]
-      ],
-      "attributes": null,
-      "is_valid": false
-    },
-    {
-      "dictionary_elements": [
-        ["A", "A", 1.0],
-        ["B", "B", 1.0],
-        ["C", "C", 1.0],
-        ["D", "D", 1.0]
-      ],
-      "attributes": null,
-      "is_valid": false
-    },
-    {
-      "dictionary_elements": [
-        ["A", "A", "1", 1],
-        ["A", "B", "2", 0],
-        ["B", "A", "3", 0],
-        ["B", "B", "4", 1]
-      ],
-      "attributes": null,
-      "is_valid": false
-    },
-    {
-      "dictionary_elements": [
-        ["A", "A", 3.7],
-        ["A", "B", -5.3],
-        ["B", "A", 4.1],
-        ["B", "B", -2.3]
-      ],
-      "attributes": null,
-      "is_valid": false
-    },
-    {
-      "dictionary_elements": [
-        ["A", "A", 1],
-        ["A", "B", "0"],
-        ["B", "A", 0],
-        ["B", "B", 1]
-      ],
-      "attributes": null,
-      "is_valid": false
-    },
-    {
-      "dictionary_elements": [
-        ["A", "A", 0.3],
-        ["A", "B", 0.7],
-        ["B", "B", 1.0]
-      ],
-      "attributes": null,
-      "is_valid": false
-    },
+  "validate_dictionary_hmm_data": [
     {
       "dictionary_elements": [
         ["P", "A", "A", 0.3],
@@ -184,7 +97,19 @@
         ["E", "B", "2", 0.1],
         ["E", "B", "3", 0.2]
       ],
-      "attributes": ["P", "E"],
+      "is_valid": true
+    },
+    {
+      "dictionary_elements": [
+        ["P", "A", "A", 1],
+        ["P", "A", "B", 0],
+        ["P", "B", "A", 0],
+        ["P", "B", "B", 1],
+        ["E", "A", "1", 1],
+        ["E", "A", "2", 0],
+        ["E", "B", "1", 0],
+        ["E", "B", "2", 1]
+      ],
       "is_valid": true
     },
     {
@@ -199,7 +124,6 @@
         ["E", "B", "2", 0.1],
         ["E", "B", "3", 0.2]
       ],
-      "attributes": ["P", "E"],
       "is_valid": false
     },
     {
@@ -212,7 +136,6 @@
         ["E", "B", "2", 0.1],
         ["E", "B", "3", 0.2]
       ],
-      "attributes": ["P", "E"],
       "is_valid": false
     },
     {
@@ -225,33 +148,248 @@
         ["E", "A", "2", 0.3],
         ["E", "A", "3", 0.3]
       ],
-      "attributes": ["P", "E"],
       "is_valid": false
     },
     {
       "dictionary_elements": [
-        ["P", "A", "A", 0.1],
-        ["P", "A", "B", 0.9],
-        ["P", "B", "A", 0.6],
-        ["P", "B", "B", 0.4],
-        ["E", "A", "1", 0.1],
-        ["E", "A", "2", 0.1],
-        ["E", "A", "3", 0.8],
-        ["E", "B", "1", 0.3],
-        ["E", "B", "2", 0.3],
-        ["E", "B", "3", 0.4]
+        ["X", "A", "A", 0.1],
+        ["X", "A", "B", 0.9],
+        ["X", "B", "A", 0.6],
+        ["X", "B", "B", 0.4],
+        ["Y", "A", "1", 0.1],
+        ["Y", "A", "2", 0.1],
+        ["Y", "A", "3", 0.8],
+        ["Y", "B", "1", 0.3],
+        ["Y", "B", "2", 0.3],
+        ["Y", "B", "3", 0.4]
       ],
-      "attributes": ["X", "Y"],
       "is_valid": false
     },
     {
-      "dictionary_elements": null,
-      "attributes": null,
+      "dictionary_elements": [
+        ["P", "A", "A", 0.5],
+        ["P", "A", "B", 0.5],
+        ["P", "B", "A", 0.5],
+        ["P", "B", "B", 0.5]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["E", "A", "1", 0.5],
+        ["E", "A", "2", 0.5],
+        ["E", "B", "1", 0.5],
+        ["E", "B", "2", 0.5]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["P", "A", "A", 0.5],
+        ["P", "A", "B", 0.5],
+        ["P", "B", "A", 0.5],
+        ["P", "B", "B", 0.5],
+        ["E", "A", "1", 0.5],
+        ["E", "A", "2", 0.5],
+        ["E", "B", "1", 0.5]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", 0.5],
+        ["A", "B", 0.5],
+        ["B", "A", 0.5],
+        ["B", "B", 0.5]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["P", "A", "A", 0.5],
+        ["P", "A", "B", 0.5],
+        ["P", "B", "A", 0.5],
+        ["P", "B", "B", 0.5],
+        ["E", "A", "1", "NaN"],
+        ["E", "A", "2", 0.5],
+        ["E", "B", "1", 0.5],
+        ["E", "B", "2", 0.5]
+      ],
       "is_valid": false
     },
     {
       "dictionary_elements": {},
-      "attributes": null,
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": false,
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": null,
+      "is_valid": false
+    }
+  ],
+  "validate_dictionary_mc_data": [
+    {
+      "dictionary_elements": [
+        ["A", "A", 0.50],
+        ["A", "B", 0.50],
+        ["B", "A", 0.25],
+        ["B", "B", 0.75]
+      ],
+      "is_valid": true
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", 1],
+        ["A", "B", 0],
+        ["B", "A", 0],
+        ["B", "B", 1]
+      ],
+      "is_valid": true
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", 0.3],
+        ["A", "", 0.7],
+        ["", "A", 0.5],
+        ["", "", 0.5]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", null, 1],
+        ["A", "B", 0],
+        ["B", "A", 0],
+        ["B", "B", 1]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", 0.8],
+        ["B", 0.2]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", 1.0],
+        ["B", "B", 1.0],
+        ["C", "C", 1.0],
+        ["D", "D", 1.0]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", "1", 1],
+        ["A", "B", "2", 0],
+        ["B", "A", "3", 0],
+        ["B", "B", "4", 1]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", 3.7],
+        ["A", "B", -5.3],
+        ["B", "A", 4.1],
+        ["B", "B", -2.3]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", 1],
+        ["A", "B", "0"],
+        ["B", "A", 0],
+        ["B", "B", 1]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", 0.3],
+        ["A", "B", 0.7],
+        ["B", "B", 1.0]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", "NaN"],
+        ["A", "B", 0.5],
+        ["B", "A", 0.5],
+        ["B", "B", 0.5]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", "Infinity"],
+        ["A", "B", 0.5],
+        ["B", "A", 0.5],
+        ["B", "B", 0.5]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", 0.5],
+        ["A", "A", 0.5],
+        ["B", "A", 0.1],
+        ["B", "B", 0.9]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", true],
+        ["A", "B", 0],
+        ["B", "A", 0],
+        ["B", "B", 1]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", 0.2],
+        ["A", "B", 0.2],
+        ["B", "A", 0.3],
+        ["B", "B", 0.3]
+      ],
+      "is_valid": true
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", 0.0],
+        ["A", "B", -0.5],
+        ["B", "A", 3.5],
+        ["B", "B", 0.0]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": {},
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": false,
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": null,
       "is_valid": false
     }
   ],
@@ -956,6 +1094,133 @@
     {
       "value": [],
       "size": 0,
+      "is_valid": false
+    }
+  ],
+  "validate_inertial_weights_data": [
+    {
+      "value": 0,
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": 1,
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": 0.3,
+      "size": 4,
+      "is_valid": true
+    },
+    {
+      "value": -0.1,
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": 1.1,
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": "NaN",
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": "Infinity",
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": "-Infinity",
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": true,
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [0, 1, 1, 0, 1, 1, 1],
+      "size": 7,
+      "is_valid": true
+    },
+    {
+      "value": [0.15, 0.45, 0.90, 0.65],
+      "size": 4,
+      "is_valid": true
+    },
+    {
+      "value": [0.0, 0.0, 0.0],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": [0.4, 0.1, 0.1],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": [0.2, 0.3, 0.2, 0.3, 0.2, 0.3],
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": [1.25, 0.60, 0.20, 0.60, 0.20],
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": [0.2, -0.1, 0.3],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [1, "Infinity", "Infinity", "Infinity"],
+      "size": 4,
+      "is_valid": false
+    },
+    {
+      "value": [0.2, "NaN", 0.3],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [[0, 1, 1, 0, 1, 1, 1]],
+      "size": 7,
+      "is_valid": false
+    },
+    {
+      "value": [[0.00], [0.45], [0.75]],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [true, false, true, true, false],
+      "size": 5,
+      "is_valid": false
+    },
+    {
+      "value": ["A", "B", "C"],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [[], []],
+      "size": 0,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "size": 0,
+      "is_valid": false
+    },
+    {
+      "value": null,
+      "size": 3,
       "is_valid": false
     }
   ],
@@ -3361,108 +3626,6 @@
     {
       "value": null,
       "vector_type": "creation",
-      "is_valid": false
-    }
-  ],
-  "validate_vector_flex_data": [
-    {
-      "value": 0,
-      "size": 3,
-      "is_valid": true
-    },
-    {
-      "value": 1,
-      "size": 3,
-      "is_valid": true
-    },
-    {
-      "value": 0.275,
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": 0.3,
-      "size": 4,
-      "is_valid": true
-    },
-    {
-      "value": "NaN",
-      "size": 2,
-      "is_valid": false
-    },
-    {
-      "value": "Infinity",
-      "size": 5,
-      "is_valid": false
-    },
-    {
-      "value": [0, 1, 1, 0, 1, 1, 1],
-      "size": 7,
-      "is_valid": true
-    },
-    {
-      "value": [0.4, 0.1, 0.1],
-      "size": 4,
-      "is_valid": false
-    },
-    {
-      "value": [0.2, 0.3, 0.2, 0.3, 0.2, 0.3],
-      "size": 5,
-      "is_valid": false
-    },
-    {
-      "value": [0.15, 0.45, 0.90, 0.65],
-      "size": 4,
-      "is_valid": true
-    },
-    {
-      "value": [1.25, 0.60, 0.20, 0.60, 0.20],
-      "size": null,
-      "is_valid": false
-    },
-    {
-      "value": [1, "Infinity", "Infinity", "Infinity"],
-      "size": 4,
-      "is_valid": false
-    },
-    {
-      "value": [0.2, "NaN", 0.3],
-      "size": 3,
-      "is_valid": false
-    },
-    {
-      "value": [[0, 1, 1, 0, 1, 1, 1]],
-      "size": 7,
-      "is_valid": true
-    },
-    {
-      "value": [[0.00], [0.45], [0.75]],
-      "size": 3,
-      "is_valid": false
-    },
-    {
-      "value": [true, false, true, true, false],
-      "size": 5,
-      "is_valid": false
-    },
-    {
-      "value": ["A", "B", "C"],
-      "size": 3,
-      "is_valid": false
-    },
-    {
-      "value": [[], []],
-      "size": 0,
-      "is_valid": false
-    },
-    {
-      "value": [],
-      "size": 0,
-      "is_valid": false
-    },
-    {
-      "value": null,
-      "size": null,
       "is_valid": false
     }
   ],

@@ -3875,17 +3875,21 @@ class MarkovChain(_Model):
     def metropolis_hastings(size: int, target_pi: _tvec, proposal: _oarray = None, states: _olist_str = None) -> _tmc:
 
         r"""
-        | The method generates a Metropolis-Hastings Markov chain with a prescribed stationary distribution.
+        | The method generates a Markov chain with a prescribed stationary distribution using the Metropolis-Hastings algorithm:
+        | :math:`P_{ij} = \begin{cases} Q_{ij}\min\left(1,\frac{\pi^t_j Q_{ji}}{\pi^t_i Q_{ij}}\right) & i \neq j,\ Q_{ij}>0 \\ 1-\sum_{k \neq i}P_{ik} & i=j \\ 0 & \text{otherwise} \end{cases}`
+        | where:
+
+        - :math:`\pi^t` is the target stationary probability distribution;
+        - :math:`Q` is the proposal transition matrix.
 
         | **Notes:**
 
-        - The proposal matrix determines the candidate transitions and their probabilities, which are adjusted by the Metropolis-Hastings acceptance rule.
         - If the proposal matrix is omitted, transitions are proposed uniformly among all other states.
         - Rejected proposals result in remaining at the current state.
-        - The resulting chain is reversible with respect to the target distribution, but is not necessarily irreducible or aperiodic.
+        - The resulting chain satisfies the detailed balance condition :math:`\pi^t_i P_{ij} = \pi^t_j P_{ji}` and is therefore reversible, but not necessarily irreducible or aperiodic.
 
         :param size: the number of states of the Markov chain.
-        :param target_pi: the target stationary probability distribution, with strictly positive entries.
+        :param target_pi: the target stationary distribution, with strictly positive entries.
         :param proposal: the proposal transition matrix (*if omitted, a uniform proposal among all other states is used*).
         :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :raises ValidationError: if any input argument is not compliant.
@@ -3893,6 +3897,7 @@ class MarkovChain(_Model):
 
         try:
 
+            size = _validate_integer(size, lower_limit=(2, False))
             target_pi = _validate_vector_stochastic(target_pi, size, False)
 
             if proposal is not None:
@@ -3905,7 +3910,7 @@ class MarkovChain(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         if _np.any(target_pi <= 0.0):
-            raise _ValidationError('The target stationary probability distribution must contain strictly positive probabilities.')
+            raise _ValidationError('The target stationary distribution must contain strictly positive probabilities.')
 
         p_out = _metropolis_hastings(target_pi, proposal)
         states_out = states if states is not None else _create_labels(size)

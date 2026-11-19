@@ -3,8 +3,8 @@
 __all__ = [
     'validate_boolean',
     'validate_boundary_condition',
-    'validate_dictionary_mc',
     'validate_dictionary_hmm',
+    'validate_dictionary_mc',
     'validate_dpi',
     'validate_emission_matrix',
     'validate_enumerator',
@@ -122,7 +122,7 @@ from ._utilities import (
 # FUNCTIONS #
 #############
 
-def _validate_dictionary_keys(value: _tany, keys_length: int):
+def _validate_dictionary_keys(value: _tany, keys_length: int) -> None:
 
     if (not _is_dictionary(value)) or (len(value) == 0):
         raise ValueError('The "@arg@" parameter must be a non-empty dictionary.')
@@ -152,7 +152,35 @@ def _validate_dictionary_values(value: _tany) -> _tmdl_dict:
     return result
 
 
-def _validate_limits(value: _tnum, value_type: str, lower_limit: _olim_num, upper_limit: _olim_num):
+def _validate_labels(value: _tany, labels: _tlist_str) -> _tlist_int:
+
+    if all(_is_integer(label) for label in value):
+        value_type = 'integer'
+    elif all(_is_string(label) for label in value):
+        value_type = 'string'
+    else:
+        raise TypeError('The "@arg@" parameter contains invalid elements.')
+
+    labels_length = len(labels)
+
+    if value_type == 'integer':
+
+        value = [int(label) for label in value]
+
+        if any((label < 0) or (label >= labels_length) for label in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {labels_length - 1:d}.')
+
+    else:
+
+        value = [labels.index(label) if label in labels else -1 for label in value]
+
+        if any((label == -1) for label in value):
+            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the following strings: {", ".join(labels)}.')
+
+    return value
+
+
+def _validate_limits(value: _tnum, value_type: str, lower_limit: _olim_num, upper_limit: _olim_num) -> None:
 
     def _get_limit_text(glt_value_type, glt_limit_value):
 
@@ -181,6 +209,39 @@ def _validate_limits(value: _tnum, value_type: str, lower_limit: _olim_num, uppe
         else:
             if value > upper_limit_value:
                 raise ValueError(f'The "@arg@" parameter must be less than or equal to {_get_limit_text(value_type, upper_limit_value)}.')
+
+
+def _validate_models(value: _tany, validator: _trfunc) -> None:
+
+    if not _is_list(value):
+        raise ValueError('The "@arg@" parameter must be a list.')
+
+    value_length = len(value)
+
+    if value_length < 2:
+        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
+
+    for i in range(value_length):
+        try:
+            validator(value[i])
+        except Exception as ex:
+            raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
+
+
+def _validate_probabilities(value: _tarray, stochastic: bool) -> None:
+
+    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
+
+    if not stochastic:
+        return
+
+    if value.ndim == 1:
+        if not _np.isclose(_np.sum(value), 1.0, rtol=0.0, atol=_ETOL):
+            raise ValueError('The "@arg@" parameter values must sum to 1.0.')
+    else:
+        if not _np.allclose(_np.sum(value, axis=1), 1.0, rtol=0.0, atol=_ETOL):
+            raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
 
 
 def _validate_vector(value: _tany) -> _tarray:
@@ -221,7 +282,7 @@ def validate_boundary_condition(value: _tany) -> _tbcond:
 
     if _is_string(value):
 
-        possible_values = ('absorbing', 'reflecting')
+        possible_values = ['absorbing', 'reflecting']
 
         if value not in possible_values:
             raise ValueError(f'The "@arg@" parameter, when specified as a string, must have one of the following values: {", ".join(possible_values)}.')
@@ -249,6 +310,9 @@ def validate_dictionary_hmm(value: _tany) -> _thmm_dict:
         labels_by_attribute[key_attribute].add(k[2])
 
     labels_first = labels_by_attribute['P']
+
+    if len(labels_by_attribute['E']) == 0:
+        raise ValueError('The "@arg@" parameter keys must define both transition and emission probabilities.')
 
     for attribute, labels in labels_by_attribute.items():
         if not all((attribute,) + combination in value for combination in _it.product(labels_first, labels)):
@@ -300,14 +364,10 @@ def validate_emission_matrix(value: _tany, size: int) -> _tarray:
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
-    if value.ndim != 2 or value.shape[0] != size or value.shape[1] < 2:
+    if (value.ndim != 2) or (value.shape[0] != size) or (value.shape[1] < 2):
         raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least 2 columns and {size:d} rows.')
 
-    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
-
-    if not _np.allclose(_np.sum(value, axis=1), 1.0, rtol=0.0, atol=_ETOL):
-        raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
+    _validate_probabilities(value, True)
 
     return value
 
@@ -408,7 +468,6 @@ def validate_graph(value: _tany, layers: _oint = None, edge_attributes: _oedge_a
         layers = tuple(range(layers))
 
         nodes = list(value.nodes(data='layer', default=-1))
-        nodes_all = []
         nodes_by_layer = {layer: [] for layer in layers}
 
         for node in nodes:
@@ -423,7 +482,6 @@ def validate_graph(value: _tany, layers: _oint = None, edge_attributes: _oedge_a
             if not _is_integer(node_layer) or node_layer not in layers:  # pragma: no cover
                 raise ValueError(f'The "@arg@" parameter must define node layer attributes as integers matching one of the following values: {", ".join(str(layer) for layer in layers)}.')
 
-            nodes_all.append(node_label)
             nodes_by_layer[node_layer].append(node_label)
 
         if any(len(nodes) < 2 for nodes in nodes_by_layer.values()):
@@ -458,7 +516,7 @@ def validate_graph(value: _tany, layers: _oint = None, edge_attributes: _oedge_a
 
 def validate_hidden_markov_model(value: _tany) -> _thmm:
 
-    if value is None or (f'{value.__module__}.{value.__class__.__name__}' != 'pydtmc.hidden_markov_model.HiddenMarkovModel'):
+    if (value is None) or (f'{value.__module__}.{value.__class__.__name__}' != 'pydtmc.hidden_markov_model.HiddenMarkovModel'):
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
     return value
@@ -466,19 +524,7 @@ def validate_hidden_markov_model(value: _tany) -> _thmm:
 
 def validate_hidden_markov_models(value: _tany) -> _tlist_hmm:
 
-    if not _is_list(value):
-        raise ValueError('The "@arg@" parameter must be a list.')
-
-    value_length = len(value)
-
-    if value_length < 2:
-        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
-
-    for i in range(value_length):
-        try:
-            validate_hidden_markov_model(value[i])
-        except Exception as ex:
-            raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
+    _validate_models(value, validate_hidden_markov_model)
 
     return value
 
@@ -509,8 +555,7 @@ def validate_inertial_weights(value: _tany, size: int) -> _tarray:
     if value.size != size:
         raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
 
-    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
-        raise ValueError('The "@arg@" parameter can contain only finite real numbers between 0.0 and 1.0.')
+    _validate_probabilities(value, False)
 
     return value
 
@@ -577,13 +622,9 @@ def validate_label(value: _tany, labels: _tlist_str) -> int:
 
 def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, minimum_length: _oint = None) -> _tlist_int:
 
-    if _is_integer(value):
+    if _is_integer(value) or _is_string(value):
 
-        value = int(value)
-        limit = len(labels) - 1
-
-        if (value < 0) or (value > limit):
-            raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and {limit:d}.')
+        value = validate_label(value, labels)
 
         if (minimum_length is not None) and (minimum_length > 1):  # pragma: no cover
             raise ValueError(f'The "@arg@" parameter must contain at least {minimum_length:d} elements.')
@@ -592,44 +633,11 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
 
         return value
 
-    if _is_string(value):
-
-        if value not in labels:
-            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(labels)}.')
-
-        if (minimum_length is not None) and (minimum_length > 1):  # pragma: no cover
-            raise ValueError(f'The "@arg@" parameter must contain at least {minimum_length:d} elements.')
-
-        value = [labels.index(value)]
-
-        return value
-
     if _is_list(value):
 
-        if all(_is_integer(label) for label in value):
-            value_type = 'integer'
-        elif all(_is_string(label) for label in value):
-            value_type = 'string'
-        else:
-            raise TypeError('The "@arg@" parameter contains invalid elements.')
-
-        labels_length = len(labels)
-
-        if value_type == 'integer':
-
-            value = [int(label) for label in value]
-
-            if any((label < 0) or (label >= labels_length) for label in value):
-                raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {labels_length - 1:d}.')
-
-        else:
-
-            value = [labels.index(label) if label in labels else -1 for label in value]
-
-            if any((label == -1) for label in value):
-                raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the following strings: {", ".join(labels)}.')
-
+        value = _validate_labels(value, labels)
         value_length = len(value)
+        labels_length = len(labels)
 
         if len(set(value)) < value_length:
             raise ValueError('The "@arg@" parameter must contain only unique values.')
@@ -667,28 +675,7 @@ def validate_labels_pair(value: _tany, labels: _tlist_str) -> _tlist_int:
     if len(value) != 2:
         raise ValueError('The "@arg@" parameter must contain 2 elements.')
 
-    if all(_is_integer(label) for label in value):
-        value_type = 'integer'
-    elif all(_is_string(label) for label in value):
-        value_type = 'string'
-    else:
-        raise TypeError('The "@arg@" parameter contains invalid elements.')
-
-    labels_length = len(labels)
-
-    if value_type == 'integer':
-
-        value = [int(label) for label in value]
-
-        if any((label < 0) or (label >= labels_length) for label in value):
-            raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {labels_length - 1:d}.')
-
-    else:
-
-        value = [labels.index(label) if label in labels else -1 for label in value]
-
-        if any((label == -1) for label in value):
-            raise ValueError(f'The "@arg@" parameter, when specified as a list of strings, must contain only values matching the following strings: {", ".join(labels)}.')
+    value = _validate_labels(value, labels)
 
     if value[0] == value[1]:
         raise ValueError('The "@arg@" parameter must contain 2 distinct elements.')
@@ -722,10 +709,10 @@ def validate_labels_input(value: _tany, size: _oint = None) -> _tlist_str:
 
 def validate_markov_chain(value: _tany, size: _oint = None) -> _tmc:
 
-    if value is None or (f'{value.__module__}.{value.__class__.__name__}' != 'pydtmc.markov_chain.MarkovChain'):
+    if (value is None) or (f'{value.__module__}.{value.__class__.__name__}' != 'pydtmc.markov_chain.MarkovChain'):
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
 
-    if size is not None and value.size != size:
+    if (size is not None) and (value.size != size):
         raise ValueError(f'The "@arg@" parameter must be a Markov chain with size equal to {size:d}.')
 
     return value
@@ -733,19 +720,7 @@ def validate_markov_chain(value: _tany, size: _oint = None) -> _tmc:
 
 def validate_markov_chains(value: _tany) -> _tlist_mc:
 
-    if not _is_list(value):
-        raise ValueError('The "@arg@" parameter must be a list.')
-
-    value_length = len(value)
-
-    if value_length < 2:
-        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
-
-    for i in range(value_length):
-        try:
-            validate_markov_chain(value[i])
-        except Exception as ex:
-            raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
+    _validate_models(value, validate_markov_chain)
 
     return value
 
@@ -825,19 +800,7 @@ def validate_model(value: _tany) -> _tmdl:
 
 def validate_models(value: _tany) -> _tlist_mdl:
 
-    if not _is_list(value):
-        raise ValueError('The "@arg@" parameter must be a list.')
-
-    value_length = len(value)
-
-    if value_length < 2:
-        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
-
-    for i in range(value_length):
-        try:
-            validate_model(value[i])
-        except Exception as ex:
-            raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
+    _validate_models(value, validate_model)
 
     return value
 
@@ -855,9 +818,7 @@ def validate_observable(value: _tany, size: int) -> _tobs:
     if _is_string(value):
 
         possible_values = ['entropy_production', 'state_occupation', 'transition_count', 'transition_current']
-
-        if value not in possible_values:
-            raise ValueError(f'The "@arg@" parameter value must be one of the following: {", ".join(possible_values)}.')
+        value = validate_enumerator(value, possible_values)
 
     else:
 
@@ -1077,41 +1038,16 @@ def validate_status(value: _tany, labels: _tlist_str, emit_uniform: bool) -> _ta
     if (value is None) and emit_uniform:
         return _np.full(size, 1.0 / size, dtype=float)
 
-    if _is_integer(value):
+    if _is_integer(value) or _is_string(value):
 
-        value = int(value)
-        limit = size - 1
-
-        if value < 0 or value > limit:
-            raise ValueError(f'The "@arg@" parameter, when specified as an integer, must have a value between 0 and {limit:d}.')
+        value = validate_label(value, labels)
 
         result = _np.zeros(size, dtype=float)
         result[value] = 1.0
 
         return result
 
-    if _is_string(value):
-
-        if value not in labels:
-            raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(labels)}.')
-
-        value = labels.index(value)
-
-        result = _np.zeros(size, dtype=float)
-        result[value] = 1.0
-
-        return result
-
-    value = _validate_vector(value)
-
-    if value.size != size:
-        raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
-
-    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
-
-    if not _np.isclose(_np.sum(value), 1.0, rtol=0.0, atol=_ETOL):
-        raise ValueError('The "@arg@" parameter values must sum to 1.0.')
+    value = validate_vector_stochastic(value, size, False)
 
     return value
 
@@ -1227,11 +1163,7 @@ def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
     if (size is not None) and (value.shape[0] != size):
         raise ValueError(f'The "@arg@" parameter must have a size equal to {size:d}.')
 
-    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
-
-    if not _np.allclose(_np.sum(value, axis=1), 1.0, rtol=0.0, atol=_ETOL):
-        raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
+    _validate_probabilities(value, True)
 
     return value
 
@@ -1240,8 +1172,7 @@ def validate_vector_birth_death(value: _tany, vector_type: str) -> _tarray:
 
     value = _validate_vector(value)
 
-    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
+    _validate_probabilities(value, False)
 
     if vector_type == 'annihilation':
 
@@ -1266,10 +1197,6 @@ def validate_vector_stochastic(value: _tany, size: int, emit_uniform: bool) -> _
     if value.size != size:
         raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
 
-    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
-
-    if not _np.isclose(_np.sum(value), 1.0, rtol=0.0, atol=_ETOL):
-        raise ValueError('The "@arg@" parameter values must sum to 1.0.')
+    _validate_probabilities(value, True)
 
     return value

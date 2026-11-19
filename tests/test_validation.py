@@ -109,8 +109,8 @@ def test_validate_boundary_condition(value, is_valid):
 
 def test_validate_dictionary_hmm(dictionary_elements, is_valid):
 
-    if dictionary_elements is None:
-        d = None
+    if not isinstance(dictionary_elements, list):
+        d = dictionary_elements
     else:
 
         d = {}
@@ -122,7 +122,7 @@ def test_validate_dictionary_hmm(dictionary_elements, is_valid):
                 d[tuple(dictionary_element[:-1])] = dictionary_element[-1]
 
     if is_valid:
-        result = _validate_dictionary_mc(d)
+        result = _validate_dictionary_hmm(d)
         assert isinstance(result, dict) and all(isinstance(k, tuple) and all(isinstance(x, str) for x in k) and isinstance(v, float) for k, v in result.items())
     else:
         with _pt.raises(Exception):
@@ -131,8 +131,8 @@ def test_validate_dictionary_hmm(dictionary_elements, is_valid):
 
 def test_validate_dictionary_mc(dictionary_elements, is_valid):
 
-    if dictionary_elements is None:
-        d = None
+    if not isinstance(dictionary_elements, list):
+        d = dictionary_elements
     else:
 
         d = {}
@@ -303,8 +303,13 @@ def test_validate_hyperparameter(value, size, is_valid):
 def test_validate_inertial_weights(value, size, is_valid):
 
     if is_valid:
+
         result = _validate_inertial_weights(value, size)
-        assert isinstance(result, _np.ndarray)
+        assert isinstance(result, _np.ndarray) and (result.ndim == 1) and (result.size == size)
+
+        if _np.isscalar(value):
+            assert _np.all(result == float(value))
+
     else:
         with _pt.raises(Exception):
             _validate_inertial_weights(value, size)
@@ -516,7 +521,7 @@ def test_validate_rewards(value, size, is_valid):
 
     if is_valid:
         result = _validate_rewards(value, size)
-        assert isinstance(result, _np.ndarray)
+        assert isinstance(result, _np.ndarray) and (result.ndim == 1) and (result.size == size)
     else:
         with _pt.raises(Exception):
             _validate_rewards(value, size)
@@ -546,7 +551,7 @@ def test_validate_status(value, labels, is_valid):
 
     if is_valid:
         result = _validate_status(value, labels, False)
-        assert isinstance(result, _np.ndarray)
+        assert isinstance(result, _np.ndarray) and (result.ndim == 1) and (result.size == len(labels))
     else:
         with _pt.raises(Exception):
             _validate_status(value, labels, False)
@@ -612,7 +617,7 @@ def test_validate_vector_birth_death(value, vector_type, is_valid):
 
     if is_valid:
         result = _validate_vector_birth_death(value, vector_type)
-        assert isinstance(result, _np.ndarray)
+        assert isinstance(result, _np.ndarray) and (result.ndim == 1)
     else:
         with _pt.raises(Exception):
             _validate_vector_birth_death(value, vector_type)
@@ -622,7 +627,7 @@ def test_validate_vector_stochastic(value, size, is_valid):
 
     if is_valid:
         result = _validate_vector_stochastic(value, size, False)
-        assert isinstance(result, _np.ndarray)
+        assert isinstance(result, _np.ndarray) and (result.ndim == 1) and (result.size == size)
     else:
         with _pt.raises(Exception):
             _validate_vector_stochastic(value, size, False)
