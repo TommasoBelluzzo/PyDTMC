@@ -6,17 +6,20 @@ __all__ = [
     # Base Types
     'tany',
     'obool', 'ofloat', 'oint', 'ostr',
-    'tscalar', 'oscalar',
-    'tarray', 'oarray',
     'tdtype', 'odtype',
     'texc', 'oexc',
     'tgraph', 'ograph',
     'tgraphs', 'ographs',
-    'tnum', 'onum',
     'tpath', 'opath',
     'tplot', 'oplot',
     'trand', 'orand',
     'tstack', 'ostack',
+    # Numeric Types
+    'tarray', 'oarray',
+    'tnum', 'onum',
+    'tvec', 'ovec',
+    'tmat', 'omat',
+    # Library Types
     'thmm', 'ohmm',
     'tmc', 'omc',
     'tmdl', 'omdl',
@@ -56,7 +59,7 @@ __all__ = [
     'tival', 'oival',
     'tlim_float', 'olim_float',
     'tlim_int', 'olim_int',
-    'tlim_scalar', 'olim_scalar',
+    'tlim_num', 'olim_num',
     'trfunc', 'orfunc',
     'trfunc_f', 'orfunc_f',
     # Compound Types - Specific
@@ -145,12 +148,6 @@ ofloat = _tp.Optional[float]
 oint = _tp.Optional[int]
 ostr = _tp.Optional[str]
 
-tscalar = _tp.Union[float, int, _np.integer, _np.floating]
-oscalar = _tp.Optional[tscalar]
-
-tarray = _np.ndarray
-oarray = _tp.Optional[tarray]
-
 tdtype = _npt.DTypeLike
 odtype = _tp.Optional[tdtype]
 
@@ -163,13 +160,6 @@ ograph = _tp.Optional[tgraph]
 tgraphs = _tp.Union[tgraph, _nx.MultiDiGraph]
 ographs = _tp.Optional[tgraphs]
 
-if _pandas_found:
-    tnum = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], tarray, _spsp.spmatrix, _pd.DataFrame, _pd.Series]
-else:
-    tnum = _tp.Union[_tp.List[tscalar], _tp.List[_tp.List[tscalar]], tarray, _spsp.spmatrix]
-
-onum = _tp.Optional[tnum]
-
 tpath = _tp.Union[str, _pl.Path]
 opath = _tp.Optional[tpath]
 
@@ -181,6 +171,26 @@ orand = _tp.Optional[trand]
 
 tstack = _tp.List[_ins.FrameInfo]
 ostack = _tp.Optional[tstack]
+
+# NUMERIC TYPES
+
+tarray = _np.ndarray
+oarray = _tp.Optional[tarray]
+
+tnum = _tp.Union[float, int]
+onum = _tp.Optional[tnum]
+
+if _pandas_found:
+    tvec = _tp.Union[_tp.List[tnum], tarray, _pd.Series]
+    tmat = _tp.Union[_tp.List[_tp.List[tnum]], tarray, _spsp.spmatrix, _pd.DataFrame]
+else:
+    tvec = _tp.Union[_tp.List[tnum], tarray]
+    tmat = _tp.Union[_tp.List[_tp.List[tnum]], tarray, _spsp.spmatrix]
+
+ovec = _tp.Optional[tvec]
+omat = _tp.Optional[tmat]
+
+# LIBRARY TYPES
 
 thmm = _tp.ForwardRef('HiddenMarkovModel')
 ohmm = _tp.Optional[thmm]
@@ -285,7 +295,7 @@ oedge_attrs = _tp.Optional[tedge_attrs]
 tfile = _tp.Tuple[_pl.Path, str]
 ofile = _tp.Optional[tfile]
 
-tival = _tp.Tuple[tscalar, tscalar]
+tival = _tp.Tuple[tnum, tnum]
 oival = _tp.Optional[tival]
 
 tlim_float = _tp.Tuple[float, bool]
@@ -294,8 +304,8 @@ olim_float = _tp.Optional[tlim_float]
 tlim_int = _tp.Tuple[int, bool]
 olim_int = _tp.Optional[tlim_int]
 
-tlim_scalar = _tp.Tuple[tscalar, bool]
-olim_scalar = _tp.Optional[tlim_scalar]
+tlim_num = _tp.Tuple[tnum, bool]
+olim_num = _tp.Optional[tlim_num]
 
 trfunc = _tp.Callable
 orfunc = _tp.Optional[trfunc]
@@ -314,7 +324,7 @@ oass_ord = _tp.Optional[tass_ord]
 tass_stat = _tp.Tuple[obool, float, _tp.Dict[str, tany]]
 oass_stat = _tp.Optional[tass_stat]
 
-tbcond = _tp.Union[float, int, str]
+tbcond = _tp.Union[tnum, str]
 obcond = _tp.Optional[tbcond]
 
 tfit_r = _tp.Tuple[oarray, ostr]
@@ -365,7 +375,7 @@ omc_gen_ext = _tp.Optional[tmc_gen_ext]
 tmc_gen_full = _tp.Tuple[oarray, olist_str, ostr]
 omc_gen_full = _tp.Optional[tmc_gen_full]
 
-tobs = _tp.Union[str, tarray]
+tobs = _tp.Union[str, tmat]
 oobs = _tp.Optional[tobs]
 
 tpart = _tp.Union[tlists_int, tlists_str]
@@ -386,16 +396,16 @@ oseq = _tp.Optional[tseq]
 tseqs = _tp.List[tseq]
 oseqs = _tp.Optional[tseqs]
 
-tstate = _tp.Union[int, _np.integer, str]
+tstate = _tp.Union[int, str]
 ostate = _tp.Optional[tstate]
 
 tstates = _tp.Union[tstate, tlist_int, tlist_str]
 ostates = _tp.Optional[tstates]
 
-tstatus = _tp.Union[tstate, tnum]
+tstatus = _tp.Union[tstate, tvec]
 ostatus = _tp.Optional[tstatus]
 
-ttfunc = _tp.Callable[[int, float, int, float], tscalar]
+ttfunc = _tp.Callable[[int, float, int, float], tnum]
 otfunc = _tp.Optional[ttfunc]
 
 ttimes_in = _tp.Union[int, tlist_int]
@@ -404,7 +414,7 @@ otimes_in = _tp.Optional[ttimes_in]
 ttimes_out = _tp.Union[float, tlist_float]
 otimes_out = _tp.Optional[ttimes_out]
 
-twgts = _tp.Union[tscalar, tnum]
+twgts = _tp.Union[tnum, tvec]
 owgts = _tp.Optional[twgts]
 
 # COMPOUND TYPES - NESTED
@@ -413,7 +423,7 @@ _mdk = _tp.TypeVar('_mdk', tpair_str, _tp.Tuple[str, str, str])
 
 tmdl_dict = _tp.Dict[_mdk, float]
 omdl_dict = _tp.Optional[tmdl_dict]
-tmdl_dict_f = _tp.Dict[_mdk, tscalar]
+tmdl_dict_f = _tp.Dict[_mdk, tnum]
 omdl_dict_f = _tp.Optional[tmdl_dict_f]
 
 thmm_dict = tmdl_dict[_tp.Tuple[str, str, str]]

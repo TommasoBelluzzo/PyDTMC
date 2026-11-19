@@ -44,7 +44,7 @@ from ._custom_types import (
     ohmm_dec as _ohmm_dec,
     oint as _oint,
     olist_str as _olist_str,
-    onum as _onum,
+    omat as _omat,
     ostate as _ostate,
     ostates as _ostates,
     ostatus as _ostatus,
@@ -61,7 +61,7 @@ from ._custom_types import (
     thmm_sym_x as _thmm_sym_x,
     tlist_array as _tlist_array,
     tlist_str as _tlist_str,
-    tnum as _tnum,
+    tmat as _tmat,
     tpair_array as _tpair_array,
     tpair_int as _tpair_int,
     tpath as _tpath,
@@ -174,7 +174,7 @@ class HiddenMarkovModel(_Model):
 
     __instance_generators: _olist_str = None
 
-    def __init__(self, p: _tnum, e: _tnum, states: _olist_str = None, symbols: _olist_str = None):
+    def __init__(self, p: _tmat, e: _tmat, states: _olist_str = None, symbols: _olist_str = None):
 
         if HiddenMarkovModel.__instance_generators is None:
             HiddenMarkovModel.__instance_generators = _get_instance_generators(self.__class__)
@@ -1117,7 +1117,7 @@ class HiddenMarkovModel(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def cpg_islands(p_enter: float, p_exit: float, island_transitions: _tarray, background_transitions: _tarray, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:
+    def cpg_islands(p_enter: float, p_exit: float, island_transitions: _tmat, background_transitions: _tmat, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:
 
         r"""
         | The method generates a hidden Markov model for CpG islands and background genomic regions.
@@ -1258,7 +1258,7 @@ class HiddenMarkovModel(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def fit(fitting_type: str, possible_states: _tlist_str, possible_symbols: _tlist_str, p_guess: _tarray, e_guess: _tarray, symbols: _thmm_sym_x, initial_status: _ostatus = None, regularization: float = 0.0, fitting_param: _tany = None) -> _thmm:
+    def fit(fitting_type: str, possible_states: _tlist_str, possible_symbols: _tlist_str, p_guess: _tmat, e_guess: _tmat, symbols: _thmm_sym_x, initial_status: _ostatus = None, regularization: float = 0.0, fitting_param: _tany = None) -> _thmm:
 
         """
         | The method fits a hidden Markov model from initial transition and emission matrices and one or more observed sequences of emitted symbols.
@@ -1543,7 +1543,7 @@ class HiddenMarkovModel(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def from_matrices(mp: _tnum, me: _tnum, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:
+    def from_matrices(mp: _tmat, me: _tmat, states: _olist_str = None, symbols: _olist_str = None) -> _thmm:
 
         """
         | The method generates a hidden Markov model by normalizing the given matrices into transition and emission probabilities.
@@ -1650,7 +1650,7 @@ class HiddenMarkovModel(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True, random_output=True)
-    def random(n: int, k: int, states: _olist_str = None, p_zeros: int = 0, p_mask: _onum = None, symbols: _olist_str = None, e_zeros: int = 0, e_mask: _onum = None, seed: _oint = None) -> _thmm:
+    def random(n: int, k: int, states: _olist_str = None, p_zeros: int = 0, p_mask: _omat = None, symbols: _olist_str = None, e_zeros: int = 0, e_mask: _omat = None, seed: _oint = None) -> _thmm:
 
         """
         | The method generates a hidden Markov model with random transition and emission probabilities, optionally subject to fixed values and zero-probability constraints.

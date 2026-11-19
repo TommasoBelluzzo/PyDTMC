@@ -3,6 +3,10 @@ API Reference
 
 This section provides a detailed reference documentation for PyDTMC's public classes and functions.
 
+.. note::
+
+   Unless otherwise specified, numerical type annotations such as ``int`` and ``float`` may also represent alternative scalar types, subject to runtime validation.
+
 .. toctree::
    :maxdepth: 1
    :hidden:

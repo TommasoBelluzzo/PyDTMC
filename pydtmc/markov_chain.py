@@ -90,17 +90,18 @@ from ._constants import (
 from ._custom_types import (
     oarray as _oarray,
     obndval as _obndval,
+    ofc_prof as _ofc_prof,
     ofloat as _ofloat,
     oint as _oint,
     oival as _oival,
     olist_str as _olist_str,
-    ofc_prof as _ofc_prof,
-    onum as _onum,
+    omat as _omat,
     oseq as _oseq,
     ostate as _ostate,
     ostates as _ostates,
     ostatus as _ostatus,
     otimes_out as _otimes_out,
+    ovec as _ovec,
     tany as _tany,
     tarray as _tarray,
     tbcond as _tbcond,
@@ -112,10 +113,10 @@ from ._custom_types import (
     tlist_str as _tlist_str,
     tlists_int as _tlists_int,
     tlists_str as _tlists_str,
+    tmat as _tmat,
     tmc as _tmc,
     tmc_dict as _tmc_dict,
     tmc_dict_f as _tmc_dict_f,
-    tnum as _tnum,
     tobs as _tobs,
     tpart as _tpart,
     tparts as _tparts,
@@ -128,6 +129,7 @@ from ._custom_types import (
     tstates as _tstates,
     ttfunc as _ttfunc,
     ttimes_in as _ttimes_in,
+    tvec as _tvec,
     twgts as _twgts
 )
 
@@ -278,7 +280,7 @@ class MarkovChain(_Model):
     __instance_generators: _olist_str = None
     __random_distributions: _olist_str = None
 
-    def __init__(self, p: _tnum, states: _olist_str = None):
+    def __init__(self, p: _tmat, states: _olist_str = None):
 
         if MarkovChain.__instance_generators is None:
             MarkovChain.__instance_generators = _get_instance_generators(self.__class__)
@@ -1263,7 +1265,7 @@ class MarkovChain(_Model):
         return states
 
     @_object_mark(aliases=['ap'])
-    def absorption_probabilities(self, initial_distribution: _onum = None) -> _oarray:
+    def absorption_probabilities(self, initial_distribution: _ovec = None) -> _oarray:
 
         """
         | The method computes the probabilities of eventual absorption into each recurrent class of the Markov chain, optionally given an initial distribution.
@@ -1382,7 +1384,7 @@ class MarkovChain(_Model):
         return mc
 
     @_object_mark(instance_generator=True)
-    def closest_reversible(self, initial_distribution: _onum = None, weighted: bool = False) -> _tmc:
+    def closest_reversible(self, initial_distribution: _ovec = None, weighted: bool = False) -> _tmc:
 
         """
         | The method computes a reversible Markov chain closest to the original Markov chain under the selected Frobenius norm.
@@ -1703,7 +1705,7 @@ class MarkovChain(_Model):
         return mc
 
     @_object_mark(aliases=['er'])
-    def expected_rewards(self, steps: int, rewards: _tnum, discount_factor: float = 1.0) -> _tarray:
+    def expected_rewards(self, steps: int, rewards: _tvec, discount_factor: float = 1.0) -> _tarray:
 
         r"""
         | The method computes the expected cumulative rewards of the Markov chain over a given number of steps, optionally applying a discount factor:
@@ -1737,7 +1739,7 @@ class MarkovChain(_Model):
         return _expected_rewards(self, steps, rewards, discount_factor)
 
     @_object_mark(aliases=['et'])
-    def expected_transitions(self, steps: int, initial_distribution: _onum = None) -> _tarray:
+    def expected_transitions(self, steps: int, initial_distribution: _ovec = None) -> _tarray:
 
         r"""
         | The method computes the expected numbers of transitions between all pairs of states of the Markov chain over a given number of steps:
@@ -1834,7 +1836,7 @@ class MarkovChain(_Model):
         return _first_passage_probabilities(self, steps, initial_state, first_passage_states)
 
     @_object_mark(aliases=['fpr'])
-    def first_passage_reward(self, steps: int, initial_state: _tstate, first_passage_states: _tstates, rewards: _tnum) -> float:
+    def first_passage_reward(self, steps: int, initial_state: _tstate, first_passage_states: _tstates, rewards: _tvec) -> float:
 
         r"""
         | The method computes the expected cumulative reward before reaching the given first passage states:
@@ -2393,7 +2395,7 @@ class MarkovChain(_Model):
         return _mixing_time(self, cutoff, maximum_iterations)
 
     @_object_mark(aliases=['mtf'])
-    def mixing_time_from(self, initial_distribution: _onum = None, jump: int = 1, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
+    def mixing_time_from(self, initial_distribution: _ovec = None, jump: int = 1, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
 
         r"""
         | The method computes the mixing time of the Markov chain from a given initial distribution:
@@ -2912,7 +2914,7 @@ class MarkovChain(_Model):
         return value
 
     @_object_mark(instance_generator=True)
-    def teleport(self, p_teleport: float, distribution: _onum = None) -> _tmc:
+    def teleport(self, p_teleport: float, distribution: _ovec = None) -> _tmc:
 
         r"""
         | The method returns a Markov chain obtained by teleportation:
@@ -2984,7 +2986,7 @@ class MarkovChain(_Model):
         return _time_correlations(self, sequence1, sequence2, time_points)
 
     @_object_mark(aliases=['tr'])
-    def time_relaxations(self, sequence: _tseq, initial_distribution: _onum = None, time_points: _ttimes_in = 1) -> _otimes_out:
+    def time_relaxations(self, sequence: _tseq, initial_distribution: _ovec = None, time_points: _ttimes_in = 1) -> _otimes_out:
 
         r"""
         | The method computes the time-dependent expected value of a state observable of the Markov chain:
@@ -3413,7 +3415,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def birth_death(p: _tarray, q: _tarray, states: _olist_str = None) -> _tmc:
+    def birth_death(p: _tvec, q: _tvec, states: _olist_str = None) -> _tmc:
 
         r"""
         | The method generates a birth-death Markov chain with transitions between neighboring states:
@@ -3775,7 +3777,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def from_matrix(m: _tnum, states: _olist_str = None) -> _tmc:
+    def from_matrix(m: _tmat, states: _olist_str = None) -> _tmc:
 
         """
         | The method generates a Markov chain by normalizing the rows of the given matrix into transition probabilities.
@@ -3870,7 +3872,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def metropolis_hastings(size: int, target_pi: _tnum, proposal: _oarray = None, states: _olist_str = None) -> _tmc:
+    def metropolis_hastings(size: int, target_pi: _tvec, proposal: _oarray = None, states: _olist_str = None) -> _tmc:
 
         r"""
         | The method generates a Metropolis-Hastings Markov chain with a prescribed stationary distribution.
@@ -4006,7 +4008,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True, random_output=True)
-    def random(size: int, states: _olist_str = None, zeros: int = 0, mask: _onum = None, seed: _oint = None) -> _tmc:
+    def random(size: int, states: _olist_str = None, zeros: int = 0, mask: _omat = None, seed: _oint = None) -> _tmc:
 
         """
         | The method generates a Markov chain with random transition probabilities, optionally subject to fixed values and zero-probability constraints.

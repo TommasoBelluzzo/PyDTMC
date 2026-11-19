@@ -72,7 +72,7 @@ from ._custom_types import (
     oint as _oint,
     olim_float as _olim_float,
     olim_int as _olim_int,
-    olim_scalar as _olim_scalar,
+    olim_num as _olim_num,
     tlist_mdl as _tlist_mdl,
     olist_str as _olist_str,
     tany as _tany,
@@ -93,11 +93,11 @@ from ._custom_types import (
     tmc_dict as _tmc_dict,
     tmdl as _tmdl,
     tmdl_dict as _tmdl_dict,
+    tnum as _tnum,
     tobs as _tobs,
     tpprobs as _tpprobs,
     trand as _trand,
     trfunc as _trfunc,
-    tscalar as _tscalar,
     ttfunc as _ttfunc,
     ttimes_in as _ttimes_in
 )
@@ -152,7 +152,7 @@ def _validate_dictionary_values(value: _tany) -> _tmdl_dict:
     return result
 
 
-def _validate_limits(value: _tscalar, value_type: str, lower_limit: _olim_scalar, upper_limit: _olim_scalar):
+def _validate_limits(value: _tnum, value_type: str, lower_limit: _olim_num, upper_limit: _olim_num):
 
     def _get_limit_text(glt_value_type, glt_limit_value):
 
@@ -181,6 +181,23 @@ def _validate_limits(value: _tscalar, value_type: str, lower_limit: _olim_scalar
         else:
             if value > upper_limit_value:
                 raise ValueError(f'The "@arg@" parameter must be less than or equal to {_get_limit_text(value_type, upper_limit_value)}.')
+
+
+def _validate_vector(value: _tany) -> _tarray:
+
+    is_array = isinstance(value, _np.ndarray)
+
+    try:
+        value = _extract_numeric(value, float)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+    if (value.size == 0) or ((value.ndim != 1) and not (is_array and (value.ndim == 2) and (value.shape[1] == 1))):
+        raise ValueError('The "@arg@" parameter must be a valid vector.')
+
+    value = _np.ravel(value)
+
+    return value
 
 
 def validate_boolean(value: _tany) -> bool:
@@ -961,15 +978,7 @@ def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tl
 
 def validate_rewards(value: _tany, size: int) -> _tarray:
 
-    try:
-        value = _extract_numeric(value, float)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-    if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)) or ((value.ndim == 1) and (value.shape[0] == 0)):
-        raise ValueError('The "@arg@" parameter must be a valid vector.')
-
-    value = _np.ravel(value)
+    value = _validate_vector(value)
 
     if value.size != size:
         raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
@@ -1077,15 +1086,7 @@ def validate_status(value: _tany, labels: _tlist_str, emit_uniform: bool) -> _ta
 
         return result
 
-    try:
-        value = _extract_numeric(value, float)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-    if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)):
-        raise ValueError('The "@arg@" parameter must be a valid vector.')
-
-    value = _np.ravel(value)
+    value = _validate_vector(value)
 
     if value.size != size:
         raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
@@ -1221,15 +1222,7 @@ def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
 
 def validate_vector_birth_death(value: _tany, vector_type: str) -> _tarray:
 
-    try:
-        value = _extract_numeric(value, float)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-    if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)) or ((value.ndim == 1) and (value.shape[0] == 0)):
-        raise ValueError('The "@arg@" parameter must be a valid vector.')
-
-    value = _np.ravel(value)
+    value = _validate_vector(value)
 
     if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
@@ -1256,15 +1249,7 @@ def validate_vector_flex(value: _tany, size: _oint) -> _tarray:
 
         return _np.repeat(float(value), size)
 
-    try:
-        value = _extract_numeric(value, float)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-    if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)) or ((value.ndim == 1) and (value.shape[0] == 0)):
-        raise ValueError('The "@arg@" parameter must be a valid vector.')
-
-    value = _np.ravel(value)
+    value = _validate_vector(value)
 
     if (size is not None) and (value.size != size):
         raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
@@ -1280,15 +1265,7 @@ def validate_vector_stochastic(value: _tany, size: int, emit_uniform: bool) -> _
     if (value is None) and emit_uniform:
         return _np.full(size, 1.0 / size, dtype=float)
 
-    try:
-        value = _extract_numeric(value, float)
-    except Exception as ex:
-        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
-
-    if (value.ndim > 2) or ((value.ndim == 2) and (value.shape[0] != 1)) or ((value.ndim == 1) and (value.shape[0] == 0)):
-        raise ValueError('The "@arg@" parameter must be a valid vector.')
-
-    value = _np.ravel(value)
+    value = _validate_vector(value)
 
     if value.size != size:
         raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')

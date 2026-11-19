@@ -82,7 +82,6 @@ from ._custom_types import (
     tmc_gen as _tmc_gen,
     tmc_gen_ext as _tmc_gen_ext,
     tmc_gen_full as _tmc_gen_full,
-    tnum as _tnum,
     tpath as _tpath,
     trand as _trand,
     trfunc_f as _trfunc_f
@@ -552,7 +551,7 @@ def mc_censor(p: _tarray, states: _tlist_str, retained_states: _tlist_int) -> _t
     return p_censored, state_names, None
 
 
-def mc_closest_reversible(p: _tarray, initial_distribution: _tnum, weighted: bool) -> _tmc_gen:
+def mc_closest_reversible(p: _tarray, initial_distribution: _tarray, weighted: bool) -> _tmc_gen:
 
     def _is_reversible_with(irw_p, irw_d, irw_tolerance):
 
