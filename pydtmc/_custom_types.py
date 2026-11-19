@@ -192,10 +192,19 @@ omat = _tp.Optional[tmat]
 
 # LIBRARY TYPES
 
-thmm = _tp.ForwardRef('HiddenMarkovModel')
-ohmm = _tp.Optional[thmm]
+if _tp.TYPE_CHECKING:
 
-tmc = _tp.ForwardRef('MarkovChain')
+    from .hidden_markov_model import HiddenMarkovModel
+    from .markov_chain import MarkovChain
+
+    thmm: _tp.TypeAlias = HiddenMarkovModel
+    tmc: _tp.TypeAlias = MarkovChain
+
+else:
+    thmm = _tp.ForwardRef('HiddenMarkovModel')
+    tmc = _tp.ForwardRef('MarkovChain')
+
+ohmm = _tp.Optional[thmm]
 omc = _tp.Optional[tmc]
 
 tmdl = _tp.Union[thmm, tmc]
