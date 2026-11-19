@@ -29,7 +29,8 @@ from pydtmc import (
 from pydtmc._validation import (
     validate_boolean as _validate_boolean,
     validate_boundary_condition as _validate_boundary_condition,
-    validate_dictionary as _validate_dictionary,
+    validate_dictionary_hmm as _validate_dictionary_hmm,
+    validate_dictionary_mc as _validate_dictionary_mc,
     validate_dpi as _validate_dpi,
     validate_emission_matrix as _validate_emission_matrix,
     validate_enumerator as _validate_enumerator,
@@ -40,6 +41,7 @@ from pydtmc._validation import (
     validate_hidden_markov_models as _validate_hidden_markov_models,
     validate_integer as _validate_integer,
     validate_hyperparameter as _validate_hyperparameter,
+    validate_inertial_weights as _validate_inertial_weights,
     validate_interval as _validate_interval,
     validate_label as _validate_label,
     validate_labels_current as _validate_labels_current,
@@ -65,7 +67,6 @@ from pydtmc._validation import (
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
     validate_vector_birth_death as _validate_vector_birth_death,
-    validate_vector_flex as _validate_vector_flex,
     validate_vector_stochastic as _validate_vector_stochastic
 )
 
@@ -121,11 +122,11 @@ def test_validate_dictionary(dictionary_elements, attributes, is_valid):
                 d[tuple(dictionary_element[:-1])] = dictionary_element[-1]
 
     if is_valid:
-        result = _validate_dictionary(d, attributes)
+        result = _validate_dictionary_mc(d, attributes)
         assert isinstance(result, dict) and all(isinstance(k, tuple) and all(isinstance(x, str) for x in k) and isinstance(v, float) for k, v in result.items())
     else:
         with _pt.raises(Exception):
-            _validate_dictionary(d, attributes)
+            _validate_dictionary_mc(d, attributes)
 
 
 def test_validate_dpi(value, is_valid):
@@ -275,6 +276,16 @@ def test_validate_hyperparameter(value, size, is_valid):
     else:
         with _pt.raises(Exception):
             _validate_hyperparameter(value, size)
+
+
+def test_validate_inertial_weights(value, size, is_valid):
+
+    if is_valid:
+        result = _validate_inertial_weights(value, size)
+        assert isinstance(result, _np.ndarray)
+    else:
+        with _pt.raises(Exception):
+            _validate_inertial_weights(value, size)
 
 
 def test_validate_integer(value, lower_limit, upper_limit, is_valid):
@@ -583,16 +594,6 @@ def test_validate_vector_birth_death(value, vector_type, is_valid):
     else:
         with _pt.raises(Exception):
             _validate_vector_birth_death(value, vector_type)
-
-
-def test_validate_vector_flex(value, size, is_valid):
-
-    if is_valid:
-        result = _validate_vector_flex(value, size)
-        assert isinstance(result, _np.ndarray)
-    else:
-        with _pt.raises(Exception):
-            _validate_vector_flex(value, size)
 
 
 def test_validate_vector_stochastic(value, size, is_valid):

@@ -229,6 +229,7 @@ from ._validation import (
     validate_float as _validate_float,
     validate_graph as _validate_graph,
     validate_hyperparameter as _validate_hyperparameter,
+    validate_inertial_weights as _validate_inertial_weights,
     validate_integer as _validate_integer,
     validate_interval as _validate_interval,
     validate_label as _validate_label,
@@ -251,7 +252,6 @@ from ._validation import (
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
     validate_vector_birth_death as _validate_vector_birth_death,
-    validate_vector_flex as _validate_vector_flex,
     validate_vector_stochastic as _validate_vector_stochastic
 )
 
@@ -3193,7 +3193,7 @@ class MarkovChain(_Model):
 
         try:
 
-            inertial_weights = _validate_vector_flex(inertial_weights, self.__size)
+            inertial_weights = _validate_inertial_weights(inertial_weights, self.__size)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None

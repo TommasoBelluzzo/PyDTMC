@@ -14,6 +14,7 @@ __all__ = [
     'validate_hidden_markov_model',
     'validate_hidden_markov_models',
     'validate_hyperparameter',
+    'validate_inertial_weights',
     'validate_integer',
     'validate_interval',
     'validate_label',
@@ -41,7 +42,6 @@ __all__ = [
     'validate_transition_function',
     'validate_transition_matrix',
     'validate_vector_birth_death',
-    'validate_vector_flex',
     'validate_vector_stochastic'
 ]
 
@@ -495,6 +495,22 @@ def validate_hyperparameter(value: _tany, size: int) -> _tarray:
 
     if not _np.all(_np.isfinite(value) & (value >= 1.0) & (value == _np.floor(value))):
         raise ValueError('The "@arg@" parameter must contain only integers greater than or equal to 1.')
+
+    return value
+
+
+def validate_inertial_weights(value: _tany, size: int) -> _tarray:
+
+    if _is_number(value):
+        value = _np.repeat(float(value), size)
+    else:
+        value = _validate_vector(value)
+
+    if value.size != size:
+        raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
+
+    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
+        raise ValueError('The "@arg@" parameter can contain only finite real numbers between 0.0 and 1.0.')
 
     return value
 
@@ -1236,26 +1252,6 @@ def validate_vector_birth_death(value: _tany, vector_type: str) -> _tarray:
 
         if not _np.isclose(value[-1], 0.0, rtol=0.0, atol=_ETOL):
             raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the last index.')
-
-    return value
-
-
-def validate_vector_flex(value: _tany, size: _oint) -> _tarray:
-
-    if _is_number(value) and _np.isfinite(value):
-
-        if size is None:
-            raise ValueError('The "@arg@" parameter must have a defined size.')
-
-        return _np.repeat(float(value), size)
-
-    value = _validate_vector(value)
-
-    if (size is not None) and (value.size != size):
-        raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
-
-    if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
-        raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
 
     return value
 
