@@ -107,7 +107,7 @@ def test_validate_boundary_condition(value, is_valid):
             _validate_boundary_condition(value)
 
 
-def test_validate_dictionary(dictionary_elements, attributes, is_valid):
+def test_validate_dictionary_hmm(dictionary_elements, is_valid):
 
     if dictionary_elements is None:
         d = None
@@ -122,11 +122,33 @@ def test_validate_dictionary(dictionary_elements, attributes, is_valid):
                 d[tuple(dictionary_element[:-1])] = dictionary_element[-1]
 
     if is_valid:
-        result = _validate_dictionary_mc(d, attributes)
+        result = _validate_dictionary_mc(d)
         assert isinstance(result, dict) and all(isinstance(k, tuple) and all(isinstance(x, str) for x in k) and isinstance(v, float) for k, v in result.items())
     else:
         with _pt.raises(Exception):
-            _validate_dictionary_mc(d, attributes)
+            _validate_dictionary_hmm(d)
+
+
+def test_validate_dictionary_mc(dictionary_elements, is_valid):
+
+    if dictionary_elements is None:
+        d = None
+    else:
+
+        d = {}
+
+        for dictionary_element in dictionary_elements:
+            if len(dictionary_element) == 2:
+                d[dictionary_element[0]] = dictionary_element[1]
+            else:
+                d[tuple(dictionary_element[:-1])] = dictionary_element[-1]
+
+    if is_valid:
+        result = _validate_dictionary_mc(d)
+        assert isinstance(result, dict) and all(isinstance(k, tuple) and all(isinstance(x, str) for x in k) and isinstance(v, float) for k, v in result.items())
+    else:
+        with _pt.raises(Exception):
+            _validate_dictionary_mc(d)
 
 
 def test_validate_dpi(value, is_valid):
