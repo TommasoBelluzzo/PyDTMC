@@ -261,16 +261,20 @@ def hmm_conditional_probabilities(hmm: _thmm, symbol: int) -> _tlist_array:
 
 def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int, use_scaling: bool, compute_transitions: bool) -> _ohmm_dec:
 
-    n, k = p.shape[1], e.shape[1]
-
-    symbols = [k] + symbols
-    f = len(symbols)
+    n, f = p.shape[1], len(symbols)
 
     scaling_factors = _np.zeros(f)
-    scaling_factors[0] = 1.0
 
     forward = _np.zeros((n, f), dtype=float)
-    forward[:, 0] = initial_distribution
+    forward[:, 0] = initial_distribution * e[:, symbols[0]]
+
+    scaling_factor = _np.sum(forward[:, 0])
+
+    if scaling_factor == 0.0:
+        return None
+
+    scaling_factors[0] = scaling_factor
+    forward[:, 0] /= scaling_factor
 
     for i in range(1, f):
 
@@ -312,7 +316,6 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
             posterior_transitions[:, :, i - 1] = (source * p * destination) / scaling_factors[i]
 
     posterior = _np.multiply(backward, forward)
-    posterior = posterior[:, 1:]
 
     log_prob = _np.sum(_np.log(scaling_factors)).item()
 

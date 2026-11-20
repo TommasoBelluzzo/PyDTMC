@@ -266,18 +266,6 @@ class HiddenMarkovModel(_Model):
         return eo
 
     @_cached_property
-    def emissive_rank(self) -> int:
-
-        r"""
-        | A property representing the rank of the emission matrix of the hidden Markov model:
-        | :math:`\operatorname{rank}(E)`
-        """
-
-        er = int(_npl.matrix_rank(self.__e))
-
-        return er
-
-    @_cached_property
     def is_ergodic(self) -> bool:
 
         """
@@ -286,7 +274,18 @@ class HiddenMarkovModel(_Model):
         """
 
         mc = _MarkovChain(self.__p, self.__states)
-        result = mc.is_ergodic and _np.all(self.__e > 0.0)
+        result = mc.is_ergodic and self.is_fully_emissive
+
+        return result
+
+    @_cached_property
+    def is_fully_emissive(self) -> bool:
+
+        """
+        | A property indicating whether the hidden Markov model allows every hidden state to emit every symbol.
+        """
+
+        result = bool(_np.all(self.__e > 0.0))
 
         return result
 
@@ -296,9 +295,13 @@ class HiddenMarkovModel(_Model):
         r"""
         | A property indicating whether the hidden Markov model is regular.
         | A hidden Markov model is regular when the emission matrix has full column rank: :math:`\operatorname{rank}(E) = k`.
+
+        | **Notes:**
+
+        - Regularity is possible only when the number of hidden states is greater than or equal to the number of emitted symbols.
         """
 
-        result = self.emissive_rank == self.__size[1]
+        result = int(_npl.matrix_rank(self.__e)) == self.__size[1]
 
         return result
 
@@ -448,7 +451,9 @@ class HiddenMarkovModel(_Model):
 
         | **Notes:**
 
-        - The posterior transition probabilities have shape :math:`(n,n,T)`, where :math:`T` is the number of observations.
+        - The first observed symbol is emitted from the initial hidden state, before any transition occurs.
+        - The posterior, backward and forward probabilities have shape :math:`(n,T)`, where :math:`T` is the number of observations.
+        - The posterior transition probabilities have shape :math:`(n,n,T-1)`.
         - If the observed sequence has zero probability under the model, :py:obj:`None` is returned.
 
         :param symbols: the observed sequence of emitted symbols.
@@ -539,7 +544,7 @@ class HiddenMarkovModel(_Model):
         - The unnormalized entropy rate is expressed in nats per emitted symbol.
         - Each result contains the estimated entropy rate and its analytical lower and upper bounds.
         - The estimates are obtained through Monte Carlo sampling and depend on the sampling parameters, whereas the bounds are computed analytically.
-        - If the entropy rate cannot be estimated due to numerical inconsistencies, then :py:obj:`None` is returned.
+        - If the entropy rate cannot be estimated due to numerical inconsistencies, :py:obj:`None` is returned.
 
         :param normalized: a boolean indicating whether to normalize the entropy rate.
         :param steps: the number of emitted symbols sampled per estimate.
@@ -742,6 +747,7 @@ class HiddenMarkovModel(_Model):
 
         | **Notes:**
 
+        - The first predicted hidden state corresponds to the first observed symbol.
         - The maximum a posteriori prediction selects the most probable hidden state at each time step given the complete observed sequence.
         - The maximum likelihood path prediction selects the most probable complete hidden-state path given the observed sequence.
         - If the requested prediction cannot be computed, :py:obj:`None` is returned.
@@ -882,7 +888,7 @@ class HiddenMarkovModel(_Model):
 
         | **Notes:**
 
-        - The initial hidden-state distribution is applied before the first transition, consistently with **decode**.
+        - The first observed symbol is emitted from the initial hidden state, before any transition occurs.
         - An impossible observed sequence has probability 0.
 
         :param sequence: the observed sequence of emitted symbols.
@@ -1129,7 +1135,7 @@ class HiddenMarkovModel(_Model):
 
         | **Notes:**
 
-        - The model has 8 hidden states representing the four nucleotides (**A**, **C**, **G**, **T**) within each of the two genomic regions (island and background).
+        - The model has 8 hidden states representing the 4 nucleotides (**A**, **C**, **G**, **T**) within each of the 2 genomic regions (island and background).
         - Each hidden state emits its associated nucleotide with probability 1.
         - Nucleotide transitions follow region-specific, 4-by-4 row-stochastic matrices.
         - At each step, the next region is selected first, followed by the next nucleotide according to the destination region's transition matrix.
@@ -1270,7 +1276,7 @@ class HiddenMarkovModel(_Model):
 
         | **Notes:**
 
-        - The **oem** approach processes observations sequentially and recursively updates the model parameters without repeatedly applying the forward-backward algorithm to the complete observation sequences.
+        - The first observed symbol of each sequence is associated with the initial hidden-state distribution, before any transition occurs.
         - The **oem** approach is described in `Online EM Algorithm for Hidden Markov Models (Cappé, 2012) <https://doi.org/10.1198/jcgs.2011.09109>`_.
 
         :param fitting_type:

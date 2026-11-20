@@ -219,7 +219,7 @@ def test_fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, 
 
 def test_fit_baum_welch_monotonicity():
 
-    def expectation(ex_initial_distribution, ex_p_current, ex_e_current):
+    def _expectation(ex_initial_distribution, ex_p_current, ex_e_current):
 
         tc = _np.zeros_like(ex_p_current)
         ec = _np.zeros_like(ex_e_current)
@@ -232,11 +232,12 @@ def test_fit_baum_welch_monotonicity():
 
             for t, symbol in enumerate(symbols):
 
-                destination = ex_e_current[:, symbol] * backward[t + 1]
-                posterior = forward[t + 1] * backward[t + 1]
-
-                tc += (forward[t, :, _np.newaxis] * ex_p_current * destination[_np.newaxis, :]) / scaling[t + 1]
+                posterior = forward[t] * backward[t]
                 ec[:, symbol] += posterior
+
+                if t > 0:
+                    destination = ex_e_current[:, symbol] * backward[t]
+                    tc += (forward[t - 1, :, _np.newaxis] * ex_p_current * destination[_np.newaxis, :]) / scaling[t]
 
         return llt, tc, ec
 
@@ -245,13 +246,18 @@ def test_fit_baum_welch_monotonicity():
         n = fb_p.shape[0]
         f = len(fb_symbols)
 
-        forward = _np.zeros((f + 1, n), dtype=float)
-        backward = _np.ones((f + 1, n), dtype=float)
-        scaling = _np.ones(f + 1, dtype=float)
+        forward = _np.zeros((f, n), dtype=float)
+        backward = _np.ones((f, n), dtype=float)
+        scaling = _np.ones(f, dtype=float)
 
-        forward[0] = fb_initial_distribution
+        forward[0] = fb_initial_distribution * fb_e[:, fb_symbols[0]]
+        scaling[0] = _np.sum(forward[0])
 
-        for t, symbol in enumerate(fb_symbols, start=1):
+        assert scaling[0] > 0.0
+
+        forward[0] /= scaling[0]
+
+        for t, symbol in enumerate(fb_symbols[1:], start=1):
 
             forward[t] = _np.dot(forward[t - 1], fb_p) * fb_e[:, symbol]
             scaling[t] = _np.sum(forward[t])
@@ -260,12 +266,11 @@ def test_fit_baum_welch_monotonicity():
 
             forward[t] /= scaling[t]
 
-        for t in reversed(range(f)):
-
-            backward[t] = _np.dot(fb_p, (fb_e[:, fb_symbols[t]] * backward[t + 1]))
+        for t in reversed(range(f - 1)):
+            backward[t] = _np.dot(fb_p, (fb_e[:, fb_symbols[t + 1]] * backward[t + 1]))
             backward[t] /= scaling[t + 1]
 
-        log_likelihood = _np.sum(_np.log(scaling[1:]))
+        log_likelihood = _np.sum(_np.log(scaling))
 
         return log_likelihood, forward, backward, scaling
 
@@ -289,7 +294,7 @@ def test_fit_baum_welch_monotonicity():
 
     for _ in range(20):
 
-        likelihood, transition_counts, emission_counts = expectation(initial_distribution, p, e)
+        likelihood, transition_counts, emission_counts = _expectation(initial_distribution, p, e)
 
         if previous_likelihood is not None:
             assert likelihood >= previous_likelihood - 1e-10
@@ -418,17 +423,16 @@ def test_predict_viterbi_bruteforce():
 
             probabilities = {}
 
-            for path in _it.product(range(hmm.n), repeat=len(symbols) + 1):
+            for path in _it.product(range(hmm.n), repeat=len(symbols)):
 
-                probability = initial_distribution[path[0]]
+                probability = initial_distribution[path[0]] * e[path[0], symbols[0]]
 
-                for t, symbol in enumerate(symbols, start=1):
+                for t, symbol in enumerate(symbols[1:], start=1):
 
                     probability *= p[path[t - 1], path[t]]
                     probability *= e[path[t], symbol]
 
-                states = path[1:]
-                probabilities[states] = max(probabilities.get(states, 0.0), probability)
+                probabilities[path] = probability
 
             maximum_probability = max(probabilities.values())
 

@@ -73,20 +73,22 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
         with _np.errstate(divide='ignore'):
             p_log = _np.log(pv_p)
             e_log = _np.log(pv_e)
-            omega_0 = _np.log(pv_initial_distribution)
+            omega_0 = _np.log(pv_initial_distribution) + e_log[:, pv_symbols[0]]
 
-        omega = _np.vstack((omega_0, _np.zeros((f, n), dtype=float)))
+        if _np.all(omega_0 == -_np.inf):  # pragma: no cover
+            return None
+
+        omega = _np.vstack((omega_0, _np.zeros((f - 1, n), dtype=float)))
         path = _np.full((f, n), -1, dtype=int)
 
-        for i in range(1, f + 1):
+        for i in range(1, f):
 
-            im1 = i - 1
-            omega_prev = omega[im1, :]
-            symbol = pv_symbols[im1]
+            omega_prev = omega[i - 1, :]
+            symbol = pv_symbols[i]
 
             prob = omega_prev[:, _np.newaxis] + p_log
 
-            path[im1, :] = _np.argmax(prob, axis=0)
+            path[i, :] = _np.argmax(prob, axis=0)
             omega[i, :] = _np.max(prob, axis=0) + e_log[:, symbol]
 
             if _np.all(omega[i, :] == -_np.inf):  # pragma: no cover

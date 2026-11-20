@@ -8,8 +8,8 @@ Properties
    :members:
       e,
       emissive_overlap,
-      emissive_rank,
       is_ergodic,
+      is_fully_emissive,
       is_regular,
       k,
       n,

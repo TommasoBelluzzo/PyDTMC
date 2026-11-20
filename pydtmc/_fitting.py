@@ -149,21 +149,20 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
         if fwb_decoding is None:  # pragma: no cover
             return None
 
-        fwb_log_prob, _, _, fwb_backward, fwb_forward, s = fwb_decoding
+        fwb_log_prob, fwb_posterior, _, fwb_backward, fwb_forward, s = fwb_decoding
 
         fwb_pc = _np.zeros_like(fwb_p_guess)
         fwb_ec = _np.zeros_like(fwb_e_guess)
 
-        for fwb_w, fwb_symbol in enumerate(fbw_symbols):
+        for fwb_w in range(1, len(fbw_symbols)):
 
-            fwb_wp1 = fwb_w + 1
+            fwb_symbol = fbw_symbols[fwb_w]
 
-            fwb_source = fwb_forward[:, fwb_w, _np.newaxis]
-            fwb_destination = (fwb_e_guess[:, fwb_symbol] * fwb_backward[:, fwb_wp1])[_np.newaxis, :]
+            fwb_source = fwb_forward[:, fwb_w - 1, _np.newaxis]
+            fwb_destination = (fwb_e_guess[:, fwb_symbol] * fwb_backward[:, fwb_w])[_np.newaxis, :]
 
-            fwb_pc += (fwb_source * fwb_p_guess * fwb_destination) / s[fwb_wp1]
+            fwb_pc += (fwb_source * fwb_p_guess * fwb_destination) / s[fwb_w]
 
-        fwb_posterior = fwb_forward[:, 1:] * fwb_backward[:, 1:]
         fwb_symbols_array = _np.asarray(fbw_symbols, dtype=int)
 
         _np.add.at(_np.transpose(fwb_ec), fwb_symbols_array, _np.transpose(fwb_posterior))
