@@ -1229,7 +1229,7 @@ class HiddenMarkovModel(_Model):
         - The model has 2 hidden states, representing a fair die and a loaded die, and 6 emitted symbols, representing the die faces.
         - The fair die assigns equal probability to each face.
         - The loaded die assigns probability :math:`q` to face 6 and :math:`(1-q) / 5` to each remaining face, where :math:`q` is the loaded-six probability.
-        - Extreme probability values are allowed; these may produce deterministic transitions, deterministic emissions, or reducible hidden-state chains.
+        - Extreme probability values are allowed; these may produce deterministic transitions, deterministic emissions, or **reducible** hidden-state chains.
 
         :param p_switch: the probability of switching from the fair die to the loaded die.
         :param p_return: the probability of switching from the loaded die to the fair die.
@@ -1557,7 +1557,7 @@ class HiddenMarkovModel(_Model):
 
         - The model has 2 hidden states, representing good and bad channel conditions, and 2 emitted symbols, representing successful and erroneous transmissions.
         - The good regime has a lower or equal error probability than the bad regime.
-        - Extreme probability values are allowed; these may produce deterministic or reducible models.
+        - Extreme probability values are allowed; these may produce deterministic transitions, deterministic emissions, or **reducible** hidden-state chains.
 
         :param p_good_bad: the probability of transitioning from the good regime to the bad regime.
         :param p_bad_good: the probability of transitioning from the bad regime to the good regime.

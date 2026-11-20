@@ -3414,7 +3414,7 @@ class MarkovChain(_Model):
 
         - The chain has :math:`n!` states, representing all possible permutations of the deck.
         - The uniform distribution over all permutations is the unique stationary distribution for each model.
-        - The adjacent transpositions model is periodic with period 2, while the other models are aperiodic.
+        - The adjacent transpositions model is **periodic** with period 2, while the other models are **aperiodic**.
         - The state space grows factorially with the number of cards; constructing large chains may require substantial amounts of memory and computation time.
 
         :param model:
@@ -3601,7 +3601,7 @@ class MarkovChain(_Model):
         - At each step, a particle is selected uniformly and attempts to move to a neighboring site according to the specified model.
         - Each site can accommodate at most one particle; therefore, if the destination site is occupied, the particle remains at its current site.
         - All models have the uniform distribution over all configurations as their unique stationary distribution.
-        - The SSEP model is reversible, while the ASEP and TASEP models are non-reversible.
+        - The SSEP model is **reversible**, while the ASEP and TASEP models are **non-reversible**.
         - The state space grows combinatorially with the number of sites and particles; constructing large chains may require substantial amounts of memory and computation time.
 
         :param model:
@@ -3969,7 +3969,7 @@ class MarkovChain(_Model):
         - Each state represents a possible configuration of the random variables.
         - At each step, a variable is selected uniformly and sampled from its conditional distribution given the current values of all other variables.
         - At most one variable changes its value at each transition.
-        - The resulting chain is irreducible, aperiodic and reversible with respect to :math:`\pi^t`.
+        - The resulting chain is **irreducible**, **aperiodic** and **reversible** with respect to :math:`\pi^t`.
         - The state space grows multiplicatively with the dimensions of the random variables; constructing large chains may require substantial amounts of memory and computation time.
 
         :param dimensions: the number of possible values for each discrete random variable.
@@ -4047,8 +4047,8 @@ class MarkovChain(_Model):
         - The chain has :math:`2^n` states, representing all possible spin configurations.
         - At each step, a spin is selected uniformly and may be flipped according to the specified dynamics.
         - Positive coupling favors aligned neighboring spins, while negative coupling favors opposing neighboring spins.
-        - Both models are reversible with respect to the Gibbs distribution :math:`\pi(x) \propto e^{-\beta H(x)}`.
-        - Glauber dynamics produces an aperiodic chain, while Metropolis dynamics does not necessarily guarantee aperiodicity.
+        - Both models are **reversible** with respect to the Gibbs distribution :math:`\pi(x) \propto e^{-\beta H(x)}`.
+        - Glauber dynamics produces an **aperiodic** chain, while Metropolis dynamics do not necessarily guarantee aperiodicity.
         - The state space grows exponentially with the number of spins; constructing large chains may require substantial amounts of memory and computation time.
 
         :param model:
@@ -4099,7 +4099,7 @@ class MarkovChain(_Model):
 
         - If the proposal matrix is omitted, transitions are proposed uniformly among all other states.
         - Rejected proposals result in remaining at the current state.
-        - The resulting chain satisfies the detailed balance condition :math:`\pi^t_i P_{ij} = \pi^t_j P_{ji}` and is therefore reversible, but not necessarily irreducible or aperiodic.
+        - The resulting chain satisfies the detailed balance condition :math:`\pi^t_i P_{ij} = \pi^t_j P_{ji}` and is therefore **reversible**, but not necessarily **irreducible** or **aperiodic**.
 
         :param size: the number of states of the Markov chain.
         :param target_pi: the target stationary distribution, with strictly positive entries.
