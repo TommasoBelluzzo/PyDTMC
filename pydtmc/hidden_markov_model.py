@@ -473,6 +473,25 @@ class HiddenMarkovModel(_Model):
 
         return _decode(self.__p, self.__e, initial_status, symbols, use_scaling, True)
 
+    def emission_probabilities(self, state: _tstate) -> _tarray:
+
+        r"""
+        | The method computes the conditional emission probabilities of the hidden Markov model:
+        | :math:`E_{ia} = \mathbb{P}(Y_t=a \mid X_t=i)` where :math:`i` is the given hidden state.
+
+        :param state: the current hidden state.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            state = _validate_label(state, self.__states)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _np.copy(self.__e[state, :])
+
     def emission_probability(self, symbol: _tstate, state: _tstate) -> float:
 
         r"""
@@ -1099,6 +1118,25 @@ class HiddenMarkovModel(_Model):
         """
 
         return _np.copy(self.__p), _np.copy(self.__e)
+
+    def transition_probabilities(self, state: _tstate) -> _tarray:
+
+        r"""
+        | The method computes the conditional transition probabilities of the hidden Markov model:
+        | :math:`P_{ij} = \mathbb{P}(X_{t+1}=j \mid X_t=i)` where :math:`i` is the given hidden state.
+
+        :param state: the current hidden state.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            state = _validate_label(state, self.__states)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _np.copy(self.__p[state, :])
 
     def transition_probability(self, state_target: _tstate, state_origin: _tstate) -> float:
 

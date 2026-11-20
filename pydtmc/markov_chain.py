@@ -1540,32 +1540,6 @@ class MarkovChain(_Model):
 
         return _commute_times_to(self, statistic, targets)
 
-    @_object_mark(aliases=['conditional_distribution', 'cd', 'cp'])
-    def conditional_probabilities(self, state: _tstate) -> _tarray:
-
-        r"""
-        | The method computes the one-step conditional transition probabilities of the Markov chain:
-        | :math:`P_{ij} = \mathbb{P}(X_{t+1}=j \mid X_t=i)` where :math:`i` is the given state.
-
-        | **Notes:**
-
-        - The method can also be accessed through the aliases **conditional_distribution**, **cd** and **cp**.
-
-        :param state: the current state.
-        :raises ValidationError: if any input argument is not compliant.
-        """
-
-        try:
-
-            state = _validate_label(state, self.__states)
-
-        except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
-
-        cp = _np.copy(self.__p[state, :])
-
-        return cp
-
     def conductance(self, states: _tstates) -> _ofloat:
 
         r"""
@@ -3217,6 +3191,29 @@ class MarkovChain(_Model):
         mc = MarkovChain(p_out, states_out)
 
         return mc
+
+    def transition_probabilities(self, state: _tstate) -> _tarray:
+
+        r"""
+        | The method computes the conditional transition probabilities of the Markov chain:
+        | :math:`P_{ij} = \mathbb{P}(X_{t+1}=j \mid X_t=i)` where :math:`i` is the given state.
+
+        | **Notes:**
+
+        - The method can also be accessed through the alias **cp**.
+
+        :param state: the current state.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            state = _validate_label(state, self.__states)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        return _np.copy(self.__p[state, :])
 
     def transition_probability(self, state_target: _tstate, state_origin: _tstate, steps: int = 1) -> float:
 

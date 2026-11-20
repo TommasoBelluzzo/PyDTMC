@@ -162,6 +162,8 @@ def _validate_graph(value: _tany) -> _tgraphs:
 
     if multi:
         value = _nx.DiGraph(value)
+    else:
+        value = value.copy()
 
     nodes = list(value.nodes)
 
@@ -235,7 +237,7 @@ def _validate_limits(value: _tnum, value_type: str, lower_limit: _olim_num, uppe
                 raise ValueError(f'The "@arg@" parameter must be less than or equal to {_get_limit_text(value_type, upper_limit_value)}.')
 
 
-def _validate_models(value: _tany, validator: _trfunc) -> None:
+def _validate_models(value: _tany, validator: _trfunc) -> _tany:
 
     if not _is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
@@ -250,6 +252,10 @@ def _validate_models(value: _tany, validator: _trfunc) -> None:
             validator(value[i])
         except Exception as ex:
             raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
+
+    value = value.copy()
+
+    return value
 
 
 def _validate_probabilities(value: _tarray, stochastic: bool) -> None:
@@ -557,7 +563,7 @@ def validate_hidden_markov_model(value: _tany) -> _thmm:
 
 def validate_hidden_markov_models(value: _tany) -> _tlist_hmm:
 
-    _validate_models(value, validate_hidden_markov_model)
+    value = _validate_models(value, validate_hidden_markov_model)
 
     return value
 
@@ -737,6 +743,8 @@ def validate_labels_input(value: _tany, size: _oint = None) -> _tlist_str:
     if size is not None and labels_length != size:
         raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {size:d}.')
 
+    value = value.copy()
+
     return value
 
 
@@ -753,7 +761,7 @@ def validate_markov_chain(value: _tany, size: _oint = None) -> _tmc:
 
 def validate_markov_chains(value: _tany) -> _tlist_mc:
 
-    _validate_models(value, validate_markov_chain)
+    value = _validate_models(value, validate_markov_chain)
 
     return value
 
@@ -833,7 +841,7 @@ def validate_model(value: _tany) -> _tmdl:
 
 def validate_models(value: _tany) -> _tlist_mdl:
 
-    _validate_models(value, validate_model)
+    value = _validate_models(value, validate_model)
 
     return value
 
@@ -1016,9 +1024,10 @@ def validate_sequence(value: _tany, labels: _tlist_str) -> _tlist_int:
 
     if value_type == 'integer':
 
+        value = [int(label) for label in value]
         labels_length = len(labels)
 
-        if any(label < 0 or label >= labels_length for label in value):
+        if any((label < 0) or (label >= labels_length) for label in value):
             raise ValueError(f'The "@arg@" parameter, when specified as a list of integers, must contain only values between 0 and {labels_length - 1:d}.')
 
     else:
@@ -1055,9 +1064,12 @@ def validate_sequences(value: _tany, labels: _tlist_str, flex: bool) -> _tlists_
     if value_type in ['integer', 'string']:
         value = [value]
 
-    for index, value_current in enumerate(value):
+    value_base = value.copy()
+    value = []
+
+    for value_current in value_base:
         try:
-            value[index] = validate_sequence(value_current, labels)
+            value.append(validate_sequence(value_current, labels))
         except Exception as ex:
             raise ValueError('The "@arg@" parameter contains invalid elements.') from ex
 
@@ -1114,6 +1126,8 @@ def validate_strings(value: _tany, excluded_chars: _olist_str = None, size: _oin
 
     if (size is not None) and (value_length != size):
         raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {size:d}.')
+
+    value = value.copy()
 
     return value
 
