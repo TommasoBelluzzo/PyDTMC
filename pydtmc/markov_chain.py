@@ -178,12 +178,14 @@ from ._generators import (
     mc_coupon_collector as _coupon_collector,
     mc_dirichlet_process as _dirichlet_process,
     mc_epidemic_model as _epidemic_model,
+    mc_exclusion_process as _exclusion_process,
     mc_from_dictionary as _from_dictionary,
     mc_from_file as _from_file,
     mc_from_graph as _from_graph,
     mc_from_matrix as _from_matrix,
     mc_gamblers_ruin as _gamblers_ruin,
     mc_gibbs_sampling as _gibbs_sampling,
+    mc_ising_model as _ising_model,
     mc_lazy as _lazy,
     mc_lump as _lump,
     mc_metastable_aggregation as _metastable_aggregation,
@@ -453,7 +455,7 @@ class MarkovChain(_Model):
         return _absolute_spectral_gap(self.__slem)
 
     @_cached_property
-    def absorbing_states(self) -> _tlists_str:
+    def absorbing_states(self) -> _tlist_str:
 
         """
         | A property representing the absorbing states of the Markov chain.
@@ -547,7 +549,7 @@ class MarkovChain(_Model):
         return classes
 
     @_cached_property
-    def cyclic_states(self) -> _tlists_str:
+    def cyclic_states(self) -> _tlist_str:
 
         """
         | A property representing the states belonging to the cyclic decomposition of the Markov chain.
@@ -755,12 +757,12 @@ class MarkovChain(_Model):
     @_cached_property
     def incidence_matrix(self) -> _tarray:
 
-        """
+        r"""
         | A property representing the unsigned incidence matrix of the Markov chain.
 
         | **Notes:**
 
-        - The matrix has n rows and n² columns, with one column for each ordered pair of states.
+        - The matrix has :math:`n` rows and :math:`n^2` columns, with one column for each ordered pair of states.
         - Columns corresponding to distinct states contain 1 at both endpoints and 0 elsewhere.
         - Columns corresponding to self-pairs contain only zeros.
         - The matrix includes all possible ordered pairs, independently of their transition probabilities.
@@ -1144,7 +1146,7 @@ class MarkovChain(_Model):
         return classes
 
     @_cached_property
-    def recurrent_states(self) -> _tlists_str:
+    def recurrent_states(self) -> _tlist_str:
 
         """
         | A property representing the recurrent states of the Markov chain.
@@ -1228,7 +1230,7 @@ class MarkovChain(_Model):
         | :math:`h_{\mathrm{t}} = \log\rho(A)` where:
 
         - :math:`A` is the adjacency matrix of the Markov chain;
-        - :math:`\rho(A)` is its spectral radius of the adjacency matrix.
+        - :math:`\rho(A)` is the spectral radius of the adjacency matrix.
 
         | **Notes:**
 
@@ -1253,7 +1255,7 @@ class MarkovChain(_Model):
         return classes
 
     @_cached_property
-    def transient_states(self) -> _tlists_str:
+    def transient_states(self) -> _tlist_str:
 
         """
         | A property representing the transient states of the Markov chain.
@@ -1442,7 +1444,7 @@ class MarkovChain(_Model):
 
         - The **backward** committor is computed using the stationary time-reversed chain.
         - The **forward** committor is the probability of reaching the second subset before the first.
-        - It is 0 on the first subset and 1 on the second; the backward committor has the opposite boundary values.
+        - The forward committor is 0 on the first subset and 1 on the second, while the backward committor has the opposite boundary values.
         - If the Markov chain is not **irreducible**, then for backward committor probabilities :py:class:`None` is returned.
         - The method can also be accessed through the alias **crp**.
 
@@ -1560,7 +1562,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        cp = self.__p[state, :]
+        cp = _np.copy(self.__p[state, :])
 
         return cp
 
@@ -1803,7 +1805,7 @@ class MarkovChain(_Model):
         :param initial_state: the initial state.
         :param first_passage_states: the first passage states.
         :param rewards: the reward value    of each state.
-        :raises ValidationError: if any input argument is not compliant, if the target states include the initial state, or if the target states comprise all states except the initial state.
+        :raises ValidationError: if any input argument is not compliant or if the target states include the initial state.
         """
 
         try:
@@ -1890,7 +1892,7 @@ class MarkovChain(_Model):
     def fundamental_cycle_profile(self, output_indices: bool = False) -> _ofc_prof:
 
         r"""
-        | A property representing the fundamental-cycle affinities :math:`\mathcal{A}` and current coefficients :math:`j` of the Markov chain:
+        | The method computes the fundamental-cycle affinities :math:`\mathcal{A}` and current coefficients :math:`j` of the Markov chain:
         | :math:`\mathcal{A}_C = \sum_{(i,j) \in C}\log\frac{P_{ij}}{P_{ji}}`
         | :math:`j_C = J_{uv}`
         | where:
@@ -2215,10 +2217,10 @@ class MarkovChain(_Model):
 
         r"""
         | The method merges the Markov chain with another Markov chain of the same size:
-        | :math:`\widetilde{P} = (1-\gamma)P + \gamma P'` where:
+        | :math:`\widetilde{P} = (1-\gamma)P + \gamma P\prime` where:
 
         - :math:`\widetilde{P}` is the transition matrix of the merged chain;
-        - :math:`P'` is the transition matrix of the other chain;
+        - :math:`P\prime` is the transition matrix of the other chain;
         - :math:`\gamma` is the blending factor.
 
         | **Notes:**
@@ -2441,7 +2443,7 @@ class MarkovChain(_Model):
 
         r"""
         | The method predicts the globally most probable sequence of states over the given number of transitions:
-        | :math:`\hat{x}_{0:T} = \operatorname*{arg\,max}_{x_1,\ldots,x_T} \prod_{t=0}^{T-1} P_{x_t x_{t+1}}` where the initial state :math:`x_0` is fixed
+        | :math:`\hat{x}_{0:T} = \operatorname*{arg\,max}_{x_1,\ldots,x_T} \prod_{t=0}^{T-1} P_{x_t x_{t+1}}` where the initial state :math:`x_0` is fixed.
 
         | **Notes:**
 
@@ -2479,7 +2481,7 @@ class MarkovChain(_Model):
         | :math:`\mu^{(t)} = \mu P^t` where:
 
         - :math:`\mu` is the initial state distribution;
-        - :math:`\mu^{(t)}` is the state probability distribution after :math:`t` transition
+        - :math:`\mu^{(t)}` is the state probability distribution after :math:`t` transitions.
 
         | **Notes:**
 
@@ -2809,13 +2811,13 @@ class MarkovChain(_Model):
         - When applicable, the bound is tightened using the Dobrushin contraction coefficient.
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
 
-        :param epsilon: the perturbation tolerance, in the interval (0, 1].
+        :param epsilon: the perturbation tolerance, in the interval [0, 1].
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            epsilon = _validate_float(epsilon, lower_limit=(0.0, False), upper_limit=(1.0, True))
+            epsilon = _validate_float(epsilon, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -3382,7 +3384,7 @@ class MarkovChain(_Model):
             q = _validate_vector_birth_death(q, 'annihilation')
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, {p.shape[0], q.shape[0]}.pop())
+                states = _validate_labels_input(states, p.shape[0])
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
@@ -3390,7 +3392,7 @@ class MarkovChain(_Model):
         if p.shape[0] != q.shape[0]:  # pragma: no cover
             raise _ValidationError('The vector of annihilation probabilities and the vector of creation probabilities must have the same size.')
 
-        if not _np.all(q + p <= 1.0):  # pragma: no cover
+        if not _np.all((q + p) <= 1.0):  # pragma: no cover
             raise _ValidationError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
 
         p_out = _birth_death(p, q)
@@ -3399,7 +3401,6 @@ class MarkovChain(_Model):
         mc = MarkovChain(p_out, states_out)
 
         return mc
-
 
     @staticmethod
     @_object_mark(instance_generator=True)
@@ -3413,7 +3414,7 @@ class MarkovChain(_Model):
         - The chain has :math:`n!` states, representing all possible permutations of the deck.
         - The uniform distribution over all permutations is the unique stationary distribution for each model.
         - The adjacent transpositions model is periodic with period 2, while the other models are aperiodic.
-        - The number of cards is restricted due to the factorial growth of the state space.
+        - The computational requirements grow rapidly due to the factorial growth of the state space.
 
         :param model:
          - **adjacent-transpositions** for exchanging two uniformly selected neighboring cards;
@@ -3437,7 +3438,7 @@ class MarkovChain(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         p_out = _card_shuffling(model, n)
-        states_out = states if states is not None else [''.join(str(i) for i in permutation) for permutation in _it.permutations(range(1, n + 1))]
+        states_out = states if states is not None else ['_'.join(str(i) for i in permutation) for permutation in _it.permutations(range(1, n + 1))]
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3458,7 +3459,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The Markov chain has :math:`n+1` states, representing the number of coupon types collected.
+        - The chain has :math:`n+1` states, representing the number of coupon types collected.
         - At each step, a coupon is sampled uniformly and independently from the :math:`n` types.
         - The first state represents an empty collection, while the last state represents a completed collection.
         - The last state is absorbing and its hitting time represents the time required to collect all coupon types.
@@ -3537,7 +3538,7 @@ class MarkovChain(_Model):
 
         - The SI and SIS models produce a chain with :math:`n+1` states, representing the number of infected individuals.
         - The SIR model produces a chain with :math:`((n+1)(n+2)) / 2` states, representing all valid combinations of susceptible and infected individuals.
-        - The population does not contemplate births, deaths, or external infections.
+        - The population is closed, with no births, deaths, or external infections.
         - At each step, every susceptible-infected pair transmits infection independently with the specified infection probability.
         - Infections and recoveries occur independently and are applied simultaneously.
         - States without infected individuals are absorbing.
@@ -3548,7 +3549,7 @@ class MarkovChain(_Model):
          - **sis** for the Susceptible-Infected-Susceptible model, with recovery to susceptibility.
         :param n: the number of individuals.
         :param p_infection: the probability of infection transmission per susceptible-infected pair in each step.
-        :param p_recovery: the probability of recovery for each infected individual in each step (*if omitted, 0.0 is used*).
+        :param p_recovery: the probability of recovery for each infected individual in each step (*if omitted, 0 is used*).
         :param states: the state names (*if omitted, the infected counts are used for SI and SIS, while susceptible-infected pairs are used for SIR*).
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -3580,6 +3581,66 @@ class MarkovChain(_Model):
             states_out = [f'S{s}_I{i}' for s in range(n + 1) for i in range(n - s + 1)]
         else:
             states_out = [str(i) for i in range(n + 1)]
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
+    def exclusion_process(model: str, n: int, k: int, p_right: float = 0.0, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a Markov chain according to the specified simple exclusion process on a one-dimensional lattice with periodic boundary conditions.
+
+        | **Notes:**
+
+        - The chain has :math:`\binom{n}{k}` states, representing all possible configurations of :math:`k` particles across :math:`n` sites.
+        - At each step, a particle is selected uniformly and attempts to move to a neighboring site according to the specified model.
+        - Each site can accommodate at most one particle; therefore, if the destination site is occupied, the particle remains at its current site.
+        - All models have the uniform distribution over all configurations as their unique stationary distribution.
+        - The SSEP model is reversible, while the ASEP and TASEP models are non-reversible.
+
+        :param model:
+         - **asep** for the Asymmetric Simple Exclusion Process;
+         - **ssep** for the Symmetric Simple Exclusion Process;
+         - **tasep** for the Totally Asymmetric Simple Exclusion Process.
+        :param n: the number of sites.
+        :param k: the number of particles.
+        :param p_right: the probability of attempting a rightward movement, required for the ASEP model and ignored otherwise.
+        :param states: the state names (*if omitted, the particle configurations are represented using the characters 0 for vacant sites and 1 for occupied sites, in descending lexicographic order*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            model = _validate_enumerator(model, ['asep', 'ssep', 'tasep'])
+            n = _validate_integer(n, lower_limit=(3, False))
+            k = _validate_integer(k, lower_limit=(1, False), upper_limit=(n, True))
+
+            if model == 'asep':
+                p_right = _validate_float(p_right, lower_limit=(0.0, True), upper_limit=(1.0, True))
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, _mt.comb(n, k))
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        if model == 'asep':
+            if p_right == 0.5:  # pragma: no cover
+                raise _ValidationError('The rightward movement probability must be different from 0.5 for the ASEP model.')
+        if model == 'ssep':
+            p_right = 0.5
+        elif model == 'tasep':
+            p_right = 1.0
+
+        p_out = _exclusion_process(n, k, p_right)
+
+        if states is not None:
+            states_out = states
+        else:
+            states_out = [''.join('1' if i in configuration else '0' for i in range(n)) for configuration in _it.combinations(range(n), k)]
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3893,8 +3954,7 @@ class MarkovChain(_Model):
 
         r"""
         | The method generates a Markov chain with a prescribed stationary distribution using the random-scan Gibbs sampling algorithm:
-        | :math:`P_{xy} = \frac{1}{d} \sum_{k=1}^{d}\mathbb{I}(x_{-k} = y_{-k})\pi^t(y_k \mid x_{-k})`
-        | where:
+        | :math:`P_{xy} = \frac{1}{d} \sum_{k=1}^{d}\mathbb{I}(x_{-k} = y_{-k})\pi^t(y_k \mid x_{-k})` where:
 
         - :math:`d` is the number of discrete random variables;
         - :math:`x` and :math:`y` are configurations of the random variables;
@@ -3910,7 +3970,7 @@ class MarkovChain(_Model):
         - The resulting chain is irreducible, aperiodic and reversible with respect to :math:`\pi^t`.
 
         :param dimensions: the number of possible values for each discrete random variable.
-        :param target_pi: the target stationary distribution, with strictly positive entries.
+        :param target_pi: the target stationary distribution, with strictly positive entries, ordered lexicographically by configuration.
         :param states: the state names (*if omitted, the configurations of the variable indices starting at 0 are used in lexicographic order*).
         :raises ValidationError: if any input argument is not compliant.
         """
@@ -3968,6 +4028,59 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
+    def ising_model(model: str, n: int, beta: float, j: float = 1.0, h: float = 0.0, states: _olist_str = None) -> _tmc:
+
+        r"""
+        | The method generates a Markov chain for a one-dimensional Ising model with periodic boundary conditions:
+        | :math:`H(x) = -j \sum_{i=1}^{n}x_i x_{i+1} - h \sum_{i=1}^{n}x_i` where:
+
+        - :math:`n` is the number of spins;
+        - :math:`x` is the spin configuration, with :math:`x_i \in \{-1,+1\}` and :math:`x_{n+1} = x_1`;
+        - :math:`j` is the coupling constant;
+        - :math:`h` is the external magnetic field.
+
+        | **Notes:**
+
+        - The chain has :math:`2^n` states, representing all possible spin configurations.
+        - At each step, a spin is selected uniformly and may be flipped according to the specified dynamics.
+        - Positive coupling favors aligned neighboring spins, while negative coupling favors opposing neighboring spins.
+        - Both models are reversible with respect to the Gibbs distribution :math:`\pi(x) \propto e^{-\beta H(x)}`.
+        - Glauber dynamics produces an aperiodic chain, while Metropolis dynamics does not necessarily guarantee aperiodicity.
+
+        :param model:
+         - **glauber** for the Glauber dynamics;
+         - **metropolis** for the Metropolis dynamics.
+        :param n: the number of spins.
+        :param beta: the inverse temperature.
+        :param j: the coupling constant (*if omitted, 1 is used*).
+        :param h: the external magnetic field (*if omitted, 0 is used*).
+        :param states: the state names (*if omitted, the spin configurations are represented using the characters - and + in binary counting order*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            model = _validate_enumerator(model, ['glauber', 'metropolis'])
+            n = _validate_integer(n, lower_limit=(3, False))
+            beta = _validate_float(beta, lower_limit=(0.0, False))
+            j = _validate_float(j)
+            h = _validate_float(h)
+
+            if states is not None:  # pragma: no cover
+                states = _validate_labels_input(states, 2**n)
+
+        except Exception as ex:  # pragma: no cover
+            raise _create_validation_error(ex, _ins.trace()) from None
+
+        p_out = _ising_model(model, n, beta, j, h)
+        states_out = states if states is not None else [format(i, f'0{n}b').replace('0', '-').replace('1', '+') for i in range(2**n)]
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
+    @staticmethod
+    @_object_mark(instance_generator=True)
     def metropolis_hastings(size: int, target_pi: _tvec, proposal: _oarray = None, states: _olist_str = None) -> _tmc:
 
         r"""
@@ -4005,7 +4118,7 @@ class MarkovChain(_Model):
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        if _np.any(target_pi <= 0.0):
+        if _np.any(target_pi <= 0.0):  # pragma: no cover
             raise _ValidationError('The target stationary distribution must contain strictly positive probabilities.')
 
         p_out = _metropolis_hastings(target_pi, proposal)
@@ -4062,7 +4175,7 @@ class MarkovChain(_Model):
     @_object_mark(instance_generator=True)
     def population_genetics_model(model: str, n: int, s: float = 0.0, u: float = 1.0e-9, v: float = 1.0e-9, states: _olist_str = None) -> _tmc:
 
-        """
+        r"""
         | The method generates a population genetics Markov chain according to the specified model.
 
         | **Notes:**
@@ -4205,7 +4318,7 @@ class MarkovChain(_Model):
         | **Notes:**
 
         - At each step, the walker moves uniformly to one of the neighboring vertices.
-        - If **lazy** is :py:obj:`True`, the walker has a 0.5 probability of remaining at the current vertex.
+        - If **lazy** is :py:obj:`True`, the walker instead remains at the current vertex with probability 0.5.
         - At least 2 vertices are needed for a path graph or a complete graph, and at least 3 for a cycle graph.
 
         :param size: the number of graph vertices, corresponding to the states of the Markov chain.

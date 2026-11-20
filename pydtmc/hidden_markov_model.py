@@ -39,12 +39,18 @@ from ._base_classes import (
     Model as _Model
 )
 
+from ._constants import (
+    ETOL as _ETOL
+)
+
 from ._custom_types import (
     obndvals as _obndvals,
     ohmm_dec as _ohmm_dec,
     oint as _oint,
     olist_str as _olist_str,
     omat as _omat,
+    ohmm_pred as _ohmm_pred,
+    oseq as _oseq,
     ostate as _ostate,
     ostates as _ostates,
     ostatus as _ostatus,
@@ -55,7 +61,6 @@ from ._custom_types import (
     thmm as _thmm,
     thmm_dict as _thmm_dict,
     thmm_dict_f as _thmm_dict_f,
-    thmm_pred as _thmm_pred,
     thmm_seq_f as _thmm_seq_f,
     thmm_step as _thmm_step,
     thmm_sym_x as _thmm_sym_x,
@@ -100,7 +105,7 @@ from ._files_io import (
 )
 
 from ._fitting import (
-    hmm_fit as _fit,
+    hmm_fit as _fit
 )
 
 from ._generators import (
@@ -191,7 +196,8 @@ class HiddenMarkovModel(_Model):
                 if states is not None:
                     states = _validate_labels_input(states, p.shape[1])
 
-                symbols = _create_labels(e.shape[1], prefix='E') if symbols is None else _validate_labels_input(symbols, e.shape[1])
+                if symbols is not None:
+                    symbols = _validate_labels_input(symbols, e.shape[1])
 
             except Exception as ex:  # pragma: no cover
                 raise _create_validation_error(ex, _ins.trace()) from None
@@ -296,7 +302,7 @@ class HiddenMarkovModel(_Model):
         | A hidden Markov model is regular when the emission matrix has full column rank: :math:`\operatorname{rank}(E) = k`.
         """
 
-        result = _npl.matrix_rank(self.__e) == self.__size[1]
+        result = self.emissive_rank == self.__size[1]
 
         return result
 
@@ -434,7 +440,7 @@ class HiddenMarkovModel(_Model):
 
     def decode(self, symbols: _tseq, initial_status: _ostatus = None, use_scaling: bool = True) -> _ohmm_dec:
 
-        """
+        r"""
         | The method decodes an observed sequence of emitted symbols using the forward-backward algorithm and returns, in order:
 
         - the log probability of the observed sequence;
@@ -497,12 +503,12 @@ class HiddenMarkovModel(_Model):
     def entropy(self, target: str, conditional: bool = False) -> _tarray:
 
         r"""
-        | The method computes the conditional or unconditional stationary entropy of the selected process:
+        | The method computes the conditional or unconditional stationary single-time entropy of the selected process:
         | :math:`H(Z)` or :math:`H(Z \mid W)`, where :math:`Z` is the selected process and :math:`W` is the other process.
 
         | **Notes:**
 
-        - If **conditional** is :py:obj:`True`, the entropy is conditioned on the other process.
+        - If **conditional** is :py:obj:`True`, the entropy is conditioned on the simultaneous value of the other process.
         - One value is returned for each stationary distribution of the hidden-state transition matrix.
         - Entropies are expressed in nats; zero-probability terms contribute 0.
         - The method can also be accessed through the alias **h**.
@@ -524,6 +530,7 @@ class HiddenMarkovModel(_Model):
 
         return _entropy(self, target, conditional)
 
+    @_object_mark(random_output=True)
     def entropy_rate(self, normalized: bool, steps: int = 10000, samples: int = 10, seed: _oint = None) -> _obndvals:
 
         r"""
@@ -533,7 +540,7 @@ class HiddenMarkovModel(_Model):
         | **Notes:**
 
         - One result is returned for each stationary distribution of the hidden-state transition matrix.
-        - The entropy rate is expressed in nats per emitted symbol.
+        - The unnormalized entropy rate is expressed in nats per emitted symbol.
         - Each result contains the estimated entropy rate and its analytical lower and upper bounds.
         - The estimates are obtained through Monte Carlo sampling and depend on the sampling parameters, whereas the bounds are computed analytically.
         - If the entropy rate cannot be estimated due to numerical inconsistencies, then :py:obj:`None` is returned.
@@ -614,13 +621,14 @@ class HiddenMarkovModel(_Model):
 
         try:
 
-            if targets is None:
-                targets = list(range(self.__size[1]))
-            else:
-                targets = _validate_labels_current(targets, self.__states, False)
+            if targets is not None:
+                targets = _validate_labels_current(targets, self.__symbols, False)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
+
+        if targets is None:
+            targets = list(range(self.__size[1]))
 
         return _hitting_probabilities(self, targets)
 
@@ -663,13 +671,13 @@ class HiddenMarkovModel(_Model):
     def next(self, initial_state: _tstate, target: str = 'both', output_index: bool = False, seed: _oint = None) -> _thmm_step:
 
         """
-        | The method randomly selects the next hidden-state and emitted symbol of the hidden Markov model from the given initial hidden state.
+        | The method randomly selects the next hidden state and emitted symbol of the hidden Markov model from the given initial hidden state.
 
         :param initial_state: the initial hidden state.
         :param target:
+         - **both** for the next hidden state and emitted symbol;
          - **state** for the next hidden state;
-         - **symbol** for the next emitted symbol;
-         - **both** for the next hidden state and emitted symbol.
+         - **symbol** for the next emitted symbol.
         :param output_index: a boolean indicating whether to return indices instead of hidden-state and emitted-symbol labels.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
@@ -731,20 +739,20 @@ class HiddenMarkovModel(_Model):
 
         return pp
 
-    def predict(self, prediction_type: str, symbols: _tseq, initial_status: _ostatus = None, output_indices: bool = False) -> _thmm_pred:
+    def predict(self, prediction_type: str, symbols: _tseq, initial_status: _ostatus = None, output_indices: bool = False) -> _ohmm_pred:
 
-        """
+        r"""
         | The method computes the log probability and a predicted hidden-state path for an observed sequence of emitted symbols.
 
         | **Notes:**
 
         - The maximum a posteriori prediction selects the most probable hidden state at each time step given the complete observed sequence.
-        - The maximum likelihood predictions select the most probable complete hidden-state path.
+        - The maximum likelihood path prediction selects the most probable complete hidden-state path given the observed sequence.
         - If the requested prediction cannot be computed, :py:obj:`None` is returned.
 
         :param prediction_type:
          - **map** for maximum a posteriori prediction;
-         - **mle** or **viterbi** for maximum likelihood path prediction.
+         - **mle** or **vit** for maximum likelihood path prediction, also referred to as Viterbi prediction.
         :param symbols: the observed sequence of emitted symbols.
         :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
         :param output_indices: a boolean indicating whether to return hidden-state indices instead of hidden-state labels.
@@ -753,7 +761,7 @@ class HiddenMarkovModel(_Model):
 
         try:
 
-            prediction_type = _validate_enumerator(prediction_type, ['map', 'mle', 'viterbi'])
+            prediction_type = _validate_enumerator(prediction_type, ['map', 'mle', 'vit'])
             symbols = _validate_sequence(symbols, self.__symbols)
             initial_status = _validate_status(initial_status, self.__states, True)
             output_indices = _validate_boolean(output_indices)
@@ -768,7 +776,7 @@ class HiddenMarkovModel(_Model):
 
         return value
 
-    def predict_trajectory(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _tseq:
+    def predict_trajectory(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _oseq:
 
         r"""
         | The method predicts the globally most probable sequence of emitted symbols over the given number of hidden-state transitions, with the initial hidden state fixed.
@@ -993,7 +1001,7 @@ class HiddenMarkovModel(_Model):
 
         - One value is returned for each stationary distribution of the hidden-state transition matrix.
         - Synchronization information is expressed in nats.
-        - The result is infinite if the synchronization entropy does not converge to 0.
+        - The result is infinite if the sum of the synchronization entropies diverges.
         - The result is *NaN* if convergence or divergence cannot be established numerically.
         - The method can also be accessed through the alias **si**.
 
@@ -1029,9 +1037,9 @@ class HiddenMarkovModel(_Model):
         for i in range(n):
             state = self.__states[i]
             for j in range(n):
-                d[('P', state, self.__states[j])] = self.__p[i, j]
+                d[('P', state, self.__states[j])] = float(self.__p[i, j])
             for j in range(k):
-                d[('E', state, self.__symbols[j])] = self.__e[i, j]
+                d[('E', state, self.__symbols[j])] = float(self.__e[i, j])
 
         return d
 
@@ -1134,9 +1142,9 @@ class HiddenMarkovModel(_Model):
         :param p_exit: the probability of transitioning from a CpG island to a background region.
         :param island_transitions: the nucleotide transition matrix within CpG islands, with rows and columns ordered A, C, G, T.
         :param background_transitions: the nucleotide transition matrix within background regions, with rows and columns ordered A, C, G, T.
-        :param states: the hidden-state names (*if omitted, the nucleotide names prefixed by I or B are used for island and background states, respectively*).
-        :param symbols: the emitted-symbol names (*if omitted, the labels A, C, G, T are used*).
-        :raises ValidationError: if any input argument is not compliant, including non-stochastic nucleotide matrices or overlapping state and symbol labels.
+        :param states: the hidden-state names (*if omitted, the ordered nucleotide names prefixed by I or B are used for island and background states, respectively*).
+        :param symbols: the emitted-symbol names (*if omitted, the ordered nucleotide names are used*).
+        :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
@@ -1179,7 +1187,7 @@ class HiddenMarkovModel(_Model):
         - The model has 2 hidden states, representing a fair die and a loaded die, and 6 emitted symbols, representing the die faces.
         - The fair die assigns equal probability to each face.
         - The loaded die assigns probability :math:`q` to face 6 and :math:`(1-q) / 5` to each remaining face, where :math:`q` is the loaded-six probability.
-        - Extreme probability values are allowed; these may produce deterministic or reducible models.
+        - Extreme probability values are allowed; these may produce deterministic transitions, deterministic emissions, or reducible hidden-state chains.
 
         :param p_switch: the probability of switching from the fair die to the loaded die.
         :param p_return: the probability of switching from the loaded die to the fair die.
@@ -1281,7 +1289,7 @@ class HiddenMarkovModel(_Model):
         :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
         :param regularization: a non-negative floating-point value specifying additive smoothing of the estimated transition and emission probabilities, restricted to the support of the initial matrices.
         :param fitting_param:
-         - For **bw**, **map**, **mle**, and **viterbi**, a positive integer specifying the maximum number of iterations (*if omitted, 500 iterations are used*).
+         - For **bw**, **map**, **mle**, and **vit**, an integer greater than or equal to 100 specifying the maximum number of iterations (*if omitted, 500 iterations are used*).
          - For **oem**, a floating-point value in the interval (0.5, 1.0] specifying the learning-rate decay exponent (*if omitted, 0.7 is used*).
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the fitting algorithm fails to converge.
@@ -1337,7 +1345,7 @@ class HiddenMarkovModel(_Model):
         - Transition entries use keys of the form **('P', origin hidden state, target hidden state)**.
         - Emission entries use keys of the form **('E', hidden state, emitted symbol)**.
         - Missing entries are assigned probability 0.
-        - Noth resulting matrices must be stochastic; no normalization is performed.
+        - Both resulting matrices must be stochastic; no normalization is performed.
 
         :param d: the dictionary defining the transition and emission probabilities.
         :raises ValidationError: if any input argument is not compliant.
@@ -1357,7 +1365,7 @@ class HiddenMarkovModel(_Model):
         if n < 2:  # pragma: no cover
             raise ValueError('The size of the transition matrix defined by the dictionary must be greater than or equal to 2.')
 
-        symbols = [key[2] for key in d.keys() if (key[0] == 'E') and (key[1] == states[0])]
+        symbols = list(dict.fromkeys(key[2] for key in d.keys() if key[0] == 'E'))
         k = len(symbols)
 
         if k < 2:  # pragma: no cover
@@ -1371,10 +1379,10 @@ class HiddenMarkovModel(_Model):
             else:
                 p[states.index(element_from), states.index(element_to)] = probability
 
-        if not _np.allclose(_np.sum(p, axis=1), _np.ones(n, dtype=float)):  # pragma: no cover
+        if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.0.')
 
-        if not _np.allclose(_np.sum(e, axis=1), _np.ones(n, dtype=float)):  # pragma: no cover
+        if not _np.allclose(_np.sum(e, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
             raise ValueError('The rows of the emission matrix defined by the dictionary must sum to 1.0.')
 
         hmm = HiddenMarkovModel(p, e, states, symbols)
@@ -1462,10 +1470,10 @@ class HiddenMarkovModel(_Model):
             else:
                 p[states.index(element_from), states.index(element_to)] = probability
 
-        if not _np.allclose(_np.sum(p, axis=1), _np.ones(n, dtype=float)):  # pragma: no cover
+        if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
             raise ValueError('The rows of the transition matrix defined by the dictionary must sum to 1.0.')
 
-        if not _np.allclose(_np.sum(e, axis=1), _np.ones(n, dtype=float)):  # pragma: no cover
+        if not _np.allclose(_np.sum(e, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
             raise ValueError('The rows of the emission matrix defined by the dictionary must sum to 1.0.')
 
         hmm = HiddenMarkovModel(p, e, states, symbols)
@@ -1502,21 +1510,18 @@ class HiddenMarkovModel(_Model):
         n, k = len(states), len(symbols)
         p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
 
-        edge_types = graph.edges(data='type', default='')
-        edge_weights = graph.edges(data='weight', default=0.0)
+        for origin, target, data in graph.edges(data=True):
 
-        for edge in graph.edges:
+            edge_type = data.get('type', '')
+            edge_weight = data.get('weight', 0.0)
 
-            edge_type = [edge_type[2] for edge_type in edge_types if edge_type[0] == edge[0] and edge_type[1] == edge[1]][0]
-            edge_weight = [edge_weight[2] for edge_weight in edge_weights if edge_weight[0] == edge[0] and edge_weight[1] == edge[1]][0]
-
-            i = states.index(edge[0])
+            i = states.index(origin)
 
             if edge_type == 'E':
-                j = symbols.index(edge[1])
+                j = symbols.index(target)
                 e[i, j] = float(edge_weight)
             else:
-                j = states.index(edge[1])
+                j = states.index(target)
                 p[i, j] = float(edge_weight)
 
         p_sums, e_sums = _np.sum(p, axis=1), _np.sum(e, axis=1)
@@ -1525,14 +1530,14 @@ class HiddenMarkovModel(_Model):
 
             p_sums_i = p_sums[i]
 
-            if _np.isclose(p_sums_i, 0.0):  # pragma: no cover
+            if p_sums_i == 0.0:  # pragma: no cover
                 p[i, :] = _np.ones(n, dtype=float) / n
             else:
                 p[i, :] /= p_sums_i
 
             e_sums_i = e_sums[i]
 
-            if _np.isclose(e_sums_i, 0.0):  # pragma: no cover
+            if e_sums_i == 0.0:  # pragma: no cover
                 e[i, :] = _np.ones(k, dtype=float) / k
             else:
                 e[i, :] /= e_sums_i
@@ -1570,7 +1575,7 @@ class HiddenMarkovModel(_Model):
             raise _create_validation_error(ex, _ins.trace()) from None
 
         if len(list(set(states) & set(symbols))) > 0:  # pragma: no cover
-            raise _ValidationError('State names and symbol names must be different.')
+            raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
 
         n, k = mp.shape[0], me.shape[1]
         p, e = _np.copy(mp), _np.copy(me)
@@ -1580,14 +1585,14 @@ class HiddenMarkovModel(_Model):
 
             p_sums_i = p_sums[i]
 
-            if _np.isclose(p_sums_i, 0.0):  # pragma: no cover
+            if p_sums_i == 0.0:  # pragma: no cover
                 p[i, :] = _np.ones(n, dtype=float) / n
             else:
                 p[i, :] /= p_sums_i
 
             e_sums_i = e_sums[i]
 
-            if _np.isclose(e_sums_i, 0.0):  # pragma: no cover
+            if e_sums_i == 0.0:  # pragma: no cover
                 e[i, :] = _np.ones(k, dtype=float) / k
             else:
                 e[i, :] /= e_sums_i
@@ -1644,7 +1649,7 @@ class HiddenMarkovModel(_Model):
             raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
 
         p_out, e_out = _gilbert_elliott(p_good_bad, p_bad_good, error_good, error_bad)
-        hmm = HiddenMarkovModel(p_out, e_out, states, symbols)
+        hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 
         return hmm
 

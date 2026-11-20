@@ -18,12 +18,14 @@ __all__ = [
     'mc_coupon_collector',
     'mc_dirichlet_process',
     'mc_epidemic_model',
+    'mc_exclusion_process',
     'mc_from_dictionary',
     'mc_from_file',
     'mc_from_graph',
     'mc_from_matrix',
     'mc_gamblers_ruin',
     'mc_gibbs_sampling',
+    'mc_ising_model',
     'mc_lazy',
     'mc_lump',
     'mc_metastable_aggregation',
@@ -1462,6 +1464,39 @@ def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery
     return p
 
 
+def mc_exclusion_process(n: int, k: int, p_right: float) -> _tarray:
+
+    configurations = list(_it.combinations(range(n), k))
+    indices = {state: index for index, state in enumerate(configurations)}
+
+    size = len(configurations)
+    p = _np.zeros((size, size), dtype=float)
+
+    directions = [
+        (-1, (1.0 - p_right) / k),
+        (1, p_right / k)
+    ]
+
+    for i, state in enumerate(configurations):
+
+        occupied = set(state)
+
+        for s in state:
+
+            for direction, probability in directions:
+
+                t = (s + direction) % n
+
+                if t in occupied:
+                    p[i, i] += probability
+                else:
+                    next_state = tuple(sorted((occupied - {s}) | {t}))
+                    j = indices[next_state]
+                    p[i, j] += probability
+
+    return p
+
+
 def mc_from_dictionary(d: _tmc_dict_f) -> _tmc_gen_full:
 
     states = [key[0] for key in d.keys() if key[0] == key[1]]
@@ -1581,6 +1616,43 @@ def mc_gibbs_sampling(dimensions: _tlist_int, target_pi: _tarray) -> _tarray:
             for candidate, probability in zip(candidates, probabilities):
                 j = indices[candidate]
                 p[i, j] += probability / dimensions_count
+
+    return p
+
+
+def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _tarray:
+
+    size = 2**n
+    p = _np.zeros((size, size), dtype=float)
+
+    for i in range(size):
+
+        spins = [1 if (i >> k) & 1 else -1 for k in range(n - 1, -1, -1)]
+
+        for k in range(n):
+
+            left = spins[(k - 1) % n]
+            right = spins[(k + 1) % n]
+
+            delta = 2.0 * spins[k] * (j * (left + right) + h)
+            z = beta * delta
+
+            if model == 'glauber':
+
+                if z >= 0.0:
+                    ez = _np.exp(-z)
+                    probability = ez / (1.0 + ez)
+                else:
+                    probability = 1.0 / (1.0 + _np.exp(z))
+
+            else:
+                probability = 1.0 if z <= 0.0 else _np.exp(-z)
+
+            next_state = i ^ (1 << (n - k - 1))
+
+            p[i, next_state] = probability / n
+
+        p[i, i] = max(0.0, 1.0 - _np.sum(p[i, :]))
 
     return p
 
