@@ -558,7 +558,7 @@ def test_transitions(p):
 
     for index, state in enumerate(states):
 
-        actual = mc.conditional_probabilities(state)
+        actual = mc.transition_probabilities(state)
         expected = transition_matrix[index, :]
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

@@ -62,7 +62,7 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
             return None
 
         log_prob, posterior, _, _, _, _ = result
-        states = list(_np.argmax(posterior, axis=0))
+        states = _np.argmax(posterior, axis=0).tolist()
 
         return log_prob, states
 
@@ -94,13 +94,13 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
             if _np.all(omega[i, :] == -_np.inf):  # pragma: no cover
                 return None
 
-        last_state = _np.argmax(omega[-1, :]).item()
+        last_state = int(_np.argmax(omega[-1, :]))
 
-        log_prob = omega[-1, last_state].item()
+        log_prob = float(omega[-1, last_state])
         states = ([0] * (f - 1)) + [last_state]
 
         for i in reversed(range(1, f)):
-            states[i - 1] = path[i, states[i]].item()
+            states[i - 1] = int(path[i, states[i]])
 
         return log_prob, states
 
@@ -189,7 +189,7 @@ def hmm_simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint,
 
     current_state = initial_state
     states = [initial_state]
-    symbols = [rng.choice(k, size=1, p=hmm.e[current_state, :]).item()]
+    symbols = [int(rng.choice(k, p=hmm.e[current_state, :]))]
 
     pr = rng.random(steps)
     pc = _np.cumsum(hmm.p, axis=1)
@@ -335,7 +335,7 @@ def mc_sequence_probability(mc: _tmc, walk_param: _tlist_int) -> float:
             wp = -_np.inf
             break
 
-    value = _np.exp(wp)
+    value = float(_np.exp(wp))
 
     return value
 

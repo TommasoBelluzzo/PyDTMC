@@ -317,7 +317,7 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
     posterior = _np.multiply(backward, forward)
 
-    log_prob = _np.sum(_np.log(scaling_factors)).item()
+    log_prob = float(_np.sum(_np.log(scaling_factors)))
 
     if not use_scaling:
 
@@ -1030,7 +1030,7 @@ def hmm_entropy(hmm: _thmm, target: str, conditional: bool) -> _tarray:
         else:
 
             if conditional:
-                value = _np.dot(pi_current, [_entropy(row) for row in e]).item()
+                value = float(_np.dot(pi_current, [_entropy(row) for row in e]))
             else:
                 q = _np.dot(pi_current, e)
                 value = _entropy(q)

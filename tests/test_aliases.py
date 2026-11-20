@@ -91,10 +91,16 @@ def _compare_values(actual, expected):
 def test_aliased_methods_hmm(p, e, params):
 
     hmm = _HiddenMarkovModel(p, e)
+    aliased_methods = set()
 
     for member_name, member in _HiddenMarkovModel.__dict__.items():
 
-        if isinstance(member, property) or not hasattr(member, '_aliases') or hasattr(member, '_random_output') or member.__name__ != member_name:
+        if isinstance(member, property) or not hasattr(member, '_aliases') or member.__name__ != member_name:
+            continue
+
+        aliased_methods.add(member_name)
+
+        if hasattr(member, '_random_output'):
             continue
 
         if member_name not in params:
@@ -107,14 +113,25 @@ def test_aliased_methods_hmm(p, e, params):
             expected = getattr(hmm, member_alias)() if params[member_name] is None else getattr(hmm, member_alias)(*params[member_name])
             assert _compare_values(actual, expected)
 
+    orphaned_methods = set(params) - aliased_methods
+
+    if orphaned_methods:
+        raise KeyError(f'Orphaned parameters for methods: {", ".join(sorted(orphaned_methods))}.')
+
 
 def test_aliased_methods_mc(p, params):
 
     mc = _MarkovChain(p)
+    aliased_methods = set()
 
     for member_name, member in _MarkovChain.__dict__.items():
 
-        if isinstance(member, property) or not hasattr(member, '_aliases') or hasattr(member, '_random_output') or member.__name__ != member_name:
+        if isinstance(member, property) or not hasattr(member, '_aliases') or member.__name__ != member_name:
+            continue
+
+        aliased_methods.add(member_name)
+
+        if hasattr(member, '_random_output'):
             continue
 
         if member_name not in params:
@@ -126,6 +143,11 @@ def test_aliased_methods_mc(p, params):
 
             expected = getattr(mc, member_alias)() if params[member_name] is None else getattr(mc, member_alias)(*params[member_name])
             assert _compare_values(actual, expected)
+
+    orphaned_methods = set(params) - aliased_methods
+
+    if orphaned_methods:
+        raise KeyError(f'Orphaned parameters for methods: {", ".join(sorted(orphaned_methods))}.')
 
 
 def test_aliased_properties_hmm(p, e):
