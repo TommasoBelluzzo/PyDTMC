@@ -36,8 +36,8 @@ from pydtmc._validation import (
     validate_enumerator as _validate_enumerator,
     validate_file_path as _validate_file_path,
     validate_float as _validate_float,
-    validate_graph_hmm as _validate_graph,
-    validate_graph_mc as _validate_graph,
+    validate_graph_hmm as _validate_graph_hmm,
+    validate_graph_mc as _validate_graph_mc,
     validate_hidden_markov_model as _validate_hidden_markov_model,
     validate_hidden_markov_models as _validate_hidden_markov_models,
     validate_integer as _validate_integer,
@@ -212,7 +212,7 @@ def test_validate_float(value, lower_limit, upper_limit, is_valid):
             _validate_float(value, lower_limit, upper_limit)
 
 
-def test_validate_graph(multi, graph_nodes, layers, edge_attributes, is_valid):
+def test_validate_graph_hmm(multi, graph_nodes, graph_edges, is_valid):
 
     if not isinstance(graph_nodes, list):
         graph = graph_nodes
@@ -220,39 +220,39 @@ def test_validate_graph(multi, graph_nodes, layers, edge_attributes, is_valid):
 
         graph = _nx.MultiDiGraph() if multi else _nx.DiGraph()
 
-        if all(isinstance(x, list) for x in graph_nodes):
+        for index, nodes in enumerate(graph_nodes):
+            graph.add_nodes_from(nodes, layer=index)
 
-            for index, nodes in enumerate(graph_nodes):
-                graph.add_nodes_from(nodes, layer=index)
-
-        else:
-
-            graph.add_nodes_from(graph_nodes)
-
-        nodes = graph.nodes
-        size = len(nodes)**2
-        types, weights = [], []
-
-        for _ in range(size):
-            types.append('P' if _rd.random() < 0.5 else 'E')
-            weights.append(_rd.uniform(1e-10, 1.0))
-
-        offset = 0
-
-        for node_i in nodes:
-            for node_j in nodes:
-                graph.add_edge(node_i, node_j, type=types[offset], weight=weights[offset])
-                offset += 1
-
-    if isinstance(edge_attributes, str):
-        edge_attributes = eval(edge_attributes)
+        for node_i, node_j, edge_type, edge_weight in graph_edges:
+            graph.add_edge(node_i, node_j, type=edge_type, weight=edge_weight)
 
     if is_valid:
-        result = _validate_graph(graph, layers, edge_attributes)
+        result = _validate_graph_hmm(graph)
         assert isinstance(result, _nx.DiGraph)
     else:
         with _pt.raises(Exception):
-            _validate_graph(graph, layers, edge_attributes)
+            _validate_graph_hmm(graph)
+
+
+def test_validate_graph_mc(multi, graph_nodes, graph_edges, is_valid):
+
+    if not isinstance(graph_nodes, list):
+        graph = graph_nodes
+    else:
+
+        graph = _nx.MultiDiGraph() if multi else _nx.DiGraph()
+
+        graph.add_nodes_from(graph_nodes)
+
+        for node_i, node_j, edge_weight in graph_edges:
+            graph.add_edge(node_i, node_j, weight=edge_weight)
+
+    if is_valid:
+        result = _validate_graph_mc(graph)
+        assert isinstance(result, _nx.DiGraph)
+    else:
+        with _pt.raises(Exception):
+            _validate_graph_mc(graph)
 
 
 def test_validate_hidden_markov_model(value, is_valid):

@@ -3867,10 +3867,12 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
+        - Parallel edge weights are summed before normalization.
         - Nodes with total outgoing weight equal to 0 are assigned a uniform transition distribution.
 
-        :param graph: the directed graph defining the Markov chain.
+        :param graph: the directed graph or multigraph defining the Markov chain.
         :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the accumulated graph edge weights are not finite.
         """
 
         try:

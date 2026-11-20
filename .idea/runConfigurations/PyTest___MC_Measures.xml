@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="PyTest - Measures" type="tests" factoryName="py.test">
+  <configuration default="false" name="PyTest - MC Measures" type="tests" factoryName="py.test">
     <module name="PyDTMC" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
@@ -12,7 +12,7 @@
     <option name="_new_keywords" value="&quot;&quot;" />
     <option name="_new_parameters" value="&quot;&quot;" />
     <option name="_new_additionalArguments" value="&quot;&quot;" />
-    <option name="_new_target" value="&quot;tests.test_measures&quot;" />
+    <option name="_new_target" value="&quot;tests.test_mc_measures&quot;" />
     <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     <method v="2" />
   </configuration>

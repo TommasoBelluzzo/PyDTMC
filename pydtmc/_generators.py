@@ -538,10 +538,13 @@ def hmm_from_graph(graph: _tgraphs) -> _thmm_gen_ext:
 
         if edge_type == 'E':
             j = symbols.index(target)
-            me[i, j] = float(edge_weight)
+            me[i, j] += float(edge_weight)
         else:
             j = states.index(target)
-            mp[i, j] = float(edge_weight)
+            mp[i, j] += float(edge_weight)
+
+    if not _np.all(_np.isfinite(mp)) or not _np.all(_np.isfinite(me)):
+        raise ValueError('The accumulated graph edge weights must be finite.')
 
     p, e = hmm_from_matrices(mp, me)
 
@@ -1709,7 +1712,10 @@ def mc_from_graph(graph: _tgraphs) -> _tmc_gen_ext:
     for edge in edges:
         i = states.index(edge[0])
         j = states.index(edge[1])
-        m[i, j] = float(edge[2])
+        m[i, j] += float(edge[2])
+
+    if not _np.all(_np.isfinite(m)):
+        raise ValueError('The accumulated graph weights must be finite.')
 
     p = mc_from_matrix(m)
 
@@ -1816,7 +1822,6 @@ def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _tarr
         p[i, i] = max(0.0, 1.0 - probability_sum)
 
     return p
-
 
 
 def mc_metropolis_hastings(target: _tarray, proposal: _oarray) -> _tarray:

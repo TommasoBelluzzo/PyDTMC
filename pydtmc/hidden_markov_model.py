@@ -1471,22 +1471,22 @@ class HiddenMarkovModel(_Model):
 
         return hmm
 
-
-
     @staticmethod
     @_object_mark(instance_generator=True)
     def from_graph(graph: _tgraphs) -> _thmm:
 
         """
-        | The method generates a hidden Markov model from a directed graph by normalizing edge weights into transition and emission probabilities.
+        | The method generates a hidden Markov model from a directed graph by normalizing its edge weights into transition and emission probabilities.
 
         | **Notes:**
 
+        - Parallel edge weights are summed before normalization.
         - Hidden states and emitted symbols are represented by separate node layers.
         - Rows with total outgoing transition or emission weight equal to 0 are assigned uniform probability distributions.
 
-        :param graph: the directed graph defining the hidden Markov model.
+        :param graph: the directed graph or multigraph defining the hidden Markov model.
         :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the accumulated graph edge weights are not finite.
         """
 
         try:

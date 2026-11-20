@@ -61,7 +61,6 @@ import pathlib as _pl
 
 # Libraries
 
-import networkx as _nx
 import numpy as _np
 
 # Internal
@@ -155,15 +154,12 @@ def _validate_dictionary_values(value: _tany) -> _tmdl_dict:
 
 def _validate_graph(value: _tany) -> _tgraphs:
 
-    result, multi = _is_graph(value)
+    result, _ = _is_graph(value)
 
     if not result:
         raise ValueError('The "@arg@" parameter must be a directed graph.')
 
-    if multi:
-        value = _nx.DiGraph(value)
-    else:
-        value = value.copy()
+    value = value.copy()
 
     nodes = list(value.nodes)
 
