@@ -14,7 +14,6 @@ Instance Methods
       committor_probabilities,
       commute_times_between,
       commute_times_to,
-      conditional_probabilities,
       conductance,
       cumulants,
       expected_rewards,
@@ -67,4 +66,5 @@ Instance Methods
       to_matrix,
       to_nth_order,
       to_subchain,
+      transition_probabilities,
       transition_probability

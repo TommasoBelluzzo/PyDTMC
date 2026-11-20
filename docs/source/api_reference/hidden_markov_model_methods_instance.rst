@@ -9,6 +9,7 @@ Instance Methods
       block_entropy,
       conditional_probabilities,
       decode,
+      emission_probabilities,
       emission_probability,
       entropy,
       entropy_rate,
@@ -29,4 +30,5 @@ Instance Methods
       to_graph,
       to_file,
       to_matrices,
+      transition_probabilities,
       transition_probability
