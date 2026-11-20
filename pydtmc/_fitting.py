@@ -21,33 +21,11 @@ from scipy.sparse.csgraph import (
 
 # Internal
 
-from ._analysis import (
-    hmm_decode as _hmm_decode
-)
-
-from ._custom_types import (
-    tany as _tany,
-    tarray as _tarray,
-    tfit_r as _tfit_r,
-    thmm_params_res as _thmm_params_res,
-    tival as _tival,
-    tlist_int as _tlist_int,
-    tlist_str as _tlist_str,
-    tlists_int as _tlists_int,
-    ttfunc as _ttfunc
-)
-
-from ._dynamics import (
-    hmm_predict as _hmm_predict
-)
-
-from ._generators import (
-    hmm_estimate as _hmm_estimate
-)
-
-from ._utilities import (
-    is_number as _is_number
-)
+from . import _analysis as _a
+from . import _custom_types as _ct
+from . import _dynamics as _d
+from . import _generators as _g
+from . import _utilities as _u
 
 
 #############
@@ -56,7 +34,7 @@ from ._utilities import (
 
 # HMM FITTING
 
-def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distribution: _tarray, symbols: _tlists_int, regularization: float, fitting_param: _tany) -> _thmm_params_res:
+def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial_distribution: _ct.tarray, symbols: _ct.tlists_int, regularization: float, fitting_param: _ct.tany) -> _ct.thmm_params_res:
 
     def _common_iterator(ci_fitting_func, ci_fitting_type, ci_p_guess, ci_e_guess, ci_initial_distribution, ci_symbols, ci_regularization, ci_fitting_param):  # pylint: disable=too-many-return-statements
 
@@ -144,7 +122,7 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
     # noinspection PyUnusedLocal
     def _fit_baum_welch(fbw_fitting_type, fwb_p_guess, fwb_e_guess, fwb_initial_distribution, fbw_symbols):  # pylint: disable=unused-argument
 
-        fwb_decoding = _hmm_decode(fwb_p_guess, fwb_e_guess, fwb_initial_distribution, fbw_symbols, True, False)
+        fwb_decoding = _a.hmm_decode(fwb_p_guess, fwb_e_guess, fwb_initial_distribution, fbw_symbols, True, False)
 
         if fwb_decoding is None:  # pragma: no cover
             return None
@@ -257,14 +235,14 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
 
     def _fit_prediction(fp_fitting_type, fp_p_guess, fp_e_guess, fp_initial_distribution, fp_symbols):
 
-        fp_prediction = _hmm_predict(fp_fitting_type, fp_p_guess, fp_e_guess, fp_initial_distribution, fp_symbols)
+        fp_prediction = _d.hmm_predict(fp_fitting_type, fp_p_guess, fp_e_guess, fp_initial_distribution, fp_symbols)
 
         if fp_prediction is None:
             return None
 
         fp_n, fp_k = fp_p_guess.shape[0], fp_e_guess.shape[1]
         fp_log_prob, fp_states = fp_prediction
-        fp_pc, fp_ec = _hmm_estimate(fp_n, fp_k, fp_states, fp_symbols, False)
+        fp_pc, fp_ec = _g.hmm_estimate(fp_n, fp_k, fp_states, fp_symbols, False)
 
         return fp_log_prob, fp_pc, fp_ec
 
@@ -281,7 +259,7 @@ def hmm_fit(fitting_type: str, p_guess: _tarray, e_guess: _tarray, initial_distr
 # MC FITTING
 
 # noinspection PyBroadException
-def mc_fit_function(quadrature_type: str, quadrature_interval: _tival, possible_states: _tlist_str, f: _ttfunc) -> _tfit_r:
+def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possible_states: _ct.tlist_str, f: _ct.ttfunc) -> _ct.tfit_r:
 
     size = len(possible_states)
 
@@ -388,7 +366,7 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _tival, possible_
             except Exception:  # pragma: no cover
                 return None, 'The transition function returned an invalid value.'
 
-            if (not _is_number(f_result)) or (not _np.isfinite(f_result)):  # pragma: no cover
+            if (not _u.is_number(f_result)) or (not _np.isfinite(f_result)):  # pragma: no cover
                 return None, 'The transition function returned an invalid value.'
 
             p[i, j] = float(f_result * weights[j])
@@ -399,7 +377,7 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _tival, possible_
     return p, None
 
 
-def mc_fit_sequence(fitting_type: str, fitting_param: _tany, possible_states: _tlist_str, sequence: _tlist_int) -> _tfit_r:  # pylint: disable=too-many-return-statements
+def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states: _ct.tlist_str, sequence: _ct.tlist_int) -> _ct.tfit_r:  # pylint: disable=too-many-return-statements
 
     size = len(possible_states)
     p = _np.zeros((size, size), dtype=float)

@@ -35,10 +35,7 @@ import numpy as _np
 
 # Internal
 
-from ._custom_types import (
-    tmdl_dict as _tmdl_dict,
-    tpath as _tpath
-)
+from . import _custom_types as _ct
 
 
 #############
@@ -63,7 +60,7 @@ _valid_params_mc = {
 # FUNCTIONS #
 #############
 
-def read_csv(mc: bool, file_path: _tpath) -> _tmdl_dict:
+def read_csv(mc: bool, file_path: _ct.tpath) -> _ct.tmdl_dict:
 
     def _read_csv_hmm(rch_data):
 
@@ -179,7 +176,7 @@ def read_csv(mc: bool, file_path: _tpath) -> _tmdl_dict:
 
 
 # noinspection PyTypeChecker
-def read_json(mc: bool, file_path: _tpath) -> _tmdl_dict:
+def read_json(mc: bool, file_path: _ct.tpath) -> _ct.tmdl_dict:
 
     with open(file_path, mode='r') as file:
         file.seek(0)
@@ -230,7 +227,7 @@ def read_json(mc: bool, file_path: _tpath) -> _tmdl_dict:
 
 
 # noinspection PyTypeChecker
-def read_txt(mc: bool, file_path: _tpath) -> _tmdl_dict:
+def read_txt(mc: bool, file_path: _ct.tpath) -> _ct.tmdl_dict:
 
     with open(file_path, mode='r') as file:
         file.seek(0)
@@ -270,7 +267,7 @@ def read_txt(mc: bool, file_path: _tpath) -> _tmdl_dict:
 
 
 # noinspection PyTypeChecker
-def read_xml(mc: bool, file_path: _tpath) -> _tmdl_dict:
+def read_xml(mc: bool, file_path: _ct.tpath) -> _ct.tmdl_dict:
 
     try:
         document = _xml_parse(file_path)
@@ -333,7 +330,7 @@ def read_xml(mc: bool, file_path: _tpath) -> _tmdl_dict:
     return d
 
 
-def write_csv(mc: bool, d: _tmdl_dict, file_path: _tpath):
+def write_csv(mc: bool, d: _ct.tmdl_dict, file_path: _ct.tpath):
 
     def _write_csv_hmm(wch_d):
 
@@ -386,7 +383,7 @@ def write_csv(mc: bool, d: _tmdl_dict, file_path: _tpath):
             writer.writerow(row)
 
 
-def write_json(mc: bool, d: _tmdl_dict, file_path: _tpath):
+def write_json(mc: bool, d: _ct.tmdl_dict, file_path: _ct.tpath):
 
     valid_params_keys = tuple((_valid_params_mc if mc else _valid_params_hmm).keys())
 
@@ -407,7 +404,7 @@ def write_json(mc: bool, d: _tmdl_dict, file_path: _tpath):
         _json.dump(data, file)
 
 
-def write_txt(d: _tmdl_dict, file_path: _tpath):
+def write_txt(d: _ct.tmdl_dict, file_path: _ct.tpath):
 
     with open(file_path, mode='w') as file:
 
@@ -423,7 +420,7 @@ def write_txt(d: _tmdl_dict, file_path: _tpath):
         file.write(line)
 
 
-def write_xml(mc: bool, d: _tmdl_dict, file_path: _tpath):
+def write_xml(mc: bool, d: _ct.tmdl_dict, file_path: _ct.tpath):
 
     valid_params_keys = tuple((_valid_params_mc if mc else _valid_params_hmm).keys())
     root_tag = 'MarkovChain' if mc else 'HiddenMarkovModel'

@@ -55,21 +55,7 @@ except ImportError:  # pragma: no cover
 
 # Internal
 
-from ._custom_types import (
-    odtype as _odtype,
-    oint as _oint,
-    olist_str as _olist_str,
-    tany as _tany,
-    tarray as _tarray,
-    texc as _texc,
-    tgraph as _tgraph,
-    tlist_mdl as _tlist_mdl,
-    tlist_str as _tlist_str,
-    tpair_bool as _tpair_bool,
-    tpath as _tpath,
-    trand as _trand,
-    tstack as _tstack
-)
+from . import _custom_types as _ct
 
 from .exceptions import (
     ValidationError as _ValidationError
@@ -103,7 +89,7 @@ def build_hmm_graph(p, e, states, symbols):
     return graph
 
 
-def build_mc_graph(p: _tarray, states: _tlist_str) -> _tgraph:
+def build_mc_graph(p: _ct.tarray, states: _ct.tlist_str) -> _ct.tgraph:
 
     graph = _nx.DiGraph()
     graph.add_nodes_from(states)
@@ -118,14 +104,14 @@ def build_mc_graph(p: _tarray, states: _tlist_str) -> _tgraph:
     return graph
 
 
-def create_labels(count: int, prefix: str = '') -> _tlist_str:
+def create_labels(count: int, prefix: str = '') -> _ct.tlist_str:
 
     labels = [f'{prefix}{i:d}' for i in range(1, count + 1)]
 
     return labels
 
 
-def create_labels_from_data(data: _tany, prefix: str = '') -> _olist_str:
+def create_labels_from_data(data: _ct.tany, prefix: str = '') -> _ct.olist_str:
 
     if not is_list(data):
         return None
@@ -145,7 +131,7 @@ def create_labels_from_data(data: _tany, prefix: str = '') -> _olist_str:
     return labels
 
 
-def create_models_names(models: _tlist_mdl) -> _tlist_str:
+def create_models_names(models: _ct.tlist_mdl) -> _ct.tlist_str:
 
     if all(model.__class__.__name__ == 'HiddenMarkovModel' for model in models):  # pragma: no cover
         models_label = 'HMM'
@@ -160,7 +146,7 @@ def create_models_names(models: _tlist_mdl) -> _tlist_str:
 
 
 # noinspection PyProtectedMember
-def create_rng(seed: _oint) -> _trand:
+def create_rng(seed: _ct.oint) -> _ct.trand:
 
     if seed is None:
         rng = _nprm._rand  # pylint: disable=c-extension-no-member
@@ -172,7 +158,7 @@ def create_rng(seed: _oint) -> _trand:
     return rng
 
 
-def create_validation_error(ex: _texc, trace: _tany) -> _ValidationError:
+def create_validation_error(ex: _ct.texc, trace: _ct.tany) -> _ValidationError:
 
     arguments = ''.join(trace[0][4]).split('=', 1)[0].strip()
 
@@ -185,7 +171,7 @@ def create_validation_error(ex: _texc, trace: _tany) -> _ValidationError:
     return validation_error
 
 
-def extract_numeric(data: _tany, dtype: _odtype = None) -> _tarray:
+def extract_numeric(data: _ct.tany, dtype: _ct.odtype = None) -> _ct.tarray:
 
     if is_list(data):
         output = _np.array(data)
@@ -207,14 +193,14 @@ def extract_numeric(data: _tany, dtype: _odtype = None) -> _tarray:
     return output
 
 
-def get_caller(stack: _tstack) -> str:
+def get_caller(stack: _ct.tstack) -> str:
 
     caller = stack[1][3]
 
     return caller
 
 
-def get_file_extension(file_path: _tpath) -> str:
+def get_file_extension(file_path: _ct.tpath) -> str:
 
     if isinstance(file_path, str):  # pragma: no cover
         file_path = _pl.Path(file_path)
@@ -224,7 +210,7 @@ def get_file_extension(file_path: _tpath) -> str:
     return file_extension
 
 
-def get_instance_generators(cls: _tany) -> _tlist_str:
+def get_instance_generators(cls: _ct.tany) -> _ct.tlist_str:
 
     instance_generators = []
 
@@ -237,7 +223,7 @@ def get_instance_generators(cls: _tany) -> _tlist_str:
 
 
 # noinspection PyBroadException
-def get_full_name(obj: _tany) -> str:
+def get_full_name(obj: _ct.tany) -> str:
 
     try:
         module = obj.__module__
@@ -257,7 +243,7 @@ def get_full_name(obj: _tany) -> str:
     return full_name
 
 
-def get_numpy_random_distributions() -> _tlist_str:
+def get_numpy_random_distributions() -> _ct.tlist_str:
 
     try:
         from numpydoc.docscrape import NumpyDocString
@@ -296,27 +282,27 @@ def get_numpy_random_distributions() -> _tlist_str:
     return random_distributions
 
 
-def is_array(value: _tany) -> bool:
+def is_array(value: _ct.tany) -> bool:
 
     return isinstance(value, _np.ndarray)
 
 
-def is_boolean(value: _tany) -> bool:
+def is_boolean(value: _ct.tany) -> bool:
 
     return isinstance(value, bool)
 
 
-def is_dictionary(value: _tany) -> bool:
+def is_dictionary(value: _ct.tany) -> bool:
 
     return isinstance(value, dict)
 
 
-def is_float(value: _tany) -> bool:
+def is_float(value: _ct.tany) -> bool:
 
     return isinstance(value, (float, _np.floating))
 
 
-def is_graph(value: _tany) -> _tpair_bool:
+def is_graph(value: _ct.tany) -> _ct.tpair_bool:
 
     if isinstance(value, _nx.MultiDiGraph):
         return True, True
@@ -327,36 +313,36 @@ def is_graph(value: _tany) -> _tpair_bool:
     return False, False
 
 
-def is_integer(value: _tany) -> bool:
+def is_integer(value: _ct.tany) -> bool:
 
     return isinstance(value, (int, _np.integer)) and not isinstance(value, bool)
 
 
-def is_list(value: _tany) -> bool:
+def is_list(value: _ct.tany) -> bool:
 
     return isinstance(value, list)
 
 
-def is_number(value: _tany) -> bool:
+def is_number(value: _ct.tany) -> bool:
 
     return is_float(value) or is_integer(value)
 
 
-def is_pandas(value: _tany) -> bool:
+def is_pandas(value: _ct.tany) -> bool:
 
     return _pandas_found and isinstance(value, (_pd.DataFrame, _pd.Series))
 
 
-def is_spmatrix(value: _tany) -> bool:
+def is_spmatrix(value: _ct.tany) -> bool:
 
     return isinstance(value, _spsp.spmatrix)
 
 
-def is_string(value: _tany) -> bool:
+def is_string(value: _ct.tany) -> bool:
 
     return isinstance(value, str) and len(value.strip()) > 0
 
 
-def is_tuple(value: _tany) -> bool:
+def is_tuple(value: _ct.tany) -> bool:
 
     return isinstance(value, tuple)

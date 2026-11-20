@@ -24,241 +24,21 @@ import numpy.linalg as _npl
 
 # Internal
 
-from ._base_classes import (
-    Model as _Model
-)
-
-from ._analysis import (
-    mc_absorption_probabilities as _absorption_probabilities,
-    mc_absorption_times as _absorption_times,
-    mc_absolute_spectral_gap as _absolute_spectral_gap,
-    mc_committor_probabilities as _committor_probabilities,
-    mc_commute_times_between as _commute_times_between,
-    mc_commute_times_to as _commute_times_to,
-    mc_conductance as _conductance,
-    mc_cumulants as _cumulants,
-    mc_deviation_matrix as _deviation_matrix,
-    mc_dobrushin_coefficient as _dobrushin_coefficient,
-    mc_doeblin_coefficient as _doeblin_coefficient,
-    mc_entropy_production_rate as _entropy_production_rate,
-    mc_entropy_rate as _entropy_rate,
-    mc_entropy_rate_normalized as _entropy_rate_normalized,
-    mc_expected_rewards as _expected_rewards,
-    mc_expected_transitions as _expected_transitions,
-    mc_expected_visits as _expected_visits,
-    mc_first_passage_reward as _first_passage_reward,
-    mc_first_passage_probabilities as _first_passage_probabilities,
-    mc_first_passage_times_between as _first_passage_times_between,
-    mc_first_passage_times_to as _first_passage_times_to,
-    mc_fundamental_cycle_profile as _fundamental_cycle_profile,
-    mc_fundamental_matrix as _fundamental_matrix,
-    mc_global_conductance as _global_conductance,
-    mc_hitting_probabilities as _hitting_probabilities,
-    mc_hitting_times as _hitting_times,
-    mc_implied_timescales as _implied_timescales,
-    mc_is_absorbing as _is_absorbing,
-    mc_is_aperiodic as _is_aperiodic,
-    mc_is_canonical as _is_canonical,
-    mc_is_reversible as _is_reversible,
-    mc_kemeny_constant as _kemeny_constant,
-    mc_large_deviation_rate as _large_deviation_rate,
-    mc_mixing_rate as _mixing_rate,
-    mc_mixing_time as _mixing_time,
-    mc_mixing_time_from as _mixing_time_from,
-    mc_occupation_matrix as _occupation_matrix,
-    mc_ordinary_spectral_gap as _ordinary_spectral_gap,
-    mc_period as _period,
-    mc_quasi_stationary_distribution as _quasi_stationary_distribution,
-    mc_reaction_rate as _reaction_rate,
-    mc_reactive_density as _reactive_density,
-    mc_reactive_flux as _reactive_flux,
-    mc_recurrence_times as _recurrence_times,
-    mc_relaxation_rate as _relaxation_rate,
-    mc_sensitivity as _sensitivity,
-    mc_stationary_current as _stationary_current,
-    mc_stationary_distributions as _stationary_distributions,
-    mc_stationary_flux as _stationary_flux,
-    mc_stationary_perturbation_bound as _stationary_perturbation_bound,
-    mc_time_correlations as _time_correlations,
-    mc_time_relaxations as _time_relaxations,
-    mc_topological_entropy as _topological_entropy
-)
-
-from ._constants import (
-    ETOL as _ETOL
-)
-
-from ._custom_types import (
-    oarray as _oarray,
-    obndval as _obndval,
-    ofc_prof as _ofc_prof,
-    ofloat as _ofloat,
-    oint as _oint,
-    oival as _oival,
-    olist_str as _olist_str,
-    omat as _omat,
-    oseq as _oseq,
-    ostate as _ostate,
-    ostates as _ostates,
-    ostatus as _ostatus,
-    otimes_out as _otimes_out,
-    ovec as _ovec,
-    tany as _tany,
-    tarray as _tarray,
-    tbcond as _tbcond,
-    tgraph as _tgraph,
-    tgraphs as _tgraphs,
-    tlist_array as _tlist_array,
-    tlist_float as _tlist_float,
-    tlist_int as _tlist_int,
-    tlist_str as _tlist_str,
-    tlists_int as _tlists_int,
-    tlists_str as _tlists_str,
-    tmat as _tmat,
-    tmc as _tmc,
-    tmc_dict as _tmc_dict,
-    tmc_dict_f as _tmc_dict_f,
-    tobs as _tobs,
-    tpart as _tpart,
-    tparts as _tparts,
-    tpath as _tpath,
-    tpprobs as _tpprobs,
-    trfunc_f as _trfunc_f,
-    tredists as _tredists,
-    tseq as _tseq,
-    tstate as _tstate,
-    tstates as _tstates,
-    ttfunc as _ttfunc,
-    ttimes_in as _ttimes_in,
-    tvec as _tvec,
-    twgts as _twgts
-)
-
-from ._decorators import (
-    aliased as _aliased,
-    cached_method as _cached_method,
-    cached_property as _cached_property,
-    object_mark as _object_mark
-)
-
-from ._dynamics import (
-    mc_predict as _predict,
-    mc_predict_trajectory as _predict_trajectory,
-    mc_propagate as _propagate,
-    mc_sequence_probability as _sequence_probability,
-    mc_simulate as _simulate,
-    mc_stationary_sampling as _stationary_sampling
-)
+from . import _base_classes as _bc
+from . import _analysis as _a
+from . import _constants as _c
+from . import _custom_types as _ct
+from . import _decorators as _dc
+from . import _dynamics as _d
+from . import _files_io as _io
+from . import _fitting as _ft
+from . import _generators as _g
+from . import _numerical as _n
+from . import _utilities as _u
+from . import _validation as _v
 
 from .exceptions import (
     ValidationError as _ValidationError
-)
-
-from ._files_io import (
-    write_csv as _write_csv,
-    write_json as _write_json,
-    write_txt as _write_txt,
-    write_xml as _write_xml
-)
-
-from ._fitting import (
-    mc_fit_function as _fit_function,
-    mc_fit_sequence as _fit_sequence
-)
-
-from ._generators import (
-    mc_approximation as _approximation,
-    mc_bernoulli_trials as _bernoulli_trials,
-    mc_birth_death as _birth_death,
-    mc_bounded as _bounded,
-    mc_canonical as _canonical,
-    mc_card_shuffling as _card_shuffling,
-    mc_censor as _censor,
-    mc_closest_reversible as _closest_reversible,
-    mc_coupon_collector as _coupon_collector,
-    mc_dirichlet_process as _dirichlet_process,
-    mc_epidemic_model as _epidemic_model,
-    mc_exclusion_process as _exclusion_process,
-    mc_from_dictionary as _from_dictionary,
-    mc_from_file as _from_file,
-    mc_from_graph as _from_graph,
-    mc_from_matrix as _from_matrix,
-    mc_gamblers_ruin as _gamblers_ruin,
-    mc_gibbs_sampling as _gibbs_sampling,
-    mc_ising_model as _ising_model,
-    mc_lazy as _lazy,
-    mc_lump as _lump,
-    mc_metastable_aggregation as _metastable_aggregation,
-    mc_metropolis_hastings as _metropolis_hastings,
-    mc_pattern_matching as _pattern_matching,
-    mc_population_genetics_model as _population_genetics_model,
-    mc_random as _random,
-    mc_random_distribution as _random_distribution,
-    mc_random_walk as _random_walk,
-    mc_reversibilize as _reversibilize,
-    mc_spectral_aggregation as _spectral_aggregation,
-    mc_sub as _sub,
-    mc_teleport as _teleport,
-    mc_time_reversal as _time_reversal,
-    mc_urn_model as _urn_model
-)
-
-from ._numerical import (
-    accessibility_matrix as _accessibility_matrix,
-    calculate_periods as _calculate_periods,
-    communication_matrix as _communication_matrix,
-    density as _density,
-    find_cyclic_classes as _find_cyclic_classes,
-    find_lumping_partitions as _find_lumping_partitions,
-    incidence_matrix as _incidence_matrix,
-    is_stochastically_monotone as _is_stochastically_monotone,
-    slem as _slem
-)
-
-from ._utilities import (
-    build_mc_graph as _build_mc_graph,
-    create_labels as _create_labels,
-    create_rng as _create_rng,
-    create_validation_error as _create_validation_error,
-    get_caller as _get_caller,
-    get_instance_generators as _get_instance_generators,
-    get_numpy_random_distributions as _get_numpy_random_distributions
-)
-
-from ._validation import (
-    validate_boolean as _validate_boolean,
-    validate_boundary_condition as _validate_boundary_condition,
-    validate_dictionary_mc as _validate_dictionary,
-    validate_dimensions as _validate_dimensions,
-    validate_enumerator as _validate_enumerator,
-    validate_file_path as _validate_file_path,
-    validate_float as _validate_float,
-    validate_graph_mc as _validate_graph,
-    validate_hyperparameter as _validate_hyperparameter,
-    validate_inertial_weights as _validate_inertial_weights,
-    validate_integer as _validate_integer,
-    validate_interval as _validate_interval,
-    validate_label as _validate_label,
-    validate_labels_current as _validate_labels_current,
-    validate_labels_pair as _validate_labels_pair,
-    validate_labels_input as _validate_labels_input,
-    validate_mask as _validate_mask,
-    validate_markov_chain as _validate_markov_chain,
-    validate_matrix as _validate_matrix,
-    validate_none as _validate_none,
-    validate_observable as _validate_observable,
-    validate_partition as _validate_partitions,
-    validate_pattern_probabilities as _validate_pattern_probabilities,
-    validate_random_distribution as _validate_random_distribution,
-    validate_rewards as _validate_rewards,
-    validate_sequence as _validate_sequence,
-    validate_status as _validate_status,
-    validate_string as _validate_string,
-    validate_time_points as _validate_time_points,
-    validate_transition_function as _validate_transition_function,
-    validate_transition_matrix as _validate_transition_matrix,
-    validate_vector_birth_death as _validate_vector_birth_death,
-    validate_vector_stochastic as _validate_vector_stochastic
 )
 
 
@@ -266,8 +46,8 @@ from ._validation import (
 # CLASSES #
 ###########
 
-@_aliased
-class MarkovChain(_Model):
+@_dc.aliased
+class MarkovChain(_bc.Model):
 
     r"""
     Defines a Markov chain with the given transition matrix.
@@ -283,34 +63,34 @@ class MarkovChain(_Model):
     :raises ValidationError: if any input argument is not compliant.
     """
 
-    __instance_generators: _olist_str = None
-    __random_distributions: _olist_str = None
+    __instance_generators: _ct.olist_str = None
+    __random_distributions: _ct.olist_str = None
 
-    def __init__(self, p: _tmat, states: _olist_str = None):
+    def __init__(self, p: _ct.tmat, states: _ct.olist_str = None):
 
         if MarkovChain.__instance_generators is None:
-            MarkovChain.__instance_generators = _get_instance_generators(self.__class__)
+            MarkovChain.__instance_generators = _u.get_instance_generators(self.__class__)
 
-        caller = _get_caller(_ins.stack())
+        caller = _u.get_caller(_ins.stack())
 
         if caller not in MarkovChain.__instance_generators:  # pylint: disable=unsupported-membership-test
 
             try:
 
-                p = _validate_transition_matrix(p)
+                p = _v.validate_transition_matrix(p)
 
                 if states is not None:  # pragma: no cover
-                    states = _validate_labels_input(states, p.shape[1])
+                    states = _v.validate_labels_input(states, p.shape[1])
 
             except Exception as ex:  # pragma: no cover
-                raise _create_validation_error(ex, _ins.trace()) from None
+                raise _u.create_validation_error(ex, _ins.trace()) from None
 
-            states = states if states is not None else _create_labels(p.shape[1])
+            states = states if states is not None else _u.create_labels(p.shape[1])
 
-        self.__digraph: _tgraph = _build_mc_graph(p, states)
-        self.__p: _tarray = p
+        self.__digraph: _ct.tgraph = _u.build_mc_graph(p, states)
+        self.__p: _ct.tarray = p
         self.__size: int = p.shape[1]
-        self.__states: _tlist_str = states
+        self.__states: _ct.tlist_str = states
 
     def __eq__(self, other) -> bool:
 
@@ -350,81 +130,81 @@ class MarkovChain(_Model):
 
         return value
 
-    @_cached_property
-    def __absorbing_states_indices(self) -> _tlist_int:
+    @_dc.cached_property
+    def __absorbing_states_indices(self) -> _ct.tlist_int:
 
         indices = [index for index in range(self.__size) if self.__p[index, index] == 1.0]
 
         return indices
 
-    @_cached_property
-    def __classes_indices(self) -> _tlists_int:
+    @_dc.cached_property
+    def __classes_indices(self) -> _ct.tlists_int:
 
         indices = [sorted([self.__states.index(c) for c in scc]) for scc in _nx.strongly_connected_components(self.__digraph)]
 
         return indices
 
-    @_cached_property
-    def __communicating_classes_indices(self) -> _tlists_int:
+    @_dc.cached_property
+    def __communicating_classes_indices(self) -> _ct.tlists_int:
 
         indices = sorted(self.__classes_indices, key=lambda x: (-len(x), x[0]))
 
         return indices
 
-    @_cached_property
-    def __cyclic_classes_indices(self) -> _tlists_int:
+    @_dc.cached_property
+    def __cyclic_classes_indices(self) -> _ct.tlists_int:
 
         if not self.is_irreducible:
             indices = []
         elif self.is_aperiodic:
             indices = self.__communicating_classes_indices.copy()
         else:
-            indices = _find_cyclic_classes(self.__p)
+            indices = _n.find_cyclic_classes(self.__p)
             indices = sorted(indices, key=lambda x: (-len(x), x[0]))
 
         return indices
 
-    @_cached_property
-    def __cyclic_states_indices(self) -> _tlist_int:
+    @_dc.cached_property
+    def __cyclic_states_indices(self) -> _ct.tlist_int:
 
         indices = sorted(_it.chain.from_iterable(self.__cyclic_classes_indices))
 
         return indices
 
-    @_cached_property
-    def __recurrent_classes_indices(self) -> _tlists_int:
+    @_dc.cached_property
+    def __recurrent_classes_indices(self) -> _ct.tlists_int:
 
         indices = [index for index in self.__classes_indices if index not in self.__transient_classes_indices]
         indices = sorted(indices, key=lambda x: (-len(x), x[0]))
 
         return indices
 
-    @_cached_property
-    def __recurrent_states_indices(self) -> _tlist_int:
+    @_dc.cached_property
+    def __recurrent_states_indices(self) -> _ct.tlist_int:
 
         indices = sorted(_it.chain.from_iterable(self.__recurrent_classes_indices))
 
         return indices
 
-    @_cached_property
-    def __slem(self) -> _ofloat:
+    @_dc.cached_property
+    def __slem(self) -> _ct.ofloat:
 
         if not self.is_irreducible:
             slem = None
         else:
-            slem = _slem(self.__p)
+            slem = _n.slem(self.__p)
 
         return slem
 
-    @_cached_property
-    def __states_indices(self) -> _tlist_int:
+    @_dc.cached_property
+    def __states_indices(self) -> _ct.tlist_int:
 
         indices = list(range(self.__size))
 
         return indices
 
-    @_cached_property
-    def __transient_classes_indices(self) -> _tlists_int:
+    @_dc.cached_property
+    def __transient_classes_indices(self) -> _ct.tlists_int:
 
         edges = {edge1 for (edge1, edge2) in _nx.condensation(self.__digraph).edges}
 
@@ -433,15 +213,15 @@ class MarkovChain(_Model):
 
         return indices
 
-    @_cached_property
-    def __transient_states_indices(self) -> _tlist_int:
+    @_dc.cached_property
+    def __transient_states_indices(self) -> _ct.tlist_int:
 
         indices = sorted(_it.chain.from_iterable(self.__transient_classes_indices))
 
         return indices
 
-    @_cached_property
-    def absolute_spectral_gap(self) -> _ofloat:
+    @_dc.cached_property
+    def absolute_spectral_gap(self) -> _ct.ofloat:
 
         r"""
         | A property representing the absolute spectral gap of the Markov chain:
@@ -452,10 +232,10 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
-        return _absolute_spectral_gap(self.__slem)
+        return _a.mc_absolute_spectral_gap(self.__slem)
 
-    @_cached_property
-    def absorbing_states(self) -> _tlist_str:
+    @_dc.cached_property
+    def absorbing_states(self) -> _ct.tlist_str:
 
         """
         | A property representing the absorbing states of the Markov chain.
@@ -469,8 +249,8 @@ class MarkovChain(_Model):
 
         return states
 
-    @_cached_property
-    def accessibility_matrix(self) -> _tarray:
+    @_dc.cached_property
+    def accessibility_matrix(self) -> _ct.tarray:
 
         r"""
         | A property representing the accessibility matrix of the Markov chain:
@@ -482,10 +262,10 @@ class MarkovChain(_Model):
         - Every diagonal entry is 1, since each state is accessible from itself.
         """
 
-        return _accessibility_matrix(self.adjacency_matrix)
+        return _n.accessibility_matrix(self.adjacency_matrix)
 
-    @_cached_property
-    def adjacency_matrix(self) -> _tarray:
+    @_dc.cached_property
+    def adjacency_matrix(self) -> _ct.tarray:
 
         r"""
         | A property representing the adjacency matrix of the Markov chain:
@@ -500,8 +280,8 @@ class MarkovChain(_Model):
 
         return am
 
-    @_cached_property
-    def communicating_classes(self) -> _tlists_str:
+    @_dc.cached_property
+    def communicating_classes(self) -> _ct.tlists_str:
 
         """
         | A property representing the communicating classes of the Markov chain.
@@ -516,8 +296,8 @@ class MarkovChain(_Model):
 
         return classes
 
-    @_cached_property
-    def communication_matrix(self) -> _tarray:
+    @_dc.cached_property
+    def communication_matrix(self) -> _ct.tarray:
 
         r"""
         | A property representing the communication matrix of the Markov chain:
@@ -529,10 +309,10 @@ class MarkovChain(_Model):
         - The matrix is symmetric, with all diagonal entries equal to 1.
         """
 
-        return _communication_matrix(self.__size, self.__communicating_classes_indices)
+        return _n.communication_matrix(self.__size, self.__communicating_classes_indices)
 
-    @_cached_property
-    def cyclic_classes(self) -> _tlists_str:
+    @_dc.cached_property
+    def cyclic_classes(self) -> _ct.tlists_str:
 
         """
         | A property representing the cyclic classes of the Markov chain.
@@ -548,8 +328,8 @@ class MarkovChain(_Model):
 
         return classes
 
-    @_cached_property
-    def cyclic_states(self) -> _tlist_str:
+    @_dc.cached_property
+    def cyclic_states(self) -> _ct.tlist_str:
 
         """
         | A property representing the states belonging to the cyclic decomposition of the Markov chain.
@@ -563,7 +343,7 @@ class MarkovChain(_Model):
 
         return states
 
-    @_cached_property
+    @_dc.cached_property
     def density(self) -> float:
 
         r"""
@@ -576,9 +356,9 @@ class MarkovChain(_Model):
         - The density ranges from 0 to 1.
         """
 
-        return _density(self.adjacency_matrix)
+        return _n.density(self.adjacency_matrix)
 
-    @_cached_property
+    @_dc.cached_property
     def determinant(self) -> float:
 
         r"""
@@ -590,8 +370,8 @@ class MarkovChain(_Model):
 
         return d
 
-    @_cached_property
-    def deviation_matrix(self) -> _oarray:
+    @_dc.cached_property
+    def deviation_matrix(self) -> _ct.oarray:
 
         r"""
         | A property representing the deviation matrix of the Markov chain:
@@ -605,9 +385,9 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        return _deviation_matrix(self)
+        return _a.mc_deviation_matrix(self)
 
-    @_cached_property
+    @_dc.cached_property
     def dobrushin_coefficient(self) -> float:
 
         r"""
@@ -616,9 +396,9 @@ class MarkovChain(_Model):
         | :math:`\delta(P) = \frac{1}{2}\max_{i,j}\sum_k |P_{ik} - P_{jk}|`
         """
 
-        return _dobrushin_coefficient(self)
+        return _a.mc_dobrushin_coefficient(self)
 
-    @_cached_property
+    @_dc.cached_property
     def doeblin_coefficient(self) -> float:
 
         r"""
@@ -632,10 +412,10 @@ class MarkovChain(_Model):
         - Equality does not necessarily hold.
         """
 
-        return _doeblin_coefficient(self)
+        return _a.mc_doeblin_coefficient(self)
 
-    @_cached_property
-    def entropy_production_rate(self) -> _tlist_float:
+    @_dc.cached_property
+    def entropy_production_rate(self) -> _ct.tlist_float:
 
         r"""
         | A property representing the stationary entropy production rates of the Markov chain:
@@ -648,10 +428,10 @@ class MarkovChain(_Model):
         - One value is returned for each stationary distribution.
         """
 
-        return _entropy_production_rate(self)
+        return _a.mc_entropy_production_rate(self)
 
-    @_cached_property
-    def entropy_rate(self) -> _ofloat:
+    @_dc.cached_property
+    def entropy_rate(self) -> _ct.ofloat:
 
         r"""
         | A property representing the entropy rate of the Markov chain:
@@ -664,10 +444,10 @@ class MarkovChain(_Model):
         - If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:class:`None` is returned.
         """
 
-        return _entropy_rate(self)
+        return _a.mc_entropy_rate(self)
 
-    @_cached_property
-    def entropy_rate_normalized(self) -> _ofloat:
+    @_dc.cached_property
+    def entropy_rate_normalized(self) -> _ct.ofloat:
 
         r"""
         | A property representing the entropy rate, normalized between 0 and 1, of the Markov chain:
@@ -682,10 +462,10 @@ class MarkovChain(_Model):
         - If the entropy rate cannot be computed, then :py:class:`None` is returned.
         """
 
-        return _entropy_rate_normalized(self)
+        return _a.mc_entropy_rate_normalized(self)
 
-    @_cached_property
-    def fundamental_matrix(self) -> _oarray:
+    @_dc.cached_property
+    def fundamental_matrix(self) -> _ct.oarray:
 
         r"""
         | A property representing the fundamental matrix of the Markov chain:
@@ -696,10 +476,10 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        return _fundamental_matrix(self)
+        return _a.mc_fundamental_matrix(self)
 
-    @_cached_property
-    def global_conductance(self) -> _ofloat:
+    @_dc.cached_property
+    def global_conductance(self) -> _ct.ofloat:
 
         r"""
         | A property representing the global conductance of the Markov chain:
@@ -717,10 +497,10 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        return _global_conductance(self)
+        return _a.mc_global_conductance(self)
 
-    @_cached_property
-    def global_metastability(self) -> _ofloat:
+    @_dc.cached_property
+    def global_metastability(self) -> _ct.ofloat:
 
         r"""
         | A property representing the global metastability of the Markov chain:
@@ -733,13 +513,13 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        gc = _global_conductance(self)
+        gc = _a.mc_global_conductance(self)
         gm = None if gc is None else 1.0 - gc
 
         return gm
 
-    @_cached_property
-    def implied_timescales(self) -> _oarray:
+    @_dc.cached_property
+    def implied_timescales(self) -> _ct.oarray:
 
         r"""
         | A property representing the implied timescales of the Markov chain:
@@ -752,10 +532,10 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
         """
 
-        return _implied_timescales(self)
+        return _a.mc_implied_timescales(self)
 
-    @_cached_property
-    def incidence_matrix(self) -> _tarray:
+    @_dc.cached_property
+    def incidence_matrix(self) -> _ct.tarray:
 
         r"""
         | A property representing the unsigned incidence matrix of the Markov chain.
@@ -768,9 +548,9 @@ class MarkovChain(_Model):
         - The matrix includes all possible ordered pairs, independently of their transition probabilities.
         """
 
-        return _incidence_matrix(self.__states_indices)
+        return _n.incidence_matrix(self.__states_indices)
 
-    @_cached_property
+    @_dc.cached_property
     def is_absorbing(self) -> bool:
 
         """
@@ -782,9 +562,9 @@ class MarkovChain(_Model):
         - An absorbing state has a self-transition probability equal to 1.
         """
 
-        return _is_absorbing(self.__digraph, self.__states, self.__absorbing_states_indices)
+        return _a.mc_is_absorbing(self.__digraph, self.__states, self.__absorbing_states_indices)
 
-    @_cached_property
+    @_dc.cached_property
     def is_aperiodic(self) -> bool:
 
         """
@@ -796,9 +576,9 @@ class MarkovChain(_Model):
         - Transient classes do not affect the aperiodicity of the Markov chain.
         """
 
-        return _is_aperiodic(self)
+        return _a.mc_is_aperiodic(self)
 
-    @_cached_property
+    @_dc.cached_property
     def is_canonical(self) -> bool:
 
         """
@@ -811,9 +591,9 @@ class MarkovChain(_Model):
         - Recurrent classes must follow the ordering determined by their first state index.
         """
 
-        return _is_canonical(self, self.__transient_states_indices, self.__recurrent_classes_indices)
+        return _a.mc_is_canonical(self, self.__transient_states_indices, self.__recurrent_classes_indices)
 
-    @_cached_property
+    @_dc.cached_property
     def is_doubly_stochastic(self) -> bool:
 
         r"""
@@ -821,12 +601,12 @@ class MarkovChain(_Model):
         | :math:`\sum_i P_{ij} = 1` for every state :math:`j`.
         """
 
-        result = _np.allclose(_np.sum(self.__p, axis=0), 1.0, rtol=0.0, atol=_ETOL)
+        result = _np.allclose(_np.sum(self.__p, axis=0), 1.0, rtol=0.0, atol=_c.ETOL)
 
         return result
 
-    @_cached_property
-    @_object_mark(aliases=['is_regular'])
+    @_dc.cached_property
+    @_dc.object_mark(aliases=['is_regular'])
     def is_ergodic(self) -> bool:
 
         """
@@ -838,7 +618,7 @@ class MarkovChain(_Model):
 
         return result
 
-    @_cached_property
+    @_dc.cached_property
     def is_irreducible(self) -> bool:
 
         """
@@ -854,7 +634,7 @@ class MarkovChain(_Model):
 
         return result
 
-    @_cached_property
+    @_dc.cached_property
     def is_reversible(self) -> bool:
 
         r"""
@@ -866,10 +646,10 @@ class MarkovChain(_Model):
         - For **reducible** chains, detailed balance is checked independently within each recurrent class.
         """
 
-        return _is_reversible(self, self.__recurrent_classes_indices)
+        return _a.mc_is_reversible(self, self.__recurrent_classes_indices)
 
-    @_cached_property
-    @_object_mark(aliases=['is_monotone'])
+    @_dc.cached_property
+    @_dc.object_mark(aliases=['is_monotone'])
     def is_stochastically_monotone(self) -> bool:
 
         r"""
@@ -882,9 +662,9 @@ class MarkovChain(_Model):
         - The property can also be accessed through the alias **is_monotone**.
         """
 
-        return _is_stochastically_monotone(self.__p)
+        return _n.is_stochastically_monotone(self.__p)
 
-    @_cached_property
+    @_dc.cached_property
     def is_symmetric(self) -> bool:
 
         r"""
@@ -892,12 +672,12 @@ class MarkovChain(_Model):
         | :math:`P_{ij} = P_{ji}` for every pair of states :math:`i` and :math:`j`.
         """
 
-        result = _np.allclose(self.__p, _np.transpose(self.__p), rtol=0.0, atol=_ETOL)
+        result = _np.allclose(self.__p, _np.transpose(self.__p), rtol=0.0, atol=_c.ETOL)
 
         return result
 
-    @_cached_property
-    def kemeny_constant(self) -> _ofloat:
+    @_dc.cached_property
+    def kemeny_constant(self) -> _ct.ofloat:
 
         r"""
         | A property representing Kemeny's constant of the Markov chain:
@@ -908,10 +688,10 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the value cannot be computed, then :py:class:`None` is returned.
         """
 
-        return _kemeny_constant(self)
+        return _a.mc_kemeny_constant(self)
 
-    @_cached_property
-    def lumping_partitions(self) -> _tparts:
+    @_dc.cached_property
+    def lumping_partitions(self) -> _ct.tparts:
 
         r"""
         | A property representing the partitions of the Markov chain that satisfy the ordinary lumpability criterion:
@@ -927,13 +707,13 @@ class MarkovChain(_Model):
         - Partitions consisting of only 1 block or 1 block per state are excluded.
         """
 
-        partitions = _find_lumping_partitions(self.__p)
+        partitions = _n.find_lumping_partitions(self.__p)
         partitions = [[[self.__states[index] for index in group] for group in partition] for partition in partitions]
 
         return partitions
 
-    @_cached_property
-    def mixing_rate(self) -> _ofloat:
+    @_dc.cached_property
+    def mixing_rate(self) -> _ct.ofloat:
 
         r"""
         | A property representing the mixing rate of the Markov chain:
@@ -945,7 +725,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
-        return _mixing_rate(self.__slem)
+        return _a.mc_mixing_rate(self.__slem)
 
     @property
     def n(self) -> int:
@@ -956,9 +736,9 @@ class MarkovChain(_Model):
 
         return self.__size
 
-    @_cached_property
-    @_object_mark(aliases=['quasi_stationary_distribution'])
-    def nu(self) -> _oarray:
+    @_dc.cached_property
+    @_dc.object_mark(aliases=['quasi_stationary_distribution'])
+    def nu(self) -> _ct.oarray:
 
         r"""
         | A property representing the quasi-stationary distribution of the Markov chain:
@@ -975,10 +755,10 @@ class MarkovChain(_Model):
         - The property can also be accessed through the alias **quasi_stationary_distribution**.
         """
 
-        return _quasi_stationary_distribution(self)
+        return _a.mc_quasi_stationary_distribution(self)
 
-    @_cached_property
-    def occupation_matrix(self) -> _oarray:
+    @_dc.cached_property
+    def occupation_matrix(self) -> _ct.oarray:
 
         r"""
         | A property representing the occupation matrix of the Markov chain:
@@ -990,10 +770,10 @@ class MarkovChain(_Model):
         - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
         """
 
-        return _occupation_matrix(self, self.__transient_states_indices)
+        return _a.mc_occupation_matrix(self, self.__transient_states_indices)
 
-    @_cached_property
-    def occupation_trace(self) -> _ofloat:
+    @_dc.cached_property
+    def occupation_trace(self) -> _ct.ofloat:
 
         r"""
         | A property representing the trace of the occupation matrix of the Markov chain:
@@ -1013,8 +793,8 @@ class MarkovChain(_Model):
 
         return kc
 
-    @_cached_property
-    def ordinary_spectral_gap(self) -> _obndval:
+    @_dc.cached_property
+    def ordinary_spectral_gap(self) -> _ct.obndval:
 
         r"""
         | A property representing the ordinary spectral gap of the Markov chain, together with its Cheeger bounds:
@@ -1032,7 +812,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not both **irreducible** and **reversible**, then :py:class:`None` is returned.
         """
 
-        result = _ordinary_spectral_gap(self)
+        result = _a.mc_ordinary_spectral_gap(self)
 
         if result is None:
             return None
@@ -1042,7 +822,7 @@ class MarkovChain(_Model):
         return osg, cb
 
     @property
-    def p(self) -> _tarray:
+    def p(self) -> _ct.tarray:
 
         """
         A property representing the transition matrix of the Markov chain.
@@ -1050,7 +830,7 @@ class MarkovChain(_Model):
 
         return _np.copy(self.__p)
 
-    @_cached_property
+    @_dc.cached_property
     def period(self) -> int:
 
         r"""
@@ -1063,10 +843,10 @@ class MarkovChain(_Model):
         - An **aperiodic** Markov chain has period 1.
         """
 
-        return _period(self)
+        return _a.mc_period(self)
 
-    @_cached_property
-    def periods(self) -> _tlist_int:
+    @_dc.cached_property
+    def periods(self) -> _ct.tlist_int:
 
         r"""
         | A property representing the period of each communicating class of the Markov chain.
@@ -1077,11 +857,11 @@ class MarkovChain(_Model):
         - A class containing no directed cycle has a period equal to 0.
         """
 
-        return _calculate_periods(self.__digraph)
+        return _n.calculate_periods(self.__digraph)
 
-    @_cached_property
-    @_object_mark(aliases=['stationary_distributions', 'steady_states'])
-    def pi(self) -> _tlist_array:
+    @_dc.cached_property
+    @_dc.object_mark(aliases=['stationary_distributions', 'steady_states'])
+    def pi(self) -> _ct.tlist_array:
 
         r"""
         | A property representing the stationary distributions of the Markov chain:
@@ -1094,10 +874,10 @@ class MarkovChain(_Model):
         - The property can also be accessed through the aliases **stationary_distributions** and **steady_states**.
         """
 
-        return _stationary_distributions(self, self.__recurrent_classes_indices)
+        return _a.mc_stationary_distributions(self, self.__recurrent_classes_indices)
 
-    @_cached_property
-    def predictability(self) -> _ofloat:
+    @_dc.cached_property
+    def predictability(self) -> _ct.ofloat:
 
         r"""
         | A property representing the predictability of the Markov chain, normalized between 0 and 1:
@@ -1118,7 +898,7 @@ class MarkovChain(_Model):
 
         return py
 
-    @_cached_property
+    @_dc.cached_property
     def rank(self) -> int:
 
         r"""
@@ -1130,8 +910,8 @@ class MarkovChain(_Model):
 
         return r
 
-    @_cached_property
-    def recurrent_classes(self) -> _tlists_str:
+    @_dc.cached_property
+    def recurrent_classes(self) -> _ct.tlists_str:
 
         """
         | A property representing the recurrent classes of the Markov chain.
@@ -1145,8 +925,8 @@ class MarkovChain(_Model):
 
         return classes
 
-    @_cached_property
-    def recurrent_states(self) -> _tlist_str:
+    @_dc.cached_property
+    def recurrent_states(self) -> _ct.tlist_str:
 
         """
         | A property representing the recurrent states of the Markov chain.
@@ -1161,8 +941,8 @@ class MarkovChain(_Model):
 
         return states
 
-    @_cached_property
-    def relaxation_rate(self) -> _ofloat:
+    @_dc.cached_property
+    def relaxation_rate(self) -> _ct.ofloat:
 
         r"""
         | A property representing the relaxation rate of the Markov chain:
@@ -1174,7 +954,7 @@ class MarkovChain(_Model):
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
         """
 
-        return _relaxation_rate(self)
+        return _a.mc_relaxation_rate(self)
 
     @property
     def size(self) -> int:
@@ -1186,7 +966,7 @@ class MarkovChain(_Model):
         return self.__size
 
     @property
-    def states(self) -> _tlist_str:
+    def states(self) -> _ct.tlist_str:
 
         """
         A property representing the states of the Markov chain.
@@ -1194,8 +974,8 @@ class MarkovChain(_Model):
 
         return self.__states.copy()
 
-    @_cached_property
-    def stationary_current(self) -> _tlist_array:
+    @_dc.cached_property
+    def stationary_current(self) -> _ct.tlist_array:
 
         r"""
         | A property representing the stationary probability current matrices of the Markov chain:
@@ -1206,10 +986,10 @@ class MarkovChain(_Model):
         - One matrix is returned for each stationary distribution.
         """
 
-        return _stationary_current(self)
+        return _a.mc_stationary_current(self)
 
-    @_cached_property
-    def stationary_flux(self) -> _tlist_array:
+    @_dc.cached_property
+    def stationary_flux(self) -> _ct.tlist_array:
 
         r"""
         | A property representing the stationary probability flux matrices of the Markov chain:
@@ -1220,9 +1000,9 @@ class MarkovChain(_Model):
         - One matrix is returned for each stationary distribution.
         """
 
-        return _stationary_flux(self)
+        return _a.mc_stationary_flux(self)
 
-    @_cached_property
+    @_dc.cached_property
     def topological_entropy(self) -> float:
 
         r"""
@@ -1237,10 +1017,10 @@ class MarkovChain(_Model):
         - The entropy depends on the possible transitions rather than their probabilities.
         """
 
-        return _topological_entropy(self)
+        return _a.mc_topological_entropy(self)
 
-    @_cached_property
-    def transient_classes(self) -> _tlists_str:
+    @_dc.cached_property
+    def transient_classes(self) -> _ct.tlists_str:
 
         """
         | A property representing the transient classes of the Markov chain.
@@ -1254,8 +1034,8 @@ class MarkovChain(_Model):
 
         return classes
 
-    @_cached_property
-    def transient_states(self) -> _tlist_str:
+    @_dc.cached_property
+    def transient_states(self) -> _ct.tlist_str:
 
         """
         | A property representing the transient states of the Markov chain.
@@ -1270,8 +1050,8 @@ class MarkovChain(_Model):
 
         return states
 
-    @_object_mark(aliases=['ap'])
-    def absorption_probabilities(self, initial_distribution: _ovec = None) -> _oarray:
+    @_dc.object_mark(aliases=['ap'])
+    def absorption_probabilities(self, initial_distribution: _ct.ovec = None) -> _ct.oarray:
 
         """
         | The method computes the probabilities of eventual absorption into each recurrent class of the Markov chain, optionally given an initial distribution.
@@ -1290,16 +1070,16 @@ class MarkovChain(_Model):
         try:
 
             if initial_distribution is not None:
-                initial_distribution = _validate_vector_stochastic(initial_distribution, self.__size, False)
+                initial_distribution = _v.validate_vector_stochastic(initial_distribution, self.__size, False)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _absorption_probabilities(self, initial_distribution)
+        return _a.mc_absorption_probabilities(self, initial_distribution)
 
-    @_cached_method
-    @_object_mark(aliases=['at'])
-    def absorption_times(self, statistic: str) -> _oarray:
+    @_dc.cached_method
+    @_dc.object_mark(aliases=['at'])
+    def absorption_times(self, statistic: str) -> _ct.oarray:
 
         r"""
         | The method computes a statistic of the absorption times of the transient states of the Markov chain:
@@ -1323,14 +1103,14 @@ class MarkovChain(_Model):
 
         try:
 
-            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
+            statistic = _v.validate_enumerator(statistic, ['mean', 'variance'])
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _absorption_times(self, statistic)
+        return _a.mc_absorption_times(self, statistic)
 
-    def are_communicating(self, state1: _tstate, state2: _tstate) -> bool:
+    def are_communicating(self, state1: _ct.tstate, state2: _ct.tstate) -> bool:
 
         """
         | The method verifies whether the given states of the Markov chain communicate.
@@ -1346,11 +1126,11 @@ class MarkovChain(_Model):
 
         try:
 
-            state1 = _validate_label(state1, self.__states)
-            state2 = _validate_label(state2, self.__states)
+            state1 = _v.validate_label(state1, self.__states)
+            state2 = _v.validate_label(state2, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         a1 = self.accessibility_matrix[state1, state2] != 0
         a2 = self.accessibility_matrix[state2, state1] != 0
@@ -1358,8 +1138,8 @@ class MarkovChain(_Model):
 
         return result
 
-    @_object_mark(instance_generator=True)
-    def censor(self, states: _tstates) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def censor(self, states: _ct.tstates) -> _ct.tmc:
 
         """
         | The method returns the Markov chain censored to the given subset of states.
@@ -1375,12 +1155,12 @@ class MarkovChain(_Model):
 
         try:
 
-            states = _validate_labels_current(states, self.__states, True, 2)
+            states = _v.validate_labels_current(states, self.__states, True, 2)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _censor(self.__p, self.__states, states)
+        p_out, states_out, error_message = _g.mc_censor(self.__p, self.__states, states)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -1389,8 +1169,8 @@ class MarkovChain(_Model):
 
         return mc
 
-    @_object_mark(instance_generator=True)
-    def closest_reversible(self, initial_distribution: _ovec = None, weighted: bool = False) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def closest_reversible(self, initial_distribution: _ct.ovec = None, weighted: bool = False) -> _ct.tmc:
 
         """
         | The method computes a reversible Markov chain closest to the original Markov chain under the selected Frobenius norm.
@@ -1409,18 +1189,18 @@ class MarkovChain(_Model):
 
         try:
 
-            initial_distribution = _validate_vector_stochastic(initial_distribution, self.__size, True)
-            weighted = _validate_boolean(weighted)
+            initial_distribution = _v.validate_vector_stochastic(initial_distribution, self.__size, True)
+            weighted = _v.validate_boolean(weighted)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         zeros = len(initial_distribution) - _np.count_nonzero(initial_distribution)
 
         if weighted and (zeros > 0):  # pragma: no cover
             raise _ValidationError('If the weighted Frobenius norm is used, the initial distribution must not contain null probabilities.')
 
-        p, error_message = _closest_reversible(self.__p, initial_distribution, weighted)
+        p, error_message = _g.mc_closest_reversible(self.__p, initial_distribution, weighted)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -1429,8 +1209,8 @@ class MarkovChain(_Model):
 
         return mc
 
-    @_object_mark(aliases=['crp'])
-    def committor_probabilities(self, committor_type: str, states1: _tstates, states2: _tstates) -> _oarray:
+    @_dc.object_mark(aliases=['crp'])
+    def committor_probabilities(self, committor_type: str, states1: _ct.tstates, states2: _ct.tstates) -> _ct.oarray:
 
         r"""
         | The method computes the committor probabilities between two disjoint subsets of the state space:
@@ -1458,22 +1238,22 @@ class MarkovChain(_Model):
 
         try:
 
-            committor_type = _validate_enumerator(committor_type, ['backward', 'forward'])
-            states1 = _validate_labels_current(states1, self.__states, True)
-            states2 = _validate_labels_current(states2, self.__states, True)
+            committor_type = _v.validate_enumerator(committor_type, ['backward', 'forward'])
+            states1 = _v.validate_labels_current(states1, self.__states, True)
+            states2 = _v.validate_labels_current(states2, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         intersection = _np.intersect1d(states1, states2)
 
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
-        return _committor_probabilities(self, committor_type, states1, states2)
+        return _a.mc_committor_probabilities(self, committor_type, states1, states2)
 
-    @_object_mark(aliases=['ct_between', 'ctb'])
-    def commute_times_between(self, statistic: str, origins: _tstates, targets: _tstates) -> _ofloat:
+    @_dc.object_mark(aliases=['ct_between', 'ctb'])
+    def commute_times_between(self, statistic: str, origins: _ct.tstates, targets: _ct.tstates) -> _ct.ofloat:
 
         r"""
         | The method computes a statistic of the commute time (round-trip duration) between the given subsets of the state space.
@@ -1497,17 +1277,17 @@ class MarkovChain(_Model):
 
         try:
 
-            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
-            origins = _validate_labels_current(origins, self.__states, True)
-            targets = _validate_labels_current(targets, self.__states, True)
+            statistic = _v.validate_enumerator(statistic, ['mean', 'variance'])
+            origins = _v.validate_labels_current(origins, self.__states, True)
+            targets = _v.validate_labels_current(targets, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _commute_times_between(self, statistic, origins, targets)
+        return _a.mc_commute_times_between(self, statistic, origins, targets)
 
-    @_object_mark(aliases=['ct_to', 'ctt'])
-    def commute_times_to(self, statistic: str, targets: _ostates = None) -> _oarray:
+    @_dc.object_mark(aliases=['ct_to', 'ctt'])
+    def commute_times_to(self, statistic: str, targets: _ct.ostates = None) -> _ct.oarray:
 
         r"""
         | The method computes a statistic of the commute times (round-trip durations) from every state to the given target states of the Markov chain.
@@ -1530,17 +1310,17 @@ class MarkovChain(_Model):
 
         try:
 
-            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
+            statistic = _v.validate_enumerator(statistic, ['mean', 'variance'])
 
             if targets is not None:
-                targets = _validate_labels_current(targets, self.__states, False)
+                targets = _v.validate_labels_current(targets, self.__states, False)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _commute_times_to(self, statistic, targets)
+        return _a.mc_commute_times_to(self, statistic, targets)
 
-    def conductance(self, states: _tstates) -> _ofloat:
+    def conductance(self, states: _ct.tstates) -> _ct.ofloat:
 
         r"""
         | The method computes the conductance of the given subset of the state space:
@@ -1562,14 +1342,14 @@ class MarkovChain(_Model):
 
         try:
 
-            states = _validate_labels_current(states, self.__states, True)
+            states = _v.validate_labels_current(states, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _conductance(self, states)
+        return _a.mc_conductance(self, states)
 
-    def cumulants(self, order: int, observable: _tobs, observable_param: _tany = None) -> _oarray:
+    def cumulants(self, order: int, observable: _ct.tobs, observable_param: _ct.tany = None) -> _ct.oarray:
 
         r"""
         | The method computes the first :math:`n` asymptotic cumulants per transition of the Markov chain for a time-additive observable:
@@ -1604,29 +1384,29 @@ class MarkovChain(_Model):
 
         try:
 
-            order = _validate_integer(order, lower_limit=(1, False))
-            observable = _validate_observable(observable, self.__size)
+            order = _v.validate_integer(order, lower_limit=(1, False))
+            observable = _v.validate_observable(observable, self.__size)
 
             if not isinstance(observable, str):
-                observable_param = _validate_none(observable_param)
+                observable_param = _v.validate_none(observable_param)
             else:
                 if observable == 'state_occupation':
-                    observable_param = _validate_label(observable_param, self.__states)
+                    observable_param = _v.validate_label(observable_param, self.__states)
                 elif observable in ['transition_count', 'transition_current']:
-                    observable_param = _validate_labels_pair(observable_param, self.__states)
+                    observable_param = _v.validate_labels_pair(observable_param, self.__states)
                 else:
-                    observable_param = _validate_none(observable_param)
+                    observable_param = _v.validate_none(observable_param)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if not self.is_irreducible:
             return None
 
-        return _cumulants(self, order, observable, observable_param)
+        return _a.mc_cumulants(self, order, observable, observable_param)
 
-    @_object_mark(aliases=['er'])
-    def expected_rewards(self, steps: int, rewards: _tvec, discount_factor: float = 1.0) -> _tarray:
+    @_dc.object_mark(aliases=['er'])
+    def expected_rewards(self, steps: int, rewards: _ct.tvec, discount_factor: float = 1.0) -> _ct.tarray:
 
         r"""
         | The method computes the expected cumulative rewards of the Markov chain over a given number of steps, optionally applying a discount factor:
@@ -1650,17 +1430,17 @@ class MarkovChain(_Model):
 
         try:
 
-            steps = _validate_integer(steps, lower_limit=(0, True))
-            rewards = _validate_rewards(rewards, self.__size)
-            discount_factor = _validate_float(discount_factor, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            steps = _v.validate_integer(steps, lower_limit=(0, True))
+            rewards = _v.validate_rewards(rewards, self.__size)
+            discount_factor = _v.validate_float(discount_factor, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _expected_rewards(self, steps, rewards, discount_factor)
+        return _a.mc_expected_rewards(self, steps, rewards, discount_factor)
 
-    @_object_mark(aliases=['et'])
-    def expected_transitions(self, steps: int, initial_distribution: _ovec = None) -> _tarray:
+    @_dc.object_mark(aliases=['et'])
+    def expected_transitions(self, steps: int, initial_distribution: _ct.ovec = None) -> _ct.tarray:
 
         r"""
         | The method computes the expected numbers of transitions between all pairs of states of the Markov chain over a given number of steps:
@@ -1682,16 +1462,16 @@ class MarkovChain(_Model):
 
         try:
 
-            steps = _validate_integer(steps, lower_limit=(0, False))
-            initial_distribution = _validate_vector_stochastic(initial_distribution, self.__size, True)
+            steps = _v.validate_integer(steps, lower_limit=(0, False))
+            initial_distribution = _v.validate_vector_stochastic(initial_distribution, self.__size, True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _expected_transitions(self, steps, initial_distribution)
+        return _a.mc_expected_transitions(self, steps, initial_distribution)
 
-    @_object_mark(aliases=['ev'])
-    def expected_visits(self, steps: _oint = None, discount_factor: float = 1.0) -> _tarray:
+    @_dc.object_mark(aliases=['ev'])
+    def expected_visits(self, steps: _ct.oint = None, discount_factor: float = 1.0) -> _ct.tarray:
 
         r"""
         | The method computes the expected numbers of visits between all pairs of states of the Markov chain over a given number of steps, optionally applying a discount factor:
@@ -1714,17 +1494,17 @@ class MarkovChain(_Model):
         try:
 
             if steps is not None:
-                steps = _validate_integer(steps, lower_limit=(0, False))
+                steps = _v.validate_integer(steps, lower_limit=(0, False))
 
-            discount_factor = _validate_float(discount_factor, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            discount_factor = _v.validate_float(discount_factor, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _expected_visits(self, steps, discount_factor)
+        return _a.mc_expected_visits(self, steps, discount_factor)
 
-    @_object_mark(aliases=['fpp'])
-    def first_passage_probabilities(self, steps: int, initial_state: _tstate, first_passage_states: _ostates = None) -> _tarray:
+    @_dc.object_mark(aliases=['fpp'])
+    def first_passage_probabilities(self, steps: int, initial_state: _ct.tstate, first_passage_states: _ct.ostates = None) -> _ct.tarray:
 
         r"""
         | The method computes the first passage probabilities of the Markov chain from the given initial state:
@@ -1745,19 +1525,19 @@ class MarkovChain(_Model):
 
         try:
 
-            steps = _validate_integer(steps, lower_limit=(0, True))
-            initial_state = _validate_label(initial_state, self.__states)
+            steps = _v.validate_integer(steps, lower_limit=(0, True))
+            initial_state = _v.validate_label(initial_state, self.__states)
 
             if first_passage_states is not None:
-                first_passage_states = _validate_labels_current(first_passage_states, self.__states, False)
+                first_passage_states = _v.validate_labels_current(first_passage_states, self.__states, False)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _first_passage_probabilities(self, steps, initial_state, first_passage_states)
+        return _a.mc_first_passage_probabilities(self, steps, initial_state, first_passage_states)
 
-    @_object_mark(aliases=['fpr'])
-    def first_passage_reward(self, steps: int, initial_state: _tstate, first_passage_states: _tstates, rewards: _tvec) -> float:
+    @_dc.object_mark(aliases=['fpr'])
+    def first_passage_reward(self, steps: int, initial_state: _ct.tstate, first_passage_states: _ct.tstates, rewards: _ct.tvec) -> float:
 
         r"""
         | The method computes the expected cumulative reward before reaching the given first passage states:
@@ -1784,21 +1564,21 @@ class MarkovChain(_Model):
 
         try:
 
-            initial_state = _validate_label(initial_state, self.__states)
-            first_passage_states = _validate_labels_current(first_passage_states, self.__states, True)
-            rewards = _validate_rewards(rewards, self.__size)
-            steps = _validate_integer(steps, lower_limit=(0, True))
+            initial_state = _v.validate_label(initial_state, self.__states)
+            first_passage_states = _v.validate_labels_current(first_passage_states, self.__states, True)
+            rewards = _v.validate_rewards(rewards, self.__size)
+            steps = _v.validate_integer(steps, lower_limit=(0, True))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if initial_state in first_passage_states:  # pragma: no cover
             raise _ValidationError('The first passage states cannot include the initial state.')
 
-        return _first_passage_reward(self, steps, initial_state, first_passage_states, rewards)
+        return _a.mc_first_passage_reward(self, steps, initial_state, first_passage_states, rewards)
 
-    @_object_mark(aliases=['fpt_between', 'fptb'])
-    def first_passage_times_between(self, statistic: str, origins: _tstates, targets: _tstates) -> _ofloat:
+    @_dc.object_mark(aliases=['fpt_between', 'fptb'])
+    def first_passage_times_between(self, statistic: str, origins: _ct.tstates, targets: _ct.tstates) -> _ct.ofloat:
 
         r"""
         | The method computes a statistic of the first passage time between the given subsets of the state space.
@@ -1820,17 +1600,17 @@ class MarkovChain(_Model):
 
         try:
 
-            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
-            origins = _validate_labels_current(origins, self.__states, True)
-            targets = _validate_labels_current(targets, self.__states, True)
+            statistic = _v.validate_enumerator(statistic, ['mean', 'variance'])
+            origins = _v.validate_labels_current(origins, self.__states, True)
+            targets = _v.validate_labels_current(targets, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _first_passage_times_between(self, statistic, origins, targets)
+        return _a.mc_first_passage_times_between(self, statistic, origins, targets)
 
-    @_object_mark(aliases=['fpt_to', 'fptt'])
-    def first_passage_times_to(self, statistic: str, targets: _ostates = None) -> _oarray:
+    @_dc.object_mark(aliases=['fpt_to', 'fptt'])
+    def first_passage_times_to(self, statistic: str, targets: _ct.ostates = None) -> _ct.oarray:
 
         """
         | The method computes a statistic of the first passage times from every state to the given target states of the Markov chain.
@@ -1851,19 +1631,19 @@ class MarkovChain(_Model):
 
         try:
 
-            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
+            statistic = _v.validate_enumerator(statistic, ['mean', 'variance'])
 
             if targets is not None:
-                targets = _validate_labels_current(targets, self.__states, False)
+                targets = _v.validate_labels_current(targets, self.__states, False)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _first_passage_times_to(self, statistic, targets)
+        return _a.mc_first_passage_times_to(self, statistic, targets)
 
-    @_cached_method
-    @_object_mark(aliases=['fcp'])
-    def fundamental_cycle_profile(self, output_indices: bool = False) -> _ofc_prof:
+    @_dc.cached_method
+    @_dc.object_mark(aliases=['fcp'])
+    def fundamental_cycle_profile(self, output_indices: bool = False) -> _ct.ofc_prof:
 
         r"""
         | The method computes the fundamental-cycle affinities :math:`\mathcal{A}` and current coefficients :math:`j` of the Markov chain:
@@ -1888,12 +1668,12 @@ class MarkovChain(_Model):
 
         try:
 
-            output_indices = _validate_boolean(output_indices)
+            output_indices = _v.validate_boolean(output_indices)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = _fundamental_cycle_profile(self)
+        value = _a.mc_fundamental_cycle_profile(self)
 
         if (value is not None) and output_indices:
 
@@ -1907,8 +1687,8 @@ class MarkovChain(_Model):
 
         return value
 
-    @_object_mark(aliases=['hp'])
-    def hitting_probabilities(self, targets: _ostates = None) -> _tarray:
+    @_dc.object_mark(aliases=['hp'])
+    def hitting_probabilities(self, targets: _ct.ostates = None) -> _ct.tarray:
 
         r"""
         | The method computes the probabilities of eventually reaching the given target states of the Markov chain:
@@ -1933,15 +1713,15 @@ class MarkovChain(_Model):
             if targets is None:
                 targets = self.__states_indices.copy()
             else:
-                targets = _validate_labels_current(targets, self.__states, False)
+                targets = _v.validate_labels_current(targets, self.__states, False)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _hitting_probabilities(self, targets)
+        return _a.mc_hitting_probabilities(self, targets)
 
-    @_object_mark(aliases=['ht'])
-    def hitting_times(self, statistic: str, targets: _ostates = None) -> _tarray:
+    @_dc.object_mark(aliases=['ht'])
+    def hitting_times(self, statistic: str, targets: _ct.ostates = None) -> _ct.tarray:
 
         r"""
         | The method computes a statistic of the first hitting times of the given target states of the Markov chain:
@@ -1964,19 +1744,19 @@ class MarkovChain(_Model):
 
         try:
 
-            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
+            statistic = _v.validate_enumerator(statistic, ['mean', 'variance'])
 
             if targets is None:
                 targets = self.__states_indices.copy()
             else:
-                targets = _validate_labels_current(targets, self.__states, False)
+                targets = _v.validate_labels_current(targets, self.__states, False)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _hitting_times(self, statistic, targets)
+        return _a.mc_hitting_times(self, statistic, targets)
 
-    def is_absorbing_state(self, state: _tstate) -> bool:
+    def is_absorbing_state(self, state: _ct.tstate) -> bool:
 
         """
         | The method verifies whether the given state of the Markov chain is absorbing.
@@ -1991,16 +1771,16 @@ class MarkovChain(_Model):
 
         try:
 
-            state = _validate_label(state, self.__states)
+            state = _v.validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         result = state in self.__absorbing_states_indices
 
         return result
 
-    def is_accessible(self, state_target: _tstate, state_origin: _tstate) -> bool:
+    def is_accessible(self, state_target: _ct.tstate, state_origin: _ct.tstate) -> bool:
 
         """
         | The method verifies whether the given target state is accessible from the given origin state.
@@ -2016,17 +1796,17 @@ class MarkovChain(_Model):
 
         try:
 
-            state_target = _validate_label(state_target, self.__states)
-            state_origin = _validate_label(state_origin, self.__states)
+            state_target = _v.validate_label(state_target, self.__states)
+            state_origin = _v.validate_label(state_origin, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         result = self.accessibility_matrix[state_origin, state_target] != 0
 
         return result
 
-    def is_cyclic_state(self, state: _tstate) -> bool:
+    def is_cyclic_state(self, state: _ct.tstate) -> bool:
 
         """
         | The method verifies whether the given state of the Markov chain is cyclic.
@@ -2041,16 +1821,16 @@ class MarkovChain(_Model):
 
         try:
 
-            state = _validate_label(state, self.__states)
+            state = _v.validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         result = state in self.__cyclic_states_indices
 
         return result
 
-    def is_recurrent_state(self, state: _tstate) -> bool:
+    def is_recurrent_state(self, state: _ct.tstate) -> bool:
 
         """
         | The method verifies whether the given state of the Markov chain is recurrent.
@@ -2065,16 +1845,16 @@ class MarkovChain(_Model):
 
         try:
 
-            state = _validate_label(state, self.__states)
+            state = _v.validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         result = state in self.__recurrent_states_indices
 
         return result
 
-    def is_transient_state(self, state: _tstate) -> bool:
+    def is_transient_state(self, state: _ct.tstate) -> bool:
 
         """
         | The method verifies whether the given state of the Markov chain is transient.
@@ -2089,16 +1869,16 @@ class MarkovChain(_Model):
 
         try:
 
-            state = _validate_label(state, self.__states)
+            state = _v.validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         result = state in self.__transient_states_indices
 
         return result
 
-    def large_deviation_rate(self, target_average: float, observable: _tobs, observable_param: _tany = None) -> _ofloat:
+    def large_deviation_rate(self, target_average: float, observable: _ct.tobs, observable_param: _ct.tany = None) -> _ct.ofloat:
 
         r"""
         | The method computes the large-deviation rate of the Markov chain given a time-additive observable and a target average:
@@ -2132,29 +1912,29 @@ class MarkovChain(_Model):
 
         try:
 
-            target_average = _validate_float(target_average)
-            observable = _validate_observable(observable, self.__size)
+            target_average = _v.validate_float(target_average)
+            observable = _v.validate_observable(observable, self.__size)
 
             if not isinstance(observable, str):
-                observable_param = _validate_none(observable_param)
+                observable_param = _v.validate_none(observable_param)
             else:
                 if observable == 'state_occupation':
-                    observable_param = _validate_label(observable_param, self.__states)
+                    observable_param = _v.validate_label(observable_param, self.__states)
                 elif observable in ['transition_count', 'transition_current']:
-                    observable_param = _validate_labels_pair(observable_param, self.__states)
+                    observable_param = _v.validate_labels_pair(observable_param, self.__states)
                 else:
-                    observable_param = _validate_none(observable_param)
+                    observable_param = _v.validate_none(observable_param)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if not self.is_irreducible:
             return None
 
-        return _large_deviation_rate(self, target_average, observable, observable_param)
+        return _a.mc_large_deviation_rate(self, target_average, observable, observable_param)
 
-    @_object_mark(instance_generator=True)
-    def lump(self, partition: _tpart) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def lump(self, partition: _ct.tpart) -> _ct.tmc:
 
         """
         | The method attempts to reduce the state space of the Markov chain using the given partition.
@@ -2172,12 +1952,12 @@ class MarkovChain(_Model):
 
         try:
 
-            partition = _validate_partitions(partition, self.__states)
+            partition = _v.validate_partition(partition, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _lump(self.__p, self.__states, partition)
+        p_out, states_out, error_message = _g.mc_lump(self.__p, self.__states, partition)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -2186,8 +1966,8 @@ class MarkovChain(_Model):
 
         return mc
 
-    @_object_mark(instance_generator=True)
-    def merge_with(self, other: _tmc, gamma: float) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def merge_with(self, other: _ct.tmc, gamma: float) -> _ct.tmc:
 
         r"""
         | The method merges the Markov chain with another Markov chain of the same size:
@@ -2208,20 +1988,20 @@ class MarkovChain(_Model):
 
         try:
 
-            other = _validate_markov_chain(other, self.__size)
-            gamma = _validate_float(gamma, lower_limit=(0.0, True), upper_limit=(1.0, True))
+            other = _v.validate_markov_chain(other, self.__size)
+            gamma = _v.validate_float(gamma, lower_limit=(0.0, True), upper_limit=(1.0, True))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         p_out = ((1.0 - gamma) * self.__p) + (gamma * other.p)
-        states_out = _create_labels(self.__size, prefix='M')
+        states_out = _u.create_labels(self.__size, prefix='M')
 
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
-    def metastability(self, states: _tstates) -> _ofloat:
+    def metastability(self, states: _ct.tstates) -> _ct.ofloat:
 
         r"""
         | The method computes the metastability of the given subset of the state space:
@@ -2241,18 +2021,18 @@ class MarkovChain(_Model):
 
         try:
 
-            states = _validate_labels_current(states, self.__states, True)
+            states = _v.validate_labels_current(states, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        c = _conductance(self, states)
+        c = _a.mc_conductance(self, states)
         m = None if c is None else 1.0 - c
 
         return m
 
-    @_object_mark(instance_generator=True)
-    def metastable_aggregation(self, s: int, robust: bool = True) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def metastable_aggregation(self, s: int, robust: bool = True) -> _ct.tmc:
 
         r"""
         | The method attempts to aggregate the Markov chain into a reduced Markov chain with the given number of states, using Perron Cluster Cluster Analysis (PCCA).
@@ -2269,13 +2049,13 @@ class MarkovChain(_Model):
 
         try:
 
-            s = _validate_integer(s, lower_limit=(2, False), upper_limit=(self.__size - 1, False))
-            robust = _validate_boolean(robust)
+            s = _v.validate_integer(s, lower_limit=(2, False), upper_limit=(self.__size - 1, False))
+            robust = _v.validate_boolean(robust)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _metastable_aggregation(self.__p, self.__states, self.is_irreducible, self.is_reversible, s, robust)
+        p_out, states_out, error_message = _g.mc_metastable_aggregation(self.__p, self.__states, self.is_irreducible, self.is_reversible, s, robust)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -2284,8 +2064,8 @@ class MarkovChain(_Model):
 
         return mc
 
-    @_object_mark(aliases=['mt'])
-    def mixing_time(self, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
+    @_dc.object_mark(aliases=['mt'])
+    def mixing_time(self, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _ct.oint:
 
         r"""
         | The method computes the mixing time of the Markov chain:
@@ -2307,16 +2087,16 @@ class MarkovChain(_Model):
 
         try:
 
-            cutoff = _validate_float(cutoff, lower_limit=(0.0, True), upper_limit=(0.5, False))
-            maximum_iterations = _validate_integer(maximum_iterations, lower_limit=(10, False))
+            cutoff = _v.validate_float(cutoff, lower_limit=(0.0, True), upper_limit=(0.5, False))
+            maximum_iterations = _v.validate_integer(maximum_iterations, lower_limit=(10, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _mixing_time(self, cutoff, maximum_iterations)
+        return _a.mc_mixing_time(self, cutoff, maximum_iterations)
 
-    @_object_mark(aliases=['mtf'])
-    def mixing_time_from(self, initial_distribution: _ovec = None, jump: int = 1, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _oint:
+    @_dc.object_mark(aliases=['mtf'])
+    def mixing_time_from(self, initial_distribution: _ct.ovec = None, jump: int = 1, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _ct.oint:
 
         r"""
         | The method computes the mixing time of the Markov chain from a given initial distribution:
@@ -2341,18 +2121,18 @@ class MarkovChain(_Model):
 
         try:
 
-            initial_distribution = _validate_vector_stochastic(initial_distribution, self.__size, True)
-            jump = _validate_integer(jump, lower_limit=(1, False))
-            cutoff = _validate_float(cutoff, lower_limit=(0.0, True), upper_limit=(0.5, False))
-            maximum_iterations = _validate_integer(maximum_iterations, lower_limit=(10, False))
+            initial_distribution = _v.validate_vector_stochastic(initial_distribution, self.__size, True)
+            jump = _v.validate_integer(jump, lower_limit=(1, False))
+            cutoff = _v.validate_float(cutoff, lower_limit=(0.0, True), upper_limit=(0.5, False))
+            maximum_iterations = _v.validate_integer(maximum_iterations, lower_limit=(10, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _mixing_time_from(self, initial_distribution, jump, cutoff, maximum_iterations)
+        return _a.mc_mixing_time_from(self, initial_distribution, jump, cutoff, maximum_iterations)
 
-    @_object_mark(random_output=True)
-    def next(self, initial_state: _tstate, output_index: bool = False, seed: _oint = None) -> _tstate:
+    @_dc.object_mark(random_output=True)
+    def next(self, initial_state: _ct.tstate, output_index: bool = False, seed: _ct.oint = None) -> _ct.tstate:
 
         """
         | The method randomly selects the next state of the Markov chain from the given initial state.
@@ -2365,21 +2145,21 @@ class MarkovChain(_Model):
 
         try:
 
-            rng = _create_rng(seed)
-            initial_state = _validate_label(initial_state, self.__states)
-            output_index = _validate_boolean(output_index)
+            rng = _u.create_rng(seed)
+            initial_state = _v.validate_label(initial_state, self.__states)
+            output_index = _v.validate_boolean(output_index)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = _simulate(self, 1, initial_state, None, rng)[-1]
+        value = _d.mc_simulate(self, 1, initial_state, None, rng)[-1]
 
         if not output_index:
             value = self.__states[value]
 
         return value
 
-    def predict(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _oseq:
+    def predict(self, steps: int, initial_state: _ct.tstate, output_indices: bool = False) -> _ct.oseq:
 
         r"""
         | The method predicts a sequence of states by greedily selecting the most probable transition at each step:
@@ -2399,21 +2179,21 @@ class MarkovChain(_Model):
 
         try:
 
-            steps = _validate_integer(steps, lower_limit=(1, False))
-            initial_state = _validate_label(initial_state, self.__states)
-            output_indices = _validate_boolean(output_indices)
+            steps = _v.validate_integer(steps, lower_limit=(1, False))
+            initial_state = _v.validate_label(initial_state, self.__states)
+            output_indices = _v.validate_boolean(output_indices)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = _predict(self, steps, initial_state)
+        value = _d.mc_predict(self, steps, initial_state)
 
         if (value is not None) and (not output_indices):
             value = [*map(self.__states.__getitem__, value)]
 
         return value
 
-    def predict_trajectory(self, steps: int, initial_state: _tstate, output_indices: bool = False) -> _oseq:
+    def predict_trajectory(self, steps: int, initial_state: _ct.tstate, output_indices: bool = False) -> _ct.oseq:
 
         r"""
         | The method predicts the globally most probable sequence of states over the given number of transitions:
@@ -2434,21 +2214,21 @@ class MarkovChain(_Model):
 
         try:
 
-            steps = _validate_integer(steps, lower_limit=(1, False))
-            initial_state = _validate_label(initial_state, self.__states)
-            output_indices = _validate_boolean(output_indices)
+            steps = _v.validate_integer(steps, lower_limit=(1, False))
+            initial_state = _v.validate_label(initial_state, self.__states)
+            output_indices = _v.validate_boolean(output_indices)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        trajectory = _predict_trajectory(self, steps, initial_state)
+        trajectory = _d.mc_predict_trajectory(self, steps, initial_state)
 
         if (trajectory is not None) and (not output_indices):
             trajectory = [*map(self.__states.__getitem__, trajectory)]
 
         return trajectory
 
-    def propagate(self, steps: int, initial_status: _ostatus = None, output_last: bool = True) -> _tredists:
+    def propagate(self, steps: int, initial_status: _ct.ostatus = None, output_last: bool = True) -> _ct.tredists:
 
         r"""
         | The method computes the evolution of the state distribution of the Markov chain:
@@ -2470,16 +2250,16 @@ class MarkovChain(_Model):
 
         try:
 
-            steps = _validate_integer(steps, lower_limit=(1, False))
-            initial_status = _validate_status(initial_status, self.__states, True)
-            output_last = _validate_boolean(output_last)
+            steps = _v.validate_integer(steps, lower_limit=(1, False))
+            initial_status = _v.validate_status(initial_status, self.__states, True)
+            output_last = _v.validate_boolean(output_last)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _propagate(self, steps, initial_status, output_last)
+        return _d.mc_propagate(self, steps, initial_status, output_last)
 
-    def reaction_rate(self, states1: _tstates, states2: _tstates) -> _ofloat:
+    def reaction_rate(self, states1: _ct.tstates, states2: _ct.tstates) -> _ct.ofloat:
 
         r"""
         | The method computes the reaction rate between two disjoint subsets of the state space:
@@ -2500,20 +2280,20 @@ class MarkovChain(_Model):
 
         try:
 
-            states1 = _validate_labels_current(states1, self.__states, True)
-            states2 = _validate_labels_current(states2, self.__states, True)
+            states1 = _v.validate_labels_current(states1, self.__states, True)
+            states2 = _v.validate_labels_current(states2, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         intersection = _np.intersect1d(states1, states2)
 
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
-        return _reaction_rate(self, states1, states2)
+        return _a.mc_reaction_rate(self, states1, states2)
 
-    def reactive_density(self, states1: _tstates, states2: _tstates) -> _oarray:
+    def reactive_density(self, states1: _ct.tstates, states2: _ct.tstates) -> _ct.oarray:
 
         r"""
         | The method computes the reactive density between two disjoint subsets of the state space:
@@ -2536,20 +2316,20 @@ class MarkovChain(_Model):
 
         try:
 
-            states1 = _validate_labels_current(states1, self.__states, True)
-            states2 = _validate_labels_current(states2, self.__states, True)
+            states1 = _v.validate_labels_current(states1, self.__states, True)
+            states2 = _v.validate_labels_current(states2, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         intersection = _np.intersect1d(states1, states2)
 
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
-        return _reactive_density(self, states1, states2)
+        return _a.mc_reactive_density(self, states1, states2)
 
-    def reactive_flux(self, net: bool, states1: _tstates, states2: _tstates) -> _oarray:
+    def reactive_flux(self, net: bool, states1: _ct.tstates, states2: _ct.tstates) -> _ct.oarray:
 
         r"""
         | The method computes the reactive flux between two disjoint subsets of the state space:
@@ -2572,23 +2352,23 @@ class MarkovChain(_Model):
 
         try:
 
-            net = _validate_boolean(net)
-            states1 = _validate_labels_current(states1, self.__states, True)
-            states2 = _validate_labels_current(states2, self.__states, True)
+            net = _v.validate_boolean(net)
+            states1 = _v.validate_labels_current(states1, self.__states, True)
+            states2 = _v.validate_labels_current(states2, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         intersection = _np.intersect1d(states1, states2)
 
         if len(intersection) > 0:  # pragma: no cover
             raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
-        return _reactive_flux(self, states1, states2, net)
+        return _a.mc_reactive_flux(self, states1, states2, net)
 
-    @_cached_method
-    @_object_mark(aliases=['rt'])
-    def recurrence_times(self, statistic: str) -> _tarray:
+    @_dc.cached_method
+    @_dc.object_mark(aliases=['rt'])
+    def recurrence_times(self, statistic: str) -> _ct.tarray:
 
         r"""
         | The method computes a statistic of the recurrence times of the Markov chain:
@@ -2611,15 +2391,15 @@ class MarkovChain(_Model):
 
         try:
 
-            statistic = _validate_enumerator(statistic, ['mean', 'variance'])
+            statistic = _v.validate_enumerator(statistic, ['mean', 'variance'])
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _recurrence_times(self, statistic)
+        return _a.mc_recurrence_times(self, statistic)
 
-    @_object_mark(instance_generator=True)
-    def reversibilize(self, method: str = 'additive') -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def reversibilize(self, method: str = 'additive') -> _ct.tmc:
 
         r"""
         | The method returns a reversible Markov chain obtained by reversibilizing the original transition matrix.
@@ -2640,17 +2420,17 @@ class MarkovChain(_Model):
 
         try:
 
-            method = _validate_enumerator(method, ['additive', 'multiplicative', 'multiplicative-reverse'])
+            method = _v.validate_enumerator(method, ['additive', 'multiplicative', 'multiplicative-reverse'])
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _reversibilize(self.__p, self.__recurrent_classes_indices, self.transient_states, self.pi, method)
+        p_out = _g.mc_reversibilize(self.__p, self.__recurrent_classes_indices, self.transient_states, self.pi, method)
         mc = MarkovChain(p_out, self.__states)
 
         return mc
 
-    def sensitivity(self, state: _tstate) -> _oarray:
+    def sensitivity(self, state: _ct.tstate) -> _ct.oarray:
 
         r"""
         | The method computes the sensitivity matrix associated with the stationary distribution of the Markov chain and the given state:
@@ -2671,14 +2451,14 @@ class MarkovChain(_Model):
 
         try:
 
-            state = _validate_label(state, self.__states)
+            state = _v.validate_label(state, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _sensitivity(self, state)
+        return _a.mc_sensitivity(self, state)
 
-    def sequence_probability(self, sequence: _tseq) -> float:
+    def sequence_probability(self, sequence: _ct.tseq) -> float:
 
         r"""
         | The method computes the probability of the given sequence of states:
@@ -2694,15 +2474,15 @@ class MarkovChain(_Model):
 
         try:
 
-            sequence = _validate_sequence(sequence, self.__states)
+            sequence = _v.validate_sequence(sequence, self.__states)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _sequence_probability(self, sequence)
+        return _d.mc_sequence_probability(self, sequence)
 
-    @_object_mark(random_output=True)
-    def simulate(self, steps: int, initial_state: _ostate = None, final_state: _ostate = None, output_indices: bool = False, seed: _oint = None) -> _tseq:
+    @_dc.object_mark(random_output=True)
+    def simulate(self, steps: int, initial_state: _ct.ostate = None, final_state: _ct.ostate = None, output_indices: bool = False, seed: _ct.oint = None) -> _ct.tseq:
 
         """
         | The method simulates a random walk of the Markov chain for the given number of steps.
@@ -2721,24 +2501,24 @@ class MarkovChain(_Model):
 
         try:
 
-            rng = _create_rng(seed)
-            steps = _validate_integer(steps, lower_limit=(2, False))
-            initial_state = rng.randint(0, self.__size) if initial_state is None else _validate_label(initial_state, self.__states)
-            final_state = None if final_state is None else _validate_label(final_state, self.__states)
-            output_indices = _validate_boolean(output_indices)
+            rng = _u.create_rng(seed)
+            steps = _v.validate_integer(steps, lower_limit=(2, False))
+            initial_state = rng.randint(0, self.__size) if initial_state is None else _v.validate_label(initial_state, self.__states)
+            final_state = None if final_state is None else _v.validate_label(final_state, self.__states)
+            output_indices = _v.validate_boolean(output_indices)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = _simulate(self, steps, initial_state, final_state, rng)
+        value = _d.mc_simulate(self, steps, initial_state, final_state, rng)
 
         if not output_indices:
             value = [*map(self.__states.__getitem__, value)]
 
         return value
 
-    @_object_mark(instance_generator=True)
-    def spectral_aggregation(self, s: int, method: str = 'adaptive') -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def spectral_aggregation(self, s: int, method: str = 'adaptive') -> _ct.tmc:
 
         """
         | The method attempts to aggregate the Markov chain into a reduced Markov chain with the given number of states, using spectral theory.
@@ -2759,18 +2539,18 @@ class MarkovChain(_Model):
 
         try:
 
-            method = _validate_enumerator(method, ['adaptive', 'bottom-up', 'top-down'])
-            s = _validate_integer(s, lower_limit=(2, False), upper_limit=(self.__size - 1, False))
+            method = _v.validate_enumerator(method, ['adaptive', 'bottom-up', 'top-down'])
+            s = _v.validate_integer(s, lower_limit=(2, False), upper_limit=(self.__size - 1, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out = _spectral_aggregation(method, self.p, self.is_ergodic, self.pi, s)
+        p_out, states_out = _g.mc_spectral_aggregation(method, self.p, self.is_ergodic, self.pi, s)
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
-    def stationary_perturbation_bound(self, epsilon: float) -> _ofloat:
+    def stationary_perturbation_bound(self, epsilon: float) -> _ct.ofloat:
 
         r"""
         | The method computes an upper bound on the total variation distance between the stationary distributions of the Markov chain and its perturbations:
@@ -2791,15 +2571,15 @@ class MarkovChain(_Model):
 
         try:
 
-            epsilon = _validate_float(epsilon, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            epsilon = _v.validate_float(epsilon, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _stationary_perturbation_bound(self, epsilon)
+        return _a.mc_stationary_perturbation_bound(self, epsilon)
 
-    @_object_mark(random_output=True)
-    def stationary_sampling(self, maximum_doublings: int = 10, output_index: bool = False, seed: _oint = None) -> _ostate:
+    @_dc.object_mark(random_output=True)
+    def stationary_sampling(self, maximum_doublings: int = 10, output_index: bool = False, seed: _ct.oint = None) -> _ct.ostate:
 
         r"""
         | The method samples a state from the stationary distribution of the Markov chain using the Coupling from the Past (CFTP) algorithm.
@@ -2819,23 +2599,23 @@ class MarkovChain(_Model):
 
         try:
 
-            rng = _create_rng(seed)
-            maximum_doublings = _validate_integer(maximum_doublings, lower_limit=(0, False), upper_limit=(20, False))
-            output_index = _validate_boolean(output_index)
+            rng = _u.create_rng(seed)
+            maximum_doublings = _v.validate_integer(maximum_doublings, lower_limit=(0, False), upper_limit=(20, False))
+            output_index = _v.validate_boolean(output_index)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         maximum_steps = 2**maximum_doublings
-        value = _stationary_sampling(self, maximum_steps, rng)
+        value = _d.mc_stationary_sampling(self, maximum_steps, rng)
 
         if (value is not None) and (not output_index):
             value = self.__states[value]
 
         return value
 
-    @_object_mark(instance_generator=True)
-    def teleport(self, p_teleport: float, distribution: _ovec = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def teleport(self, p_teleport: float, distribution: _ct.ovec = None) -> _ct.tmc:
 
         r"""
         | The method returns a Markov chain obtained by teleportation:
@@ -2855,19 +2635,19 @@ class MarkovChain(_Model):
 
         try:
 
-            p_teleport = _validate_float(p_teleport, lower_limit=(0.0, False), upper_limit=(1.0, False))
-            distribution = _validate_vector_stochastic(distribution, self.__size, True)
+            p_teleport = _v.validate_float(p_teleport, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            distribution = _v.validate_vector_stochastic(distribution, self.__size, True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p = _teleport(self.__p, p_teleport, distribution)
+        p = _g.mc_teleport(self.__p, p_teleport, distribution)
         mc = MarkovChain(p, self.__states)
 
         return mc
 
-    @_object_mark(aliases=['tc'])
-    def time_correlations(self, sequence1: _tseq, sequence2: _oseq = None, time_points: _ttimes_in = 1) -> _otimes_out:
+    @_dc.object_mark(aliases=['tc'])
+    def time_correlations(self, sequence1: _ct.tseq, sequence2: _ct.oseq = None, time_points: _ct.ttimes_in = 1) -> _ct.otimes_out:
 
         r"""
         | The method computes the stationary time autocorrelations or cross-correlations of the given sequences of states:
@@ -2894,20 +2674,20 @@ class MarkovChain(_Model):
 
         try:
 
-            sequence1 = _validate_sequence(sequence1, self.__states)
+            sequence1 = _v.validate_sequence(sequence1, self.__states)
 
             if sequence2 is not None:
-                sequence2 = _validate_sequence(sequence2, self.__states)
+                sequence2 = _v.validate_sequence(sequence2, self.__states)
 
-            time_points = _validate_time_points(time_points)
+            time_points = _v.validate_time_points(time_points)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _time_correlations(self, sequence1, sequence2, time_points)
+        return _a.mc_time_correlations(self, sequence1, sequence2, time_points)
 
-    @_object_mark(aliases=['tr'])
-    def time_relaxations(self, sequence: _tseq, initial_distribution: _ovec = None, time_points: _ttimes_in = 1) -> _otimes_out:
+    @_dc.object_mark(aliases=['tr'])
+    def time_relaxations(self, sequence: _ct.tseq, initial_distribution: _ct.ovec = None, time_points: _ct.ttimes_in = 1) -> _ct.otimes_out:
 
         r"""
         | The method computes the time-dependent expected value of a state observable of the Markov chain:
@@ -2933,17 +2713,17 @@ class MarkovChain(_Model):
 
         try:
 
-            sequence = _validate_sequence(sequence, self.__states)
-            initial_distribution = _validate_vector_stochastic(initial_distribution, self.__size, True)
-            time_points = _validate_time_points(time_points)
+            sequence = _v.validate_sequence(sequence, self.__states)
+            initial_distribution = _v.validate_vector_stochastic(initial_distribution, self.__size, True)
+            time_points = _v.validate_time_points(time_points)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _time_relaxations(self, sequence, initial_distribution, time_points)
+        return _a.mc_time_relaxations(self, sequence, initial_distribution, time_points)
 
-    @_object_mark(instance_generator=True)
-    def time_reversal(self, method: str = 'standard') -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def time_reversal(self, method: str = 'standard') -> _ct.tmc:
 
         r"""
         | The method returns the stationary time reversal of the Markov chain:
@@ -2966,18 +2746,18 @@ class MarkovChain(_Model):
 
         try:
 
-            method = _validate_enumerator(method, ['log', 'standard'])
+            method = _v.validate_enumerator(method, ['log', 'standard'])
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p = _time_reversal(method, self.__p, self.__recurrent_classes_indices, self.transient_states, self.pi)
+        p = _g.mc_time_reversal(method, self.__p, self.__recurrent_classes_indices, self.transient_states, self.pi)
         mc = MarkovChain(p, self.__states)
 
         return mc
 
-    @_object_mark(aliases=['to_bounded'], instance_generator=True)
-    def to_bounded_chain(self, boundary_condition: _tbcond) -> _tmc:
+    @_dc.object_mark(aliases=['to_bounded'], instance_generator=True)
+    def to_bounded_chain(self, boundary_condition: _ct.tbcond) -> _ct.tmc:
 
         """
         | The method returns a bounded Markov chain obtained by applying the specified boundary condition to the original transition matrix.
@@ -2995,18 +2775,18 @@ class MarkovChain(_Model):
 
         try:
 
-            boundary_condition = _validate_boundary_condition(boundary_condition)
+            boundary_condition = _v.validate_boundary_condition(boundary_condition)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p = _bounded(self.__p, boundary_condition)
+        p = _g.mc_bounded(self.__p, boundary_condition)
         mc = MarkovChain(p, self.__states)
 
         return mc
 
-    @_object_mark(aliases=['to_canonical'], instance_generator=True)
-    def to_canonical_form(self) -> _tmc:
+    @_dc.object_mark(aliases=['to_canonical'], instance_generator=True)
+    def to_canonical_form(self) -> _ct.tmc:
 
         """
         | The method returns the canonical form of the Markov chain.
@@ -3018,7 +2798,7 @@ class MarkovChain(_Model):
         - The method can also be accessed through the alias **to_canonical**.
         """
 
-        p = _canonical(self.__p, self.__recurrent_classes_indices, self.__transient_states_indices)
+        p = _g.mc_canonical(self.__p, self.__recurrent_classes_indices, self.__transient_states_indices)
 
         recurrent_indices = list(_it.chain.from_iterable(self.__recurrent_classes_indices))
         indices = self.__transient_states_indices + recurrent_indices
@@ -3028,7 +2808,7 @@ class MarkovChain(_Model):
 
         return mc
 
-    def to_dictionary(self) -> _tmc_dict:
+    def to_dictionary(self) -> _ct.tmc_dict:
 
         """
         | The method returns a dictionary representing the transition matrix of the Markov chain.
@@ -3047,7 +2827,7 @@ class MarkovChain(_Model):
 
         return d
 
-    def to_file(self, file_path: _tpath):
+    def to_file(self, file_path: _ct.tpath):
 
         """
         | The method writes the Markov chain to the given file.
@@ -3064,23 +2844,23 @@ class MarkovChain(_Model):
 
         try:
 
-            file_path, file_extension = _validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], True)
+            file_path, file_extension = _v.validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         d = self.to_dictionary()
 
         if file_extension == '.csv':
-            _write_csv(True, d, file_path)
+            _io.write_csv(True, d, file_path)
         elif file_extension == '.json':
-            _write_json(True, d, file_path)
+            _io.write_json(True, d, file_path)
         elif file_extension == '.txt':
-            _write_txt(d, file_path)
+            _io.write_txt(d, file_path)
         else:
-            _write_xml(True, d, file_path)
+            _io.write_xml(True, d, file_path)
 
-    def to_graph(self) -> _tgraph:
+    def to_graph(self) -> _ct.tgraph:
 
         """
         | The method returns a directed graph representing the Markov chain.
@@ -3093,8 +2873,8 @@ class MarkovChain(_Model):
 
         return _cp.deepcopy(self.__digraph)
 
-    @_object_mark(aliases=['to_lazy'], instance_generator=True)
-    def to_lazy_chain(self, inertial_weights: _twgts = 0.5) -> _tmc:
+    @_dc.object_mark(aliases=['to_lazy'], instance_generator=True)
+    def to_lazy_chain(self, inertial_weights: _ct.twgts = 0.5) -> _ct.tmc:
 
         r"""
         | The method returns a lazy Markov chain by adjusting the inertia of each state:
@@ -3114,17 +2894,17 @@ class MarkovChain(_Model):
 
         try:
 
-            inertial_weights = _validate_inertial_weights(inertial_weights, self.__size)
+            inertial_weights = _v.validate_inertial_weights(inertial_weights, self.__size)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p = _lazy(self.__p, inertial_weights)
+        p = _g.mc_lazy(self.__p, inertial_weights)
         mc = MarkovChain(p, self.__states)
 
         return mc
 
-    def to_matrix(self) -> _tarray:
+    def to_matrix(self) -> _ct.tarray:
 
         """
         The method returns a copy of the transition matrix of the Markov chain.
@@ -3133,8 +2913,8 @@ class MarkovChain(_Model):
         return _np.copy(self.__p)
 
     # noinspection GrazieInspection
-    @_object_mark(aliases=['to_nth'], instance_generator=True)
-    def to_nth_order(self, order: int = 2) -> _tmc:
+    @_dc.object_mark(aliases=['to_nth'], instance_generator=True)
+    def to_nth_order(self, order: int = 2) -> _ct.tmc:
 
         r"""
         | The method returns a Markov chain whose transition matrix represents the transitions of the original chain over the given number of steps:
@@ -3151,18 +2931,18 @@ class MarkovChain(_Model):
 
         try:
 
-            order = _validate_integer(order, lower_limit=(2, False))
+            order = _v.validate_integer(order, lower_limit=(2, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         p = _npl.matrix_power(self.__p, order)
         mc = MarkovChain(p, self.__states)
 
         return mc
 
-    @_object_mark(aliases=['to_sub'], instance_generator=True)
-    def to_subchain(self, states: _tstates) -> _tmc:
+    @_dc.object_mark(aliases=['to_sub'], instance_generator=True)
+    def to_subchain(self, states: _ct.tstates) -> _ct.tmc:
 
         """
         | The method returns a subchain containing the given states and all states accessible from them.
@@ -3178,12 +2958,12 @@ class MarkovChain(_Model):
 
         try:
 
-            states = _validate_labels_current(states, self.__states, True)
+            states = _v.validate_labels_current(states, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _sub(self.__p, self.__states, self.adjacency_matrix, states)
+        p_out, states_out, error_message = _g.mc_sub(self.__p, self.__states, self.adjacency_matrix, states)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -3192,7 +2972,7 @@ class MarkovChain(_Model):
 
         return mc
 
-    def transition_probabilities(self, state: _tstate, steps: int = 1) -> _tarray:
+    def transition_probabilities(self, state: _ct.tstate, steps: int = 1) -> _ct.tarray:
 
         r"""
         | The method computes the conditional transition probabilities of the Markov chain after a given number of steps:
@@ -3209,17 +2989,17 @@ class MarkovChain(_Model):
 
         try:
 
-            state = _validate_label(state, self.__states)
-            steps = _validate_integer(steps, lower_limit=(1, False))
+            state = _v.validate_label(state, self.__states)
+            steps = _v.validate_integer(steps, lower_limit=(1, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         p = self.__p if steps == 1 else _npl.matrix_power(self.__p, steps)
 
         return _np.copy(p[state, :])
 
-    def transition_probability(self, state_target: _tstate, state_origin: _tstate, steps: int = 1) -> float:
+    def transition_probability(self, state_target: _ct.tstate, state_origin: _ct.tstate, steps: int = 1) -> float:
 
         r"""
         | The method computes the transition probability between two states after a given number of steps:
@@ -3241,12 +3021,12 @@ class MarkovChain(_Model):
 
         try:
 
-            state_target = _validate_label(state_target, self.__states)
-            state_origin = _validate_label(state_origin, self.__states)
-            steps = _validate_integer(steps, lower_limit=(1, False))
+            state_target = _v.validate_label(state_target, self.__states)
+            state_origin = _v.validate_label(state_origin, self.__states)
+            steps = _v.validate_integer(steps, lower_limit=(1, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         p = self.__p if steps == 1 else _npl.matrix_power(self.__p, steps)
         tp = float(p[state_origin, state_target])
@@ -3254,8 +3034,8 @@ class MarkovChain(_Model):
         return tp
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, states: _olist_str = None, k: _ofloat = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, states: _ct.olist_str = None, k: _ct.ofloat = None) -> _ct.tmc:
 
         r"""
         | The method approximates a first-order autoregressive process with a finite-state Markov chain:
@@ -3280,23 +3060,23 @@ class MarkovChain(_Model):
 
         try:
 
-            size = _validate_integer(size, lower_limit=(2, False))
-            approximation_type = _validate_enumerator(approximation_type, ['adda-cooper', 'rouwenhorst', 'tauchen', 'tauchen-hussey'])
-            alpha = _validate_float(alpha)
-            sigma = _validate_float(sigma, lower_limit=(0.0, True))
-            rho = _validate_float(rho, lower_limit=(-1.0, False), upper_limit=(1.0, False))
+            size = _v.validate_integer(size, lower_limit=(2, False))
+            approximation_type = _v.validate_enumerator(approximation_type, ['adda-cooper', 'rouwenhorst', 'tauchen', 'tauchen-hussey'])
+            alpha = _v.validate_float(alpha)
+            sigma = _v.validate_float(sigma, lower_limit=(0.0, True))
+            rho = _v.validate_float(rho, lower_limit=(-1.0, False), upper_limit=(1.0, False))
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, size)
+                states = _v.validate_labels_input(states, size)
 
             if k is not None:
                 if approximation_type == 'tauchen':
-                    k = _validate_float(k, lower_limit=(1.0, False))
+                    k = _v.validate_float(k, lower_limit=(1.0, False))
                 elif approximation_type == 'tauchen-hussey':
-                    k = _validate_float(k, lower_limit=(0.0, True))
+                    k = _v.validate_float(k, lower_limit=(0.0, True))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if k is None:
             if approximation_type == 'tauchen':
@@ -3304,20 +3084,20 @@ class MarkovChain(_Model):
             elif approximation_type == 'tauchen-hussey':
                 k = ((0.5 + (rho / 4.0)) * sigma) + ((1 - (0.5 + (rho / 4.0))) * (sigma / _np.sqrt(1.0 - rho**2.0)))
 
-        p_out, error_message = _approximation(size, approximation_type, alpha, sigma, rho, k)
+        p_out, error_message = _g.mc_approximation(size, approximation_type, alpha, sigma, rho, k)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
 
-        states_out = states if states is not None else _create_labels(size)
+        states_out = states if states is not None else _u.create_labels(size)
 
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def bernoulli_trials(n: int, p_success: float, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def bernoulli_trials(n: int, p_success: float, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a Markov chain for consecutive successes in independent Bernoulli trials:
@@ -3345,16 +3125,16 @@ class MarkovChain(_Model):
 
         try:
 
-            n = _validate_integer(n, lower_limit=(1, False))
-            p_success = _validate_float(p_success, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            n = _v.validate_integer(n, lower_limit=(1, False))
+            p_success = _v.validate_float(p_success, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, n + 1)
+                states = _v.validate_labels_input(states, n + 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _bernoulli_trials(n, p_success)
+        p_out = _g.mc_bernoulli_trials(n, p_success)
         states_out = states if states is not None else [str(i) for i in range(n + 1)]
 
         mc = MarkovChain(p_out, states_out)
@@ -3362,8 +3142,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def birth_death(p: _tvec, q: _tvec, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def birth_death(p: _ct.tvec, q: _ct.tvec, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a birth-death Markov chain with transitions between neighboring states:
@@ -3381,14 +3161,14 @@ class MarkovChain(_Model):
 
         try:
 
-            p = _validate_vector_birth_death(p, 'creation')
-            q = _validate_vector_birth_death(q, 'annihilation')
+            p = _v.validate_vector_birth_death(p, 'creation')
+            q = _v.validate_vector_birth_death(q, 'annihilation')
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, p.shape[0])
+                states = _v.validate_labels_input(states, p.shape[0])
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if p.shape[0] != q.shape[0]:  # pragma: no cover
             raise _ValidationError('The vector of annihilation probabilities and the vector of creation probabilities must have the same size.')
@@ -3396,16 +3176,16 @@ class MarkovChain(_Model):
         if not _np.all((q + p) <= 1.0):  # pragma: no cover
             raise _ValidationError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
 
-        p_out = _birth_death(p, q)
-        states_out = states if states is not None else _create_labels(p_out.shape[0])
+        p_out = _g.mc_birth_death(p, q)
+        states_out = states if states is not None else _u.create_labels(p_out.shape[0])
 
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def card_shuffling(model: str, n: int, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def card_shuffling(model: str, n: int, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a Markov chain according to the specified card shuffling model.
@@ -3429,16 +3209,16 @@ class MarkovChain(_Model):
 
         try:
 
-            model = _validate_enumerator(model, ['adjacent-transpositions', 'random-transpositions', 'riffle', 'top-to-random'])
-            n = _validate_integer(n, lower_limit=(2, False))
+            model = _v.validate_enumerator(model, ['adjacent-transpositions', 'random-transpositions', 'riffle', 'top-to-random'])
+            n = _v.validate_integer(n, lower_limit=(2, False))
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, _mt.factorial(n))
+                states = _v.validate_labels_input(states, _mt.factorial(n))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _card_shuffling(model, n)
+        p_out = _g.mc_card_shuffling(model, n)
         states_out = states if states is not None else ['_'.join(str(i) for i in permutation) for permutation in _it.permutations(range(1, n + 1))]
 
         mc = MarkovChain(p_out, states_out)
@@ -3446,8 +3226,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def coupon_collector(n: int, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def coupon_collector(n: int, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a coupon collector Markov chain:
@@ -3472,15 +3252,15 @@ class MarkovChain(_Model):
 
         try:
 
-            n = _validate_integer(n, lower_limit=(1, False))
+            n = _v.validate_integer(n, lower_limit=(1, False))
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, n + 1)
+                states = _v.validate_labels_input(states, n + 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _coupon_collector(n)
+        p_out = _g.mc_coupon_collector(n)
         states_out = states if states is not None else [f'{i:d}' for i in range(n + 1)]
 
         mc = MarkovChain(p_out, states_out)
@@ -3488,8 +3268,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def dirichlet_process(size: int, diffusion_factor: int, states: _olist_str = None, diagonal_bias_factor: _ofloat = None, shift_concentration: bool = False, seed: _oint = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def dirichlet_process(size: int, diffusion_factor: int, states: _ct.olist_str = None, diagonal_bias_factor: _ct.ofloat = None, shift_concentration: bool = False, seed: _ct.oint = None) -> _ct.tmc:
 
         """
         | The method generates a random Markov chain using a parametrized Dirichlet stick-breaking process.
@@ -3509,28 +3289,28 @@ class MarkovChain(_Model):
 
         try:
 
-            rng = _create_rng(seed)
-            size = _validate_integer(size, lower_limit=(2, False))
-            diffusion_factor = _validate_integer(diffusion_factor, lower_limit=(1, False), upper_limit=(size, False))
-            diagonal_bias_factor = None if diagonal_bias_factor is None else _validate_float(diagonal_bias_factor, lower_limit=(0.0, True))
-            shift_concentration = _validate_boolean(shift_concentration)
+            rng = _u.create_rng(seed)
+            size = _v.validate_integer(size, lower_limit=(2, False))
+            diffusion_factor = _v.validate_integer(diffusion_factor, lower_limit=(1, False), upper_limit=(size, False))
+            diagonal_bias_factor = None if diagonal_bias_factor is None else _v.validate_float(diagonal_bias_factor, lower_limit=(0.0, True))
+            shift_concentration = _v.validate_boolean(shift_concentration)
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, size)
+                states = _v.validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _dirichlet_process(rng, size, float(diffusion_factor), diagonal_bias_factor, shift_concentration)
-        states_out = states if states is not None else _create_labels(size)
+        p_out = _g.mc_dirichlet_process(rng, size, float(diffusion_factor), diagonal_bias_factor, shift_concentration)
+        states_out = states if states is not None else _u.create_labels(size)
 
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def epidemic_model(model: str, n: int, p_infection: float, p_recovery: float = 0.0, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def epidemic_model(model: str, n: int, p_infection: float, p_recovery: float = 0.0, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a Markov chain according to the specified epidemic model.
@@ -3558,24 +3338,24 @@ class MarkovChain(_Model):
 
         try:
 
-            model = _validate_enumerator(model, ['si', 'sir', 'sis'])
-            n = _validate_integer(n, lower_limit=(1, False))
-            p_infection = _validate_float(p_infection, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            model = _v.validate_enumerator(model, ['si', 'sir', 'sis'])
+            n = _v.validate_integer(n, lower_limit=(1, False))
+            p_infection = _v.validate_float(p_infection, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
             if model != 'si':
-                p_recovery = _validate_float(p_recovery, lower_limit=(0.0, False), upper_limit=(1.0, False))
+                p_recovery = _v.validate_float(p_recovery, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
             if states is not None:  # pragma: no cover
                 size = ((n + 1) * (n + 2)) // 2 if model == 'sir' else n + 1
-                states = _validate_labels_input(states, size)
+                states = _v.validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if (model == 'si') and (p_recovery != 0.0):  # pragma: no cover
             raise _ValidationError('The recovery probability must be zero for the SI model.')
 
-        p_out = _epidemic_model(model, n, p_infection, p_recovery)
+        p_out = _g.mc_epidemic_model(model, n, p_infection, p_recovery)
 
         if states is not None:
             states_out = states
@@ -3589,8 +3369,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def exclusion_process(model: str, n: int, k: int, p_right: float = 0.1, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def exclusion_process(model: str, n: int, k: int, p_right: float = 0.1, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a Markov chain according to the specified simple exclusion process on a one-dimensional lattice with periodic boundary conditions.
@@ -3617,18 +3397,18 @@ class MarkovChain(_Model):
 
         try:
 
-            model = _validate_enumerator(model, ['asep', 'ssep', 'tasep'])
-            n = _validate_integer(n, lower_limit=(3, False))
-            k = _validate_integer(k, lower_limit=(1, False), upper_limit=(n, True))
+            model = _v.validate_enumerator(model, ['asep', 'ssep', 'tasep'])
+            n = _v.validate_integer(n, lower_limit=(3, False))
+            k = _v.validate_integer(k, lower_limit=(1, False), upper_limit=(n, True))
 
             if model == 'asep':
-                p_right = _validate_float(p_right, lower_limit=(0.0, True), upper_limit=(1.0, True))
+                p_right = _v.validate_float(p_right, lower_limit=(0.0, True), upper_limit=(1.0, True))
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, _mt.comb(n, k))
+                states = _v.validate_labels_input(states, _mt.comb(n, k))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if model == 'asep':
             if p_right == 0.5:  # pragma: no cover
@@ -3638,7 +3418,7 @@ class MarkovChain(_Model):
         elif model == 'tasep':
             p_right = 1.0
 
-        p_out = _exclusion_process(n, k, p_right)
+        p_out = _g.mc_exclusion_process(n, k, p_right)
 
         if states is not None:
             states_out = states
@@ -3650,8 +3430,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def fit_function(quadrature_type: str, possible_states: _tlist_str, f: _ttfunc, quadrature_interval: _oival = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def fit_function(quadrature_type: str, possible_states: _ct.tlist_str, f: _ct.ttfunc, quadrature_interval: _ct.oival = None) -> _ct.tmc:
 
         r"""
         | The method fits a Markov chain by evaluating the given transition function using numerical quadrature:
@@ -3685,18 +3465,18 @@ class MarkovChain(_Model):
 
         try:
 
-            quadrature_type = _validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'niederreiter', 'newton-cotes', 'simpson-rule', 'trapezoid-rule'])
-            f = _validate_transition_function(f)
-            possible_states = _validate_labels_input(possible_states)
-            quadrature_interval = (0.0, 1.0) if quadrature_interval is None else _validate_interval(quadrature_interval)
+            quadrature_type = _v.validate_enumerator(quadrature_type, ['gauss-chebyshev', 'gauss-legendre', 'niederreiter', 'newton-cotes', 'simpson-rule', 'trapezoid-rule'])
+            f = _v.validate_transition_function(f)
+            possible_states = _v.validate_labels_input(possible_states)
+            quadrature_interval = (0.0, 1.0) if quadrature_interval is None else _v.validate_interval(quadrature_interval)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if (quadrature_type == 'simpson-rule') and ((len(possible_states) % 2) == 0):  # pragma: no cover
             raise _ValidationError('The quadrature based on the Simpson rule requires an odd number of possible states.')
 
-        p, error_message = _fit_function(quadrature_type, quadrature_interval, possible_states, f)
+        p, error_message = _ft.mc_fit_function(quadrature_type, quadrature_interval, possible_states, f)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -3706,8 +3486,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def fit_sequence(fitting_type: str, possible_states: _tlist_str, sequence: _tseq, fitting_param: _tany = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def fit_sequence(fitting_type: str, possible_states: _ct.tlist_str, sequence: _ct.tseq, fitting_param: _ct.tany = None) -> _ct.tmc:
 
         r"""
         | The method fits a Markov chain from an observed sequence of states using transition counts:
@@ -3736,20 +3516,20 @@ class MarkovChain(_Model):
 
         try:
 
-            possible_states = _validate_labels_input(possible_states)
-            sequence = _validate_sequence(sequence, possible_states)
-            fitting_type = _validate_enumerator(fitting_type, ['map', 'mle', 'rmle'])
+            possible_states = _v.validate_labels_input(possible_states)
+            sequence = _v.validate_sequence(sequence, possible_states)
+            fitting_type = _v.validate_enumerator(fitting_type, ['map', 'mle', 'rmle'])
 
             if fitting_param is not None:
                 if fitting_type == 'map':
-                    fitting_param = _validate_hyperparameter(fitting_param, len(possible_states))
+                    fitting_param = _v.validate_hyperparameter(fitting_param, len(possible_states))
                 elif fitting_type == 'mle':
-                    fitting_param = _validate_boolean(fitting_param)
+                    fitting_param = _v.validate_boolean(fitting_param)
                 else:
-                    fitting_param = _validate_integer(fitting_param, lower_limit=(1000, False))
+                    fitting_param = _v.validate_integer(fitting_param, lower_limit=(1000, False))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if fitting_param is None:
             if fitting_type == 'map':
@@ -3759,7 +3539,7 @@ class MarkovChain(_Model):
             else:
                 fitting_param = 100000
 
-        p, error_message = _fit_sequence(fitting_type, fitting_param, possible_states, sequence)
+        p, error_message = _ft.mc_fit_sequence(fitting_type, fitting_param, possible_states, sequence)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -3769,8 +3549,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def from_dictionary(d: _tmc_dict_f) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def from_dictionary(d: _ct.tmc_dict_f) -> _ct.tmc:
 
         """
         | The method generates a Markov chain from a dictionary mapping ordered pairs of states to transition probabilities.
@@ -3787,12 +3567,12 @@ class MarkovChain(_Model):
 
         try:
 
-            d = _validate_dictionary(d)
+            d = _v.validate_dictionary_mc(d)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _from_dictionary(d)
+        p_out, states_out, error_message = _g.mc_from_dictionary(d)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -3802,8 +3582,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def from_file(file_path: _tpath) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def from_file(file_path: _ct.tpath) -> _ct.tmc:
 
         r"""
         | The method reads a Markov chain from a file in **csv**, **json**, **txt** or **xml** format, inferred from its extension.
@@ -3844,12 +3624,12 @@ class MarkovChain(_Model):
 
         try:
 
-            file_path, file_extension = _validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], False)
+            file_path, file_extension = _v.validate_file_path(file_path, ['.csv', '.json', '.xml', '.txt'], False)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _from_file(file_path, file_extension)
+        p_out, states_out, error_message = _g.mc_from_file(file_path, file_extension)
 
         if error_message is not None:  # pragma: no cover
             raise ValueError(error_message)
@@ -3859,8 +3639,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def from_graph(graph: _tgraphs) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def from_graph(graph: _ct.tgraphs) -> _ct.tmc:
 
         """
         | The method generates a Markov chain from a directed graph by normalizing its edge weights into transition probabilities.
@@ -3877,19 +3657,19 @@ class MarkovChain(_Model):
 
         try:
 
-            graph = _validate_graph(graph)
+            graph = _v.validate_graph_mc(graph)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out = _from_graph(graph)
+        p_out, states_out = _g.mc_from_graph(graph)
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def from_matrix(m: _tmat, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def from_matrix(m: _ct.tmat, states: _ct.olist_str = None) -> _ct.tmc:
 
         """
         | The method generates a Markov chain by normalizing the rows of the given matrix into transition probabilities.
@@ -3905,24 +3685,24 @@ class MarkovChain(_Model):
 
         try:
 
-            m = _validate_matrix(m)
+            m = _v.validate_matrix(m)
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, m.shape[0])
+                states = _v.validate_labels_input(states, m.shape[0])
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _from_matrix(m)
-        states_out = states if states is not None else _create_labels(p_out.shape[0])
+        p_out = _g.mc_from_matrix(m)
+        states_out = states if states is not None else _u.create_labels(p_out.shape[0])
 
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def gamblers_ruin(size: int, w: float, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def gamblers_ruin(size: int, w: float, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a gambler's ruin Markov chain:
@@ -3936,25 +3716,25 @@ class MarkovChain(_Model):
 
         try:
 
-            size = _validate_integer(size, lower_limit=(3, False))
-            w = _validate_float(w, lower_limit=(0.0, True), upper_limit=(1.0, True))
+            size = _v.validate_integer(size, lower_limit=(3, False))
+            w = _v.validate_float(w, lower_limit=(0.0, True), upper_limit=(1.0, True))
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, size)
+                states = _v.validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _gamblers_ruin(size, w)
-        states_out = states if states is not None else _create_labels(size)
+        p_out = _g.mc_gamblers_ruin(size, w)
+        states_out = states if states is not None else _u.create_labels(size)
 
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def gibbs_sampling(dimensions: _tlist_int, target_pi: _tvec, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def gibbs_sampling(dimensions: _ct.tlist_int, target_pi: _ct.tvec, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a Markov chain with a prescribed stationary distribution using the random-scan Gibbs sampling algorithm:
@@ -3982,19 +3762,19 @@ class MarkovChain(_Model):
 
         try:
 
-            dimensions = _validate_dimensions(dimensions)
-            target_pi = _validate_vector_stochastic(target_pi, _mt.prod(dimensions), False)
+            dimensions = _v.validate_dimensions(dimensions)
+            target_pi = _v.validate_vector_stochastic(target_pi, _mt.prod(dimensions), False)
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, _mt.prod(dimensions))
+                states = _v.validate_labels_input(states, _mt.prod(dimensions))
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if _np.any(target_pi <= 0.0):  # pragma: no cover
             raise _ValidationError('The target stationary distribution must contain strictly positive probabilities.')
 
-        p_out = _gibbs_sampling(dimensions, target_pi)
+        p_out = _g.mc_gibbs_sampling(dimensions, target_pi)
         states_out = states if states is not None else ['_'.join(str(i) for i in configuration) for configuration in _np.ndindex(*dimensions)]
 
         mc = MarkovChain(p_out, states_out)
@@ -4002,8 +3782,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def identity(size: int, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def identity(size: int, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a Markov chain with an identity transition matrix:
@@ -4016,24 +3796,24 @@ class MarkovChain(_Model):
 
         try:
 
-            size = _validate_integer(size, lower_limit=(2, False))
+            size = _v.validate_integer(size, lower_limit=(2, False))
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, size)
+                states = _v.validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         p_out = _np.eye(size)
-        states_out = states if states is not None else _create_labels(size)
+        states_out = states if states is not None else _u.create_labels(size)
 
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def ising_model(model: str, n: int, beta: float, j: float = 1.0, h: float = 0.0, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def ising_model(model: str, n: int, beta: float, j: float = 1.0, h: float = 0.0, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a Markov chain for a one-dimensional Ising model with periodic boundary conditions:
@@ -4066,19 +3846,19 @@ class MarkovChain(_Model):
 
         try:
 
-            model = _validate_enumerator(model, ['glauber', 'metropolis'])
-            n = _validate_integer(n, lower_limit=(3, False))
-            beta = _validate_float(beta, lower_limit=(0.0, False))
-            j = _validate_float(j)
-            h = _validate_float(h)
+            model = _v.validate_enumerator(model, ['glauber', 'metropolis'])
+            n = _v.validate_integer(n, lower_limit=(3, False))
+            beta = _v.validate_float(beta, lower_limit=(0.0, False))
+            j = _v.validate_float(j)
+            h = _v.validate_float(h)
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, 2**n)
+                states = _v.validate_labels_input(states, 2**n)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _ising_model(model, n, beta, j, h)
+        p_out = _g.mc_ising_model(model, n, beta, j, h)
         states_out = states if states is not None else [format(i, f'0{n}b').replace('0', '-').replace('1', '+') for i in range(2**n)]
 
         mc = MarkovChain(p_out, states_out)
@@ -4086,8 +3866,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def metropolis_hastings(size: int, target_pi: _tvec, proposal: _oarray = None, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def metropolis_hastings(size: int, target_pi: _ct.tvec, proposal: _ct.oarray = None, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a Markov chain with a prescribed stationary distribution using the Metropolis-Hastings algorithm:
@@ -4112,31 +3892,31 @@ class MarkovChain(_Model):
 
         try:
 
-            size = _validate_integer(size, lower_limit=(2, False))
-            target_pi = _validate_vector_stochastic(target_pi, size, False)
+            size = _v.validate_integer(size, lower_limit=(2, False))
+            target_pi = _v.validate_vector_stochastic(target_pi, size, False)
 
             if proposal is not None:
-                proposal = _validate_transition_matrix(proposal, size)
+                proposal = _v.validate_transition_matrix(proposal, size)
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, size)
+                states = _v.validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if _np.any(target_pi <= 0.0):  # pragma: no cover
             raise _ValidationError('The target stationary distribution must contain strictly positive probabilities.')
 
-        p_out = _metropolis_hastings(target_pi, proposal)
-        states_out = states if states is not None else _create_labels(size)
+        p_out = _g.mc_metropolis_hastings(target_pi, proposal)
+        states_out = states if states is not None else _u.create_labels(size)
 
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def pattern_matching(pattern: str, probabilities: _tpprobs, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def pattern_matching(pattern: str, probabilities: _ct.tpprobs, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a pattern-matching Markov chain for a prescribed sequence of random symbols.
@@ -4152,34 +3932,34 @@ class MarkovChain(_Model):
 
         :param pattern: the pattern to match, expressed as a non-empty string.
         :param probabilities: the probability distribution over the symbols, expressed as a dictionary mapping individual characters to probabilities.
-        :param states: the state names (*if omitted, the matching prefixes of the pattern are used, with ∅ representing the empty prefix*).
+        :param states: the state names (*if omitted, the matching prefixes of the pattern are used, with âˆ… representing the empty prefix*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            pattern = _validate_string(pattern, excluded_chars=[' ', '∅'])
-            probabilities = _validate_pattern_probabilities(probabilities)
+            pattern = _v.validate_string(pattern, excluded_chars=[' ', 'âˆ…'])
+            probabilities = _v.validate_pattern_probabilities(probabilities)
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, len(pattern) + 1)
+                states = _v.validate_labels_input(states, len(pattern) + 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if not set(pattern).issubset(probabilities):
             raise _ValidationError('The probability distribution must define all the symbols appearing in the pattern.')
 
-        p_out = _pattern_matching(pattern, probabilities)
-        states_out = states if states is not None else ['∅'] + [pattern[:i] for i in range(1, len(pattern) + 1)]
+        p_out = _g.mc_pattern_matching(pattern, probabilities)
+        states_out = states if states is not None else ['âˆ…'] + [pattern[:i] for i in range(1, len(pattern) + 1)]
 
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def population_genetics_model(model: str, n: int, s: float = 0.0, u: float = 1.0e-9, v: float = 1.0e-9, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def population_genetics_model(model: str, n: int, s: float = 0.0, u: float = 1.0e-9, v: float = 1.0e-9, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a population genetics Markov chain according to the specified model.
@@ -4204,22 +3984,22 @@ class MarkovChain(_Model):
 
         try:
 
-            model = _validate_enumerator(model, ['moran', 'wright-fisher'])
-            n = _validate_integer(n, lower_limit=(2, False), upper_limit=(500, False))
-            s = _validate_float(s, lower_limit=(-1.0, False))
-            u = _validate_float(u, lower_limit=(0.0, False), upper_limit=(1.0, False))
-            v = _validate_float(v, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            model = _v.validate_enumerator(model, ['moran', 'wright-fisher'])
+            n = _v.validate_integer(n, lower_limit=(2, False), upper_limit=(500, False))
+            s = _v.validate_float(s, lower_limit=(-1.0, False))
+            u = _v.validate_float(u, lower_limit=(0.0, False), upper_limit=(1.0, False))
+            v = _v.validate_float(v, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, n + 1)
+                states = _v.validate_labels_input(states, n + 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if (model == 'wright-fisher') and ((4.0 * n * max(u, v)) > 1.0):  # pragma: no cover
             raise _ValidationError('The highest mutation rate specified is too high for the Wright-Fisher model.')
 
-        p_out = _population_genetics_model(model, n, s, u, v)
+        p_out = _g.mc_population_genetics_model(model, n, s, u, v)
         states_out = states if states is not None else [str(i) for i in range(n + 1)]
 
         mc = MarkovChain(p_out, states_out)
@@ -4227,8 +4007,8 @@ class MarkovChain(_Model):
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True, random_output=True)
-    def random(size: int, states: _olist_str = None, zeros: int = 0, mask: _omat = None, seed: _oint = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True, random_output=True)
+    def random(size: int, states: _ct.olist_str = None, zeros: int = 0, mask: _ct.omat = None, seed: _ct.oint = None) -> _ct.tmc:
 
         """
         | The method generates a Markov chain with random transition probabilities, optionally subject to fixed values and zero-probability constraints.
@@ -4248,24 +4028,24 @@ class MarkovChain(_Model):
 
         try:
 
-            rng = _create_rng(seed)
-            size = _validate_integer(size, lower_limit=(2, False))
+            rng = _u.create_rng(seed)
+            size = _v.validate_integer(size, lower_limit=(2, False))
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, size)
+                states = _v.validate_labels_input(states, size)
 
-            zeros = _validate_integer(zeros, lower_limit=(0, False))
-            mask = _np.full((size, size), _np.nan, dtype=float) if mask is None else _validate_mask(mask, size, size)
+            zeros = _v.validate_integer(zeros, lower_limit=(0, False))
+            mask = _np.full((size, size), _np.nan, dtype=float) if mask is None else _v.validate_mask(mask, size, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, error_message = _random(rng, size, zeros, mask)
+        p_out, error_message = _g.mc_random(rng, size, zeros, mask)
 
         if error_message is not None:  # pragma: no cover
             raise _ValidationError(error_message)
 
-        states_out = states if states is not None else _create_labels(size)
+        states_out = states if states is not None else _u.create_labels(size)
 
         mc = MarkovChain(p_out, states_out)
 
@@ -4273,8 +4053,8 @@ class MarkovChain(_Model):
 
     # noinspection PyIncorrectDocstring
     @staticmethod
-    @_object_mark(instance_generator=True, random_output=True)
-    def random_distribution(size: int, f: _trfunc_f, states: _olist_str = None, seed: _oint = None, **kwargs) -> _tmc:
+    @_dc.object_mark(instance_generator=True, random_output=True)
+    def random_distribution(size: int, f: _ct.trfunc_f, states: _ct.olist_str = None, seed: _ct.oint = None, **kwargs) -> _ct.tmc:
 
         r"""
         | The method generates a random Markov chain by sampling transition weights from a NumPy random distribution and normalizing them row-wise.
@@ -4293,30 +4073,30 @@ class MarkovChain(_Model):
         """
 
         if MarkovChain.__random_distributions is None:
-            MarkovChain.__random_distributions = _get_numpy_random_distributions()
+            MarkovChain.__random_distributions = _u.get_numpy_random_distributions()
 
         try:
 
-            rng = _create_rng(seed)
-            size = _validate_integer(size, lower_limit=(2, False))
-            f = _validate_random_distribution(f, rng, MarkovChain.__random_distributions)
+            rng = _u.create_rng(seed)
+            size = _v.validate_integer(size, lower_limit=(2, False))
+            f = _v.validate_random_distribution(f, rng, MarkovChain.__random_distributions)
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, size)
+                states = _v.validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _random_distribution(size, f, kwargs)
-        states_out = states if states is not None else _create_labels(size)
+        p_out = _g.mc_random_distribution(size, f, kwargs)
+        states_out = states if states is not None else _u.create_labels(size)
 
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def random_walk(size: int, topology: str = 'path', lazy: bool = False, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def random_walk(size: int, topology: str = 'path', lazy: bool = False, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a random walk Markov chain on a standard undirected graph.
@@ -4339,29 +4119,29 @@ class MarkovChain(_Model):
 
         try:
 
-            size = _validate_integer(size, lower_limit=(2, False))
-            topology = _validate_enumerator(topology, ['complete', 'cycle', 'path'])
-            lazy = _validate_boolean(lazy)
+            size = _v.validate_integer(size, lower_limit=(2, False))
+            topology = _v.validate_enumerator(topology, ['complete', 'cycle', 'path'])
+            lazy = _v.validate_boolean(lazy)
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, size)
+                states = _v.validate_labels_input(states, size)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
         if (topology == 'cycle') and (size < 3):
             raise _ValidationError('The cycle topology requires at least 3 states.')
 
-        p_out = _random_walk(size, topology, lazy)
-        states_out = states if states is not None else _create_labels(size)
+        p_out = _g.mc_random_walk(size, topology, lazy)
+        states_out = states if states is not None else _u.create_labels(size)
 
         mc = MarkovChain(p_out, states_out)
 
         return mc
 
     @staticmethod
-    @_object_mark(instance_generator=True)
-    def urn_model(model: str, n: int, states: _olist_str = None) -> _tmc:
+    @_dc.object_mark(instance_generator=True)
+    def urn_model(model: str, n: int, states: _ct.olist_str = None) -> _ct.tmc:
 
         """
         | The method generates a Markov chain based on the specified urn model, with **2n + 1** states.
@@ -4382,17 +4162,17 @@ class MarkovChain(_Model):
 
         try:
 
-            model = _validate_enumerator(model, ['bernoulli-laplace', 'ehrenfest'])
-            n = _validate_integer(n, lower_limit=(1, False))
+            model = _v.validate_enumerator(model, ['bernoulli-laplace', 'ehrenfest'])
+            n = _v.validate_integer(n, lower_limit=(1, False))
 
             if states is not None:  # pragma: no cover
-                states = _validate_labels_input(states, (2 * n) + 1)
+                states = _v.validate_labels_input(states, (2 * n) + 1)
 
         except Exception as ex:  # pragma: no cover
-            raise _create_validation_error(ex, _ins.trace()) from None
+            raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _urn_model(model, n)
-        states_out = states if states is not None else _create_labels(p_out.shape[0])
+        p_out = _g.mc_urn_model(model, n)
+        states_out = states if states is not None else _u.create_labels(p_out.shape[0])
 
         mc = MarkovChain(p_out, states_out)
 

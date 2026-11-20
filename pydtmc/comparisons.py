@@ -24,25 +24,16 @@ import scipy.special as _sps
 
 # Internal
 
-from ._custom_types import (
-    tmdl as _tmdl
-)
-
-from ._utilities import (
-    create_validation_error as _create_validation_error
-)
-
-from ._validation import (
-    validate_enumerator as _validate_enumerator,
-    validate_model as _validate_model
-)
+from . import _custom_types as _ct
+from . import _utilities as _u
+from . import _validation as _v
 
 
 #############
 # FUNCTIONS #
 #############
 
-def _extract_stationary_distribution(model1: _tmdl, model2: _tmdl):
+def _extract_stationary_distribution(model1: _ct.tmdl, model2: _ct.tmdl):
 
     if model1.n != model2.n:  # pragma: no cover
         raise ValueError('The models must have the same number of states in order to be compared.')
@@ -57,7 +48,7 @@ def _extract_stationary_distribution(model1: _tmdl, model2: _tmdl):
     return pi1_unique, pi2_unique
 
 
-def _extract_transition_matrices(model1: _tmdl, model2: _tmdl):
+def _extract_transition_matrices(model1: _ct.tmdl, model2: _ct.tmdl):
 
     if model1.n != model2.n:  # pragma: no cover
         raise ValueError('The models must have the same number of states in order to be compared.')
@@ -65,7 +56,7 @@ def _extract_transition_matrices(model1: _tmdl, model2: _tmdl):
     return model1.p, model2.p
 
 
-def calculate_stationary_distance(model1: _tmdl, model2: _tmdl) -> float:
+def calculate_stationary_distance(model1: _ct.tmdl, model2: _ct.tmdl) -> float:
 
     r"""
     | The function computes the total variation distance between the unique stationary distributions of the given models.
@@ -79,11 +70,11 @@ def calculate_stationary_distance(model1: _tmdl, model2: _tmdl) -> float:
 
     try:
 
-        model1 = _validate_model(model1)
-        model2 = _validate_model(model2)
+        model1 = _v.validate_model(model1)
+        model2 = _v.validate_model(model2)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     pi1, pi2 = _extract_stationary_distribution(model1, model2)
     d = float(0.5 * _np.sum(_np.abs(pi1 - pi2)))
@@ -91,7 +82,7 @@ def calculate_stationary_distance(model1: _tmdl, model2: _tmdl) -> float:
     return d
 
 
-def calculate_transition_distance(distance_type: str, model1: _tmdl, model2: _tmdl) -> float:
+def calculate_transition_distance(distance_type: str, model1: _ct.tmdl, model2: _ct.tmdl) -> float:
 
     r"""
     | The function computes the selected distance between the transition matrices of the given models.
@@ -121,12 +112,12 @@ def calculate_transition_distance(distance_type: str, model1: _tmdl, model2: _tm
 
     try:
 
-        distance_type = _validate_enumerator(distance_type, ['frobenius', 'hellinger', 'maximum', 'spectral', 'total_variation'])
-        model1 = _validate_model(model1)
-        model2 = _validate_model(model2)
+        distance_type = _v.validate_enumerator(distance_type, ['frobenius', 'hellinger', 'maximum', 'spectral', 'total_variation'])
+        model1 = _v.validate_model(model1)
+        model2 = _v.validate_model(model2)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     p1, p2 = _extract_transition_matrices(model1, model2)
 
@@ -150,7 +141,7 @@ def calculate_transition_distance(distance_type: str, model1: _tmdl, model2: _tm
     return d
 
 
-def calculate_transition_divergence(divergence_type: str, model1: _tmdl, model2: _tmdl) -> float:
+def calculate_transition_divergence(divergence_type: str, model1: _ct.tmdl, model2: _ct.tmdl) -> float:
 
     r"""
     | The function computes the selected maximum row-wise divergence between the transition matrices of the given models.
@@ -175,12 +166,12 @@ def calculate_transition_divergence(divergence_type: str, model1: _tmdl, model2:
 
     try:
 
-        divergence_type = _validate_enumerator(divergence_type, ['jensen_shannon', 'kullback_leibler'])
-        model1 = _validate_model(model1)
-        model2 = _validate_model(model2)
+        divergence_type = _v.validate_enumerator(divergence_type, ['jensen_shannon', 'kullback_leibler'])
+        model1 = _v.validate_model(model1)
+        model2 = _v.validate_model(model2)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     p1, p2 = _extract_transition_matrices(model1, model2)
 

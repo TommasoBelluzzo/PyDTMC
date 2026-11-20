@@ -31,39 +31,16 @@ import scipy.stats as _sps
 
 # Internal
 
-from ._custom_types import (
-    oint as _oint,
-    tass_cp as _tass_cp,
-    tass_ord as _tass_ord,
-    tass_stat as _tass_stat,
-    tlist_str as _tlist_str,
-    tmc as _tmc,
-    tseq as _tseq,
-    tseqs as _tseqs
-)
-
-from ._utilities import (
-    create_rng as _create_rng,
-    create_validation_error as _create_validation_error
-)
-
-from ._validation import (
-    validate_boolean as _validate_boolean,
-    validate_enumerator as _validate_enumerator,
-    validate_float as _validate_float,
-    validate_integer as _validate_integer,
-    validate_labels_input as _validate_labels_input,
-    validate_markov_chain as _validate_markov_chain,
-    validate_sequence as _validate_sequence,
-    validate_sequences as _validate_sequences
-)
+from . import _custom_types as _ct
+from . import _utilities as _u
+from . import _validation as _v
 
 
 #############
 # FUNCTIONS #
 #############
 
-def assess_change_point(possible_states: _tlist_str, sequence: _tseq, significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _tass_cp:
+def assess_change_point(possible_states: _ct.tlist_str, sequence: _ct.tseq, significance: float = 0.05, simulations: int = 1000, seed: _ct.oint = None) -> _ct.tass_cp:
 
     r"""
     | The function assesses whether the transition probabilities of the given sequence change at a single unknown point:
@@ -133,14 +110,14 @@ def assess_change_point(possible_states: _tlist_str, sequence: _tseq, significan
 
     try:
 
-        rng = _create_rng(seed)
-        possible_states = _validate_labels_input(possible_states)
-        sequence = _validate_sequence(sequence, possible_states)
-        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
-        simulations = _validate_integer(simulations, lower_limit=(10, False))
+        rng = _u.create_rng(seed)
+        possible_states = _v.validate_labels_input(possible_states)
+        sequence = _v.validate_sequence(sequence, possible_states)
+        significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+        simulations = _v.validate_integer(simulations, lower_limit=(10, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     n, length = len(possible_states), len(sequence)
 
@@ -181,7 +158,7 @@ def assess_change_point(possible_states: _tlist_str, sequence: _tseq, significan
     return change_point, p_value, statistic
 
 
-def assess_homogeneity(possible_states: _tlist_str, sequences: _tseqs, significance: float = 0.05) -> _tass_stat:
+def assess_homogeneity(possible_states: _ct.tlist_str, sequences: _ct.tseqs, significance: float = 0.05) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether the given sequences share the same transition probabilities:
@@ -201,12 +178,12 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tseqs, significa
 
     try:
 
-        possible_states = _validate_labels_input(possible_states)
-        sequences = _validate_sequences(sequences, possible_states, False)
-        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+        possible_states = _v.validate_labels_input(possible_states)
+        sequences = _v.validate_sequences(sequences, possible_states, False)
+        significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     n = len(possible_states)
 
@@ -264,7 +241,7 @@ def assess_homogeneity(possible_states: _tlist_str, sequences: _tseqs, significa
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_independence(possible_states: _tlist_str, sequence: _tseq, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _tass_stat:
+def assess_independence(possible_states: _ct.tlist_str, sequence: _ct.tseq, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _ct.oint = None) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether consecutive observations of the given sequence are independent:
@@ -315,15 +292,15 @@ def assess_independence(possible_states: _tlist_str, sequence: _tseq, method: st
 
     try:
 
-        rng = _create_rng(seed)
-        possible_states = _validate_labels_input(possible_states)
-        sequence = _validate_sequence(sequence, possible_states)
-        method = _validate_enumerator(method, ['asymptotic', 'simulation'])
-        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
-        simulations = _validate_integer(simulations, lower_limit=(10, False))
+        rng = _u.create_rng(seed)
+        possible_states = _v.validate_labels_input(possible_states)
+        sequence = _v.validate_sequence(sequence, possible_states)
+        method = _v.validate_enumerator(method, ['asymptotic', 'simulation'])
+        significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+        simulations = _v.validate_integer(simulations, lower_limit=(10, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     n, length = len(possible_states), len(sequence)
 
@@ -357,7 +334,7 @@ def assess_independence(possible_states: _tlist_str, sequence: _tseq, method: st
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_markov_property(possible_states: _tlist_str, sequence: _tseq, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _oint = None) -> _tass_stat:
+def assess_markov_property(possible_states: _ct.tlist_str, sequence: _ct.tseq, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _ct.oint = None) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether the given sequence is compatible with a first-order Markov process:
@@ -415,15 +392,15 @@ def assess_markov_property(possible_states: _tlist_str, sequence: _tseq, method:
 
     try:
 
-        rng = _create_rng(seed)
-        possible_states = _validate_labels_input(possible_states)
-        sequence = _validate_sequence(sequence, possible_states)
-        method = _validate_enumerator(method, ['asymptotic', 'simulation'])
-        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
-        simulations = _validate_integer(simulations, lower_limit=(10, False))
+        rng = _u.create_rng(seed)
+        possible_states = _v.validate_labels_input(possible_states)
+        sequence = _v.validate_sequence(sequence, possible_states)
+        method = _v.validate_enumerator(method, ['asymptotic', 'simulation'])
+        significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+        simulations = _v.validate_integer(simulations, lower_limit=(10, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     n, length = len(possible_states), len(sequence)
 
@@ -476,7 +453,7 @@ def assess_markov_property(possible_states: _tlist_str, sequence: _tseq, method:
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_order(possible_states: _tlist_str, sequence: _tseq, maximum_order: int = 3, criterion: str = 'bic') -> _tass_ord:
+def assess_order(possible_states: _ct.tlist_str, sequence: _ct.tseq, maximum_order: int = 3, criterion: str = 'bic') -> _ct.tass_ord:
 
     r"""
     | The function assesses the preferred Markov order of the given sequence using maximum-likelihood estimation and the selected criterion.
@@ -501,13 +478,13 @@ def assess_order(possible_states: _tlist_str, sequence: _tseq, maximum_order: in
 
     try:
 
-        possible_states = _validate_labels_input(possible_states)
-        sequence = _validate_sequence(sequence, possible_states)
-        maximum_order = _validate_integer(maximum_order, lower_limit=(0, False))
-        criterion = _validate_enumerator(criterion, ['aic', 'bic'])
+        possible_states = _v.validate_labels_input(possible_states)
+        sequence = _v.validate_sequence(sequence, possible_states)
+        maximum_order = _v.validate_integer(maximum_order, lower_limit=(0, False))
+        criterion = _v.validate_enumerator(criterion, ['aic', 'bic'])
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     length = len(sequence)
     observations = length - maximum_order
@@ -553,7 +530,7 @@ def assess_order(possible_states: _tlist_str, sequence: _tseq, maximum_order: in
     return selected_order, scores
 
 
-def assess_stationarity(mc: _tmc, sequences: _tseqs, significance: float = 0.05) -> _tass_stat:
+def assess_stationarity(mc: _ct.tmc, sequences: _ct.tseqs, significance: float = 0.05) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether independent sequences of the given Markov chain are initialized according to its stationary distribution:
@@ -600,12 +577,12 @@ def assess_stationarity(mc: _tmc, sequences: _tseqs, significance: float = 0.05)
 
     try:
 
-        mc = _validate_markov_chain(mc)
-        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
-        sequences = _validate_sequences(sequences, mc.states, False)
+        mc = _v.validate_markov_chain(mc)
+        significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+        sequences = _v.validate_sequences(sequences, mc.states, False)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     lengths = len(sequences)
 
@@ -673,7 +650,7 @@ def assess_stationarity(mc: _tmc, sequences: _tseqs, significance: float = 0.05)
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_theoretical_compatibility(mc: _tmc, sequence: _tseq, significance: float = 0.05) -> _tass_stat:
+def assess_theoretical_compatibility(mc: _ct.tmc, sequence: _ct.tseq, significance: float = 0.05) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether the given sequence is compatible with the transition probabilities of the specified Markov chain:
@@ -694,12 +671,12 @@ def assess_theoretical_compatibility(mc: _tmc, sequence: _tseq, significance: fl
 
     try:
 
-        mc = _validate_markov_chain(mc)
-        sequence = _validate_sequence(sequence, mc.states)
-        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+        mc = _v.validate_markov_chain(mc)
+        sequence = _v.validate_sequence(sequence, mc.states)
+        significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     p, n = mc.p, mc.size
     f = _np.zeros((n, n), dtype=int)
@@ -740,7 +717,7 @@ def assess_theoretical_compatibility(mc: _tmc, sequence: _tseq, significance: fl
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_time_homogeneity(possible_states: _tlist_str, sequence: _tseq, blocks: int = 2, significance: float = 0.05) -> _tass_stat:
+def assess_time_homogeneity(possible_states: _ct.tlist_str, sequence: _ct.tseq, blocks: int = 2, significance: float = 0.05) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether the transition probabilities of the given sequence remain constant across consecutive time blocks:
@@ -762,13 +739,13 @@ def assess_time_homogeneity(possible_states: _tlist_str, sequence: _tseq, blocks
 
     try:
 
-        possible_states = _validate_labels_input(possible_states)
-        sequence = _validate_sequence(sequence, possible_states)
-        blocks = _validate_integer(blocks, lower_limit=(2, False))
-        significance = _validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
+        possible_states = _v.validate_labels_input(possible_states)
+        sequence = _v.validate_sequence(sequence, possible_states)
+        blocks = _v.validate_integer(blocks, lower_limit=(2, False))
+        significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     n, length = len(possible_states), len(sequence)
 
@@ -809,7 +786,7 @@ def assess_time_homogeneity(possible_states: _tlist_str, sequence: _tseq, blocks
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_vamp_score(method: str, possible_states: _tlist_str, sequences: _tseqs, lag: int = 1, center: bool = False) -> float:
+def assess_vamp_score(method: str, possible_states: _ct.tlist_str, sequences: _ct.tseqs, lag: int = 1, center: bool = False) -> float:
 
     r"""
     | The function computes a Variational Approach for Markov Processes (VAMP) score from one or more observed sequences of states.
@@ -853,14 +830,14 @@ def assess_vamp_score(method: str, possible_states: _tlist_str, sequences: _tseq
 
     try:
 
-        method = _validate_enumerator(method, ['vamp1', 'vamp2'])
-        possible_states = _validate_labels_input(possible_states)
-        sequences = _validate_sequences(sequences, possible_states, True)
-        lag = _validate_integer(lag, lower_limit=(1, False))
-        center = _validate_boolean(center)
+        method = _v.validate_enumerator(method, ['vamp1', 'vamp2'])
+        possible_states = _v.validate_labels_input(possible_states)
+        sequences = _v.validate_sequences(sequences, possible_states, True)
+        lag = _v.validate_integer(lag, lower_limit=(1, False))
+        center = _v.validate_boolean(center)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     n = len(possible_states)
     counts = _np.zeros((n, n), dtype=float)

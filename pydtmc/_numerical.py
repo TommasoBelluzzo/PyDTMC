@@ -35,18 +35,8 @@ import numpy.linalg as _npl
 
 # Internal
 
-from ._constants import (
-    FTOL as _FTOL
-)
-
-from ._custom_types import (
-    ofloat as _ofloat,
-    tarray as _tarray,
-    tgraph as _tgraph,
-    tlist_int as _tlist_int,
-    tlists_int as _tlists_int,
-    tparts as _tparts
-)
+from . import _constants as _c
+from . import _custom_types as _ct
 
 
 #############
@@ -55,7 +45,7 @@ from ._custom_types import (
 
 # GRAPH & STRUCTURAL ALGORITHMS
 
-def accessibility_matrix(adm: _tarray) -> _tarray:
+def accessibility_matrix(adm: _ct.tarray) -> _ct.tarray:
 
     acm = adm.astype(bool)
     _np.fill_diagonal(acm, True)
@@ -68,7 +58,7 @@ def accessibility_matrix(adm: _tarray) -> _tarray:
     return acm
 
 
-def calculate_periods(graph: _tgraph) -> _tlist_int:
+def calculate_periods(graph: _ct.tgraph) -> _ct.tlist_int:
 
     def _calculate_period(subgraph):
 
@@ -134,7 +124,7 @@ def calculate_periods(graph: _tgraph) -> _tlist_int:
     return periods
 
 
-def communication_matrix(size: int, communicating_classes_indices: _tlists_int) -> _tarray:
+def communication_matrix(size: int, communicating_classes_indices: _ct.tlists_int) -> _ct.tarray:
 
     cm = _np.zeros((size, size), dtype=int)
 
@@ -144,7 +134,7 @@ def communication_matrix(size: int, communicating_classes_indices: _tlists_int) 
     return cm
 
 
-def density(adm: _tarray) -> float:
+def density(adm: _ct.tarray) -> float:
 
     am = _np.copy(adm)
     am[_np.diag_indices_from(am)] = 0
@@ -156,7 +146,7 @@ def density(adm: _tarray) -> float:
     return d
 
 
-def find_cyclic_classes(p: _tarray) -> _tlists_int:
+def find_cyclic_classes(p: _ct.tarray) -> _ct.tlists_int:
 
     size = p.shape[0]
 
@@ -197,7 +187,7 @@ def find_cyclic_classes(p: _tarray) -> _tlists_int:
     return indices
 
 
-def find_lumping_partitions(p: _tarray) -> _tparts:
+def find_lumping_partitions(p: _ct.tarray) -> _ct.tparts:
 
     size = p.shape[0]
 
@@ -258,7 +248,7 @@ def find_lumping_partitions(p: _tarray) -> _tparts:
     return partitions
 
 
-def incidence_matrix(states_indices: _tlist_int) -> _tarray:
+def incidence_matrix(states_indices: _ct.tlist_int) -> _ct.tarray:
 
     n = len(states_indices)
     k = n**2
@@ -278,7 +268,7 @@ def incidence_matrix(states_indices: _tlist_int) -> _tarray:
     return im
 
 
-def is_stochastically_monotone(m: _tarray) -> bool:
+def is_stochastically_monotone(m: _ct.tarray) -> bool:
 
     cumulative = _np.cumsum(m[:, ::-1], axis=1)[:, ::-1]
     result = bool(_np.all(_np.diff(cumulative[:, 1:], axis=0) >= 0.0))
@@ -286,7 +276,7 @@ def is_stochastically_monotone(m: _tarray) -> bool:
     return result
 
 
-def verify_reachability(p: _tarray, targets: _tarray) -> _tarray:
+def verify_reachability(p: _ct.tarray, targets: _ct.tarray) -> _ct.tarray:
 
     size = p.shape[0]
 
@@ -316,7 +306,7 @@ def verify_reachability(p: _tarray, targets: _tarray) -> _tarray:
 
 # SPECTRAL ALGORITHMS
 
-def eigenvalues_sorted(m: _tarray) -> _tarray:
+def eigenvalues_sorted(m: _ct.tarray) -> _ct.tarray:
 
     evalues = _npl.eigvals(m)
     evalues = _np.sort(_np.abs(evalues))
@@ -324,12 +314,12 @@ def eigenvalues_sorted(m: _tarray) -> _tarray:
     return evalues
 
 
-def slem(m: _tarray) -> _ofloat:
+def slem(m: _ct.tarray) -> _ct.ofloat:
 
     ev = eigenvalues_sorted(m)
     value = float(ev[-2])
 
-    if value <= _FTOL:
+    if value <= _c.FTOL:
         value = 0.0
 
     return value
@@ -337,7 +327,7 @@ def slem(m: _tarray) -> _ofloat:
 
 # LINEAR ALGEBRA
 
-def gth_solve(p: _tarray) -> _tarray:
+def gth_solve(p: _ct.tarray) -> _ct.tarray:
 
     a = _np.copy(p)
     n = a.shape[0]
@@ -364,7 +354,7 @@ def gth_solve(p: _tarray) -> _tarray:
     return x
 
 
-def matrix_geometric_sum(m: _tarray, terms: int) -> _tarray:
+def matrix_geometric_sum(m: _ct.tarray, terms: int) -> _ct.tarray:
 
     size = m.shape[0]
 

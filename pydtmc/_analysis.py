@@ -88,42 +88,9 @@ import scipy.optimize as _spo
 
 # Internal
 
-from ._constants import (
-    FTOL as _FTOL
-)
-
-from ._custom_types import (
-    oarray as _oarray,
-    obndval as _obndval,
-    obndvals as _obndvals,
-    ofloat as _ofloat,
-    oint as _oint,
-    ohmm_dec as _ohmm_dec,
-    ofc_prof as _ofc_prof,
-    olist_int as _olist_int,
-    oseq as _oseq,
-    otimes_out as _otimes_out,
-    tany as _tany,
-    tarray as _tarray,
-    tgraph as _tgraph,
-    tlist_array as _tlist_array,
-    tlist_float as _tlist_float,
-    tlist_int as _tlist_int,
-    tlist_str as _tlist_str,
-    tlists_int as _tlists_int,
-    thmm as _thmm,
-    tmc as _tmc,
-    tobs as _tobs,
-    tseq as _tseq,
-    ttimes_in as _ttimes_in
-)
-
-from ._numerical import (
-    gth_solve as _gth_solve,
-    eigenvalues_sorted as _eigenvalues_sorted,
-    matrix_geometric_sum as _matrix_geometric_sum,
-    verify_reachability as _verify_reachability
-)
+from . import _constants as _c
+from . import _custom_types as _ct
+from . import _numerical as _n
 
 
 #############
@@ -132,7 +99,7 @@ from ._numerical import (
 
 # PRIVATE HELPERS
 
-def _build_observable_matrix(p: _tarray, observable: _tobs, observable_param: _tany) -> _tarray:
+def _build_observable_matrix(p: _ct.tarray, observable: _ct.tobs, observable_param: _ct.tany) -> _ct.tarray:
 
     if not isinstance(observable, str):
         return observable
@@ -161,14 +128,14 @@ def _build_observable_matrix(p: _tarray, observable: _tobs, observable_param: _t
     return g
 
 
-def _clean_variance(variance: _tarray) -> _tarray:
+def _clean_variance(variance: _ct.tarray) -> _ct.tarray:
 
-    variance = _np.where(variance < -_FTOL, _np.nan, _np.maximum(variance, 0.0))
+    variance = _np.where(variance < -_c.FTOL, _np.nan, _np.maximum(variance, 0.0))
 
     return variance
 
 
-def _hitting_times_statistics(p: _tarray, states: _tarray) -> _tany:
+def _hitting_times_statistics(p: _ct.tarray, states: _ct.tarray) -> _ct.tany:
 
     a = _np.eye(states.size) - p[_np.ix_(states, states)]
     b = _np.ones(states.size, dtype=float)
@@ -183,7 +150,7 @@ def _hitting_times_statistics(p: _tarray, states: _tarray) -> _tany:
     return mean, variance
 
 
-def _mutual_information(joint: _tarray) -> float:
+def _mutual_information(joint: _ct.tarray) -> float:
 
     marginal_rows = _np.sum(joint, axis=1)
     marginal_columns = _np.sum(joint, axis=0)
@@ -197,7 +164,7 @@ def _mutual_information(joint: _tarray) -> float:
     return mi
 
 
-def _synchronization_entropies_iterator(p: _tarray, e: _tarray, pi: _tarray):
+def _synchronization_entropies_iterator(p: _ct.tarray, e: _ct.tarray, pi: _ct.tarray):
 
     sequences = [pi.copy()]
 
@@ -236,7 +203,7 @@ def _synchronization_entropies_iterator(p: _tarray, e: _tarray, pi: _tarray):
 
 # HMM DISTRIBUTIONS & PROBABILITIES
 
-def hmm_conditional_probabilities(hmm: _thmm, symbol: int) -> _tlist_array:
+def hmm_conditional_probabilities(hmm: _ct.thmm, symbol: int) -> _ct.tlist_array:
 
     p, e = hmm.p, hmm.e
 
@@ -259,7 +226,7 @@ def hmm_conditional_probabilities(hmm: _thmm, symbol: int) -> _tlist_array:
 
 # HMM INFERENCE
 
-def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int, use_scaling: bool, compute_transitions: bool) -> _ohmm_dec:
+def hmm_decode(p: _ct.tarray, e: _ct.tarray, initial_distribution: _ct.tarray, symbols: _ct.tlist_int, use_scaling: bool, compute_transitions: bool) -> _ct.ohmm_dec:
 
     n, f = p.shape[1], len(symbols)
 
@@ -334,7 +301,7 @@ def hmm_decode(p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _
 
 # ABSORPTION & PASSAGE
 
-def hmm_hitting_probabilities(hmm: _thmm, targets: _tlist_int) -> _tarray:
+def hmm_hitting_probabilities(hmm: _ct.thmm, targets: _ct.tlist_int) -> _ct.tarray:
 
     p, e = hmm.p, hmm.e
     n = p.shape[0]
@@ -343,7 +310,7 @@ def hmm_hitting_probabilities(hmm: _thmm, targets: _tlist_int) -> _tarray:
     q = (1.0 - r[:, _np.newaxis]) * p
 
     initial = _np.flatnonzero(r > 0.0)
-    reachable = _verify_reachability(q, initial)
+    reachable = _n.verify_reachability(q, initial)
 
     solve = _np.flatnonzero(reachable)
 
@@ -359,7 +326,7 @@ def hmm_hitting_probabilities(hmm: _thmm, targets: _tlist_int) -> _tarray:
     return hp
 
 
-def mc_absorption_probabilities(mc: _tmc, initial_distribution: _oarray = None) -> _oarray:
+def mc_absorption_probabilities(mc: _ct.tmc, initial_distribution: _ct.oarray = None) -> _ct.oarray:
 
     om = mc.occupation_matrix
 
@@ -391,7 +358,7 @@ def mc_absorption_probabilities(mc: _tmc, initial_distribution: _oarray = None) 
     return ap
 
 
-def mc_absorption_times(mc: _tmc, statistic: str) -> _oarray:
+def mc_absorption_times(mc: _ct.tmc, statistic: str) -> _ct.oarray:
 
     om = mc.occupation_matrix
 
@@ -409,7 +376,7 @@ def mc_absorption_times(mc: _tmc, statistic: str) -> _oarray:
     return variance
 
 
-def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_int, states2: _tlist_int) -> _oarray:
+def mc_committor_probabilities(mc: _ct.tmc, committor_type: str, states1: _ct.tlist_int, states2: _ct.tlist_int) -> _ct.oarray:
 
     def _solve_committor_probabilities(scp_p, scp_size, scp_states1, scp_states2):
 
@@ -467,7 +434,7 @@ def mc_committor_probabilities(mc: _tmc, committor_type: str, states1: _tlist_in
     return cp
 
 
-def mc_commute_times_between(mc: _tmc, statistic: str, origins: _tlist_int, targets: _tlist_int) -> _ofloat:
+def mc_commute_times_between(mc: _ct.tmc, statistic: str, origins: _ct.tlist_int, targets: _ct.tlist_int) -> _ct.ofloat:
 
     if not mc.is_irreducible:
         return None
@@ -516,7 +483,7 @@ def mc_commute_times_between(mc: _tmc, statistic: str, origins: _tlist_int, targ
     return variance_between
 
 
-def mc_commute_times_to(mc: _tmc, statistic: str, targets: _olist_int) -> _oarray:
+def mc_commute_times_to(mc: _ct.tmc, statistic: str, targets: _ct.olist_int) -> _ct.oarray:
 
     if not mc.is_irreducible:
         return None
@@ -563,7 +530,7 @@ def mc_commute_times_to(mc: _tmc, statistic: str, targets: _olist_int) -> _oarra
     return variance_to
 
 
-def mc_first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, first_passage_states: _olist_int) -> _tarray:
+def mc_first_passage_probabilities(mc: _ct.tmc, steps: int, initial_state: int, first_passage_states: _ct.olist_int) -> _ct.tarray:
 
     p, size = mc.p, mc.size
 
@@ -591,7 +558,7 @@ def mc_first_passage_probabilities(mc: _tmc, steps: int, initial_state: int, fir
     return z
 
 
-def mc_first_passage_reward(mc: _tmc, steps: int, initial_state: int, first_passage_states: _tlist_int, rewards: _tarray) -> float:
+def mc_first_passage_reward(mc: _ct.tmc, steps: int, initial_state: int, first_passage_states: _ct.tlist_int, rewards: _ct.tarray) -> float:
 
     p, size = mc.p, mc.size
 
@@ -626,7 +593,7 @@ def mc_first_passage_reward(mc: _tmc, steps: int, initial_state: int, first_pass
     return reward
 
 
-def mc_first_passage_times_between(mc: _tmc, statistic: str, origins: _tlist_int, targets: _tlist_int) -> _ofloat:
+def mc_first_passage_times_between(mc: _ct.tmc, statistic: str, origins: _ct.tlist_int, targets: _ct.tlist_int) -> _ct.ofloat:
 
     if not mc.is_irreducible:
         return None
@@ -665,7 +632,7 @@ def mc_first_passage_times_between(mc: _tmc, statistic: str, origins: _tlist_int
     return variance
 
 
-def mc_first_passage_times_to(mc: _tmc, statistic: str, targets: _olist_int) -> _oarray:
+def mc_first_passage_times_to(mc: _ct.tmc, statistic: str, targets: _ct.olist_int) -> _ct.oarray:
 
     if not mc.is_irreducible:
         return None
@@ -697,7 +664,7 @@ def mc_first_passage_times_to(mc: _tmc, statistic: str, targets: _olist_int) -> 
     return variance
 
 
-def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
+def mc_hitting_probabilities(mc: _ct.tmc, targets: _ct.tlist_int) -> _ct.tarray:
 
     p, size = mc.p, mc.size
 
@@ -710,7 +677,7 @@ def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
     if non_target.size == 0:
         return hp
 
-    reachable = _verify_reachability(p, target)
+    reachable = _n.verify_reachability(p, target)
     solve = non_target[reachable[non_target]]
 
     if solve.size > 0:
@@ -723,7 +690,7 @@ def mc_hitting_probabilities(mc: _tmc, targets: _tlist_int) -> _tarray:
     return hp
 
 
-def mc_hitting_times(mc: _tmc, statistic: str, targets: _tlist_int) -> _tarray:
+def mc_hitting_times(mc: _ct.tmc, statistic: str, targets: _ct.tlist_int) -> _ct.tarray:
 
     p, size = mc.p, mc.size
 
@@ -769,7 +736,7 @@ def mc_hitting_times(mc: _tmc, statistic: str, targets: _tlist_int) -> _tarray:
     return variance
 
 
-def mc_is_absorbing(graph: _tgraph, states: _tlist_str, absorbing_states_indices: _tlist_int) -> bool:
+def mc_is_absorbing(graph: _ct.tgraph, states: _ct.tlist_str, absorbing_states_indices: _ct.tlist_int) -> bool:
 
     if len(absorbing_states_indices) == 0:
         return False
@@ -783,7 +750,7 @@ def mc_is_absorbing(graph: _tgraph, states: _tlist_str, absorbing_states_indices
     return result
 
 
-def mc_occupation_matrix(mc: _tmc, transient_states_indices: _tlist_int) -> _oarray:
+def mc_occupation_matrix(mc: _ct.tmc, transient_states_indices: _ct.tlist_int) -> _ct.oarray:
 
     if (not mc.is_absorbing) or (len(mc.transient_states) == 0):
         return None
@@ -798,7 +765,7 @@ def mc_occupation_matrix(mc: _tmc, transient_states_indices: _tlist_int) -> _oar
     return om
 
 
-def mc_reaction_rate(mc: _tmc, states1: _tlist_int, states2: _tlist_int) -> _ofloat:
+def mc_reaction_rate(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int) -> _ct.ofloat:
 
     if not mc.is_irreducible:
         return None
@@ -809,7 +776,7 @@ def mc_reaction_rate(mc: _tmc, states1: _tlist_int, states2: _tlist_int) -> _ofl
     return rr
 
 
-def mc_reactive_density(mc: _tmc, states1: _tlist_int, states2: _tlist_int) -> _oarray:
+def mc_reactive_density(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int) -> _ct.oarray:
 
     if not mc.is_irreducible:
         return None
@@ -821,7 +788,7 @@ def mc_reactive_density(mc: _tmc, states1: _tlist_int, states2: _tlist_int) -> _
     return rd
 
 
-def mc_reactive_flux(mc: _tmc, states1: _tlist_int, states2: _tlist_int, net: bool) -> _oarray:
+def mc_reactive_flux(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int, net: bool) -> _ct.oarray:
 
     if not mc.is_irreducible:
         return None
@@ -839,7 +806,7 @@ def mc_reactive_flux(mc: _tmc, states1: _tlist_int, states2: _tlist_int, net: bo
 
 # CONDUCTANCE
 
-def mc_conductance(mc: _tmc, states: _tlist_int) -> _ofloat:
+def mc_conductance(mc: _ct.tmc, states: _ct.tlist_int) -> _ct.ofloat:
 
     if not mc.is_irreducible:
         return None
@@ -855,7 +822,7 @@ def mc_conductance(mc: _tmc, states: _tlist_int) -> _ofloat:
     return value
 
 
-def mc_global_conductance(mc: _tmc) -> _ofloat:
+def mc_global_conductance(mc: _ct.tmc) -> _ct.ofloat:
 
     if not mc.is_irreducible:
         return None
@@ -896,7 +863,7 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
             if current == ((1 << size) - 1):
                 continue
 
-            if mass > (0.5 + _FTOL):
+            if mass > (0.5 + _c.FTOL):
                 continue
 
             conductance = flow / mass
@@ -918,7 +885,7 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
 
             mass = pi[i]
 
-            if mass > (0.5 + _FTOL):
+            if mass > (0.5 + _c.FTOL):
                 continue
 
             cut = _np.sum(sf[i, :]) - sf[i, i]
@@ -939,7 +906,7 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
                 cut += _np.sum(sf[index, ~selected])
                 mass += pi[index]
 
-                if mass > (0.5 + _FTOL):
+                if mass > (0.5 + _c.FTOL):
                     continue
 
                 conductance = cut / mass
@@ -950,7 +917,7 @@ def mc_global_conductance(mc: _tmc) -> _ofloat:
 
 # CONTRACTION
 
-def mc_dobrushin_coefficient(mc: _tmc) -> float:
+def mc_dobrushin_coefficient(mc: _ct.tmc) -> float:
 
     p = mc.p
     dc = 0.0
@@ -962,7 +929,7 @@ def mc_dobrushin_coefficient(mc: _tmc) -> float:
     return dc
 
 
-def mc_doeblin_coefficient(mc: _tmc) -> float:
+def mc_doeblin_coefficient(mc: _ct.tmc) -> float:
 
     dc = float(_np.sum(_np.min(mc.p, axis=0)))
 
@@ -971,7 +938,7 @@ def mc_doeblin_coefficient(mc: _tmc) -> float:
 
 # INFORMATION THEORY
 
-def hmm_block_entropy(hmm: _thmm, length: int) -> _tarray:
+def hmm_block_entropy(hmm: _ct.thmm, length: int) -> _ct.tarray:
 
     p, e, pi = hmm.p, hmm.e, hmm.pi
     k = e.shape[1]
@@ -1003,7 +970,7 @@ def hmm_block_entropy(hmm: _thmm, length: int) -> _tarray:
     return hb
 
 
-def hmm_entropy(hmm: _thmm, target: str, conditional: bool) -> _tarray:
+def hmm_entropy(hmm: _ct.thmm, target: str, conditional: bool) -> _ct.tarray:
 
     def _entropy(probabilities):
 
@@ -1040,7 +1007,7 @@ def hmm_entropy(hmm: _thmm, target: str, conditional: bool) -> _tarray:
     return h
 
 
-def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obndvals:
+def hmm_entropy_rate(hmm: _ct.thmm, steps: int, samples: int, rng) -> _ct.obndvals:
 
     n, k = hmm.size
     p, e = hmm.p, hmm.e
@@ -1128,7 +1095,7 @@ def hmm_entropy_rate(hmm: _thmm, steps: int, samples: int, rng) -> _obndvals:
     return h
 
 
-def hmm_entropy_rate_normalized(hmm: _thmm, steps: int, samples: int, rng) -> _obndvals:
+def hmm_entropy_rate_normalized(hmm: _ct.thmm, steps: int, samples: int, rng) -> _ct.obndvals:
 
     h = hmm_entropy_rate(hmm, steps, samples, rng)
 
@@ -1150,18 +1117,18 @@ def hmm_entropy_rate_normalized(hmm: _thmm, steps: int, samples: int, rng) -> _o
     return hn
 
 
-def hmm_excess_entropy(hmm: _thmm, length: int) -> _tarray:
+def hmm_excess_entropy(hmm: _ct.thmm, length: int) -> _ct.tarray:
 
     h1 = hmm.block_entropy(length)
     h2 = hmm.block_entropy(2 * length)
 
     he = (2.0 * h1) - h2
-    he[(-_FTOL < he) & (he < 0.0)] = 0.0
+    he[(-_c.FTOL < he) & (he < 0.0)] = 0.0
 
     return he
 
 
-def hmm_mutual_information(hmm: _thmm, process1: str, process2: str, steps: int) -> _tarray:
+def hmm_mutual_information(hmm: _ct.thmm, process1: str, process2: str, steps: int) -> _ct.tarray:
 
     p, e, pi = hmm.p, hmm.e, hmm.pi
     transition = _npl.matrix_power(p, steps)
@@ -1183,7 +1150,7 @@ def hmm_mutual_information(hmm: _thmm, process1: str, process2: str, steps: int)
     return mi
 
 
-def hmm_synchronization_entropy(hmm: _thmm, length: int) -> _tarray:
+def hmm_synchronization_entropy(hmm: _ct.thmm, length: int) -> _ct.tarray:
 
     p, e, pi = hmm.p, hmm.e, hmm.pi
 
@@ -1201,7 +1168,7 @@ def hmm_synchronization_entropy(hmm: _thmm, length: int) -> _tarray:
     return hs
 
 
-def hmm_synchronization_information(hmm: _thmm, extended: bool) -> _tarray:
+def hmm_synchronization_information(hmm: _ct.thmm, extended: bool) -> _ct.tarray:
 
     p, e, pi = hmm.p, hmm.e, hmm.pi
     si = _np.zeros(len(hmm.pi), dtype=float)
@@ -1308,7 +1275,7 @@ def hmm_synchronization_information(hmm: _thmm, extended: bool) -> _tarray:
     return si
 
 
-def mc_cumulants(mc: _tmc, order: int, observable: _tobs, observable_param: _tany) -> _tarray:
+def mc_cumulants(mc: _ct.tmc, order: int, observable: _ct.tobs, observable_param: _ct.tany) -> _ct.tarray:
 
     p, size, pi = mc.p, mc.size, mc.pi[0]
     g = _build_observable_matrix(p, observable, observable_param)
@@ -1352,7 +1319,7 @@ def mc_cumulants(mc: _tmc, order: int, observable: _tobs, observable_param: _tan
     return cumulants
 
 
-def mc_entropy_rate(mc: _tmc) -> _ofloat:
+def mc_entropy_rate(mc: _ct.tmc) -> _ct.ofloat:
 
     if len(mc.pi) > 1:
         return None
@@ -1365,7 +1332,7 @@ def mc_entropy_rate(mc: _tmc) -> _ofloat:
 
     h = -float(_np.dot(mc.pi[0], _np.sum(contributions, axis=1)))
 
-    if -_FTOL < h < 0.0:  # pragma: no cover
+    if -_c.FTOL < h < 0.0:  # pragma: no cover
         h = 0.0
 
     if not _np.isfinite(h) or (h < 0.0):  # pragma: no cover
@@ -1374,7 +1341,7 @@ def mc_entropy_rate(mc: _tmc) -> _ofloat:
     return h
 
 
-def mc_entropy_rate_normalized(mc: _tmc) -> _ofloat:
+def mc_entropy_rate_normalized(mc: _ct.tmc) -> _ct.ofloat:
 
     h = mc.entropy_rate
 
@@ -1383,7 +1350,7 @@ def mc_entropy_rate_normalized(mc: _tmc) -> _ofloat:
 
     ht = mc.topological_entropy
 
-    if (h <= _FTOL) or (ht <= _FTOL):
+    if (h <= _c.FTOL) or (ht <= _c.FTOL):
         hn = 0.0
     else:
         hn = h / ht
@@ -1392,7 +1359,7 @@ def mc_entropy_rate_normalized(mc: _tmc) -> _ofloat:
     return hn
 
 
-def mc_entropy_production_rate(mc: _tmc) -> _tlist_float:
+def mc_entropy_production_rate(mc: _ct.tmc) -> _ct.tlist_float:
 
     indices = _np.triu_indices(mc.size, k=1)
 
@@ -1419,7 +1386,7 @@ def mc_entropy_production_rate(mc: _tmc) -> _tlist_float:
     return epr
 
 
-def mc_large_deviation_rate(mc: _tmc, target_average: float, observable: _tobs, observable_param: _tany) -> float:
+def mc_large_deviation_rate(mc: _ct.tmc, target_average: float, observable: _ct.tobs, observable_param: _ct.tany) -> float:
 
     def _evaluate_tilt(et_tilt, et_bound, et_increments):
 
@@ -1540,12 +1507,12 @@ def mc_large_deviation_rate(mc: _tmc, target_average: float, observable: _tobs, 
     return ldr
 
 
-def mc_topological_entropy(mc: _tmc) -> float:
+def mc_topological_entropy(mc: _ct.tmc) -> float:
 
-    ev = _eigenvalues_sorted(mc.adjacency_matrix)
+    ev = _n.eigenvalues_sorted(mc.adjacency_matrix)
     ht = float(_np.log(ev[-1]))
 
-    if ht < _FTOL:  # pragma: no cover
+    if ht < _c.FTOL:  # pragma: no cover
         ht = 0.0
 
     return ht
@@ -1553,13 +1520,13 @@ def mc_topological_entropy(mc: _tmc) -> float:
 
 # MIXING & TEMPORAL ANALYSIS
 
-def mc_mixing_rate(slem: _ofloat) -> _ofloat:
+def mc_mixing_rate(slem: _ct.ofloat) -> _ct.ofloat:
 
     if slem is None:
         mr = None
-    elif slem <= _FTOL:
+    elif slem <= _c.FTOL:
         mr = 0.0
-    elif slem >= (1.0 - _FTOL):
+    elif slem >= (1.0 - _c.FTOL):
         mr = _np.inf
     else:
         mr = -1.0 / _np.log(slem)
@@ -1567,7 +1534,7 @@ def mc_mixing_rate(slem: _ofloat) -> _ofloat:
     return mr
 
 
-def mc_mixing_time(mc: _tmc, cutoff: float, maximum_iterations: int) -> _oint:
+def mc_mixing_time(mc: _ct.tmc, cutoff: float, maximum_iterations: int) -> _ct.oint:
 
     if not mc.is_ergodic:
         return None
@@ -1587,7 +1554,7 @@ def mc_mixing_time(mc: _tmc, cutoff: float, maximum_iterations: int) -> _oint:
     return None  # pragma: no cover
 
 
-def mc_mixing_time_from(mc: _tmc, initial_distribution: _tarray, jump: int, cutoff: float, maximum_iterations: int) -> _oint:
+def mc_mixing_time_from(mc: _ct.tmc, initial_distribution: _ct.tarray, jump: int, cutoff: float, maximum_iterations: int) -> _ct.oint:
 
     if not mc.is_ergodic:
         return None
@@ -1616,13 +1583,13 @@ def mc_mixing_time_from(mc: _tmc, initial_distribution: _tarray, jump: int, cuto
     return mt
 
 
-def mc_relaxation_rate(mc: _tmc) -> _ofloat:
+def mc_relaxation_rate(mc: _ct.tmc) -> _ct.ofloat:
 
     asg = mc.absolute_spectral_gap
 
     if asg is None:
         rr = None
-    elif asg <= _FTOL:
+    elif asg <= _c.FTOL:
         rr = _np.inf
     else:
         rr = 1.0 / asg
@@ -1630,7 +1597,7 @@ def mc_relaxation_rate(mc: _tmc) -> _ofloat:
     return rr
 
 
-def mc_time_correlations(mc: _tmc, sequence1: _tseq, sequence2: _oseq, time_points: _ttimes_in) -> _otimes_out:
+def mc_time_correlations(mc: _ct.tmc, sequence1: _ct.tseq, sequence2: _ct.oseq, time_points: _ct.ttimes_in) -> _ct.otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 
@@ -1717,7 +1684,7 @@ def mc_time_correlations(mc: _tmc, sequence1: _tseq, sequence2: _oseq, time_poin
     return tcs
 
 
-def mc_time_relaxations(mc: _tmc, sequence: _tseq, initial_distribution: _tarray, time_points: _ttimes_in) -> _otimes_out:
+def mc_time_relaxations(mc: _ct.tmc, sequence: _ct.tseq, initial_distribution: _ct.tarray, time_points: _ct.ttimes_in) -> _ct.otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 
@@ -1788,28 +1755,28 @@ def mc_time_relaxations(mc: _tmc, sequence: _tseq, initial_distribution: _tarray
 
 # RECURRENCE & EXPECTATIONS
 
-def mc_expected_rewards(mc: _tmc, steps: int, rewards: _tarray, discount_factor: float) -> _tarray:
+def mc_expected_rewards(mc: _ct.tmc, steps: int, rewards: _ct.tarray, discount_factor: float) -> _ct.tarray:
 
     p = mc.p
 
-    mg_sum = _matrix_geometric_sum(discount_factor * p, steps + 1)
+    mg_sum = _n.matrix_geometric_sum(discount_factor * p, steps + 1)
     er = _np.dot(mg_sum, rewards)
 
     return er
 
 
-def mc_expected_transitions(mc: _tmc, steps: int, initial_distribution: _tarray) -> _tarray:
+def mc_expected_transitions(mc: _ct.tmc, steps: int, initial_distribution: _ct.tarray) -> _ct.tarray:
 
     p = mc.p
 
-    mg_sum = _matrix_geometric_sum(p, steps)
+    mg_sum = _n.matrix_geometric_sum(p, steps)
     idist_sum = _np.dot(initial_distribution, mg_sum)
     et = idist_sum[:, _np.newaxis] * p
 
     return et
 
 
-def mc_expected_visits(mc: _tmc, steps: _oint, discount_factor: float) -> _tarray:
+def mc_expected_visits(mc: _ct.tmc, steps: _ct.oint, discount_factor: float) -> _ct.tarray:
 
     p, size = mc.p, mc.size
 
@@ -1819,7 +1786,7 @@ def mc_expected_visits(mc: _tmc, steps: _oint, discount_factor: float) -> _tarra
     if steps is not None:
 
         m = discount_factor * p
-        mg_sum = _matrix_geometric_sum(m, steps)
+        mg_sum = _n.matrix_geometric_sum(m, steps)
 
         ev = _np.dot(m, mg_sum)
 
@@ -1858,7 +1825,7 @@ def mc_expected_visits(mc: _tmc, steps: _oint, discount_factor: float) -> _tarra
     return ev
 
 
-def mc_recurrence_times(mc: _tmc, statistic: str) -> _tarray:
+def mc_recurrence_times(mc: _ct.tmc, statistic: str) -> _ct.tarray:
 
     if statistic == 'mean':
 
@@ -1905,7 +1872,7 @@ def mc_recurrence_times(mc: _tmc, statistic: str) -> _tarray:
 
 # STATIONARY & ASYMPTOTIC ANALYSIS
 
-def mc_absolute_spectral_gap(slem: _ofloat) -> _ofloat:
+def mc_absolute_spectral_gap(slem: _ct.ofloat) -> _ct.ofloat:
 
     if slem is None:
         asg = None
@@ -1913,13 +1880,13 @@ def mc_absolute_spectral_gap(slem: _ofloat) -> _ofloat:
 
         asg = 1.0 - slem
 
-        if -_FTOL < asg < 0.0:
+        if -_c.FTOL < asg < 0.0:
             asg = 0.0
 
     return asg
 
 
-def mc_deviation_matrix(mc: _tmc) -> _oarray:
+def mc_deviation_matrix(mc: _ct.tmc) -> _ct.oarray:
 
     if not mc.is_irreducible:
         return None
@@ -1930,7 +1897,7 @@ def mc_deviation_matrix(mc: _tmc) -> _oarray:
     return dm
 
 
-def mc_fundamental_cycle_profile(mc: _tmc) -> _ofc_prof:
+def mc_fundamental_cycle_profile(mc: _ct.tmc) -> _ct.ofc_prof:
 
     p, states = mc.p, mc.states
     indices = {state: index for index, state in enumerate(states)}
@@ -2036,7 +2003,7 @@ def mc_fundamental_cycle_profile(mc: _tmc) -> _ofc_prof:
     return affinities, currents
 
 
-def mc_fundamental_matrix(mc: _tmc) -> _oarray:
+def mc_fundamental_matrix(mc: _ct.tmc) -> _ct.oarray:
 
     if not mc.is_irreducible:
         return None
@@ -2050,12 +2017,12 @@ def mc_fundamental_matrix(mc: _tmc) -> _oarray:
     return fm
 
 
-def mc_implied_timescales(mc: _tmc) -> _oarray:
+def mc_implied_timescales(mc: _ct.tmc) -> _ct.oarray:
 
     if not mc.is_irreducible:
         return None
 
-    ev = _eigenvalues_sorted(mc.p)[::-1]
+    ev = _n.eigenvalues_sorted(mc.p)[::-1]
 
     remaining = ev[1:]
     timescales = _np.zeros(remaining.shape, dtype=float)
@@ -2063,7 +2030,7 @@ def mc_implied_timescales(mc: _tmc) -> _oarray:
     infinite_mask = _np.zeros(remaining.shape, dtype=bool)
     infinite_mask[:mc.period - 1] = True
 
-    zero_mask = (remaining <= _FTOL) & ~infinite_mask
+    zero_mask = (remaining <= _c.FTOL) & ~infinite_mask
     finite_mask = ~(infinite_mask | zero_mask)
 
     timescales[infinite_mask] = _np.inf
@@ -2075,7 +2042,7 @@ def mc_implied_timescales(mc: _tmc) -> _oarray:
     return it
 
 
-def mc_is_aperiodic(mc: _tmc) -> bool:
+def mc_is_aperiodic(mc: _ct.tmc) -> bool:
 
     if mc.is_irreducible:
         ia = set(mc.periods).pop() == 1
@@ -2091,24 +2058,24 @@ def mc_is_aperiodic(mc: _tmc) -> bool:
     return ia
 
 
-def mc_is_reversible(mc: _tmc, recurrent_classes_indices: _tlists_int) -> bool:
+def mc_is_reversible(mc: _ct.tmc, recurrent_classes_indices: _ct.tlists_int) -> bool:
 
     p = mc.p
 
     for indices in recurrent_classes_indices:
 
         pr = p[_np.ix_(indices, indices)]
-        pi = _gth_solve(pr)
+        pi = _n.gth_solve(pr)
 
         flow = pi[:, _np.newaxis] * pr
 
-        if _np.max(_np.abs(flow - _np.transpose(flow))) > _FTOL:
+        if _np.max(_np.abs(flow - _np.transpose(flow))) > _c.FTOL:
             return False
 
     return True
 
 
-def mc_kemeny_constant(mc: _tmc) -> _ofloat:
+def mc_kemeny_constant(mc: _ct.tmc) -> _ct.ofloat:
 
     if not mc.is_irreducible:
         return None
@@ -2122,7 +2089,7 @@ def mc_kemeny_constant(mc: _tmc) -> _ofloat:
     return kc
 
 
-def mc_ordinary_spectral_gap(mc: _tmc) -> _obndval:
+def mc_ordinary_spectral_gap(mc: _ct.tmc) -> _ct.obndval:
 
     if (not mc.is_irreducible) or (not mc.is_reversible):
         return None
@@ -2136,7 +2103,7 @@ def mc_ordinary_spectral_gap(mc: _tmc) -> _obndval:
     evalues = _npl.eigvalsh(pw)
     osg = 1.0 - float(evalues[-2])
 
-    if -_FTOL < osg < 0.0:  # pragma: no cover
+    if -_c.FTOL < osg < 0.0:  # pragma: no cover
         osg = 0.0
 
     gc = mc.global_conductance
@@ -2149,7 +2116,7 @@ def mc_ordinary_spectral_gap(mc: _tmc) -> _obndval:
     return osg, cb
 
 
-def mc_period(mc: _tmc) -> int:
+def mc_period(mc: _ct.tmc) -> int:
 
     if mc.is_aperiodic:
         period = 1
@@ -2165,7 +2132,7 @@ def mc_period(mc: _tmc) -> int:
     return period
 
 
-def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=too-many-return-statements
+def mc_quasi_stationary_distribution(mc: _ct.tmc) -> _ct.oarray:  # pylint: disable=too-many-return-statements
 
     p, size, states = mc.p, mc.size, mc.states
     transient_indices = [states.index(state) for state in mc.transient_states]
@@ -2198,12 +2165,12 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=to
 
     for index, radius in enumerate(radii):
 
-        if radius <= _FTOL:
+        if radius <= _c.FTOL:
             continue
 
         descendants = _nx.descendants(dag, index)
 
-        if any(0.0 < abs(radius - radii[j]) <= _FTOL for j in descendants):  # pragma: no cover
+        if any(0.0 < abs(radius - radii[j]) <= _c.FTOL for j in descendants):  # pragma: no cover
             return None
 
         if all(radius > radii[j] for j in descendants):  # pragma: no cover
@@ -2217,7 +2184,7 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=to
     index = _np.argmin(_np.abs(evalues - survival))
     evalue, evector = evalues[index], evectors[:, index]
 
-    if (_np.abs(evalue.imag) > _FTOL) or (_np.abs(evalue.real - survival) > _FTOL) or (_np.max(_np.abs(evector.imag)) > _FTOL):  # pragma: no cover
+    if (_np.abs(evalue.imag) > _c.FTOL) or (_np.abs(evalue.real - survival) > _c.FTOL) or (_np.max(_np.abs(evector.imag)) > _c.FTOL):  # pragma: no cover
         return None
 
     evector = evector.real
@@ -2225,7 +2192,7 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=to
     if _np.sum(evector) < 0.0:
         evector = -evector
 
-    if (_np.sum(evector) <= _FTOL) or (_np.min(evector) < -_FTOL):  # pragma: no cover
+    if (_np.sum(evector) <= _c.FTOL) or (_np.min(evector) < -_c.FTOL):  # pragma: no cover
         return None
 
     evector = _np.maximum(evector, 0.0)
@@ -2236,7 +2203,7 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=to
     if not 0.0 < actual_survival < 1.0:  # pragma: no cover
         return None
 
-    if not _np.allclose(_np.dot(evector, q), actual_survival * evector, rtol=_FTOL, atol=_FTOL):  # pragma: no cover
+    if not _np.allclose(_np.dot(evector, q), actual_survival * evector, rtol=_c.FTOL, atol=_c.FTOL):  # pragma: no cover
         return None
 
     nu = _np.zeros(size, dtype=float)
@@ -2245,7 +2212,7 @@ def mc_quasi_stationary_distribution(mc: _tmc) -> _oarray:  # pylint: disable=to
     return nu
 
 
-def mc_sensitivity(mc: _tmc, state: int) -> _oarray:
+def mc_sensitivity(mc: _ct.tmc, state: int) -> _ct.oarray:
 
     if not mc.is_irreducible:
         return None
@@ -2269,33 +2236,33 @@ def mc_sensitivity(mc: _tmc, state: int) -> _oarray:
     return s
 
 
-def mc_stationary_current(mc: _tmc) -> _tlist_array:
+def mc_stationary_current(mc: _ct.tmc) -> _ct.tlist_array:
 
     sc = [f - _np.transpose(f) for f in mc.stationary_flux]
 
     return sc
 
 
-def mc_stationary_distributions(mc: _tmc, recurrent_classes_indices: _tlists_int) -> _tlist_array:
+def mc_stationary_distributions(mc: _ct.tmc, recurrent_classes_indices: _ct.tlists_int) -> _ct.tlist_array:
 
     p = mc.p
 
     if mc.is_irreducible:
-        s = _np.reshape(_gth_solve(p), (1, mc.size))
+        s = _np.reshape(_n.gth_solve(p), (1, mc.size))
     else:
 
         s = _np.zeros((len(mc.recurrent_classes), mc.size), dtype=float)
 
         for index, indices in enumerate(recurrent_classes_indices):
             pr = p[_np.ix_(indices, indices)]
-            s[index, indices] = _gth_solve(pr)
+            s[index, indices] = _n.gth_solve(pr)
 
     pi = [s[i, :] for i in range(s.shape[0])]
 
     return pi
 
 
-def mc_stationary_flux(mc: _tmc) -> _tlist_array:
+def mc_stationary_flux(mc: _ct.tmc) -> _ct.tlist_array:
 
     p = mc.p
     sf = [pi[:, _np.newaxis] * p for pi in mc.pi]
@@ -2303,7 +2270,7 @@ def mc_stationary_flux(mc: _tmc) -> _tlist_array:
     return sf
 
 
-def mc_stationary_perturbation_bound(mc: _tmc, epsilon: float) -> _ofloat:
+def mc_stationary_perturbation_bound(mc: _ct.tmc, epsilon: float) -> _ct.ofloat:
 
     if not mc.is_irreducible:
         return None
@@ -2329,7 +2296,7 @@ def mc_stationary_perturbation_bound(mc: _tmc, epsilon: float) -> _ofloat:
     return spb
 
 
-def mc_time_reversal(method: str, p: _tarray, pi: _tarray) -> _tarray:
+def mc_time_reversal(method: str, p: _ct.tarray, pi: _ct.tarray) -> _ct.tarray:
 
     if method == 'standard':
 
@@ -2353,7 +2320,7 @@ def mc_time_reversal(method: str, p: _tarray, pi: _tarray) -> _tarray:
 
 # STRUCTURAL & CLASS ANALYSIS
 
-def mc_is_canonical(mc: _tmc, transient_states_indices: _tlist_int, recurrent_classes_indices: _tlists_int) -> bool:
+def mc_is_canonical(mc: _ct.tmc, transient_states_indices: _ct.tlist_int, recurrent_classes_indices: _ct.tlists_int) -> bool:
 
     transient_indices = transient_states_indices
 

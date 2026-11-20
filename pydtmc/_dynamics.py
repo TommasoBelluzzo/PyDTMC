@@ -28,22 +28,8 @@ import numpy as _np
 
 # Internal
 
-from ._analysis import (
-    hmm_decode as _hmm_decode
-)
-
-from ._custom_types import (
-    ohmm_pred as _ohmm_pred,
-    oint as _oint,
-    olist_int as _olist_int,
-    tarray as _tarray,
-    tlist_int as _tlist_int,
-    thmm as _thmm,
-    thmm_seq as _thmm_seq,
-    tmc as _tmc,
-    trand as _trand,
-    tredists as _tredists
-)
+from . import _analysis as _a
+from . import _custom_types as _ct
 
 
 #############
@@ -52,11 +38,11 @@ from ._custom_types import (
 
 # HMM PREDICTION
 
-def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distribution: _tarray, symbols: _tlist_int) -> _ohmm_pred:
+def hmm_predict(prediction_type: str, p: _ct.tarray, e: _ct.tarray, initial_distribution: _ct.tarray, symbols: _ct.tlist_int) -> _ct.ohmm_pred:
 
     def _predict_map(pv_p, pv_e, pv_initial_distribution, pv_symbols):
 
-        result = _hmm_decode(pv_p, pv_e, pv_initial_distribution, pv_symbols, True, False)
+        result = _a.hmm_decode(pv_p, pv_e, pv_initial_distribution, pv_symbols, True, False)
 
         if result is None:
             return None
@@ -112,7 +98,7 @@ def hmm_predict(prediction_type: str, p: _tarray, e: _tarray, initial_distributi
     return prediction
 
 
-def hmm_predict_trajectory(hmm: _thmm, steps, initial_state):
+def hmm_predict_trajectory(hmm: _ct.thmm, steps, initial_state):
 
     p, e = hmm.p, hmm.e
 
@@ -148,7 +134,7 @@ def hmm_predict_trajectory(hmm: _thmm, steps, initial_state):
 
 # HMM DISTRIBUTIONS & PROBABILITIES
 
-def hmm_propagate(hmm: _thmm, target: str, steps: int, initial_distribution: _tarray, output_last: bool) -> _tredists:
+def hmm_propagate(hmm: _ct.thmm, target: str, steps: int, initial_distribution: _ct.tarray, output_last: bool) -> _ct.tredists:
 
     p, e = hmm.p, hmm.e
 
@@ -181,7 +167,7 @@ def hmm_propagate(hmm: _thmm, target: str, steps: int, initial_distribution: _ta
 
 # HMM SIMULATION
 
-def hmm_simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint, final_symbol: _oint, rng: _trand) -> _thmm_seq:
+def hmm_simulate(hmm: _ct.thmm, steps: int, initial_state: int, final_state: _ct.oint, final_symbol: _ct.oint, rng: _ct.trand) -> _ct.thmm_seq:
 
     _, k = hmm.size
     check_final_state = final_state is not None
@@ -217,7 +203,7 @@ def hmm_simulate(hmm: _thmm, steps: int, initial_state: int, final_state: _oint,
 
 # MC PREDICTION
 
-def mc_predict(mc: _tmc, steps: int, initial_state: int) -> _olist_int:
+def mc_predict(mc: _ct.tmc, steps: int, initial_state: int) -> _ct.olist_int:
 
     p = mc.p
 
@@ -239,7 +225,7 @@ def mc_predict(mc: _tmc, steps: int, initial_state: int) -> _olist_int:
     return prediction
 
 
-def mc_predict_trajectory(mc: _tmc, steps: int, initial_state: int) -> _olist_int:
+def mc_predict_trajectory(mc: _ct.tmc, steps: int, initial_state: int) -> _ct.olist_int:
 
     p, n = mc.p, mc.size
 
@@ -296,7 +282,7 @@ def mc_predict_trajectory(mc: _tmc, steps: int, initial_state: int) -> _olist_in
 
 # MC DISTRIBUTIONS & PROBABILITIES
 
-def mc_propagate(mc: _tmc, steps: int, initial_distribution: _tarray, output_last: bool) -> _tredists:
+def mc_propagate(mc: _ct.tmc, steps: int, initial_distribution: _ct.tarray, output_last: bool) -> _ct.tredists:
 
     p = mc.p
 
@@ -321,7 +307,7 @@ def mc_propagate(mc: _tmc, steps: int, initial_distribution: _tarray, output_las
     return distributions
 
 
-def mc_sequence_probability(mc: _tmc, walk_param: _tlist_int) -> float:
+def mc_sequence_probability(mc: _ct.tmc, walk_param: _ct.tlist_int) -> float:
 
     p = mc.p
 
@@ -342,7 +328,7 @@ def mc_sequence_probability(mc: _tmc, walk_param: _tlist_int) -> float:
 
 # MC SIMULATION
 
-def mc_simulate(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rng: _trand) -> _tlist_int:
+def mc_simulate(mc: _ct.tmc, steps: int, initial_state: int, final_state: _ct.oint, rng: _ct.trand) -> _ct.tlist_int:
 
     p = mc.p
 
@@ -365,7 +351,7 @@ def mc_simulate(mc: _tmc, steps: int, initial_state: int, final_state: _oint, rn
     return value
 
 
-def mc_stationary_sampling(mc: _tmc, maximum_steps: int, rng: _trand) -> _oint:
+def mc_stationary_sampling(mc: _ct.tmc, maximum_steps: int, rng: _ct.trand) -> _ct.oint:
 
     if not mc.is_ergodic:  # pragma: no cover
         raise ValueError('The Markov chain is not ergodic.')

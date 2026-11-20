@@ -65,77 +65,29 @@ import numpy as _np
 
 # Internal
 
-from ._constants import (
-    ETOL as _ETOL
-)
-
-from ._custom_types import (
-    oint as _oint,
-    olim_float as _olim_float,
-    olim_int as _olim_int,
-    olim_num as _olim_num,
-    tlist_mdl as _tlist_mdl,
-    olist_str as _olist_str,
-    tany as _tany,
-    tarray as _tarray,
-    tbcond as _tbcond,
-    tfile as _tfile,
-    tgraphs as _tgraphs,
-    thmm as _thmm,
-    thmm_dict as _thmm_dict,
-    tival as _tival,
-    tlist_int as _tlist_int,
-    tlist_hmm as _tlist_hmm,
-    tlist_mc as _tlist_mc,
-    tlist_str as _tlist_str,
-    tlists_int as _tlists_int,
-    tmc as _tmc,
-    tmc_dict as _tmc_dict,
-    tmdl as _tmdl,
-    tmdl_dict as _tmdl_dict,
-    tnum as _tnum,
-    tobs as _tobs,
-    tpprobs as _tpprobs,
-    trand as _trand,
-    trfunc as _trfunc,
-    ttfunc as _ttfunc,
-    ttimes_in as _ttimes_in
-)
-
-from ._utilities import (
-    extract_numeric as _extract_numeric,
-    get_file_extension as _get_file_extension,
-    get_full_name as _get_full_name,
-    is_boolean as _is_boolean,
-    is_dictionary as _is_dictionary,
-    is_float as _is_float,
-    is_graph as _is_graph,
-    is_integer as _is_integer,
-    is_list as _is_list,
-    is_number as _is_number,
-    is_string as _is_string,
-    is_tuple as _is_tuple
-)
+from . import _constants as _c
+from . import _custom_types as _ct
+from . import _utilities as _u
 
 
 #############
 # FUNCTIONS #
 #############
 
-def _validate_dictionary_keys(value: _tany, keys_length: int) -> None:
+def _validate_dictionary_keys(value: _ct.tany, keys_length: int) -> None:
 
-    if (not _is_dictionary(value)) or (len(value) == 0):
+    if (not _u.is_dictionary(value)) or (len(value) == 0):
         raise ValueError('The "@arg@" parameter must be a non-empty dictionary.')
 
-    if not all(_is_tuple(k) and len(k) == keys_length and all(_is_string(x) for x in k) for k in value.keys()):
+    if not all(_u.is_tuple(k) and len(k) == keys_length and all(_u.is_string(x) for x in k) for k in value.keys()):
         raise ValueError(f'The "@arg@" parameter keys must be defined as tuples of {keys_length:d} non-empty strings.')
 
 
-def _validate_dictionary_values(value: _tany) -> _tmdl_dict:
+def _validate_dictionary_values(value: _ct.tany) -> _ct.tmdl_dict:
 
     values = value.values()
 
-    if not all(_is_number(v) for v in values):
+    if not all(_u.is_number(v) for v in values):
         raise ValueError('The "@arg@" parameter values must be float or integer numbers.')
 
     result = {}
@@ -152,9 +104,9 @@ def _validate_dictionary_values(value: _tany) -> _tmdl_dict:
     return result
 
 
-def _validate_graph(value: _tany) -> _tgraphs:
+def _validate_graph(value: _ct.tany) -> _ct.tgraphs:
 
-    result, _ = _is_graph(value)
+    result, _ = _u.is_graph(value)
 
     if not result:
         raise ValueError('The "@arg@" parameter must be a directed graph.')
@@ -163,22 +115,22 @@ def _validate_graph(value: _tany) -> _tgraphs:
 
     nodes = list(value.nodes)
 
-    if not all(_is_string(node) for node in nodes):  # pragma: no cover
+    if not all(_u.is_string(node) for node in nodes):  # pragma: no cover
         raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
 
     edge_weights = list(value.edges(data='weight', default=0.0))
 
-    if not all(_is_number(edge_weight[2]) and _np.isfinite(edge_weight[2]) and (edge_weight[2] > 0.0) for edge_weight in edge_weights):  # pragma: no cover
+    if not all(_u.is_number(edge_weight[2]) and _np.isfinite(edge_weight[2]) and (edge_weight[2] > 0.0) for edge_weight in edge_weights):  # pragma: no cover
         raise ValueError('The "@arg@" parameter must define edge weight attributes as strictly positive finite numbers.')
 
     return value
 
 
-def _validate_labels(value: _tany, labels: _tlist_str) -> _tlist_int:
+def _validate_labels(value: _ct.tany, labels: _ct.tlist_str) -> _ct.tlist_int:
 
-    if all(_is_integer(label) for label in value):
+    if all(_u.is_integer(label) for label in value):
         value_type = 'integer'
-    elif all(_is_string(label) for label in value):
+    elif all(_u.is_string(label) for label in value):
         value_type = 'string'
     else:
         raise TypeError('The "@arg@" parameter contains invalid elements.')
@@ -202,7 +154,7 @@ def _validate_labels(value: _tany, labels: _tlist_str) -> _tlist_int:
     return value
 
 
-def _validate_limits(value: _tnum, value_type: str, lower_limit: _olim_num, upper_limit: _olim_num) -> None:
+def _validate_limits(value: _ct.tnum, value_type: str, lower_limit: _ct.olim_num, upper_limit: _ct.olim_num) -> None:
 
     def _get_limit_text(glt_value_type, glt_limit_value):
 
@@ -233,9 +185,9 @@ def _validate_limits(value: _tnum, value_type: str, lower_limit: _olim_num, uppe
                 raise ValueError(f'The "@arg@" parameter must be less than or equal to {_get_limit_text(value_type, upper_limit_value)}.')
 
 
-def _validate_models(value: _tany, validator: _trfunc) -> _tany:
+def _validate_models(value: _ct.tany, validator: _ct.trfunc) -> _ct.tany:
 
-    if not _is_list(value):
+    if not _u.is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
     value_length = len(value)
@@ -254,7 +206,7 @@ def _validate_models(value: _tany, validator: _trfunc) -> _tany:
     return value
 
 
-def _validate_probabilities(value: _tarray, stochastic: bool) -> None:
+def _validate_probabilities(value: _ct.tarray, stochastic: bool) -> None:
 
     if not _np.all(_np.isfinite(value) & (value >= 0.0) & (value <= 1.0)):
         raise ValueError('The "@arg@" parameter must contain only finite real values between 0.0 and 1.0.')
@@ -263,19 +215,19 @@ def _validate_probabilities(value: _tarray, stochastic: bool) -> None:
         return
 
     if value.ndim == 1:
-        if not _np.isclose(_np.sum(value), 1.0, rtol=0.0, atol=_ETOL):
+        if not _np.isclose(_np.sum(value), 1.0, rtol=0.0, atol=_c.ETOL):
             raise ValueError('The "@arg@" parameter values must sum to 1.0.')
     else:
-        if not _np.allclose(_np.sum(value, axis=1), 1.0, rtol=0.0, atol=_ETOL):
+        if not _np.allclose(_np.sum(value, axis=1), 1.0, rtol=0.0, atol=_c.ETOL):
             raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
 
 
-def _validate_vector(value: _tany) -> _tarray:
+def _validate_vector(value: _ct.tany) -> _ct.tarray:
 
     is_array = isinstance(value, _np.ndarray)
 
     try:
-        value = _extract_numeric(value, float)
+        value = _u.extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -287,17 +239,17 @@ def _validate_vector(value: _tany) -> _tarray:
     return value
 
 
-def validate_boolean(value: _tany) -> bool:
+def validate_boolean(value: _ct.tany) -> bool:
 
-    if not _is_boolean(value):
+    if not _u.is_boolean(value):
         raise TypeError('The "@arg@" parameter must be a boolean value.')
 
     return value
 
 
-def validate_boundary_condition(value: _tany) -> _tbcond:
+def validate_boundary_condition(value: _ct.tany) -> _ct.tbcond:
 
-    if _is_number(value):
+    if _u.is_number(value):
 
         value = float(value)
 
@@ -306,7 +258,7 @@ def validate_boundary_condition(value: _tany) -> _tbcond:
 
         return value
 
-    if _is_string(value):
+    if _u.is_string(value):
 
         possible_values = ['absorbing', 'reflecting']
 
@@ -318,7 +270,7 @@ def validate_boundary_condition(value: _tany) -> _tbcond:
     raise TypeError('The "@arg@" parameter must be either a float representing the first probability of the semi-reflecting condition or a non-empty string representing the boundary condition type.')
 
 
-def validate_dictionary_hmm(value: _tany) -> _thmm_dict:
+def validate_dictionary_hmm(value: _ct.tany) -> _ct.thmm_dict:
 
     _validate_dictionary_keys(value, 3)
 
@@ -352,7 +304,7 @@ def validate_dictionary_hmm(value: _tany) -> _thmm_dict:
     return result
 
 
-def validate_dictionary_mc(value: _tany) -> _tmc_dict:
+def validate_dictionary_mc(value: _ct.tany) -> _ct.tmc_dict:
 
     _validate_dictionary_keys(value, 2)
 
@@ -370,15 +322,15 @@ def validate_dictionary_mc(value: _tany) -> _tmc_dict:
     return result
 
 
-def validate_dimensions(value: _tany) -> _tlist_int:
+def validate_dimensions(value: _ct.tany) -> _ct.tlist_int:
 
-    if not _is_list(value):
+    if not _u.is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
     if len(value) < 2:
         raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
 
-    if not all(_is_integer(v) for v in value):
+    if not all(_u.is_integer(v) for v in value):
         raise TypeError('The "@arg@" parameter must contain only integers.')
 
     value = [int(v) for v in value]
@@ -389,9 +341,9 @@ def validate_dimensions(value: _tany) -> _tlist_int:
     return value
 
 
-def validate_dpi(value: _tany) -> int:
+def validate_dpi(value: _ct.tany) -> int:
 
-    if not _is_integer(value):
+    if not _u.is_integer(value):
         raise TypeError('The "@arg@" parameter must be an integer.')
 
     value = int(value)
@@ -405,10 +357,10 @@ def validate_dpi(value: _tany) -> int:
     return value
 
 
-def validate_emission_matrix(value: _tany, rows: int, columns: _oint = None) -> _tarray:
+def validate_emission_matrix(value: _ct.tany, rows: int, columns: _ct.oint = None) -> _ct.tarray:
 
     try:
-        value = _extract_numeric(value, float)
+        value = _u.extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -427,9 +379,9 @@ def validate_emission_matrix(value: _tany, rows: int, columns: _oint = None) -> 
     return value
 
 
-def validate_enumerator(value: _tany, possible_values: _tlist_str) -> str:
+def validate_enumerator(value: _ct.tany, possible_values: _ct.tlist_str) -> str:
 
-    if not _is_string(value):
+    if not _u.is_string(value):
         raise TypeError('The "@arg@" parameter must be a non-empty string.')
 
     if value not in possible_values:
@@ -438,17 +390,17 @@ def validate_enumerator(value: _tany, possible_values: _tlist_str) -> str:
     return value
 
 
-def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_permission: bool) -> _tfile:
+def validate_file_path(value: _ct.tany, accepted_extensions: _ct.olist_str, write_permission: bool) -> _ct.tfile:
 
     if isinstance(value, _pl.Path):
         file_path = value
-    elif _is_string(value):
+    elif _u.is_string(value):
         file_path = _pl.Path(value)
     else:
         raise TypeError('The "@arg@" parameter must be a non-empty string or a path object.')
 
     try:
-        file_extension = _get_file_extension(file_path)
+        file_extension = _u.get_file_extension(file_path)
     except Exception as ex:  # pragma: no cover
         raise ValueError('The "@arg@" parameter defines an invalid file path.') from ex
 
@@ -493,9 +445,9 @@ def validate_file_path(value: _tany, accepted_extensions: _olist_str, write_perm
     return file_path, file_extension
 
 
-def validate_float(value: _tany, lower_limit: _olim_float = None, upper_limit: _olim_float = None) -> float:
+def validate_float(value: _ct.tany, lower_limit: _ct.olim_float = None, upper_limit: _ct.olim_float = None) -> float:
 
-    if not _is_float(value):
+    if not _u.is_float(value):
         raise TypeError('The "@arg@" parameter must be a float.')
 
     value = float(value)
@@ -508,7 +460,7 @@ def validate_float(value: _tany, lower_limit: _olim_float = None, upper_limit: _
     return value
 
 
-def validate_graph_hmm(value: _tany) -> _tgraphs:
+def validate_graph_hmm(value: _ct.tany) -> _ct.tgraphs:
 
     value = _validate_graph(value)
 
@@ -520,7 +472,7 @@ def validate_graph_hmm(value: _tany) -> _tgraphs:
 
         node_layer = node[1]
 
-        if not _is_integer(node_layer) or node_layer not in layers:  # pragma: no cover
+        if not _u.is_integer(node_layer) or node_layer not in layers:  # pragma: no cover
             raise ValueError('The "@arg@" parameter must define node layer attributes as integers equal to 0 or 1.')
 
         nodes_by_layer[node_layer].append(node[0])
@@ -534,7 +486,7 @@ def validate_graph_hmm(value: _tany) -> _tgraphs:
 
         edge_type = edge[2]
 
-        if (not _is_string(edge_type)) or (edge_type not in ['E', 'P']):
+        if (not _u.is_string(edge_type)) or (edge_type not in ['E', 'P']):
             raise ValueError('The "@arg@" parameter must define edge type attributes as strings matching one of the following values: E, P.')
 
         origin_layer = value.nodes[edge[0]]['layer']
@@ -546,7 +498,7 @@ def validate_graph_hmm(value: _tany) -> _tgraphs:
     return value
 
 
-def validate_graph_mc(value: _tany) -> _tgraphs:
+def validate_graph_mc(value: _ct.tany) -> _ct.tgraphs:
 
     value = _validate_graph(value)
 
@@ -556,7 +508,7 @@ def validate_graph_mc(value: _tany) -> _tgraphs:
     return value
 
 
-def validate_hidden_markov_model(value: _tany) -> _thmm:
+def validate_hidden_markov_model(value: _ct.tany) -> _ct.thmm:
 
     if (value is None) or (f'{value.__module__}.{value.__class__.__name__}' != 'pydtmc.hidden_markov_model.HiddenMarkovModel'):
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
@@ -564,17 +516,17 @@ def validate_hidden_markov_model(value: _tany) -> _thmm:
     return value
 
 
-def validate_hidden_markov_models(value: _tany) -> _tlist_hmm:
+def validate_hidden_markov_models(value: _ct.tany) -> _ct.tlist_hmm:
 
     value = _validate_models(value, validate_hidden_markov_model)
 
     return value
 
 
-def validate_hyperparameter(value: _tany, size: int) -> _tarray:
+def validate_hyperparameter(value: _ct.tany, size: int) -> _ct.tarray:
 
     try:
-        value = _extract_numeric(value, float)
+        value = _u.extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -587,9 +539,9 @@ def validate_hyperparameter(value: _tany, size: int) -> _tarray:
     return value
 
 
-def validate_inertial_weights(value: _tany, size: int) -> _tarray:
+def validate_inertial_weights(value: _ct.tany, size: int) -> _ct.tarray:
 
-    if _is_number(value):
+    if _u.is_number(value):
         value = _np.repeat(float(value), size)
     else:
         value = _validate_vector(value)
@@ -602,9 +554,9 @@ def validate_inertial_weights(value: _tany, size: int) -> _tarray:
     return value
 
 
-def validate_integer(value: _tany, lower_limit: _olim_int = None, upper_limit: _olim_int = None) -> int:
+def validate_integer(value: _ct.tany, lower_limit: _ct.olim_int = None, upper_limit: _ct.olim_int = None) -> int:
 
-    if not _is_integer(value):
+    if not _u.is_integer(value):
         raise TypeError('The "@arg@" parameter must be an integer.')
 
     value = int(value)
@@ -614,9 +566,9 @@ def validate_integer(value: _tany, lower_limit: _olim_int = None, upper_limit: _
     return value
 
 
-def validate_interval(value: _tany) -> _tival:
+def validate_interval(value: _ct.tany) -> _ct.tival:
 
-    if not _is_tuple(value):
+    if not _u.is_tuple(value):
         raise TypeError('The "@arg@" parameter must be a tuple.')
 
     if len(value) != 2:
@@ -624,7 +576,7 @@ def validate_interval(value: _tany) -> _tival:
 
     a, b = value
 
-    if (not _is_number(a)) or (not _is_number(b)):
+    if (not _u.is_number(a)) or (not _u.is_number(b)):
         raise ValueError('The "@arg@" parameter must contain only floats and integers.')
 
     a, b = float(a), float(b)
@@ -638,9 +590,9 @@ def validate_interval(value: _tany) -> _tival:
     return a, b
 
 
-def validate_label(value: _tany, labels: _tlist_str) -> int:
+def validate_label(value: _ct.tany, labels: _ct.tlist_str) -> int:
 
-    if _is_integer(value):
+    if _u.is_integer(value):
 
         label = int(value)
         limit = len(labels) - 1
@@ -650,7 +602,7 @@ def validate_label(value: _tany, labels: _tlist_str) -> int:
 
         return label
 
-    if _is_string(value):
+    if _u.is_string(value):
 
         if value not in labels:
             raise ValueError(f'The "@arg@" parameter, when specified as a string, must match one of the following strings: {", ".join(labels)}.')
@@ -662,9 +614,9 @@ def validate_label(value: _tany, labels: _tlist_str) -> int:
     raise TypeError('The "@arg@" parameter must be either an integer or a non-empty string.')
 
 
-def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, minimum_length: _oint = None) -> _tlist_int:
+def validate_labels_current(value: _ct.tany, labels: _ct.tlist_str, subset: bool, minimum_length: _ct.oint = None) -> _ct.tlist_int:
 
-    if _is_integer(value) or _is_string(value):
+    if _u.is_integer(value) or _u.is_string(value):
 
         value = validate_label(value, labels)
 
@@ -675,7 +627,7 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
 
         return value
 
-    if _is_list(value):
+    if _u.is_list(value):
 
         value = _validate_labels(value, labels)
         value_length = len(value)
@@ -709,9 +661,9 @@ def validate_labels_current(value: _tany, labels: _tlist_str, subset: bool, mini
     raise TypeError('The "@arg@" parameter must be either an integer, a non-empty string, a list of integers or a list of non-empty strings.')
 
 
-def validate_labels_pair(value: _tany, labels: _tlist_str) -> _tlist_int:
+def validate_labels_pair(value: _ct.tany, labels: _ct.tlist_str) -> _ct.tlist_int:
 
-    if not _is_list(value):
+    if not _u.is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
     if len(value) != 2:
@@ -725,12 +677,12 @@ def validate_labels_pair(value: _tany, labels: _tlist_str) -> _tlist_int:
     return value
 
 
-def validate_labels_input(value: _tany, size: _oint = None) -> _tlist_str:
+def validate_labels_input(value: _ct.tany, size: _ct.oint = None) -> _ct.tlist_str:
 
-    if not _is_list(value):
+    if not _u.is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
-    if not all(_is_string(label) for label in value):
+    if not all(_u.is_string(label) for label in value):
         raise TypeError('The "@arg@" parameter must contain only non-empty strings.')
 
     labels_length = len(value)
@@ -751,7 +703,7 @@ def validate_labels_input(value: _tany, size: _oint = None) -> _tlist_str:
     return value
 
 
-def validate_markov_chain(value: _tany, size: _oint = None) -> _tmc:
+def validate_markov_chain(value: _ct.tany, size: _ct.oint = None) -> _ct.tmc:
 
     if (value is None) or (f'{value.__module__}.{value.__class__.__name__}' != 'pydtmc.markov_chain.MarkovChain'):
         raise TypeError('The "@arg@" parameter is null or wrongly typed.')
@@ -762,17 +714,17 @@ def validate_markov_chain(value: _tany, size: _oint = None) -> _tmc:
     return value
 
 
-def validate_markov_chains(value: _tany) -> _tlist_mc:
+def validate_markov_chains(value: _ct.tany) -> _ct.tlist_mc:
 
     value = _validate_models(value, validate_markov_chain)
 
     return value
 
 
-def validate_mask(value: _tany, rows: int, columns: int) -> _tarray:
+def validate_mask(value: _ct.tany, rows: int, columns: int) -> _ct.tarray:
 
     try:
-        value = _extract_numeric(value, float)
+        value = _u.extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -793,10 +745,10 @@ def validate_mask(value: _tany, rows: int, columns: int) -> _tarray:
     return value
 
 
-def validate_matrix(value: _tany, rows: _oint = None, columns: _oint = None) -> _tarray:
+def validate_matrix(value: _ct.tany, rows: _ct.oint = None, columns: _ct.oint = None) -> _ct.tarray:
 
     try:
-        value = _extract_numeric(value, float)
+        value = _u.extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -820,7 +772,7 @@ def validate_matrix(value: _tany, rows: _oint = None, columns: _oint = None) -> 
 
 
 # noinspection PyBroadException
-def validate_model(value: _tany) -> _tmdl:
+def validate_model(value: _ct.tany) -> _ct.tmdl:
 
     if value is None:
         raise TypeError('The "@arg@" parameter is null.')
@@ -834,7 +786,7 @@ def validate_model(value: _tany) -> _tmdl:
         raise TypeError('The "@arg@" parameter is wrongly typed.')
 
     value_bases = value.__class__.__bases__ or ()
-    value_base = None if len(value_bases) == 0 else _get_full_name(value_bases[0])
+    value_base = None if len(value_bases) == 0 else _u.get_full_name(value_bases[0])
 
     if (value_base is None) or (value_base != 'pydtmc._base_classes.Model'):
         raise TypeError('The "@arg@" parameter is wrongly typed.')
@@ -842,14 +794,14 @@ def validate_model(value: _tany) -> _tmdl:
     return value
 
 
-def validate_models(value: _tany) -> _tlist_mdl:
+def validate_models(value: _ct.tany) -> _ct.tlist_mdl:
 
     value = _validate_models(value, validate_model)
 
     return value
 
 
-def validate_none(value: _tany) -> _tany:
+def validate_none(value: _ct.tany) -> _ct.tany:
 
     if value is not None:
         raise TypeError('The "@arg@" parameter must be None.')
@@ -857,9 +809,9 @@ def validate_none(value: _tany) -> _tany:
     return value
 
 
-def validate_observable(value: _tany, size: int) -> _tobs:
+def validate_observable(value: _ct.tany, size: int) -> _ct.tobs:
 
-    if _is_string(value):
+    if _u.is_string(value):
 
         possible_values = ['entropy_production', 'state_occupation', 'transition_count', 'transition_current']
         value = validate_enumerator(value, possible_values)
@@ -867,7 +819,7 @@ def validate_observable(value: _tany, size: int) -> _tobs:
     else:
 
         try:
-            value = _extract_numeric(value, float)
+            value = _u.extract_numeric(value, float)
         except Exception as ex:
             raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -880,9 +832,9 @@ def validate_observable(value: _tany, size: int) -> _tobs:
     return value
 
 
-def validate_partition(value: _tany, labels: _tlist_str) -> _tlists_int:
+def validate_partition(value: _ct.tany, labels: _ct.tlist_str) -> _ct.tlists_int:
 
-    if not _is_list(value):
+    if not _u.is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
     partitions_length = len(value)
@@ -900,7 +852,7 @@ def validate_partition(value: _tany, labels: _tlist_str) -> _tlists_int:
 
     for partition in value:
 
-        if not _is_list(partition):
+        if not _u.is_list(partition):
             raise TypeError('The "@arg@" parameter must contain only lists.')
 
         partition_list = list(partition)
@@ -908,14 +860,14 @@ def validate_partition(value: _tany, labels: _tlist_str) -> _tlists_int:
         partitions_flat.extend(partition_list)
         partitions_groups.append(len(partition_list))
 
-    if all(_is_integer(state) for state in partitions_flat):
+    if all(_u.is_integer(state) for state in partitions_flat):
 
         partitions_flat = [int(state) for state in partitions_flat]
 
         if any(label < 0 or label >= labels_length for label in partitions_flat):
             raise ValueError(f'The "@arg@" parameter subelements, when specified as integers, must be values between 0 and {labels_length - 1:d}.')
 
-    elif all(_is_string(partition_flat) for partition_flat in partitions_flat):
+    elif all(_u.is_string(partition_flat) for partition_flat in partitions_flat):
 
         partitions_flat = [labels.index(state) if state in labels else -1 for state in partitions_flat]
 
@@ -941,18 +893,18 @@ def validate_partition(value: _tany, labels: _tlist_str) -> _tlists_int:
     return result
 
 
-def validate_pattern_probabilities(value: _tany) -> _tpprobs:
+def validate_pattern_probabilities(value: _ct.tany) -> _ct.tpprobs:
 
-    if not _is_dictionary(value) or len(value) == 0:
+    if not _u.is_dictionary(value) or len(value) == 0:
         raise ValueError('The "@arg@" parameter must be a non-empty dictionary.')
 
-    if not all(_is_string(s) and (len(s) == 1) for s in value):
+    if not all(_u.is_string(s) and (len(s) == 1) for s in value):
         raise ValueError('The "@arg@" parameter keys must be single-character strings.')
 
-    if not all(_is_number(v) and _np.isfinite(v) and (0.0 <= v <= 1.0) for v in value.values()):
+    if not all(_u.is_number(v) and _np.isfinite(v) and (0.0 <= v <= 1.0) for v in value.values()):
         raise ValueError('The "@arg@" parameter values must be finite real numbers between 0.0 and 1.0.')
 
-    if not _np.isclose(sum(value.values()), 1.0, rtol=0.0, atol=_ETOL):
+    if not _np.isclose(sum(value.values()), 1.0, rtol=0.0, atol=_c.ETOL):
         raise ValueError('The "@arg@" parameter values must sum to 1.0.')
 
     value = {k: float(v) for k, v in value.items()}
@@ -960,7 +912,7 @@ def validate_pattern_probabilities(value: _tany) -> _tpprobs:
     return value
 
 
-def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tlist_str) -> _trfunc:
+def validate_random_distribution(value: _ct.tany, rng: _ct.trand, accepted_values: _ct.tlist_str) -> _ct.trfunc:
 
     if value is None:
         raise TypeError('The "@arg@" parameter is null.')
@@ -982,7 +934,7 @@ def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tl
 
         return value
 
-    if _is_string(value):
+    if _u.is_string(value):
 
         if value is None or value not in dir(rng):
             raise ValueError('The "@arg@" parameter, when specified as a string, must reference a valid "numpy.random" module object.')
@@ -997,7 +949,7 @@ def validate_random_distribution(value: _tany, rng: _trand, accepted_values: _tl
     raise TypeError('The "@arg@" parameter must be either a callable function or the name of a callable function.')
 
 
-def validate_rewards(value: _tany, size: int) -> _tarray:
+def validate_rewards(value: _ct.tany, size: int) -> _ct.tarray:
 
     value = _validate_vector(value)
 
@@ -1010,17 +962,17 @@ def validate_rewards(value: _tany, size: int) -> _tarray:
     return value
 
 
-def validate_sequence(value: _tany, labels: _tlist_str) -> _tlist_int:
+def validate_sequence(value: _ct.tany, labels: _ct.tlist_str) -> _ct.tlist_int:
 
-    if not _is_list(value):
+    if not _u.is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
     if len(value) < 2:
         raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
 
-    if all(_is_integer(label) for label in value):
+    if all(_u.is_integer(label) for label in value):
         value_type = 'integer'
-    elif all(_is_string(label) for label in value):
+    elif all(_u.is_string(label) for label in value):
         value_type = 'string'
     else:
         raise TypeError('The "@arg@" parameter must be either a list of integers or a list of non-empty strings.')
@@ -1043,19 +995,19 @@ def validate_sequence(value: _tany, labels: _tlist_str) -> _tlist_int:
     return value
 
 
-def validate_sequences(value: _tany, labels: _tlist_str, flex: bool) -> _tlists_int:
+def validate_sequences(value: _ct.tany, labels: _ct.tlist_str, flex: bool) -> _ct.tlists_int:
 
-    if not _is_list(value):
+    if not _u.is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
     if len(value) < 2:
         raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
 
-    if all(_is_list(state) for state in value):
+    if all(_u.is_list(state) for state in value):
         value_type = 'list'
-    elif flex and all(_is_integer(label) for label in value):
+    elif flex and all(_u.is_integer(label) for label in value):
         value_type = 'integer'
-    elif flex and all(_is_string(label) for label in value):
+    elif flex and all(_u.is_string(label) for label in value):
         value_type = 'string'
     else:
 
@@ -1079,14 +1031,14 @@ def validate_sequences(value: _tany, labels: _tlist_str, flex: bool) -> _tlists_
     return value
 
 
-def validate_status(value: _tany, labels: _tlist_str, emit_uniform: bool) -> _tarray:
+def validate_status(value: _ct.tany, labels: _ct.tlist_str, emit_uniform: bool) -> _ct.tarray:
 
     size = len(labels)
 
     if (value is None) and emit_uniform:
         return _np.full(size, 1.0 / size, dtype=float)
 
-    if _is_integer(value) or _is_string(value):
+    if _u.is_integer(value) or _u.is_string(value):
 
         value = validate_label(value, labels)
 
@@ -1100,9 +1052,9 @@ def validate_status(value: _tany, labels: _tlist_str, emit_uniform: bool) -> _ta
     return value
 
 
-def validate_string(value: _tany, excluded_chars: _olist_str = None) -> str:
+def validate_string(value: _ct.tany, excluded_chars: _ct.olist_str = None) -> str:
 
-    if not _is_string(value):
+    if not _u.is_string(value):
         raise TypeError('The "@arg@" parameter must be a non-empty string.')
 
     if (excluded_chars is not None) and any(c in value for c in excluded_chars):
@@ -1111,12 +1063,12 @@ def validate_string(value: _tany, excluded_chars: _olist_str = None) -> str:
     return value
 
 
-def validate_strings(value: _tany, excluded_chars: _olist_str = None, size: _oint = None) -> _tlist_str:
+def validate_strings(value: _ct.tany, excluded_chars: _ct.olist_str = None, size: _ct.oint = None) -> _ct.tlist_str:
 
-    if not _is_list(value):
+    if not _u.is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
-    if not all(_is_string(s) for s in value):
+    if not all(_u.is_string(s) for s in value):
         raise TypeError('The "@arg@" parameter must contain only non-empty strings.')
 
     if (excluded_chars is not None) and any(c in s for s in value for c in excluded_chars):
@@ -1135,9 +1087,9 @@ def validate_strings(value: _tany, excluded_chars: _olist_str = None, size: _oin
     return value
 
 
-def validate_time_points(value: _tany) -> _ttimes_in:
+def validate_time_points(value: _ct.tany) -> _ct.ttimes_in:
 
-    if _is_integer(value):
+    if _u.is_integer(value):
 
         value = int(value)
 
@@ -1146,9 +1098,9 @@ def validate_time_points(value: _tany) -> _ttimes_in:
 
         return value
 
-    if _is_list(value):
+    if _u.is_list(value):
 
-        if not all(_is_integer(time_point) for time_point in value):
+        if not all(_u.is_integer(time_point) for time_point in value):
             raise TypeError('The "@arg@" parameter must be either an integer or an array_like object of integers.')
 
         value = [int(time_point) for time_point in value]
@@ -1174,7 +1126,7 @@ def validate_time_points(value: _tany) -> _ttimes_in:
 
 
 # noinspection PyBroadException
-def validate_transition_function(value: _tany) -> _ttfunc:
+def validate_transition_function(value: _ct.tany) -> _ct.ttfunc:
 
     if value is None or _ins.isclass(value) or not callable(value):
         raise TypeError('The "@arg@" parameter must be a callable function or method.')
@@ -1194,16 +1146,16 @@ def validate_transition_function(value: _tany) -> _ttfunc:
     except Exception as ex:  # pragma: no cover
         raise ValueError('The "@arg@" parameter behavior is not compliant.') from ex
 
-    if (not _is_number(result)) or (not _np.isfinite(result)):
+    if (not _u.is_number(result)) or (not _np.isfinite(result)):
         raise ValueError('The "@arg@" parameter behavior is not compliant.')
 
     return value
 
 
-def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
+def validate_transition_matrix(value: _ct.tany, size: _ct.oint = None) -> _ct.tarray:
 
     try:
-        value = _extract_numeric(value, float)
+        value = _u.extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
@@ -1218,7 +1170,7 @@ def validate_transition_matrix(value: _tany, size: _oint = None) -> _tarray:
     return value
 
 
-def validate_vector_birth_death(value: _tany, vector_type: str) -> _tarray:
+def validate_vector_birth_death(value: _ct.tany, vector_type: str) -> _ct.tarray:
 
     value = _validate_vector(value)
 
@@ -1226,18 +1178,18 @@ def validate_vector_birth_death(value: _tany, vector_type: str) -> _tarray:
 
     if vector_type == 'annihilation':
 
-        if not _np.isclose(value[0], 0.0, rtol=0.0, atol=_ETOL):
+        if not _np.isclose(value[0], 0.0, rtol=0.0, atol=_c.ETOL):
             raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the first index.')
 
     else:
 
-        if not _np.isclose(value[-1], 0.0, rtol=0.0, atol=_ETOL):
+        if not _np.isclose(value[-1], 0.0, rtol=0.0, atol=_c.ETOL):
             raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the last index.')
 
     return value
 
 
-def validate_vector_stochastic(value: _tany, size: int, emit_uniform: bool) -> _tarray:
+def validate_vector_stochastic(value: _ct.tany, size: int, emit_uniform: bool) -> _ct.tarray:
 
     if (value is None) and emit_uniform:
         return _np.full(size, 1.0 / size, dtype=float)

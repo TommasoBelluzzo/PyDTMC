@@ -46,20 +46,11 @@ except ImportError:  # pragma: no cover
 
 # Internal
 
-from ._custom_types import (
-    oint as _oint,
-    olist_str as _olist_str,
-    ostate as _ostate,
-    ostatus as _ostatus,
-    thmm as _thmm,
-    tlist_mdl as _tlist_mdl,
-    tmdl as _tmdl,
-    tplot as _tplot
-)
-
-from ._decorators import (
-    interactive_plot as _interactive_plot
-)
+from . import _custom_types as _ct
+from . import _decorators as _dc
+from . import _numerical as _n
+from . import _utilities as _u
+from . import _validation as _v
 
 from .exceptions import (
     ValidationError as _ValidationError
@@ -71,28 +62,6 @@ from .hidden_markov_model import (
 
 from .markov_chain import (
     MarkovChain as _MarkovChain
-)
-
-from ._numerical import (
-    slem as _slem
-)
-
-from ._utilities import (
-    create_validation_error as _create_validation_error,
-    create_models_names as _create_models_names
-)
-
-from ._validation import (
-    validate_boolean as _validate_boolean,
-    validate_dpi as _validate_dpi,
-    validate_enumerator as _validate_enumerator,
-    validate_hidden_markov_model as _validate_hidden_markov_model,
-    validate_integer as _validate_integer,
-    validate_label as _validate_label,
-    validate_model as _validate_model,
-    validate_models as _validate_models,
-    validate_status as _validate_status,
-    validate_strings as _validate_strings
 )
 
 
@@ -190,8 +159,8 @@ def _yticks_labels(ax, size, labels_name, labels):
     ax.set_yticklabels(labels)
 
 
-@_interactive_plot
-def plot_comparison(models: _tlist_mdl, underlying_matrices: str = 'transition', names: _olist_str = None, dpi: int = 100) -> _tplot:
+@_dc.interactive_plot
+def plot_comparison(models: _ct.tlist_mdl, underlying_matrices: str = 'transition', names: _ct.olist_str = None, dpi: int = 100) -> _ct.tplot:
 
     """
     | The function plots a heatmap comparison of the transition or emission matrices of the given models.
@@ -211,13 +180,13 @@ def plot_comparison(models: _tlist_mdl, underlying_matrices: str = 'transition',
 
     try:
 
-        models = _validate_models(models)
-        underlying_matrices = _validate_enumerator(underlying_matrices, ['emission', 'transition'])
-        names = _create_models_names(models) if names is None else _validate_strings(names, len(models))
-        dpi = _validate_dpi(dpi)
+        models = _v.validate_models(models)
+        underlying_matrices = _v.validate_enumerator(underlying_matrices, ['emission', 'transition'])
+        names = _u.create_models_names(models) if names is None else _v.validate_strings(names, size=len(models))
+        dpi = _v.validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     if (underlying_matrices == 'emission') and (not all(isinstance(model, _HiddenMarkovModel) for model in models)):  # pragma: no cover
         raise _ValidationError('In order to compare emission matrices, the list must contain only hidden Markov models.')
@@ -256,8 +225,8 @@ def plot_comparison(models: _tlist_mdl, underlying_matrices: str = 'transition',
     return figure, axes
 
 
-@_interactive_plot
-def plot_convergence(model: _tmdl, steps: int, initial_status: _ostatus = None, dpi: int = 100) -> _tplot:
+@_dc.interactive_plot
+def plot_convergence(model: _ct.tmdl, steps: int, initial_status: _ct.ostatus = None, dpi: int = 100) -> _ct.tplot:
 
     """
     | The function plots the total variation distance between the evolving state distribution and the stationary distribution of the given model.
@@ -278,13 +247,13 @@ def plot_convergence(model: _tmdl, steps: int, initial_status: _ostatus = None, 
 
     try:
 
-        model = _validate_model(model)
-        steps = _validate_integer(steps, lower_limit=(1, False))
-        initial_status = None if initial_status is None else _validate_status(initial_status, model.states, False)
-        dpi = _validate_dpi(dpi)
+        model = _v.validate_model(model)
+        steps = _v.validate_integer(steps, lower_limit=(1, False))
+        initial_status = None if initial_status is None else _v.validate_status(initial_status, model.states, False)
+        dpi = _v.validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     if model.__class__.__name__ == 'MarkovChain':
         mc = model
@@ -317,8 +286,8 @@ def plot_convergence(model: _tmdl, steps: int, initial_status: _ostatus = None, 
     return figure, ax
 
 
-@_interactive_plot
-def plot_eigenvalues(model: _tmdl, dpi: int = 100) -> _tplot:
+@_dc.interactive_plot
+def plot_eigenvalues(model: _ct.tmdl, dpi: int = 100) -> _ct.tplot:
 
     """
     | The function plots the eigenvalues of the transition matrix of the given model on the complex plane.
@@ -335,11 +304,11 @@ def plot_eigenvalues(model: _tmdl, dpi: int = 100) -> _tplot:
 
     try:
 
-        model = _validate_model(model)
-        dpi = _validate_dpi(dpi)
+        model = _v.validate_model(model)
+        dpi = _v.validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     if model.__class__.__name__ == 'MarkovChain':
         mc = model
@@ -369,7 +338,7 @@ def plot_eigenvalues(model: _tmdl, dpi: int = 100) -> _tplot:
 
     if mc.is_irreducible:
 
-        mu = _slem(model.p)
+        mu = _n.slem(model.p)
 
         if not _np.isclose(mu, 0.0):
 
@@ -414,8 +383,8 @@ def plot_eigenvalues(model: _tmdl, dpi: int = 100) -> _tplot:
     return figure, ax
 
 
-@_interactive_plot
-def plot_flow(model: _tmdl, steps: int, interval: int, initial_status: _ostatus = None, dpi: int = 100) -> _tplot:
+@_dc.interactive_plot
+def plot_flow(model: _ct.tmdl, steps: int, interval: int, initial_status: _ct.ostatus = None, dpi: int = 100) -> _ct.tplot:
 
     """
     | The function plots an alluvial diagram representing the evolution of state probabilities and their redistribution between displayed time points.
@@ -565,14 +534,14 @@ def plot_flow(model: _tmdl, steps: int, interval: int, initial_status: _ostatus 
 
     try:
 
-        model = _validate_model(model)
-        steps = _validate_integer(steps, lower_limit=(1, False))
-        interval = _validate_integer(interval, lower_limit=(1, False))
-        initial_status = None if initial_status is None else _validate_status(initial_status, model.states, False)
-        dpi = _validate_dpi(dpi)
+        model = _v.validate_model(model)
+        steps = _v.validate_integer(steps, lower_limit=(1, False))
+        interval = _v.validate_integer(interval, lower_limit=(1, False))
+        initial_status = None if initial_status is None else _v.validate_status(initial_status, model.states, False)
+        dpi = _v.validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     if model.__class__.__name__ == 'MarkovChain':
         mc = model
@@ -624,8 +593,8 @@ def plot_flow(model: _tmdl, steps: int, interval: int, initial_status: _ostatus 
 
 
 # noinspection PyBroadException
-@_interactive_plot
-def plot_graph(model: _tmdl, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _tplot:
+@_dc.interactive_plot
+def plot_graph(model: _ct.tmdl, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _ct.tplot:
 
     """
     | The function plots the directed graph of the given model, representing state transitions and, for hidden Markov models, symbol emissions.
@@ -1056,15 +1025,15 @@ def plot_graph(model: _tmdl, nodes_color: bool = True, nodes_shape: bool = True,
 
     try:
 
-        model = _validate_model(model)
-        nodes_color = _validate_boolean(nodes_color)
-        nodes_shape = _validate_boolean(nodes_shape)
-        edges_label = _validate_boolean(edges_label)
-        force_standard = _validate_boolean(force_standard)
-        dpi = _validate_dpi(dpi)
+        model = _v.validate_model(model)
+        nodes_color = _v.validate_boolean(nodes_color)
+        nodes_shape = _v.validate_boolean(nodes_shape)
+        edges_label = _v.validate_boolean(edges_label)
+        force_standard = _v.validate_boolean(force_standard)
+        dpi = _v.validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     extended_graph = not force_standard and _pydot_found
 
@@ -1087,8 +1056,8 @@ def plot_graph(model: _tmdl, nodes_color: bool = True, nodes_shape: bool = True,
     return figure, ax
 
 
-@_interactive_plot
-def plot_matrix(model: _tmdl, underlying_matrix: str = 'transition', dpi: int = 100) -> _tplot:
+@_dc.interactive_plot
+def plot_matrix(model: _ct.tmdl, underlying_matrix: str = 'transition', dpi: int = 100) -> _ct.tplot:
 
     """
     | The function plots a heatmap of the transition or emission matrix of the given model.
@@ -1108,12 +1077,12 @@ def plot_matrix(model: _tmdl, underlying_matrix: str = 'transition', dpi: int = 
 
     try:
 
-        model = _validate_model(model)
-        underlying_matrix = _validate_enumerator(underlying_matrix, ['emission', 'transition'])
-        dpi = _validate_dpi(dpi)
+        model = _v.validate_model(model)
+        underlying_matrix = _v.validate_enumerator(underlying_matrix, ['emission', 'transition'])
+        dpi = _v.validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     if underlying_matrix == 'emission' and not isinstance(model, _HiddenMarkovModel):  # pragma: no cover
         raise _ValidationError('An emission matrix can only be plotted for a hidden Markov model.')
@@ -1139,8 +1108,8 @@ def plot_matrix(model: _tmdl, underlying_matrix: str = 'transition', dpi: int = 
     return figure, ax
 
 
-@_interactive_plot
-def plot_redistributions(model: _tmdl, redistributions: int, initial_status: _ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _tplot:
+@_dc.interactive_plot
+def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: _ct.ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _ct.tplot:
 
     """
     | The function plots the evolution of the state probability distribution over successive steps of the given model.
@@ -1162,14 +1131,14 @@ def plot_redistributions(model: _tmdl, redistributions: int, initial_status: _os
 
     try:
 
-        model = _validate_model(model)
-        redistributions = _validate_integer(redistributions, lower_limit=(1, False))
-        initial_status = None if initial_status is None else _validate_status(initial_status, model.states, False)
-        plot_type = _validate_enumerator(plot_type, ['heatmap', 'projection'])
-        dpi = _validate_dpi(dpi)
+        model = _v.validate_model(model)
+        redistributions = _v.validate_integer(redistributions, lower_limit=(1, False))
+        initial_status = None if initial_status is None else _v.validate_status(initial_status, model.states, False)
+        plot_type = _v.validate_enumerator(plot_type, ['heatmap', 'projection'])
+        dpi = _v.validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     if model.__class__.__name__ == 'MarkovChain':
         mc = model
@@ -1227,8 +1196,8 @@ def plot_redistributions(model: _tmdl, redistributions: int, initial_status: _os
     return figure, ax
 
 
-@_interactive_plot
-def plot_sequence(model: _tmdl, steps: int, initial_state: _ostate = None, plot_type: str = 'histogram', seed: _oint = None, dpi: int = 100) -> _tplot:
+@_dc.interactive_plot
+def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None, plot_type: str = 'histogram', seed: _ct.oint = None, dpi: int = 100) -> _ct.tplot:
 
     """
     | The function plots a random sequence of states and, for hidden Markov models, emitted symbols.
@@ -1336,14 +1305,14 @@ def plot_sequence(model: _tmdl, steps: int, initial_state: _ostate = None, plot_
 
     try:
 
-        model = _validate_model(model)
-        steps = _validate_integer(steps, lower_limit=(2, False))
-        initial_state = None if initial_state is None else _validate_label(initial_state, model.states)
-        plot_type = _validate_enumerator(plot_type, ['heatmap', 'histogram', 'matrix'])
-        dpi = _validate_dpi(dpi)
+        model = _v.validate_model(model)
+        steps = _v.validate_integer(steps, lower_limit=(2, False))
+        initial_state = None if initial_state is None else _v.validate_label(initial_state, model.states)
+        plot_type = _v.validate_enumerator(plot_type, ['heatmap', 'histogram', 'matrix'])
+        dpi = _v.validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     model_mc = model.__class__.__name__ == 'MarkovChain'
     model_sequence = model.simulate(steps, initial_state=initial_state, output_indices=True, seed=seed)
@@ -1373,8 +1342,8 @@ def plot_sequence(model: _tmdl, steps: int, initial_state: _ostate = None, plot_
 
 
 # noinspection PyBroadException
-@_interactive_plot
-def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _oint = None, force_standard: bool = False, dpi: int = 100) -> _tplot:
+@_dc.interactive_plot
+def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate = None, seed: _ct.oint = None, force_standard: bool = False, dpi: int = 100) -> _ct.tplot:
 
     """
     | The function plots the forward and backward trellis diagrams of a simulated observation sequence on the given hidden Markov model.
@@ -1587,14 +1556,14 @@ def plot_trellis(hmm: _thmm, steps: int, initial_state: _ostate = None, seed: _o
 
     try:
 
-        hmm = _validate_hidden_markov_model(hmm)
-        steps = _validate_integer(steps, lower_limit=(2, False))
-        initial_state = None if initial_state is None else _validate_label(initial_state, hmm.states)
-        force_standard = _validate_boolean(force_standard)
-        dpi = _validate_dpi(dpi)
+        hmm = _v.validate_hidden_markov_model(hmm)
+        steps = _v.validate_integer(steps, lower_limit=(2, False))
+        initial_state = None if initial_state is None else _v.validate_label(initial_state, hmm.states)
+        force_standard = _v.validate_boolean(force_standard)
+        dpi = _v.validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
-        raise _create_validation_error(ex, _ins.trace()) from None
+        raise _u.create_validation_error(ex, _ins.trace()) from None
 
     if initial_state is None:
         initial_distribution = _np.full(hmm.n, 1.0 / hmm.n, dtype=float)

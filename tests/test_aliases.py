@@ -169,7 +169,7 @@ def test_aliased_properties_hmm(p, e):
 
 def test_aliased_properties_hmm_caching():
 
-    from pydtmc import _analysis as _analysis_module
+    from pydtmc import _numerical as _numerical_module
     from unittest.mock import patch as _patch
 
     p = _np.array([[0.8, 0.2], [0.3, 0.7]])
@@ -183,7 +183,7 @@ def test_aliased_properties_hmm_caching():
 
         hmm = _HiddenMarkovModel(p, e)
 
-        with _patch.object(_analysis_module, '_gth_solve', wraps=_analysis_module._gth_solve) as solve:
+        with _patch.object(_numerical_module, 'gth_solve', wraps=_numerical_module.gth_solve) as solve:
 
             actual = getattr(hmm, first)
             expected = getattr(hmm, second)
@@ -217,7 +217,7 @@ def test_aliased_properties_mc(p):
 
 def test_aliased_properties_mc_caching():
 
-    from pydtmc import _analysis as _analysis_module
+    from pydtmc import _numerical as _numerical_module
     from unittest.mock import patch as _patch
 
     p = _np.array([[0.8, 0.2], [0.3, 0.7]])
@@ -230,7 +230,7 @@ def test_aliased_properties_mc_caching():
 
         mc = _MarkovChain(p)
 
-        with _patch.object(_analysis_module, '_gth_solve', wraps=_analysis_module._gth_solve) as solve:
+        with _patch.object(_numerical_module, 'gth_solve', wraps=_numerical_module.gth_solve) as solve:
 
             actual = getattr(mc, first)
             expected = getattr(mc, second)

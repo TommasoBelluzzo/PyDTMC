@@ -15,11 +15,7 @@ import abc as _abc
 
 # Internal
 
-from ._custom_types import (
-    tarray as _tarray,
-    tlist_array as _tlist_array,
-    tlist_str as _tlist_str
-)
+from . import _custom_types as _ct
 
 
 ###########
@@ -46,17 +42,17 @@ class Model(_abc.ABC):  # pragma: no cover
 
     @property
     @_abc.abstractmethod
-    def p(self) -> _tarray:
+    def p(self) -> _ct.tarray:
         pass
 
     @property
     @_abc.abstractmethod
-    def pi(self) -> _tlist_array:
+    def pi(self) -> _ct.tlist_array:
         pass
 
     @property
     @_abc.abstractmethod
-    def states(self) -> _tlist_str:
+    def states(self) -> _ct.tlist_str:
         pass
 
     @_abc.abstractmethod
