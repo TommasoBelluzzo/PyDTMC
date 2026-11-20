@@ -409,15 +409,22 @@ def validate_dpi(value: _tany) -> int:
     return value
 
 
-def validate_emission_matrix(value: _tany, size: int) -> _tarray:
+def validate_emission_matrix(value: _tany, rows: int, columns: _oint = None) -> _tarray:
 
     try:
         value = _extract_numeric(value, float)
     except Exception as ex:
         raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
 
-    if (value.ndim != 2) or (value.shape[0] != size) or (value.shape[1] < 2):
-        raise ValueError(f'The "@arg@" parameter must be a 2d matrix with at least 2 columns and {size:d} rows.')
+    if columns is None:
+
+        if (value.ndim != 2) or (value.shape[0] != rows) or (value.shape[1] < 2):
+            raise ValueError(f'The "@arg@" parameter must be a 2d matrix with {rows:d} rows and at least 2 columns.')
+
+    else:
+
+        if (value.ndim != 2) or (value.shape[0] != rows) or (value.shape[1] != columns):
+            raise ValueError(f'The "@arg@" parameter must be a 2d matrix with {rows:d} rows and {columns:d} columns.')
 
     _validate_probabilities(value, True)
 
@@ -1064,7 +1071,7 @@ def validate_sequences(value: _tany, labels: _tlist_str, flex: bool) -> _tlists_
     if value_type in ['integer', 'string']:
         value = [value]
 
-    value_base = value.copy()
+    value_base = value
     value = []
 
     for value_current in value_base:

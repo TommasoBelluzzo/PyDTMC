@@ -3192,28 +3192,32 @@ class MarkovChain(_Model):
 
         return mc
 
-    def transition_probabilities(self, state: _tstate) -> _tarray:
+    def transition_probabilities(self, state: _tstate, steps: int = 1) -> _tarray:
 
         r"""
-        | The method computes the conditional transition probabilities of the Markov chain:
-        | :math:`P_{ij} = \mathbb{P}(X_{t+1}=j \mid X_t=i)` where :math:`i` is the given state.
+        | The method computes the conditional transition probabilities of the Markov chain after a given number of steps:
+        | :math:`\mathbb{P}(X_t=j \mid X_0=i) = (P^t)_{ij}` where:
 
-        | **Notes:**
+        - :math:`i` is the origin state;
+        - :math:`j` is the target state;
+        - :math:`t` is the number of steps.
 
-        - The method can also be accessed through the alias **cp**.
-
-        :param state: the current state.
+        :param state: the origin state.
+        :param steps: the number of steps.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
             state = _validate_label(state, self.__states)
+            steps = _validate_integer(steps, lower_limit=(1, False))
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None
 
-        return _np.copy(self.__p[state, :])
+        p = self.__p if steps == 1 else _npl.matrix_power(self.__p, steps)
+
+        return _np.copy(p[state, :])
 
     def transition_probability(self, state_target: _tstate, state_origin: _tstate, steps: int = 1) -> float:
 
@@ -3411,7 +3415,7 @@ class MarkovChain(_Model):
         - The chain has :math:`n!` states, representing all possible permutations of the deck.
         - The uniform distribution over all permutations is the unique stationary distribution for each model.
         - The adjacent transpositions model is periodic with period 2, while the other models are aperiodic.
-        - The computational requirements grow rapidly due to the factorial growth of the state space.
+        - The state space grows factorially with the number of cards; constructing large chains may require substantial amounts of memory and computation time.
 
         :param model:
          - **adjacent-transpositions** for exchanging two uniformly selected neighboring cards;
@@ -3539,6 +3543,7 @@ class MarkovChain(_Model):
         - At each step, every susceptible-infected pair transmits infection independently with the specified infection probability.
         - Infections and recoveries occur independently and are applied simultaneously.
         - States without infected individuals are absorbing.
+        - The state space grows linearly with the population size for the SI and SIS models and quadratically for the SIR model; constructing large chains may require substantial amounts of memory and computation time.
 
         :param model:
          - **si** for the Susceptible-Infected model, without recovery;
@@ -3597,6 +3602,7 @@ class MarkovChain(_Model):
         - Each site can accommodate at most one particle; therefore, if the destination site is occupied, the particle remains at its current site.
         - All models have the uniform distribution over all configurations as their unique stationary distribution.
         - The SSEP model is reversible, while the ASEP and TASEP models are non-reversible.
+        - The state space grows combinatorially with the number of sites and particles; constructing large chains may require substantial amounts of memory and computation time.
 
         :param model:
          - **asep** for the Asymmetric Simple Exclusion Process;
@@ -3964,6 +3970,7 @@ class MarkovChain(_Model):
         - At each step, a variable is selected uniformly and sampled from its conditional distribution given the current values of all other variables.
         - At most one variable changes its value at each transition.
         - The resulting chain is irreducible, aperiodic and reversible with respect to :math:`\pi^t`.
+        - The state space grows multiplicatively with the dimensions of the random variables; constructing large chains may require substantial amounts of memory and computation time.
 
         :param dimensions: the number of possible values for each discrete random variable.
         :param target_pi: the target stationary distribution, with strictly positive entries, ordered lexicographically by configuration.
@@ -4042,6 +4049,7 @@ class MarkovChain(_Model):
         - Positive coupling favors aligned neighboring spins, while negative coupling favors opposing neighboring spins.
         - Both models are reversible with respect to the Gibbs distribution :math:`\pi(x) \propto e^{-\beta H(x)}`.
         - Glauber dynamics produces an aperiodic chain, while Metropolis dynamics does not necessarily guarantee aperiodicity.
+        - The state space grows exponentially with the number of spins; constructing large chains may require substantial amounts of memory and computation time.
 
         :param model:
          - **glauber** for the Glauber dynamics;

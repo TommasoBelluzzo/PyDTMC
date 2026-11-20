@@ -54,7 +54,9 @@ __all__ = [
 
 # Standard
 
+import fractions as _fr
 import itertools as _it
+import math as _mt
 
 # Libraries
 
@@ -125,6 +127,17 @@ from ._validation import (
 
 # PRIVATE HELPERS
 
+def _combination_index(combination: tuple, n: int) -> int:
+
+    k = len(combination)
+    index = _mt.comb(n, k) - 1
+
+    for i, value in enumerate(combination):
+        index -= _mt.comb(n - value - 1, k - i)
+
+    return index
+
+
 def _normalize_matrix(m: _tarray) -> _tarray:
 
     rows, columns = m.shape
@@ -142,6 +155,23 @@ def _normalize_matrix(m: _tarray) -> _tarray:
             mc[i, :] /= _np.sum(mc[i, :])
 
     return mc
+
+
+def _permutation_index(permutation: tuple) -> int:
+
+    size = len(permutation)
+    remaining = list(range(size))
+
+    index = 0
+
+    for i, value in enumerate(permutation):
+
+        position = remaining.index(value)
+        index = index * (size - i) + position
+
+        remaining.pop(position)
+
+    return index
 
 
 def _spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen_ext:
@@ -1411,80 +1441,74 @@ def mc_birth_death(p: _tarray, q: _tarray) -> _tarray:
 
 def mc_card_shuffling(model: str, n: int) -> _tarray:
 
-    positions = tuple(range(n))
-    configurations = list(_it.permutations(positions))
-    indices = {state: index for index, state in enumerate(configurations)}
+    def _transitions():
 
-    size = len(configurations)
+        if model == 'adjacent-transpositions':
+
+            t_probability = 1.0 / (n - 1.0)
+
+            for u in range(n - 1):
+
+                t_permutation = list(positions)
+                t_permutation[u], t_permutation[u + 1] = t_permutation[u + 1], t_permutation[u]
+
+                yield tuple(t_permutation), t_probability
+
+        elif model == 'random-transpositions':
+
+            yield positions, 1.0 / n
+
+            t_probability = 2.0 / n**2.0
+
+            for u in range(n):
+                for v in range(u + 1, n):
+
+                    t_permutation = list(positions)
+                    t_permutation[u], t_permutation[v] = t_permutation[v], t_permutation[u]
+
+                    yield tuple(t_permutation), t_probability
+
+        elif model == 'riffle':
+
+            t_probability = 1.0 / 2.0**n
+
+            for k in range(n + 1):
+
+                for first in _it.combinations(positions, k):
+
+                    t_permutation = [0] * n
+                    first_set = set(first)
+                    second = [x for x in positions if x not in first_set]
+
+                    for u, v in enumerate(first):
+                        t_permutation[v] = u
+
+                    for u, v in enumerate(second):
+                        t_permutation[v] = k + u
+
+                    yield tuple(t_permutation), t_probability
+
+        else:
+
+            t_probability = 1.0 / n
+
+            for u in range(n):
+
+                t_permutation = list(positions[1:])
+                t_permutation.insert(u, positions[0])
+
+                yield tuple(t_permutation), t_probability
+
+    positions = tuple(range(n))
+    size = _mt.factorial(n)
+
     p = _np.zeros((size, size), dtype=float)
 
-    transitions = {}
-
-    if model == 'adjacent-transpositions':
-
-        probability = 1.0 / (n - 1.0)
-
-        for i in range(n - 1):
-
-            permutation = list(positions)
-            permutation[i], permutation[i + 1] = permutation[i + 1], permutation[i]
-
-            transitions[tuple(permutation)] = probability
-
-    elif model == 'random-transpositions':
-
-        transitions[positions] = 1.0 / n
-        probability = 2.0 / n**2.0
-
-        for i in range(n):
-
-            for j in range(i + 1, n):
-
-                permutation = list(positions)
-                permutation[i], permutation[j] = permutation[j], permutation[i]
-
-                transitions[tuple(permutation)] = probability
-
-    elif model == 'riffle':
-
-        probability = 1.0 / 2.0**n
-
-        for k in range(n + 1):
-
-            for first in _it.combinations(positions, k):
-
-                permutation = [0] * n
-                second = [i for i in positions if i not in first]
-
-                for i, j in enumerate(first):
-                    permutation[j] = i
-
-                for i, j in enumerate(second):
-                    permutation[j] = k + i
-
-                permutation = tuple(permutation)
-
-                transitions[permutation] = transitions.get(permutation, 0.0) + probability
-
-    else:
-
-        probability = 1.0 / n
-
-        for i in range(n):
-
-            permutation = list(positions[1:])
-            permutation.insert(i, positions[0])
-
-            transitions[tuple(permutation)] = probability
-
-    for i, state in enumerate(configurations):
-
-        for permutation, probability in transitions.items():
-
+    for permutation, probability in _transitions():
+        for i, state in enumerate(_it.permutations(positions)):
             next_state = tuple(state[j] for j in permutation)
-            j = indices[next_state]
-
-            p[i, j] = probability
+            j = _permutation_index(next_state)
+            p[i, j] += probability
 
     return p
 
@@ -1550,22 +1574,30 @@ def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery
 
     elif model == 'sir':
 
-        configurations = [(s, i) for s in range(n + 1) for i in range(n - s + 1)]
-        indices = {state: index for index, state in enumerate(configurations)}
-
-        size = len(configurations)
+        size = ((n + 1) * (n + 2)) // 2
         p = _np.zeros((size, size), dtype=float)
 
-        for row, (s, i) in enumerate(configurations):
+        for s in range(n + 1):
 
-            q = 1.0 - (1.0 - infection_probability)**i
+            offset = (s * (2 * n - s + 3)) // 2
 
-            infections = _sps.binom.pmf(_np.arange(s + 1), s, q)
-            recoveries = _sps.binom.pmf(_np.arange(i + 1), i, recovery_probability)
+            for i in range(n - s + 1):
 
-            for x, px in enumerate(infections):
-                for y, py in enumerate(recoveries):
-                    p[row, indices[(s - x, i + x - y)]] += px * py
+                row = offset + i
+
+                q = 1.0 - (1.0 - infection_probability) ** i
+
+                infections = _sps.binom.pmf(_np.arange(s + 1), s, q)
+                recoveries = _sps.binom.pmf(_np.arange(i + 1), i, recovery_probability)
+
+                for x, px in enumerate(infections):
+
+                    next_s = s - x
+                    next_offset = (next_s * (2 * n - next_s + 3)) // 2
+
+                    for y, py in enumerate(recoveries):
+                        column = next_offset + i + x - y
+                        p[row, column] += px * py
 
     else:
 
@@ -1591,10 +1623,7 @@ def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery
 
 def mc_exclusion_process(n: int, k: int, p_right: float) -> _tarray:
 
-    configurations = list(_it.combinations(range(n), k))
-    indices = {state: index for index, state in enumerate(configurations)}
-
-    size = len(configurations)
+    size = _mt.comb(n, k)
     p = _np.zeros((size, size), dtype=float)
 
     directions = [
@@ -1602,7 +1631,7 @@ def mc_exclusion_process(n: int, k: int, p_right: float) -> _tarray:
         (1, p_right / k)
     ]
 
-    for i, state in enumerate(configurations):
+    for i, state in enumerate(_it.combinations(range(n), k)):
 
         occupied = set(state)
 
@@ -1610,13 +1639,16 @@ def mc_exclusion_process(n: int, k: int, p_right: float) -> _tarray:
 
             for direction, probability in directions:
 
+                if probability == 0.0:
+                    continue
+
                 t = (s + direction) % n
 
                 if t in occupied:
                     p[i, i] += probability
                 else:
                     next_state = tuple(sorted((occupied - {s}) | {t}))
-                    j = indices[next_state]
+                    j = _combination_index(next_state, n)
                     p[i, j] += probability
 
     return p
@@ -1711,30 +1743,22 @@ def mc_gibbs_sampling(dimensions: _tlist_int, target_pi: _tarray) -> _tarray:
     dimensions_count = len(dimensions)
     size = target_pi.size
 
-    target_pi = _np.reshape(target_pi, dimensions)
-
-    configurations = list(_np.ndindex(*dimensions))
-    indices = {state: index for index, state in enumerate(configurations)}
-
     p = _np.zeros((size, size), dtype=float)
 
-    for i, state in enumerate(configurations):
+    for i in range(size):
 
-        for k in range(dimensions_count):
+        stride = size
 
-            candidates = []
+        for dimension in dimensions:
 
-            for v in range(dimensions[k]):
-                candidate = list(state)
-                candidate[k] = v
-                candidates.append(tuple(candidate))
+            stride //= dimension
+            start = i - ((i // stride) % dimension) * stride
+            stop = start + dimension * stride
 
-            probabilities = _np.array([target_pi[candidate] for candidate in candidates], dtype=float)
-            probabilities /= _np.sum(probabilities)
+            probabilities = target_pi[start:stop:stride]
+            probabilities = probabilities / _np.sum(probabilities)
 
-            for candidate, probability in zip(candidates, probabilities):
-                j = indices[candidate]
-                p[i, j] += probability / dimensions_count
+            p[i, start:stop:stride] += probabilities / dimensions_count
 
     return p
 
@@ -1744,57 +1768,87 @@ def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _tarr
     size = 2**n
     p = _np.zeros((size, size), dtype=float)
 
+    beta_exact = _fr.Fraction(beta)
+    j_exact = _fr.Fraction(j)
+    h_exact = _fr.Fraction(h)
+
+    probabilities = {}
+
+    for neighbors in (-2, 0, 2):
+
+        energy = 2 * beta_exact * (j_exact * neighbors + h_exact)
+
+        for spin in (-1, 1):
+
+            z = float(max(-1000, min(1000, spin * energy)))
+
+            if model == 'glauber':
+
+                if z >= 0.0:
+                    ez = _mt.exp(-z)
+                    probability = ez / (1.0 + ez)
+                else:
+                    probability = 1.0 / (1.0 + _mt.exp(z))
+
+            else:
+                probability = 1.0 if z <= 0.0 else _mt.exp(-z)
+
+            probabilities[(spin, neighbors)] = probability / n
+
     for i in range(size):
 
         spins = [1 if (i >> k) & 1 else -1 for k in range(n - 1, -1, -1)]
+
+        probability_sum = 0.0
 
         for k in range(n):
 
             left = spins[(k - 1) % n]
             right = spins[(k + 1) % n]
 
-            delta = 2.0 * spins[k] * (j * (left + right) + h)
-            z = beta * delta
-
-            if model == 'glauber':
-
-                if z >= 0.0:
-                    ez = _np.exp(-z)
-                    probability = ez / (1.0 + ez)
-                else:
-                    probability = 1.0 / (1.0 + _np.exp(z))
-
-            else:
-                probability = 1.0 if z <= 0.0 else _np.exp(-z)
-
             next_state = i ^ (1 << (n - k - 1))
 
-            p[i, next_state] = probability / n
+            probability = probabilities[(spins[k], left + right)]
 
-        p[i, i] = max(0.0, 1.0 - _np.sum(p[i, :]))
+            p[i, next_state] = probability
+            probability_sum += probability
+
+        p[i, i] = max(0.0, 1.0 - probability_sum)
 
     return p
+
 
 
 def mc_metropolis_hastings(target: _tarray, proposal: _oarray) -> _tarray:
 
     size = target.size
-
-    if proposal is None:
-        proposal = _np.full((size, size), 1.0 / (size - 1), dtype=float)
-        _np.fill_diagonal(proposal, 0.0)
-
     p = _np.zeros((size, size), dtype=float)
+
     log_target = _np.log(target)
 
-    for i in range(size):
-        for j in range(size):
+    if proposal is None:
 
-            if (i != j) and (proposal[i, j] > 0.0) and (proposal[j, i] > 0.0):
-                log_ratio = log_target[j] - log_target[i] + _np.log(proposal[j, i]) - _np.log(proposal[i, j])
-                p[i, j] = proposal[i, j] * (1.0 if log_ratio >= 0.0 else _np.exp(log_ratio))
+        probability = 1.0 / (size - 1)
 
-        p[i, i] = max(0.0, 1.0 - _np.sum(p[i, :]))
+        for i in range(size):
+            for j in range(size):
+
+                if i != j:
+                    log_ratio = log_target[j] - log_target[i]
+                    p[i, j] = probability * (1.0 if log_ratio >= 0.0 else _np.exp(log_ratio))
+
+            p[i, i] = max(0.0, 1.0 - _np.sum(p[i, :]))
+
+    else:
+
+        for i in range(size):
+            for j in range(size):
+
+                if (i != j) and (proposal[i, j] > 0.0) and (proposal[j, i] > 0.0):
+                    log_ratio = log_target[j] - log_target[i] + _np.log(proposal[j, i]) - _np.log(proposal[i, j])
+                    p[i, j] = proposal[i, j] * (1.0 if log_ratio >= 0.0 else _np.exp(log_ratio))
+
+            p[i, i] = max(0.0, 1.0 - _np.sum(p[i, :]))
 
     return p
 
@@ -1935,7 +1989,8 @@ def mc_random_walk(size: int, topology: str, lazy: bool) -> _tarray:
         p[i, neighbors] = 1.0 / len(neighbors)
 
     if lazy:
-        p = 0.5 * (p + _np.eye(size, dtype=float))
+        p *= 0.5
+        _np.fill_diagonal(p, 0.5)
 
     return p
 

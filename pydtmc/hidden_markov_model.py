@@ -454,6 +454,7 @@ class HiddenMarkovModel(_Model):
         - The first observed symbol is emitted from the initial hidden state, before any transition occurs.
         - The posterior, backward and forward probabilities have shape :math:`(n,T)`, where :math:`T` is the number of observations.
         - The posterior transition probabilities have shape :math:`(n,n,T-1)`.
+        - If **use_scaling** is :py:obj:`False`, the scaling factors are returned as :py:obj:`None`, otherwise they have shape :math:`(T,)`.
         - If the observed sequence has zero probability under the model, :py:obj:`None` is returned.
 
         :param symbols: the observed sequence of emitted symbols.
@@ -1342,7 +1343,7 @@ class HiddenMarkovModel(_Model):
             possible_states = _validate_labels_input(possible_states)
             possible_symbols = _validate_labels_input(possible_symbols)
             p_guess = _validate_transition_matrix(p_guess, len(possible_states))
-            e_guess = _validate_emission_matrix(e_guess, p_guess.shape[1])
+            e_guess = _validate_emission_matrix(e_guess, len(possible_states), len(possible_symbols))
             symbols = _validate_sequences(symbols, possible_symbols, True)
             initial_status = _validate_status(initial_status, possible_states, True)
             regularization = _validate_float(regularization, lower_limit=(0.0, False))
