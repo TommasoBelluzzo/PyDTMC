@@ -54,7 +54,6 @@ __all__ = [
     'tbndval', 'obndval',
     'tbndvals', 'obndvals',
     'tcache', 'ocache',
-    'tedge_attrs', 'oedge_attrs',
     'tfile', 'ofile',
     'tival', 'oival',
     'tlim_float', 'olim_float',
@@ -297,9 +296,6 @@ obndvals = _tp.Optional[tbndvals]
 
 tcache = _tp.Dict[str, tany]
 ocache = _tp.Optional[tcache]
-
-tedge_attrs = _tp.List[_tp.Tuple[str, ttup_str]]
-oedge_attrs = _tp.Optional[tedge_attrs]
 
 tfile = _tp.Tuple[_pl.Path, str]
 ofile = _tp.Optional[tfile]

@@ -11,7 +11,8 @@ __all__ = [
     'validate_enumerator',
     'validate_file_path',
     'validate_float',
-    'validate_graph',
+    'validate_graph_hmm',
+    'validate_graph_mc',
     'validate_hidden_markov_model',
     'validate_hidden_markov_models',
     'validate_hyperparameter',
@@ -79,7 +80,6 @@ from ._custom_types import (
     tany as _tany,
     tarray as _tarray,
     tbcond as _tbcond,
-    oedge_attrs as _oedge_attrs,
     tfile as _tfile,
     tgraphs as _tgraphs,
     thmm as _thmm,
@@ -151,6 +151,29 @@ def _validate_dictionary_values(value: _tany) -> _tmdl_dict:
             raise ValueError('The "@arg@" parameter values can contain only finite real numbers between 0.0 and 1.0.')
 
     return result
+
+
+def _validate_graph(value: _tany) -> _tgraphs:
+
+    result, multi = _is_graph(value)
+
+    if not result:
+        raise ValueError('The "@arg@" parameter must be a directed graph.')
+
+    if multi:
+        value = _nx.DiGraph(value)
+
+    nodes = list(value.nodes)
+
+    if not all(_is_string(node) for node in nodes):  # pragma: no cover
+        raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
+
+    edge_weights = list(value.edges(data='weight', default=0.0))
+
+    if not all(_is_number(edge_weight[2]) and _np.isfinite(edge_weight[2]) and (edge_weight[2] > 0.0) for edge_weight in edge_weights):  # pragma: no cover
+        raise ValueError('The "@arg@" parameter must define edge weight attributes as strictly positive finite numbers.')
+
+    return value
 
 
 def _validate_labels(value: _tany, labels: _tlist_str) -> _tlist_int:
@@ -315,6 +338,9 @@ def validate_dictionary_hmm(value: _tany) -> _thmm_dict:
     if len(labels_by_attribute['E']) == 0:
         raise ValueError('The "@arg@" parameter keys must define both transition and emission probabilities.')
 
+    if len(list(labels_by_attribute['P'] & labels_by_attribute['E'])) > 0:
+        raise ValueError('The "@arg@" parameter must define different hidden-state and emitted-symbol names.')
+
     for attribute, labels in labels_by_attribute.items():
         if not all((attribute,) + combination in value for combination in _it.product(labels_first, labels)):
             raise ValueError(f'The "@arg@" parameter keys must contain all the possible combinations of labels P and {attribute}.')
@@ -473,63 +499,50 @@ def validate_float(value: _tany, lower_limit: _olim_float = None, upper_limit: _
     return value
 
 
-def validate_graph(value: _tany, layers: _oint = None, edge_attributes: _oedge_attrs = None) -> _tgraphs:
+def validate_graph_hmm(value: _tany) -> _tgraphs:
 
-    result, multi = _is_graph(value)
+    value = _validate_graph(value)
 
-    if not result:
-        raise ValueError('The "@arg@" parameter must be a directed graph.')
+    layers = (0, 1)
+    nodes = list(value.nodes(data='layer', default=-1))
+    nodes_by_layer = {layer: [] for layer in layers}
 
-    if multi:
-        value = _nx.DiGraph(value)
+    for node in nodes:
 
-    if layers is not None:
+        node_layer = node[1]
 
-        layers = tuple(range(layers))
+        if not _is_integer(node_layer) or node_layer not in layers:  # pragma: no cover
+            raise ValueError('The "@arg@" parameter must define node layer attributes as integers equal to 0 or 1.')
 
-        nodes = list(value.nodes(data='layer', default=-1))
-        nodes_by_layer = {layer: [] for layer in layers}
+        nodes_by_layer[node_layer].append(node[0])
 
-        for node in nodes:
+    if any(len(nodes) < 2 for nodes in nodes_by_layer.values()):
+        raise ValueError('The "@arg@" parameter must define at least 2 nodes for each layer.')
 
-            node_label = node[0]
+    edges = list(value.edges(data='type', default=''))
 
-            if not _is_string(node_label):  # pragma: no cover
-                raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
+    for edge in edges:
 
-            node_layer = node[1]
+        edge_type = edge[2]
 
-            if not _is_integer(node_layer) or node_layer not in layers:  # pragma: no cover
-                raise ValueError(f'The "@arg@" parameter must define node layer attributes as integers matching one of the following values: {", ".join(str(layer) for layer in layers)}.')
+        if (not _is_string(edge_type)) or (edge_type not in ['E', 'P']):
+            raise ValueError('The "@arg@" parameter must define edge type attributes as strings matching one of the following values: E, P.')
 
-            nodes_by_layer[node_layer].append(node_label)
+        origin_layer = value.nodes[edge[0]]['layer']
+        target_layer = value.nodes[edge[1]]['layer']
 
-        if any(len(nodes) < 2 for nodes in nodes_by_layer.values()):
-            raise ValueError('The "@arg@" parameter must define at least 2 nodes for each layer.')
+        if (origin_layer != 1) or ((edge_type == 'P') and (target_layer != 1)) or ((edge_type == 'E') and (target_layer != 0)):
+            raise ValueError('The "@arg@" parameter contains edges that are inconsistent with the node layers.')
 
-    else:
+    return value
 
-        nodes = list(value.nodes)
 
-        if len(nodes) < 2:
-            raise ValueError('The "@arg@" parameter must contain at least 2 nodes.')
+def validate_graph_mc(value: _tany) -> _tgraphs:
 
-        if not all(_is_string(node) for node in nodes):  # pragma: no cover
-            raise ValueError('The "@arg@" parameter must define node labels as non-empty strings.')
+    value = _validate_graph(value)
 
-    edge_weights = list(value.edges(data='weight', default=0.0))
-
-    if not all(_is_number(edge_weight[2]) and float(edge_weight[2]) > 0.0 for edge_weight in edge_weights):  # pragma: no cover
-        raise ValueError('The "@arg@" parameter must define edge weight attributes as non-negative numbers.')
-
-    if edge_attributes is not None:
-
-        for edge_attribute, edge_attribute_values in edge_attributes:
-
-            edges = list(value.edges(data=edge_attribute, default=''))
-
-            if not all(_is_string(edge[2]) and edge[2] in edge_attribute_values for edge in edges):
-                raise ValueError(f'The "@arg@" parameter must define edge {edge_attribute} attributes as strings matching one of the following values: {", ".join(edge_attribute_values)}.')
+    if len(value.nodes) < 2:
+        raise ValueError('The "@arg@" parameter must contain at least 2 nodes.')
 
     return value
 

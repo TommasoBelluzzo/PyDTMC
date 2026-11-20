@@ -228,12 +228,12 @@ from ._utilities import (
 from ._validation import (
     validate_boolean as _validate_boolean,
     validate_boundary_condition as _validate_boundary_condition,
-    validate_dictionary_mc as _validate_dictionary_mc,
+    validate_dictionary_mc as _validate_dictionary,
     validate_dimensions as _validate_dimensions,
     validate_enumerator as _validate_enumerator,
     validate_file_path as _validate_file_path,
     validate_float as _validate_float,
-    validate_graph as _validate_graph,
+    validate_graph_mc as _validate_graph,
     validate_hyperparameter as _validate_hyperparameter,
     validate_inertial_weights as _validate_inertial_weights,
     validate_integer as _validate_integer,
@@ -3588,7 +3588,7 @@ class MarkovChain(_Model):
 
     @staticmethod
     @_object_mark(instance_generator=True)
-    def exclusion_process(model: str, n: int, k: int, p_right: float = 0.0, states: _olist_str = None) -> _tmc:
+    def exclusion_process(model: str, n: int, k: int, p_right: float = 0.1, states: _olist_str = None) -> _tmc:
 
         r"""
         | The method generates a Markov chain according to the specified simple exclusion process on a one-dimensional lattice with periodic boundary conditions.
@@ -3774,8 +3774,7 @@ class MarkovChain(_Model):
 
         | **Notes:**
 
-        - The state space is determined by the diagonal entries of the dictionary.
-        - Missing transitions are assigned probability 0.
+        - The dictionary must contain all ordered pairs of states, including transitions with probability 0.
         - The resulting transition matrix must already be stochastic; no row normalization is performed.
 
         :param d: the dictionary defining the transition probabilities.
@@ -3785,7 +3784,7 @@ class MarkovChain(_Model):
 
         try:
 
-            d = _validate_dictionary_mc(d)
+            d = _validate_dictionary(d)
 
         except Exception as ex:  # pragma: no cover
             raise _create_validation_error(ex, _ins.trace()) from None

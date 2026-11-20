@@ -432,7 +432,7 @@ def test_predict_viterbi_bruteforce():
 
             maximum_probability = max(probabilities.values())
 
-            actual = hmm.predict('viterbi', symbols, initial_distribution, True)
+            actual = hmm.predict('vit', symbols, initial_distribution, True)
 
             if maximum_probability == 0.0:
                 assert actual is None
@@ -459,7 +459,7 @@ def test_predict_viterbi_log_probability():
 
     for initial_distribution in [None, 0, 1, [0.7, 0.3]]:
 
-        prediction = hmm.predict('viterbi', symbols, initial_distribution, True)
+        prediction = hmm.predict('vit', symbols, initial_distribution, True)
         assert prediction is not None
 
         decoding = hmm.decode(symbols, initial_distribution)
@@ -479,7 +479,7 @@ def test_predict_viterbi_unfeasibility():
 
     hmm = _HiddenMarkovModel(p, e)
 
-    actual = hmm.predict('viterbi', symbols, None, True)
+    actual = hmm.predict('vit', symbols, None, True)
 
     assert actual is None
 

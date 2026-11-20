@@ -4,6 +4,10 @@ __all__ = [
     'hmm_cpg_islands',
     'hmm_dishonest_casino',
     'hmm_estimate',
+    'hmm_from_dictionary',
+    'hmm_from_file',
+    'hmm_from_graph',
+    'hmm_from_matrices',
     'hmm_gilbert_elliott',
     'hmm_restrict',
     'hmm_random',
@@ -78,8 +82,10 @@ from ._custom_types import (
     tarray as _tarray,
     tbcond as _tbcond,
     tgraphs as _tgraphs,
+    thmm_dict_f as _thmm_dict_f,
     thmm_gen as _thmm_gen,
     thmm_gen_ext as _thmm_gen_ext,
+    thmm_gen_full as _thmm_gen_full,
     thmm_params as _thmm_params,
     tlist_array as _tlist_array,
     tlist_int as _tlist_int,
@@ -107,12 +113,36 @@ from ._numerical import (
     kullback_leibler_divergence as _kullback_leibler_divergence
 )
 
+from ._validation import (
+    validate_dictionary_hmm as _validate_dictionary_hmm,
+    validate_dictionary_mc as _validate_dictionary_mc
+)
+
 
 #############
 # FUNCTIONS #
 #############
 
 # PRIVATE HELPERS
+
+def _normalize_matrix(m: _tarray) -> _tarray:
+
+    rows, columns = m.shape
+
+    mc = _np.copy(m)
+
+    for i in range(rows):
+
+        maximum = _np.max(mc[i, :])
+
+        if maximum == 0.0:  # pragma: no cover
+            mc[i, :] = _np.ones(columns, dtype=float) / columns
+        else:
+            mc[i, :] /= maximum
+            mc[i, :] /= _np.sum(mc[i, :])
+
+    return mc
+
 
 def _spectral_aggregation_bottom_up(p: _tarray, pi: _tarray, s: int) -> _tmc_gen_ext:
 
@@ -397,6 +427,101 @@ def hmm_estimate(n: int, k: int, sequence_states: _tlist_int, sequence_symbols: 
         e_rows = _np.sum(e, axis=1, keepdims=True)
         e_rows[e_rows == 0.0] = -_np.inf
         e = _np.abs(e / e_rows)
+
+    return p, e
+
+
+def hmm_from_dictionary(d: _thmm_dict_f) -> _thmm_gen_full:
+
+    states = [key[1] for key in d.keys() if (key[0] == 'P') and (key[1] == key[2])]
+    n = len(states)
+
+    if n < 2:  # pragma: no cover
+        return None, None, None, None, 'The size of the transition matrix must be greater than or equal to 2.'
+
+    symbols = [key[2] for key in d.keys() if (key[0] == 'E') and (key[1] == states[0])]
+    k = len(symbols)
+
+    if k < 2:  # pragma: no cover
+        return None, None, None, None, 'The number of columns of the emission matrix must be greater than or equal to 2.'
+
+    p = _np.zeros((n, n), dtype=float)
+    e = _np.zeros((n, k), dtype=float)
+
+    for (reference, element_from, element_to), probability in d.items():
+        if reference == 'E':
+            e[states.index(element_from), symbols.index(element_to)] = probability
+        else:
+            p[states.index(element_from), states.index(element_to)] = probability
+
+    if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
+        return None, None, None, None, 'The rows of the transition matrix must sum to 1.0.'
+
+    if not _np.allclose(_np.sum(e, axis=1), 1.0, rtol=0.0, atol=_ETOL):  # pragma: no cover
+        return None, None, None, None, 'The rows of the emission matrix must sum to 1.0.'
+
+    return p, e, states, symbols, None
+
+
+# noinspection PyBroadException
+def hmm_from_file(file_path: _tpath, file_extension: str) -> _thmm_gen_full:
+
+    if file_extension == '.csv':
+        d = _read_csv(False, file_path)
+    elif file_extension == '.json':
+        d = _read_json(False, file_path)
+    elif file_extension == '.txt':
+        d = _read_txt(False, file_path)
+    else:
+        d = _read_xml(False, file_path)
+
+    try:
+        d = _validate_dictionary_hmm(d)
+    except Exception:  # pragma: no cover
+        return None, None, None, None, 'The dictionary defined by the file is invalid.'
+
+    p, e, states, symbols, error_message = hmm_from_dictionary(d)
+
+    if error_message is not None:  # pragma: no cover
+        return None, None, None, None, error_message
+
+    return p, e, states, symbols, error_message
+
+
+def hmm_from_graph(graph: _tgraphs) -> _thmm_gen_ext:
+
+    nodes = graph.nodes(data='layer', default=-1)
+    states = [node[0] for node in nodes if node[1] == 1]
+    symbols = [node[0] for node in nodes if node[1] == 0]
+
+    n, k = len(states), len(symbols)
+
+    mp = _np.zeros((n, n), dtype=float)
+    me = _np.zeros((n, k), dtype=float)
+
+    for origin, target, data in graph.edges(data=True):
+
+        edge_type = data.get('type', '')
+        edge_weight = data.get('weight', 0.0)
+
+        i = states.index(origin)
+
+        if edge_type == 'E':
+            j = symbols.index(target)
+            me[i, j] = float(edge_weight)
+        else:
+            j = states.index(target)
+            mp[i, j] = float(edge_weight)
+
+    p, e = hmm_from_matrices(mp, me)
+
+    return p, e, states, symbols
+
+
+def hmm_from_matrices(mp: _tarray, me: _tarray) -> _thmm_params:
+
+    p = _normalize_matrix(mp)
+    e = _normalize_matrix(me)
 
     return p, e
 
@@ -1516,6 +1641,7 @@ def mc_from_dictionary(d: _tmc_dict_f) -> _tmc_gen_full:
     return p, states, None
 
 
+# noinspection PyBroadException
 def mc_from_file(file_path: _tpath, file_extension: str) -> _tmc_gen_full:
 
     if file_extension == '.csv':
@@ -1526,6 +1652,11 @@ def mc_from_file(file_path: _tpath, file_extension: str) -> _tmc_gen_full:
         d = _read_txt(True, file_path)
     else:
         d = _read_xml(True, file_path)
+
+    try:
+        d = _validate_dictionary_mc(d)
+    except Exception:
+        return None, None, 'The dictionary defined by the file is invalid.'
 
     p, states, error_message = mc_from_dictionary(d)
 
@@ -1555,19 +1686,7 @@ def mc_from_graph(graph: _tgraphs) -> _tmc_gen_ext:
 
 def mc_from_matrix(m: _tarray) -> _tarray:
 
-    size = m.shape[0]
-
-    p = _np.copy(m)
-    p_sums = _np.sum(p, axis=1)
-
-    for i in range(size):
-
-        p_sums_i = p_sums[i]
-
-        if _np.isclose(p_sums_i, 0.0):  # pragma: no cover
-            p[i, :] = _np.ones(size, dtype=float) / size
-        else:
-            p[i, :] /= p_sums_i
+    p = _normalize_matrix(m)
 
     return p
 
