@@ -3643,8 +3643,8 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _g.mc_from_matrix(m)
-        states_out = states if states is not None else _u.create_labels(p_out.shape[0])
+        p_out, states_default = _g.mc_from_matrix(m)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 

@@ -506,7 +506,7 @@ def hmm_from_graph(graph: _ct.tgraphs) -> _ct.thmm_gen_ext:
     if (not _np.all(_np.isfinite(mp))) or (not _np.all(_np.isfinite(me))):  # pragma: no cover
         raise ValueError('The accumulated graph edge weights must be finite.')
 
-    p, e, states, symbols = hmm_from_matrices(mp, me)
+    p, e, _, _ = hmm_from_matrices(mp, me)
 
     return p, e, states, symbols
 
@@ -1697,16 +1697,17 @@ def mc_from_graph(graph: _ct.tgraphs) -> _ct.tmc_gen_ext:
     if not _np.all(_np.isfinite(m)):  # pragma: no cover
         raise ValueError('The accumulated graph weights must be finite.')
 
-    p = mc_from_matrix(m)
+    p, _ = mc_from_matrix(m)
 
     return p, states
 
 
-def mc_from_matrix(m: _ct.tarray) -> _ct.tarray:
+def mc_from_matrix(m: _ct.tarray) -> _ct.tmc_gen_ext:
 
     p = _normalize_matrix(m)
+    states = _u.create_labels(p.shape[0], prefix='P')
 
-    return p
+    return p, states
 
 
 def mc_gamblers_ruin(size: int, w: float) -> _ct.tarray:
