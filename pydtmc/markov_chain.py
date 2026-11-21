@@ -3370,7 +3370,7 @@ class MarkovChain(_bc.Model):
 
     @staticmethod
     @_dc.object_mark(instance_generator=True)
-    def exclusion_process(model: str, n: int, k: int, p_right: float = 0.1, states: _ct.olist_str = None) -> _ct.tmc:
+    def exclusion_process(model: str, n: int, k: int, p_right: _ct.ofloat = None, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method generates a Markov chain according to the specified simple exclusion process on a one-dimensional lattice with periodic boundary conditions.

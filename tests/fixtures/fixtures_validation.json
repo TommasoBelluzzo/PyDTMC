@@ -85,6 +85,18 @@
   ],
   "validate_dictionary_hmm_data": [
     {
+      "dictionary_elements": null,
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": {},
+      "is_valid": false
+    },
+    {
       "dictionary_elements": [
         ["P", "A", "A", 0.3],
         ["P", "A", "B", 0.7],
@@ -218,7 +230,22 @@
       "is_valid": false
     },
     {
-      "dictionary_elements": {},
+      "dictionary_elements": [
+        ["P", "A", "A", 0.5],
+        ["P", "A", "B", 0.5],
+        ["P", "B", "A", 0.5],
+        ["P", "B", "B", 0.5],
+        ["E", "A", "A", 0.5],
+        ["E", "A", "1", 0.5],
+        ["E", "B", "A", 0.5],
+        ["E", "B", "1", 0.5]
+      ],
+      "is_valid": false
+    }
+  ],
+  "validate_dictionary_mc_data": [
+    {
+      "dictionary_elements": null,
       "is_valid": false
     },
     {
@@ -226,15 +253,9 @@
       "is_valid": false
     },
     {
-      "dictionary_elements": false,
+      "dictionary_elements": {},
       "is_valid": false
     },
-    {
-      "dictionary_elements": null,
-      "is_valid": false
-    }
-  ],
-  "validate_dictionary_mc_data": [
     {
       "dictionary_elements": [
         ["A", "A", 0.50],
@@ -259,6 +280,14 @@
         ["A", "", 0.7],
         ["", "A", 0.5],
         ["", "", 0.5]
+      ],
+      "is_valid": false
+    },
+    {
+      "dictionary_elements": [
+        ["A", "A", 0.3],
+        ["A", "B", 0.7],
+        ["B", "A", 0.5]
       ],
       "is_valid": false
     },
@@ -374,22 +403,6 @@
         ["B", "A", 3.5],
         ["B", "B", 0.0]
       ],
-      "is_valid": false
-    },
-    {
-      "dictionary_elements": {},
-      "is_valid": false
-    },
-    {
-      "dictionary_elements": [],
-      "is_valid": false
-    },
-    {
-      "dictionary_elements": false,
-      "is_valid": false
-    },
-    {
-      "dictionary_elements": null,
       "is_valid": false
     }
   ],

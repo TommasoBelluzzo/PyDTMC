@@ -31,9 +31,39 @@ def test_approximation(size, approximation_type, alpha, sigma, rho, k, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_bernoulli_trials(n, p_success, value):
+
+    mc = _MarkovChain.bernoulli_trials(n, p_success)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_birth_death(p, q, value):
 
     mc = _MarkovChain.birth_death(p, q)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_card_shuffling(model, n, value):
+
+    mc = _MarkovChain.card_shuffling(model, n)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_coupon_collector(n, value):
+
+    mc = _MarkovChain.coupon_collector(n)
 
     actual = mc.p
     expected = _np.array(value)
@@ -62,6 +92,26 @@ def test_dirichlet_process(seed, size, diffusion_factor, diagonal_bias_factor, s
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_epidemic_model(model, n, p_infection, p_recovery, value):
+
+    mc = _MarkovChain.epidemic_model(model, n, p_infection, p_recovery)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_exclusion_process(model, n, k, p_right, value):
+
+    mc = _MarkovChain.exclusion_process(model, n, k, p_right)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_gamblers_ruin(size, w, value):
 
     mc = _MarkovChain.gamblers_ruin(size, w)
@@ -72,9 +122,50 @@ def test_gamblers_ruin(size, w, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_gibbs_sampling(dimensions, target_pi, value):
+
+    mc = _MarkovChain.gibbs_sampling(dimensions, target_pi)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_identity(size, value):
 
     mc = _MarkovChain.identity(size)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_ising_model(model, n, beta, j, h, value):
+
+    mc = _MarkovChain.ising_model(model, n, beta, j, h)
+
+    actual = mc.p
+    print(actual)
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_metropolis_hastings(size, target_pi, proposal, value):
+
+    mc = _MarkovChain.metropolis_hastings(size, target_pi, proposal)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_pattern_matching(pattern, probabilities, value):
+
+    mc = _MarkovChain.pattern_matching(pattern, probabilities)
 
     actual = mc.p
     expected = _np.array(value)
@@ -121,6 +212,16 @@ def test_random(seed, size, zeros, mask, value):
 def test_random_distribution(seed, size, f, args, value):
 
     mc = _MarkovChain.random_distribution(size, f, seed=seed, **args)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_random_walk(size, topology, lazy, value):
+
+    mc = _MarkovChain.random_walk(size, topology=topology, lazy=lazy)
 
     actual = mc.p
     expected = _np.array(value)
