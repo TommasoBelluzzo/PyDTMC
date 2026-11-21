@@ -1099,13 +1099,13 @@ class HiddenMarkovModel(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        states_out = states if states is not None else ['I-A', 'I-C', 'I-G', 'I-T', 'B-A', 'B-C', 'B-G', 'B-T']
-        symbols_out = symbols if symbols is not None else ['A', 'C', 'G', 'T']
+        p_out, e_out, states_default, symbols_default = _g.hmm_cpg_islands(p_enter, p_exit, island_transitions, background_transitions)
+
+        states_out = states if states is not None else states_default
+        symbols_out = symbols if symbols is not None else symbols_default
 
         if len(list(set(states_out) & set(symbols_out))) > 0:  # pragma: no cover
             raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
-
-        p_out, e_out = _g.hmm_cpg_islands(p_enter, p_exit, island_transitions, background_transitions)
 
         hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 
@@ -1148,13 +1148,13 @@ class HiddenMarkovModel(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        states_out = states if states is not None else ['F', 'L']
-        symbols_out = symbols if symbols is not None else _u.create_labels(6)
+        p_out, e_out, states_default, symbols_default = _g.hmm_dishonest_casino(p_switch, p_return, p_six)
+
+        states_out = states if states is not None else states_default
+        symbols_out = symbols if symbols is not None else symbols_default
 
         if len(list(set(states_out) & set(symbols_out))) > 0:  # pragma: no cover
             raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
-
-        p_out, e_out = _g.hmm_dishonest_casino(p_switch, p_return, p_six)
 
         hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 
@@ -1260,11 +1260,7 @@ class HiddenMarkovModel(_bc.Model):
             else:
                 fitting_param = 500
 
-        p, e, error_message = _ft.hmm_fit(fitting_type, p_guess, e_guess, initial_status, symbols, regularization, fitting_param)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p, e = _ft.hmm_fit(fitting_type, p_guess, e_guess, initial_status, symbols, regularization, fitting_param)
         hmm = HiddenMarkovModel(p, e, possible_states, possible_symbols)
 
         return hmm
@@ -1295,11 +1291,7 @@ class HiddenMarkovModel(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, e_out, states_out, symbols_out, error_message = _g.hmm_from_dictionary(d)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p_out, e_out, states_out, symbols_out = _g.hmm_from_dictionary(d)
         hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 
         return hmm
@@ -1356,11 +1348,7 @@ class HiddenMarkovModel(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, e_out, states_out, symbols_out, error_message = _g.hmm_from_file(file_path, file_extension)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p_out, e_out, states_out, symbols_out = _g.hmm_from_file(file_path, file_extension)
         hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 
         return hmm
@@ -1428,13 +1416,13 @@ class HiddenMarkovModel(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        states_out = states if states is not None else _u.create_labels(mp.shape[1], prefix='P')
-        symbols_out = symbols if symbols is not None else _u.create_labels(me.shape[1], prefix='E')
+        p_out, e_out, states_default, symbols_default = _g.hmm_from_matrices(mp, me)
+
+        states_out = states if states is not None else states_default
+        symbols_out = symbols if symbols is not None else symbols_default
 
         if len(list(set(states_out) & set(symbols_out))) > 0:  # pragma: no cover
             raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
-
-        p_out, e_out = _g.hmm_from_matrices(mp, me)
 
         hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 
@@ -1481,13 +1469,14 @@ class HiddenMarkovModel(_bc.Model):
         if error_good > error_bad:  # pragma: no cover
             raise _ValidationError('The error probability in the good regime must not exceed the error probability in the bad regime.')
 
-        states_out = states if states is not None else ['G', 'B']
-        symbols_out = symbols if symbols is not None else ['S', 'E']
+        p_out, e_out, states_default, symbols_default = _g.hmm_gilbert_elliott(p_good_bad, p_bad_good, error_good, error_bad)
+
+        states_out = states if states is not None else states_default
+        symbols_out = symbols if symbols is not None else symbols_default
 
         if len(list(set(states_out) & set(symbols_out))) > 0:  # pragma: no cover
             raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
 
-        p_out, e_out = _g.hmm_gilbert_elliott(p_good_bad, p_bad_good, error_good, error_bad)
         hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 
         return hmm
@@ -1537,16 +1526,13 @@ class HiddenMarkovModel(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        states_out = states if states is not None else _u.create_labels(n, prefix='P')
-        symbols_out = symbols if symbols is not None else _u.create_labels(k, prefix='E')
+        p_out, e_out, states_default, symbols_default = _g.hmm_random(rng, n, k, p_zeros, p_mask, e_zeros, e_mask)
+
+        states_out = states if states is not None else states_default
+        symbols_out = symbols if symbols is not None else symbols_default
 
         if len(list(set(states_out) & set(symbols_out))) > 0:  # pragma: no cover
             raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
-
-        p_out, e_out, error_message = _g.hmm_random(rng, n, k, p_zeros, p_mask, e_zeros, e_mask)
-
-        if error_message is not None:  # pragma: no cover
-            raise _ValidationError(error_message)
 
         hmm = HiddenMarkovModel(p_out, e_out, states_out, symbols_out)
 

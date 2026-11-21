@@ -1160,11 +1160,7 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _g.mc_censor(self.__p, self.__states, states)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p_out, states_out = _g.mc_censor(self.__p, self.__states, states)
         mc = MarkovChain(p_out, states_out)
 
         return mc
@@ -1200,11 +1196,7 @@ class MarkovChain(_bc.Model):
         if weighted and (zeros > 0):  # pragma: no cover
             raise _ValidationError('If the weighted Frobenius norm is used, the initial distribution must not contain null probabilities.')
 
-        p, error_message = _g.mc_closest_reversible(self.__p, initial_distribution, weighted)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p = _g.mc_closest_reversible(self.__p, initial_distribution, weighted)
         mc = MarkovChain(p, self.__states)
 
         return mc
@@ -1957,11 +1949,7 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _g.mc_lump(self.__p, self.__states, partition)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p_out, states_out = _g.mc_lump(self.__p, self.__states, partition)
         mc = MarkovChain(p_out, states_out)
 
         return mc
@@ -2055,11 +2043,7 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _g.mc_metastable_aggregation(self.__p, self.__states, self.is_irreducible, self.is_reversible, s, robust)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p_out, states_out = _g.mc_metastable_aggregation(self.__p, self.__states, self.is_irreducible, self.is_reversible, s, robust)
         mc = MarkovChain(p_out, states_out)
 
         return mc
@@ -2963,11 +2947,7 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _g.mc_sub(self.__p, self.__states, self.adjacency_matrix, states)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p_out, states_out = _g.mc_sub(self.__p, self.__states, self.adjacency_matrix, states)
         mc = MarkovChain(p_out, states_out)
 
         return mc
@@ -3084,12 +3064,8 @@ class MarkovChain(_bc.Model):
             elif approximation_type == 'tauchen-hussey':
                 k = ((0.5 + (rho / 4.0)) * sigma) + ((1 - (0.5 + (rho / 4.0))) * (sigma / _np.sqrt(1.0 - rho**2.0)))
 
-        p_out, error_message = _g.mc_approximation(size, approximation_type, alpha, sigma, rho, k)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
-        states_out = states if states is not None else _u.create_labels(size)
+        p_out, states_default = _g.mc_approximation(size, approximation_type, alpha, sigma, rho, k)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3134,8 +3110,8 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _g.mc_bernoulli_trials(n, p_success)
-        states_out = states if states is not None else [str(i) for i in range(n + 1)]
+        p_out, states_default = _g.mc_bernoulli_trials(n, p_success)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3218,8 +3194,8 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _g.mc_card_shuffling(model, n)
-        states_out = states if states is not None else ['_'.join(str(i) for i in permutation) for permutation in _it.permutations(range(1, n + 1))]
+        p_out, states_default = _g.mc_card_shuffling(model, n)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3260,8 +3236,8 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _g.mc_coupon_collector(n)
-        states_out = states if states is not None else [f'{i:d}' for i in range(n + 1)]
+        p_out, states_default = _g.mc_coupon_collector(n)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3355,14 +3331,8 @@ class MarkovChain(_bc.Model):
         if (model == 'si') and (p_recovery != 0.0):  # pragma: no cover
             raise _ValidationError('The recovery probability must be zero for the SI model.')
 
-        p_out = _g.mc_epidemic_model(model, n, p_infection, p_recovery)
-
-        if states is not None:
-            states_out = states
-        elif model == 'sir':
-            states_out = [f'S{s}_I{i}' for s in range(n + 1) for i in range(n - s + 1)]
-        else:
-            states_out = [str(i) for i in range(n + 1)]
+        p_out, states_default = _g.mc_epidemic_model(model, n, p_infection, p_recovery)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3418,12 +3388,8 @@ class MarkovChain(_bc.Model):
         elif model == 'tasep':
             p_right = 1.0
 
-        p_out = _g.mc_exclusion_process(n, k, p_right)
-
-        if states is not None:
-            states_out = states
-        else:
-            states_out = [''.join('1' if i in configuration else '0' for i in range(n)) for configuration in _it.combinations(range(n), k)]
+        p_out, states_default = _g.mc_exclusion_process(n, k, p_right)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3476,11 +3442,7 @@ class MarkovChain(_bc.Model):
         if (quadrature_type == 'simpson-rule') and ((len(possible_states) % 2) == 0):  # pragma: no cover
             raise _ValidationError('The quadrature based on the Simpson rule requires an odd number of possible states.')
 
-        p, error_message = _ft.mc_fit_function(quadrature_type, quadrature_interval, possible_states, f)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p = _ft.mc_fit_function(quadrature_type, quadrature_interval, possible_states, f)
         mc = MarkovChain(p, possible_states)
 
         return mc
@@ -3539,11 +3501,7 @@ class MarkovChain(_bc.Model):
             else:
                 fitting_param = 100000
 
-        p, error_message = _ft.mc_fit_sequence(fitting_type, fitting_param, possible_states, sequence)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p = _ft.mc_fit_sequence(fitting_type, fitting_param, possible_states, sequence)
         mc = MarkovChain(p, possible_states)
 
         return mc
@@ -3572,11 +3530,7 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _g.mc_from_dictionary(d)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p_out, states_out = _g.mc_from_dictionary(d)
         mc = MarkovChain(p_out, states_out)
 
         return mc
@@ -3629,11 +3583,7 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out, error_message = _g.mc_from_file(file_path, file_extension)
-
-        if error_message is not None:  # pragma: no cover
-            raise ValueError(error_message)
-
+        p_out, states_out = _g.mc_from_file(file_path, file_extension)
         mc = MarkovChain(p_out, states_out)
 
         return mc
@@ -3774,8 +3724,8 @@ class MarkovChain(_bc.Model):
         if _np.any(target_pi <= 0.0):  # pragma: no cover
             raise _ValidationError('The target stationary distribution must contain strictly positive probabilities.')
 
-        p_out = _g.mc_gibbs_sampling(dimensions, target_pi)
-        states_out = states if states is not None else ['_'.join(str(i) for i in configuration) for configuration in _np.ndindex(*dimensions)]
+        p_out, states_default = _g.mc_gibbs_sampling(dimensions, target_pi)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3858,8 +3808,8 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _g.mc_ising_model(model, n, beta, j, h)
-        states_out = states if states is not None else [format(i, f'0{n}b').replace('0', '-').replace('1', '+') for i in range(2**n)]
+        p_out, states_default = _g.mc_ising_model(model, n, beta, j, h)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3950,8 +3900,8 @@ class MarkovChain(_bc.Model):
         if not set(pattern).issubset(probabilities):
             raise _ValidationError('The probability distribution must define all the symbols appearing in the pattern.')
 
-        p_out = _g.mc_pattern_matching(pattern, probabilities)
-        states_out = states if states is not None else ['âˆ…'] + [pattern[:i] for i in range(1, len(pattern) + 1)]
+        p_out, states_default = _g.mc_pattern_matching(pattern, probabilities)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3999,8 +3949,8 @@ class MarkovChain(_bc.Model):
         if (model == 'wright-fisher') and ((4.0 * n * max(u, v)) > 1.0):  # pragma: no cover
             raise _ValidationError('The highest mutation rate specified is too high for the Wright-Fisher model.')
 
-        p_out = _g.mc_population_genetics_model(model, n, s, u, v)
-        states_out = states if states is not None else [str(i) for i in range(n + 1)]
+        p_out, states_default = _g.mc_population_genetics_model(model, n, s, u, v)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -4040,12 +3990,8 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, error_message = _g.mc_random(rng, size, zeros, mask)
-
-        if error_message is not None:  # pragma: no cover
-            raise _ValidationError(error_message)
-
-        states_out = states if states is not None else _u.create_labels(size)
+        p_out, states_default = _g.mc_random(rng, size, zeros, mask)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 

@@ -31,9 +31,9 @@ sdist/
 var/
 wheels/
 share/python-wheels/
-*.egg
 *.egg-info/
 .eggs/
+*.egg
 .installed.cfg
 MANIFEST
 
@@ -79,14 +79,16 @@ venv.bak/
 .benchmarks/
 
 # Coverage
+cover/
 htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-nosetests.xml
 *.cover
 *.py,cover
-cover/
+.coverage
+.coverage.*
+coverage.json
+coverage.xml
+nosetests.xml
+nosetests.json
 
 # Hypothesis
 .hypothesis/

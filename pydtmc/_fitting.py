@@ -34,7 +34,7 @@ from . import _utilities as _u
 
 # HMM FITTING
 
-def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial_distribution: _ct.tarray, symbols: _ct.tlists_int, regularization: float, fitting_param: _ct.tany) -> _ct.thmm_params_res:
+def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial_distribution: _ct.tarray, symbols: _ct.tlists_int, regularization: float, fitting_param: _ct.tany) -> _ct.thmm_gen:
 
     def _common_iterator(ci_fitting_func, ci_fitting_type, ci_p_guess, ci_e_guess, ci_initial_distribution, ci_symbols, ci_regularization, ci_fitting_param):  # pylint: disable=too-many-return-statements
 
@@ -56,22 +56,22 @@ def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial
                 ci_result = ci_fitting_func(ci_fitting_type, ci_p_guess, ci_e_guess, ci_initial_distribution, ci_symbols_current)
 
                 if ci_result is None:  # pragma: no cover
-                    return None, None, 'The fitting algorithm encountered an observation sequence with zero probability.'
+                    raise ValueError('The fitting algorithm encountered an observation sequence with zero probability.')
 
                 ci_log_prob_current, ci_p_current, ci_e_current = ci_result
 
                 if not _np.isfinite(ci_log_prob_current):  # pragma: no cover
-                    return None, None, 'The fitting algorithm produced a non-finite log likelihood.'
+                    raise ValueError('The fitting algorithm produced a non-finite log likelihood.')
 
                 ci_ll += ci_log_prob_current
                 ci_p += ci_p_current
                 ci_e += ci_e_current
 
             if not _np.isfinite(ci_ll):  # pragma: no cover
-                return None, None, 'The fitting algorithm produced a non-finite log likelihood.'
+                raise ValueError('The fitting algorithm produced a non-finite log likelihood.')
 
             if not _np.all(_np.isfinite(ci_p)) or not _np.all(_np.isfinite(ci_e)):  # pragma: no cover
-                return None, None, 'The fitting algorithm produced non-finite expected counts.'
+                raise ValueError('The fitting algorithm produced non-finite expected counts.')
 
             if ci_regularization > 0.0:
                 ci_p = (ci_p + ci_regularization) * ci_p_support
@@ -80,25 +80,25 @@ def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial
             ci_total_transitions = _np.sum(ci_p, axis=1, keepdims=True)
 
             if not _np.all(_np.isfinite(ci_total_transitions)):  # pragma: no cover
-                return None, None, 'The fitting algorithm produced non-finite transition counts.'
+                raise ValueError('The fitting algorithm produced non-finite transition counts.')
 
             if _np.any(ci_total_transitions == 0.0):  # pragma: no cover
-                return None, None, 'The fitting algorithm produced zero total transition counts for at least one state.'
+                raise ValueError('The fitting algorithm produced zero total transition counts for at least one state.')
 
             ci_p_guess = ci_p / ci_total_transitions
 
             ci_total_emissions = _np.sum(ci_e, axis=1, keepdims=True)
 
             if not _np.all(_np.isfinite(ci_total_emissions)):  # pragma: no cover
-                return None, None, 'The fitting algorithm produced non-finite emission counts.'
+                raise ValueError('The fitting algorithm produced non-finite emission counts.')
 
             if _np.any(ci_total_emissions == 0.0):  # pragma: no cover
-                return None, None, 'The fitting algorithm produced zero total emission counts for at least one state.'
+                raise ValueError('The fitting algorithm produced zero total emission counts for at least one state.')
 
             ci_e_guess = ci_e / ci_total_emissions
 
             if not _np.all(_np.isfinite(ci_p_guess)) or not _np.all(_np.isfinite(ci_e_guess)):  # pragma: no cover
-                return None, None, 'The fitting algorithm produced non-finite parameter estimates.'
+                raise ValueError('The fitting algorithm produced non-finite parameter estimates.')
 
             converged = False
 
@@ -110,14 +110,14 @@ def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial
 
             if converged:
                 ci_p, ci_e = _np.copy(ci_p_guess), _np.copy(ci_e_guess)
-                return ci_p, ci_e, None
+                return ci_p, ci_e
 
             ci_p = _np.zeros((ci_n, ci_n), dtype=float)
             ci_e = _np.zeros((ci_n, ci_k), dtype=float)
 
             ci_iterations += 1
 
-        return None, None, 'The fitting algorithm failed to converge.'  # pragma: no cover
+        raise ValueError('The fitting algorithm failed to converge.')  # pragma: no cover
 
     # noinspection PyUnusedLocal
     def _fit_baum_welch(fbw_fitting_type, fwb_p_guess, fwb_e_guess, fwb_initial_distribution, fbw_symbols):  # pylint: disable=unused-argument
@@ -171,7 +171,7 @@ def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial
                     oem_total = _np.sum(oem_probabilities)
 
                     if (not _np.isfinite(oem_total)) or (oem_total <= 0.0):  # pragma: no cover
-                        return None, None, 'The fitting algorithm encountered an observation sequence with zero probability.'
+                        raise ValueError('The fitting algorithm encountered an observation sequence with zero probability.')
 
                     oem_filter = oem_probabilities / oem_total
 
@@ -186,7 +186,7 @@ def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial
                     oem_total = _np.sum(oem_probabilities)
 
                     if (not _np.isfinite(oem_total)) or (oem_total <= 0.0):  # pragma: no cover
-                        return None, None, 'The fitting algorithm encountered an observation sequence with zero probability.'
+                        raise ValueError('The fitting algorithm encountered an observation sequence with zero probability.')
 
                     oem_backward = _np.divide(
                         oem_filter[:, _np.newaxis] * oem_p_guess,
@@ -208,7 +208,7 @@ def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial
                 oem_e = _np.tensordot(oem_filter, oem_emission_statistics, axes=(0, 0))
 
                 if (not _np.all(_np.isfinite(oem_p))) or (not _np.all(_np.isfinite(oem_e))):  # pragma: no cover
-                    return None, None, 'The fitting algorithm produced non-finite expected counts.'
+                    raise ValueError('The fitting algorithm produced non-finite expected counts.')
 
                 if oem_regularization > 0.0:
                     oem_p = (oem_p + oem_regularization) * oem_p_support
@@ -218,26 +218,26 @@ def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial
                 oem_e_totals = _np.sum(oem_e, axis=1, keepdims=True)
 
                 if _np.any(~_np.isfinite(oem_p_totals)) or _np.any(oem_p_totals <= 0.0):  # pragma: no cover
-                    return None, None, 'The fitting algorithm produced invalid transition counts.'
+                    raise ValueError('The fitting algorithm produced invalid transition counts.')
 
                 if _np.any(~_np.isfinite(oem_e_totals)) or _np.any(oem_e_totals <= 0.0):  # pragma: no cover
-                    return None, None, 'The fitting algorithm produced invalid emission counts.'
+                    raise ValueError('The fitting algorithm produced invalid emission counts.')
 
                 oem_p_guess = oem_p / oem_p_totals
                 oem_e_guess = oem_e / oem_e_totals
 
                 if (not _np.all(_np.isfinite(oem_p_guess))) or (not _np.all(_np.isfinite(oem_e_guess))):  # pragma: no cover
-                    return None, None, 'The fitting algorithm produced non-finite parameter estimates.'
+                    raise ValueError('The fitting algorithm produced non-finite parameter estimates.')
 
                 oem_step += 1
 
-        return oem_p_guess, oem_e_guess, None
+        return oem_p_guess, oem_e_guess
 
     def _fit_prediction(fp_fitting_type, fp_p_guess, fp_e_guess, fp_initial_distribution, fp_symbols):
 
         fp_prediction = _d.hmm_predict(fp_fitting_type, fp_p_guess, fp_e_guess, fp_initial_distribution, fp_symbols)
 
-        if fp_prediction is None:
+        if fp_prediction is None:  # pragma: no cover
             return None
 
         fp_n, fp_k = fp_p_guess.shape[0], fp_e_guess.shape[1]
@@ -259,7 +259,7 @@ def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial
 # MC FITTING
 
 # noinspection PyBroadException
-def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possible_states: _ct.tlist_str, f: _ct.ttfunc) -> _ct.tfit_r:
+def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possible_states: _ct.tlist_str, f: _ct.ttfunc) -> _ct.tmc_gen:
 
     size = len(possible_states)
 
@@ -306,7 +306,7 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possib
                 break
 
         if iterations == 100:  # pragma: no cover
-            return None, 'The Gauss-Legendre quadrature failed to converge.'
+            raise ValueError('The Gauss-Legendre quadrature failed to converge.')
 
         xl = 0.5 * (b - a)
         xm = 0.5 * (b + a)
@@ -364,20 +364,20 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possib
             try:
                 f_result = f(i, node_i, j, node_j)
             except Exception:  # pragma: no cover
-                return None, 'The transition function returned an invalid value.'
+                raise ValueError('The transition function returned an invalid value.') from None
 
             if (not _u.is_number(f_result)) or (not _np.isfinite(f_result)):  # pragma: no cover
-                return None, 'The transition function returned an invalid value.'
+                raise ValueError('The transition function returned an invalid value.')
 
             p[i, j] = float(f_result * weights[j])
 
     p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)
 
-    return p, None
+    return p
 
 
-def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states: _ct.tlist_str, sequence: _ct.tlist_int) -> _ct.tfit_r:  # pylint: disable=too-many-return-statements
+def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states: _ct.tlist_str, sequence: _ct.tlist_int) -> _ct.tmc_gen:  # pylint: disable=too-many-return-statements
 
     size = len(possible_states)
     p = _np.zeros((size, size), dtype=float)
@@ -390,13 +390,13 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states:
         row_counts = _np.sum(counts, axis=1)
 
         if _np.any(row_counts == 0.0):  # pragma: no cover
-            return None, 'The reversible maximum-likelihood estimate requires outgoing observations for every state.'
+            raise ValueError('The reversible maximum-likelihood estimate requires outgoing observations for every state.')
 
         symmetric_counts = counts + _np.transpose(counts)
         components, _ = _connected_components(symmetric_counts, directed=False)
 
         if components != 1:  # pragma: no cover
-            return None, 'Reversible maximum-likelihood estimation requires a connected observation graph.'
+            raise ValueError('Reversible maximum-likelihood estimation requires a connected observation graph.')
 
         flux = _np.copy(symmetric_counts)
         _np.fill_diagonal(flux, _np.diag(counts))
@@ -409,7 +409,7 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states:
             stationary = _np.sum(flux, axis=1)
 
             if _np.any(stationary == 0.0):  # pragma: no cover
-                return None, 'The reversible maximum-likelihood estimate is not identifiable.'
+                raise ValueError('The reversible maximum-likelihood estimate is not identifiable.')
 
             multipliers = row_counts / stationary
             denominators = multipliers[:, _np.newaxis] + multipliers[_np.newaxis, :]
@@ -418,12 +418,12 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states:
             _np.fill_diagonal(updated, _np.diag(counts) / multipliers)
 
             if not _np.all(_np.isfinite(updated)):  # pragma: no cover
-                return None, 'Reversible maximum-likelihood estimation produced invalid numerical values.'
+                raise ValueError('Reversible maximum-likelihood estimation produced invalid numerical values.')
 
             updated_total = _np.sum(updated)
 
             if not _np.isfinite(updated_total) or (updated_total <= 0.0):  # pragma: no cover
-                return None, 'Reversible maximum-likelihood estimation produced an invalid flux matrix.'
+                raise ValueError('Reversible maximum-likelihood estimation produced an invalid flux matrix.')
 
             updated /= updated_total
 
@@ -435,7 +435,7 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states:
             flux = updated
 
         if not converged:  # pragma: no cover
-            return None, 'Reversible maximum-likelihood estimation did not converge.'
+            raise ValueError('Reversible maximum-likelihood estimation did not converge.')
 
         p = flux / _np.sum(flux, axis=1, keepdims=True)
 
@@ -467,4 +467,4 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states:
         p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
         p /= _np.sum(p, axis=1, keepdims=True)
 
-    return p, None
+    return p

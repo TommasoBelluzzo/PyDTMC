@@ -104,9 +104,12 @@ def build_mc_graph(p: _ct.tarray, states: _ct.tlist_str) -> _ct.tgraph:
     return graph
 
 
-def create_labels(count: int, prefix: str = '') -> _ct.tlist_str:
+def create_labels(count: int, start_at_zero: bool = False, prefix: str = '') -> _ct.tlist_str:
 
-    labels = [f'{prefix}{i:d}' for i in range(1, count + 1)]
+    if start_at_zero:
+        labels = [f'{prefix}{i:d}' for i in range(count)]
+    else:
+        labels = [f'{prefix}{i:d}' for i in range(1, count + 1)]
 
     return labels
 

@@ -66,13 +66,9 @@ __all__ = [
     'tass_ord', 'oass_ord',
     'tass_stat', 'oass_stat',
     'tbcond', 'obcond',
-    'tfit_r', 'ofit_r',
     'thmm_dec', 'ohmm_dec',
     'thmm_gen', 'ohmm_gen',
     'thmm_gen_ext', 'ohmm_gen_ext',
-    'thmm_gen_full', 'ohmm_gen_full',
-    'thmm_params', 'ohmm_params',
-    'thmm_params_res', 'ohmm_params_res',
     'thmm_pred', 'ohmm_pred',
     'thmm_seq', 'ohmm_seq',
     'thmm_seq_f', 'ohmm_seq_f',
@@ -81,7 +77,6 @@ __all__ = [
     'thmm_sym_x', 'ohmm_sym_x',
     'tmc_gen', 'omc_gen',
     'tmc_gen_ext', 'omc_gen_ext',
-    'tmc_gen_full', 'omc_gen_full',
     'tobs', 'oobs',
     'tpart', 'opart',
     'tparts', 'oparts',
@@ -332,26 +327,14 @@ oass_stat = _tp.Optional[tass_stat]
 tbcond = _tp.Union[tnum, str]
 obcond = _tp.Optional[tbcond]
 
-tfit_r = _tp.Tuple[oarray, ostr]
-ofit_r = _tp.Optional[tfit_r]
-
 thmm_dec = _tp.Tuple[float, tarray, tarray, tarray, tarray, oarray]
 ohmm_dec = _tp.Optional[thmm_dec]
 
-thmm_gen = _tp.Tuple[oarray, oarray, ostr]
+thmm_gen = _tp.Tuple[tarray, tarray]
 ohmm_gen = _tp.Optional[thmm_gen]
 
-thmm_gen_ext = _tp.Tuple[oarray, oarray, olist_str, olist_str]
+thmm_gen_ext = _tp.Tuple[tarray, tarray, tlist_str, tlist_str]
 ohmm_gen_ext = _tp.Optional[thmm_gen_ext]
-
-thmm_gen_full = _tp.Tuple[oarray, oarray, olist_str, olist_str, ostr]
-ohmm_gen_full = _tp.Optional[thmm_gen_full]
-
-thmm_params = _tp.Tuple[tarray, tarray]
-ohmm_params = _tp.Optional[thmm_params]
-
-thmm_params_res = _tp.Tuple[oarray, oarray, ostr]
-ohmm_params_res = _tp.Optional[thmm_params_res]
 
 thmm_pred = _tp.Tuple[float, _tp.Union[tlist_int, tlist_str]]
 ohmm_pred = _tp.Optional[thmm_pred]
@@ -371,14 +354,11 @@ ohmm_sym = _tp.Optional[thmm_sym]
 thmm_sym_x = _tp.Union[thmm_sym, tlists_int, tlists_str]
 ohmm_sym_x = _tp.Optional[thmm_sym_x]
 
-tmc_gen = _tp.Tuple[oarray, ostr]
+tmc_gen = tarray
 omc_gen = _tp.Optional[tmc_gen]
 
-tmc_gen_ext = _tp.Tuple[oarray, olist_str]
+tmc_gen_ext = _tp.Tuple[tarray, tlist_str]
 omc_gen_ext = _tp.Optional[tmc_gen_ext]
-
-tmc_gen_full = _tp.Tuple[oarray, olist_str, ostr]
-omc_gen_full = _tp.Optional[tmc_gen_full]
 
 tobs = _tp.Union[str, tmat]
 oobs = _tp.Optional[tobs]

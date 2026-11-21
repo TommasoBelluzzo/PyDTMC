@@ -74,7 +74,12 @@ from . import _constants as _c
 from . import _custom_types as _ct
 from . import _files_io as _io
 from . import _numerical as _n
+from . import _utilities as _u
 from . import _validation as _v
+
+from .exceptions import (
+    ValidationError as _ValidationError
+)
 
 
 #############
@@ -354,7 +359,7 @@ def hmm_restrict(p: _ct.tarray, e: _ct.tarray, states: _ct.tlist_str, symbols: _
 
 # HMM STATIC GENERATORS
 
-def hmm_cpg_islands(p_enter: float, p_exit: float, island_transitions: _ct.tarray, background_transitions: _ct.tarray) -> _ct.thmm_params:
+def hmm_cpg_islands(p_enter: float, p_exit: float, island_transitions: _ct.tarray, background_transitions: _ct.tarray) -> _ct.thmm_gen_ext:
 
     regime = _np.array([[1.0 - p_exit, p_exit], [p_enter, 1.0 - p_enter]], dtype=float)
     transitions = (island_transitions, background_transitions)
@@ -366,27 +371,29 @@ def hmm_cpg_islands(p_enter: float, p_exit: float, island_transitions: _ct.tarra
 
     e = _np.vstack((_np.eye(4, dtype=float), _np.eye(4, dtype=float)))
 
-    return p, e
+    states = ['I-A', 'I-C', 'I-G', 'I-T', 'B-A', 'B-C', 'B-G', 'B-T']
+    symbols = ['A', 'C', 'G', 'T']
+
+    return p, e, states, symbols
 
 
-def hmm_dishonest_casino(p_switch: float, p_return: float, p_six: float) -> _ct.thmm_params:
+def hmm_dishonest_casino(p_switch: float, p_return: float, p_six: float) -> _ct.thmm_gen_ext:
 
-    p = [
-        [1.0 - p_switch, p_switch],
-        [p_return, 1.0 - p_return]
-    ]
-    p = _np.array(p, dtype=float)
+    p1 = [1.0 - p_switch, p_switch]
+    p2 = [p_return, 1.0 - p_return]
+    p = _np.array([p1, p2], dtype=float)
 
-    e = [
-        [1.0 / 6.0] * 6,
-        ([(1.0 - p_six) / 5.0] * 5) + [p_six]
-    ]
-    e = _np.array(e, dtype=float)
+    e1 = [1.0 / 6.0] * 6
+    e2 = ([(1.0 - p_six) / 5.0] * 5) + [p_six]
+    e = _np.array([e1, e2], dtype=float)
 
-    return p, e
+    states = ['F', 'L']
+    symbols = _u.create_labels(6)
+
+    return p, e, states, symbols
 
 
-def hmm_estimate(n: int, k: int, sequence_states: _ct.tlist_int, sequence_symbols: _ct.tlist_int, handle_nulls: bool) -> _ct.thmm_params:
+def hmm_estimate(n: int, k: int, sequence_states: _ct.tlist_int, sequence_symbols: _ct.tlist_int, handle_nulls: bool) -> _ct.thmm_gen:
 
     p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
 
@@ -417,19 +424,19 @@ def hmm_estimate(n: int, k: int, sequence_states: _ct.tlist_int, sequence_symbol
     return p, e
 
 
-def hmm_from_dictionary(d: _ct.thmm_dict_f) -> _ct.thmm_gen_full:
+def hmm_from_dictionary(d: _ct.thmm_dict_f) -> _ct.thmm_gen_ext:
 
     states = [key[1] for key in d.keys() if (key[0] == 'P') and (key[1] == key[2])]
     n = len(states)
 
     if n < 2:  # pragma: no cover
-        return None, None, None, None, 'The size of the transition matrix must be greater than or equal to 2.'
+        raise ValueError('The size of the transition matrix must be greater than or equal to 2.')
 
     symbols = [key[2] for key in d.keys() if (key[0] == 'E') and (key[1] == states[0])]
     k = len(symbols)
 
     if k < 2:  # pragma: no cover
-        return None, None, None, None, 'The number of columns of the emission matrix must be greater than or equal to 2.'
+        raise ValueError('The number of columns of the emission matrix must be greater than or equal to 2.')
 
     p = _np.zeros((n, n), dtype=float)
     e = _np.zeros((n, k), dtype=float)
@@ -441,16 +448,16 @@ def hmm_from_dictionary(d: _ct.thmm_dict_f) -> _ct.thmm_gen_full:
             p[states.index(element_from), states.index(element_to)] = probability
 
     if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_c.ETOL):  # pragma: no cover
-        return None, None, None, None, 'The rows of the transition matrix must sum to 1.0.'
+        raise ValueError('The rows of the transition matrix must sum to 1.0.')
 
     if not _np.allclose(_np.sum(e, axis=1), 1.0, rtol=0.0, atol=_c.ETOL):  # pragma: no cover
-        return None, None, None, None, 'The rows of the emission matrix must sum to 1.0.'
+        raise ValueError('The rows of the emission matrix must sum to 1.0.')
 
-    return p, e, states, symbols, None
+    return p, e, states, symbols
 
 
 # noinspection PyBroadException
-def hmm_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.thmm_gen_full:
+def hmm_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.thmm_gen_ext:
 
     if file_extension == '.csv':
         d = _io.read_csv(False, file_path)
@@ -464,14 +471,11 @@ def hmm_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.thmm_gen_ful
     try:
         d = _v.validate_dictionary_hmm(d)
     except Exception:  # pragma: no cover
-        return None, None, None, None, 'The dictionary defined by the file is invalid.'
+        raise ValueError('The dictionary defined by the file is invalid.') from None
 
-    p, e, states, symbols, error_message = hmm_from_dictionary(d)
+    p, e, states, symbols = hmm_from_dictionary(d)
 
-    if error_message is not None:  # pragma: no cover
-        return None, None, None, None, error_message
-
-    return p, e, states, symbols, error_message
+    return p, e, states, symbols
 
 
 def hmm_from_graph(graph: _ct.tgraphs) -> _ct.thmm_gen_ext:
@@ -502,20 +506,23 @@ def hmm_from_graph(graph: _ct.tgraphs) -> _ct.thmm_gen_ext:
     if (not _np.all(_np.isfinite(mp))) or (not _np.all(_np.isfinite(me))):  # pragma: no cover
         raise ValueError('The accumulated graph edge weights must be finite.')
 
-    p, e = hmm_from_matrices(mp, me)
+    p, e, states, symbols = hmm_from_matrices(mp, me)
 
     return p, e, states, symbols
 
 
-def hmm_from_matrices(mp: _ct.tarray, me: _ct.tarray) -> _ct.thmm_params:
+def hmm_from_matrices(mp: _ct.tarray, me: _ct.tarray) -> _ct.thmm_gen_ext:
 
     p = _normalize_matrix(mp)
     e = _normalize_matrix(me)
 
-    return p, e
+    states = _u.create_labels(mp.shape[1], prefix='P')
+    symbols = _u.create_labels(me.shape[1], prefix='E')
+
+    return p, e, states, symbols
 
 
-def hmm_gilbert_elliott(p_good_bad: float, p_bad_good: float, error_good: float, error_bad: float) -> _ct.thmm_params:
+def hmm_gilbert_elliott(p_good_bad: float, p_bad_good: float, error_good: float, error_bad: float) -> _ct.thmm_gen_ext:
 
     p = [[1.0 - p_good_bad, p_good_bad], [p_bad_good, 1.0 - p_bad_good]]
     p = _np.array(p, dtype=float)
@@ -523,10 +530,13 @@ def hmm_gilbert_elliott(p_good_bad: float, p_bad_good: float, error_good: float,
     e = [[1.0 - error_good, error_good], [1.0 - error_bad, error_bad]]
     e = _np.array(e, dtype=float)
 
-    return p, e
+    states = ['G', 'B']
+    symbols = ['S', 'E']
+
+    return p, e, states, symbols
 
 
-def hmm_random(rng: _ct.trand, n: int, k: int, p_zeros: int, p_mask: _ct.tarray, e_zeros: int, e_mask: _ct.tarray) -> _ct.thmm_gen:
+def hmm_random(rng: _ct.trand, n: int, k: int, p_zeros: int, p_mask: _ct.tarray, e_zeros: int, e_mask: _ct.tarray) -> _ct.thmm_gen_ext:
 
     def process_matrix(pm_rows, pm_columns, pm_mask, pm_full_rows, pm_mask_unassigned, pm_zeros, pm_zeros_required):
 
@@ -583,17 +593,20 @@ def hmm_random(rng: _ct.trand, n: int, k: int, p_zeros: int, p_mask: _ct.tarray,
     p_full_rows, p_mask_unassigned, p_zeros_required, p_result = process_zeros(n, p_zeros, p_mask)
 
     if p_result:  # pragma: no cover
-        return None, None, f'The number of null transition probabilities exceeds the maximum threshold of {p_zeros_required:d}.'
+        raise _ValidationError(f'The number of null transition probabilities exceeds the maximum threshold of {p_zeros_required:d}.')
 
     e_full_rows, e_mask_unassigned, e_zeros_required, e_result = process_zeros(k, e_zeros, e_mask)
 
     if e_result:  # pragma: no cover
-        return None, None, f'The number of null emission probabilities exceeds the maximum threshold of {e_zeros_required:d}.'
+        raise _ValidationError(f'The number of null emission probabilities exceeds the maximum threshold of {e_zeros_required:d}.')
 
     p = process_matrix(n, n, p_mask, p_full_rows, p_mask_unassigned, p_zeros, p_zeros_required)
     e = process_matrix(n, k, e_mask, e_full_rows, e_mask_unassigned, e_zeros, e_zeros_required)
 
-    return p, e, None
+    states = _u.create_labels(n, prefix='P')
+    symbols = _u.create_labels(k, prefix='E')
+
+    return p, e, states, symbols
 
 
 # MC INSTANCE GENERATORS
@@ -646,12 +659,12 @@ def mc_canonical(p: _ct.tarray, recurrent_classes_indices: _ct.tlists_int, trans
     return p
 
 
-def mc_censor(p: _ct.tarray, states: _ct.tlist_str, retained_states: _ct.tlist_int) -> _ct.tmc_gen_full:
+def mc_censor(p: _ct.tarray, states: _ct.tlist_str, retained_states: _ct.tlist_int) -> _ct.tmc_gen_ext:
 
     size = p.shape[0]
 
     if size == 2:  # pragma: no cover
-        return None, None, 'The Markov chain defines only 2 states.'
+        raise ValueError('The Markov chain defines only 2 states.')
 
     removed_states = [i for i in range(size) if i not in retained_states]
 
@@ -665,12 +678,12 @@ def mc_censor(p: _ct.tarray, states: _ct.tlist_str, retained_states: _ct.tlist_i
     try:
         x = _npl.solve(i - p_bb, p_ba)
     except _npl.LinAlgError:  # pragma: no cover
-        return None, None, 'The Markov chain cannot be censored because the stochastic complement is not defined for the given states.'
+        raise ValueError('The Markov chain cannot be censored because the stochastic complement is not defined for the given states.') from None
 
     p_censored = p_aa + _np.dot(p_ab, x)
-    state_names = [*map(states.__getitem__, retained_states)]
+    states_final = [*map(states.__getitem__, retained_states)]
 
-    return p_censored, state_names, None
+    return p_censored, states_final
 
 
 def mc_closest_reversible(p: _ct.tarray, initial_distribution: _ct.tarray, weighted: bool) -> _ct.tmc_gen:
@@ -698,7 +711,7 @@ def mc_closest_reversible(p: _ct.tarray, initial_distribution: _ct.tarray, weigh
     size_m1 = size - 1
 
     if _is_reversible_with(p, initial_distribution, _c.FTOL):
-        return _np.copy(p), None
+        return _np.copy(p)
 
     support = _np.flatnonzero(initial_distribution)
 
@@ -710,7 +723,7 @@ def mc_closest_reversible(p: _ct.tarray, initial_distribution: _ct.tarray, weigh
         p[index, :] = 0.0
         p[index, index] = 1.0
 
-        return p, None
+        return p
 
     zeros = len(initial_distribution) - _np.count_nonzero(initial_distribution)
 
@@ -859,7 +872,7 @@ def mc_closest_reversible(p: _ct.tarray, initial_distribution: _ct.tarray, weigh
     )
 
     if not solution['success']:  # pragma: no cover
-        return None, 'The closest reversible could not be computed.'
+        raise ValueError('The closest reversible could not be computed.')
 
     p = _np.zeros((size, size), dtype=float)
     solution = solution['x']
@@ -871,9 +884,9 @@ def mc_closest_reversible(p: _ct.tarray, initial_distribution: _ct.tarray, weigh
     p /= _np.sum(p, axis=1, keepdims=True)
 
     if not _is_reversible_with(p, initial_distribution, _c.ETOL):  # pragma: no cover
-        return None, 'The closest reversible could not be computed.'
+        raise ValueError('The closest reversible could not be computed.')
 
-    return p, None
+    return p
 
 
 def mc_lazy(p: _ct.tarray, inertial_weights: _ct.tarray) -> _ct.tarray:
@@ -888,12 +901,12 @@ def mc_lazy(p: _ct.tarray, inertial_weights: _ct.tarray) -> _ct.tarray:
 
 
 # noinspection PyBroadException
-def mc_lump(p: _ct.tarray, states: _ct.tlist_str, partitions: _ct.tlists_int) -> _ct.tmc_gen_full:
+def mc_lump(p: _ct.tarray, states: _ct.tlist_str, partitions: _ct.tlists_int) -> _ct.tmc_gen_ext:
 
     size = p.shape[0]
 
     if size == 2:  # pragma: no cover
-        return None, None, 'The Markov chain defines only 2 states.'
+        raise ValueError('The Markov chain defines only 2 states.')
 
     r = _np.zeros((size, len(partitions)), dtype=float)
 
@@ -906,22 +919,22 @@ def mc_lump(p: _ct.tarray, states: _ct.tlist_str, partitions: _ct.tlists_int) ->
     try:
         k = _np.dot(_npl.inv(_np.dot(rt, r)), rt)
     except Exception:  # pragma: no cover
-        return None, None, 'The Markov chain is not lumpable with respect to the given partitions.'
+        raise ValueError('The Markov chain is not lumpable with respect to the given partitions.') from None
 
     left = _np.dot(_np.dot(_np.dot(r, k), p), r)
     right = _np.dot(p, r)
     is_lumpable = _np.array_equal(left, right)
 
     if not is_lumpable:  # pragma: no cover
-        return None, None, 'The Markov chain is not lumpable with respect to the given partitions.'
+        raise ValueError('The Markov chain is not lumpable with respect to the given partitions.') from None
 
     p_lump = _np.dot(_np.dot(k, p), r)
-    state_names = [','.join(list(map(states.__getitem__, partition))) for partition in partitions]
+    states_final = [','.join(list(map(states.__getitem__, partition))) for partition in partitions]
 
-    return p_lump, state_names, None
+    return p_lump, states_final
 
 
-def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducible: bool, is_reversible: bool, s: int, robust: bool) -> _ct.tmc_gen_full:  # pylint: disable=too-many-return-statements
+def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducible: bool, is_reversible: bool, s: int, robust: bool) -> _ct.tmc_gen_ext:  # pylint: disable=too-many-return-statements
 
     def _memberships(m_flat, m_x, m_s):
 
@@ -965,13 +978,13 @@ def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducib
     size = p.shape[0]
 
     if size == 2:  # pragma: no cover
-        return None, None, 'The Markov chain defines only 2 states.'
+        raise ValueError('The Markov chain defines only 2 states.')
 
     if not is_irreducible:  # pragma: no cover
-        return None, None, 'The Markov chain is not irreducible.'
+        raise ValueError('The Markov chain is not irreducible.')
 
     if not is_reversible:  # pragma: no cover
-        return None, None, 'The Markov chain is not reversible.'
+        raise ValueError('The Markov chain is not reversible.')
 
     pi = _n.gth_solve(p)
     root = _np.sqrt(pi)
@@ -983,7 +996,7 @@ def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducib
     x[:, 0] = 1.0
 
     if _np.abs(evalues[size - s] - evalues[size - s - 1]) < 1e-10:  # pragma: no cover
-        return None, None, 'The requested dimension splits a degenerate eigenspace.'
+        raise ValueError('The requested dimension splits a degenerate eigenspace.')
 
     s = x.shape[1]
     coordinates = x[:, 1:]
@@ -1007,7 +1020,7 @@ def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducib
             rank = _np.sum(singular > (1e-12 * scale))
 
             if rank != (v - 1):  # pragma: no cover
-                return None, None, 'The metastable simplex is rank deficient.'
+                raise ValueError('The metastable simplex is rank deficient.')
 
             residuals = differences - _np.dot(_np.dot(differences, _np.transpose(right[:rank])), right[:rank])
 
@@ -1016,12 +1029,12 @@ def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducib
         candidate = _np.argmax(distances)
 
         if distances[candidate] <= (1e-12 * scale)**2.0:  # pragma: no cover
-            return None, None, 'The requested number of simplex vertices could not be identified.'
+            raise ValueError('The requested number of simplex vertices could not be identified.')
 
         vertices.append(candidate)
 
     if _npl.cond(x[vertices, :]) > 1e12:  # pragma: no cover
-        return None, None, 'The metastable simplex is ill-conditioned.'
+        raise ValueError('The metastable simplex is ill-conditioned.')
 
     transform = _spl.solve(x[vertices, :], _np.eye(s), assume_a='gen')
 
@@ -1068,7 +1081,7 @@ def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducib
         chi = _memberships(result.x, x, s)
 
         if (not result.success) or (not _np.all(_np.isfinite(chi))) or (_np.min(chi) < -1e-8) or (not _np.allclose(_np.sum(chi, axis=1), 1.0, atol=1.0e-8, rtol=0.0)):  # pragma: no cover
-            return None, None, 'The robust PCCA membership optimization did not converge.'
+            raise ValueError('The robust PCCA membership optimization did not converge.')
 
         chi = _np.maximum(chi, 0.0)
         chi /= _np.sum(chi, axis=1)[:, _np.newaxis]
@@ -1077,7 +1090,7 @@ def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducib
     s = chi.shape[1]
 
     if len(_np.unique(groups)) != s:  # pragma: no cover
-        return None, None, 'A metastable macrostate has no assigned microstates.'
+        raise ValueError('A metastable macrostate has no assigned microstates.')
 
     order = sorted(range(s), key=lambda k: int(_np.flatnonzero(groups == k)[0]))
     chi = chi[:, order]
@@ -1086,26 +1099,26 @@ def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducib
     masses = _np.dot(pi, chi)
 
     if _np.any(masses <= 0.0):  # pragma: no cover
-        return None, None, 'At least one macrostate has non-positive stationary probability mass.'
+        raise ValueError('At least one macrostate has non-positive stationary probability mass.')
 
     p = _np.dot(_np.transpose(chi), (pi[:, _np.newaxis] * p))
     p = _np.dot(p, chi) / masses[:, _np.newaxis]
 
     if (not _np.all(_np.isfinite(p))) or (_np.min(p) < -_c.FTOL):  # pragma: no cover
-        return None, None, 'Non-finite or significantly negative transition probabilities have been detected.'
+        raise ValueError('Non-finite or significantly negative transition probabilities have been detected.')
 
     p = _np.maximum(p, 0.0)
     p_sums = _np.sum(p, axis=1, keepdims=True)
 
     if _np.any(p_sums <= 0.0):  # pragma: no cover
-        return None, None, 'At least one row of the reduced transition matrix has zero probability mass.'
+        raise ValueError('At least one row of the reduced transition matrix has zero probability mass.')
 
     p /= p_sums
 
     partitions = [_np.flatnonzero(groups == k).tolist() for k in range(s)]
-    state_names = [','.join(map(states.__getitem__, partition)) for partition in partitions]
+    state_final = [','.join(map(states.__getitem__, partition)) for partition in partitions]
 
-    return p, state_names, None
+    return p, state_final
 
 
 def mc_reversibilize(p: _ct.tarray, recurrent_classes_indices: _ct.tlists_int, transient_states: _ct.tlist_str, pi: _ct.tlist_array, method: str) -> _ct.tarray:
@@ -1144,7 +1157,7 @@ def mc_spectral_aggregation(method: str, p: _ct.tarray, is_ergodic: bool, pi: _c
     return q, states
 
 
-def mc_sub(p: _ct.tarray, states: _ct.tlist_str, adjacency_matrix: _ct.tarray, sub_states: _ct.tlist_int) -> _ct.tmc_gen_full:
+def mc_sub(p: _ct.tarray, states: _ct.tlist_str, adjacency_matrix: _ct.tarray, sub_states: _ct.tlist_int) -> _ct.tmc_gen_ext:
 
     size = p.shape[0]
 
@@ -1171,11 +1184,11 @@ def mc_sub(p: _ct.tarray, states: _ct.tlist_str, adjacency_matrix: _ct.tarray, s
     p /= _np.sum(p, axis=1, keepdims=True)
 
     if p.size == 1:  # pragma: no cover
-        return None, None, 'The subchain is not a valid Markov chain.'
+        raise ValueError('The subchain is not a valid Markov chain.')
 
-    state_names = [*map(states.__getitem__, sub_states)]
+    state_final = [*map(states.__getitem__, sub_states)]
 
-    return p, state_names, None
+    return p, state_final
 
 
 def mc_teleport(p: _ct.tarray, probability: float, distribution: _ct.tarray) -> _ct.tarray:
@@ -1202,7 +1215,7 @@ def mc_time_reversal(method: str, p: _ct.tarray, recurrent_classes_indices: _ct.
 
 # MC STATIC GENERATORS
 
-def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ct.ofloat) -> _ct.tmc_gen:
+def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ct.ofloat) -> _ct.tmc_gen_ext:
 
     def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
 
@@ -1316,7 +1329,7 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
                     break
 
             if iterations == 100:  # pragma: no cover
-                return None, 'The gaussian quadrature failed to converge.'
+                raise ValueError('The gaussian quadrature failed to converge.')
 
             offset = size_m1 - i
 
@@ -1370,10 +1383,12 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
                 z = x[j] - rx
                 p[i, j] = _sps.norm.cdf((z + step) / sigma) - _sps.norm.cdf((z - step) / sigma)
 
-    return p, None
+    states = _u.create_labels(size)
+
+    return p, states
 
 
-def mc_bernoulli_trials(n: int, p_success: float) -> _ct.tarray:
+def mc_bernoulli_trials(n: int, p_success: float) -> _ct.tmc_gen_ext:
 
     p = _np.zeros((n + 1, n + 1), dtype=float)
 
@@ -1383,7 +1398,9 @@ def mc_bernoulli_trials(n: int, p_success: float) -> _ct.tarray:
 
     p[n, n] = 1.0
 
-    return p
+    states = _u.create_labels(n + 1, start_at_zero=True)
+
+    return p, states
 
 
 def mc_birth_death(p: _ct.tarray, q: _ct.tarray) -> _ct.tarray:
@@ -1398,7 +1415,7 @@ def mc_birth_death(p: _ct.tarray, q: _ct.tarray) -> _ct.tarray:
     return p
 
 
-def mc_card_shuffling(model: str, n: int) -> _ct.tarray:
+def mc_card_shuffling(model: str, n: int) -> _ct.tmc_gen_ext:
 
     def _transitions():
 
@@ -1469,10 +1486,12 @@ def mc_card_shuffling(model: str, n: int) -> _ct.tarray:
             j = _permutation_index(next_state)
             p[i, j] += probability
 
-    return p
+    states = ['_'.join(str(i) for i in permutation) for permutation in _it.permutations(range(1, n + 1))]
+
+    return p, states
 
 
-def mc_coupon_collector(n: int) -> _ct.tarray:
+def mc_coupon_collector(n: int) -> _ct.tmc_gen_ext:
 
     p = _np.zeros((n + 1, n + 1), dtype=float)
 
@@ -1482,7 +1501,9 @@ def mc_coupon_collector(n: int) -> _ct.tarray:
 
     p[n, n] = 1.0
 
-    return p
+    states = _u.create_labels(n + 1, start_at_zero=True)
+
+    return p, states
 
 
 def mc_dirichlet_process(rng: _ct.trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ct.ofloat, shift_concentration: bool) -> _ct.tarray:
@@ -1516,7 +1537,7 @@ def mc_dirichlet_process(rng: _ct.trand, size: int, diffusion_factor: float, dia
     return p
 
 
-def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery_probability: _ct.ofloat) -> _ct.tarray:
+def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery_probability: _ct.ofloat) -> _ct.tmc_gen_ext:
 
     if model == 'si':
 
@@ -1577,18 +1598,22 @@ def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery
 
     p /= _np.sum(p, axis=1, keepdims=True)
 
-    return p
+    if model == 'sir':
+        states = [f'S{s}_I{i}' for s in range(n + 1) for i in range(n - s + 1)]
+    else:
+        states = _u.create_labels(n + 1, start_at_zero=True)
+
+    return p, states
 
 
-def mc_exclusion_process(n: int, k: int, p_right: float) -> _ct.tarray:
+def mc_exclusion_process(n: int, k: int, p_right: float) -> _ct.tmc_gen_ext:
 
     size = _mt.comb(n, k)
     p = _np.zeros((size, size), dtype=float)
 
-    directions = [
-        (-1, (1.0 - p_right) / k),
-        (1, p_right / k)
-    ]
+    d1 = (-1, (1.0 - p_right) / k)
+    d2 = (1, p_right / k)
+    directions = [d1, d2]
 
     for i, state in enumerate(_it.combinations(range(n), k)):
 
@@ -1610,16 +1635,18 @@ def mc_exclusion_process(n: int, k: int, p_right: float) -> _ct.tarray:
                     j = _combination_index(next_state, n)
                     p[i, j] += probability
 
-    return p
+    states = [''.join('1' if i in configuration else '0' for i in range(n)) for configuration in _it.combinations(range(n), k)]
+
+    return p, states
 
 
-def mc_from_dictionary(d: _ct.tmc_dict_f) -> _ct.tmc_gen_full:
+def mc_from_dictionary(d: _ct.tmc_dict_f) -> _ct.tmc_gen_ext:
 
     states = [key[0] for key in d.keys() if key[0] == key[1]]
     size = len(states)
 
     if size < 2:  # pragma: no cover
-        return None, None, 'The size of the transition matrix must be greater than or equal to 2.'
+        raise ValueError('The size of the transition matrix must be greater than or equal to 2.')
 
     p = _np.zeros((size, size), dtype=float)
 
@@ -1627,13 +1654,13 @@ def mc_from_dictionary(d: _ct.tmc_dict_f) -> _ct.tmc_gen_full:
         p[states.index(state_from), states.index(state_to)] = probability
 
     if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_c.ETOL):  # pragma: no cover
-        return None, None, 'The rows of the transition matrix must sum to 1.0.'
+        raise ValueError('The rows of the transition matrix must sum to 1.0.')
 
-    return p, states, None
+    return p, states
 
 
 # noinspection PyBroadException
-def mc_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.tmc_gen_full:
+def mc_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.tmc_gen_ext:
 
     if file_extension == '.csv':
         d = _io.read_csv(True, file_path)
@@ -1647,14 +1674,11 @@ def mc_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.tmc_gen_full:
     try:
         d = _v.validate_dictionary_mc(d)
     except Exception:  # pragma: no cover
-        return None, None, 'The dictionary defined by the file is invalid.'
+        raise ValueError('The dictionary defined by the file is invalid.') from None
 
-    p, states, error_message = mc_from_dictionary(d)
+    p, states = mc_from_dictionary(d)
 
-    if error_message is not None:  # pragma: no cover
-        return None, None, error_message
-
-    return p, states, error_message
+    return p, states
 
 
 def mc_from_graph(graph: _ct.tgraphs) -> _ct.tmc_gen_ext:
@@ -1700,7 +1724,7 @@ def mc_gamblers_ruin(size: int, w: float) -> _ct.tarray:
     return p
 
 
-def mc_gibbs_sampling(dimensions: _ct.tlist_int, target_pi: _ct.tarray) -> _ct.tarray:
+def mc_gibbs_sampling(dimensions: _ct.tlist_int, target_pi: _ct.tarray) -> _ct.tmc_gen_ext:
 
     dimensions_count = len(dimensions)
     size = target_pi.size
@@ -1722,10 +1746,12 @@ def mc_gibbs_sampling(dimensions: _ct.tlist_int, target_pi: _ct.tarray) -> _ct.t
 
             p[i, start:stop:stride] += probabilities / dimensions_count
 
-    return p
+    states = ['_'.join(str(i) for i in configuration) for configuration in _np.ndindex(*dimensions)]
+
+    return p, states
 
 
-def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _ct.tarray:
+def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _ct.tmc_gen_ext:
 
     size = 2**n
     p = _np.zeros((size, size), dtype=float)
@@ -1742,7 +1768,7 @@ def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _ct.t
 
         for spin in (-1, 1):
 
-            z = float(max(-1000, min(1000, spin * energy)))
+            z = float(max(_fr.Fraction(-1000.0), min(_fr.Fraction(1000.0), spin * energy)))
 
             if model == 'glauber':
                 if z >= 0.0:
@@ -1777,7 +1803,9 @@ def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _ct.t
 
         p[i, i] = max(0.0, 1.0 - probability_sum)
 
-    return p
+    states = [format(i, f'0{n}b').replace('0', '-').replace('1', '+') for i in range(2**n)]
+
+    return p, states
 
 
 def mc_metropolis_hastings(target: _ct.tarray, proposal: _ct.oarray) -> _ct.tarray:
@@ -1814,7 +1842,7 @@ def mc_metropolis_hastings(target: _ct.tarray, proposal: _ct.oarray) -> _ct.tarr
     return p
 
 
-def mc_pattern_matching(pattern: str, probabilities: dict) -> _ct.tarray:
+def mc_pattern_matching(pattern: str, probabilities: dict) -> _ct.tmc_gen_ext:
 
     size = len(pattern)
     p = _np.zeros((size + 1, size + 1), dtype=float)
@@ -1829,10 +1857,12 @@ def mc_pattern_matching(pattern: str, probabilities: dict) -> _ct.tarray:
 
     p[size, size] = 1.0
 
-    return p
+    states = ['∅'] + [pattern[:i] for i in range(1, len(pattern) + 1)]
+
+    return p, states
 
 
-def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _ct.tarray:
+def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _ct.tmc_gen_ext:
 
     size = n + 1
 
@@ -1873,10 +1903,12 @@ def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: floa
 
     p /= _np.sum(p, axis=1, keepdims=True)
 
-    return p
+    states = _u.create_labels(n + 1, start_at_zero=True)
+
+    return p, states
 
 
-def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tmc_gen:
+def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tmc_gen_ext:
 
     full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0)
 
@@ -1887,7 +1919,7 @@ def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tm
     zeros_required = int(_np.sum(mask_unassigned) - _np.sum(~full_rows))
 
     if zeros > zeros_required:  # pragma: no cover
-        return None, f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.'
+        raise _ValidationError(f'The number of zero-valued transition probabilities exceeds the maximum threshold of {zeros_required:d}.')
 
     n = _np.arange(size)
 
@@ -1921,7 +1953,9 @@ def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tm
             si = _np.sum(p[i, ~assigned_columns])
             p[i, assigned_columns] = p[i, assigned_columns] * ((1.0 - si) / s)
 
-    return p, None
+    states = _u.create_labels(size)
+
+    return p, states
 
 
 def mc_random_distribution(size: int, f: _ct.trfunc_f, kwargs: dict) -> _ct.tarray:
