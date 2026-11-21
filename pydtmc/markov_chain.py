@@ -3895,7 +3895,7 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        if not set(pattern).issubset(probabilities):
+        if not set(pattern).issubset(probabilities):  # pragma: no cover
             raise _ValidationError('The probability distribution must define all the symbols appearing in the pattern.')
 
         p_out, states_default = _g.mc_pattern_matching(pattern, probabilities)
@@ -4073,7 +4073,7 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        if (topology == 'cycle') and (size < 3):
+        if (topology == 'cycle') and (size < 3):  # pragma: no cover
             raise _ValidationError('The cycle topology requires at least 3 states.')
 
         p_out, states_default = _g.mc_random_walk(size, topology, lazy)

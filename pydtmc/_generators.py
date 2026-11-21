@@ -1875,6 +1875,7 @@ def mc_pattern_matching(pattern: str, probabilities: dict) -> _ct.tmc_gen_ext:
     p = _np.zeros((size + 1, size + 1), dtype=float)
 
     for i in range(size):
+
         prefix = pattern[:i]
 
         for symbol, probability in probabilities.items():
