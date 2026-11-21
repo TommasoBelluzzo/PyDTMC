@@ -8,8 +8,10 @@
 # Standard
 
 import importlib as _il
+import inspect as _ins
 import json as _json
 import os.path as _osp
+import sys as _sys
 
 # Libraries
 
@@ -257,12 +259,12 @@ def pytest_configure(config):
         # Failure is intentionally ignored.
         pass
 
-    _np.set_printoptions(floatmode='fixed', precision=8, threshold=_np.inf, linewidth=300)
+    _np.set_printoptions(floatmode='fixed', precision=8, threshold=_sys.maxsize, linewidth=300)
 
 
 def pytest_generate_tests(metafunc):
 
-    names = metafunc.fixturenames
+    names = list(_ins.signature(metafunc.function).parameters)
 
     if len(names) == 0:
         return
