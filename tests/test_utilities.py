@@ -30,6 +30,7 @@ from pydtmc._utilities import (
     create_labels_from_data as _create_labels_from_data,
     create_validation_error as _create_validation_error,
     extract_numeric as _extract_numeric,
+    get_instance_generators as _get_instance_generators,
     get_numpy_random_distributions as _get_numpy_random_distributions
 )
 
@@ -132,6 +133,14 @@ def test_extract_numeric(value, evaluate, is_valid):
         if result_is_valid:
             result_check = isinstance(result, _np.ndarray)
             assert result_check is True
+
+
+def test_get_instance_generators_null():
+
+    actual = _get_instance_generators(None)
+    expected = []
+
+    assert actual == expected
 
 
 def test_get_numpy_random_distributions():
