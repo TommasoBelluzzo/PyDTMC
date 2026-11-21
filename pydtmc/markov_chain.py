@@ -1982,9 +1982,7 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = ((1.0 - gamma) * self.__p) + (gamma * other.p)
-        states_out = _u.create_labels(self.__size, prefix='M')
-
+        p_out, states_out = _g.mc_merge(self.__p, other.p, gamma)
         mc = MarkovChain(p_out, states_out)
 
         return mc
@@ -3152,8 +3150,8 @@ class MarkovChain(_bc.Model):
         if not _np.all((q + p) <= 1.0):  # pragma: no cover
             raise _ValidationError('The sums of annihilation and creation probabilities must be less than or equal to 1.')
 
-        p_out = _g.mc_birth_death(p, q)
-        states_out = states if states is not None else _u.create_labels(p_out.shape[0])
+        p_out, states_default = _g.mc_birth_death(p, q)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3277,8 +3275,8 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _g.mc_dirichlet_process(rng, size, float(diffusion_factor), diagonal_bias_factor, shift_concentration)
-        states_out = states if states is not None else _u.create_labels(size)
+        p_out, states_default = _g.mc_dirichlet_process(rng, size, float(diffusion_factor), diagonal_bias_factor, shift_concentration)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3675,8 +3673,8 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _g.mc_gamblers_ruin(size, w)
-        states_out = states if states is not None else _u.create_labels(size)
+        p_out, states_default = _g.mc_gamblers_ruin(size, w)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3754,8 +3752,8 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _np.eye(size)
-        states_out = states if states is not None else _u.create_labels(size)
+        p_out, states_default = _g.mc_identity(size)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -3857,8 +3855,8 @@ class MarkovChain(_bc.Model):
         if _np.any(target_pi <= 0.0):  # pragma: no cover
             raise _ValidationError('The target stationary distribution must contain strictly positive probabilities.')
 
-        p_out = _g.mc_metropolis_hastings(target_pi, proposal)
-        states_out = states if states is not None else _u.create_labels(size)
+        p_out, states_default = _g.mc_metropolis_hastings(target_pi, proposal)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -4033,8 +4031,8 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _g.mc_random_distribution(size, f, kwargs)
-        states_out = states if states is not None else _u.create_labels(size)
+        p_out, states_default = _g.mc_random_distribution(size, f, kwargs)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -4078,8 +4076,8 @@ class MarkovChain(_bc.Model):
         if (topology == 'cycle') and (size < 3):
             raise _ValidationError('The cycle topology requires at least 3 states.')
 
-        p_out = _g.mc_random_walk(size, topology, lazy)
-        states_out = states if states is not None else _u.create_labels(size)
+        p_out, states_default = _g.mc_random_walk(size, topology, lazy)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 
@@ -4117,8 +4115,8 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out = _g.mc_urn_model(model, n)
-        states_out = states if states is not None else _u.create_labels(p_out.shape[0])
+        p_out, states_default = _g.mc_urn_model(model, n)
+        states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
 

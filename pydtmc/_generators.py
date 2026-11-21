@@ -29,9 +29,11 @@ __all__ = [
     'mc_from_matrix',
     'mc_gamblers_ruin',
     'mc_gibbs_sampling',
+    'mc_identity',
     'mc_ising_model',
     'mc_lazy',
     'mc_lump',
+    'mc_merge',
     'mc_metastable_aggregation',
     'mc_metropolis_hastings',
     'mc_pattern_matching',
@@ -934,6 +936,14 @@ def mc_lump(p: _ct.tarray, states: _ct.tlist_str, partitions: _ct.tlists_int) ->
     return p_lump, states_final
 
 
+def mc_merge(p1: _ct.tarray, p2: _ct.tarray, gamma: float) -> _ct.tmc_gen_ext:
+
+    p = ((1.0 - gamma) * p1) + (gamma * p2)
+    states = _u.create_labels(p.shape[0], prefix='M')
+
+    return p, states
+
+
 def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducible: bool, is_reversible: bool, s: int, robust: bool) -> _ct.tmc_gen_ext:  # pylint: disable=too-many-return-statements
 
     def _memberships(m_flat, m_x, m_s):
@@ -1403,7 +1413,7 @@ def mc_bernoulli_trials(n: int, p_success: float) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_birth_death(p: _ct.tarray, q: _ct.tarray) -> _ct.tarray:
+def mc_birth_death(p: _ct.tarray, q: _ct.tarray) -> _ct.tmc_gen_ext:
 
     r = 1.0 - q - p
 
@@ -1412,7 +1422,9 @@ def mc_birth_death(p: _ct.tarray, q: _ct.tarray) -> _ct.tarray:
     p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[0], dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)
 
-    return p
+    states = _u.create_labels(p.shape[0])
+
+    return p, states
 
 
 def mc_card_shuffling(model: str, n: int) -> _ct.tmc_gen_ext:
@@ -1506,7 +1518,7 @@ def mc_coupon_collector(n: int) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_dirichlet_process(rng: _ct.trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ct.ofloat, shift_concentration: bool) -> _ct.tarray:
+def mc_dirichlet_process(rng: _ct.trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ct.ofloat, shift_concentration: bool) -> _ct.tmc_gen_ext:
 
     def _gem_allocation(ga_draws):
 
@@ -1534,7 +1546,9 @@ def mc_dirichlet_process(rng: _ct.trand, size: int, diffusion_factor: float, dia
         p += + _np.diagflat(diagonal)
         p /= _np.sum(p, axis=1, keepdims=True)
 
-    return p
+    states = _u.create_labels(size)
+
+    return p, states
 
 
 def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery_probability: _ct.ofloat) -> _ct.tmc_gen_ext:
@@ -1705,12 +1719,12 @@ def mc_from_graph(graph: _ct.tgraphs) -> _ct.tmc_gen_ext:
 def mc_from_matrix(m: _ct.tarray) -> _ct.tmc_gen_ext:
 
     p = _normalize_matrix(m)
-    states = _u.create_labels(p.shape[0], prefix='P')
+    states = _u.create_labels(p.shape[0])
 
     return p, states
 
 
-def mc_gamblers_ruin(size: int, w: float) -> _ct.tarray:
+def mc_gamblers_ruin(size: int, w: float) -> _ct.tmc_gen_ext:
 
     wc = 1.0 - w
 
@@ -1722,7 +1736,9 @@ def mc_gamblers_ruin(size: int, w: float) -> _ct.tarray:
         p[i, i - 1] = wc
         p[i, i + 1] = w
 
-    return p
+    states = _u.create_labels(size)
+
+    return p, states
 
 
 def mc_gibbs_sampling(dimensions: _ct.tlist_int, target_pi: _ct.tarray) -> _ct.tmc_gen_ext:
@@ -1748,6 +1764,14 @@ def mc_gibbs_sampling(dimensions: _ct.tlist_int, target_pi: _ct.tarray) -> _ct.t
             p[i, start:stop:stride] += probabilities / dimensions_count
 
     states = ['_'.join(str(i) for i in configuration) for configuration in _np.ndindex(*dimensions)]
+
+    return p, states
+
+
+def mc_identity(size: int) -> _ct.tmc_gen_ext:
+
+    p = _np.eye(size)
+    states = _u.create_labels(size)
 
     return p, states
 
@@ -1809,7 +1833,7 @@ def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _ct.t
     return p, states
 
 
-def mc_metropolis_hastings(target: _ct.tarray, proposal: _ct.oarray) -> _ct.tarray:
+def mc_metropolis_hastings(target: _ct.tarray, proposal: _ct.oarray) -> _ct.tmc_gen_ext:
 
     size = target.size
     p = _np.zeros((size, size), dtype=float)
@@ -1840,7 +1864,9 @@ def mc_metropolis_hastings(target: _ct.tarray, proposal: _ct.oarray) -> _ct.tarr
 
             p[i, i] = max(0.0, 1.0 - _np.sum(p[i, :]))
 
-    return p
+    states = _u.create_labels(size)
+
+    return p, states
 
 
 def mc_pattern_matching(pattern: str, probabilities: dict) -> _ct.tmc_gen_ext:
@@ -1959,17 +1985,19 @@ def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tm
     return p, states
 
 
-def mc_random_distribution(size: int, f: _ct.trfunc_f, kwargs: dict) -> _ct.tarray:
+def mc_random_distribution(size: int, f: _ct.trfunc_f, kwargs: dict) -> _ct.tmc_gen_ext:
 
     p = f(size=(size, size), **kwargs).astype(float)
     p = _np.clip(_np.nan_to_num(p, copy=False), 0.0, None)
     p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)
 
-    return p
+    states = _u.create_labels(size)
+
+    return p, states
 
 
-def mc_random_walk(size: int, topology: str, lazy: bool) -> _ct.tarray:
+def mc_random_walk(size: int, topology: str, lazy: bool) -> _ct.tmc_gen_ext:
 
     p = _np.zeros((size, size), dtype=float)
 
@@ -1988,10 +2016,12 @@ def mc_random_walk(size: int, topology: str, lazy: bool) -> _ct.tarray:
         p *= 0.5
         _np.fill_diagonal(p, 0.5)
 
-    return p
+    states = _u.create_labels(size)
+
+    return p, states
 
 
-def mc_urn_model(model: str, n: int) -> _ct.tarray:
+def mc_urn_model(model: str, n: int) -> _ct.tmc_gen_ext:
 
     dn = n * 2
     size = dn + 1
@@ -2032,4 +2062,6 @@ def mc_urn_model(model: str, n: int) -> _ct.tarray:
 
             p[i, :] = r
 
-    return p
+    states = _u.create_labels(size)
+
+    return p, states
