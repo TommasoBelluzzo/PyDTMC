@@ -129,7 +129,7 @@ import scipy.sparse as _spsp
 try:
     import pandas as _pd
     _pandas_found = True
-except ImportError:  # pragma: no cover
+except ImportError:
     _pd = None
     _pandas_found = False
 

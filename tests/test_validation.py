@@ -162,14 +162,14 @@ def test_validate_dpi(value, is_valid):
             _validate_dpi(value)
 
 
-def test_validate_emission_matrix(value, size, is_valid):
+def test_validate_emission_matrix(value, rows, columns, is_valid):
 
     if is_valid:
-        result = _validate_emission_matrix(value, size)
+        result = _validate_emission_matrix(value, rows, columns)
         assert isinstance(result, _np.ndarray)
     else:
         with _pt.raises(Exception):
-            _validate_emission_matrix(value, size)
+            _validate_emission_matrix(value, rows, columns)
 
 
 def test_validate_enumerator(value, possible_values, is_valid):
@@ -565,7 +565,7 @@ def test_validate_string(value, excluded_chars, is_valid):
         assert isinstance(result, str)
     else:
         with _pt.raises(Exception):
-            _validate_strings(value, excluded_chars)
+            _validate_string(value, excluded_chars)
 
 
 def test_validate_strings(value, excluded_chars, size, is_valid):
