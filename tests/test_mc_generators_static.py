@@ -71,17 +71,6 @@ def test_coupon_collector(n, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-def test_closest_reversible(p, distribution, weighted, value):
-
-    mc = _MarkovChain(p)
-    cr = mc.closest_reversible(distribution, weighted)
-
-    actual = cr.p
-    expected = _np.array(value)
-
-    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-
-
 def test_dirichlet_process(seed, size, diffusion_factor, diagonal_bias_factor, shift_concentration, value):
 
     mc = _MarkovChain.dirichlet_process(size, diffusion_factor, diagonal_bias_factor=diagonal_bias_factor, shift_concentration=shift_concentration, seed=seed)
@@ -147,7 +136,6 @@ def test_ising_model(model, n, beta, j, h, value):
     mc = _MarkovChain.ising_model(model, n, beta, j, h)
 
     actual = mc.p
-    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

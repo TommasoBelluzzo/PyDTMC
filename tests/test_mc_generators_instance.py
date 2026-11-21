@@ -67,6 +67,26 @@ def test_censor(p, states, value):
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_closest_reversible(p, distribution, weighted, value):
+
+    mc = _MarkovChain(p)
+    mc_closest_reversible = mc.closest_reversible(distribution, weighted)
+
+    actual = mc_closest_reversible.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+    assert mc_closest_reversible.is_reversible
+
+    if distribution is not None:
+
+        distribution = _np.array(distribution)
+        flow = distribution[:, _np.newaxis] * mc_closest_reversible.p
+
+        _npt.assert_allclose(flow, _np.transpose(flow), rtol=1e-5, atol=1e-8)
+
+
 def test_lazy(p, inertial_weights, value):
 
     mc = _MarkovChain(p)
