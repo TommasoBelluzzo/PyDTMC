@@ -499,7 +499,7 @@ def hmm_from_graph(graph: _ct.tgraphs) -> _ct.thmm_gen_ext:
             j = states.index(target)
             mp[i, j] += float(edge_weight)
 
-    if not _np.all(_np.isfinite(mp)) or not _np.all(_np.isfinite(me)):
+    if (not _np.all(_np.isfinite(mp))) or (not _np.all(_np.isfinite(me))):
         raise ValueError('The accumulated graph edge weights must be finite.')
 
     p, e = hmm_from_matrices(mp, me)
@@ -1039,7 +1039,7 @@ def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducib
         minimum = _np.min(_np.dot(x, transform))
 
         if minimum < 0.0:
-            factor = min(1.0, (1.0 / s - 1.0e-8) / (1.0 / s - minimum))
+            factor = min(1.0, ((1.0 / s) - 1.0e-8) / ((1.0 / s) - minimum))
             transform = factor * transform + (1.0 - factor) * uniform
 
         x0 = _np.ravel(transform)
@@ -1108,7 +1108,7 @@ def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducib
     return p, state_names, None
 
 
-def mc_reversibilize(p: _ct.tarray, recurrent_classes_indices: _ct.tlists_int, transient_states: _ct.tlists_str, pi: _ct.tlist_array, method: str) -> _ct.tarray:
+def mc_reversibilize(p: _ct.tarray, recurrent_classes_indices: _ct.tlists_int, transient_states: _ct.tlist_str, pi: _ct.tlist_array, method: str) -> _ct.tarray:
 
     pr = mc_time_reversal('standard', p, recurrent_classes_indices, transient_states, pi)
 
@@ -1185,7 +1185,7 @@ def mc_teleport(p: _ct.tarray, probability: float, distribution: _ct.tarray) -> 
     return p
 
 
-def mc_time_reversal(method: str, p: _ct.tarray, recurrent_classes_indices: _ct.tlists_int, transient_states: _ct.tlists_str, pi: _ct.tlist_array) -> _ct.tarray:
+def mc_time_reversal(method: str, p: _ct.tarray, recurrent_classes_indices: _ct.tlists_int, transient_states: _ct.tlist_str, pi: _ct.tlist_array) -> _ct.tarray:
 
     if len(transient_states) > 0:  # pragma: no cover
         raise ValueError('The Markov chain has transient states, therefore its stationary time reversal is not defined.')
@@ -1646,7 +1646,7 @@ def mc_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.tmc_gen_full:
 
     try:
         d = _v.validate_dictionary_mc(d)
-    except Exception:
+    except Exception:  # pragma: no cover
         return None, None, 'The dictionary defined by the file is invalid.'
 
     p, states, error_message = mc_from_dictionary(d)
@@ -1745,17 +1745,18 @@ def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _ct.t
             z = float(max(-1000, min(1000, spin * energy)))
 
             if model == 'glauber':
-
                 if z >= 0.0:
                     ez = _mt.exp(-z)
                     probability = ez / (1.0 + ez)
                 else:
                     probability = 1.0 / (1.0 + _mt.exp(z))
-
             else:
-                probability = 1.0 if z <= 0.0 else _mt.exp(-z)
+                if z <= 0.0:
+                    probability = 1.0
+                else:
+                    probability = _mt.exp(-z)
 
-            probabilities[(spin, neighbors)] = probability / n
+            probabilities[(spin, neighbors)] = float(probability / n)
 
     for i in range(size):
 
@@ -1765,11 +1766,10 @@ def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _ct.t
 
         for k in range(n):
 
-            left = spins[(k - 1) % n]
-            right = spins[(k + 1) % n]
-
             next_state = i ^ (1 << (n - k - 1))
 
+            left = spins[(k - 1) % n]
+            right = spins[(k + 1) % n]
             probability = probabilities[(spins[k], left + right)]
 
             p[i, next_state] = probability

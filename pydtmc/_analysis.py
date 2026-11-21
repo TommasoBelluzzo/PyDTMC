@@ -2303,7 +2303,7 @@ def mc_time_reversal(method: str, p: _ct.tarray, pi: _ct.tarray) -> _ct.tarray:
         pr = _np.transpose(p) * pi[_np.newaxis, :]
         pr /= pi[:, _np.newaxis]
 
-    elif method == 'log':
+    else:
 
         with _np.errstate(divide='ignore'):
             log_p = _np.log(p)
@@ -2311,9 +2311,6 @@ def mc_time_reversal(method: str, p: _ct.tarray, pi: _ct.tarray) -> _ct.tarray:
 
         log_pr = _np.transpose(log_p) + log_pi[_np.newaxis, :] - log_pi[:, _np.newaxis]
         pr = _np.exp(log_pr)
-
-    else:  # pragma: no cover
-        raise ValueError('The time reversal method is not supported.')
 
     return pr
 
