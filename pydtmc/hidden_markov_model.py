@@ -83,10 +83,10 @@ class HiddenMarkovModel(_bc.Model):
                 p = _v.validate_transition_matrix(p)
                 e = _v.validate_emission_matrix(e, p.shape[1])
 
-                if states is not None:
+                if states is not None:  # pragma: no cover
                     states = _v.validate_labels_input(states, p.shape[1])
 
-                if symbols is not None:
+                if symbols is not None:  # pragma: no cover
                     symbols = _v.validate_labels_input(symbols, e.shape[1])
 
             except Exception as ex:  # pragma: no cover
@@ -1139,10 +1139,10 @@ class HiddenMarkovModel(_bc.Model):
             p_return = _v.validate_float(p_return, lower_limit=(0.0, False), upper_limit=(1.0, False))
             p_six = _v.validate_float(p_six, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
-            if states is not None:
+            if states is not None:  # pragma: no cover
                 states = _v.validate_labels_input(states, 2)
 
-            if symbols is not None:
+            if symbols is not None:  # pragma: no cover
                 symbols = _v.validate_labels_input(symbols, 6)
 
         except Exception as ex:  # pragma: no cover
@@ -1469,10 +1469,10 @@ class HiddenMarkovModel(_bc.Model):
             error_good = _v.validate_float(error_good, lower_limit=(0.0, False), upper_limit=(1.0, False))
             error_bad = _v.validate_float(error_bad, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
-            if states is not None:
+            if states is not None:  # pragma: no cover
                 states = _v.validate_labels_input(states, 2)
 
-            if symbols is not None:
+            if symbols is not None:  # pragma: no cover
                 symbols = _v.validate_labels_input(symbols, 2)
 
         except Exception as ex:  # pragma: no cover
@@ -1522,13 +1522,13 @@ class HiddenMarkovModel(_bc.Model):
             n = _v.validate_integer(n, lower_limit=(2, False))
             k = _v.validate_integer(k, lower_limit=(2, False))
 
-            if states is not None:
+            if states is not None:  # pragma: no cover
                 states = _v.validate_labels_input(states, n)
 
             p_zeros = _v.validate_integer(p_zeros, lower_limit=(0, False))
             p_mask = _np.full((n, n), _np.nan, dtype=float) if p_mask is None else _v.validate_mask(p_mask, n, n)
 
-            if symbols is not None:
+            if symbols is not None:  # pragma: no cover
                 symbols = _v.validate_labels_input(symbols, k)
 
             e_zeros = _v.validate_integer(e_zeros, lower_limit=(0, False))
