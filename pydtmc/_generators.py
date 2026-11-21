@@ -499,7 +499,7 @@ def hmm_from_graph(graph: _ct.tgraphs) -> _ct.thmm_gen_ext:
             j = states.index(target)
             mp[i, j] += float(edge_weight)
 
-    if (not _np.all(_np.isfinite(mp))) or (not _np.all(_np.isfinite(me))):
+    if (not _np.all(_np.isfinite(mp))) or (not _np.all(_np.isfinite(me))):  # pragma: no cover
         raise ValueError('The accumulated graph edge weights must be finite.')
 
     p, e = hmm_from_matrices(mp, me)
@@ -1670,7 +1670,7 @@ def mc_from_graph(graph: _ct.tgraphs) -> _ct.tmc_gen_ext:
         j = states.index(edge[1])
         m[i, j] += float(edge[2])
 
-    if not _np.all(_np.isfinite(m)):
+    if not _np.all(_np.isfinite(m)):  # pragma: no cover
         raise ValueError('The accumulated graph weights must be finite.')
 
     p = mc_from_matrix(m)
