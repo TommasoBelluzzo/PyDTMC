@@ -178,7 +178,6 @@ def test_expected_rewards(p, steps, rewards, discount_factor, value):
     mc = _MarkovChain(p)
 
     actual = mc.expected_rewards(steps, rewards, discount_factor)
-    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -189,7 +188,6 @@ def test_expected_transitions(p, steps, initial_distribution, value):
     mc = _MarkovChain(p)
 
     actual = mc.expected_transitions(steps, initial_distribution)
-    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -205,7 +203,6 @@ def test_expected_visits(p, steps, discount_factor, value):
     mc = _MarkovChain(p)
 
     actual = mc.expected_visits(steps, discount_factor)
-    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -216,7 +213,6 @@ def test_first_passage_probabilities(p, steps, initial_state, first_passage_stat
     mc = _MarkovChain(p)
 
     actual = mc.first_passage_probabilities(steps, initial_state, first_passage_states)
-    print(actual)
     expected = _np.array(value)
 
     if first_passage_states is None:
@@ -232,7 +228,6 @@ def test_first_passage_reward(p, steps, initial_state, first_passage_states, rew
     mc = _MarkovChain(p)
 
     actual = mc.first_passage_reward(steps, initial_state, first_passage_states, rewards)
-    print(actual)
     expected = value
 
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -243,7 +238,6 @@ def test_first_passage_times_between(p, origins, targets, value_mean, value_vari
     mc = _MarkovChain(p)
 
     actual = mc.first_passage_times_between('mean', origins, targets)
-    print(actual)
     expected = value_mean
 
     if (actual is not None) and (expected is not None):
@@ -265,7 +259,6 @@ def test_first_passage_times_to(p, targets, value_mean, value_variance):
     mc = _MarkovChain(p)
 
     actual = mc.first_passage_times_to('mean', targets)
-    print(actual)
     expected = value_mean
 
     if (actual is not None) and (expected is not None):

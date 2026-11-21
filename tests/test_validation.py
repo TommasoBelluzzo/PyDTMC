@@ -31,6 +31,7 @@ from pydtmc._validation import (
     validate_boundary_condition as _validate_boundary_condition,
     validate_dictionary_hmm as _validate_dictionary_hmm,
     validate_dictionary_mc as _validate_dictionary_mc,
+    validate_dimensions as _validate_dimensions,
     validate_dpi as _validate_dpi,
     validate_emission_matrix as _validate_emission_matrix,
     validate_enumerator as _validate_enumerator,
@@ -57,6 +58,7 @@ from pydtmc._validation import (
     validate_none as _validate_none,
     validate_observable as _validate_observable,
     validate_partition as _validate_partitions,
+    validate_pattern_probabilities as _validate_pattern_probabilities,
     validate_random_distribution as _validate_random_distribution,
     validate_rewards as _validate_rewards,
     validate_sequence as _validate_sequence,
@@ -150,6 +152,16 @@ def test_validate_dictionary_mc(dictionary_elements, is_valid):
     else:
         with _pt.raises(Exception):
             _validate_dictionary_mc(d)
+
+
+def test_validate_dimensions(value, is_valid):
+
+    if is_valid:
+        result = _validate_dimensions(value)
+        assert isinstance(result, list) and all(isinstance(v, int) and (v >= 2) for v in result)
+    else:
+        with _pt.raises(Exception):
+            _validate_dimensions(value)
 
 
 def test_validate_dpi(value, is_valid):
@@ -506,6 +518,17 @@ def test_validate_partition(value, labels, is_valid):
     else:
         with _pt.raises(Exception):
             _validate_partitions(value, labels)
+
+
+def test_validate_pattern_probabilities(value, is_valid):
+
+    if is_valid:
+        result = _validate_pattern_probabilities(value)
+        assert isinstance(result, dict) and all(isinstance(k, str) and (len(k) == 1) and isinstance(v, float) for k, v in result.items())
+        assert _np.isclose(sum(result.values()), 1.0)
+    else:
+        with _pt.raises(Exception):
+            _validate_pattern_probabilities(value)
 
 
 def test_validate_random_distribution(value, accepted_values, is_valid):
