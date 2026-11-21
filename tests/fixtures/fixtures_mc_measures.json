@@ -2836,6 +2836,550 @@
   {
     "id": "#7",
     "p": [
+      [0.50, 0.50, 0.00],
+      [0.25, 0.50, 0.25],
+      [0.00, 0.50, 0.50]
+    ],
+    "absorption_probabilities_data": [
+      {
+        "initial_distribution": null,
+        "value": null
+      },
+      {
+        "initial_distribution": [0.3, 0.2, 0.5],
+        "value": null
+      }
+    ],
+    "absorption_times": null,
+    "committor_probabilities_data": [
+      {
+        "states1": 1,
+        "states2": 0,
+        "value_backward": [0.0, 1.0, 1.0],
+        "value_forward": [1.0, 0.0, 0.0]
+      },
+      {
+        "states1": 1,
+        "states2": 2,
+        "value_backward": [1.0, 1.0, 0.0],
+        "value_forward": [0.0, 0.0, 1.0]
+      }
+    ],
+    "commute_times_between_data": [
+      {
+        "origins": 1,
+        "targets": [2, 0],
+        "value_mean": 4.0,
+        "value_variance": 4.0
+      },
+      {
+        "origins": 0,
+        "targets": [2, 1],
+        "value_mean": 8.0,
+        "value_variance": 40.0
+      }
+    ],
+    "commute_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": [
+          [ 0.0, 8.0, 16.0],
+          [ 8.0, 0.0,  8.0],
+          [16.0, 8.0,  0.0]
+        ],
+        "value_variance": [
+          [ 0.0, 40.0, 80.0],
+          [40.0,  0.0, 40.0],
+          [80.0, 40.0,  0.0]
+        ]
+      },
+      {
+        "targets": 1,
+        "value_mean": [8.0, 0.0, 8.0],
+        "value_variance": [40.0, 0.0, 40.0]
+      }
+    ],
+    "conductance_data": [
+      {
+        "states": [0, 1],
+        "value": 0.16666667
+      },
+      {
+        "states": [0, 2],
+        "value": 0.5
+      }
+    ],
+    "cumulants_data": [
+      {
+        "order": 1,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": [0.0]
+      },
+      {
+        "order": 2,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": [0.2500, 0.4375]
+      },
+      {
+        "order": 4,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": [0.500, 0.250, 0.000, -0.125]
+      },
+      {
+        "order": 3,
+        "observable": "state_occupation",
+        "observable_param": 2,
+        "value": [0.25000, 0.43750, 0.65625]
+      },
+      {
+        "order": 2,
+        "observable": "transition_count",
+        "observable_param": [0, 1],
+        "value": [0.125000, 0.078125]
+      },
+      {
+        "order": 5,
+        "observable": "transition_count",
+        "observable_param": [0, 2],
+        "value": [0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": [0.0, 0.0, 0.0, 0.0]
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [1, 0],
+        "value": [0.0, 0.0, 0.0, 0.0]
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [2, 0],
+        "value": [0.0, 0.0, 0.0, 0.0]
+      },
+      {
+        "order": 4,
+        "observable": "transition_current",
+        "observable_param": [2, 1],
+        "value": [0.0, 0.0, 0.0, 0.0]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [-0.25,  0.25,  0.25],
+          [ 0.25, -0.25, -0.25],
+          [-0.25,  0.25, -0.25]
+        ],
+        "observable_param": null,
+        "value": [-0.06250000, 0.05078100, 0.00878900, -0.00369263]
+      },
+      {
+        "order": 4,
+        "observable": [
+          [0.00, -1.00,  0.00],
+          [0.42,  0.50,  0.00],
+          [0.00,  1.00, -0.42]
+        ],
+        "observable_param": null,
+        "value": [0.125000, 0.232575, 0.064682, -0.153906]
+      }
+    ],
+    "expected_rewards_data": [
+      {
+        "steps": 5,
+        "rewards": [0.1, 1.0, 10.0],
+        "discount_factor": 0.985,
+        "value": [9.89333022, 15.45783528, 29.12234033]
+      },
+      {
+        "steps": 5,
+        "rewards": [-0.5, -1.0, -2.0],
+        "discount_factor": 1.0,
+        "value": [-5.39843750, -6.62500000, -8.35156250]
+      }
+    ],
+    "expected_transitions_data": [
+      {
+        "steps": 4,
+        "initial_distribution": null,
+        "value": [
+          [0.54166667, 0.54166667, 0.00000000],
+          [0.45833333, 0.91666667, 0.45833333],
+          [0.00000000, 0.54166667, 0.54166667]
+        ]
+      },
+      {
+        "steps": 4,
+        "initial_distribution": [1.0, 0.0, 0.0],
+        "value": [
+          [1.09375000, 1.09375000, 0.00000000],
+          [0.37500000, 0.75000000, 0.37500000],
+          [0.00000000, 0.15625000, 0.15625000]
+        ]
+      }
+    ],
+    "expected_visits_data": [
+      {
+        "steps": null,
+        "discount_factor": 1.0,
+        "value": [
+          ["Infinity", "Infinity", "Infinity"],
+          ["Infinity", "Infinity", "Infinity"],
+          ["Infinity", "Infinity", "Infinity"]
+        ]
+      },
+      {
+        "steps": 2,
+        "discount_factor": 1.0,
+        "value": [
+          [0.875, 1.000, 0.125],
+          [0.500, 1.000, 0.500],
+          [0.125, 1.000, 0.875]
+        ]
+      },
+      {
+        "steps": 6,
+        "discount_factor": 1.0,
+        "value": [
+          [1.99218750, 3.00000000, 1.00781250],
+          [1.50000000, 3.00000000, 1.50000000],
+          [1.00781250, 3.00000000, 1.99218750]
+        ]
+      }
+    ],
+    "first_passage_probabilities_data": [
+      {
+        "steps": 2,
+        "initial_state": 0,
+        "first_passage_states": 2,
+        "value": [0.000, 0.125]
+      },
+      {
+        "steps": 3,
+        "initial_state": 1,
+        "first_passage_states": null,
+        "value": [
+          [0.25000, 0.50000, 0.25000],
+          [0.12500, 0.25000, 0.12500],
+          [0.09375, 0.12500, 0.09375]
+        ]
+      }
+    ],
+    "first_passage_reward_data": [
+      {
+        "steps": 3,
+        "initial_state": 2,
+        "first_passage_states": 0,
+        "rewards": [0.1, 10.0, 0.1],
+        "value": 14.49375
+      },
+      {
+        "steps": 3,
+        "initial_state": 2,
+        "first_passage_states": 1,
+        "rewards": [0.1, -10.0, 0.1],
+        "value": 0.0875
+      }
+    ],
+    "first_passage_times_between_data": [
+      {
+        "origins": 0,
+        "targets": [1, 2],
+        "value_mean": 2.0,
+        "value_variance": 2.0
+      },
+      {
+        "origins": 1,
+        "targets": [2, 0],
+        "value_mean": 2.0,
+        "value_variance": 2.0
+      }
+    ],
+    "first_passage_times_to_data": [
+      {
+        "targets": null,
+        "value_mean": [
+          [0.0, 2.0, 8.0],
+          [6.0, 0.0, 6.0],
+          [8.0, 2.0, 0.0]
+        ],
+        "value_variance": [
+          [ 0.0, 2.0, 40.0],
+          [38.0, 0.0, 38.0],
+          [40.0, 2.0,  0.0]
+        ]
+      },
+      {
+        "targets": [0, 1],
+        "value_mean": [0.0, 0.0, 2.0],
+        "value_variance": [0.0, 0.0, 2.0]
+      }
+    ],
+    "fundamental_cycle_profile_data": [
+      {
+        "output_indices": false,
+        "value": [{}, []]
+      },
+      {
+        "output_indices": true,
+        "value": [{}, []]
+      }
+    ],
+    "hitting_probabilities_data": [
+      {
+        "targets": [1, 2],
+        "value": [1.0, 1.0, 1.0]
+      },
+      {
+        "targets": [2, 1],
+        "value": [1.0, 1.0, 1.0]
+      }
+    ],
+    "hitting_times_data": [
+      {
+        "targets": 0,
+        "value_mean": [0.0, 6.0, 8.0],
+        "value_variance": [0.0, 38.0, 40.0]
+      },
+      {
+        "targets": [0, 1],
+        "value_mean": [0.0, 0.0, 2.0],
+        "value_variance": [0.0, 0.0, 2.0]
+      }
+    ],
+    "large_deviation_rate_data": [
+      {
+        "target_average": 0.6,
+        "observable": "entropy_production",
+        "observable_param": null,
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.2,
+        "observable": "state_occupation",
+        "observable_param": 0,
+        "value": 0.00304569
+      },
+      {
+        "target_average": 0.3,
+        "observable": "state_occupation",
+        "observable_param": 1,
+        "value": 0.08228288
+      },
+      {
+        "target_average": 0.2,
+        "observable": "state_occupation",
+        "observable_param": 2,
+        "value": 0.00304569
+      },
+      {
+        "target_average": 0.5,
+        "observable": "transition_count",
+        "observable_param": [0, 2],
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.7,
+        "observable": "transition_count",
+        "observable_param": [0, 2],
+        "value": "Infinity"
+      },
+      {
+        "target_average": -1.25,
+        "observable": "transition_current",
+        "observable_param": [0, 1],
+        "value": "Infinity"
+      },
+      {
+        "target_average": 1.25,
+        "observable": "transition_current",
+        "observable_param": [1, 0],
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.0,
+        "observable": "transition_current",
+        "observable_param": [2, 0],
+        "value": 0.0
+      },
+      {
+        "target_average": 0.1,
+        "observable": "transition_count",
+        "observable_param": [2, 0],
+        "value": "Infinity"
+      },
+      {
+        "target_average": 0.2,
+        "observable": [
+          [0.2, 0.2, 0.2],
+          [0.2, 0.5, 0.2],
+          [0.2, 0.2, 0.2]
+        ],
+        "observable_param": null,
+        "value": 0.21193536
+      },
+      {
+        "target_average": -0.2,
+        "observable": [
+          [-1.0,  1.0,  0.0],
+          [ 1.0,  0.0, -1.0],
+          [ 0.0, -1.0,  1.0]
+        ],
+        "observable_param": null,
+        "value": 0.02678295
+      }
+    ],
+    "metastability_data": [
+      {
+        "states": [0, 1],
+        "value": 0.83333333
+      },
+      {
+        "states": [1, 2],
+        "value": 0.83333333
+      }
+    ],
+    "mixing_time_data": [
+      {
+        "cutoff": 0.1,
+        "value": 3
+      },
+      {
+        "cutoff": 0.2,
+        "value": 2
+      }
+    ],
+    "mixing_time_from_data": [
+      {
+        "initial_distribution": null,
+        "jump": 3,
+        "cutoff": 0.1,
+        "value": 3
+      },
+      {
+        "initial_distribution": [0.20, 0.05, 0.75],
+        "jump": 5,
+        "cutoff": 0.2,
+        "value": 5
+      }
+    ],
+    "reactive_density_data": [
+      {
+        "states1": 0,
+        "states2": [1, 2],
+        "value": [0.0, 0.0, 0.0]
+      },
+      {
+        "states1": [2, 1],
+        "states2": 0,
+        "value": [0.0, 0.0, 0.0]
+      }
+    ],
+    "reactive_flux_data": [
+      {
+        "states1": 0,
+        "states2": 2,
+        "net": false,
+        "value": [
+          [0.0000, 0.0625, 0.0000],
+          [0.0000, 0.0625, 0.0625],
+          [0.0000, 0.0000, 0.0000]
+        ]
+      },
+      {
+        "states1": 2,
+        "states2": 0,
+        "net": true,
+        "value": [
+          [0.0000, 0.0000, 0.0000],
+          [0.0625, 0.0000, 0.0000],
+          [0.0000, 0.0625, 0.0000]
+        ]
+      }
+    ],
+    "reaction_rate_data": [
+      {
+        "states1": [0, 2],
+        "states2": 1,
+        "value": 0.25
+      },
+      {
+        "states1": [0, 1],
+        "states2": 2,
+        "value": 0.125
+      }
+    ],
+    "recurrence_times": {
+      "value_mean": [4.0, 2.0, 4.0],
+      "value_variance": [28.0, 2.0, 28.0]
+    },
+    "sensitivity_data": [
+      {
+        "state": 0,
+        "value": [
+          [0.3125, -0.0625, -0.1875],
+          [0.6250, -0.1250, -0.3750],
+          [0.3125, -0.0625, -0.1875]
+        ]
+      },
+      {
+        "state": 2,
+        "value": [
+          [-0.1875, -0.0625, 0.3125],
+          [-0.3750, -0.1250, 0.6250],
+          [-0.1875, -0.0625, 0.3125]
+        ]
+      }
+    ],
+    "stationary_perturbation_bound_data": [
+       {
+        "epsilon": 0.4,
+        "value": 0.8
+      },
+      {
+        "epsilon": 0.45,
+        "value": 0.9
+      }
+    ],
+    "time_correlations_data": [
+      {
+        "sequence1": [2, 2, 2, 0, 0, 0, 2, 0, 1, 0, 2, 2, 2, 0, 0],
+        "sequence2": null,
+        "time_points": [0, 5, 10],
+        "value": [25.0, 16.0, 16.0]
+      },
+      {
+        "sequence1": [2, 1, 2, 0, 0, 0, 1, 0, 0, 0, 2, 0],
+        "sequence2": [0, 1, 0, 1, 2, 2, 0, 2, 2, 0, 0, 0],
+        "time_points": [0, 5, 10],
+        "value": [15.500000, 12.281250, 12.250977]
+      }
+    ],
+    "time_relaxations_data": [
+      {
+        "sequence": [0, 1, 2, 0, 1, 1, 2, 0, 2, 2, 2, 2],
+        "initial_distribution": null,
+        "time_points": [0, 10, 100],
+        "value": [4.00, 3.75, 3.75]
+      },
+      {
+        "sequence": [0, 1, 1, 1, 1, 0, 2, 0, 1, 1, 2, 2],
+        "initial_distribution": [0.05, 0.90, 0.05],
+        "time_points": [0, 10, 100],
+        "value": [5.7, 4.5, 4.5]
+      }
+    ]
+  },
+  {
+    "id": "#8",
+    "p": [
       [0.50, 0.25, 0.25],
       [0.50, 0.00, 0.50],
       [0.25, 0.25, 0.50]
@@ -2947,6 +3491,12 @@
         "value": [0.10000000, 0.06066667, 0.01808000]
       },
       {
+        "order": 3,
+        "observable": "transition_count",
+        "observable_param": [2, 0],
+        "value": [0.10000000, 0.06066667, 0.01808000]
+      },
+      {
         "order": 4,
         "observable": "transition_current",
         "observable_param": [0, 1],
@@ -2963,12 +3513,6 @@
         "observable": "transition_current",
         "observable_param": [2, 0],
         "value": [0.00000000, 0.06666667]
-      },
-      {
-        "order": 3,
-        "observable": "transition_count",
-        "observable_param": [2, 0],
-        "value": [0.10000000, 0.06066667, 0.01808000]
       },
       {
         "order": 4,
@@ -2996,7 +3540,7 @@
         "steps": 2,
         "rewards": [-0.3, 0.6, -0.3],
         "discount_factor": 1.0,
-        "value": [-0.50625,  0.22500, -0.50625]
+        "value": [-0.50625, 0.22500, -0.50625]
       },
       {
         "steps": 4,
@@ -3234,7 +3778,6 @@
         "observable_param": [2, 0],
         "value": 0.29051861
       },
-
       {
         "target_average": -0.7,
         "observable": [
@@ -3318,9 +3861,9 @@
         "states2": 0,
         "net": true,
         "value": [
-          [0.00000000, 0.00000000, 0.00000000],
-          [0.10000000, 0.00000000, 0.00000000],
-          [0.10000000, 0.00000000, 0.00000000]
+          [0.0, 0.0, 0.0],
+          [0.1, 0.0, 0.0],
+          [0.1, 0.0, 0.0]
         ]
       }
     ],
@@ -3398,7 +3941,7 @@
     ]
   },
   {
-    "id": "#8",
+    "id": "#9",
     "p": [
       [1.0, 0.0, 0.0, 0.0],
       [0.5, 0.0, 0.5, 0.0],
@@ -3827,7 +4370,7 @@
     ]
   },
   {
-    "id": "#9",
+    "id": "#10",
     "p": [
       [0.70, 0.10, 0.10, 0.10],
       [0.85, 0.05, 0.05, 0.05],
@@ -4410,7 +4953,7 @@
     ]
   },
   {
-    "id": "#10",
+    "id": "#11",
     "p": [
       [0.0, 0.5, 0.5, 0.0, 0.0],
       [0.0, 0.0, 0.0, 0.2, 0.8],
@@ -4999,7 +5542,7 @@
     ]
   },
   {
-    "id": "#11",
+    "id": "#12",
     "p": [
       [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
       [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
@@ -5441,7 +5984,7 @@
     ]
   },
   {
-    "id": "#12",
+    "id": "#13",
     "p": [
       [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
       [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
@@ -5883,7 +6426,7 @@
     ]
   },
   {
-    "id": "#13",
+    "id": "#14",
     "p": [
       [0.15, 0.55, 0.30, 0.00, 0.00, 0.00],
       [0.30, 0.15, 0.55, 0.00, 0.00, 0.00],
@@ -6351,7 +6894,7 @@
     ]
   },
   {
-    "id": "#14",
+    "id": "#15",
     "p": [
       [0.11, 0.28, 0.13, 0.19, 0.09, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
       [0.20, 0.11, 0.28, 0.13, 0.19, 0.09, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
