@@ -45,6 +45,7 @@ Instance Methods
       propagate,
       reactive_density,
       reactive_flux,
+      reactive_paths,
       reaction_rate,
       recurrence_times,
       reversibilize,

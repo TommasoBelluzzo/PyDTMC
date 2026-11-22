@@ -1659,7 +1659,7 @@ class MarkovChain(_bc.Model):
 
     @_dc.cached_method
     @_dc.object_mark(aliases=['fcp'])
-    def fundamental_cycle_profile(self, output_indices: bool = False) -> _ct.ofc_prof:
+    def fundamental_cycle_profile(self, output_indices: bool = False) -> _ct.ofcprof:
 
         r"""
         | The method computes the fundamental-cycle affinities :math:`\mathcal{A}` and current coefficients :math:`j` of the Markov chain:
@@ -2400,6 +2400,52 @@ class MarkovChain(_bc.Model):
             raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
 
         return _a.mc_reactive_flux(self, states1, states2, net)
+
+    def reactive_paths(self, states1: _ct.tstates, states2: _ct.tstates, maximum_paths: int = 10, output_indices: bool = False) -> _ct.orpaths:
+
+        r"""
+        | The method computes the dominant reactive pathways between two disjoint subsets of the state space:
+        | :math:`\Phi(\gamma) = \min_{(i,j) \in \gamma} f_{ij}^{+}` where:
+
+        - :math:`\gamma` is a directed pathway from the first subset to the second;
+        - :math:`f_{ij}^{+}` is the residual net reactive flux from state :math:`i` to state :math:`j`.
+
+        | **Notes:**
+
+        - Pathways are extracted iteratively by maximizing their bottleneck flux and subtracting the selected flux from their edges.
+        - Equal-flux pathways are selected by increasing length, then lexicographically by state indices.
+        - The returned flux contributions are not probabilities of individual trajectories.
+        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+
+        :param states1: the first subset of the state space.
+        :param states2: the second subset of the state space.
+        :param maximum_paths: the maximum number of reactive pathways to return.
+        :param output_indices: a boolean indicating whether to return zero-based state indices instead of state labels.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            states1 = _v.validate_labels_current(states1, self.__states, True)
+            states2 = _v.validate_labels_current(states2, self.__states, True)
+            maximum_paths = _v.validate_integer(maximum_paths, lower_limit=(1, False))
+            output_indices = _v.validate_boolean(output_indices)
+
+        except Exception as ex:  # pragma: no cover
+            raise _u.create_validation_error(ex, _ins.trace()) from None
+
+        intersection = _np.intersect1d(states1, states2)
+
+        if len(intersection) > 0:  # pragma: no cover
+            raise _ValidationError(f'The subset of states must be disjoint. An intersection has been detected: {", ".join([str(i) for i in intersection])}.')
+
+        rpaths = _a.mc_reactive_paths(self, states1, states2, maximum_paths)
+
+        if (rpaths is not None) and output_indices:
+            indices = {state: index for index, state in enumerate(self.states)}
+            rpaths = [(tuple(indices[state] for state in path), flux) for path, flux in rpaths]
+
+        return rpaths
 
     @_dc.cached_method
     @_dc.object_mark(aliases=['rt'])

@@ -98,7 +98,8 @@ __all__ = [
     'thmm_dict_f', 'ohmm_dict_f',
     'tmc_dict', 'omc_dict',
     'tmc_dict_f', 'omc_dict_f',
-    'tfc_prof', 'ofc_prof'
+    'tfcprof', 'ofcprof',
+    'trpaths', 'orpaths'
 ]
 
 
@@ -424,5 +425,11 @@ omc_dict_f = _tp.Optional[tmc_dict_f]
 _fck = _tp.TypeVar('_fck', ttup_int, ttup_str)
 _fc_prof = _tp.Tuple[_tp.Dict[_fck, float], _tp.List[_tp.Dict[_fck, float]]]
 
-tfc_prof = _tp.Union[_fc_prof[ttup_int], _fc_prof[ttup_str]]
-ofc_prof = _tp.Optional[tfc_prof]
+tfcprof = _tp.Union[_fc_prof[ttup_int], _fc_prof[ttup_str]]
+ofcprof = _tp.Optional[tfcprof]
+
+_rpk = _tp.TypeVar('_rpk', ttup_int, ttup_str)
+_rpaths = _tp.List[_tp.Tuple[_rpk, float]]
+
+trpaths = _tp.Union[_rpaths[ttup_int], _rpaths[ttup_str]]
+orpaths = _tp.Optional[trpaths]

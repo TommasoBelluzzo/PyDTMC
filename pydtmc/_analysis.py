@@ -77,6 +77,7 @@ __all__ = [
 
 # Standard
 
+import heapq as _hq
 import itertools as _it
 import math as _mt
 
@@ -742,45 +743,6 @@ def mc_occupation_matrix(mc: _ct.tmc, transient_states_indices: _ct.tlist_int) -
     om = _npl.solve(i - q, i)
 
     return om
-
-
-def mc_reaction_rate(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int) -> _ct.ofloat:
-
-    if not mc.is_irreducible:
-        return None
-
-    rf = mc_reactive_flux(mc, states1, states2, False)
-    rr = float(_np.sum(rf[states1, :]))
-
-    return rr
-
-
-def mc_reactive_density(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int) -> _ct.oarray:
-
-    if not mc.is_irreducible:
-        return None
-
-    q_forward = mc_committor_probabilities(mc, 'forward', states1, states2)
-    q_backward = mc_committor_probabilities(mc, 'backward', states1, states2)
-    rd = mc.pi[0] * q_backward * q_forward
-
-    return rd
-
-
-def mc_reactive_flux(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int, net: bool) -> _ct.oarray:
-
-    if not mc.is_irreducible:
-        return None
-
-    q_forward = mc_committor_probabilities(mc, 'forward', states1, states2)
-    q_backward = mc_committor_probabilities(mc, 'backward', states1, states2)
-
-    rf = mc.stationary_flux[0] * q_backward[:, _np.newaxis] * q_forward[_np.newaxis, :]
-
-    if net:
-        rf = _np.maximum(rf - _np.transpose(rf), 0.0)
-
-    return rf
 
 
 # CONDUCTANCE
@@ -1575,7 +1537,7 @@ def mc_large_deviation_rate(mc: _ct.tmc, target_average: float, observable: _ct.
             if bound > 1e8:  # pragma: no cover
                 raise ValueError('The large-deviation optimization did not converge.')
 
-        tilt = -_spo.brentq(lambda k: _evaluate_tilt(k, -lower, increments_lower)[1] - target_average, 0.0, bound)
+        tilt = -1.0 * _spo.brentq(lambda k: _evaluate_tilt(k, -lower, increments_lower)[1] - target_average, 0.0, bound)
         scgf, _ = _evaluate_tilt(-tilt, -lower, increments_lower)
 
     ldr = max(0.0, float(tilt * target_average - scgf))
@@ -1973,7 +1935,7 @@ def mc_deviation_matrix(mc: _ct.tmc) -> _ct.oarray:
     return dm
 
 
-def mc_fundamental_cycle_profile(mc: _ct.tmc) -> _ct.ofc_prof:
+def mc_fundamental_cycle_profile(mc: _ct.tmc) -> _ct.ofcprof:
 
     p, states = mc.p, mc.states
     indices = {state: index for index, state in enumerate(states)}
@@ -2406,3 +2368,114 @@ def mc_is_canonical(mc: _ct.tmc, transient_states_indices: _ct.tlist_int, recurr
     result = recurrent_indices == list(range(len(transient_indices), mc.size))
 
     return result
+
+
+# TRANSITION PATH THEORY
+
+def mc_reaction_rate(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int) -> _ct.ofloat:
+
+    if not mc.is_irreducible:
+        return None
+
+    rf = mc_reactive_flux(mc, states1, states2, False)
+    rr = float(_np.sum(rf[states1, :]))
+
+    return rr
+
+
+def mc_reactive_density(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int) -> _ct.oarray:
+
+    if not mc.is_irreducible:
+        return None
+
+    q_forward = mc_committor_probabilities(mc, 'forward', states1, states2)
+    q_backward = mc_committor_probabilities(mc, 'backward', states1, states2)
+    rd = mc.pi[0] * q_backward * q_forward
+
+    return rd
+
+
+def mc_reactive_flux(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int, net: bool) -> _ct.oarray:
+
+    if not mc.is_irreducible:
+        return None
+
+    q_forward = mc_committor_probabilities(mc, 'forward', states1, states2)
+    q_backward = mc_committor_probabilities(mc, 'backward', states1, states2)
+
+    rf = mc.stationary_flux[0] * q_backward[:, _np.newaxis] * q_forward[_np.newaxis, :]
+
+    if net:
+        rf = _np.maximum(rf - _np.transpose(rf), 0.0)
+
+    return rf
+
+
+def mc_reactive_paths(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int, maximum_paths: int) -> _ct.orpaths:
+
+    if not mc.is_irreducible:
+        return None
+
+    size, states = mc.size, mc.states
+
+    sources = set(states1)
+    targets = set(states2)
+
+    rf = mc_reactive_flux(mc, states1, states2, True)
+    rf[:, states1] = 0.0
+    rf[states2, :] = 0.0
+
+    rp = []
+
+    for _ in range(maximum_paths):
+
+        queue = [(-float('inf'), 1, (i,)) for i in sorted(sources)]
+        _hq.heapify(queue)
+
+        best = {i: (float('inf'), 1, (i,)) for i in sources}
+
+        selected = None
+
+        while queue:
+
+            negative_flux, length, path = _hq.heappop(queue)
+
+            i = path[-1]
+            flux = -negative_flux
+
+            if best.get(i) != (flux, length, path):
+                continue
+
+            if i in targets:
+                selected = (path, flux)
+                break
+
+            for j in range(size):
+
+                capacity = float(rf[i, j])
+
+                if (capacity <= 0.0) or (j in path):
+                    continue
+
+                next_flux = min(flux, capacity)
+                next_path = path + (j,)
+                next_key = (-next_flux, len(next_path), next_path)
+
+                previous = best.get(j)
+
+                if (previous is None) or (next_key < (-previous[0], previous[1], previous[2])):
+
+                    best[j] = (next_flux, len(next_path), next_path)
+                    _hq.heappush(queue, next_key)
+
+        if selected is None:
+            break
+
+        path, flux = selected
+
+        for i, j in zip(path[:-1], path[1:]):
+            rf[i, j] = max(0.0, rf[i, j] - flux)
+
+        rp.append((tuple(states[index] for index in path), float(flux)))
+
+    return rp

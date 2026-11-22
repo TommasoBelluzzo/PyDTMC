@@ -405,6 +405,19 @@ def test_mixing_time_from(p, initial_distribution, jump, cutoff, value):
     assert actual == expected
 
 
+def test_reaction_rate(p, states1, states2, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.reaction_rate(states1, states2)
+    expected = value
+
+    if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+
 def test_reactive_density(p, states1, states2, value):
 
     mc = _MarkovChain(p)
@@ -433,15 +446,21 @@ def test_reactive_flux(p, net, states1, states2, value):
         assert actual == expected
 
 
-def test_reaction_rate(p, states1, states2, value):
+def test_reactive_paths(p, states1, states2, maximum_paths, output_indices, value):
 
     mc = _MarkovChain(p)
 
-    actual = mc.reaction_rate(states1, states2)
+    actual = mc.reactive_paths(states1, states2, maximum_paths, output_indices)
     expected = value
 
     if (actual is not None) and (expected is not None):
-        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+        assert len(actual) == len(expected)
+
+        for (path_actual, flux_actual), (path_expected, flux_expected) in zip(actual, expected):
+            assert path_actual == tuple(path_expected)
+            assert _np.isclose(flux_actual, flux_expected, rtol=1e-5, atol=1e-8)
+
     else:
         assert actual == expected
 

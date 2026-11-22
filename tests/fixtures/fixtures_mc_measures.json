@@ -339,6 +339,18 @@
         "value": null
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": 0.5
+      },
+      {
+        "states1": 1,
+        "states2": 0,
+        "value": 0.5
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 0,
@@ -371,16 +383,24 @@
         ]
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
         "states1": 0,
         "states2": 1,
-        "value": 0.5
+        "maximum_paths": 10,
+        "output_indices": false,
+        "value": [
+          [["1", "2"], 0.5]
+        ]
       },
       {
-        "states1": 1,
-        "states2": 0,
-        "value": 0.5
+        "states1": 0,
+        "states2": 1,
+        "maximum_paths": 10,
+        "output_indices": true,
+        "value": [
+          [[0, 1], 0.5]
+        ]
       }
     ],
     "recurrence_times": {
@@ -884,6 +904,18 @@
         "value": 1
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": 0.18421053
+      },
+      {
+        "states1": 1,
+        "states2": 0,
+        "value": 0.18421053
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 0,
@@ -916,16 +948,24 @@
         ]
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
         "states1": 0,
         "states2": 1,
-        "value": 0.18421053
+        "maximum_paths": 10,
+        "output_indices": false,
+        "value": [
+          [["1", "2"], 0.18421053]
+        ]
       },
       {
         "states1": 1,
         "states2": 0,
-        "value": 0.18421053
+        "maximum_paths": 10,
+        "output_indices": false,
+        "value": [
+          [["2", "1"], 0.18421053]
+        ]
       }
     ],
     "recurrence_times": {
@@ -1326,6 +1366,18 @@
         "value": null
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": null
+      },
+      {
+        "states1": 1,
+        "states2": [0, 2],
+        "value": null
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 0,
@@ -1352,15 +1404,19 @@
         "value": null
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
         "states1": 0,
         "states2": 1,
+        "maximum_paths": 10,
+        "output_indices": false,
         "value": null
       },
       {
         "states1": 1,
         "states2": [0, 2],
+        "maximum_paths": 10,
+        "output_indices": true,
         "value": null
       }
     ],
@@ -1777,6 +1833,18 @@
         "value": null
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": 0.33333333
+      },
+      {
+        "states1": 0,
+        "states2": [1, 2],
+        "value": 0.33333333
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 0,
@@ -1811,16 +1879,24 @@
         ]
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
         "states1": 0,
         "states2": 1,
-        "value": 0.33333333
+        "maximum_paths": 10,
+        "output_indices": false,
+        "value": [
+          [["1", "2"], 0.33333333]
+        ]
       },
       {
-        "states1": 0,
-        "states2": [1, 2],
-        "value": 0.33333333
+        "states1": 1,
+        "states2": [2, 0],
+        "maximum_paths": 10,
+        "output_indices": true,
+        "value": [
+          [[1, 2], 0.33333333]
+        ]
       }
     ],
     "recurrence_times": {
@@ -2228,6 +2304,18 @@
         "value": null
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": null
+      },
+      {
+        "states1": 0,
+        "states2": 2,
+        "value": null
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 0,
@@ -2254,15 +2342,19 @@
         "value": null
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
         "states1": 0,
         "states2": 1,
+        "maximum_paths": 10,
+        "output_indices": false,
         "value": null
       },
       {
         "states1": 0,
         "states2": 2,
+        "maximum_paths": 10,
+        "output_indices": true,
         "value": null
       }
     ],
@@ -2798,6 +2890,18 @@
         "value": 2
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 2,
+        "states2": 0,
+        "value": 0.13865546
+      },
+      {
+        "states1": 2,
+        "states2": 1,
+        "value": 0.12941176
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 2,
@@ -2832,16 +2936,26 @@
         ]
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
         "states1": 2,
         "states2": 0,
-        "value": 0.13865546
+        "maximum_paths": 10,
+        "output_indices": false,
+        "value": [
+          [["3", "1"], 0.12941176],
+          [["3", "2", "1"], 0.0092437]
+        ]
       },
       {
         "states1": 2,
         "states2": 1,
-        "value": 0.12941176
+        "maximum_paths": 10,
+        "output_indices": true,
+        "value": [
+          [[2, 0, 1], 0.09705882],
+          [[2, 1], 0.03235294]
+        ]
       }
     ],
     "recurrence_times": {
@@ -3354,6 +3468,18 @@
         "value": 5
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": [0, 2],
+        "states2": 1,
+        "value": 0.25
+      },
+      {
+        "states1": [0, 1],
+        "states2": 2,
+        "value": 0.125
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 0,
@@ -3388,16 +3514,24 @@
         ]
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
-        "states1": [0, 2],
-        "states2": 1,
-        "value": 0.25
+        "states1": 0,
+        "states2": 2,
+        "maximum_paths": 3,
+        "output_indices": false,
+        "value": [
+          [["1", "2", "3"], 0.0625]
+        ]
       },
       {
-        "states1": [0, 1],
-        "states2": 2,
-        "value": 0.125
+        "states1": 2,
+        "states2": 0,
+        "maximum_paths": 3,
+        "output_indices": true,
+        "value": [
+          [[2, 1, 0], 0.0625]
+        ]
       }
     ],
     "recurrence_times": {
@@ -3929,6 +4063,18 @@
         "value": 5
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 1,
+        "states2": 2,
+        "value": 0.15
+      },
+      {
+        "states1": [1, 2],
+        "states2": 0,
+        "value": 0.2
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 1,
@@ -3963,16 +4109,26 @@
         ]
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
         "states1": 1,
         "states2": 2,
-        "value": 0.15
+        "maximum_paths": 5,
+        "output_indices": false,
+        "value": [
+          [["2", "3"], 0.1],
+          [["2", "1", "3"], 0.05]
+        ]
       },
       {
         "states1": [1, 2],
         "states2": 0,
-        "value": 0.2
+        "maximum_paths": 5,
+        "output_indices": true,
+        "value": [
+          [[1, 0], 0.1],
+          [[2, 0], 0.1]
+        ]
       }
     ],
     "recurrence_times": {
@@ -4386,6 +4542,18 @@
         "value": null
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": [2, 3],
+        "value": null
+      },
+      {
+        "states1": 3,
+        "states2": [1, 2],
+        "value": null
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 0,
@@ -4412,15 +4580,19 @@
         "value": null
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
         "states1": 0,
         "states2": [2, 3],
+        "maximum_paths": 3,
+        "output_indices": false,
         "value": null
       },
       {
         "states1": 3,
         "states2": [1, 2],
+        "maximum_paths": 3,
+        "output_indices": true,
         "value": null
       }
     ],
@@ -4961,6 +5133,18 @@
         "value": 1
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 2,
+        "value": 0.08411215
+      },
+      {
+        "states1": 1,
+        "states2": 3,
+        "value": 0.06038821
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 0,
@@ -4997,16 +5181,29 @@
         ]
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
         "states1": 0,
         "states2": 2,
-        "value": 0.08411215
+        "maximum_paths": 10,
+        "output_indices": false,
+        "value": [
+          [["1", "3"], 0.05887850],
+          [["1", "4", "3"], 0.02102804],
+          [["1", "2", "3"], 0.00420561]
+        ]
       },
       {
         "states1": 1,
         "states2": 3,
-        "value": 0.06038821
+        "maximum_paths": 10,
+        "output_indices": true,
+        "value": [
+          [[1, 0, 3], 0.04378145],
+          [[1, 0, 2, 3], 0.00754853],
+          [[1, 3], 0.00654206],
+          [[1, 2, 3], 0.00251618]
+        ]
       }
     ],
     "recurrence_times": {
@@ -5558,6 +5755,18 @@
         "value": 4
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": [3, 4],
+        "value": 0.27027027
+      },
+      {
+        "states1": 4,
+        "states2": 2,
+        "value": 0.10510511
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 0,
@@ -5596,16 +5805,27 @@
         ]
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
         "states1": 0,
         "states2": [3, 4],
-        "value": 0.27027027
+        "maximum_paths": 10,
+        "output_indices": false,
+        "value": [
+          [["1", "2", "5"], 0.10810811],
+          [["1", "3", "5"], 0.08108108],
+          [["1", "3", "4"], 0.05405405],
+          [["1", "2", "4"], 0.02702703]
+        ]
       },
       {
         "states1": 4,
         "states2": 2,
-        "value": 0.10510511
+        "maximum_paths": 10,
+        "output_indices": true,
+        "value": [
+          [[4, 0, 2], 0.10510511]
+        ]
       }
     ],
     "recurrence_times": {
@@ -6036,6 +6256,18 @@
         "value": null
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 1,
+        "value": null
+      },
+      {
+        "states1": 3,
+        "states2": [2, 4],
+        "value": null
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 0,
@@ -6062,15 +6294,19 @@
         "value": null
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
         "states1": 0,
         "states2": 1,
+        "maximum_paths": 3,
+        "output_indices": false,
         "value": null
       },
       {
         "states1": 3,
         "states2": [2, 4],
+        "maximum_paths": 3,
+        "output_indices": true,
         "value": null
       }
     ],
@@ -6490,6 +6726,18 @@
         "value": null
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 2,
+        "states2": [1, 4, 5],
+        "value": null
+      },
+      {
+        "states1": [1, 3],
+        "states2": [2, 4],
+        "value": null
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 2,
@@ -6516,15 +6764,19 @@
         "value": null
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
-        "states1": 2,
-        "states2": [1, 4, 5],
+        "states1": 0,
+        "states2": [3, 5],
+        "maximum_paths": 10,
+        "output_indices": false,
         "value": null
       },
       {
-        "states1": [1, 3],
-        "states2": [2, 4],
+        "states1": [0, 2],
+        "states2": [4, 5],
+        "maximum_paths": 10,
+        "output_indices": true,
         "value": null
       }
     ],
@@ -6970,6 +7222,18 @@
         "value": null
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 0,
+        "states2": 3,
+        "value": null
+      },
+      {
+        "states1": 3,
+        "states2": 0,
+        "value": null
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 0,
@@ -6996,15 +7260,19 @@
         "value": null
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
-        "states1": 0,
-        "states2": 3,
+        "states1": 1,
+        "states2": 2,
+        "maximum_paths": 5,
+        "output_indices": false,
         "value": null
       },
       {
-        "states1": 3,
-        "states2": 0,
+        "states1": 1,
+        "states2": 3,
+        "maximum_paths": 5,
+        "output_indices": true,
         "value": null
       }
     ],
@@ -7556,6 +7824,18 @@
         "value": null
       }
     ],
+    "reaction_rate_data": [
+      {
+        "states1": 1,
+        "states2": 3,
+        "value": null
+      },
+      {
+        "states1": 1,
+        "states2": 11,
+        "value": null
+      }
+    ],
     "reactive_density_data": [
       {
         "states1": 1,
@@ -7582,15 +7862,19 @@
         "value": null
       }
     ],
-    "reaction_rate_data": [
+    "reactive_paths_data": [
       {
-        "states1": 1,
-        "states2": 3,
+        "states1": 2,
+        "states2": 6,
+        "maximum_paths": 10,
+        "output_indices": false,
         "value": null
       },
       {
-        "states1": 1,
-        "states2": 11,
+        "states1": [0, 11],
+        "states2": [1, 10],
+        "maximum_paths": 10,
+        "output_indices": true,
         "value": null
       }
     ],
