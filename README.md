@@ -168,7 +168,7 @@ print(hmm.pi)
 print(hmm.emission_probability('H1', 'A'))
 print(hmm.transition_probability('A', 'B'))
 print(hmm.decode(['H1', 'H2', 'H3']))
-print(hmm.predict('viterbi', ['H1', 'H2', 'H3']))
+print(hmm.predict('vit', ['H1', 'H2', 'H3']))
 print(hmm.simulate(12, seed=1488))
 ```
 
