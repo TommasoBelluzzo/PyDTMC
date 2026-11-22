@@ -17,6 +17,7 @@
         "entropy": ["symbols", false],
         "excess_entropy": [2],
         "hitting_probabilities": [null],
+        "information_criterion": ["aic", [0, 0, 1, 0, 1, 1, 1, 0, 0, 0]],
         "mutual_information": ["states", "symbols", 0],
         "synchronization_entropy": [1],
         "synchronization_information": null
@@ -39,6 +40,7 @@
         "entropy": ["states", true],
         "excess_entropy": [3],
         "hitting_probabilities": [null],
+        "information_criterion": ["bic", [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0 ,0]],
         "mutual_information": ["symbols", "symbols", 2],
         "synchronization_entropy": [2],
         "synchronization_information": null
@@ -63,6 +65,7 @@
         "entropy": ["symbols", false],
         "excess_entropy": [2],
         "hitting_probabilities": [null],
+        "information_criterion": ["bic", [0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0 ,0]],
         "mutual_information": ["states", "symbols", 1],
         "synchronization_entropy": [1],
         "synchronization_information": null
@@ -92,6 +95,7 @@
         "fundamental_cycle_profile": null,
         "hitting_probabilities": [null],
         "hitting_times": ["mean", null],
+        "information_criterion": ["bic", [0, 2, 2, 0, 1, 2, 2, 1, 1, 0, 2]],
         "mixing_time": [0.01],
         "mixing_time_from": [null, 3, 0.185],
         "recurrence_times": ["mean"],
@@ -126,6 +130,7 @@
         "fundamental_cycle_profile": null,
         "hitting_probabilities": [null],
         "hitting_times": ["mean", null],
+        "information_criterion": ["aic", [0, 2, 2, 2, 1, 2, 2, 0, 1, 2, 2, 1, 1, 0, 2, 1, 1]],
         "mixing_time": [0.33],
         "mixing_time_from": [null, 12, 0.3],
         "recurrence_times": ["mean"],
@@ -163,6 +168,7 @@
         "fundamental_cycle_profile": null,
         "hitting_probabilities": [[2, 3]],
         "hitting_times": ["mean", [0, 1, 2]],
+        "information_criterion": ["bic", [5, 1, 3, 3, 2, 4, 2, 0, 1, 1, 3, 2, 4, 0, 5, 1, 1]],
         "mixing_time": [0.25],
         "mixing_time_from": [[0.4, 0.0, 0.2, 0.2, 0.2, 0.0], 5, 0.125],
         "recurrence_times": ["mean"],

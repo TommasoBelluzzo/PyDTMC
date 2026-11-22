@@ -105,6 +105,16 @@ def test_hitting_probabilities(p, e, targets, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_information_criterion(p, e, criterion, symbols, initial_status, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    actual = hmm.information_criterion(criterion, symbols, initial_status)
+    expected = value
+
+    assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_mutual_information(p, e, process1, process2, steps, value):
 
     hmm = _HiddenMarkovModel(p, e)

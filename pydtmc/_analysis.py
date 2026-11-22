@@ -9,6 +9,7 @@ __all__ = [
     'hmm_entropy_rate_normalized',
     'hmm_excess_entropy',
     'hmm_hitting_probabilities',
+    'hmm_information_criterion',
     'hmm_mutual_information',
     'hmm_synchronization_entropy',
     'hmm_synchronization_information',
@@ -39,6 +40,7 @@ __all__ = [
     'mc_hitting_probabilities',
     'mc_hitting_times',
     'mc_implied_timescales',
+    'mc_information_criterion',
     'mc_is_absorbing',
     'mc_is_aperiodic',
     'mc_is_canonical',
@@ -199,29 +201,6 @@ def _synchronization_entropies_iterator(p: _ct.tarray, e: _ct.tarray, pi: _ct.ta
                     next_sequences.append(updated)
 
         sequences = next_sequences
-
-
-# HMM DISTRIBUTIONS & PROBABILITIES
-
-def hmm_conditional_probabilities(hmm: _ct.thmm, symbol: int) -> _ct.tlist_array:
-
-    p, e = hmm.p, hmm.e
-
-    results = []
-
-    for pi in hmm.pi:
-
-        marginal = _np.dot(pi, e[:, symbol])
-
-        if marginal > 0.0:
-            joint = _np.dot(pi * e[:, symbol], _np.dot(p, e))
-            probabilities = joint / marginal
-        else:
-            probabilities = _np.zeros(e.shape[1], dtype=float)
-
-        results.append(probabilities)
-
-    return results
 
 
 # HMM INFERENCE
@@ -934,6 +913,81 @@ def mc_doeblin_coefficient(mc: _ct.tmc) -> float:
     dc = float(_np.sum(_np.min(mc.p, axis=0)))
 
     return dc
+
+
+# DISTRIBUTIONS & PROBABILITIES
+
+def hmm_conditional_probabilities(hmm: _ct.thmm, symbol: int) -> _ct.tlist_array:
+
+    p, e = hmm.p, hmm.e
+
+    results = []
+
+    for pi in hmm.pi:
+
+        marginal = _np.dot(pi, e[:, symbol])
+
+        if marginal > 0.0:
+            joint = _np.dot(pi * e[:, symbol], _np.dot(p, e))
+            probabilities = joint / marginal
+        else:
+            probabilities = _np.zeros(e.shape[1], dtype=float)
+
+        results.append(probabilities)
+
+    return results
+
+
+def hmm_information_criterion(hmm: _ct.thmm, criterion: str, symbols: _ct.tlist_int, initial_distribution: _ct.tarray) -> float:
+
+    n, k = hmm.size
+    p, e = hmm.p, hmm.e
+
+    forward = initial_distribution * e[:, symbols[0]]
+    scaling_factor = float(_np.sum(forward))
+
+    if scaling_factor == 0.0:
+        return float('inf')
+
+    log_probability = _mt.log(scaling_factor)
+    forward /= scaling_factor
+
+    for symbol in symbols[1:]:
+
+        forward = e[:, symbol] * _np.dot(forward, p)
+        scaling_factor = float(_np.sum(forward))
+
+        if scaling_factor == 0.0:
+            return float('inf')
+
+        log_probability += _mt.log(scaling_factor)
+        forward /= scaling_factor
+
+    log_probability = float(log_probability)
+    parameters = n * (n + k - 2)
+    observations = len(symbols)
+
+    ic = _n.information_criterion(criterion, log_probability, parameters, observations)
+
+    return ic
+
+
+def mc_information_criterion(mc: _ct.tmc, criterion: str, states: _ct.tlist_int) -> float:
+
+    p, size = mc.p, mc.size
+
+    probabilities = p[states[:-1], states[1:]]
+
+    if _np.any(probabilities == 0.0):
+        return float('inf')
+
+    log_probability = float(_np.sum(_np.log(probabilities)))
+    parameters = size * (size - 1)
+    observations = len(states) - 1
+
+    ic = _n.information_criterion(criterion, log_probability, parameters, observations)
+
+    return ic
 
 
 # INFORMATION THEORY

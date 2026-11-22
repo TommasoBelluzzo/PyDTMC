@@ -395,12 +395,12 @@ def hmm_dishonest_casino(p_switch: float, p_return: float, p_six: float) -> _ct.
     return p, e, states, symbols
 
 
-def hmm_estimate(n: int, k: int, sequence_states: _ct.tlist_int, sequence_symbols: _ct.tlist_int, handle_nulls: bool) -> _ct.thmm_gen:
+def hmm_estimate(n: int, k: int, states: _ct.tlist_int, symbols: _ct.tlist_int, handle_nulls: bool) -> _ct.thmm_gen:
 
     p, e = _np.zeros((n, n), dtype=float), _np.zeros((n, k), dtype=float)
 
-    states_array = _np.asarray(sequence_states, dtype=int)
-    symbols_array = _np.asarray(sequence_symbols, dtype=int)
+    states_array = _np.asarray(states, dtype=int)
+    symbols_array = _np.asarray(symbols, dtype=int)
 
     _np.add.at(p, (states_array[:-1], states_array[1:]), 1.0)
     _np.add.at(e, (states_array, symbols_array), 1.0)

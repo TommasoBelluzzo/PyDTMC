@@ -785,11 +785,7 @@ class MarkovChain(_bc.Model):
         """
 
         om = self.occupation_matrix
-
-        if om is None:
-            kc = None
-        else:
-            kc = float(_np.trace(om))
+        kc = None if om is None else float(_np.trace(om))
 
         return kc
 
@@ -829,6 +825,17 @@ class MarkovChain(_bc.Model):
         """
 
         return _np.copy(self.__p)
+
+    @property
+    def parameters(self) -> int:
+
+        """
+        A property representing the number of free transition parameters of the Markov chain.
+        """
+
+        pars = self.n * (self.n - 1)
+
+        return pars
 
     @_dc.cached_property
     def period(self) -> int:
@@ -1747,6 +1754,35 @@ class MarkovChain(_bc.Model):
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
         return _a.mc_hitting_times(self, statistic, targets)
+
+    @_dc.object_mark(aliases=['ic'])
+    def information_criterion(self, criterion: str, states: _ct.tseq) -> float:
+
+        r"""
+        | The method computes the Akaike or Bayesian information criterion for an observed sequence of states.
+
+        | **Notes:**
+
+        - The likelihood is conditional on the initial state.
+        - An impossible observed sequence produces an infinite information criterion value.
+        - The method can also be accessed through the alias **ic**.
+
+        :param criterion:
+         - **aic** for the Akaike information criterion;
+         - **bic** for the Bayesian information criterion.
+        :param states: the observed sequence of states.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            criterion = _v.validate_enumerator(criterion, ['aic', 'bic'])
+            states = _v.validate_sequence(states, self.__states)
+
+        except Exception as ex:  # pragma: no cover
+            raise _u.create_validation_error(ex, _ins.trace()) from None
+
+        return _a.mc_information_criterion(self, criterion, states)
 
     def is_absorbing_state(self, state: _ct.tstate) -> bool:
 
@@ -3447,7 +3483,7 @@ class MarkovChain(_bc.Model):
 
     @staticmethod
     @_dc.object_mark(instance_generator=True)
-    def fit_sequence(fitting_type: str, possible_states: _ct.tlist_str, sequence: _ct.tseq, fitting_param: _ct.tany = None) -> _ct.tmc:
+    def fit_sequence(fitting_type: str, possible_states: _ct.tlist_str, states: _ct.tseq, fitting_param: _ct.tany = None) -> _ct.tmc:
 
         r"""
         | The method fits a Markov chain from an observed sequence of states using transition counts:
@@ -3465,7 +3501,7 @@ class MarkovChain(_bc.Model):
          - **mle** for maximum-likelihood estimation;
          - **rmle** for reversible maximum-likelihood estimation.
         :param possible_states: the possible states of the process.
-        :param sequence: the observed sequence of states.
+        :param states: the observed sequence of states.
         :param fitting_param:
          - For **map**, a matrix of Dirichlet prior parameters (*if omitted, all entries are set to 1*).
          - For **mle**, a boolean indicating whether to apply additive smoothing (*if omitted, smoothing is disabled*).
@@ -3477,7 +3513,7 @@ class MarkovChain(_bc.Model):
         try:
 
             possible_states = _v.validate_labels_input(possible_states)
-            sequence = _v.validate_sequence(sequence, possible_states)
+            states = _v.validate_sequence(states, possible_states)
             fitting_type = _v.validate_enumerator(fitting_type, ['map', 'mle', 'rmle'])
 
             if fitting_param is not None:
@@ -3499,7 +3535,7 @@ class MarkovChain(_bc.Model):
             else:
                 fitting_param = 100000
 
-        p = _ft.mc_fit_sequence(fitting_type, fitting_param, possible_states, sequence)
+        p = _ft.mc_fit_sequence(fitting_type, fitting_param, possible_states, states)
         mc = MarkovChain(p, possible_states)
 
         return mc

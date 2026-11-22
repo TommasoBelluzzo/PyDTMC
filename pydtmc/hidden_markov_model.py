@@ -226,6 +226,17 @@ class HiddenMarkovModel(_bc.Model):
 
         return _np.copy(self.__p)
 
+    @property
+    def parameters(self) -> int:
+
+        """
+        A property representing the number of free transition and emission parameters of the hidden Markov model.
+        """
+
+        pars = self.n * (self.n + self.k - 2)
+
+        return pars
+
     @_dc.cached_property
     @_dc.object_mark(aliases=['stationary_distributions', 'steady_states'])
     def pi(self) -> _ct.tlist_array:
@@ -547,6 +558,38 @@ class HiddenMarkovModel(_bc.Model):
 
         return _a.hmm_hitting_probabilities(self, targets)
 
+    @_dc.object_mark(aliases=['ic'])
+    def information_criterion(self, criterion: str, symbols: _ct.tseq, initial_status: _ct.ostatus = None) -> float:
+
+        r"""
+        | The method computes the Akaike or Bayesian information criterion for an observed sequence of emitted symbols.
+
+        | **Notes:**
+
+        - The likelihood marginalizes over the hidden-state sequence.
+        - The initial hidden-state distribution is fixed and excluded from the parameter count.
+        - An impossible observed sequence produces an infinite information criterion value.
+        - The method can also be accessed through the alias **ic**.
+
+        :param criterion:
+         - **aic** for the Akaike information criterion;
+         - **bic** for the Bayesian information criterion.
+        :param symbols: the observed sequence of emitted symbols.
+        :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            criterion = _v.validate_enumerator(criterion, ['aic', 'bic'])
+            symbols = _v.validate_sequence(symbols, self.__symbols)
+            initial_status = _v.validate_status(initial_status, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _u.create_validation_error(ex, _ins.trace()) from None
+
+        return _a.hmm_information_criterion(self, criterion, symbols, initial_status)
+
     @_dc.object_mark(aliases=['mi'])
     def mutual_information(self, process1: str, process2: str, steps: int = 0) -> _ct.tarray:
 
@@ -794,7 +837,7 @@ class HiddenMarkovModel(_bc.Model):
 
         return hmm
 
-    def sequence_probability(self, sequence: _ct.tseq, initial_status: _ct.ostatus = None) -> float:
+    def sequence_probability(self, symbols: _ct.tseq, initial_status: _ct.ostatus = None) -> float:
 
         r"""
         | The method computes the probability of an observed sequence of emitted symbols:
@@ -805,20 +848,20 @@ class HiddenMarkovModel(_bc.Model):
         - The first observed symbol is emitted from the initial hidden state, before any transition occurs.
         - An impossible observed sequence has probability 0.
 
-        :param sequence: the observed sequence of emitted symbols.
+        :param symbols: the observed sequence of emitted symbols.
         :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            sequence = _v.validate_sequence(sequence, self.__symbols)
+            symbols = _v.validate_sequence(symbols, self.__symbols)
             initial_status = _v.validate_status(initial_status, self.__states, True)
 
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        decoding = _a.hmm_decode(self.__p, self.__e, initial_status, sequence, True, False)
+        decoding = _a.hmm_decode(self.__p, self.__e, initial_status, symbols, True, False)
 
         if decoding is None:
             return 0.0
@@ -1162,7 +1205,7 @@ class HiddenMarkovModel(_bc.Model):
 
     @staticmethod
     @_dc.object_mark(instance_generator=True)
-    def estimate(possible_states: _ct.tlist_str, possible_symbols: _ct.tlist_str, sequence_states: _ct.tseq, sequence_symbols: _ct.tseq) -> _ct.thmm:
+    def estimate(possible_states: _ct.tlist_str, possible_symbols: _ct.tlist_str, states: _ct.tseq, symbols: _ct.tseq) -> _ct.thmm:
 
         """
         | The method performs maximum likelihood estimation of transition and emission probabilities from observed sequences of hidden states and emitted symbols.
@@ -1173,8 +1216,8 @@ class HiddenMarkovModel(_bc.Model):
 
         :param possible_states: the possible hidden states of the model.
         :param possible_symbols: the possible emitted symbols of the model.
-        :param sequence_states: the observed sequence of hidden states.
-        :param sequence_symbols: the observed sequence of emitted symbols.
+        :param states: the observed sequence of hidden states.
+        :param symbols: the observed sequence of emitted symbols.
         :raises ValidationError: if any input argument is not compliant.
         :raises ValueError: if the observed hidden-state and emitted-symbol sequences have different lengths.
         """
@@ -1183,8 +1226,8 @@ class HiddenMarkovModel(_bc.Model):
 
             possible_states = _v.validate_labels_input(possible_states)
             possible_symbols = _v.validate_labels_input(possible_symbols)
-            sequence_states = _v.validate_sequence(sequence_states, possible_states)
-            sequence_symbols = _v.validate_sequence(sequence_symbols, possible_symbols)
+            states = _v.validate_sequence(states, possible_states)
+            symbols = _v.validate_sequence(symbols, possible_symbols)
 
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
@@ -1192,10 +1235,10 @@ class HiddenMarkovModel(_bc.Model):
         if len(list(set(possible_states) & set(possible_symbols))) > 0:  # pragma: no cover
             raise _ValidationError('Hidden-state names and emitted-symbol names must be different.')
 
-        if len(sequence_states) != len(sequence_symbols):
+        if len(states) != len(symbols):
             raise ValueError('The observed sequence of states and the observed sequence of symbols must have the same length.')
 
-        p, e = _g.hmm_estimate(len(possible_states), len(possible_symbols), sequence_states, sequence_symbols, True)
+        p, e = _g.hmm_estimate(len(possible_states), len(possible_symbols), states, symbols, True)
         hmm = HiddenMarkovModel(p, e, possible_states, possible_symbols)
 
         return hmm

@@ -377,7 +377,7 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possib
     return p
 
 
-def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states: _ct.tlist_str, sequence: _ct.tlist_int) -> _ct.tmc_gen:  # pylint: disable=too-many-return-statements
+def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states: _ct.tlist_str, states: _ct.tlist_int) -> _ct.tmc_gen:  # pylint: disable=too-many-return-statements
 
     size = len(possible_states)
     p = _np.zeros((size, size), dtype=float)
@@ -385,7 +385,7 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states:
     if fitting_type == 'rmle':
 
         counts = _np.zeros((size, size), dtype=float)
-        _np.add.at(counts, (sequence[:-1], sequence[1:]), 1.0)
+        _np.add.at(counts, (states[:-1], states[1:]), 1.0)
 
         row_counts = _np.sum(counts, axis=1)
 
@@ -446,7 +446,7 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states:
             f = _np.zeros((size, size), dtype=int)
             eq_prob = 1.0 / size
 
-            _np.add.at(f, (sequence[:-1], sequence[1:]), 1)
+            _np.add.at(f, (states[:-1], states[1:]), 1)
 
             counts = f + fitting_param
             rt = _np.sum(counts, axis=1)
@@ -459,7 +459,7 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states:
 
         else:
 
-            _np.add.at(p, (sequence[:-1], sequence[1:]), 1.0)
+            _np.add.at(p, (states[:-1], states[1:]), 1.0)
 
             if fitting_param:
                 p += 0.001

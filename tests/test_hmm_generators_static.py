@@ -27,13 +27,11 @@ def test_cpg_islands(p_enter, p_exit, island_transitions, background_transitions
     hmm = _HiddenMarkovModel.cpg_islands(p_enter, p_exit, island_transitions, background_transitions)
 
     actual = hmm.p
-    print(_np.array2string(actual, precision=8, floatmode='fixed', suppress_small=True))
     expected = _np.array(value_p)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
     actual = hmm.e
-    print(_np.array2string(actual, precision=8, floatmode='fixed', suppress_small=True))
     expected = _np.array(value_e)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

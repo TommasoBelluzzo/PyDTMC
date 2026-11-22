@@ -10,6 +10,7 @@ __all__ = [
     'find_lumping_partitions',
     'gth_solve',
     'incidence_matrix',
+    'information_criterion',
     'is_stochastically_monotone',
     'kullback_leibler_divergence',
     'matrix_geometric_sum',
@@ -266,6 +267,16 @@ def incidence_matrix(states_indices: _ct.tlist_int) -> _ct.tarray:
         im[v, index] = 1
 
     return im
+
+
+def information_criterion(criterion: str, log_probability: float, parameters: int, observations: int) -> float:
+
+    if criterion == 'aic':
+        ic = float(2.0 * (parameters - log_probability))
+    else:
+        ic = float(parameters * _np.log(observations) - (2.0 * log_probability))
+
+    return ic
 
 
 def is_stochastically_monotone(m: _ct.tarray) -> bool:
