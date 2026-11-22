@@ -809,7 +809,7 @@ def validate_none(value: _ct.tany) -> _ct.tany:
     return value
 
 
-def validate_observable(value: _ct.tany, size: int) -> _ct.tobs:
+def validate_observable(value: _ct.tany, size: int) -> _ct.tobsv:
 
     if _u.is_string(value):
 

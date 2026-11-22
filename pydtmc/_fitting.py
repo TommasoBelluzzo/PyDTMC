@@ -348,7 +348,7 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possib
 
         bandwidth = (b - a) / size
 
-        nodes = (_np.arange(size) + 0.5) * bandwidth
+        nodes = a + (_np.arange(size) + 0.5) * bandwidth
         weights = _np.repeat(bandwidth, size)
 
     p = _np.zeros((size, size), dtype=float)

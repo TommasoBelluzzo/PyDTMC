@@ -184,6 +184,9 @@ def _spectral_aggregation_bottom_up(p: _ct.tarray, pi: _ct.tarray, s: int) -> _c
         v2 = _np.copy(vt)
         v2[indices] = evector < 0.0
 
+        if (not _np.any(v1[indices])) or (not _np.any(v2[indices])):  # pragma: no cover
+            return None
+
         bc_stack = _np.hstack((cbc_phi[:, :cbc_index], v1, v2, cbc_phi[:, (cbc_index + 1):]))
 
         return bc_stack
@@ -210,6 +213,9 @@ def _spectral_aggregation_bottom_up(p: _ct.tarray, pi: _ct.tarray, s: int) -> _c
 
             if bc_r < r_k:
                 phi_k, r_k, q = bc, bc_r, bc_q
+
+        if phi_k is phi:  # pragma: no cover
+            raise ValueError('The spectral aggregation algorithm failed to identify a valid partition.')
 
         phi = phi_k
         k += 1
@@ -1986,7 +1992,7 @@ def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tm
     return p, states
 
 
-def mc_random_distribution(size: int, f: _ct.trfunc_f, kwargs: dict) -> _ct.tmc_gen_ext:
+def mc_random_distribution(size: int, f: _ct.trfunc, kwargs: dict) -> _ct.tmc_gen_ext:
 
     p = f(size=(size, size), **kwargs).astype(float)
     p = _np.clip(_np.nan_to_num(p, copy=False), 0.0, None)

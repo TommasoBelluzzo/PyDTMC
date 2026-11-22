@@ -78,6 +78,7 @@ __all__ = [
     'tmc_gen', 'omc_gen',
     'tmc_gen_ext', 'omc_gen_ext',
     'tobs', 'oobs',
+    'tobsv', 'oobsv',
     'tpart', 'opart',
     'tparts', 'oparts',
     'tpprobs', 'opprobs',
@@ -308,7 +309,7 @@ olim_int = _tp.Optional[tlim_int]
 tlim_num = _tp.Tuple[tnum, bool]
 olim_num = _tp.Optional[tlim_num]
 
-trfunc = _tp.Callable
+trfunc = _tp.Callable[..., _tp.Any]
 orfunc = _tp.Optional[trfunc]
 
 trfunc_f = _tp.Union[trfunc, str]
@@ -363,6 +364,9 @@ omc_gen_ext = _tp.Optional[tmc_gen_ext]
 
 tobs = _tp.Union[str, tmat]
 oobs = _tp.Optional[tobs]
+
+tobsv = _tp.Union[str, tarray]
+oobsv = _tp.Optional[tobsv]
 
 tpart = _tp.Union[tlists_int, tlists_str]
 opart = _tp.Optional[tpart]

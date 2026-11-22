@@ -34,6 +34,7 @@ import math as _mt
 import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
+from scipy.special import rel_entr as _rel_entr
 
 # Internal
 
@@ -62,51 +63,47 @@ def accessibility_matrix(adm: _ct.tarray) -> _ct.tarray:
 
 def calculate_periods(graph: _ct.tgraph) -> _ct.tlist_int:
 
-    def _calculate_period(subgraph):
+    def _calculate_period(subgraph, component):
 
-        components = list(_nx.strongly_connected_components(subgraph))
+        component = list(component)
+
+        levels = {vertex: None for vertex in component}
+        vertices = levels.copy()
+
+        x = component[0]
+        levels[x] = 0
+
+        current_level = (x,)
+        previous_level = 1
 
         gcd = 0
 
-        for component in components:
+        while current_level:
 
-            component = list(component)
+            next_level = []
 
-            levels = {scc: None for scc in scc}
-            vertices = levels.copy()
+            for u in current_level:
+                for v in subgraph[u]:
 
-            x = component[0]
-            levels[x] = 0
+                    if v not in vertices:  # pragma: no cover
+                        continue
 
-            current_level = (x,)
-            previous_level = 1
+                    level = levels[v]
 
-            while current_level:
+                    if level is not None:
 
-                next_level = []
+                        gcd = _mt.gcd(gcd, previous_level - level)
 
-                for u in current_level:
-                    for v in subgraph[u]:
+                        if gcd == 1:
+                            return 1
 
-                        if v not in vertices:  # pragma: no cover
-                            continue
+                    else:
 
-                        level = levels[v]
+                        next_level.append(v)
+                        levels[v] = previous_level
 
-                        if level is not None:
-
-                            gcd = _mt.gcd(gcd, previous_level - level)
-
-                            if gcd == 1:
-                                return 1
-
-                        else:
-
-                            next_level.append(v)
-                            levels[v] = previous_level
-
-                current_level = tuple(next_level)
-                previous_level += 1
+            current_level = tuple(next_level)
+            previous_level += 1
 
         return gcd
 
@@ -121,7 +118,7 @@ def calculate_periods(graph: _ct.tgraph) -> _ct.tlist_int:
 
     for scc in sccs:
         index = indices_map[tuple(sorted(scc))]
-        periods[index] = _calculate_period(graph.subgraph(scc))
+        periods[index] = _calculate_period(graph.subgraph(scc), scc)
 
     return periods
 
@@ -267,7 +264,7 @@ def find_redundant_states(p: _ct.tarray, e: _ct.tarray) -> _ct.tlist_int:
         else:
             classes.append([i])
 
-    while True:
+    for _ in range(size):
 
         refined = []
 
@@ -296,6 +293,9 @@ def find_redundant_states(p: _ct.tarray, e: _ct.tarray) -> _ct.tlist_int:
             break
 
         classes = refined
+
+    else:  # pragma: no cover
+        return []
 
     indices = sorted(i for group in classes for i in group[1:])
 
@@ -420,6 +420,7 @@ def gth_solve(p: _ct.tarray) -> _ct.tarray:
 
 def matrix_geometric_sum(m: _ct.tarray, terms: int) -> _ct.tarray:
 
+    m = _np.asarray(m, dtype=float)
     size = m.shape[0]
 
     result_power = _np.eye(size, dtype=float)
@@ -445,18 +446,18 @@ def matrix_geometric_sum(m: _ct.tarray, terms: int) -> _ct.tarray:
 
 # INFORMATION THEORY
 
-def kullback_leibler_divergence(p, pi, phi, q):
-
-    pi = pi[_np.newaxis, :]
+def kullback_leibler_divergence(p: _ct.tarray, pi: _ct.tarray, phi: _ct.tarray, q: _ct.tarray) -> float:
 
     super_q = _np.dot(_np.dot(phi, q), _np.transpose(phi))
-    theta = _np.sum(p * _np.nan_to_num(_np.log2(p / super_q), copy=False), axis=1)
-    t = _np.sum(pi * theta)
-
     super_pi = _np.dot(_np.dot(pi, phi), _np.transpose(phi))
-    psi = _np.nan_to_num(_np.log2(pi / super_pi), copy=False)
-    u = _np.sum(pi * psi)
 
-    kld = t - u
+    positive = pi > 0.0
+
+    theta = _np.sum(_rel_entr(p[positive, :], super_q[positive, :]), axis=1)
+    t = _np.dot(pi[positive], theta)
+
+    u = _np.sum(_rel_entr(pi[positive], super_pi[positive]))
+
+    kld = float((t - u) / _np.log(2.0))
 
     return kld

@@ -102,7 +102,7 @@ from . import _numerical as _n
 
 # PRIVATE HELPERS
 
-def _build_observable_matrix(p: _ct.tarray, observable: _ct.tobs, observable_param: _ct.tany) -> _ct.tarray:
+def _build_observable_matrix(p: _ct.tarray, observable: _ct.tobsv, observable_param: _ct.tany) -> _ct.tarray:
 
     if not isinstance(observable, str):
         return observable
@@ -1287,7 +1287,7 @@ def hmm_synchronization_information(hmm: _ct.thmm, extended: bool) -> _ct.tarray
     return si
 
 
-def mc_cumulants(mc: _ct.tmc, order: int, observable: _ct.tobs, observable_param: _ct.tany) -> _ct.tarray:
+def mc_cumulants(mc: _ct.tmc, order: int, observable: _ct.tobsv, observable_param: _ct.tany) -> _ct.tarray:
 
     p, size, pi = mc.p, mc.size, mc.pi[0]
     g = _build_observable_matrix(p, observable, observable_param)
@@ -1424,7 +1424,7 @@ def mc_fisher_information(mc: _ct.tmc) -> _ct.oarray:
     return fi
 
 
-def mc_large_deviation_rate(mc: _ct.tmc, target_average: float, observable: _ct.tobs, observable_param: _ct.tany) -> float:
+def mc_large_deviation_rate(mc: _ct.tmc, target_average: float, observable: _ct.tobsv, observable_param: _ct.tany) -> float:
 
     def _evaluate_tilt(et_tilt, et_bound, et_increments):
 
@@ -1436,6 +1436,9 @@ def mc_large_deviation_rate(mc: _ct.tmc, target_average: float, observable: _ct.
         et_index = int(_np.argmax(et_eigenvalues.real))
         et_radius = float(et_eigenvalues[et_index].real)
 
+        if (not _np.isfinite(et_radius)) or (et_radius <= 0.0):  # pragma: no cover
+            raise ValueError('The large-deviation optimization produced an invalid spectral radius.')
+
         et_left = et_left[:, et_index].real
         et_right = et_right[:, et_index].real
 
@@ -1443,6 +1446,9 @@ def mc_large_deviation_rate(mc: _ct.tmc, target_average: float, observable: _ct.
 
         et_derivative = float(_np.dot(et_weights, values) / (et_radius * _np.dot(et_left, et_right)))
         et_scgf = float(et_tilt * et_bound + _np.log(et_radius))
+
+        if (not _np.isfinite(et_derivative)) or (not _np.isfinite(et_scgf)):  # pragma: no cover
+            raise ValueError('The large-deviation optimization produced invalid numerical values.')
 
         return et_scgf, et_derivative
 

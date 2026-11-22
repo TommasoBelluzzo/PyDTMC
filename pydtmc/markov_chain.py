@@ -2615,7 +2615,7 @@ class MarkovChain(_bc.Model):
          - **top-down** for a top-down aggregation (more suitable for reducing a small number of states);
          - **adaptive** for automatically selecting the best aggregation method, according to the size of the original and reduced chains.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Markov chain has only 2 states or is not **ergodic**.
+        :raises ValueError: if the Markov chain has only 2 states, is not **ergodic**, or the aggregation cannot be computed.
         """
 
         try:
