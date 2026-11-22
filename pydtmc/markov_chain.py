@@ -465,6 +465,23 @@ class MarkovChain(_bc.Model):
         return _a.mc_entropy_rate_normalized(self)
 
     @_dc.cached_property
+    def fisher_information(self) -> _ct.oarray:
+
+        r"""
+        | A property representing the expected Fisher information matrix per transition of the Markov chain:
+        | :math:`\mathcal{I} = \operatorname{diag}(\mathcal{I}_1, \ldots, \mathcal{I}_n)` with
+        | :math:`\mathcal{I}_i = \pi_i \left[\operatorname{diag}\left(\frac{1}{P_{i1}},\ldots,\frac{1}{P_{i,n-1}}\right) + \frac{1}{P_{in}}\mathbf{1}\mathbf{1}^{\mathsf{T}}\right]`.
+
+        | **Notes:**
+
+        - The expected Fisher information is computed using the stationary distribution and the first :math:`n-1` transition probabilities of each row as free parameters.
+        - The returned matrix has dimensions :math:`n(n-1) \times n(n-1)`, where :math:`n` is the number of states.
+        - If the Markov chain is not **irreducible** or contains zero transition probabilities, then :py:class:`None` is returned.
+        """
+
+        return _a.mc_fisher_information(self)
+
+    @_dc.cached_property
     def fundamental_matrix(self) -> _ct.oarray:
 
         r"""
@@ -2003,7 +2020,7 @@ class MarkovChain(_bc.Model):
 
         | **Notes:**
 
-        - The returned chain is assigned newly generated state labels.
+        - The returned Markov chain is assigned newly generated state labels.
 
         :param other: the other Markov chain to be merged.
         :param gamma: the merger blending factor.

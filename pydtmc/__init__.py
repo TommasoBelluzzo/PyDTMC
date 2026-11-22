@@ -9,6 +9,7 @@ __all__ = [
     'HiddenMarkovModel', 'MarkovChain',
     # Assessments
     'assess_change_point',
+    'assess_hidden_states',
     'assess_homogeneity',
     'assess_independence',
     'assess_markov_property',

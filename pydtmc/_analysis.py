@@ -1436,6 +1436,32 @@ def mc_entropy_production_rate(mc: _ct.tmc) -> _ct.tlist_float:
     return epr
 
 
+def mc_fisher_information(mc: _ct.tmc) -> _ct.oarray:
+
+    if not mc.is_irreducible:
+        return None
+
+    p = mc.p
+
+    if _np.any(p <= 0.0):
+        return None
+
+    n, pi = mc.n, mc.pi[0]
+    m = n - 1
+
+    fi = _np.zeros((n * m, n * m), dtype=float)
+
+    for i in range(n):
+
+        start = i * m
+        end = start + m
+
+        block = _np.diag(1.0 / p[i, :m]) + 1.0 / p[i, m]
+        fi[start:end, start:end] = pi[i] * block
+
+    return fi
+
+
 def mc_large_deviation_rate(mc: _ct.tmc, target_average: float, observable: _ct.tobs, observable_param: _ct.tany) -> float:
 
     def _evaluate_tilt(et_tilt, et_bound, et_increments):

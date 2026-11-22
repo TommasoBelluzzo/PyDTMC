@@ -222,10 +222,9 @@ def assess_hidden_states(possible_symbols: _ct.tlist_str, symbols: _ct.tseq, max
                 continue
 
             hmm = _HiddenMarkovModel(p, e)
-            score = hmm.information_criterion(criterion, symbols, initial_distribution)
 
-            if score < best_score:
-                best_score = score
+            score = hmm.information_criterion(criterion, symbols, initial_distribution)
+            best_score = min(best_score, score)
 
         scores[n] = float(best_score)
 

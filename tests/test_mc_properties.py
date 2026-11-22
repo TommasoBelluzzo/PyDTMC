@@ -198,6 +198,28 @@ def test_entropy_production_rate(p, entropy_production_rate):
             assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_fisher_information(p, fisher_information):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.fisher_information
+    expected = fisher_information
+
+    if (actual is not None) and (expected is not None):
+
+        expected = _np.array(expected)
+
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _npt.assert_allclose(actual, _np.transpose(actual), rtol=1e-5, atol=1e-8)
+
+        assert mc.is_irreducible
+        assert _np.all(mc.p > 0.0)
+        assert _np.all(_npl.eigvalsh(actual) > 0.0)
+
+    else:
+        assert actual == expected
+
+
 def test_fundamental_matrix(p, fundamental_matrix, deviation_matrix, kemeny_constant):
 
     mc = _MarkovChain(p)

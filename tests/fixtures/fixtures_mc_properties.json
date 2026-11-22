@@ -29,6 +29,7 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.0,
     "entropy_rate_normalized": 0.0,
+    "fisher_information": null,
     "fundamental_matrix": [
       [0.75, 0.25],
       [0.25, 0.75]
@@ -101,6 +102,7 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.42063229,
     "entropy_rate_normalized": 0.87411046,
+    "fisher_information": null,
     "fundamental_matrix": [
       [0.859375, 0.140625],
       [0.234375, 0.765625]
@@ -173,6 +175,10 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.36239686,
     "entropy_rate_normalized": 0.52282815,
+    "fisher_information": [
+      [9.62406015, 0.00000000],
+      [0.00000000, 3.39285714]
+    ],
     "fundamental_matrix": [
       [0.7673469, 0.2326531],
       [0.1959184, 0.8040816]
@@ -245,6 +251,10 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.69314718,
     "entropy_rate_normalized": 1.0,
+    "fisher_information": [
+      [2.0, 0.0],
+      [0.0, 2.0]
+    ],
     "fundamental_matrix": [
       [1.0, 0.0],
       [0.0, 1.0]
@@ -314,6 +324,7 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.0,
     "entropy_rate_normalized": 0.0,
+    "fisher_information": null,
     "fundamental_matrix": null,
     "global_conductance": null,
     "global_metastability": null,
@@ -383,6 +394,10 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.32508297,
     "entropy_rate_normalized": 0.46899559,
+    "fisher_information": [
+      [1.11111111,  0.00000000],
+      [0.00000000, 10.00000000]
+    ],
     "fundamental_matrix": [
       [1.0, 0.0],
       [0.0, 1.0]
@@ -455,6 +470,10 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.32508297,
     "entropy_rate_normalized": 0.46899559,
+    "fisher_information": [
+      [10.00000000, 0.00000000],
+      [0.00000000, 1.11111111]
+    ],
     "fundamental_matrix": [
       [1.0, 0.0],
       [0.0, 1.0]
@@ -528,6 +547,7 @@
     "entropy_production_rate": [0.0, 0.0, 0.0],
     "entropy_rate": null,
     "entropy_rate_normalized": null,
+    "fisher_information": null,
     "fundamental_matrix": null,
     "global_conductance": null,
     "global_metastability": null,
@@ -619,6 +639,7 @@
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.0,
     "entropy_rate_normalized": 0.0,
+    "fisher_information": null,
     "fundamental_matrix": [
       [0.666667, 0.333333, 0.000000],
       [0.000000, 0.666667, 0.333333],
@@ -696,6 +717,7 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.0,
     "entropy_rate_normalized": 0.0,
+    "fisher_information": null,
     "fundamental_matrix": null,
     "global_conductance": null,
     "global_metastability": null,
@@ -773,6 +795,7 @@
     "entropy_production_rate": [0.0004003914],
     "entropy_rate": 0.82673422,
     "entropy_rate_normalized": 0.82257811,
+    "fisher_information": null,
     "fundamental_matrix": [
       [0.9173554, -0.0099511,  0.0925957],
       [0.0082645,  1.2887502, -0.29701470],
@@ -854,6 +877,7 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.30543215,
     "entropy_rate_normalized": 0.88129090,
+    "fisher_information": null,
     "fundamental_matrix": [
       [ 0.925, 0.250, -0.175],
       [ 0.075, 0.750,  0.175],
@@ -935,6 +959,14 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 1.02948736,
     "entropy_rate_normalized": 0.93707978,
+    "fisher_information": [
+      [1.66666667, 0.95238095, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.95238095, 1.90476190, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 4.28571429, 2.14285714, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 2.14285714, 2.85714286, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 0.00000000, 0.00000000, 1.66666667, 0.71428571],
+      [0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.71428571, 1.66666667]
+    ],
     "fundamental_matrix": [
       [ 1.1473923, -0.1836735,  0.0362812],
       [-0.1224490,  1.2448980, -0.12244900],
@@ -1016,6 +1048,14 @@
     "entropy_production_rate": [0.1952426653],
     "entropy_rate": 0.96338950,
     "entropy_rate_normalized": 0.87691492,
+    "fisher_information": [
+      [2.61160714, 0.29017857, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.29017857, 2.61160714, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 1.97916667, 0.84821429, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 0.84821429, 1.97916667, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 0.00000000, 0.00000000, 3.42857143, 1.71428571],
+      [0.00000000, 0.00000000, 0.00000000, 0.00000000, 1.71428571, 2.57142857]
+    ],
     "fundamental_matrix": [
       [0.8781888, -0.1588010,  0.2806122],
       [0.0567602,  0.9483418, -0.0051020],
@@ -1097,6 +1137,14 @@
     "entropy_production_rate": [0.0431404383],
     "entropy_rate": 0.77666276,
     "entropy_rate_normalized": 0.70694891,
+    "fisher_information": [
+      [13.02325581, 6.51162791, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [6.51162791, 6.87338501, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 6.41860465, 5.34883721, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 5.34883721, 6.68604651, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.74418605, 0.27906977],
+      [0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.27906977, 0.97674419]
+    ],
     "fundamental_matrix": [
       [ 0.8285560,  0.3063818, -0.1349378],
       [ 0.1308816,  0.9459167, -0.0767983],
@@ -1178,6 +1226,14 @@
     "entropy_production_rate": [0.1952426653],
     "entropy_rate": 0.96338950,
     "entropy_rate_normalized": 0.87691492,
+    "fisher_information": [
+      [2.61160714, 0.29017857, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.29017857, 2.61160714, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 1.97916667, 0.84821429, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 0.84821429, 1.97916667, 0.00000000, 0.00000000],
+      [0.00000000, 0.00000000, 0.00000000, 0.00000000, 3.42857143, 1.71428571],
+      [0.00000000, 0.00000000, 0.00000000, 0.00000000, 1.71428571, 2.57142857]
+    ],
     "fundamental_matrix": [
       [0.8781888, -0.1588010,  0.2806122],
       [0.0567602,  0.9483418, -0.0051020],
@@ -1259,6 +1315,7 @@
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.54392083,
     "entropy_rate_normalized": 0.78471189,
+    "fisher_information": null,
     "fundamental_matrix": [
       [ 1.2097304,  0.1390167, -0.3487472],
       [-0.7133465,  0.7800424,  0.9333041],
@@ -1340,6 +1397,7 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.80262756,
     "entropy_rate_normalized": 0.91065534,
+    "fisher_information": null,
     "fundamental_matrix": [
       [ 1.4769955,  0.2022703, -0.6792658],
       [ 0.2022703,  0.9275450, -0.1298152],
@@ -1421,6 +1479,7 @@
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.70772372,
     "entropy_rate_normalized": 0.89473640,
+    "fisher_information": null,
     "fundamental_matrix": [
       [ 0.9368999, 0.3237311, -0.2606310],
       [-0.0260631, 0.9163237,  0.1097394],
@@ -1498,6 +1557,7 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.0,
     "entropy_rate_normalized": 0.0,
+    "fisher_information": null,
     "fundamental_matrix": null,
     "global_conductance": null,
     "global_metastability": null,
@@ -1578,6 +1638,7 @@
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.70625800,
     "entropy_rate_normalized": 0.89288338,
+    "fisher_information": null,
     "fundamental_matrix": [
       [ 1.1906501, -0.2556611,  0.06501100],
       [-0.1607012,  1.2308254, -0.0701242],
@@ -1659,6 +1720,14 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.39439769,
     "entropy_rate_normalized": 0.35899625,
+    "fisher_information": [
+      [7.03703704,  6.66666667,  0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [6.66666667, 13.33333333,  0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000,  0.00000000, 13.33333333, 6.66666667, 0.00000000, 0.00000000],
+      [0.00000000,  0.00000000,  6.66666667, 7.03703704, 0.00000000, 0.00000000],
+      [0.00000000,  0.00000000,  0.00000000, 0.00000000, 7.03703704, 0.37037037],
+      [0.00000000,  0.00000000,  0.00000000, 0.00000000, 0.37037037, 7.03703704]
+    ],
     "fundamental_matrix": [
       [ 4.7777778, -1.8888889, -1.8888889],
       [-1.8888889,  4.7777778, -1.8888889],
@@ -1740,6 +1809,7 @@
     "entropy_production_rate": [0.0, 0.0],
     "entropy_rate": null,
     "entropy_rate_normalized": null,
+    "fisher_information": null,
     "fundamental_matrix": null,
     "global_conductance": null,
     "global_metastability": null,
@@ -1829,6 +1899,7 @@
     "entropy_production_rate": [0.0, 0.0],
     "entropy_rate": null,
     "entropy_rate_normalized": null,
+    "fisher_information": null,
     "fundamental_matrix": null,
     "global_conductance": null,
     "global_metastability": null,
@@ -1923,6 +1994,7 @@
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.69314718,
     "entropy_rate_normalized": 0.99999999,
+    "fisher_information": null,
     "fundamental_matrix": [
       [ 1.0,  0.5,  0.0, -0.5],
       [-0.5,  1.0,  0.5,  0.0],
@@ -2013,6 +2085,7 @@
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.23104906,
     "entropy_rate_normalized": 0.99999999,
+    "fisher_information": null,
     "fundamental_matrix": [
       [0.6666667, 0.0000000,  0.1666667,  0.1666667],
       [0.3333333, 0.6666667,  0.0000000,  0.0000000],
@@ -2103,6 +2176,20 @@
     "entropy_production_rate": [0.1547583356],
     "entropy_rate": 0.98153011,
     "entropy_rate_normalized": 0.70802431,
+    "fisher_information": [
+      [6.72897196,  5.88785047,  5.88785047, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [5.88785047, 11.77570093,  5.88785047, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [5.88785047,  5.88785047, 11.77570093, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000,  0.00000000,  0.00000000, 2.77075316, 2.61682243, 2.61682243, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000,  0.00000000,  0.00000000, 2.61682243, 5.23364486, 2.61682243, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000,  0.00000000,  0.00000000, 2.61682243, 2.61682243, 5.23364486, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000,  0.00000000,  0.00000000, 0.00000000, 0.00000000, 0.00000000, 2.80373832, 1.86915888, 1.86915888, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000,  0.00000000,  0.00000000, 0.00000000, 0.00000000, 0.00000000, 1.86915888, 2.80373832, 1.86915888, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000,  0.00000000,  0.00000000, 0.00000000, 0.00000000, 0.00000000, 1.86915888, 1.86915888, 2.24299065, 0.00000000, 0.00000000, 0.00000000],
+      [0.00000000,  0.00000000,  0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 1.24610592, 0.93457944, 0.93457944],
+      [0.00000000,  0.00000000,  0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.93457944, 1.24610592, 0.93457944],
+      [0.00000000,  0.00000000,  0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.93457944, 0.93457944, 1.24610592]
+    ],
     "fundamental_matrix": [
       [ 1.1709320, -0.0409352, -0.1385856,  0.0085888],
       [ 0.3765394,  0.8936443, -0.2320436, -0.0381402],
@@ -2198,6 +2285,7 @@
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 0.23104906,
     "entropy_rate_normalized": 1.0,
+    "fisher_information": null,
     "fundamental_matrix": [
       [ 0.8333333,  0.6666667, 0.0000000, -0.1666667, -0.3333333],
       [ 0.0000000,  0.8333333, 0.3333333,  0.0000000, -0.1666667],
@@ -2295,6 +2383,7 @@
     "entropy_production_rate": ["Infinity", 0.0],
     "entropy_rate": null,
     "entropy_rate_normalized": null,
+    "fisher_information": null,
     "fundamental_matrix": null,
     "global_conductance": null,
     "global_metastability": null,
@@ -2406,6 +2495,7 @@
     "entropy_production_rate": ["Infinity", 0.0],
     "entropy_rate": null,
     "entropy_rate_normalized": null,
+    "fisher_information": null,
     "fundamental_matrix": null,
     "global_conductance": null,
     "global_metastability": null,
@@ -2513,6 +2603,7 @@
     "entropy_production_rate": [0.0, 0.0],
     "entropy_rate": null,
     "entropy_rate_normalized": null,
+    "fisher_information": null,
     "fundamental_matrix": null,
     "global_conductance": null,
     "global_metastability": null,
@@ -2667,6 +2758,7 @@
     "entropy_production_rate": ["Infinity"],
     "entropy_rate": 1.44095223,
     "entropy_rate_normalized": 0.8904163,
+    "fisher_information": null,
     "fundamental_matrix": [
       [ 0.91023085, -0.14587702, -0.04053705,  0.19518893, -0.03726496,  0.36014225,  0.08080408,  0.10395733,  0.00374649, -0.13753003, -0.03418122, -0.14408162, -0.11459803],
       [ 0.01221703,  0.91372950,  0.02716291, -0.04919644, -0.03550359,  0.00871971,  0.03945323,  0.02186211, -0.00859812,  0.00789460,  0.01227620,  0.00853436,  0.04144849],
@@ -2838,6 +2930,7 @@
     "entropy_production_rate": [0.0],
     "entropy_rate": 0.71209714,
     "entropy_rate_normalized": 0.65827871,
+    "fisher_information": null,
     "fundamental_matrix": [
       [  1.93301971, -0.02678406, -0.33070235, -0.26026838, -0.15529427, -0.08258442, -0.04121240, -0.01974836, -0.00919665, -0.00418953, -0.00187211, -0.00081931, -0.00034786],
       [ -0.06696016,  1.17322399,  0.14930087, -0.06826709, -0.07849376, -0.05186422, -0.02892432, -0.01483313, -0.00723056, -0.00340309, -0.00155753, -0.00069348, -0.00029752],
@@ -2995,6 +3088,7 @@
     "entropy_production_rate": [0.11512925, 0.24141569],
     "entropy_rate": null,
     "entropy_rate_normalized": null,
+    "fisher_information": null,
     "fundamental_matrix": null,
     "global_conductance": null,
     "global_metastability": null,

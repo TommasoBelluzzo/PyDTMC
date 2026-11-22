@@ -22,6 +22,7 @@ Properties
       entropy_production_rate,
       entropy_rate,
       entropy_rate_normalized,
+      fisher_information,
       fundamental_matrix,
       global_conductance,
       global_metastability,
