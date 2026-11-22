@@ -142,7 +142,7 @@ Predicting State Sequences
 .. code-block:: python
 
    _, path = hmm.predict(
-       'viterbi',
+       'vit',
        observations,
        initial_status=[0.5, 0.5]
    )
