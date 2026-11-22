@@ -158,13 +158,13 @@ class RegimeModel:  # pylint: disable=missing-class-docstring
             ]
 
         hmm = HiddenMarkovModel.fit(
-            'baum-welch',
+            'bw',
             self._states, self._symbols,
             p_guess, e_guess,
             self._observed_symbols
         )
 
-        prediction = hmm.predict('viterbi', self._observed_symbols)
+        prediction = hmm.predict('vit', self._observed_symbols)
 
         if prediction is None:
             raise ValueError('Viterbi decoding failed.')

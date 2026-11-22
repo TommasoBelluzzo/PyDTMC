@@ -70,14 +70,16 @@ class HiddenMarkovModel(_bc.Model):
 
     __instance_generators: _ct.olist_str = None
 
-    def __init__(self, p: _ct.tmat, e: _ct.tmat, states: _ct.olist_str = None, symbols: _ct.olist_str = None):
+    def __init__(self, p: _ct.tmat, e: _ct.tmat, states: _ct.olist_str = None, symbols: _ct.olist_str = None) -> None:
 
         if HiddenMarkovModel.__instance_generators is None:
             HiddenMarkovModel.__instance_generators = _u.get_instance_generators(self.__class__)
 
-        caller = _u.get_caller(_ins.stack())
+        stack = _ins.stack()
+        caller = _u.get_caller(stack)
+        caller_module = stack[1].frame.f_globals.get('__name__')
 
-        if caller not in HiddenMarkovModel.__instance_generators:  # pylint: disable=unsupported-membership-test
+        if (caller_module != __name__) or (caller not in HiddenMarkovModel.__instance_generators):  # pylint: disable=unsupported-membership-test
 
             try:
 
@@ -204,7 +206,7 @@ class HiddenMarkovModel(_bc.Model):
         """
 
         mc = _MarkovChain(self.p, self.states)
-        n = self.__size[1]
+        n = self.__size[0]
         result = bool(mc.is_irreducible and (_npl.matrix_rank(self.p) == n) and (_npl.matrix_rank(self.e) == n))
 
         return result
@@ -288,7 +290,6 @@ class HiddenMarkovModel(_bc.Model):
 
         r"""
         | A property representing the redundant hidden states of the hidden Markov model.
-        | A hidden state is considered redundant when it is behaviorally equivalent to another hidden state and can be merged without changing the probability distributions of emitted-symbol sequences.
 
         | **Notes:**
 
@@ -1050,7 +1051,7 @@ class HiddenMarkovModel(_bc.Model):
 
         return d
 
-    def to_file(self, file_path: _ct.tpath):
+    def to_file(self, file_path: _ct.tpath) -> None:
 
         """
         | The method writes the hidden Markov model to the given file.

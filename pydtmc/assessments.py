@@ -57,7 +57,7 @@ def assess_change_point(possible_states: _ct.tlist_str, states: _ct.tseq, signif
     - The assessment uses the maximum likelihood-ratio (G) statistic, with p-values estimated through Monte Carlo simulation.
     - The change point identifies the first transition of the second regime, using zero-based indexing, and is returned only when the null hypothesis is rejected.
     - The returned tuple contains the detected change-point index, the p-value, and the likelihood-ratio test statistic.
-    - If an observed state has no outgoing transitions, then :py:class:`None` and *NaN* are returned for the change-point index and p-value, respectively.
+    - If an observed state has no outgoing transitions, then :py:obj:`None` and *NaN* are returned for the change-point index and p-value, respectively.
     - The methodology is described in `Detecting change-points in Markov chains (Polansky, 2007) <https://doi.org/10.1016/j.csda.2006.11.040>`_.
 
     :param possible_states: the possible states of the process.
@@ -172,7 +172,7 @@ def assess_hidden_states(possible_symbols: _ct.tlist_str, symbols: _ct.tseq, max
 
     | **Notes:**
 
-    - Candidate numbers of hidden states range from 2 through *maximum_states*, inclusive, with at least two candidates required.
+    - Candidate numbers of hidden states range from 2 through *maximum_hidden_states*, inclusive, with at least two candidates required.
     - Each candidate is fitted using Baum-Welch estimation with independently randomized initial transition and emission matrices.
     - The initial hidden-state distribution is uniform and fixed throughout estimation.
     - The lowest information criterion score across the successful fitting attempts is retained for each candidate.
@@ -246,7 +246,7 @@ def assess_homogeneity(possible_states: _ct.tlist_str, state_sequences: _ct.tseq
 
     - The assessment uses a likelihood-ratio (G) test, comparing transition frequencies across the sequences.
     - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
-    - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+    - If the test has 0 degrees of freedom, then :py:obj:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param possible_states: the possible states of the processes.
     :param state_sequences: the observed sequence(s) of states.
@@ -330,7 +330,7 @@ def assess_independence(possible_states: _ct.tlist_str, states: _ct.tseq, method
     - Both methods use Pearson's chi-squared statistic.
     - The simulation method estimates the p-value by permuting the observations after the initial state, preserving their frequencies under the independence hypothesis.
     - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
-    - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+    - If the test has 0 degrees of freedom, then :py:obj:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param possible_states: the possible states of the process.
     :param states: the observed sequence of states.
@@ -421,7 +421,7 @@ def assess_markov_property(possible_states: _ct.tlist_str, states: _ct.tseq, met
 
     - Both methods use Pearson's chi-squared statistic.
     - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
-    - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+    - If the test has 0 degrees of freedom, then :py:obj:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
     - The simulation method also returns an undefined result if an observed state has no outgoing transitions.
 
     :param possible_states: the possible states of the process.
@@ -737,7 +737,7 @@ def assess_theoretical_compatibility(mc: _ct.tmc, states: _ct.tseq, significance
     - The assessment uses a likelihood-ratio (G) test against the theoretical transition probabilities.
     - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
     - An observed transition with theoretical probability equal to 0 results in rejection with a p-value of 0.
-    - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+    - If the test has 0 degrees of freedom, then :py:obj:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param mc: the Markov chain representing the theoretical process.
     :param states: the observed sequence of states.
@@ -804,7 +804,7 @@ def assess_time_homogeneity(possible_states: _ct.tlist_str, states: _ct.tseq, bl
     - The assessment uses Pearson's chi-squared test on the transition frequencies of the blocks.
     - Time-homogeneity concerns transition probabilities and does not imply a stationary state distribution.
     - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
-    - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
+    - If the test has 0 degrees of freedom, then :py:obj:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param possible_states: the possible states of the process.
     :param states: the observed sequence of states.

@@ -66,14 +66,16 @@ class MarkovChain(_bc.Model):
     __instance_generators: _ct.olist_str = None
     __random_distributions: _ct.olist_str = None
 
-    def __init__(self, p: _ct.tmat, states: _ct.olist_str = None):
+    def __init__(self, p: _ct.tmat, states: _ct.olist_str = None) -> None:
 
         if MarkovChain.__instance_generators is None:
             MarkovChain.__instance_generators = _u.get_instance_generators(self.__class__)
 
-        caller = _u.get_caller(_ins.stack())
+        stack = _ins.stack()
+        caller = _u.get_caller(stack)
+        caller_module = stack[1].frame.f_globals.get('__name__')
 
-        if caller not in MarkovChain.__instance_generators:  # pylint: disable=unsupported-membership-test
+        if (caller_module != __name__) or (caller not in MarkovChain.__instance_generators):  # pylint: disable=unsupported-membership-test
 
             try:
 
@@ -229,7 +231,7 @@ class MarkovChain(_bc.Model):
 
         | **Notes:**
 
-        - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:obj:`None` is returned.
         """
 
         return _a.mc_absolute_spectral_gap(self.__slem)
@@ -382,7 +384,7 @@ class MarkovChain(_bc.Model):
 
         | **Notes:**
 
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
         """
 
         return _a.mc_deviation_matrix(self)
@@ -441,7 +443,7 @@ class MarkovChain(_bc.Model):
 
         - Terms with transition probability equal to 0 contribute 0.
         - The entropy rate is expressed in nats per transition.
-        - If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:class:`None` is returned.
+        - If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:obj:`None` is returned.
         """
 
         return _a.mc_entropy_rate(self)
@@ -459,7 +461,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - If the entropy rate or topological entropy is 0, the normalized entropy rate is defined as 0.
-        - If the entropy rate cannot be computed, then :py:class:`None` is returned.
+        - If the entropy rate cannot be computed, then :py:obj:`None` is returned.
         """
 
         return _a.mc_entropy_rate_normalized(self)
@@ -476,7 +478,7 @@ class MarkovChain(_bc.Model):
 
         - The expected Fisher information is computed using the stationary distribution and the first :math:`n-1` transition probabilities of each row as free parameters.
         - The returned matrix has dimensions :math:`n(n-1) \times n(n-1)`, where :math:`n` is the number of states.
-        - If the Markov chain is not **irreducible** or contains zero transition probabilities, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible** or contains zero transition probabilities, then :py:obj:`None` is returned.
         """
 
         return _a.mc_fisher_information(self)
@@ -490,7 +492,7 @@ class MarkovChain(_bc.Model):
 
         | **Notes:**
 
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
         """
 
         return _a.mc_fundamental_matrix(self)
@@ -511,7 +513,7 @@ class MarkovChain(_bc.Model):
 
         - For chains with at most 12 states, exact conductance is computed through exhaustive subset enumeration.
         - For chains with more than 12 states, a deterministic spectral-sweep approximation provides an upper bound on exact conductance.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
         """
 
         return _a.mc_global_conductance(self)
@@ -527,7 +529,7 @@ class MarkovChain(_bc.Model):
 
         - For chains with at most 12 states, exact global metastability is computed through exhaustive subset enumeration.
         - For chains with more than 12 states, a deterministic spectral-sweep approximation provides a lower bound on exact global metastability.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
         """
 
         gc = _a.mc_global_conductance(self)
@@ -546,7 +548,7 @@ class MarkovChain(_bc.Model):
 
         - The timescales are ordered by decreasing eigenvalue modulus, including an infinite timescale for the stationary mode.
         - Eigenvalue moduli equal to 0 yield timescales of 0, while moduli equal to 1 yield infinite timescales.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
         """
 
         return _a.mc_implied_timescales(self)
@@ -702,7 +704,7 @@ class MarkovChain(_bc.Model):
 
         | **Notes:**
 
-        - If the Markov chain is not **irreducible** or the value cannot be computed, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible** or the value cannot be computed, then :py:obj:`None` is returned.
         """
 
         return _a.mc_kemeny_constant(self)
@@ -739,7 +741,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - A **SLEM** equal to 0 yields a mixing rate of 0, while a **SLEM** equal to 1 yields infinity.
-        - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:obj:`None` is returned.
         """
 
         return _a.mc_mixing_rate(self.__slem)
@@ -768,7 +770,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - The returned distribution follows the original state ordering, with probabilities equal to 0 for recurrent states.
-        - If the distribution does not exist or is not unique, then :py:class:`None` is returned.
+        - If the distribution does not exist or is not unique, then :py:obj:`None` is returned.
         - The property can also be accessed through the alias **quasi_stationary_distribution**.
         """
 
@@ -784,7 +786,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - Each entry represents the expected number of visits to a transient state before leaving the transient state space, including the initial visit.
-        - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        - If the Markov chain is not **absorbing** or has no transient states, then :py:obj:`None` is returned.
         """
 
         return _a.mc_occupation_matrix(self, self.__transient_states_indices)
@@ -798,7 +800,7 @@ class MarkovChain(_bc.Model):
 
         | **Notes:**
 
-        - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        - If the Markov chain is not **absorbing** or has no transient states, then :py:obj:`None` is returned.
         """
 
         om = self.occupation_matrix
@@ -822,7 +824,7 @@ class MarkovChain(_bc.Model):
 
         - For chains with at most 12 states, the Cheeger bounds are computed using exact conductance.
         - For chains with more than 12 states, the lower bound is 0 and the upper bound uses approximate conductance.
-        - If the Markov chain is not both **irreducible** and **reversible**, then :py:class:`None` is returned.
+        - If the Markov chain is not both **irreducible** and **reversible**, then :py:obj:`None` is returned.
         """
 
         result = _a.mc_ordinary_spectral_gap(self)
@@ -910,7 +912,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - A value of 0 indicates maximum transition uncertainty, whereas a value of 1 indicates deterministic transitions.
-        - If the entropy rate cannot be computed, then :py:class:`None` is returned.
+        - If the entropy rate cannot be computed, then :py:obj:`None` is returned.
         """
 
         h = self.entropy_rate
@@ -975,7 +977,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - An absolute spectral gap equal to 0 yields infinity.
-        - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:obj:`None` is returned.
         """
 
         return _a.mc_relaxation_rate(self)
@@ -1084,7 +1086,7 @@ class MarkovChain(_bc.Model):
 
         - If no initial distribution is specified, each matrix entry gives the absorption probability for the recurrent class in its row and the transient state in its column.
         - If an initial distribution is specified, each vector entry gives the probability of eventual absorption into the recurrent class identified by its position.
-        - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        - If the Markov chain is not **absorbing** or has no transient states, then :py:obj:`None` is returned.
         - The method can also be accessed through the alias **ap**.
 
         :param initial_distribution: the initial probability distribution.
@@ -1116,7 +1118,7 @@ class MarkovChain(_bc.Model):
 
         - The absorption time is the number of transitions required to first enter a recurrent class.
         - The returned vector contains one value per transient state.
-        - If the Markov chain is not **absorbing** or has no transient states, then :py:class:`None` is returned.
+        - If the Markov chain is not **absorbing** or has no transient states, then :py:obj:`None` is returned.
         - The method can also be accessed through the alias **at**.
 
         :param statistic:
@@ -1241,7 +1243,7 @@ class MarkovChain(_bc.Model):
         - The **backward** committor is computed using the stationary time-reversed chain.
         - The **forward** committor is the probability of reaching the second subset before the first.
         - The forward committor is 0 on the first subset and 1 on the second, while the backward committor has the opposite boundary values.
-        - If the Markov chain is not **irreducible**, then for backward committor probabilities :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then for backward committor probabilities :py:obj:`None` is returned.
         - The method can also be accessed through the alias **crp**.
 
         :param committor_type:
@@ -1280,7 +1282,7 @@ class MarkovChain(_bc.Model):
         - The return passage begins at the state first reached in the target set.
         - States belonging to both the origin and target sets have a commute time of 0.
         - The result is not necessarily symmetric when the origin and target sets are exchanged.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
         - The method can also be accessed through the aliases **ct_between** and **ctb**.
 
         :param statistic:
@@ -1314,7 +1316,7 @@ class MarkovChain(_bc.Model):
         - If target states are specified, a vector is returned containing the commute time statistic for the entire target set, starting from each state.
         - The return passage begins at the state first reached in the target set.
         - States belonging to the target set have a commute time of 0.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
         - The method can also be accessed through the aliases **ct_to** and **ctt**.
 
         :param statistic:
@@ -1350,7 +1352,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - Conductance is the stationary probability of leaving the subset in one step, conditioned on being in the subset, and lies between 0 and 1.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
 
         :param states: the subset of the state space.
         :raises ValidationError: if any input argument is not compliant.
@@ -1381,7 +1383,7 @@ class MarkovChain(_bc.Model):
         - A time-additive observable assigns a numerical contribution to each transition of the Markov chain.
         - The first cumulant gives the long-run mean contribution per transition, while the second gives the long-run variance growth per transition.
         - The returned array contains all cumulants up to the specified order, starting with the first.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
 
         :param order: the maximum cumulant order, as a positive integer.
         :param observable:
@@ -1603,7 +1605,7 @@ class MarkovChain(_bc.Model):
 
         - The origin states are weighted according to the stationary distribution conditioned on the origin set.
         - The variance accounts for both the individual first passage time variances and the differences between their means.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
         - The method can also be accessed through the aliases **fpt_between** and **fptb**.
 
         :param statistic:
@@ -1635,7 +1637,7 @@ class MarkovChain(_bc.Model):
 
         - If target states are omitted, an n-by-n matrix is returned, with origin states as rows and destination states as columns.
         - If target states are specified, a vector is returned containing the first hitting-time statistic for the entire target set, starting from each state.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
         - The method can also be accessed through the aliases **fpt_to** and **fptt**.
 
         :param statistic:
@@ -1675,7 +1677,7 @@ class MarkovChain(_bc.Model):
         - A deterministic, spanning-tree-dependent fundamental-cycle basis is constructed independently for each recurrent class, excluding self-transitions.
         - The returned tuple contains a dictionary of cycle affinities and a list of dictionaries of cycle current coefficients, one for each stationary distribution.
         - If no fundamental cycles exist, the dictionaries are empty.
-        - If any recurrent class contains a transition without a positive reverse transition, then :py:class:`None` is returned.
+        - If any recurrent class contains a transition without a positive reverse transition, then :py:obj:`None` is returned.
         - The method can also be accessed through the alias **fcp**.
 
         :param output_indices: a boolean indicating whether to return zero-based state indices instead of state labels.
@@ -1938,7 +1940,7 @@ class MarkovChain(_bc.Model):
 
         - A time-additive observable assigns a numerical contribution to each transition of the Markov chain.
         - The large-deviation rate is non-negative; it equals 0 at the typical average, and can be infinite for unattainable averages.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
 
         :param target_average: the target average at which the large-deviation rate is evaluated.
         :param observable:
@@ -2052,7 +2054,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - Metastability is the stationary probability of remaining in the subset after one step, conditioned on being in the subset, and lies between 0 and 1.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
 
         :param states: the subset of the state space.
         :raises ValidationError: if any input argument is not compliant.
@@ -2112,7 +2114,7 @@ class MarkovChain(_bc.Model):
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic** or the threshold is not reached within the maximum number of iterations, then :py:class:`None` is returned.
+        - If the Markov chain is not **ergodic** or the threshold is not reached within the maximum number of iterations, then :py:obj:`None` is returned.
         - The method can also be accessed through the alias **mt**.
 
         :param cutoff: the total variation distance threshold.
@@ -2144,7 +2146,7 @@ class MarkovChain(_bc.Model):
 
         | **Notes:**
 
-        - If the Markov chain is not **ergodic** or the threshold is not reached within the maximum number of iterations, then :py:class:`None` is returned.
+        - If the Markov chain is not **ergodic** or the threshold is not reached within the maximum number of iterations, then :py:obj:`None` is returned.
         - The method can also be accessed through the alias **mtf**.
 
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
@@ -2204,7 +2206,7 @@ class MarkovChain(_bc.Model):
 
         - The method does not necessarily maximize the probability of the entire sequence, unlike **predict_trajectory**.
         - The returned sequence includes the initial state.
-        - If multiple states share the highest transition probability at any step, then :py:class:`None` is returned.
+        - If multiple states share the highest transition probability at any step, then :py:obj:`None` is returned.
 
         :param steps: the number of transitions.
         :param initial_state: the initial state.
@@ -2239,7 +2241,7 @@ class MarkovChain(_bc.Model):
         - The method maximizes the probability of the entire sequence, unlike **predict**.
         - The most probable sequence does not necessarily pass through the most probable state at each time step.
         - The returned sequence includes the initial state.
-        - If multiple distinct sequences share the maximum probability, then :py:class:`None` is returned.
+        - If multiple distinct sequences share the maximum probability, then :py:obj:`None` is returned.
 
         :param steps: the number of transitions.
         :param initial_state: the initial state.
@@ -2306,7 +2308,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - The reaction rate represents the expected number of reactive departures from the first subset toward the second per time step in stationarity.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
 
         :param states1: the first subset of the state space.
         :param states2: the second subset of the state space.
@@ -2342,7 +2344,7 @@ class MarkovChain(_bc.Model):
 
         - The reactive density represents the stationary probability of occupying a state along a reactive trajectory from the first subset to the second.
         - The reactive density is 0 for states belonging to either subset.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
 
         :param states1: the first subset of the state space.
         :param states2: the second subset of the state space.
@@ -2377,7 +2379,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - The reactive flux represents the stationary probability flow along reactive trajectories from the first subset to the second.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
 
         :param net: whether to compute the net reactive flux.
         :param states1: the first subset of the state space.
@@ -2415,7 +2417,7 @@ class MarkovChain(_bc.Model):
         - Pathways are extracted iteratively by maximizing their bottleneck flux and subtracting the selected flux from their edges.
         - Equal-flux pathways are selected by increasing length, then lexicographically by state indices.
         - The returned flux contributions are not probabilities of individual trajectories.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
 
         :param states1: the first subset of the state space.
         :param states2: the second subset of the state space.
@@ -2524,7 +2526,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - The returned matrix has one row and one column per state, corresponding to the origin and destination states of each transition.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
 
         :param state: the target state.
         :raises ValidationError: if any input argument is not compliant.
@@ -2644,7 +2646,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - When applicable, the bound is tightened using the Dobrushin contraction coefficient.
-        - If the Markov chain is not **irreducible**, then :py:class:`None` is returned.
+        - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
 
         :param epsilon: the perturbation tolerance, in the interval [0, 1].
         :raises ValidationError: if any input argument is not compliant.
@@ -2668,7 +2670,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - The method uses random mappings and backward coupling to sample from the stationary distribution without requiring a burn-in period.
-        - If coalescence is not achieved within the maximum backward simulation horizon, :py:class:`None` is returned.
+        - If coalescence is not achieved within the maximum backward simulation horizon, :py:obj:`None` is returned.
         - The methodology is described in `Exact sampling with coupled Markov chains and applications to statistical mechanics (Propp and Wilson, 1996) <https://doi.org/10.1002/(SICI)1098-2418(199608/09)9:1/2%3C223::AID-RSA14%3E3.0.CO;2-O>`_.
 
         :param maximum_doublings: the maximum number of horizon doublings, corresponding to a backward simulation limit of :math:`2^{md}` steps.
@@ -2743,8 +2745,8 @@ class MarkovChain(_bc.Model):
         - The input sequences define count-valued state observables; their ordering does not affect the computed correlations.
         - If the second sequence is omitted, the autocorrelation of the first sequence is computed.
         - The correlations are not centered or normalized.
-        - A single time point produces a :py:class:`float`; multiple time points produce a list of values.
-        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
+        - A single time point produces a :py:class:`float`; multiple time points produce a list of floating-point values.
+        - If the Markov chain has multiple stationary distributions, then :py:obj:`None` is returned.
         - The method can also be accessed through the alias **tc**.
 
         :param sequence1: the first observed sequence of states.
@@ -2782,8 +2784,8 @@ class MarkovChain(_bc.Model):
 
         - The input sequence defines a count-valued state observable; its ordering does not affect the computed expectations.
         - The computation includes time 0 when requested.
-        - A single time point produces a :py:class:`float`; multiple time points produce a list of values.
-        - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
+        - A single time point produces a :py:class:`float`; multiple time points produce a list of floating-point values.
+        - If the Markov chain has multiple stationary distributions, then :py:obj:`None` is returned.
         - The method can also be accessed through the alias **tr**.
 
         :param states: the observed sequence of states.
@@ -2908,7 +2910,7 @@ class MarkovChain(_bc.Model):
 
         return d
 
-    def to_file(self, file_path: _ct.tpath):
+    def to_file(self, file_path: _ct.tpath) -> None:
 
         """
         | The method writes the Markov chain to the given file.
