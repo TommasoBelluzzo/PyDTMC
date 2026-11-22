@@ -13,6 +13,7 @@ import math as _mt
 
 from pydtmc.assessments import (
     assess_change_point as _assess_change_point,
+    assess_hidden_states as _assess_hidden_states,
     assess_homogeneity as _assess_homogeneity,
     assess_independence as _assess_independence,
     assess_markov_property as _assess_markov_property,
@@ -48,7 +49,7 @@ def _extract_data_change_point(result, value):
     return actual, expected
 
 
-def _extract_data_order(result, value):
+def _extract_data_count(result, value):
 
     actual_order, actual_scores = result
     actual_scores = {int(k): round(v, 8) for k, v in actual_scores.items()}
@@ -80,85 +81,93 @@ def _extract_data_statistic(result, value):
     return actual, expected
 
 
-def test_assess_change_point(possible_states, sequence, significance, value):
+def test_assess_change_point(possible_states, states, significance, value):
 
-    result = _assess_change_point(possible_states, sequence, significance, simulations=100, seed=7331)
+    result = _assess_change_point(possible_states, states, significance, simulations=100, seed=7331)
     actual, expected = _extract_data_change_point(result, value)
 
     assert actual == expected
 
 
-def test_assess_homogeneity(possible_states, sequences, significance, value):
+def test_assess_hidden_states(possible_symbols, symbols, maximum_hidden_states, criterion, restarts, seed, value):
 
-    result = _assess_homogeneity(possible_states, sequences, significance)
+    result = _assess_hidden_states(possible_symbols, symbols, maximum_hidden_states, criterion, restarts, seed)
+    actual, expected = _extract_data_count(result, value)
+
+    assert actual == expected
+
+
+def test_assess_homogeneity(possible_states, state_sequences, significance, value):
+
+    result = _assess_homogeneity(possible_states, state_sequences, significance)
     actual, expected = _extract_data_statistic(result, value)
 
     assert actual == expected
 
 
-def test_assess_independence(possible_states, sequence, method, significance, value):
+def test_assess_independence(possible_states, states, method, significance, value):
 
     if method == 'simulation':
-        result = _assess_independence(possible_states, sequence, method, significance, simulations=100, seed=7331)
+        result = _assess_independence(possible_states, states, method, significance, simulations=100, seed=7331)
     else:
-        result = _assess_independence(possible_states, sequence, method, significance)
+        result = _assess_independence(possible_states, states, method, significance)
 
     actual, expected = _extract_data_statistic(result, value)
 
     assert actual == expected
 
 
-def test_assess_markov_property(possible_states, sequence, method, significance, value):
+def test_assess_markov_property(possible_states, states, method, significance, value):
 
     if method == 'simulation':
-        result = _assess_markov_property(possible_states, sequence, method, significance, simulations=100, seed=7331)
+        result = _assess_markov_property(possible_states, states, method, significance, simulations=100, seed=7331)
     else:
-        result = _assess_markov_property(possible_states, sequence, method, significance)
+        result = _assess_markov_property(possible_states, states, method, significance)
 
     actual, expected = _extract_data_statistic(result, value)
 
     assert actual == expected
 
 
-def test_assess_order(possible_states, sequence, maximum_order, criterion, value):
+def test_assess_order(possible_states, states, maximum_order, criterion, value):
 
-    result = _assess_order(possible_states, sequence, maximum_order, criterion)
-    actual, expected = _extract_data_order(result, value)
+    result = _assess_order(possible_states, states, maximum_order, criterion)
+    actual, expected = _extract_data_count(result, value)
 
     assert actual == expected
 
 
-def test_assess_stationarity(p, states, sequences, significance, value):
+def test_assess_stationarity(p, possible_states, state_sequences, significance, value):
 
-    mc = _MarkovChain(p, states)
+    mc = _MarkovChain(p, possible_states)
 
-    result = _assess_stationarity(mc, sequences, significance)
+    result = _assess_stationarity(mc, state_sequences, significance)
     actual, expected = _extract_data_statistic(result, value)
 
     assert actual == expected
 
 
-def test_assess_theoretical_compatibility(p, states, sequence, significance, value):
+def test_assess_theoretical_compatibility(p, possible_states, states, significance, value):
 
-    mc = _MarkovChain(p, states)
+    mc = _MarkovChain(p, possible_states)
 
-    result = _assess_theoretical_compatibility(mc, sequence, significance)
+    result = _assess_theoretical_compatibility(mc, states, significance)
     actual, expected = _extract_data_statistic(result, value)
 
     assert actual == expected
 
 
-def test_assess_time_homogeneity(possible_states, sequence, blocks, significance, value):
+def test_assess_time_homogeneity(possible_states, states, blocks, significance, value):
 
-    result = _assess_time_homogeneity(possible_states, sequence, blocks, significance)
+    result = _assess_time_homogeneity(possible_states, states, blocks, significance)
     actual, expected = _extract_data_statistic(result, value)
 
     assert actual == expected
 
 
-def test_assess_vamp_score(method, possible_states, sequences, lag, center, value):
+def test_assess_vamp_score(method, possible_states, state_sequences, lag, center, value):
 
-    result = _assess_vamp_score(method, possible_states, sequences, lag, center)
+    result = _assess_vamp_score(method, possible_states, state_sequences, lag, center)
 
     actual = round(result, 8)
     expected = round(value, 8)

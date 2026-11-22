@@ -15,6 +15,7 @@ Instance Methods
       entropy_rate,
       excess_entropy,
       hitting_probabilities,
+      information_criterion,
       mutual_information,
       next,
       perplexity,

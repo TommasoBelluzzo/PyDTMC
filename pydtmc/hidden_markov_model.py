@@ -230,7 +230,7 @@ class HiddenMarkovModel(_bc.Model):
     def parameters(self) -> int:
 
         """
-        A property representing the number of free transition and emission parameters of the hidden Markov model.
+        A property representing the number of free transition and emission parameters of the hidden Markov model, assuming unrestricted transition and emission matrices.
         """
 
         pars = self.n * (self.n + self.k - 2)

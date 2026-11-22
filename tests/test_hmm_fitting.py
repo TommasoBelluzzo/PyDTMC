@@ -22,10 +22,10 @@ from pydtmc import (
 #########
 
 # noinspection PyBroadException
-def test_estimate(possible_states, possible_symbols, sequence_states, sequence_symbols, value):
+def test_estimate(possible_states, possible_symbols, states, symbols, value):
 
     try:
-        hmm = _HiddenMarkovModel.estimate(possible_states, possible_symbols, sequence_states, sequence_symbols)
+        hmm = _HiddenMarkovModel.estimate(possible_states, possible_symbols, states, symbols)
     except Exception:
         hmm = None
 

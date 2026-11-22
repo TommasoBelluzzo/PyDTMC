@@ -45,6 +45,7 @@ Properties
       occupation_trace,
       ordinary_spectral_gap,
       p,
+      parameters,
       period,
       periods,
       pi,

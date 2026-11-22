@@ -34,9 +34,9 @@ def test_fit_function(f, possible_states, quadrature_type, quadrature_interval, 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-def test_fit_sequence(possible_states, sequence, fitting_type, fitting_param, value):
+def test_fit_sequence(possible_states, states, fitting_type, fitting_param, value):
 
-    mc = _MarkovChain.fit_sequence(fitting_type, possible_states, sequence, fitting_param)
+    mc = _MarkovChain.fit_sequence(fitting_type, possible_states, states, fitting_param)
 
     actual = mc.p
     expected = _np.array(value)

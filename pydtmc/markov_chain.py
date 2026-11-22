@@ -830,7 +830,7 @@ class MarkovChain(_bc.Model):
     def parameters(self) -> int:
 
         """
-        A property representing the number of free transition parameters of the Markov chain.
+        A property representing the number of free transition parameters of the Markov chain, assuming an unrestricted transition matrix.
         """
 
         pars = self.n * (self.n - 1)
@@ -2705,7 +2705,7 @@ class MarkovChain(_bc.Model):
         return _a.mc_time_correlations(self, sequence1, sequence2, time_points)
 
     @_dc.object_mark(aliases=['tr'])
-    def time_relaxations(self, sequence: _ct.tseq, initial_distribution: _ct.ovec = None, time_points: _ct.ttimes_in = 1) -> _ct.otimes_out:
+    def time_relaxations(self, states: _ct.tseq, initial_distribution: _ct.ovec = None, time_points: _ct.ttimes_in = 1) -> _ct.otimes_out:
 
         r"""
         | The method computes the time-dependent expected value of a state observable of the Markov chain:
@@ -2723,7 +2723,7 @@ class MarkovChain(_bc.Model):
         - If the Markov chain has multiple stationary distributions, then :py:class:`None` is returned.
         - The method can also be accessed through the alias **tr**.
 
-        :param sequence: the observed sequence of states.
+        :param states: the observed sequence of states.
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param time_points: the time point or a list of time points at which the computation is performed.
         :raises ValidationError: if any input argument is not compliant.
@@ -2731,14 +2731,14 @@ class MarkovChain(_bc.Model):
 
         try:
 
-            sequence = _v.validate_sequence(sequence, self.__states)
+            states = _v.validate_sequence(states, self.__states)
             initial_distribution = _v.validate_vector_stochastic(initial_distribution, self.__size, True)
             time_points = _v.validate_time_points(time_points)
 
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _a.mc_time_relaxations(self, sequence, initial_distribution, time_points)
+        return _a.mc_time_relaxations(self, states, initial_distribution, time_points)
 
     @_dc.object_mark(instance_generator=True)
     def time_reversal(self, method: str = 'standard') -> _ct.tmc:

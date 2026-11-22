@@ -114,7 +114,7 @@
   "fit_sequence_data": [
     {
       "possible_states": ["A", "B"],
-      "sequence": ["A", "B", "A", "A", "B", "B", "A", "B", "A", "A", "B", "A", "B", "B", "B", "A"],
+      "states": ["A", "B", "A", "A", "B", "B", "A", "B", "A", "A", "B", "A", "B", "B", "B", "A"],
       "fitting_type": "mle",
       "fitting_param": true,
       "value": [
@@ -124,7 +124,7 @@
     },
     {
       "possible_states": ["A", "B"],
-      "sequence": ["A", "A", "A", "A", "B", "B", "A", "A", "B", "A", "B", "B", "B", "A"],
+      "states": ["A", "A", "A", "A", "B", "B", "A", "A", "B", "A", "B", "B", "B", "A"],
       "fitting_type": "rmle",
       "fitting_param": 1000,
       "value": [
@@ -134,7 +134,7 @@
     },
     {
       "possible_states": ["A", "B", "C"],
-      "sequence": ["A", "A", "C", "A", "C", "C", "B", "C", "A", "C", "C"],
+      "states": ["A", "A", "C", "A", "C", "C", "B", "C", "A", "C", "C"],
       "fitting_type": "map",
       "fitting_param": null,
       "value": [
@@ -145,7 +145,7 @@
     },
     {
       "possible_states": ["A", "B", "C"],
-      "sequence": ["A", "B", "C", "A", "C", "B", "A", "B", "C", "A", "B", "C", "B", "A", "C", "A"],
+      "states": ["A", "B", "C", "A", "C", "B", "A", "B", "C", "A", "B", "C", "B", "A", "C", "A"],
       "fitting_type": "rmle",
       "fitting_param": 1000,
       "value": [
@@ -156,7 +156,7 @@
     },
     {
       "possible_states": ["A", "B", "C"],
-      "sequence": ["A", "A", "C", "A", "C", "C", "B", "C", "A", "C", "C"],
+      "states": ["A", "A", "C", "A", "C", "C", "B", "C", "A", "C", "C"],
       "fitting_type": "mle",
       "fitting_param": null,
       "value": [
@@ -167,7 +167,7 @@
     },
     {
       "possible_states": ["A", "B", "C"],
-      "sequence": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B", "A", "A"],
+      "states": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B", "A", "A"],
       "fitting_type": "map",
       "fitting_param": null,
       "value": [
@@ -178,7 +178,7 @@
     },
     {
       "possible_states": ["A", "B", "C"],
-      "sequence": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B", "A", "A"],
+      "states": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B", "A", "A"],
       "fitting_type": "mle",
       "fitting_param": null,
       "value": [
@@ -189,7 +189,7 @@
     },
     {
       "possible_states": ["A", "B", "C"],
-      "sequence": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B"],
+      "states": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B"],
       "fitting_type": "map",
       "fitting_param": [
         [7, 15, 9],
@@ -204,7 +204,7 @@
     },
     {
       "possible_states": ["A", "B", "C"],
-      "sequence": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B", "A", "A"],
+      "states": ["A", "B", "C", "C", "C", "C", "B", "C", "A", "A", "B", "A", "A"],
       "fitting_type": "mle",
       "fitting_param": true,
       "value": [
@@ -215,7 +215,7 @@
     },
     {
       "possible_states": ["A", "B", "C"],
-      "sequence": ["A", "A", "B", "C", "B", "B", "A", "C", "C", "A", "B", "C", "A", "A", "C", "B", "A", "B", "C"],
+      "states": ["A", "A", "B", "C", "B", "B", "A", "C", "C", "A", "B", "C", "A", "A", "C", "B", "A", "B", "C"],
       "fitting_type": "rmle",
       "fitting_param": 1000,
       "value": [
@@ -226,7 +226,7 @@
     },
     {
       "possible_states": ["A", "B", "C"],
-      "sequence": ["A", "A", "A", "B", "B", "B", "C", "C", "C", "B", "A", "A", "B", "B", "C", "B", "B", "A"],
+      "states": ["A", "A", "A", "B", "B", "B", "C", "C", "C", "B", "A", "A", "B", "B", "C", "B", "B", "A"],
       "fitting_type": "rmle",
       "fitting_param": 1000,
       "value": [
@@ -237,7 +237,7 @@
     },
     {
       "possible_states": ["A", "B", "C"],
-      "sequence": ["A", "B", "C", "A", "B", "C", "A", "B", "C", "A"],
+      "states": ["A", "B", "C", "A", "B", "C", "A", "B", "C", "A"],
       "fitting_type": "rmle",
       "fitting_param": 1000,
       "value": [
@@ -248,7 +248,7 @@
     },
     {
       "possible_states": ["A", "B", "C", "D"],
-      "sequence": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
+      "states": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
       "fitting_type": "map",
       "fitting_param": null,
       "value": [
@@ -260,7 +260,7 @@
     },
     {
       "possible_states": ["A", "B", "C", "D"],
-      "sequence": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
+      "states": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
       "fitting_type": "mle",
       "fitting_param": null,
       "value": [
@@ -272,7 +272,7 @@
     },
     {
       "possible_states": ["A", "B", "C", "D"],
-      "sequence": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
+      "states": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
       "fitting_type": "map",
       "fitting_param": [
         [3, 5,  3, 5],
@@ -289,7 +289,7 @@
     },
     {
       "possible_states": ["A", "B", "C", "D"],
-      "sequence": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
+      "states": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "A"],
       "fitting_type": "mle",
       "fitting_param": true,
       "value": [
@@ -301,7 +301,7 @@
     },
     {
       "possible_states": ["A", "B", "C", "D"],
-      "sequence": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D"],
+      "states": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D"],
       "fitting_type": "map",
       "fitting_param": null,
       "value": [
@@ -313,7 +313,7 @@
     },
     {
       "possible_states": ["A", "B", "C", "D"],
-      "sequence": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D"],
+      "states": ["A", "C", "C", "C", "A", "B", "C", "A", "A", "B", "A", "A", "C", "C", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D", "D"],
       "fitting_type": "mle",
       "fitting_param": null,
       "value": [
@@ -325,7 +325,7 @@
     },
     {
       "possible_states": ["A", "B", "C", "D"],
-      "sequence": ["A", "B", "D", "C", "A", "C", "D", "D", "B", "A", "D", "C", "B", "C", "A", "B", "B", "D", "A"],
+      "states": ["A", "B", "D", "C", "A", "C", "D", "D", "B", "A", "D", "C", "B", "C", "A", "B", "B", "D", "A"],
       "fitting_type": "rmle",
       "fitting_param": 1000,
       "value": [
@@ -337,7 +337,7 @@
     },
     {
       "possible_states": ["A", "B", "C", "D"],
-      "sequence": ["A", "B", "C", "D", "A", "C", "B", "D", "C", "A", "D", "B", "A", "C", "D", "B", "A", "B", "C", "D", "A"],
+      "states": ["A", "B", "C", "D", "A", "C", "B", "D", "C", "A", "D", "B", "A", "C", "D", "B", "A", "B", "C", "D", "A"],
       "fitting_type": "rmle",
       "fitting_param": null,
       "value": [

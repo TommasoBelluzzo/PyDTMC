@@ -47,6 +47,7 @@ from pydtmc.hidden_markov_model import (
 
 from pydtmc.assessments import (
     assess_change_point,
+    assess_hidden_states,
     assess_homogeneity,
     assess_independence,
     assess_markov_property,

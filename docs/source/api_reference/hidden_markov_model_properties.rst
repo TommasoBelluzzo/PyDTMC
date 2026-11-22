@@ -14,6 +14,7 @@ Properties
       k,
       n,
       p,
+      parameters,
       pi,
       size,
       states,

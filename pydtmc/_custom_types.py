@@ -63,7 +63,7 @@ __all__ = [
     'trfunc_f', 'orfunc_f',
     # Compound Types - Specific
     'tass_cp', 'oass_cp',
-    'tass_ord', 'oass_ord',
+    'tass_cnt', 'oass_cnt',
     'tass_stat', 'oass_stat',
     'tbcond', 'obcond',
     'thmm_dec', 'ohmm_dec',
@@ -318,8 +318,8 @@ orfunc_f = _tp.Optional[trfunc_f]
 tass_cp = _tp.Tuple[oint, float, float]
 oass_cp = _tp.Optional[tass_cp]
 
-tass_ord = _tp.Tuple[int, _tp.Dict[int, float]]
-oass_ord = _tp.Optional[tass_ord]
+tass_cnt = _tp.Tuple[int, _tp.Dict[int, float]]
+oass_cnt = _tp.Optional[tass_cnt]
 
 tass_stat = _tp.Tuple[obool, float, _tp.Dict[str, tany]]
 oass_stat = _tp.Optional[tass_stat]

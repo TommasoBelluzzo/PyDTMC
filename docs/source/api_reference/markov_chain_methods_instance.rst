@@ -26,6 +26,7 @@ Instance Methods
       fundamental_cycle_profile,
       hitting_probabilities,
       hitting_times,
+      information_criterion,
       is_absorbing_state,
       is_accessible,
       is_cyclic_state,

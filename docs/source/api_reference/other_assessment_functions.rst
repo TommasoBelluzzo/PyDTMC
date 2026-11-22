@@ -4,6 +4,7 @@ Assessment Functions
 .. currentmodule:: pydtmc
 
 .. autofunction:: assess_change_point
+.. autofunction:: assess_hidden_states
 .. autofunction:: assess_homogeneity
 .. autofunction:: assess_independence
 .. autofunction:: assess_markov_property

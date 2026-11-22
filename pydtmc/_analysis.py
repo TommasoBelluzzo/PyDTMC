@@ -940,8 +940,7 @@ def hmm_conditional_probabilities(hmm: _ct.thmm, symbol: int) -> _ct.tlist_array
 
 def hmm_information_criterion(hmm: _ct.thmm, criterion: str, symbols: _ct.tlist_int, initial_distribution: _ct.tarray) -> float:
 
-    n, k = hmm.size
-    p, e = hmm.p, hmm.e
+    p, e, parameters = hmm.p, hmm.e, hmm.parameters
 
     forward = initial_distribution * e[:, symbols[0]]
     scaling_factor = float(_np.sum(forward))
@@ -964,7 +963,6 @@ def hmm_information_criterion(hmm: _ct.thmm, criterion: str, symbols: _ct.tlist_
         forward /= scaling_factor
 
     log_probability = float(log_probability)
-    parameters = n * (n + k - 2)
     observations = len(symbols)
 
     ic = _n.information_criterion(criterion, log_probability, parameters, observations)
@@ -974,15 +972,13 @@ def hmm_information_criterion(hmm: _ct.thmm, criterion: str, symbols: _ct.tlist_
 
 def mc_information_criterion(mc: _ct.tmc, criterion: str, states: _ct.tlist_int) -> float:
 
-    p, size = mc.p, mc.size
-
+    p, parameters = mc.p, mc.parameters
     probabilities = p[states[:-1], states[1:]]
 
     if _np.any(probabilities == 0.0):
         return float('inf')
 
     log_probability = float(_np.sum(_np.log(probabilities)))
-    parameters = size * (size - 1)
     observations = len(states) - 1
 
     ic = _n.information_criterion(criterion, log_probability, parameters, observations)
@@ -1738,7 +1734,7 @@ def mc_time_correlations(mc: _ct.tmc, sequence1: _ct.tseq, sequence2: _ct.oseq, 
     return tcs
 
 
-def mc_time_relaxations(mc: _ct.tmc, sequence: _ct.tseq, initial_distribution: _ct.tarray, time_points: _ct.ttimes_in) -> _ct.otimes_out:
+def mc_time_relaxations(mc: _ct.tmc, states: _ct.tseq, initial_distribution: _ct.tarray, time_points: _ct.ttimes_in) -> _ct.otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 
@@ -1747,7 +1743,7 @@ def mc_time_relaxations(mc: _ct.tmc, sequence: _ct.tseq, initial_distribution: _
 
     observations = _np.zeros(size, dtype=float)
 
-    for state in sequence:
+    for state in states:
         observations[state] += 1.0
 
     if isinstance(time_points, int):

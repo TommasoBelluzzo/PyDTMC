@@ -348,6 +348,16 @@ def test_hitting_times(p, targets, value_mean, value_variance):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8, equal_nan=True)
 
 
+def test_information_criterion(p, criterion, states, value):
+
+    mc = _MarkovChain(p)
+
+    actual = mc.information_criterion(criterion, states)
+    expected = value
+
+    assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_large_deviation_rate(p, target_average, observable, observable_param, value):
 
     mc = _MarkovChain(p)
@@ -508,11 +518,11 @@ def test_time_correlations(p, sequence1, sequence2, time_points, value):
         assert actual == expected
 
 
-def test_time_relaxations(p, sequence, initial_distribution, time_points, value):
+def test_time_relaxations(p, states, initial_distribution, time_points, value):
 
     mc = _MarkovChain(p)
 
-    actual = _np.array(mc.time_relaxations(sequence, initial_distribution, time_points))
+    actual = _np.array(mc.time_relaxations(states, initial_distribution, time_points))
     expected = value
 
     if (actual is not None) and (expected is not None):

@@ -2,6 +2,7 @@
 
 __all__ = [
     'assess_change_point',
+    'assess_hidden_states',
     'assess_homogeneity',
     'assess_independence',
     'assess_markov_property',
@@ -32,15 +33,20 @@ import scipy.stats as _sps
 # Internal
 
 from . import _custom_types as _ct
+from . import _fitting as _ft
 from . import _utilities as _u
 from . import _validation as _v
+
+from .hidden_markov_model import (
+    HiddenMarkovModel as _HiddenMarkovModel
+)
 
 
 #############
 # FUNCTIONS #
 #############
 
-def assess_change_point(possible_states: _ct.tlist_str, sequence: _ct.tseq, significance: float = 0.05, simulations: int = 1000, seed: _ct.oint = None) -> _ct.tass_cp:
+def assess_change_point(possible_states: _ct.tlist_str, states: _ct.tseq, significance: float = 0.05, simulations: int = 1000, seed: _ct.oint = None) -> _ct.tass_cp:
 
     r"""
     | The function assesses whether the transition probabilities of the given sequence change at a single unknown point:
@@ -55,7 +61,7 @@ def assess_change_point(possible_states: _ct.tlist_str, sequence: _ct.tseq, sign
     - The methodology is described in `Detecting change-points in Markov chains (Polansky, 2007) <https://doi.org/10.1016/j.csda.2006.11.040>`_.
 
     :param possible_states: the possible states of the process.
-    :param sequence: the observed sequence of states.
+    :param states: the observed sequence of states.
     :param significance: the significance level used to determine whether to reject the null hypothesis.
     :param simulations: the number of Monte Carlo simulations.
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
@@ -112,22 +118,22 @@ def assess_change_point(possible_states: _ct.tlist_str, sequence: _ct.tseq, sign
 
         rng = _u.create_rng(seed)
         possible_states = _v.validate_labels_input(possible_states)
-        sequence = _v.validate_sequence(sequence, possible_states)
+        states = _v.validate_sequence(states, possible_states)
         significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
         simulations = _v.validate_integer(simulations, lower_limit=(10, False))
 
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    n, length = len(possible_states), len(sequence)
+    n, length = len(possible_states), len(states)
 
     if length < 3:  # pragma: no cover
         raise ValueError('The sequence must contain at least 3 observations.')
 
-    statistic, change_point, transitions = _change_point_statistic(n, sequence)
+    statistic, change_point, transitions = _change_point_statistic(n, states)
 
     total_transitions = _np.sum(transitions, axis=1)
-    observed_states = _np.unique(sequence)
+    observed_states = _np.unique(states)
 
     if _np.any(total_transitions[observed_states] == 0):
         return None, float('nan'), statistic
@@ -142,7 +148,7 @@ def assess_change_point(possible_states: _ct.tlist_str, sequence: _ct.tseq, sign
     for _ in range(simulations):
 
         simulated_sequence = _np.empty(length, dtype=int)
-        simulated_sequence[0] = sequence[0]
+        simulated_sequence[0] = states[0]
 
         for i in range(1, length):
             simulated_sequence[i] = rng.choice(n, p=probabilities[simulated_sequence[i - 1], :])
@@ -158,7 +164,80 @@ def assess_change_point(possible_states: _ct.tlist_str, sequence: _ct.tseq, sign
     return change_point, p_value, statistic
 
 
-def assess_homogeneity(possible_states: _ct.tlist_str, sequences: _ct.tseqs, significance: float = 0.05) -> _ct.tass_stat:
+# noinspection PyBroadException
+def assess_hidden_states(possible_symbols: _ct.tlist_str, symbols: _ct.tseq, maximum_hidden_states: int = 5, criterion: str = 'bic', restarts: int = 5, seed: _ct.oint = None) -> _ct.tass_cnt:
+
+    r"""
+    | The function assesses the preferred number of hidden states for an observed sequence of emitted symbols using the selected information criterion.
+
+    | **Notes:**
+
+    - Candidate numbers of hidden states range from 2 through *maximum_states*, inclusive, with at least two candidates required.
+    - Each candidate is fitted using Baum-Welch estimation with independently randomized initial transition and emission matrices.
+    - The initial hidden-state distribution is uniform and fixed throughout estimation.
+    - The lowest information criterion score across the successful fitting attempts is retained for each candidate.
+    - The number of hidden states with the lowest score is selected; ties are resolved in favor of fewer hidden states.
+    - The returned tuple contains the selected number of hidden states and a dictionary mapping each candidate to its information criterion score.
+
+    :param possible_symbols: the possible emitted symbols of the process.
+    :param symbols: the observed sequence of emitted symbols.
+    :param maximum_hidden_states: the maximum number of hidden states to assess.
+    :param criterion:
+     - **aic** for the Akaike information criterion;
+     - **bic** for the Bayesian information criterion.
+    :param restarts: the number of randomized fitting attempts per candidate.
+    :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+    :raises ValidationError: if any input argument is not compliant.
+    :raises ValueError: if no candidate model can be fitted successfully.
+    """
+
+    try:
+
+        rng = _u.create_rng(seed)
+        possible_symbols = _v.validate_labels_input(possible_symbols)
+        symbols = _v.validate_sequence(symbols, possible_symbols)
+        maximum_hidden_states = _v.validate_integer(maximum_hidden_states, lower_limit=(3, False))
+        restarts = _v.validate_integer(restarts, lower_limit=(1, False))
+        criterion = _v.validate_enumerator(criterion, ['aic', 'bic'])
+
+    except Exception as ex:  # pragma: no cover
+        raise _u.create_validation_error(ex, _ins.trace()) from None
+
+    k = len(possible_symbols)
+    scores = {}
+
+    for n in range(2, maximum_hidden_states + 1):
+
+        initial_distribution = _np.full(n, 1.0 / n)
+        best_score = float('inf')
+
+        for _ in range(restarts):
+
+            p_guess = rng.dirichlet(_np.ones(n), size=n)
+            e_guess = rng.dirichlet(_np.ones(k), size=n)
+
+            try:
+                p, e = _ft.hmm_fit('bw', p_guess, e_guess, initial_distribution, [symbols], 0.0, 500)
+            except Exception:
+                continue
+
+            hmm = _HiddenMarkovModel(p, e)
+            score = hmm.information_criterion(criterion, symbols, initial_distribution)
+
+            if score < best_score:
+                best_score = score
+
+        scores[n] = float(best_score)
+
+    if all(not _np.isfinite(score) for score in scores.values()):  # pragma: no cover
+        raise ValueError('The fitting algorithm failed for all candidate numbers of hidden states.')
+
+    selected_states = min(scores, key=scores.get)
+
+    return selected_states, scores
+
+
+def assess_homogeneity(possible_states: _ct.tlist_str, state_sequences: _ct.tseqs, significance: float = 0.05) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether the given sequences share the same transition probabilities:
@@ -171,7 +250,7 @@ def assess_homogeneity(possible_states: _ct.tlist_str, sequences: _ct.tseqs, sig
     - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param possible_states: the possible states of the processes.
-    :param sequences: the observed sequences of states.
+    :param state_sequences: the observed sequence(s) of states.
     :param significance: the significance level used to determine whether to reject the null hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -179,7 +258,7 @@ def assess_homogeneity(possible_states: _ct.tlist_str, sequences: _ct.tseqs, sig
     try:
 
         possible_states = _v.validate_labels_input(possible_states)
-        sequences = _v.validate_sequences(sequences, possible_states, False)
+        state_sequences = _v.validate_sequences(state_sequences, possible_states, False)
         significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
@@ -189,7 +268,7 @@ def assess_homogeneity(possible_states: _ct.tlist_str, sequences: _ct.tseqs, sig
 
     fs, f_pooled = [], _np.zeros((n, n), dtype=float)
 
-    for sequence in sequences:
+    for sequence in state_sequences:
 
         f = _np.zeros((n, n), dtype=float)
 
@@ -241,7 +320,7 @@ def assess_homogeneity(possible_states: _ct.tlist_str, sequences: _ct.tseqs, sig
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_independence(possible_states: _ct.tlist_str, sequence: _ct.tseq, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _ct.oint = None) -> _ct.tass_stat:
+def assess_independence(possible_states: _ct.tlist_str, states: _ct.tseq, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _ct.oint = None) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether consecutive observations of the given sequence are independent:
@@ -255,7 +334,7 @@ def assess_independence(possible_states: _ct.tlist_str, sequence: _ct.tseq, meth
     - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param possible_states: the possible states of the process.
-    :param sequence: the observed sequence of states.
+    :param states: the observed sequence of states.
     :param method:
      - **asymptotic** for p-values computed from the asymptotic chi-squared distribution;
      - **simulation** for p-values estimated through Monte Carlo permutations under the independence hypothesis.
@@ -294,7 +373,7 @@ def assess_independence(possible_states: _ct.tlist_str, sequence: _ct.tseq, meth
 
         rng = _u.create_rng(seed)
         possible_states = _v.validate_labels_input(possible_states)
-        sequence = _v.validate_sequence(sequence, possible_states)
+        states = _v.validate_sequence(states, possible_states)
         method = _v.validate_enumerator(method, ['asymptotic', 'simulation'])
         significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
         simulations = _v.validate_integer(simulations, lower_limit=(10, False))
@@ -302,9 +381,8 @@ def assess_independence(possible_states: _ct.tlist_str, sequence: _ct.tseq, meth
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    n, length = len(possible_states), len(sequence)
-
-    statistic, dof = _pearson_statistic(n, sequence)
+    n, length = len(possible_states), len(states)
+    statistic, dof = _pearson_statistic(n, states)
 
     if dof == 0:  # pragma: no cover
         return None, float('nan'), {'statistic': statistic, 'dof': dof}
@@ -318,8 +396,8 @@ def assess_independence(possible_states: _ct.tlist_str, sequence: _ct.tseq, meth
         for _ in range(simulations):
 
             simulated_sequence = _np.empty(length, dtype=int)
-            simulated_sequence[0] = sequence[0]
-            simulated_sequence[1:] = rng.permutation(sequence[1:])
+            simulated_sequence[0] = states[0]
+            simulated_sequence[1:] = rng.permutation(states[1:])
 
             simulated_statistic, _ = _pearson_statistic(n, simulated_sequence)
 
@@ -334,7 +412,7 @@ def assess_independence(possible_states: _ct.tlist_str, sequence: _ct.tseq, meth
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_markov_property(possible_states: _ct.tlist_str, sequence: _ct.tseq, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _ct.oint = None) -> _ct.tass_stat:
+def assess_markov_property(possible_states: _ct.tlist_str, states: _ct.tseq, method: str = 'asymptotic', significance: float = 0.05, simulations: int = 1000, seed: _ct.oint = None) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether the given sequence is compatible with a first-order Markov process:
@@ -348,7 +426,7 @@ def assess_markov_property(possible_states: _ct.tlist_str, sequence: _ct.tseq, m
     - The simulation method also returns an undefined result if an observed state has no outgoing transitions.
 
     :param possible_states: the possible states of the process.
-    :param sequence: the observed sequence of states.
+    :param states: the observed sequence of states.
     :param method:
      - **asymptotic** for p-values computed from the asymptotic chi-squared distribution;
      - **simulation** for p-values estimated through Monte Carlo simulation under a fitted first-order Markov model.
@@ -394,7 +472,7 @@ def assess_markov_property(possible_states: _ct.tlist_str, sequence: _ct.tseq, m
 
         rng = _u.create_rng(seed)
         possible_states = _v.validate_labels_input(possible_states)
-        sequence = _v.validate_sequence(sequence, possible_states)
+        states = _v.validate_sequence(states, possible_states)
         method = _v.validate_enumerator(method, ['asymptotic', 'simulation'])
         significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
         simulations = _v.validate_integer(simulations, lower_limit=(10, False))
@@ -402,9 +480,8 @@ def assess_markov_property(possible_states: _ct.tlist_str, sequence: _ct.tseq, m
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    n, length = len(possible_states), len(sequence)
-
-    statistic, dof = _pearson_statistic(n, sequence)
+    n, length = len(possible_states), len(states)
+    statistic, dof = _pearson_statistic(n, states)
 
     if dof == 0:  # pragma: no cover
         return None, float('nan'), {'statistic': statistic, 'dof': dof}
@@ -416,11 +493,11 @@ def assess_markov_property(possible_states: _ct.tlist_str, sequence: _ct.tseq, m
         transitions = _np.zeros((n, n), dtype=int)
 
         for i in range(length - 1):
-            transitions[sequence[i], sequence[i + 1]] += 1
+            transitions[states[i], states[i + 1]] += 1
 
         total_transitions = _np.sum(transitions, axis=1)
 
-        observed_states = _np.unique(sequence)
+        observed_states = _np.unique(states)
 
         if _np.any(total_transitions[observed_states] == 0):
             return None, float('nan'), {'statistic': statistic, 'dof': dof}
@@ -435,7 +512,7 @@ def assess_markov_property(possible_states: _ct.tlist_str, sequence: _ct.tseq, m
         for _ in range(simulations):
 
             simulated_sequence = _np.empty(length, dtype=int)
-            simulated_sequence[0] = sequence[0]
+            simulated_sequence[0] = states[0]
 
             for i in range(1, length):
                 simulated_sequence[i] = rng.choice(n, p=probabilities[simulated_sequence[i - 1], :])
@@ -453,7 +530,7 @@ def assess_markov_property(possible_states: _ct.tlist_str, sequence: _ct.tseq, m
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_order(possible_states: _ct.tlist_str, sequence: _ct.tseq, maximum_order: int = 3, criterion: str = 'bic') -> _ct.tass_ord:
+def assess_order(possible_states: _ct.tlist_str, states: _ct.tseq, maximum_order: int = 3, criterion: str = 'bic') -> _ct.tass_cnt:
 
     r"""
     | The function assesses the preferred Markov order of the given sequence using maximum-likelihood estimation and the selected criterion.
@@ -464,10 +541,10 @@ def assess_order(possible_states: _ct.tlist_str, sequence: _ct.tseq, maximum_ord
     - All candidate orders are evaluated on the same observations, excluding the first *maximum_order* observations from the likelihood.
     - The number of free parameters for order :math:`m` is :math:`n^m(n-1)`, where :math:`n` is the number of possible states.
     - The order with the lowest score is selected; ties are resolved in favor of the lower order.
-    - The returned tuple contains the selected order and a dictionary mapping each candidate order to its criterion score.
+    - The returned tuple contains the selected order and a dictionary mapping each candidate order to its information criterion score.
 
     :param possible_states: the possible states of the process.
-    :param sequence: the observed sequence of states.
+    :param states: the observed sequence of states.
     :param maximum_order: the maximum Markov order to assess.
     :param criterion:
      - **aic** for the Akaike information criterion;
@@ -479,14 +556,14 @@ def assess_order(possible_states: _ct.tlist_str, sequence: _ct.tseq, maximum_ord
     try:
 
         possible_states = _v.validate_labels_input(possible_states)
-        sequence = _v.validate_sequence(sequence, possible_states)
-        maximum_order = _v.validate_integer(maximum_order, lower_limit=(0, False))
+        states = _v.validate_sequence(states, possible_states)
+        maximum_order = _v.validate_integer(maximum_order, lower_limit=(1, False))
         criterion = _v.validate_enumerator(criterion, ['aic', 'bic'])
 
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    length = len(sequence)
+    length = len(states)
     observations = length - maximum_order
 
     if observations < 2:  # pragma: no cover
@@ -504,8 +581,8 @@ def assess_order(possible_states: _ct.tlist_str, sequence: _ct.tseq, maximum_ord
 
         for i in range(maximum_order, length):
 
-            context = tuple(sequence[i - order:i]) if order > 0 else ()
-            state = sequence[i]
+            context = tuple(states[i - order:i]) if order > 0 else ()
+            state = states[i]
 
             if context not in counts:
                 counts[context] = _np.zeros(n, dtype=int)
@@ -530,7 +607,7 @@ def assess_order(possible_states: _ct.tlist_str, sequence: _ct.tseq, maximum_ord
     return selected_order, scores
 
 
-def assess_stationarity(mc: _ct.tmc, sequences: _ct.tseqs, significance: float = 0.05) -> _ct.tass_stat:
+def assess_stationarity(mc: _ct.tmc, state_sequences: _ct.tseqs, significance: float = 0.05) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether independent sequences of the given Markov chain are initialized according to its stationary distribution:
@@ -547,7 +624,7 @@ def assess_stationarity(mc: _ct.tmc, sequences: _ct.tseqs, significance: float =
     - The returned tuple contains the null-hypothesis rejection decision, the p-value, and a dictionary containing the test statistic and degrees of freedom under the keys **statistic** and **dof**, respectively.
 
     :param mc: the theoretical Markov chain.
-    :param sequences: the observed sequences of states.
+    :param state_sequences: the observed sequence(s) of states.
     :param significance: the significance level used to determine whether to reject the null hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     :raises ValueError: if fewer than two independent sequences are provided.
@@ -579,12 +656,12 @@ def assess_stationarity(mc: _ct.tmc, sequences: _ct.tseqs, significance: float =
 
         mc = _v.validate_markov_chain(mc)
         significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
-        sequences = _v.validate_sequences(sequences, mc.states, False)
+        state_sequences = _v.validate_sequences(state_sequences, mc.states, False)
 
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    lengths = len(sequences)
+    lengths = len(state_sequences)
 
     if lengths < 2:  # pragma: no cover
         raise ValueError('The sequences parameter must contain at least two independent sequences.')
@@ -594,7 +671,7 @@ def assess_stationarity(mc: _ct.tmc, sequences: _ct.tseqs, significance: float =
     if len(stationary_distributions) != 1:
         return None, float('nan'), {'statistic': float('nan'), 'dof': 0}
 
-    initial_states = [sequence[0] for sequence in sequences]
+    initial_states = [sequence[0] for sequence in state_sequences]
 
     probabilities = stationary_distributions[0]
 
@@ -650,7 +727,7 @@ def assess_stationarity(mc: _ct.tmc, sequences: _ct.tseqs, significance: float =
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_theoretical_compatibility(mc: _ct.tmc, sequence: _ct.tseq, significance: float = 0.05) -> _ct.tass_stat:
+def assess_theoretical_compatibility(mc: _ct.tmc, states: _ct.tseq, significance: float = 0.05) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether the given sequence is compatible with the transition probabilities of the specified Markov chain:
@@ -664,7 +741,7 @@ def assess_theoretical_compatibility(mc: _ct.tmc, sequence: _ct.tseq, significan
     - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param mc: the Markov chain representing the theoretical process.
-    :param sequence: the observed sequence of states.
+    :param states: the observed sequence of states.
     :param significance: the significance level used to determine whether to reject the null hypothesis.
     :raises ValidationError: if any input argument is not compliant.
     """
@@ -672,7 +749,7 @@ def assess_theoretical_compatibility(mc: _ct.tmc, sequence: _ct.tseq, significan
     try:
 
         mc = _v.validate_markov_chain(mc)
-        sequence = _v.validate_sequence(sequence, mc.states)
+        states = _v.validate_sequence(states, mc.states)
         significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
@@ -681,7 +758,7 @@ def assess_theoretical_compatibility(mc: _ct.tmc, sequence: _ct.tseq, significan
     p, n = mc.p, mc.size
     f = _np.zeros((n, n), dtype=int)
 
-    for i, j in zip(sequence[:-1], sequence[1:]):
+    for i, j in zip(states[:-1], states[1:]):
         f[i, j] += 1
 
     if _np.any(f[p == 0.0] > 0):
@@ -717,7 +794,7 @@ def assess_theoretical_compatibility(mc: _ct.tmc, sequence: _ct.tseq, significan
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_time_homogeneity(possible_states: _ct.tlist_str, sequence: _ct.tseq, blocks: int = 2, significance: float = 0.05) -> _ct.tass_stat:
+def assess_time_homogeneity(possible_states: _ct.tlist_str, states: _ct.tseq, blocks: int = 2, significance: float = 0.05) -> _ct.tass_stat:
 
     r"""
     | The function assesses whether the transition probabilities of the given sequence remain constant across consecutive time blocks:
@@ -731,7 +808,7 @@ def assess_time_homogeneity(possible_states: _ct.tlist_str, sequence: _ct.tseq, 
     - If the test has 0 degrees of freedom, then :py:class:`None` and *NaN* are returned for the rejection decision and p-value, respectively.
 
     :param possible_states: the possible states of the process.
-    :param sequence: the observed sequence of states.
+    :param states: the observed sequence of states.
     :param blocks: the number of consecutive blocks into which the observed transitions are divided.
     :param significance: the significance level used to determine whether to reject the null hypothesis.
     :raises ValidationError: if any input argument is not compliant.
@@ -740,14 +817,14 @@ def assess_time_homogeneity(possible_states: _ct.tlist_str, sequence: _ct.tseq, 
     try:
 
         possible_states = _v.validate_labels_input(possible_states)
-        sequence = _v.validate_sequence(sequence, possible_states)
+        states = _v.validate_sequence(states, possible_states)
         blocks = _v.validate_integer(blocks, lower_limit=(2, False))
         significance = _v.validate_float(significance, lower_limit=(0.0, True), upper_limit=(0.2, False))
 
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    n, length = len(possible_states), len(sequence)
+    n, length = len(possible_states), len(states)
 
     iterations = length - 1
     statistic, dof = 0.0, 0
@@ -757,9 +834,9 @@ def assess_time_homogeneity(possible_states: _ct.tlist_str, sequence: _ct.tseq, 
         ct = _np.zeros((blocks, n), dtype=float)
 
         for i in range(iterations):
-            if sequence[i] == state:
+            if states[i] == state:
                 b = (i * blocks) // iterations
-                f = sequence[i + 1]
+                f = states[i + 1]
                 ct[b, f] += 1.0
 
         ct = ct[_np.sum(ct, axis=1) > 0.0, :]
@@ -786,7 +863,7 @@ def assess_time_homogeneity(possible_states: _ct.tlist_str, sequence: _ct.tseq, 
     return rejection, p_value, {'statistic': statistic, 'dof': dof}
 
 
-def assess_vamp_score(method: str, possible_states: _ct.tlist_str, sequences: _ct.tseqs, lag: int = 1, center: bool = False) -> float:
+def assess_vamp_score(method: str, possible_states: _ct.tlist_str, state_sequences: _ct.tseqs, lag: int = 1, center: bool = False) -> float:
 
     r"""
     | The function computes a Variational Approach for Markov Processes (VAMP) score from one or more observed sequences of states.
@@ -804,7 +881,7 @@ def assess_vamp_score(method: str, possible_states: _ct.tlist_str, sequences: _c
 
     :param method: the scoring method.
     :param possible_states: the possible states of the process.
-    :param sequences: the observed sequence(s) of states.
+    :param state_sequences: the observed sequence(s) of states.
     :param lag: the positive integer time lag.
     :param center: a boolean indicating whether to center the feature vectors.
     :raises ValidationError: if any input argument is not compliant.
@@ -832,7 +909,7 @@ def assess_vamp_score(method: str, possible_states: _ct.tlist_str, sequences: _c
 
         method = _v.validate_enumerator(method, ['vamp1', 'vamp2'])
         possible_states = _v.validate_labels_input(possible_states)
-        sequences = _v.validate_sequences(sequences, possible_states, True)
+        state_sequences = _v.validate_sequences(state_sequences, possible_states, True)
         lag = _v.validate_integer(lag, lower_limit=(1, False))
         center = _v.validate_boolean(center)
 
@@ -842,7 +919,7 @@ def assess_vamp_score(method: str, possible_states: _ct.tlist_str, sequences: _c
     n = len(possible_states)
     counts = _np.zeros((n, n), dtype=float)
 
-    for sequence in sequences:
+    for sequence in state_sequences:
 
         if len(sequence) <= lag:  # pragma: no cover
             continue

@@ -84,11 +84,11 @@ def test_next(p, e, seed, initial_state, target, output_index, value):
     assert actual == expected
 
 
-def test_predict(p, e, algorithm, symbols, initial_distribution, output_indices, value):
+def test_predict(p, e, prediction_type, symbols, initial_distribution, output_indices, value):
 
     hmm = _HiddenMarkovModel(p, e)
 
-    actual = hmm.predict(algorithm, symbols, initial_distribution, output_indices)
+    actual = hmm.predict(prediction_type, symbols, initial_distribution, output_indices)
 
     if actual is not None:
         actual = (round(actual[0], 8), actual[1])
@@ -115,7 +115,7 @@ def test_predict_viterbi_bruteforce():
 
     models = [
         (
-            [[0.95, 0.05], [0.1, 0.9]],
+            [[0.95, 0.05], [0.10, 0.90]],
             [[0.2, 0.2, 0.2, 0.2, 0.2], [0.1, 0.1, 0.1, 0.1, 0.6]],
             [4, 1, 1, 4]
         ),
