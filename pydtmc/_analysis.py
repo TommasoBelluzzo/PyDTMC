@@ -907,7 +907,7 @@ def hmm_information_criterion(hmm: _ct.thmm, criterion: str, symbols: _ct.tlist_
     forward = initial_distribution * e[:, symbols[0]]
     scaling_factor = float(_np.sum(forward))
 
-    if scaling_factor == 0.0:
+    if scaling_factor == 0.0:  # pragma: no cover
         return float('inf')
 
     log_probability = _mt.log(scaling_factor)
@@ -918,7 +918,7 @@ def hmm_information_criterion(hmm: _ct.thmm, criterion: str, symbols: _ct.tlist_
         forward = e[:, symbol] * _np.dot(forward, p)
         scaling_factor = float(_np.sum(forward))
 
-        if scaling_factor == 0.0:
+        if scaling_factor == 0.0:  # pragma: no cover
             return float('inf')
 
         log_probability += _mt.log(scaling_factor)

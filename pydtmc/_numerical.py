@@ -34,7 +34,8 @@ import math as _mt
 import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
-from scipy.special import rel_entr as _rel_entr
+import scipy.special as _sps
+
 
 # Internal
 
@@ -234,7 +235,7 @@ def find_lumping_partitions(p: _ct.tarray) -> _ct.tparts:
                 expected = _np.sum(reference[start:stop])
                 actual = _np.sum(rows[:, start:stop], axis=1)
 
-                if not _np.all(actual == expected):
+                if not _np.allclose(actual, expected, rtol=0.0, atol=_c.ETOL):
                     is_lumpable = False
                     break
 
@@ -448,15 +449,14 @@ def matrix_geometric_sum(m: _ct.tarray, terms: int) -> _ct.tarray:
 
 def kullback_leibler_divergence(p: _ct.tarray, pi: _ct.tarray, phi: _ct.tarray, q: _ct.tarray) -> float:
 
+    positive = pi > 0.0
+
     super_q = _np.dot(_np.dot(phi, q), _np.transpose(phi))
     super_pi = _np.dot(_np.dot(pi, phi), _np.transpose(phi))
 
-    positive = pi > 0.0
-
-    theta = _np.sum(_rel_entr(p[positive, :], super_q[positive, :]), axis=1)
+    theta = _np.sum(_sps.rel_entr(p[positive, :], super_q[positive, :]), axis=1)  # pylint: disable=no-member
     t = _np.dot(pi[positive], theta)
-
-    u = _np.sum(_rel_entr(pi[positive], super_pi[positive]))
+    u = _np.sum(_sps.rel_entr(pi[positive], super_pi[positive]))  # pylint: disable=no-member
 
     kld = float((t - u) / _np.log(2.0))
 
