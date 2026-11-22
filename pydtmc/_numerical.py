@@ -8,6 +8,7 @@ __all__ = [
     'eigenvalues_sorted',
     'find_cyclic_classes',
     'find_lumping_partitions',
+    'find_redundant_states',
     'gth_solve',
     'incidence_matrix',
     'information_criterion',
@@ -247,6 +248,58 @@ def find_lumping_partitions(p: _ct.tarray) -> _ct.tparts:
             partitions.append(partition)
 
     return partitions
+
+
+def find_redundant_states(p: _ct.tarray, e: _ct.tarray) -> _ct.tlist_int:
+
+    size = p.shape[0]
+
+    classes = []
+
+    for i in range(size):
+
+        for group in classes:
+
+            if _np.array_equal(e[i, :], e[group[0], :]):
+                group.append(i)
+                break
+
+        else:
+            classes.append([i])
+
+    while True:
+
+        refined = []
+
+        for group in classes:
+
+            signatures = []
+            subgroups = []
+
+            for i in group:
+
+                signature = tuple(_np.sum(p[i, c]) for c in classes)
+
+                for j, previous in enumerate(signatures):
+
+                    if signature == previous:
+                        subgroups[j].append(i)
+                        break
+
+                else:
+                    signatures.append(signature)
+                    subgroups.append([i])
+
+            refined.extend(subgroups)
+
+        if refined == classes:
+            break
+
+        classes = refined
+
+    indices = sorted(i for group in classes for i in group[1:])
+
+    return indices
 
 
 def incidence_matrix(states_indices: _ct.tlist_int) -> _ct.tarray:

@@ -29,6 +29,7 @@ from . import _dynamics as _d
 from . import _files_io as _io
 from . import _fitting as _ft
 from . import _generators as _g
+from . import _numerical as _n
 from . import _utilities as _u
 from . import _validation as _v
 
@@ -281,6 +282,27 @@ class HiddenMarkovModel(_bc.Model):
         pi = mc.pi
 
         return pi
+
+    @_dc.cached_property
+    def redundant_states(self) -> _ct.tlist_str:
+
+        r"""
+        | A property representing the redundant hidden states of the hidden Markov model.
+        | A hidden state is considered redundant when it is behaviorally equivalent to another hidden state and can be merged without changing the probability distributions of emitted-symbol sequences.
+
+        | **Notes:**
+
+        - A hidden state is considered redundant when it is behaviorally equivalent to another hidden state and can be merged without changing the emitted-symbol sequence distributions.
+        - Two hidden states are behaviorally equivalent when they have identical emission distributions and aggregate transition probabilities into every equivalence class.
+        - Equivalence classes are determined through iterative partition refinement.
+        - For each equivalence class containing multiple states, the first state is retained as its representative, and the remaining states are considered redundant.
+        - The absence of redundant states does not necessarily imply that the hidden Markov model has a minimal representation.
+        """
+
+        indices = _n.find_redundant_states(self.__p, self.__e)
+        states = [*map(self.__states.__getitem__, indices)]
+
+        return states
 
     @property
     def size(self) -> _ct.tpair_int:

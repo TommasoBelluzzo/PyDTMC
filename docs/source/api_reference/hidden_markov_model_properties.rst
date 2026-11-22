@@ -17,6 +17,7 @@ Properties
       p,
       parameters,
       pi,
+      redundant_states,
       size,
       states,
       symbols
