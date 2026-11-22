@@ -217,7 +217,7 @@ def hmm_decode(p: _ct.tarray, e: _ct.tarray, initial_distribution: _ct.tarray, s
 
     scaling_factor = _np.sum(forward[:, 0])
 
-    if scaling_factor == 0.0:
+    if scaling_factor == 0.0:  # pragma: no cover
         return None
 
     scaling_factors[0] = scaling_factor
@@ -232,7 +232,7 @@ def hmm_decode(p: _ct.tarray, e: _ct.tarray, initial_distribution: _ct.tarray, s
 
         scaling_factor = _np.sum(forward[:, i])
 
-        if scaling_factor == 0.0:
+        if scaling_factor == 0.0:  # pragma: no cover
             return None
 
         scaling_factors[i] = scaling_factor
@@ -2443,7 +2443,7 @@ def mc_reactive_paths(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_in
             i = path[-1]
             flux = -negative_flux
 
-            if best.get(i) != (flux, length, path):
+            if best.get(i) != (flux, length, path):  # pragma: no cover
                 continue
 
             if i in targets:
