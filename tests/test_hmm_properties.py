@@ -83,3 +83,8 @@ def test_properties(p, e, value):
     expected = value[1]
 
     assert actual == expected
+
+    actual = hmm.is_identifiable
+    expected = value[2]
+
+    assert actual == expected

@@ -125,10 +125,11 @@ class HiddenMarkovModel(_bc.Model):
 
         lines = ['']
         lines.append('HIDDEN MARKOV MODEL')
-        lines.append(f' STATES:  {self.n:d}')
-        lines.append(f' SYMBOLS: {self.k:d}')
-        lines.append(f' ERGODIC: {("YES" if self.is_ergodic else "NO")}')
-        lines.append(f' REGULAR: {("YES" if self.is_regular else "NO")}')
+        lines.append(f' STATES:       {self.n:d}')
+        lines.append(f' SYMBOLS:      {self.k:d}')
+        lines.append(f' ERGODIC:      {("YES" if self.is_ergodic else "NO")}')
+        lines.append(f' REGULAR:      {("YES" if self.is_regular else "NO")}')
+        lines.append(f' IDENTIFIABLE: {("YES" if self.is_identifiable else "NO")}')
         lines.append('')
 
         value = '\n'.join(lines)
@@ -150,6 +151,10 @@ class HiddenMarkovModel(_bc.Model):
         r"""
         | A property representing the pairwise overlap matrix of the emission distributions of the hidden Markov model:
         | :math:`O_{ij} = \sum_{a=1}^{k} \min(E_{ia}, E_{ja})`
+
+        | **Notes:**
+
+        - The complement :math:`1-O_{ij}` corresponds to the total variation distance between the emission distributions of hidden states :math:`i` and :math:`j`.
         """
 
         e = self.__e
@@ -180,6 +185,26 @@ class HiddenMarkovModel(_bc.Model):
         """
 
         result = bool(_np.all(self.__e > 0.0))
+
+        return result
+
+    @_dc.cached_property
+    def is_identifiable(self) -> bool:
+
+        r"""
+        | A property indicating whether the hidden Markov model satisfies a sufficient full-rank condition for parameter identifiability:
+        | :math:`\operatorname{rank}(P) = n \;\land\; \operatorname{rank}(E) = n`.
+
+        | **Notes:**
+
+        - The condition requires an **irreducible** hidden-state transition matrix.
+        - Satisfying the condition supports identifiability up to permutations of hidden-state labels under the relevant model assumptions.
+        - Failure to satisfy the condition implies that identifiability cannot be determined using this criterion.
+        """
+
+        mc = _MarkovChain(self.p, self.states)
+        n = self.__size[1]
+        result = bool(mc.is_irreducible and (_npl.matrix_rank(self.p) == n) and (_npl.matrix_rank(self.e) == n))
 
         return result
 

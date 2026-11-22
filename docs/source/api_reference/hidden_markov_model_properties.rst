@@ -10,6 +10,7 @@ Properties
       emissive_overlap,
       is_ergodic,
       is_fully_emissive,
+      is_identifiable,
       is_regular,
       k,
       n,
