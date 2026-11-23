@@ -817,7 +817,7 @@
     "is_stochastically_monotone": false,
     "is_symmetric": false,
     "kemeny_constant": 2.33766234,
-    "lumping_partitions": [],
+    "lumping_partitions": [["1"], ["2", "3"]],
     "mixing_rate": 0.83058355,
     "occupation_matrix": null,
     "occupation_trace": null,
@@ -3116,7 +3116,11 @@
     "is_stochastically_monotone": false,
     "is_symmetric": false,
     "kemeny_constant": null,
-    "lumping_partitions": [],
+    "lumping_partitions": [
+      [["1", "2", "3", "4", "5", "6"], ["7", "8", "9", "10", "11", "12", "13"]],
+      [["1"], ["2"], ["3"], ["4"], ["5"], ["6"], ["7", "8", "9", "10", "11", "12", "13"]],
+      [["1", "2", "3", "4", "5", "6"], ["7"], ["8"], ["9"], ["10"], ["11"], ["12"], ["13"]]
+    ],
     "mixing_rate": null,
     "occupation_matrix": null,
     "occupation_trace": null,
