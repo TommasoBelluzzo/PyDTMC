@@ -168,7 +168,7 @@ def _draw_graphviz_image(g, ax, dpi, normalized_extent=False):
         image_aspect = img.shape[1] / img.shape[0]
         artist = ax.imshow(img, extent=(0.0, image_aspect, 0.0, 1.0), interpolation='hanning')
     else:
-        artist = ax.imshow(img)
+        artist = ax.imshow(img, interpolation='none')
 
     ax.axis('off')
 
@@ -179,7 +179,7 @@ def _draw_graphviz_image(g, ax, dpi, normalized_extent=False):
         if event.canvas is not ax.figure.canvas:
             return
 
-        image_bounds = artist.get_window_extent(event.renderer)
+        image_bounds = artist.get_window_extent()
         image_array = artist.get_array()
         scale = max(image_bounds.width / image_array.shape[1], image_bounds.height / image_array.shape[0])
 
@@ -199,6 +199,7 @@ def _draw_graphviz_image(g, ax, dpi, normalized_extent=False):
         artist.set_data(image)
         event.canvas.draw_idle()
 
+    ax.figure.canvas.mpl_connect('resize_event', _on_draw)
     ax.figure.canvas.mpl_connect('draw_event', _on_draw)
 
     return img
@@ -220,37 +221,26 @@ def _generate_trellis_extended(gte_hmm, gte_initial_distribution, gte_symbols, g
 
     n, f = gte_hmm.n, len(gte_symbols)
 
-    g = _pyd.Dot(graph_type='digraph', compound='true', margin='0', splines='line')
-
-    sub = _pyd.Subgraph('cluster_0', color='transparent')
+    g = _pyd.Dot(graph_type='digraph', layout='neato', overlap='true', splines='line', outputorder='edgesfirst', margin='0')
 
     for row in range(n):
 
         sub_label = gte_hmm.states[row]
-        sub.add_node(_pyd.Node(f'state{row}', color='transparent', label=sub_label, shape='plaintext'))
-
-        if row > 0:
-            sub.add_edge(_pyd.Edge(f'state{row - 1}', f'state{row}', style='invis'))
-
-    g.add_subgraph(sub)
+        g.add_node(_pyd.Node(f'state{row}', color='transparent', label=sub_label, shape='plaintext', pos=f'0,{n - row}!', pin='true'))
 
     for col in range(f):
 
         path_current = gte_states_path[col]
+        col_position = (col + 1) * 1.8
 
         sub_label = "<T<FONT POINT-SIZE='8'><SUB>0</SUB></FONT>>" if col == 0 else gte_hmm.symbols[gte_symbols[col]]
-        sub = _pyd.Subgraph(f'cluster_{col + 1}', color='transparent', label=sub_label)
+        g.add_node(_pyd.Node(f'header{col}', color='transparent', label=sub_label, shape='plaintext', pos=f'{col_position},{n + 0.6}!', pin='true'))
 
         for row in range(n):
 
             node_index = (row * f) + col
             node_color = _default_color_path if path_current == row else _default_color_node
-            sub.add_node(_pyd.Node(f'node{node_index}', fillcolor=node_color, label=f'{round(gte_matrix[row, col], 2):.2f}', style='filled'))
-
-            if row > 0:
-                sub.add_edge(_pyd.Edge(f'node{((row - 1) * f) + col}', f'node{node_index}', style='invis'))
-
-        g.add_subgraph(sub)
+            g.add_node(_pyd.Node(f'node{node_index}', fillcolor=node_color, label=f'{round(gte_matrix[row, col], 2):.2f}', style='filled', pos=f'{col_position},{n - row}!', pin='true'))
 
     for row in range(n):
 
@@ -1162,17 +1152,12 @@ def plot_redistributions_projection(pr_mc, pr_distributions, pr_distributions_le
 
         overlaps = [j for j in range(pr_mc.size) if _np.allclose(pr_distributions[:, i], pr_distributions[:, j], rtol=1e-12, atol=1e-14)]
         overlap_index = overlaps.index(i)
-        marker = 'o' if pr_distributions_length == 2 else None
-        linestyle = '-'
 
-        if len(overlaps) > 1:
-            linestyle = ('-', '--', ':', '-.')[overlap_index % 4]
-            if overlap_index > 0:
-                marker = ('o', 's', '^', 'D')[((overlap_index - 1) // 4) % 4]
+        linestyle = ('-', '--', ':', '-.')[overlap_index % 4]
 
         ax.plot(
             _np.arange(0.0, pr_distributions_length, 1.0), pr_distributions[:, i],
-            label=pr_mc.states[i], linewidth=1.75, linestyle=linestyle, marker=marker,
+            label=pr_mc.states[i], linewidth=1.75, linestyle=linestyle, marker=None,
             markevery=max(1, pr_distributions_length // 8), markersize=4.0
         )
 
