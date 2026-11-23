@@ -83,7 +83,7 @@ from tests.utilities import (
 # CONSTANTS #
 #############
 
-_base_directory = _osp.abspath(_osp.dirname(__file__))
+_BASE_DIRECTORY = _osp.abspath(_osp.dirname(__file__))
 
 
 #########
@@ -199,7 +199,7 @@ def test_validate_file_path(value, accepted_extensions, write_permission, is_val
 
     if isinstance(value, str) and value.startswith('file_'):
 
-        value = _osp.join(_base_directory, f'files{_osp.sep}{value}')
+        value = _osp.join(_BASE_DIRECTORY, f'files{_osp.sep}{value}')
 
         if _rd.random() < 0.5:
             value = _pl.Path(value)

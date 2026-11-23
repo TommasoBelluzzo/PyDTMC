@@ -20,17 +20,11 @@ __all__ = [
 # Standard
 
 import inspect as _ins
-import math as _mt
 import subprocess as _sub
 
 # Libraries
 
-import matplotlib.colorbar as _mplcb
-import matplotlib.colors as _mplcr
-import matplotlib.pyplot as _mplp
-import matplotlib.ticker as _mplt
 import numpy as _np
-import numpy.linalg as _npl
 
 try:
     import pydot as _pyd
@@ -43,7 +37,6 @@ except ImportError:  # pragma: no cover
 
 from . import _custom_types as _ct
 from . import _decorators as _dc
-from . import _numerical as _n
 from . import _rendering as _r
 from . import _utilities as _u
 from . import _validation as _v
@@ -59,22 +52,6 @@ from .hidden_markov_model import (
 from .markov_chain import (
     MarkovChain as _MarkovChain
 )
-
-
-#############
-# CONSTANTS #
-#############
-
-_color_black = '#000000'
-_color_gray = '#E0E0E0'
-_color_white = '#FFFFFF'
-_colors = ('#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#FB8072', '#FCCDE5', '#E5C494')
-
-_default_color_edge = _color_black
-_default_color_node = _color_white
-_default_color_path = _colors[0]
-_default_color_symbol = _color_gray
-_default_node_size = 600
 
 
 #############
@@ -114,38 +91,7 @@ def plot_comparison(models: _ct.tlist_mdl, underlying_matrices: str = 'transitio
     if (underlying_matrices == 'emission') and (not all(isinstance(model, _HiddenMarkovModel) for model in models)):  # pragma: no cover
         raise _ValidationError('In order to compare emission matrices, the list must contain only hidden Markov models.')
 
-    space = len(models)
-    rows = int(_mt.sqrt(space))
-    columns = int(_mt.ceil(space / float(rows)))
-
-    figure, axes = _mplp.subplots(nrows=rows, ncols=columns, constrained_layout=True, dpi=dpi)
-    axes = list(axes.flat)
-    ax_is = None
-
-    color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
-
-    for ax, model, name in zip(axes, models, names):
-
-        matrix = model.e if underlying_matrices == 'emission' else model.p
-
-        ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
-        ax.set_title(name, fontsize=9.0, fontweight='normal', pad=1)
-
-        ax.set_xticks([])
-        ax.set_xticks([], minor=True)
-        ax.set_yticks([])
-        ax.set_yticks([], minor=True)
-
-    for ax in axes[len(models):]:
-        ax.set_visible(False)
-
-    color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(axes[:len(models)], drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
-    figure.colorbar(ax_is, cax=color_map_ax, **color_map_ax_kwargs)
-    color_map_ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
-
-    figure.suptitle('Comparison Plot', fontsize=15.0, fontweight='bold')
-
-    return figure, axes
+    return _r.plot_comparison(models, underlying_matrices, names, dpi)
 
 
 @_dc.interactive_plot
@@ -189,30 +135,11 @@ def plot_convergence(model: _ct.tmdl, steps: int, initial_status: _ct.ostatus = 
         raise _ValidationError('The underlying Markov chain must be ergodic in order to plot convergence.')
 
     stationary_distribution = mc.pi[0]
-
     distributions = mc.propagate(steps, initial_status=initial_status, output_last=False)
     distributions = _np.asarray(distributions, dtype=float)
-
     distances = 0.5 * _np.sum(_np.abs(distributions - stationary_distribution), axis=1)
 
-    figure, ax = _mplp.subplots(dpi=dpi)
-
-    ax.plot(_np.arange(distances.size), distances, color=_colors[0], linewidth=1.75)
-
-    ax.set_xlim(0, distances.size - 1)
-
-    ax.set_ylabel('Total Variation Distance', fontsize=13.0)
-    if full_scale:
-        ax.set_ylim(0.0, 1.0)
-    else:
-        distance_max = _np.max(distances)
-        ax.set_ylim(0.0, min(1.0, distance_max * 1.1) if distance_max > 0.0 else 1.0)
-
-    ax.grid()
-
-    ax.set_title('Convergence Plot', fontsize=15.0, fontweight='bold')
-
-    return figure, ax
+    return _r.plot_convergence(distances, dpi, full_scale)
 
 
 @_dc.interactive_plot
@@ -244,72 +171,7 @@ def plot_eigenvalues(model: _ct.tmdl, dpi: int = 100) -> _ct.tplot:
     else:
         mc = _MarkovChain(model.p, model.states)
 
-    figure, ax = _mplp.subplots(dpi=dpi)
-
-    handles, labels = [], []
-
-    theta = _np.linspace(0.0, 2.0 * _np.pi, 200)
-
-    evalues = _npl.eigvals(model.p).astype(complex)
-    evalues_final = _np.copy(evalues)
-
-    argmin_index = _np.argmin(_np.abs(evalues_final - 1.0))
-
-    if _np.isclose(evalues_final[argmin_index], 1.0):
-        evalues_final[argmin_index] = 1.0 + 0.0j
-    else:  # pragma: no cover
-        evalues_final = _np.append(evalues_final, 1.0 + 0.0j)
-
-    evalues_final = _np.unique(evalues_final)
-
-    x_unit_circle = _np.cos(theta)
-    y_unit_circle = _np.sin(theta)
-
-    if mc.is_irreducible:
-
-        mu = _n.slem(model.p)
-
-        if not _np.isclose(mu, 0.0):
-
-            x_slem_circle = mu * x_unit_circle
-            y_slem_circle = mu * y_unit_circle
-
-            if not _np.isclose(mu, 1.0):
-
-                cs = _np.linspace(-1.1, 1.1, 201)
-                x_spectral_gap, y_spectral_gap = _np.meshgrid(cs, cs)
-                z_spectral_gap = x_spectral_gap**2.0 + y_spectral_gap**2.0
-
-                h = ax.contourf(x_spectral_gap, y_spectral_gap, z_spectral_gap, alpha=0.2, colors='r', levels=[mu**2.0, 1.0])
-                handles.append(_mplp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.get_facecolor()[0]))
-                labels.append('Spectral Gap')
-
-            ax.plot(x_slem_circle, y_slem_circle, color='red', linestyle='--', linewidth=1.5)
-
-    ax.plot(x_unit_circle, y_unit_circle, color='red', linestyle='-', linewidth=3.0)
-
-    h, = ax.plot(_np.real(evalues_final), _np.imag(evalues_final), color='blue', linestyle='None', marker='*', markersize=12.5)
-    handles.append(h)
-    labels.append('Eigenvalues')
-
-    ax.set_xlim(-1.1, 1.1)
-    ax.set_ylim(-1.1, 1.1)
-    ax.set_aspect('equal')
-
-    formatter = _mplt.FormatStrFormatter('%g')
-    ax.xaxis.set_major_formatter(formatter)
-    ax.yaxis.set_major_formatter(formatter)
-    ax.set_xticks(_np.linspace(-1.0, 1.0, 9), minor=False)
-    ax.set_yticks(_np.linspace(-1.0, 1.0, 9), minor=False)
-
-    ax.grid(which='major')
-
-    ax.legend(handles[::-1], labels[::-1], bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=len(handles))
-    ax.set_title('Eigenvalues Plot', fontsize=15.0, fontweight='bold')
-
-    _mplp.subplots_adjust(bottom=0.2)
-
-    return figure, ax
+    return _r.plot_eigenvalues(mc, dpi)
 
 
 @_dc.interactive_plot
@@ -347,48 +209,11 @@ def plot_flow(model: _ct.tmdl, steps: int, interval: int, initial_status: _ct.os
     else:
         mc = _MarkovChain(model.p, model.states)
 
-    p = mc.p
-
     indices = list(range(0, (steps * interval) + 1, interval))
     distributions = mc.propagate(indices[-1], initial_status=initial_status, output_last=False)
     distributions = _np.transpose(_np.stack([distribution for index, distribution in enumerate(distributions) if index in indices]))
 
-    d = distributions * 0.9
-    bb, bt = _r._get_boundaries(d)
-    bm = (bb + bt) / 2.0
-    c = _r._get_colors(d)
-    lh, ll = _r._get_legend(mc, c)
-
-    polygons_bars = _r._get_polygons_bars(d, bb, bt, c)
-    polygons_flows = _r._get_polygons_flows(p, d, bb, c, interval)
-
-    figure, ax = _mplp.subplots(dpi=dpi)
-
-    for e in polygons_flows:
-        ax.add_patch(e)
-
-    for e in polygons_bars:
-        ax.add_patch(e)
-
-    for ai in range(distributions.shape[0]):
-        for aj in range(distributions.shape[1]):
-
-            dv = distributions[ai, aj]
-
-            if dv > 0.05:
-                ax.text(aj, float(bm[ai, aj]), f'{dv:.3f}', horizontalalignment='center', verticalalignment='center')
-
-    _r._xticks_steps(ax, steps + 1, interval)
-
-    ax.set_ylim(0.0, 1.0)
-    ax.invert_yaxis()
-
-    ax.legend(lh, ll, bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=len(lh))
-    ax.set_title('Flow Plot', fontsize=15.0, fontweight='bold')
-
-    _mplp.subplots_adjust(bottom=0.2)
-
-    return figure, ax
+    return _r.plot_flow(mc, distributions, steps, interval, dpi)
 
 
 # noinspection PyBroadException
@@ -442,10 +267,7 @@ def plot_graph(model: _ct.tmdl, nodes_color: bool = True, nodes_shape: bool = Tr
     else:
         func = _r.plot_mc_standard if model_mc else _r.plot_hmm_standard
 
-    figure, ax = func(model, nodes_color, nodes_shape, edges_label, dpi)
-    figure.suptitle('Graph Plot', fontsize=15.0, fontweight='bold')
-
-    return figure, ax
+    return _r.plot_graph(func, model, nodes_color, nodes_shape, edges_label, dpi)
 
 
 @_dc.interactive_plot
@@ -479,25 +301,7 @@ def plot_matrix(model: _ct.tmdl, underlying_matrix: str = 'transition', dpi: int
     if underlying_matrix == 'emission' and not isinstance(model, _HiddenMarkovModel):  # pragma: no cover
         raise _ValidationError('An emission matrix can only be plotted for a hidden Markov model.')
 
-    matrix = model.e if underlying_matrix == 'emission' else model.p
-    labels_x = model.symbols if underlying_matrix == 'emission' else model.states
-
-    figure, ax = _mplp.subplots(dpi=dpi)
-
-    color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
-    ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
-
-    _r._xticks_labels(ax, len(labels_x), 'Symbols' if underlying_matrix == 'emission' else 'States', labels_x, True)
-    _r._yticks_labels(ax, len(model.states), 'States', model.states)
-
-    ax.grid(which='minor', color='k')
-
-    cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
-    cb.ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
-
-    ax.set_title('Matrix Plot (' + underlying_matrix.capitalize() + ')', fontsize=15.0, fontweight='bold')
-
-    return figure, ax
+    return _r.plot_matrix(model, underlying_matrix, dpi)
 
 
 @_dc.interactive_plot
@@ -541,62 +345,10 @@ def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: 
     distributions_length = 1 if isinstance(distributions, _np.ndarray) else len(distributions)
     distributions = _np.array([distributions]) if isinstance(distributions, _np.ndarray) else _np.array(distributions)
 
-    figure, ax = _mplp.subplots(dpi=dpi)
-
     if plot_type == 'heatmap':
-
-        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
-        ax_is = ax.imshow(_np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
-
-        _r._xticks_steps(ax, distributions_length)
-        _r._yticks_labels(ax, mc.size, None, mc.states)
-
-        ax.grid(which='minor', color='k')
-
-        cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
-        cb.ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
-
-        ax.set_title('Redistributions Plot (Heatmap)', fontsize=15.0, fontweight='bold')
-
+        return _r.plot_redistributions_heatmap(mc, distributions, distributions_length, dpi)
     else:
-
-        ax.set_prop_cycle('color', _colors)
-
-        for i in range(mc.size):
-
-            overlaps = [j for j in range(mc.size) if _np.allclose(distributions[:, i], distributions[:, j], rtol=1e-12, atol=1e-14)]
-            overlap_index = overlaps.index(i)
-            marker = 'o' if distributions_length == 2 else None
-            linestyle = '-'
-
-            if len(overlaps) > 1:
-                linestyle = ('-', '--', ':', '-.')[overlap_index % 4]
-                if overlap_index > 0:
-                    marker = ('o', 's', '^', 'D')[((overlap_index - 1) // 4) % 4]
-
-            ax.plot(
-                _np.arange(0.0, distributions_length, 1.0), distributions[:, i],
-                label=mc.states[i], linewidth=1.75, linestyle=linestyle, marker=marker,
-                markevery=max(1, distributions_length // 8), markersize=4.0
-            )
-
-        if _np.allclose(distributions[0, :], _np.ones(mc.size, dtype=float) / mc.size):
-            ax.plot(0.0, distributions[0, 0], color=_color_black, label="Start", marker='o', markeredgecolor=_color_black, markerfacecolor=_color_black)
-            legend_size = mc.size + 1
-        else:  # pragma: no cover
-            legend_size = mc.size
-
-        _r._xticks_steps(ax, distributions_length)
-        _r._yticks_frequency(ax, -0.05, 1.05)
-
-        ax.grid()
-
-        ax.legend(bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=legend_size)
-        ax.set_title('Redistributions Plot (Projection)', fontsize=15.0, fontweight='bold')
-
-        _mplp.subplots_adjust(bottom=0.2)
-
-    return figure, ax
+        return _r.plot_redistributions_projection(mc, distributions, distributions_length, dpi)
 
 
 @_dc.interactive_plot

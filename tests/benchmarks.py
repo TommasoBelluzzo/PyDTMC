@@ -14,7 +14,7 @@ import pytest as _pt
 # CONSTANTS #
 #############
 
-_benchmark_options = {
+_BENCHMARK_OPTIONS = {
     'warmup_rounds': 3,
     'rounds': 10,
     'iterations': 100
@@ -30,7 +30,7 @@ _benchmark_options = {
 def test_benchmark_generators(benchmark, func_name, func_obj, func_args):
 
     benchmark.group = func_name
-    benchmark.pedantic(func_obj, kwargs=func_args, **_benchmark_options)
+    benchmark.pedantic(func_obj, kwargs=func_args, **_BENCHMARK_OPTIONS)
 
     assert True
 
@@ -39,6 +39,6 @@ def test_benchmark_generators(benchmark, func_name, func_obj, func_args):
 def test_benchmark_measures(benchmark, func_name, func_obj, func_args):
 
     benchmark.group = func_name
-    benchmark.pedantic(func_obj, kwargs=func_args, **_benchmark_options)
+    benchmark.pedantic(func_obj, kwargs=func_args, **_BENCHMARK_OPTIONS)
 
     assert True

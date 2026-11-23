@@ -42,14 +42,14 @@ from . import _custom_types as _ct
 # CONSTANTS #
 #############
 
-_valid_params_hmm = {
+_VALID_PARAMS_HMM = {
     'reference': ('string', ('E', 'P')),
     'element_from': ('string', ()),
     'element_to': ('string', ()),
     'probability': ('number', ())
 }
 
-_valid_params_mc = {
+_VALID_PARAMS_MC = {
     'state_from': ('string', ()),
     'state_to': ('string', ()),
     'probability': ('number', ())
@@ -185,7 +185,7 @@ def read_json(mc: bool, file_path: _ct.tpath) -> _ct.tmdl_dict:
     if not isinstance(data, list):  # pragma: no cover
         raise ValueError('The file format is not compliant.')
 
-    valid_params = _valid_params_mc if mc else _valid_params_hmm
+    valid_params = _VALID_PARAMS_MC if mc else _VALID_PARAMS_HMM
     valid_params_keys = sorted(valid_params.keys())
 
     d = {}
@@ -233,7 +233,7 @@ def read_txt(mc: bool, file_path: _ct.tpath) -> _ct.tmdl_dict:
         file.seek(0)
         data = [line.strip().split() for line in file]
 
-    valid_params = _valid_params_mc if mc else _valid_params_hmm
+    valid_params = _VALID_PARAMS_MC if mc else _VALID_PARAMS_HMM
     valid_params_keys = tuple(valid_params.keys())
     valid_params_length = len(valid_params)
 
@@ -280,7 +280,7 @@ def read_xml(mc: bool, file_path: _ct.tpath) -> _ct.tmdl_dict:
     if root.tag != root_tag:  # pragma: no cover
         raise ValueError('The file root element is invalid.')
 
-    valid_params = _valid_params_mc if mc else _valid_params_hmm
+    valid_params = _VALID_PARAMS_MC if mc else _VALID_PARAMS_HMM
     valid_params_keys = sorted(valid_params.keys())
 
     d = {}
@@ -385,7 +385,7 @@ def write_csv(mc: bool, d: _ct.tmdl_dict, file_path: _ct.tpath):
 
 def write_json(mc: bool, d: _ct.tmdl_dict, file_path: _ct.tpath):
 
-    valid_params_keys = tuple((_valid_params_mc if mc else _valid_params_hmm).keys())
+    valid_params_keys = tuple((_VALID_PARAMS_MC if mc else _VALID_PARAMS_HMM).keys())
 
     data = []
 
@@ -422,7 +422,7 @@ def write_txt(d: _ct.tmdl_dict, file_path: _ct.tpath):
 
 def write_xml(mc: bool, d: _ct.tmdl_dict, file_path: _ct.tpath):
 
-    valid_params_keys = tuple((_valid_params_mc if mc else _valid_params_hmm).keys())
+    valid_params_keys = tuple((_VALID_PARAMS_MC if mc else _VALID_PARAMS_HMM).keys())
     root_tag = 'MarkovChain' if mc else 'HiddenMarkovModel'
 
     root = _xmle_ElementTree.Element(root_tag)

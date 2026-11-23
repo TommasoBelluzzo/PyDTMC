@@ -29,14 +29,17 @@ from tests.utilities import (
 # CONSTANTS #
 #############
 
-_base_directory = _osp.abspath(_osp.dirname(__file__))
-_benchmark_exclusions = ('benchmark', 'request')
-_numpy_formatting_options = _np.get_printoptions()
-_json_replacements = (
+_BASE_DIRECTORY = _osp.abspath(_osp.dirname(__file__))
+
+_BENCHMARK_EXCLUSIONS = ('benchmark', 'request')
+
+_JSON_REPLACEMENTS = (
     ('NaN', float('nan')),
     ('-Infinity', float('-inf')),
     ('Infinity', float('inf'))
 )
+
+_NUMPY_FORMATTING_OPTIONS = _np.get_printoptions()
 
 
 ###########
@@ -52,7 +55,7 @@ _fixtures = {}
 
 def _extract_fixtures(fixtures_file):
 
-    fixtures_path = _osp.join(_base_directory, f'fixtures/fixtures_{fixtures_file}.json')
+    fixtures_path = _osp.join(_BASE_DIRECTORY, f'fixtures/fixtures_{fixtures_file}.json')
 
     if not _osp.isfile(fixtures_path):
         return None
@@ -226,7 +229,7 @@ def _sanitize_fixtures_recursive(element):
     if isinstance(element, list):
         return [_sanitize_fixtures_recursive(item) for item in element]
 
-    for replacement in _json_replacements:
+    for replacement in _JSON_REPLACEMENTS:
         if element == replacement[0]:
             return replacement[1]
 
@@ -288,7 +291,7 @@ def pytest_generate_tests(metafunc):
 
     if (fixtures is not None) and (len(fixtures) > 0):
         if reference == 'benchmarks':
-            names = [name for name in names if name not in _benchmark_exclusions]
+            names = [name for name in names if name not in _BENCHMARK_EXCLUSIONS]
             values, ids = _parse_fixtures_benchmark(fixtures, func)
         elif isinstance(fixtures, dict):
             values, ids = _parse_fixtures_dictionary(fixtures, names, func)
@@ -300,14 +303,14 @@ def pytest_generate_tests(metafunc):
 
 def pytest_unconfigure():
 
-    if 'floatmode' in _numpy_formatting_options:
-        _np.set_printoptions(floatmode=_numpy_formatting_options['floatmode'])
+    if 'floatmode' in _NUMPY_FORMATTING_OPTIONS:
+        _np.set_printoptions(floatmode=_NUMPY_FORMATTING_OPTIONS['floatmode'])
 
-    if 'precision' in _numpy_formatting_options:
-        _np.set_printoptions(precision=_numpy_formatting_options['precision'])
+    if 'precision' in _NUMPY_FORMATTING_OPTIONS:
+        _np.set_printoptions(precision=_NUMPY_FORMATTING_OPTIONS['precision'])
 
-    if 'threshold' in _numpy_formatting_options:
-        _np.set_printoptions(threshold=_numpy_formatting_options['threshold'])
+    if 'threshold' in _NUMPY_FORMATTING_OPTIONS:
+        _np.set_printoptions(threshold=_NUMPY_FORMATTING_OPTIONS['threshold'])
 
-    if 'linewidth' in _numpy_formatting_options:
-        _np.set_printoptions(linewidth=_numpy_formatting_options['linewidth'])
+    if 'linewidth' in _NUMPY_FORMATTING_OPTIONS:
+        _np.set_printoptions(linewidth=_NUMPY_FORMATTING_OPTIONS['linewidth'])
