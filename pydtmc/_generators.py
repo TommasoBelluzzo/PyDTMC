@@ -243,6 +243,9 @@ def _spectral_aggregation_top_down(p: _ct.tarray, pi: _ct.tarray, s: int) -> _ct
             theta = _np.dot(kappa, ci_q)
             z += 1
 
+        if (not _np.all(_np.isfinite(theta))) or (_np.amax(_np.abs(kappa - theta)) > 1e-8):  # pragma: no cover
+            raise ValueError('The spectral aggregation invariant distribution failed to converge.')
+
         return theta
 
     def _build_pair_candidates(bpc_q, bpc_pi):
@@ -587,7 +590,7 @@ def hmm_random(rng: _ct.trand, n: int, k: int, p_zeros: int, p_mask: _ct.tarray,
 
         pz_mask_internal = _np.copy(pz_mask)
 
-        full_rows = _np.isclose(_np.nansum(pz_mask_internal, axis=1, dtype=float), 1.0)
+        full_rows = _np.isclose(_np.nansum(pz_mask_internal, axis=1, dtype=float), 1.0, rtol=0.0, atol=_c.ETOL)
 
         mask_full = _np.transpose(_np.array([full_rows] * pz_columns))
         pz_mask_internal[_np.isnan(pz_mask_internal) & mask_full] = 0.0
@@ -931,7 +934,7 @@ def mc_lump(p: _ct.tarray, states: _ct.tlist_str, partitions: _ct.tlists_int) ->
 
     left = _np.dot(_np.dot(_np.dot(r, k), p), r)
     right = _np.dot(p, r)
-    is_lumpable = _np.array_equal(left, right)
+    is_lumpable = _np.allclose(left, right, rtol=0.0, atol=_c.ETOL)
 
     if not is_lumpable:  # pragma: no cover
         raise ValueError('The Markov chain is not lumpable with respect to the given partitions.') from None
@@ -1424,7 +1427,7 @@ def mc_birth_death(p: _ct.tarray, q: _ct.tarray) -> _ct.tmc_gen_ext:
     r = 1.0 - q - p
 
     p = _np.diag(r) + _np.diag(p[0:-1], k=1) + _np.diag(q[1:], k=-1)
-    p[_np.isclose(p, 0.0)] = 0.0
+    p[(p < 0.0) & (p >= -_c.FTOL)] = 0.0
     p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[0], dtype=float)
     p /= _np.sum(p, axis=1, keepdims=True)
 
@@ -1944,7 +1947,7 @@ def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: floa
 
 def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tmc_gen_ext:
 
-    full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0)
+    full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0, rtol=0.0, atol=_c.ETOL)
 
     mask_full = _np.transpose(_np.array([full_rows] * size))
     mask[_np.isnan(mask) & mask_full] = 0.0

@@ -280,14 +280,10 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possib
         nodes = _np.zeros(size, dtype=float)
         weights = _np.zeros(size, dtype=float)
 
-        iterations = 0
         i = _np.arange(int(_np.trunc((size + 1.0) / 2.0)))
-        pp = 0.0
         z = _np.cos(_np.pi * ((i + 1.0) - 0.25) / (size + 0.5))
 
-        while iterations < 100:
-
-            iterations += 1
+        for _ in range(100):
 
             p1 = _np.ones_like(z, dtype=float)
             p2 = _np.zeros_like(z, dtype=float)
@@ -302,10 +298,10 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possib
             z1 = _np.copy(z)
             z = z1 - (p1 / pp)
 
-            if _np.allclose(abs(z - z1), 0.0):
+            if _np.max(_np.abs(z - z1)) < 1e-14:
                 break
 
-        if iterations == 100:  # pragma: no cover
+        else:  # pragma: no cover
             raise ValueError('The Gauss-Legendre quadrature failed to converge.')
 
         xl = 0.5 * (b - a)

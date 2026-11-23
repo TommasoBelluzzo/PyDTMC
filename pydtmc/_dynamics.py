@@ -117,10 +117,10 @@ def hmm_predict_trajectory(hmm: _ct.thmm, steps, initial_state):
             vector = _np.dot(vector, p) * e[:, symbol]
 
         probability = float(_np.sum(vector))
-        is_close = _np.isclose(probability, best_score, rtol=1e-12, atol=1e-15)
+        is_close = _np.isclose(probability, best_score, rtol=1e-12, atol=0.0)
 
-        if (probability > best_score) and (not is_close):
-            best_trajectory, best_score, tied = trajectory, probability, False
+        if probability > best_score:
+            best_trajectory, best_score, tied = trajectory, probability, is_close
         elif is_close:
             tied = True
 
