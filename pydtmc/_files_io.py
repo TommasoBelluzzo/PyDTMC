@@ -420,6 +420,7 @@ def write_txt(d: _ct.tmdl_dict, file_path: _ct.tpath):
         file.write(line)
 
 
+# noinspection PyTypeChecker
 def write_xml(mc: bool, d: _ct.tmdl_dict, file_path: _ct.tpath):
 
     valid_params_keys = tuple((_VALID_PARAMS_MC if mc else _VALID_PARAMS_HMM).keys())

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+
 __all__ = [
     'plot_comparison',
     'plot_convergence',
@@ -19,6 +21,7 @@ __all__ = [
     'plot_trellis_extended',
     'plot_trellis_standard'
 ]
+
 
 ###########
 # IMPORTS #
@@ -51,6 +54,7 @@ except ImportError:  # pragma: no cover
 
 # Internal
 
+from . import _custom_types as _ct
 from . import _numerical as _n
 
 
@@ -74,30 +78,11 @@ _DEFAULT_NODE_SIZE = 600
 # FUNCTIONS #
 #############
 
-def _calculate_magnitude(*cm_elements):
+# noinspection PyTypeChecker
+def _decode_graphviz_image(graph: _pyd.Dot, dpi: int) -> tuple:
 
-    magnitudes = []
-
-    for element in cm_elements:
-
-        element_positive = element[element > 0.0]
-
-        if element_positive.size > 0:
-            element_minimum = _np.min(element_positive).item()
-            element_magnitude = int(-_mt.floor(_mt.log10(element_minimum)))
-            magnitudes.append(element_magnitude)
-
-    magnitude = max(1, min(max(magnitudes), 4))
-
-    return magnitude
-
-
-def _decode_graphviz_image(g, dpi):
-    buffer = _io.BytesIO()
-    buffer.write(g.create(format='png'))
-    buffer.seek(0)
-
-    img = _mpli.imread(buffer)
+    with _io.BytesIO(graph.create(format='png')) as buffer:
+        img = _mpli.imread(buffer)
 
     img_x = img.shape[0] / dpi
     img_xi = img_x * 1.1
@@ -110,21 +95,23 @@ def _decode_graphviz_image(g, dpi):
     return img, img_x, img_xo, img_y, img_yo
 
 
-def _draw_edge_labels_curved(delc_ax, delc_positions, delc_edge_labels):
-    for (n1, n2), (rad, label) in delc_edge_labels.items():
+def _draw_edge_labels_curved(ax: _mplp.Axes, positions: dict, edge_labels: dict) -> None:
 
-        (x1, y1) = delc_positions[n1]
-        (x2, y2) = delc_positions[n2]
-        p1 = delc_ax.transData.transform(_np.array(delc_positions[n1]))
-        p2 = delc_ax.transData.transform(_np.array(delc_positions[n2]))
+    for (n1, n2), (rad, label) in edge_labels.items():
+
+        (x1, y1) = positions[n1]
+        (x2, y2) = positions[n2]
+        p1 = ax.transData.transform(_np.array(positions[n1]))
+        p2 = ax.transData.transform(_np.array(positions[n2]))
 
         linear_mid = (0.5 * p1) + (0.5 * p2)
+
         cp_mid = linear_mid + (rad * _np.dot(_np.array([(0, 1), (-1, 0)]), p2 - p1))
         cp1 = (0.5 * p1) + (0.5 * cp_mid)
         cp2 = (0.5 * p2) + (0.5 * cp_mid)
         bezier_mid = (0.5 * cp1) + (0.5 * cp2)
 
-        (x, y) = delc_ax.transData.inverted().transform(bezier_mid)
+        (x, y) = ax.transData.inverted().transform(bezier_mid)
         xy = _np.array((x, y))
 
         angle = (_np.arctan2(y2 - y1, x2 - x1) / (2.0 * _np.pi)) * 360.0
@@ -135,45 +122,52 @@ def _draw_edge_labels_curved(delc_ax, delc_positions, delc_edge_labels):
         if angle < -90.0:
             angle += 180.0
 
-        rotation = delc_ax.transData.transform_angles(_np.array((angle,)), xy.reshape((1, 2)))[0]
-        transform = delc_ax.transData
+        rotation = ax.transData.transform_angles(_np.array((angle,)), xy.reshape((1, 2)))[0]
+        transform = ax.transData
+
         bbox = {
             'boxstyle': 'round',
             'ec': (1.0, 1.0, 1.0),
             'fc': (1.0, 1.0, 1.0)
         }
 
-        delc_ax.text(
-            x, y,
-            label, color='k', size=10, family='sans-serif', weight='normal',
+        ax.text(
+            x, y, label,
+            color='k', family='sans-serif', size=10, weight='normal',
             horizontalalignment='center', verticalalignment='center',
             bbox=bbox, clip_on=True, rotation=rotation, transform=transform, zorder=1
         )
 
-    delc_ax.tick_params(
+    ax.tick_params(
         axis='both', which='both',
         bottom=False, left=False,
         labelbottom=False, labelleft=False
     )
 
 
-def _draw_graphviz_image(g, ax, dpi, normalized_extent=False, initial_dpi=None, callbacks=None):
-    figure = ax.figure
-    canvas = figure.canvas
-    render_dpi = max(1, int(dpi)) if initial_dpi is None else max(1, int(initial_dpi))
-    g.set_dpi(str(render_dpi))
-    image, _, _, _, _ = _decode_graphviz_image(g, render_dpi)
+def _draw_graphviz_image(graph: _pyd.Dot, ax: _mplp.Axes, dpi: int, initial_dpi: _ct.oint = None, callbacks: _ct.olist_any = None) -> _ct.tarray:
 
+    figure = ax.figure
     bounds = ax.get_window_extent()
-    if bounds.width > 0.0 and bounds.height > 0.0:
+    canvas = figure.canvas
+
+    render_dpi = max(1, int(dpi)) if initial_dpi is None else max(1, int(initial_dpi))
+    graph.set('dpi', str(render_dpi))
+
+    image, _, _, _, _ = _decode_graphviz_image(graph, render_dpi)
+
+    if (bounds.width > 0.0) and (bounds.height > 0.0):
+
         initial_scale = min(bounds.width / image.shape[1], bounds.height / image.shape[0])
         target_dpi = max(1, int(_mt.floor(render_dpi * initial_scale * 0.98)))
+
         if target_dpi != render_dpi:
-            g.set_dpi(str(target_dpi))
-            image, _, _, _, _ = _decode_graphviz_image(g, target_dpi)
+            graph.set('dpi', str(target_dpi))
+            image, _, _, _, _ = _decode_graphviz_image(graph, target_dpi)
             render_dpi = target_dpi
 
     ax.axis('off')
+
     artist = figure.figimage(image, origin='upper', resize=False)
     refreshing = False
     resize_pending = False
@@ -213,12 +207,12 @@ def _draw_graphviz_image(g, ax, dpi, normalized_extent=False, initial_dpi=None, 
             return False
 
         refreshing = True
-        g.set_dpi(str(target_dpi))
+        graph.set('dpi', str(target_dpi))
 
         try:
-            new_image, _, _, _, _ = _decode_graphviz_image(g, target_dpi)
+            new_image, _, _, _, _ = _decode_graphviz_image(graph, target_dpi)
         except Exception:  # pragma: no cover
-            g.set_dpi(str(render_dpi))
+            graph.set('dpi', str(render_dpi))
             return False
         finally:
             refreshing = False
@@ -278,38 +272,40 @@ def _draw_graphviz_image(g, ax, dpi, normalized_extent=False, initial_dpi=None, 
     return image
 
 
-def _fit_graph_bounds(ax):
+def _fit_graph_bounds(ax: _mplp.Axes) -> None:
+
     figure = ax.figure
 
     for _ in range(5):
 
         figure.canvas.draw()
 
+        # noinspection PyUnresolvedReferences
         if not _update_graph_bounds(ax, figure.canvas.get_renderer()):
             break
 
     figure.canvas.mpl_connect('draw_event', _on_graph_draw)
 
 
-def _generate_trellis_extended(gte_hmm, gte_initial_distribution, gte_symbols, gte_forward, gte_matrix,
-                               gte_states_path):
-    n, f = gte_hmm.n, len(gte_symbols)
+def _generate_trellis_extended(hmm: _ct.thmm, initial_distribution: _ct.tarray, symbols: _ct.tarray, forward: bool, matrix: _ct.tarray,
+                               states_path: _ct.tarray) -> _pyd.Dot:
+    n, f = hmm.n, len(symbols)
 
     g = _pyd.Dot(graph_type='digraph', layout='neato', overlap='true', splines='line', outputorder='edgesfirst',
                  margin='0', fontname='Arial', node_fontname='Arial')
 
     for row in range(n):
-        sub_label = gte_hmm.states[row]
+        sub_label = hmm.states[row]
         g.add_node(
             _pyd.Node(f'state{row}', color='transparent', label=sub_label, shape='plaintext', pos=f'0.4,{n - row}!',
                       pin='true'))
 
     for col in range(f):
 
-        path_current = gte_states_path[col]
+        path_current = states_path[col]
         col_position = (col + 1) * 1.1
 
-        sub_label = "<T<FONT POINT-SIZE='8'><SUB>0</SUB></FONT>>" if col == 0 else gte_hmm.symbols[gte_symbols[col]]
+        sub_label = "<T<FONT POINT-SIZE='8'><SUB>0</SUB></FONT>>" if col == 0 else hmm.symbols[symbols[col]]
         g.add_node(_pyd.Node(f'header{col}', color='transparent', label=sub_label, shape='plaintext',
                              pos=f'{col_position},{n + 0.6}!', pin='true'))
 
@@ -317,7 +313,7 @@ def _generate_trellis_extended(gte_hmm, gte_initial_distribution, gte_symbols, g
             node_index = (row * f) + col
             node_color = _DEFAULT_COLOR_PATH if path_current == row else _DEFAULT_COLOR_NODE
             g.add_node(
-                _pyd.Node(f'node{node_index}', fillcolor=node_color, label=f'{round(gte_matrix[row, col], 2):.2f}',
+                _pyd.Node(f'node{node_index}', fillcolor=node_color, label=f'{round(matrix[row, col], 2):.2f}',
                           style='filled', pos=f'{col_position},{n - row}!', pin='true'))
 
     for row in range(n):
@@ -326,21 +322,21 @@ def _generate_trellis_extended(gte_hmm, gte_initial_distribution, gte_symbols, g
 
         for col in range(f - 1):
 
-            if (col == 0) and (not gte_initial_distribution[row] > 0.0):
+            if (col == 0) and (not initial_distribution[row] > 0.0):
                 continue
 
             for row_next in range(n):
 
-                if gte_hmm.p[row][row_next] > 0.0:
+                if hmm.p[row][row_next] > 0.0:
 
-                    if gte_forward:
+                    if forward:
                         edge_from = f'node{row_offset + col}'
                         edge_to = f'node{(row_next * f) + col + 1}'
                     else:
                         edge_from = f'node{(row_next * f) + col + 1}'
                         edge_to = f'node{row_offset + col}'
 
-                    edge_color = _DEFAULT_COLOR_PATH if gte_states_path[col] == row and gte_states_path[
+                    edge_color = _DEFAULT_COLOR_PATH if states_path[col] == row and states_path[
                         col + 1] == row_next else _COLOR_BLACK
 
                     g.add_edge(_pyd.Edge(edge_from, edge_to, color=edge_color, constraint='false'))
@@ -348,9 +344,9 @@ def _generate_trellis_extended(gte_hmm, gte_initial_distribution, gte_symbols, g
     return g
 
 
-def _generate_trellis_standard(gts_hmm, gts_initial_distribution, gts_symbols, gts_forward, gts_matrix,
-                               gts_states_path):
-    n, f = gts_hmm.n, len(gts_symbols)
+def _generate_trellis_standard(hmm: _ct.thmm, initial_distribution: _ct.tarray, symbols: _ct.tarray, forward: bool, matrix: _ct.tarray,
+                               states_path: _ct.tarray) -> tuple:
+    n, f = hmm.n, len(symbols)
 
     trellis = _nx.DiGraph()
     node_colors, node_edges, node_labels, node_positions = [], [], {}, {}
@@ -365,13 +361,13 @@ def _generate_trellis_standard(gts_hmm, gts_initial_distribution, gts_symbols, g
 
             trellis.add_node(node_index)
 
-            if gts_states_path[col] == row:
+            if states_path[col] == row:
                 node_colors.append(_DEFAULT_COLOR_PATH)
             else:
                 node_colors.append(_DEFAULT_COLOR_NODE)
 
             node_edges.append(_COLOR_BLACK)
-            node_labels[node_index] = f'{round(gts_matrix[row, col], 2):.2f}'
+            node_labels[node_index] = f'{round(matrix[row, col], 2):.2f}'
             node_positions[node_index] = (col + 1.0, row_offset)
 
             node_index += 1
@@ -382,19 +378,19 @@ def _generate_trellis_standard(gts_hmm, gts_initial_distribution, gts_symbols, g
 
         for col in range(f - 1):
 
-            if (col == 0) and (not gts_initial_distribution[row] > 0.0):
+            if (col == 0) and (not initial_distribution[row] > 0.0):
                 continue
 
             for row_next in range(n):
 
-                if gts_hmm.p[row][row_next] > 0.0:
+                if hmm.p[row][row_next] > 0.0:
 
-                    if gts_forward:
+                    if forward:
                         edge = (row_offset + col, (row_next * f) + col + 1)
                     else:
                         edge = ((row_next * f) + col + 1, row_offset + col)
 
-                    if (gts_states_path[col] == row) and (gts_states_path[col + 1] == row_next):
+                    if (states_path[col] == row) and (states_path[col + 1] == row_next):
                         edge_color = _DEFAULT_COLOR_PATH
                     else:
                         edge_color = _COLOR_BLACK
@@ -406,12 +402,12 @@ def _generate_trellis_standard(gts_hmm, gts_initial_distribution, gts_symbols, g
 
         node_colors.append('none')
         node_edges.append('none')
-        node_labels[node_index] = gts_hmm.states[row]
+        node_labels[node_index] = hmm.states[row]
         node_positions[node_index] = (0.6, float(n - row))
 
         node_index += 1
 
-    headers = [r"$\mathregular{T_0}$"] + [gts_hmm.symbols[symbol] for symbol in gts_symbols[1:]]
+    headers = [r"$\mathregular{T_0}$"] + [hmm.symbols[symbol] for symbol in symbols[1:]]
 
     for col, header in enumerate(headers):
         trellis.add_node(node_index)
@@ -428,15 +424,16 @@ def _generate_trellis_standard(gts_hmm, gts_initial_distribution, gts_symbols, g
     return trellis, node_colors, node_edges, node_labels, node_positions, edge_colors
 
 
-def _get_boundaries(gb_d):
-    i, j = gb_d.shape
+def _get_boundaries(d: _ct.tarray) -> _ct.tpair_array:
+
+    i, j = d.shape
     k = 0.1 / (i - 1.0) if i > 1 else 0.0
 
     b = _np.zeros((i, j), dtype=float)
     t = _np.zeros((i, j), dtype=float)
 
     for o in range(j):
-        dj = gb_d[:, o]
+        dj = d[:, o]
         b[:, o] = _np.cumsum(dj + k) - dj - k
         t[:, o] = _np.cumsum(dj + k) - k
 
@@ -446,8 +443,9 @@ def _get_boundaries(gb_d):
     return b, t
 
 
-def _get_colors(gc_d):
-    i = gc_d.shape[0]
+def _get_colors(d: _ct.tarray) -> _ct.tarray:
+
+    i = d.shape[0]
     colors_count = len(_COLORS)
 
     colors = _np.zeros((i, 4), dtype=float)
@@ -474,28 +472,41 @@ def _get_colors(gc_d):
     return colors
 
 
-def _get_curves(gc_n, gc_x1, gc_y1, gc_x2, gc_y2):
-    tx = _np.reshape(_np.linspace(gc_x1, gc_x2, 15), (1, -1))
-    cx = _np.tile(_np.transpose(tx), (1, gc_n))
+def _get_curves(n: int, x1: float, y1: _ct.tarray, x2: float, y2: _ct.tarray) -> _ct.tpair_array:
+
+    tx = _np.reshape(_np.linspace(x1, x2, 15), (1, -1))
+    cx = _np.tile(_np.transpose(tx), (1, n))
 
     ty = (1.0 - _np.cos(_np.reshape(_np.linspace(0.0, _np.pi, 15), (1, -1)))) / 2.0
-    cy = _np.tile(gc_y1, (15, 1)) + (_np.tile(gc_y2 - gc_y1, (15, 1)) * _np.tile(_np.transpose(ty), (1, gc_n)))
+    cy = _np.tile(y1, (15, 1)) + (_np.tile(y2 - y1, (15, 1)) * _np.tile(_np.transpose(ty), (1, n)))
 
     return cx, cy
 
 
-def _get_legend(gl_mc, gl_c):
-    handles = []
-    labels = gl_mc.states
+def _get_node_colors(count: int) -> _ct.tlist_str:
 
-    for i, label in enumerate(labels):
-        handles.append(_mplpc.Patch(color=gl_c[i, :], label=label))
+    colors = _cp.deepcopy(_COLORS)
+    colors_limit = len(colors) - 1
+    colors_offset = 0
 
-    return handles, labels
+    colors_list = []
+
+    while count > 0:
+
+        colors_list.append(colors[colors_offset])
+        colors_offset += 1
+
+        if colors_offset > colors_limit:  # pragma: no cover
+            colors_offset = 0
+
+        count -= 1
+
+    return colors_list
 
 
-def _get_polygons_bars(gpb_d, gpb_bb, gpb_bt, gpb_c):
-    i, j = gpb_d.shape
+def _get_polygons_bars(d: _ct.tarray, bb: _ct.tarray, bt: _ct.tarray, colors: _ct.tarray) -> _ct.tlist_any:
+
+    i, j = d.shape
     w = j / 40.0
 
     polygons = []
@@ -506,35 +517,36 @@ def _get_polygons_bars(gpb_d, gpb_bb, gpb_bt, gpb_c):
         xp = oj + w
 
         for oi in range(i):
-            yb = gpb_bb[oi, oj]
-            yt = gpb_bt[oi, oj]
+            yb = bb[oi, oj]
+            yt = bt[oi, oj]
 
             x = [xm, xp, xp, xm]
             y = [yb, yb, yt, yt]
 
-            polygons.append(_mplpc.Polygon(list(zip(x, y)), edgecolor=None, facecolor=gpb_c[oi, :], alpha=0.8))
+            polygons.append(_mplpc.Polygon(list(zip(x, y)), edgecolor=None, facecolor=colors[oi, :], alpha=0.8))
 
     return polygons
 
 
-def _get_polygons_flows(gpf_p, gpf_d, gpf_bb, gpf_c, gpf_interval):
-    i, j = gpf_d.shape
+def _get_polygons_flows(p: _ct.tarray, d: _ct.tarray, bb: _ct.tarray, colors: _ct.tarray, interval: int) -> _ct.tlist_any:
+
+    i, j = d.shape
     w = j / 40.0
-    q = _npl.matrix_power(gpf_p, gpf_interval)
+    q = _npl.matrix_power(p, interval)
 
     polygons = []
 
     for oj in range(j - 1):
 
-        bj = _np.copy(gpf_bb[:, oj + 1])
+        bj = _np.copy(bb[:, oj + 1])
 
         x_lo = oj + w
         x_hi = oj - w + 1.0
 
         for oi in range(i):
 
-            dij = gpf_d[oi, oj]
-            bij = gpf_bb[oi, oj]
+            dij = d[oi, oj]
+            bij = bb[oi, oj]
 
             qi = q[oi, :]
             qis = _np.cumsum(qi)
@@ -552,33 +564,13 @@ def _get_polygons_flows(gpf_p, gpf_d, gpf_bb, gpf_c, gpf_interval):
             y = _np.concatenate([bottom_y, top_y], axis=0)
 
             for z in range(x.shape[1]):
-                polygons.append(
-                    _mplpc.Polygon(list(zip(x[:, z], y[:, z])), edgecolor=None, facecolor=gpf_c[oi, :], alpha=0.3))
+                polygons.append(_mplpc.Polygon(list(zip(x[:, z], y[:, z])), edgecolor=None, facecolor=colors[oi, :], alpha=0.3))
 
     return polygons
 
 
-def _node_colors(nc_count):
-    colors = _cp.deepcopy(_COLORS)
-    colors_limit = len(colors) - 1
-    colors_offset = 0
+def _on_graph_draw(event: _ct.tany) -> None:
 
-    colors_list = []
-
-    while nc_count > 0:
-
-        colors_list.append(colors[colors_offset])
-        colors_offset += 1
-
-        if colors_offset > colors_limit:  # pragma: no cover
-            colors_offset = 0
-
-        nc_count -= 1
-
-    return colors_list
-
-
-def _on_graph_draw(event):
     axes = event.canvas.figure.axes
 
     if len(axes) != 1:
@@ -588,9 +580,11 @@ def _on_graph_draw(event):
         event.canvas.draw_idle()
 
 
-def _plot_graphviz_image(g, dpi):
-    g.set_dpi(str(dpi))
-    preview, img_height, _, img_width, _ = _decode_graphviz_image(g, dpi)
+def _plot_graphviz_image(graph: _pyd.Dot, dpi: int) -> _ct.tplot:
+
+    graph.set('dpi', str(dpi))
+
+    preview, img_height, _, img_width, _ = _decode_graphviz_image(graph, dpi)
 
     f, a = _mplp.subplots(figsize=(img_width * 1.5, img_height * 1.5), dpi=dpi)
     f.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.90)
@@ -600,12 +594,13 @@ def _plot_graphviz_image(g, dpi):
 
     bounds = a.get_window_extent()
     initial_dpi = max(1, int(_mt.floor(dpi * min(bounds.width / preview.shape[1], bounds.height / preview.shape[0]))))
-    _draw_graphviz_image(g, a, dpi, normalized_extent=True, initial_dpi=initial_dpi)
+    _draw_graphviz_image(graph, a, dpi, initial_dpi=initial_dpi)
 
     return f, a
 
 
-def _update_graph_bounds(ax, renderer):
+def _update_graph_bounds(ax: _mplp.Axes, renderer: _ct.tany) -> bool:
+
     bounds = []
 
     for artist in [*ax.patches, *ax.texts, *ax.collections]:
@@ -614,15 +609,16 @@ def _update_graph_bounds(ax, renderer):
             continue
 
         extent = artist.get_window_extent(renderer)
-        values = _np.array(extent.extents)
+        values = _np.array(extent.extents, dtype=float)
 
-        if _np.all(_np.isfinite(values)) and extent.width > 0.0 and extent.height > 0.0:
+        if _np.all(_np.isfinite(values)) and (extent.width > 0.0) and (extent.height > 0.0):
             bounds.append(values)
 
     if len(bounds) == 0:
         return False
 
-    bounds = _np.array(bounds)
+    bounds = _np.array(bounds, dtype=float)
+
     padding = 8.0
     x_min = _np.min(bounds[:, 0]) - padding
     y_min = _np.min(bounds[:, 1]) - padding
@@ -631,8 +627,7 @@ def _update_graph_bounds(ax, renderer):
 
     axes_bounds = ax.get_window_extent(renderer)
 
-    if (x_min >= axes_bounds.x0) and (y_min >= axes_bounds.y0) and (x_max <= axes_bounds.x1) and (
-            y_max <= axes_bounds.y1):
+    if (x_min >= axes_bounds.x0) and (y_min >= axes_bounds.y0) and (x_max <= axes_bounds.x1) and (y_max <= axes_bounds.y1):
         return False
 
     data_bounds = ax.transData.inverted().transform([[x_min, y_min], [x_max, y_max]])
@@ -647,7 +642,8 @@ def _update_graph_bounds(ax, renderer):
     return True
 
 
-def _xticks_labels(ax, size, labels_name, labels, minor_major):
+def _xticks_labels(ax: _mplp.Axes, size: int, labels_name: _ct.ostr, labels: _ct.tlist_str, minor_major: bool) -> None:
+
     if labels_name is not None:
         ax.set_xlabel(labels_name, fontsize=13.0)
 
@@ -660,17 +656,21 @@ def _xticks_labels(ax, size, labels_name, labels, minor_major):
     ax.set_xticklabels(labels)
 
 
-def _xticks_steps(ax, length, interval=1, max_ticks=11):
+def _xticks_steps(ax: _mplp.Axes, length: int, interval: int = 1, maximum_ticks: int = 11) -> None:
+
     ax.set_xlabel('Steps', fontsize=13.0)
 
     tick_step = 1
-    if length > max_ticks:
 
-        target_step = (length - 1) / (max_ticks - 1)
+    if length > maximum_ticks:
+
+        target_step = (length - 1) / (maximum_ticks - 1)
         magnitude = 10.0 ** _mt.floor(_mt.log10(target_step))
 
         for multiplier in (1, 2, 5, 10):
+
             tick_step = int(multiplier * magnitude)
+
             if tick_step >= target_step:
                 break
 
@@ -682,13 +682,15 @@ def _xticks_steps(ax, length, interval=1, max_ticks=11):
     ax.set_xlim(-0.5, length - 0.5)
 
 
-def _yticks_frequency(ax, bottom, top):
+def _yticks_frequency(ax: _mplp.Axes, bottom: float, top: float) -> None:
+
     ax.set_ylabel('Frequency', fontsize=13.0)
     ax.set_yticks(_np.linspace(0.0, 1.0, 11))
     ax.set_ylim(bottom, top)
 
 
-def _yticks_labels(ax, size, labels_name, labels):
+def _yticks_labels(ax: _mplp.Axes, size: int, labels_name: _ct.ostr, labels: _ct.tlist_str) -> None:
+
     if labels_name is not None:
         ax.set_ylabel(labels_name, fontsize=13.0)
 
@@ -697,19 +699,19 @@ def _yticks_labels(ax, size, labels_name, labels):
     ax.set_yticklabels(labels)
 
 
-def plot_comparison(pc_models, pc_underlying_matrices, pc_names, pc_dpi):
-    space = len(pc_models)
+def plot_comparison(models: _ct.tlist_mdl, underlying_matrices: str, names: _ct.tlist_str, dpi: int) -> _ct.tplot:
+    space = len(models)
     rows = int(_mt.sqrt(space))
     columns = int(_mt.ceil(space / float(rows)))
 
-    figure, axes = _mplp.subplots(nrows=rows, ncols=columns, constrained_layout=True, dpi=pc_dpi)
+    figure, axes = _mplp.subplots(nrows=rows, ncols=columns, constrained_layout=True, dpi=dpi)
     axes = list(axes.flat)
     ax_is = None
 
     color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
 
-    for ax, model, name in zip(axes, pc_models, pc_names):
-        matrix = model.e if pc_underlying_matrices == 'emission' else model.p
+    for ax, model, name in zip(axes, models, names):
+        matrix = model.e if underlying_matrices == 'emission' else model.p
 
         ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
         ax.set_title(name, fontsize=9.0, fontweight='normal', pad=1)
@@ -719,10 +721,10 @@ def plot_comparison(pc_models, pc_underlying_matrices, pc_names, pc_dpi):
         ax.set_yticks([])
         ax.set_yticks([], minor=True)
 
-    for ax in axes[len(pc_models):]:
+    for ax in axes[len(models):]:
         ax.set_visible(False)
 
-    color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(axes[:len(pc_models)], drawedges=True,
+    color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(axes[:len(models)], drawedges=True,
                                                          orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
     figure.colorbar(ax_is, cax=color_map_ax, **color_map_ax_kwargs)
     color_map_ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
@@ -732,18 +734,18 @@ def plot_comparison(pc_models, pc_underlying_matrices, pc_names, pc_dpi):
     return figure, axes
 
 
-def plot_convergence(pc_distances, pc_dpi, pc_full_scale):
-    figure, ax = _mplp.subplots(dpi=pc_dpi)
+def plot_convergence(distances: _ct.tarray, dpi: int, full_scale: bool) -> _ct.tplot:
+    figure, ax = _mplp.subplots(dpi=dpi)
 
-    ax.plot(_np.arange(pc_distances.size), pc_distances, color=_COLORS[0], linewidth=1.75)
+    ax.plot(_np.arange(distances.size), distances, color=_COLORS[0], linewidth=1.75)
 
-    ax.set_xlim(0, pc_distances.size - 1)
+    ax.set_xlim(0, distances.size - 1)
 
     ax.set_ylabel('Total Variation Distance', fontsize=13.0)
-    if pc_full_scale:
+    if full_scale:
         ax.set_ylim(0.0, 1.0)
     else:
-        distance_max = _np.max(pc_distances)
+        distance_max = _np.max(distances)
         ax.set_ylim(0.0, min(1.0, distance_max * 1.1) if distance_max > 0.0 else 1.0)
 
     ax.grid()
@@ -753,14 +755,14 @@ def plot_convergence(pc_distances, pc_dpi, pc_full_scale):
     return figure, ax
 
 
-def plot_eigenvalues(pe_mc, pe_dpi):
-    figure, ax = _mplp.subplots(dpi=pe_dpi)
+def plot_eigenvalues(mc: _ct.tmc, dpi: int) -> _ct.tplot:
+    figure, ax = _mplp.subplots(dpi=dpi)
 
     handles, labels = [], []
 
     theta = _np.linspace(0.0, 2.0 * _np.pi, 200)
 
-    evalues = _npl.eigvals(pe_mc.p).astype(complex)
+    evalues = _npl.eigvals(mc.p).astype(complex)
     evalues_final = _np.copy(evalues)
 
     argmin_index = _np.argmin(_np.abs(evalues_final - 1.0))
@@ -775,9 +777,9 @@ def plot_eigenvalues(pe_mc, pe_dpi):
     x_unit_circle = _np.cos(theta)
     y_unit_circle = _np.sin(theta)
 
-    if pe_mc.is_irreducible:
+    if mc.is_irreducible:
 
-        mu = _n.slem(pe_mc.p)
+        mu = _n.slem(mc.p)
 
         if not _np.isclose(mu, 0.0):
 
@@ -823,19 +825,24 @@ def plot_eigenvalues(pe_mc, pe_dpi):
     return figure, ax
 
 
-def plot_flow(pf_mc, pf_distributions, pf_steps, pf_interval, pf_dpi):
-    p = pf_mc.p
+def plot_flow(mc: _ct.tmc, distributions: _ct.tarray, steps: int, interval: int, dpi: int) -> _ct.tplot:
+    p = mc.p
 
-    d = pf_distributions * 0.9
+    d = distributions * 0.9
     bb, bt = _get_boundaries(d)
     bm = (bb + bt) / 2.0
     c = _get_colors(d)
-    lh, ll = _get_legend(pf_mc, c)
+
+    lh = []
+    ll = mc.states
+
+    for i, label in enumerate(ll):
+        lh.append(_mplpc.Patch(color=c[i, :], label=label))
 
     polygons_bars = _get_polygons_bars(d, bb, bt, c)
-    polygons_flows = _get_polygons_flows(p, d, bb, c, pf_interval)
+    polygons_flows = _get_polygons_flows(p, d, bb, c, interval)
 
-    figure, ax = _mplp.subplots(dpi=pf_dpi)
+    figure, ax = _mplp.subplots(dpi=dpi)
 
     for e in polygons_flows:
         ax.add_patch(e)
@@ -843,15 +850,15 @@ def plot_flow(pf_mc, pf_distributions, pf_steps, pf_interval, pf_dpi):
     for e in polygons_bars:
         ax.add_patch(e)
 
-    for ai in range(pf_distributions.shape[0]):
-        for aj in range(pf_distributions.shape[1]):
+    for ai in range(distributions.shape[0]):
+        for aj in range(distributions.shape[1]):
 
-            dv = pf_distributions[ai, aj]
+            dv = distributions[ai, aj]
 
             if dv > 0.05:
                 ax.text(aj, float(bm[ai, aj]), f'{dv:.3f}', horizontalalignment='center', verticalalignment='center')
 
-    _xticks_steps(ax, pf_steps + 1, pf_interval)
+    _xticks_steps(ax, steps + 1, interval)
 
     ax.set_ylim(0.0, 1.0)
     ax.invert_yaxis()
@@ -864,18 +871,19 @@ def plot_flow(pf_mc, pf_distributions, pf_steps, pf_interval, pf_dpi):
     return figure, ax
 
 
-def plot_graph(pg_func, pg_model, pg_nodes_color, pg_nodes_shape, pg_edges_label, pg_dpi):
-    figure, ax = pg_func(pg_model, pg_nodes_color, pg_nodes_shape, pg_edges_label, pg_dpi)
+def plot_graph(func: _ct.tany, model: _ct.tmdl, nodes_color: bool, nodes_shape: bool, edges_label: bool, dpi: int) -> _ct.tplot:
+
+    figure, ax = func(model, nodes_color, nodes_shape, edges_label, dpi)
     figure.suptitle('Graph Plot', fontsize=15.0, fontweight='bold')
 
     return figure, ax
 
 
-def plot_hmm_extended(phe_hmm, phe_nodes_color, phe_nodes_type, phe_edges_label, phe_dpi):
-    magnitude = _calculate_magnitude(phe_hmm.p, phe_hmm.e)
+def plot_hmm_extended(hmm: _ct.thmm, nodes_color: bool, nodes_shape: bool, edges_label: bool, dpi: int) -> _ct.tplot:
 
-    node_colors = _node_colors(phe_hmm.n) if phe_nodes_color else []
-    edge_colors = _cp.deepcopy(node_colors) if phe_nodes_color else []
+    magnitude = _n.calculate_magnitude(hmm.p, hmm.e)
+    node_colors = _get_node_colors(hmm.n) if nodes_color else []
+    edge_colors = _cp.deepcopy(node_colors) if nodes_color else []
 
     g = _pyd.Dot(graph_type='digraph')
 
@@ -885,127 +893,131 @@ def plot_hmm_extended(phe_hmm, phe_nodes_color, phe_nodes_type, phe_edges_label,
     g_sub2 = _pyd.Subgraph(rank='same')
     g.add_subgraph(g_sub2)
 
-    for i in range(phe_hmm.n):
+    for i in range(hmm.n):
 
-        state = phe_hmm.states[i]
+        state = hmm.states[i]
 
         node_attributes = {}
 
-        if phe_nodes_color:
+        if nodes_color:
             node_attributes['style'] = 'filled'
             node_attributes['fillcolor'] = node_colors[i]
 
-        if phe_nodes_type:
+        if nodes_shape:
             node_attributes['shape'] = 'ellipse'
 
         g_sub1.add_node(_pyd.Node(state, **node_attributes))
 
-    for symbol in phe_hmm.symbols:
+    for symbol in hmm.symbols:
 
         node_attributes = {}
 
-        if phe_nodes_color:
+        if nodes_color:
             node_attributes['style'] = 'filled'
             node_attributes['fillcolor'] = _DEFAULT_COLOR_SYMBOL
 
-        if phe_nodes_type:
+        if nodes_shape:
             node_attributes['shape'] = 'hexagon'
 
         g_sub2.add_node(_pyd.Node(symbol, **node_attributes))
 
-    for i in range(phe_hmm.n):
+    for i in range(hmm.n):
 
-        state_i = phe_hmm.states[i]
+        state_i = hmm.states[i]
 
-        for j in range(phe_hmm.n):
+        for j in range(hmm.n):
 
-            tp = phe_hmm.p[i, j]
+            tp = hmm.p[i, j]
 
             if tp > 0.0:
 
-                state_j = phe_hmm.states[j]
+                state_j = hmm.states[j]
 
                 edge_attributes = {
                     'style': 'filled',
                     'color': _DEFAULT_COLOR_EDGE
                 }
 
-                if phe_edges_label:
+                if edges_label:
                     edge_attributes['label'] = f' {round(tp, magnitude):.{magnitude}f} '
                     edge_attributes['fontsize'] = 9
 
                 g.add_edge(_pyd.Edge(state_i, state_j, **edge_attributes))
 
-        for j in range(phe_hmm.k):
+        for j in range(hmm.k):
 
-            ep = phe_hmm.e[i, j]
+            ep = hmm.e[i, j]
 
             if ep > 0.0:
 
-                symbol = phe_hmm.symbols[j]
+                symbol = hmm.symbols[j]
 
                 edge_attributes = {
                     'style': 'dashed',
-                    'color': edge_colors[i] if phe_nodes_color else _DEFAULT_COLOR_EDGE
+                    'color': edge_colors[i] if nodes_color else _DEFAULT_COLOR_EDGE
                 }
 
-                if phe_edges_label:
+                if edges_label:
                     edge_attributes['label'] = f' {round(ep, magnitude):.{magnitude}f} '
                     edge_attributes['fontsize'] = 9
 
                 g.add_edge(_pyd.Edge(state_i, symbol, **edge_attributes))
 
-    f, a = _plot_graphviz_image(g, phe_dpi)
+    f, a = _plot_graphviz_image(g, dpi)
 
     return f, a
 
 
-def plot_hmm_standard(phs_hmm, phs_nodes_color, phs_nodes_shape, phe_edges_label, phs_dpi):
-    g = phs_hmm.to_graph()
+def plot_hmm_standard(hmm: _ct.thmm, nodes_color: bool, nodes_shape: bool, edges_label: bool, dpi: int) -> _ct.tplot:
+
+    magnitude = _n.calculate_magnitude(hmm.p, hmm.e)
+    node_colors = _get_node_colors(hmm.n) if nodes_color else []
+    edge_colors = _cp.deepcopy(node_colors) if nodes_color else []
+
+    g = hmm.to_graph()
     positions = _nx.multipartite_layout(g, align='horizontal', subset_key='layer')
-    magnitude = _calculate_magnitude(phs_hmm.p, phs_hmm.e)
 
-    node_colors = _node_colors(phs_hmm.n) if phs_nodes_color else []
-    edge_colors = _cp.deepcopy(node_colors) if phs_nodes_color else []
-
-    f, a = _mplp.subplots(dpi=phs_dpi)
+    f, a = _mplp.subplots(dpi=dpi)
 
     for i, node in enumerate(g.nodes):
 
-        if phs_nodes_color:
-            if node in phs_hmm.states:
+        if nodes_color:
+            if node in hmm.states:
                 node_color = node_colors[i]
             else:
                 node_color = _DEFAULT_COLOR_SYMBOL
         else:
             node_color = _DEFAULT_COLOR_NODE
 
-        if phs_nodes_shape:
-            if node in phs_hmm.states:
+        if nodes_shape:
+            if node in hmm.states:
                 node_shape = 'o'
             else:
                 node_shape = 'H'
         else:
             node_shape = 'o'
 
-        _nx.draw_networkx_nodes(g, positions, ax=a, nodelist=[node], node_color=node_color, node_shape=node_shape,
-                                node_size=_DEFAULT_NODE_SIZE, edgecolors=_COLOR_BLACK)
+        _nx.draw_networkx_nodes(
+            g, positions, ax=a,
+            nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_DEFAULT_NODE_SIZE,
+            edgecolors=_COLOR_BLACK
+        )
 
     _nx.draw_networkx_labels(g, positions, ax=a)
 
     edge_labels_curved, edge_labels_straight_state, edge_labels_straight_symbol = {}, {}, {}
 
-    for i in range(phs_hmm.n):
+    for i in range(hmm.n):
 
-        state_i = phs_hmm.states[i]
+        state_i = hmm.states[i]
 
-        for j in range(phs_hmm.n):
+        for j in range(hmm.n):
 
-            tp = phs_hmm.p[i, j]
+            tp = hmm.p[i, j]
 
             if tp > 0.0:
 
-                state_j = phs_hmm.states[j]
+                state_j = hmm.states[j]
 
                 edge = (state_i, state_j)
                 edge_color = _DEFAULT_COLOR_EDGE
@@ -1016,35 +1028,41 @@ def plot_hmm_standard(phs_hmm, phs_nodes_color, phs_nodes_shape, phe_edges_label
                     edge_rad = 0.15 if edge_length == 1 else edge_length * 0.25
                     edge_connection = f'arc3, rad={edge_rad:f}'
 
-                    if phe_edges_label:
+                    if edges_label:
                         edge_labels_curved[edge] = (edge_rad, f' {round(tp, magnitude):.{magnitude}f} ')
 
                 else:
 
                     edge_connection = 'arc3'
 
-                    if phe_edges_label:
+                    if edges_label:
                         edge_labels_straight_state[edge] = f' {round(tp, magnitude):.{magnitude}f} '
 
-                _nx.draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True,
-                                        connectionstyle=edge_connection)
+                _nx.draw_networkx_edges(
+                    g, positions, ax=a,
+                    edgelist=[edge], edge_color=edge_color,
+                    arrows=True, connectionstyle=edge_connection
+                )
 
-        for j in range(phs_hmm.k):
+        for j in range(hmm.k):
 
-            ep = phs_hmm.e[i, j]
+            ep = hmm.e[i, j]
 
             if ep > 0.0:
 
-                symbol_j = phs_hmm.symbols[j]
+                symbol_j = hmm.symbols[j]
 
                 edge = (state_i, symbol_j)
-                edge_color = edge_colors[i] if phs_nodes_color else _DEFAULT_COLOR_EDGE
+                edge_color = edge_colors[i] if nodes_color else _DEFAULT_COLOR_EDGE
 
-                if phe_edges_label:
+                if edges_label:
                     edge_labels_straight_symbol[edge] = f' {round(ep, magnitude):.{magnitude}f} '
 
-                _nx.draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True,
-                                        style='dashed')
+                _nx.draw_networkx_edges(
+                    g, positions, ax=a,
+                    edgelist=[edge], edge_color=edge_color,
+                    arrows=True, style='dashed'
+                )
 
     if len(edge_labels_straight_state) > 0:
         _nx.draw_networkx_edge_labels(g, positions, ax=a, edge_labels=edge_labels_straight_state)
@@ -1061,101 +1079,103 @@ def plot_hmm_standard(phs_hmm, phs_nodes_color, phs_nodes_shape, phe_edges_label
     return f, a
 
 
-def plot_matrix(pm_model, pm_underlying_matrix, pm_dpi):
-    matrix = pm_model.e if pm_underlying_matrix == 'emission' else pm_model.p
-    labels_x = pm_model.symbols if pm_underlying_matrix == 'emission' else pm_model.states
+def plot_matrix(model: _ct.tmdl, underlying_matrix: str, dpi: int) -> _ct.tplot:
 
-    figure, ax = _mplp.subplots(dpi=pm_dpi)
+    matrix = model.e if underlying_matrix == 'emission' else model.p
+    labels_x = model.symbols if underlying_matrix == 'emission' else model.states
+
+    figure, ax = _mplp.subplots(dpi=dpi)
 
     color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
     ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
-    _xticks_labels(ax, len(labels_x), 'Symbols' if pm_underlying_matrix == 'emission' else 'States', labels_x, True)
-    _yticks_labels(ax, len(pm_model.states), 'States', pm_model.states)
+    _xticks_labels(ax, len(labels_x), 'Symbols' if underlying_matrix == 'emission' else 'States', labels_x, True)
+    _yticks_labels(ax, len(model.states), 'States', model.states)
 
     ax.grid(which='minor', color='k')
 
     cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
     cb.ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
 
-    ax.set_title('Matrix Plot (' + pm_underlying_matrix.capitalize() + ')', fontsize=15.0, fontweight='bold')
+    ax.set_title('Matrix Plot (' + underlying_matrix.capitalize() + ')', fontsize=15.0, fontweight='bold')
 
     return figure, ax
 
 
-def plot_mc_extended(pme_mc, pme_nodes_color, pme_nodes_shape, phe_edges_label, pme_dpi):
-    magnitude = _calculate_magnitude(pme_mc.p)
+def plot_mc_extended(mc: _ct.tmc, nodes_color: bool, nodes_shape: bool, edges_label: bool, dpi: int) -> _ct.tplot:
 
-    node_colors = _node_colors(len(pme_mc.communicating_classes)) if pme_nodes_color else []
+    magnitude = _n.calculate_magnitude(mc.p)
+    node_colors = _get_node_colors(len(mc.communicating_classes)) if nodes_color else []
 
     g = _pyd.Dot(graph_type='digraph')
 
-    for i in range(pme_mc.size):
+    for i in range(mc.size):
 
-        state_i = pme_mc.states[i]
+        state_i = mc.states[i]
 
         node_attributes = {}
 
-        if pme_nodes_color:
-            for index, cc in enumerate(pme_mc.communicating_classes):
+        if nodes_color:
+            for index, cc in enumerate(mc.communicating_classes):
                 if state_i in cc:
                     node_attributes['style'] = 'filled'
                     node_attributes['fillcolor'] = node_colors[index]
                     break
 
-        if pme_nodes_shape:
-            if state_i in pme_mc.transient_states:  # pragma: no cover
+        if nodes_shape:
+            if state_i in mc.transient_states:  # pragma: no cover
                 node_attributes['shape'] = 'box'
             else:
                 node_attributes['shape'] = 'ellipse'
 
         g.add_node(_pyd.Node(state_i, **node_attributes))
 
-        for j in range(pme_mc.size):
+        for j in range(mc.size):
 
-            tp = pme_mc.p[i, j]
+            tp = mc.p[i, j]
 
             if tp > 0.0:
 
-                state_j = pme_mc.states[j]
+                state_j = mc.states[j]
 
                 edge_attributes = {
                     'style': 'filled',
                     'color': _DEFAULT_COLOR_EDGE
                 }
 
-                if phe_edges_label:
+                if edges_label:
                     edge_attributes['label'] = f' {round(tp, magnitude):.{magnitude}f} '
                     edge_attributes['fontsize'] = 9
 
                 g.add_edge(_pyd.Edge(state_i, state_j, **edge_attributes))
 
-    f, a = _plot_graphviz_image(g, pme_dpi)
+    f, a = _plot_graphviz_image(g, dpi)
 
     return f, a
 
 
-def plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_shape, phe_edges_label, pms_dpi):
-    g = pms_mc.to_graph()
+def plot_mc_standard(mc: _ct.tmc, nodes_color: bool, nodes_shape: bool, edges_label: bool, dpi: int) -> _ct.tplot:
+
+    magnitude = _n.calculate_magnitude(mc.p)
+    node_colors = _get_node_colors(len(mc.communicating_classes)) if nodes_color else []
+
+    g = mc.to_graph()
     positions = _nx.spring_layout(g, seed=0)
-    magnitude = _calculate_magnitude(pms_mc.p)
 
-    node_colors = _node_colors(len(pms_mc.communicating_classes)) if pms_nodes_color else []
-
-    f, a = _mplp.subplots(dpi=pms_dpi)
+    f, a = _mplp.subplots(dpi=dpi)
 
     for node in g.nodes:
 
         node_color = _DEFAULT_COLOR_NODE
 
-        if pms_nodes_color:
-            for index, cc in enumerate(pms_mc.communicating_classes):
+        if nodes_color:
+            for index, cc in enumerate(mc.communicating_classes):
                 if node in cc:
                     node_color = node_colors[index]
                     break
 
-        if pms_nodes_shape:
-            if node in pms_mc.transient_states:  # pragma: no cover
+        if nodes_shape:
+            if node in mc.transient_states:  # pragma: no cover
                 node_shape = 's'
             else:
                 node_shape = 'o'
@@ -1169,17 +1189,17 @@ def plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_shape, phe_edges_label, 
 
     edge_labels_curved, edge_labels_straight = {}, {}
 
-    for i in range(pms_mc.size):
+    for i in range(mc.size):
 
-        state_i = pms_mc.states[i]
+        state_i = mc.states[i]
 
-        for j in range(pms_mc.size):
+        for j in range(mc.size):
 
-            tp = pms_mc.p[i, j]
+            tp = mc.p[i, j]
 
             if tp > 0.0:
 
-                state_j = pms_mc.states[j]
+                state_j = mc.states[j]
 
                 edge = (state_i, state_j)
                 edge_color = _DEFAULT_COLOR_EDGE
@@ -1188,14 +1208,14 @@ def plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_shape, phe_edges_label, 
 
                     edge_connection = 'arc3, rad=0.1'
 
-                    if phe_edges_label:
+                    if edges_label:
                         edge_labels_curved[edge] = (0.1, f' {round(tp, magnitude):.{magnitude}f} ')
 
                 else:
 
                     edge_connection = 'arc3'
 
-                    if phe_edges_label:
+                    if edges_label:
                         edge_labels_straight[edge] = f' {round(tp, magnitude):.{magnitude}f} '
 
                 _nx.draw_networkx_edges(g, positions, ax=a, edgelist=[edge], edge_color=edge_color, arrows=True,
@@ -1213,15 +1233,15 @@ def plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_shape, phe_edges_label, 
     return f, a
 
 
-def plot_redistributions_heatmap(pr_mc, pr_distributions, pr_distributions_length, pr_dpi):
-    figure, ax = _mplp.subplots(dpi=pr_dpi)
+def plot_redistributions_heatmap(mc: _ct.tmc, distributions: _ct.tarray, distributions_length: int, dpi: int) -> _ct.tplot:
+    figure, ax = _mplp.subplots(dpi=dpi)
 
     color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
-    ax_is = ax.imshow(_np.transpose(pr_distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0,
+    ax_is = ax.imshow(_np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0,
                       vmax=1.0)
 
-    _xticks_steps(ax, pr_distributions_length)
-    _yticks_labels(ax, pr_mc.size, None, pr_mc.states)
+    _xticks_steps(ax, distributions_length)
+    _yticks_labels(ax, mc.size, None, mc.states)
 
     ax.grid(which='minor', color='k')
 
@@ -1233,32 +1253,32 @@ def plot_redistributions_heatmap(pr_mc, pr_distributions, pr_distributions_lengt
     return figure, ax
 
 
-def plot_redistributions_projection(pr_mc, pr_distributions, pr_distributions_length, pr_dpi):
-    figure, ax = _mplp.subplots(dpi=pr_dpi)
+def plot_redistributions_projection(mc: _ct.tmc, distributions: _ct.tarray, distributions_length: int, dpi: int) -> _ct.tplot:
+    figure, ax = _mplp.subplots(dpi=dpi)
 
     ax.set_prop_cycle('color', _COLORS)
 
-    for i in range(pr_mc.size):
-        overlaps = [j for j in range(pr_mc.size) if
-                    _np.allclose(pr_distributions[:, i], pr_distributions[:, j], rtol=1e-12, atol=1e-14)]
+    for i in range(mc.size):
+        overlaps = [j for j in range(mc.size) if
+                    _np.allclose(distributions[:, i], distributions[:, j], rtol=1e-12, atol=1e-14)]
         overlap_index = overlaps.index(i)
 
         linestyle = ('-', '--', ':', '-.')[overlap_index % 4]
 
         ax.plot(
-            _np.arange(0.0, pr_distributions_length, 1.0), pr_distributions[:, i],
-            label=pr_mc.states[i], linewidth=1.75, linestyle=linestyle, marker=None,
-            markevery=max(1, pr_distributions_length // 8), markersize=4.0
+            _np.arange(0.0, distributions_length, 1.0), distributions[:, i],
+            label=mc.states[i], linewidth=1.75, linestyle=linestyle, marker=None,
+            markevery=max(1, distributions_length // 8), markersize=4.0
         )
 
-    if _np.allclose(pr_distributions[0, :], _np.ones(pr_mc.size, dtype=float) / pr_mc.size):
-        ax.plot(0.0, pr_distributions[0, 0], color=_COLOR_BLACK, label="Start", marker='o',
+    if _np.allclose(distributions[0, :], _np.ones(mc.size, dtype=float) / mc.size):
+        ax.plot(0.0, distributions[0, 0], color=_COLOR_BLACK, label="Start", marker='o',
                 markeredgecolor=_COLOR_BLACK, markerfacecolor=_COLOR_BLACK)
-        legend_size = pr_mc.size + 1
+        legend_size = mc.size + 1
     else:  # pragma: no cover
-        legend_size = pr_mc.size
+        legend_size = mc.size
 
-    _xticks_steps(ax, pr_distributions_length)
+    _xticks_steps(ax, distributions_length)
     _yticks_frequency(ax, -0.05, 1.05)
 
     ax.grid()
@@ -1271,11 +1291,11 @@ def plot_redistributions_projection(pr_mc, pr_distributions, pr_distributions_le
     return figure, ax
 
 
-def plot_sequence_heatmap(phm_walk_data, phm_dpi):
-    walk_steps, walks = phm_walk_data
+def plot_sequence_heatmap(walk_data: tuple, dpi: int) -> _ct.tplot:
+    walk_steps, walks = walk_data
     plots_count = len(walks)
 
-    f, a = _mplp.subplots(nrows=plots_count, constrained_layout=True, dpi=phm_dpi)
+    f, a = _mplp.subplots(nrows=plots_count, constrained_layout=True, dpi=dpi)
     a = [a] if plots_count == 1 else list(a.flat)
 
     color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
@@ -1308,11 +1328,11 @@ def plot_sequence_heatmap(phm_walk_data, phm_dpi):
     return f, a
 
 
-def plot_sequence_histogram(ph_walk_data, ph_dpi):
-    _, walks = ph_walk_data
+def plot_sequence_histogram(walk_data: tuple, dpi: int) -> _ct.tplot:
+    _, walks = walk_data
     plots_count = len(walks)
 
-    f, a = _mplp.subplots(nrows=plots_count, tight_layout=True, dpi=ph_dpi)
+    f, a = _mplp.subplots(nrows=plots_count, tight_layout=True, dpi=dpi)
     a = [a] if plots_count == 1 else list(a.flat)
 
     for a_current, (size, labels_name, labels, sequence) in zip(a, walks):
@@ -1329,11 +1349,11 @@ def plot_sequence_histogram(ph_walk_data, ph_dpi):
     return f, a
 
 
-def plot_sequence_matrix(pm_walk_data, pm_dpi):
-    walk_steps, walks = pm_walk_data
+def plot_sequence_matrix(walk_data: tuple, dpi: int) -> _ct.tplot:
+    walk_steps, walks = walk_data
     plots_count = len(walks)
 
-    f, a = _mplp.subplots(nrows=plots_count, tight_layout=True, dpi=pm_dpi)
+    f, a = _mplp.subplots(nrows=plots_count, tight_layout=True, dpi=dpi)
     a = [a] if plots_count == 1 else list(a.flat)
 
     color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 2)
@@ -1357,9 +1377,9 @@ def plot_sequence_matrix(pm_walk_data, pm_dpi):
     return f, a
 
 
-def plot_trellis_extended(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
-    figure_width = min(18.0, max(8.0, len(ps_symbols) * 1.1))
-    f, a = _mplp.subplots(nrows=2, figsize=(figure_width, 7.5), tight_layout=True, dpi=ps_dpi)
+def plot_trellis_extended(hmm: _ct.thmm, initial_distribution: _ct.tarray, symbols: _ct.tarray, backward: _ct.tarray, forward: _ct.tarray, states_path: _ct.tarray, dpi: int) -> _ct.tplot:
+    figure_width = min(18.0, max(8.0, len(symbols) * 1.1))
+    f, a = _mplp.subplots(nrows=2, figsize=(figure_width, 7.5), tight_layout=True, dpi=dpi)
     a = list(a.flat)
 
     a[0].axis('off')
@@ -1371,12 +1391,12 @@ def plot_trellis_extended(ps_hmm, ps_initial_distribution, ps_symbols, ps_backwa
 
     callbacks = []
 
-    trellis = _generate_trellis_extended(ps_hmm, ps_initial_distribution, ps_symbols, False, ps_backward,
-                                         ps_states_path)
-    _draw_graphviz_image(trellis, a[0], ps_dpi, callbacks=callbacks)
+    trellis = _generate_trellis_extended(hmm, initial_distribution, symbols, False, backward,
+                                         states_path)
+    _draw_graphviz_image(trellis, a[0], dpi, callbacks=callbacks)
 
-    trellis = _generate_trellis_extended(ps_hmm, ps_initial_distribution, ps_symbols, True, ps_forward, ps_states_path)
-    _draw_graphviz_image(trellis, a[1], ps_dpi, callbacks=callbacks)
+    trellis = _generate_trellis_extended(hmm, initial_distribution, symbols, True, forward, states_path)
+    _draw_graphviz_image(trellis, a[1], dpi, callbacks=callbacks)
 
     f.canvas.draw()
 
@@ -1386,18 +1406,18 @@ def plot_trellis_extended(ps_hmm, ps_initial_distribution, ps_symbols, ps_backwa
     return f, a
 
 
-def plot_trellis_standard(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
-    y_top = ps_hmm.n + 0.5
+def plot_trellis_standard(hmm: _ct.thmm, initial_distribution: _ct.tarray, symbols: _ct.tarray, backward: _ct.tarray, forward: _ct.tarray, states_path: _ct.tarray, dpi: int) -> _ct.tplot:
+    y_top = hmm.n + 0.5
 
-    f, a = _mplp.subplots(nrows=2, tight_layout=True, dpi=ps_dpi)
+    f, a = _mplp.subplots(nrows=2, tight_layout=True, dpi=dpi)
     a = list(a.flat)
 
-    trellis, node_colors, node_edges, node_labels, node_positions, edge_colors = _generate_trellis_standard(ps_hmm,
-                                                                                                            ps_initial_distribution,
-                                                                                                            ps_symbols,
+    trellis, node_colors, node_edges, node_labels, node_positions, edge_colors = _generate_trellis_standard(hmm,
+                                                                                                            initial_distribution,
+                                                                                                            symbols,
                                                                                                             False,
-                                                                                                            ps_backward,
-                                                                                                            ps_states_path)
+                                                                                                            backward,
+                                                                                                            states_path)
 
     ax_current = a[0]
     _nx.draw_networkx(trellis, node_positions, ax=ax_current, edgecolors=node_edges, edge_color=edge_colors,
@@ -1406,12 +1426,12 @@ def plot_trellis_standard(ps_hmm, ps_initial_distribution, ps_symbols, ps_backwa
     ax_current.axis('off')
     ax_current.set_title('Backward Trellis', fontsize=15.0, fontweight='normal', pad=1)
 
-    trellis, node_colors, node_edges, node_labels, node_positions, edge_colors = _generate_trellis_standard(ps_hmm,
-                                                                                                            ps_initial_distribution,
-                                                                                                            ps_symbols,
+    trellis, node_colors, node_edges, node_labels, node_positions, edge_colors = _generate_trellis_standard(hmm,
+                                                                                                            initial_distribution,
+                                                                                                            symbols,
                                                                                                             True,
-                                                                                                            ps_forward,
-                                                                                                            ps_states_path)
+                                                                                                            forward,
+                                                                                                            states_path)
 
     ax_current = a[1]
     _nx.draw_networkx(trellis, node_positions, ax=ax_current, edgecolors=node_edges, edge_color=edge_colors,

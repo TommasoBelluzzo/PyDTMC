@@ -2,6 +2,7 @@
 
 __all__ = [
     'accessibility_matrix',
+    'calculate_magnitude',
     'calculate_periods',
     'communication_matrix',
     'density',
@@ -60,6 +61,24 @@ def accessibility_matrix(adm: _ct.tarray) -> _ct.tarray:
     acm = acm.astype(int)
 
     return acm
+
+
+def calculate_magnitude(*arrays: _ct.tarray) -> int:
+
+    magnitudes = []
+
+    for array in arrays:
+
+        element_positive = array[array > 0.0]
+
+        if element_positive.size > 0:
+            element_minimum = _np.min(element_positive).item()
+            element_magnitude = int(-_mt.floor(_mt.log10(element_minimum)))
+            magnitudes.append(element_magnitude)
+
+    magnitude = max(1, min(max(magnitudes), 4))
+
+    return magnitude
 
 
 def calculate_periods(graph: _ct.tgraph) -> _ct.tlist_int:
