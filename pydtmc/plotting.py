@@ -347,8 +347,8 @@ def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: 
 
     if plot_type == 'heatmap':
         return _r.plot_redistributions_heatmap(mc, distributions, distributions_length, dpi)
-    else:
-        return _r.plot_redistributions_projection(mc, distributions, distributions_length, dpi)
+
+    return _r.plot_redistributions_projection(mc, distributions, distributions_length, dpi)
 
 
 @_dc.interactive_plot
