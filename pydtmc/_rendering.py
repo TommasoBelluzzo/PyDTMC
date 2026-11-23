@@ -1,5 +1,18 @@
 # -*- coding: utf-8 -*-
 
+__all__ = [
+    'plot_hmm_extended',
+    'plot_hmm_standard',
+    'plot_mc_extended',
+    'plot_mc_standard',
+    'plot_sequence_heatmap',
+    'plot_sequence_histogram',
+    'plot_sequence_matrix',
+    'plot_trellis_extended',
+    'plot_trellis_standard'
+]
+
+
 ###########
 # IMPORTS #
 ###########
@@ -7,10 +20,8 @@
 # Standard
 
 import copy as _cp
-import inspect as _ins
 import io as _io
 import math as _mt
-import subprocess as _sub
 
 # Libraries
 
@@ -19,7 +30,6 @@ import matplotlib.colors as _mplcr
 import matplotlib.image as _mpli
 import matplotlib.patches as _mplpc
 import matplotlib.pyplot as _mplp
-import matplotlib.ticker as _mplt
 import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
@@ -30,26 +40,6 @@ try:
 except ImportError:  # pragma: no cover
     _pyd = None
     _pydot_found = False
-
-# Internal
-
-from . import _custom_types as _ct
-from . import _decorators as _dc
-from . import _numerical as _n
-from . import _utilities as _u
-from . import _validation as _v
-
-from .exceptions import (
-    ValidationError as _ValidationError
-)
-
-from .hidden_markov_model import (
-    HiddenMarkovModel as _HiddenMarkovModel
-)
-
-from .markov_chain import (
-    MarkovChain as _MarkovChain
-)
 
 
 #############
@@ -415,7 +405,7 @@ def _plot_graph_image(g, dpi):
     return f, a
 
 
-def _plot_hmm_extended(phe_hmm, phe_nodes_color, phe_nodes_type, phe_edges_label, phe_dpi):
+def plot_hmm_extended(phe_hmm, phe_nodes_color, phe_nodes_type, phe_edges_label, phe_dpi):
 
     magnitude = _calculate_magnitude(phe_hmm.p, phe_hmm.e)
 
@@ -573,7 +563,7 @@ def _fit_graph_bounds(ax):
     figure.canvas.mpl_connect('draw_event', _on_graph_draw)
 
 
-def _plot_hmm_standard(phs_hmm, phs_nodes_color, phs_nodes_shape, phe_edges_label, phs_dpi):
+def plot_hmm_standard(phs_hmm, phs_nodes_color, phs_nodes_shape, phe_edges_label, phs_dpi):
 
     g = phs_hmm.to_graph()
     positions = _nx.multipartite_layout(g, align='horizontal', subset_key='layer')
@@ -672,7 +662,7 @@ def _plot_hmm_standard(phs_hmm, phs_nodes_color, phs_nodes_shape, phe_edges_labe
     return f, a
 
 
-def _plot_mc_extended(pme_mc, pme_nodes_color, pme_nodes_shape, phe_edges_label, pme_dpi):
+def plot_mc_extended(pme_mc, pme_nodes_color, pme_nodes_shape, phe_edges_label, pme_dpi):
 
     magnitude = _calculate_magnitude(pme_mc.p)
 
@@ -725,7 +715,7 @@ def _plot_mc_extended(pme_mc, pme_nodes_color, pme_nodes_shape, phe_edges_label,
     return f, a
 
 
-def _plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_shape, phe_edges_label, pms_dpi):
+def plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_shape, phe_edges_label, pms_dpi):
 
     g = pms_mc.to_graph()
     positions = _nx.spring_layout(g, seed=0)
@@ -802,7 +792,7 @@ def _plot_mc_standard(pms_mc, pms_nodes_color, pms_nodes_shape, phe_edges_label,
     return f, a
 
 
-def _plot_heatmap(phm_walk_data, phm_dpi):
+def plot_sequence_heatmap(phm_walk_data, phm_dpi):
 
     walk_steps, walks = phm_walk_data
     plots_count = len(walks)
@@ -838,7 +828,7 @@ def _plot_heatmap(phm_walk_data, phm_dpi):
     return f, a
 
 
-def _plot_histogram(ph_walk_data, ph_dpi):
+def plot_sequence_histogram(ph_walk_data, ph_dpi):
 
     _, walks = ph_walk_data
     plots_count = len(walks)
@@ -861,7 +851,7 @@ def _plot_histogram(ph_walk_data, ph_dpi):
     return f, a
 
 
-def _plot_matrix(pm_walk_data, pm_dpi):
+def plot_sequence_matrix(pm_walk_data, pm_dpi):
 
     walk_steps, walks = pm_walk_data
     plots_count = len(walks)
@@ -1035,7 +1025,7 @@ def _generate_trellis_standard(gts_hmm, gts_initial_distribution, gts_symbols, g
     return trellis, node_colors, node_edges, node_labels, node_positions, edge_colors
 
 
-def _plot_extended(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
+def plot_trellis_extended(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
 
     f, a = _mplp.subplots(nrows=2, tight_layout=True, dpi=ps_dpi)
     a = list(a.flat)
@@ -1059,7 +1049,7 @@ def _plot_extended(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_
     return f, a
 
 
-def _plot_standard(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
+def plot_trellis_standard(ps_hmm, ps_initial_distribution, ps_symbols, ps_backward, ps_forward, ps_states_path, ps_dpi):
 
     y_top = ps_hmm.n + 0.5
 

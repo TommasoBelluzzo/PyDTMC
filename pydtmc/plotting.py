@@ -19,9 +19,7 @@ __all__ = [
 
 # Standard
 
-import copy as _cp
 import inspect as _ins
-import io as _io
 import math as _mt
 import subprocess as _sub
 
@@ -29,11 +27,8 @@ import subprocess as _sub
 
 import matplotlib.colorbar as _mplcb
 import matplotlib.colors as _mplcr
-import matplotlib.image as _mpli
-import matplotlib.patches as _mplpc
 import matplotlib.pyplot as _mplp
 import matplotlib.ticker as _mplt
-import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
 
@@ -443,9 +438,9 @@ def plot_graph(model: _ct.tmdl, nodes_color: bool = True, nodes_shape: bool = Tr
     model_mc = model.__class__.__name__ == 'MarkovChain'
 
     if extended_graph:
-        func = _r._plot_mc_extended if model_mc else _r._plot_hmm_extended
+        func = _r.plot_mc_extended if model_mc else _r.plot_hmm_extended
     else:
-        func = _r._plot_mc_standard if model_mc else _r._plot_hmm_standard
+        func = _r.plot_mc_standard if model_mc else _r.plot_hmm_standard
 
     figure, ax = func(model, nodes_color, nodes_shape, edges_label, dpi)
     figure.suptitle('Graph Plot', fontsize=15.0, fontweight='bold')
@@ -653,11 +648,11 @@ def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None,
         )
 
     if plot_type == 'heatmap':
-        func = _r._plot_heatmap
+        func = _r.plot_sequence_heatmap
     elif plot_type == 'histogram':
-        func = _r._plot_histogram
+        func = _r.plot_sequence_histogram
     else:
-        func = _r._plot_matrix
+        func = _r.plot_sequence_matrix
 
     figure, ax = func(walk_data, dpi)
 
@@ -730,8 +725,8 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate = None, se
             extended_graph = False
 
     if extended_graph:
-        figure, ax = _r._plot_extended(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
+        figure, ax = _r.plot_trellis_extended(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
     else:
-        figure, ax = _r._plot_standard(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
+        figure, ax = _r.plot_trellis_standard(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
 
     return figure, ax
