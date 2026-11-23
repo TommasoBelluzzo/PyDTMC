@@ -46,10 +46,10 @@ except ImportError:  # pragma: no cover
 
 # Internal
 
-from . import _plotting as _pl
 from . import _custom_types as _ct
 from . import _decorators as _dc
 from . import _numerical as _n
+from . import _rendering as _r
 from . import _utilities as _u
 from . import _validation as _v
 
@@ -359,13 +359,13 @@ def plot_flow(model: _ct.tmdl, steps: int, interval: int, initial_status: _ct.os
     distributions = _np.transpose(_np.stack([distribution for index, distribution in enumerate(distributions) if index in indices]))
 
     d = distributions * 0.9
-    bb, bt = _pl._get_boundaries(d)
+    bb, bt = _r._get_boundaries(d)
     bm = (bb + bt) / 2.0
-    c = _pl._get_colors(d)
-    lh, ll = _pl._get_legend(mc, c)
+    c = _r._get_colors(d)
+    lh, ll = _r._get_legend(mc, c)
 
-    polygons_bars = _pl._get_polygons_bars(d, bb, bt, c)
-    polygons_flows = _pl._get_polygons_flows(p, d, bb, c, interval)
+    polygons_bars = _r._get_polygons_bars(d, bb, bt, c)
+    polygons_flows = _r._get_polygons_flows(p, d, bb, c, interval)
 
     figure, ax = _mplp.subplots(dpi=dpi)
 
@@ -383,7 +383,7 @@ def plot_flow(model: _ct.tmdl, steps: int, interval: int, initial_status: _ct.os
             if dv > 0.05:
                 ax.text(aj, float(bm[ai, aj]), f'{dv:.3f}', horizontalalignment='center', verticalalignment='center')
 
-    _pl._xticks_steps(ax, steps + 1, interval)
+    _r._xticks_steps(ax, steps + 1, interval)
 
     ax.set_ylim(0.0, 1.0)
     ax.invert_yaxis()
@@ -443,9 +443,9 @@ def plot_graph(model: _ct.tmdl, nodes_color: bool = True, nodes_shape: bool = Tr
     model_mc = model.__class__.__name__ == 'MarkovChain'
 
     if extended_graph:
-        func = _pl._plot_mc_extended if model_mc else _pl._plot_hmm_extended
+        func = _r._plot_mc_extended if model_mc else _r._plot_hmm_extended
     else:
-        func = _pl._plot_mc_standard if model_mc else _pl._plot_hmm_standard
+        func = _r._plot_mc_standard if model_mc else _r._plot_hmm_standard
 
     figure, ax = func(model, nodes_color, nodes_shape, edges_label, dpi)
     figure.suptitle('Graph Plot', fontsize=15.0, fontweight='bold')
@@ -492,8 +492,8 @@ def plot_matrix(model: _ct.tmdl, underlying_matrix: str = 'transition', dpi: int
     color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
     ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
-    _pl._xticks_labels(ax, len(labels_x), 'Symbols' if underlying_matrix == 'emission' else 'States', labels_x, True)
-    _pl._yticks_labels(ax, len(model.states), 'States', model.states)
+    _r._xticks_labels(ax, len(labels_x), 'Symbols' if underlying_matrix == 'emission' else 'States', labels_x, True)
+    _r._yticks_labels(ax, len(model.states), 'States', model.states)
 
     ax.grid(which='minor', color='k')
 
@@ -553,8 +553,8 @@ def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: 
         color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_color_white, _colors[0]], 20)
         ax_is = ax.imshow(_np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
-        _pl._xticks_steps(ax, distributions_length)
-        _pl._yticks_labels(ax, mc.size, None, mc.states)
+        _r._xticks_steps(ax, distributions_length)
+        _r._yticks_labels(ax, mc.size, None, mc.states)
 
         ax.grid(which='minor', color='k')
 
@@ -591,8 +591,8 @@ def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: 
         else:  # pragma: no cover
             legend_size = mc.size
 
-        _pl._xticks_steps(ax, distributions_length)
-        _pl._yticks_frequency(ax, -0.05, 1.05)
+        _r._xticks_steps(ax, distributions_length)
+        _r._yticks_frequency(ax, -0.05, 1.05)
 
         ax.grid()
 
@@ -653,11 +653,11 @@ def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None,
         )
 
     if plot_type == 'heatmap':
-        func = _pl._plot_heatmap
+        func = _r._plot_heatmap
     elif plot_type == 'histogram':
-        func = _pl._plot_histogram
+        func = _r._plot_histogram
     else:
-        func = _pl._plot_matrix
+        func = _r._plot_matrix
 
     figure, ax = func(walk_data, dpi)
 
@@ -730,8 +730,8 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate = None, se
             extended_graph = False
 
     if extended_graph:
-        figure, ax = _pl._plot_extended(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
+        figure, ax = _r._plot_extended(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
     else:
-        figure, ax = _pl._plot_standard(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
+        figure, ax = _r._plot_standard(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
 
     return figure, ax
