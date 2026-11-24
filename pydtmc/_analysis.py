@@ -1663,7 +1663,7 @@ def mc_relaxation_rate(mc: _ct.tmc) -> _ct.ofloat:
     return rr
 
 
-def mc_time_correlations(mc: _ct.tmc, sequence1: _ct.tseq, sequence2: _ct.oseq, time_points: _ct.ttimes_in) -> _ct.otimes_out:
+def mc_time_correlations(mc: _ct.tmc, states1: _ct.tseq, states2: _ct.oseq, time_points: _ct.ttimes_in) -> _ct.otimes_out:
 
     p, size, pi = mc.p, mc.size, mc.pi
 
@@ -1674,16 +1674,16 @@ def mc_time_correlations(mc: _ct.tmc, sequence1: _ct.tseq, sequence2: _ct.oseq, 
 
     observations1 = _np.zeros(size, dtype=float)
 
-    for state in sequence1:
+    for state in states1:
         observations1[state] += 1.0
 
-    if sequence2 is None:
+    if states2 is None:
         observations2 = _np.copy(observations1)
     else:
 
         observations2 = _np.zeros(size, dtype=int)
 
-        for state in sequence2:
+        for state in states2:
             observations2[state] += 1.0
 
     if isinstance(time_points, int):

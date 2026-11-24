@@ -76,11 +76,11 @@ def test_propagate(p, steps, initial_status, output_last, value):
         _npt.assert_allclose(actual, expected)
 
 
-def test_sequence_probability(p, sequence, value):
+def test_sequence_probability(p, states, value):
 
     mc = _MarkovChain(p)
 
-    actual = mc.sequence_probability(sequence)
+    actual = mc.sequence_probability(states)
     expected = value
 
     assert _np.isclose(actual, expected)

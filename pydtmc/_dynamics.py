@@ -307,13 +307,13 @@ def mc_propagate(mc: _ct.tmc, steps: int, initial_distribution: _ct.tarray, outp
     return distributions
 
 
-def mc_sequence_probability(mc: _ct.tmc, walk_param: _ct.tlist_int) -> float:
+def mc_sequence_probability(mc: _ct.tmc, states: _ct.tlist_int) -> float:
 
     p = mc.p
 
     wp = 0.0
 
-    for i, j in zip(walk_param[:-1], walk_param[1:]):
+    for i, j in zip(states[:-1], states[1:]):
 
         if p[i, j] > 0.0:
             wp += _np.log(p[i, j])

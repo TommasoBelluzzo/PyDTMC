@@ -1311,7 +1311,7 @@ class MarkovChain(_bc.Model):
 
         r"""
         | The method computes a statistic of the commute time (round-trip duration) between the given subsets of the state space:
-        | :math:`C_{S_1,S_2} = T_{S_2} + \inf\{t \geq 0 : X_{T_{S_2}+t} \in S_1\}` where:
+        | :math:`C_{S_1,S_2} = T_{S_2} + \inf\{t \geq 0 : X_{T_{S_2}+t} \in S_1\}` with :math:`X_0 \sim \pi(\cdot \mid S_1)` where:
 
         - :math:`S_1` is the set of origin states;
         - :math:`S_2` is the set of target states;
@@ -1368,7 +1368,7 @@ class MarkovChain(_bc.Model):
         :param statistic:
          - **mean** to compute the mean;
          - **variance** to compute the variance.
-        :param targets: the target states (*if omitted, all the states are targeted*).
+        :param targets: the target states (*if omitted, each state is individually targeted*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1721,7 +1721,7 @@ class MarkovChain(_bc.Model):
     @_dc.object_mark(aliases=['fpt_to', 'fptt'])
     def first_passage_times_to(self, statistic: str, targets: _ct.ostates = None) -> _ct.oarray:
 
-        """
+        r"""
         | The method computes a statistic of the first passage times from every state to the given target states of the Markov chain:
         | :math:`T_S = \inf\{t \geq 0 : X_t \in S\}` where :math:`S` is the set of target states.
 
@@ -1729,13 +1729,14 @@ class MarkovChain(_bc.Model):
 
         - If target states are omitted, an n-by-n matrix is returned, with origin states as rows and destination states as columns.
         - If target states are specified, a vector is returned containing the first hitting-time statistic for the entire target set, starting from each state.
+        - Target states have first passage time equal to 0.
         - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
         - The method can also be accessed through the aliases **fpt_to** and **fptt**.
 
         :param statistic:
          - **mean** to compute the mean;
          - **variance** to compute the variance.
-        :param targets: the target states (*if omitted, all the states are targeted*).
+        :param targets: the target states (*if omitted, each state is individually targeted*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2675,10 +2676,10 @@ class MarkovChain(_bc.Model):
         return _a.mc_sensitivity(self, state)
 
     @_dc.object_mark(aliases=['sp'])
-    def sequence_probability(self, sequence: _ct.tseq) -> float:
+    def sequence_probability(self, states: _ct.tseq) -> float:
 
         r"""
-        | The method computes the probability of an observed sequence of states, corresponding to its likelihood under the Markov chain:
+        | The method computes the probability of an observed sequence of states, corresponding to its conditional likelihood under the Markov chain:
         | :math:`\mathbb{P}(X_1=i_1,\ldots,X_t=i_t \mid X_0=i_0) = \prod_{k=0}^{t-1}P_{i_k i_{k+1}}`
 
         | **Notes:**
@@ -2687,18 +2688,18 @@ class MarkovChain(_bc.Model):
         - An impossible observed sequence has probability 0.
         - The method can also be accessed through the alias **sp**.
 
-        :param sequence: the observed sequence of states.
+        :param states: the observed sequence of states.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            sequence = _v.validate_sequence(sequence, self.__states)
+            states = _v.validate_sequence(states, self.__states)
 
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _d.mc_sequence_probability(self, sequence)
+        return _d.mc_sequence_probability(self, states)
 
     @_dc.object_mark(random_output=True)
     def simulate(self, steps: int, initial_state: _ct.ostate = None, final_state: _ct.ostate = None, output_indices: bool = False, seed: _ct.oint = None) -> _ct.tseq:
@@ -2897,7 +2898,7 @@ class MarkovChain(_bc.Model):
         return mc
 
     @_dc.object_mark(aliases=['tc'])
-    def time_correlations(self, sequence1: _ct.tseq, sequence2: _ct.oseq = None, time_points: _ct.ttimes_in = 1) -> _ct.otimes_out:
+    def time_correlations(self, states1: _ct.tseq, states2: _ct.oseq = None, time_points: _ct.ttimes_in = 1) -> _ct.otimes_out:
 
         r"""
         | The method computes the stationary time autocorrelations or cross-correlations of the given sequences of states:
@@ -2916,25 +2917,25 @@ class MarkovChain(_bc.Model):
         - If the Markov chain has multiple stationary distributions, then :py:obj:`None` is returned.
         - The method can also be accessed through the alias **tc**.
 
-        :param sequence1: the first observed sequence of states.
-        :param sequence2: the second observed sequence of states.
+        :param states1: the first observed sequence of states.
+        :param states2: the second observed sequence of states.
         :param time_points: the time point or a list of time points at which the computation is performed.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            sequence1 = _v.validate_sequence(sequence1, self.__states)
+            states1 = _v.validate_sequence(states1, self.__states)
 
-            if sequence2 is not None:
-                sequence2 = _v.validate_sequence(sequence2, self.__states)
+            if states2 is not None:
+                states2 = _v.validate_sequence(states2, self.__states)
 
             time_points = _v.validate_time_points(time_points)
 
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _a.mc_time_correlations(self, sequence1, sequence2, time_points)
+        return _a.mc_time_correlations(self, states1, states2, time_points)
 
     @_dc.object_mark(aliases=['tr'])
     def time_relaxations(self, states: _ct.tseq, initial_distribution: _ct.ovec = None, time_points: _ct.ttimes_in = 1) -> _ct.otimes_out:

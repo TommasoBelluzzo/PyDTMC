@@ -523,11 +523,11 @@ def test_stationary_perturbation_bound(p, epsilon, value):
         assert actual == expected
 
 
-def test_time_correlations(p, sequence1, sequence2, time_points, value):
+def test_time_correlations(p, states1, states2, time_points, value):
 
     mc = _MarkovChain(p)
 
-    actual = _np.array(mc.time_correlations(sequence1, sequence2, time_points))
+    actual = _np.array(mc.time_correlations(states1, states2, time_points))
     expected = value
 
     if (actual is not None) and (expected is not None):
