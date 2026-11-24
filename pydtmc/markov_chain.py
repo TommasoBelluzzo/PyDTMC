@@ -223,6 +223,7 @@ class MarkovChain(_bc.Model):
         return indices
 
     @_dc.cached_property
+    @_dc.object_mark(aliases=['asg'])
     def absolute_spectral_gap(self) -> _ct.ofloat:
 
         r"""
@@ -232,6 +233,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - If the Markov chain is not **irreducible** or the **SLEM** cannot be computed, then :py:obj:`None` is returned.
+        - The property can also be accessed through the alias **asg**.
         """
 
         return _a.mc_absolute_spectral_gap(self.__slem)
@@ -433,6 +435,7 @@ class MarkovChain(_bc.Model):
         return _a.mc_entropy_production_rate(self)
 
     @_dc.cached_property
+    @_dc.object_mark(aliases=['hr'])
     def entropy_rate(self) -> _ct.ofloat:
 
         r"""
@@ -444,11 +447,13 @@ class MarkovChain(_bc.Model):
         - Terms with transition probability equal to 0 contribute 0.
         - The entropy rate is expressed in nats per transition.
         - If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:obj:`None` is returned.
+        - The property can also be accessed through the alias **hr**.
         """
 
         return _a.mc_entropy_rate(self)
 
     @_dc.cached_property
+    @_dc.object_mark(aliases=['hrn'])
     def entropy_rate_normalized(self) -> _ct.ofloat:
 
         r"""
@@ -462,6 +467,7 @@ class MarkovChain(_bc.Model):
 
         - If the entropy rate or topological entropy is 0, the normalized entropy rate is defined as 0.
         - If the entropy rate cannot be computed, then :py:obj:`None` is returned.
+        - The property can also be accessed through the alias **hrn**.
         """
 
         return _a.mc_entropy_rate_normalized(self)
@@ -484,6 +490,7 @@ class MarkovChain(_bc.Model):
         return _a.mc_fisher_information(self)
 
     @_dc.cached_property
+    @_dc.object_mark(aliases=['fm'])
     def fundamental_matrix(self) -> _ct.oarray:
 
         r"""
@@ -493,11 +500,13 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
+        - The property can also be accessed through the alias **fm**.
         """
 
         return _a.mc_fundamental_matrix(self)
 
     @_dc.cached_property
+    @_dc.object_mark(aliases=['gc'])
     def global_conductance(self) -> _ct.ofloat:
 
         r"""
@@ -514,11 +523,13 @@ class MarkovChain(_bc.Model):
         - For chains with at most 12 states, exact conductance is computed through exhaustive subset enumeration.
         - For chains with more than 12 states, a deterministic spectral-sweep approximation provides an upper bound on exact conductance.
         - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
+        - The property can also be accessed through the alias **gc**.
         """
 
         return _a.mc_global_conductance(self)
 
     @_dc.cached_property
+    @_dc.object_mark(aliases=['gm'])
     def global_metastability(self) -> _ct.ofloat:
 
         r"""
@@ -530,6 +541,7 @@ class MarkovChain(_bc.Model):
         - For chains with at most 12 states, exact global metastability is computed through exhaustive subset enumeration.
         - For chains with more than 12 states, a deterministic spectral-sweep approximation provides a lower bound on exact global metastability.
         - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
+        - The property can also be accessed through the alias **gm**.
         """
 
         gc = _a.mc_global_conductance(self)
@@ -631,6 +643,10 @@ class MarkovChain(_bc.Model):
         """
         | A property indicating whether the Markov chain is ergodic.
         | A Markov chain is ergodic when it is both **irreducible** and **aperiodic**.
+
+        | **Notes:**
+
+        - The property can also be accessed through the alias **is_regular**.
         """
 
         result = self.is_irreducible and self.is_aperiodic
@@ -696,6 +712,7 @@ class MarkovChain(_bc.Model):
         return result
 
     @_dc.cached_property
+    @_dc.object_mark(aliases=['kc'])
     def kemeny_constant(self) -> _ct.ofloat:
 
         r"""
@@ -705,6 +722,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - If the Markov chain is not **irreducible** or the value cannot be computed, then :py:obj:`None` is returned.
+        - The property can also be accessed through the alias **kc**.
         """
 
         return _a.mc_kemeny_constant(self)
@@ -804,11 +822,12 @@ class MarkovChain(_bc.Model):
         """
 
         om = self.occupation_matrix
-        kc = None if om is None else float(_np.trace(om))
+        ot = None if om is None else float(_np.trace(om))
 
-        return kc
+        return ot
 
     @_dc.cached_property
+    @_dc.object_mark(aliases=['osg'])
     def ordinary_spectral_gap(self) -> _ct.obndval:
 
         r"""
@@ -825,6 +844,7 @@ class MarkovChain(_bc.Model):
         - For chains with at most 12 states, the Cheeger bounds are computed using exact conductance.
         - For chains with more than 12 states, the lower bound is 0 and the upper bound uses approximate conductance.
         - If the Markov chain is not both **irreducible** and **reversible**, then :py:obj:`None` is returned.
+        - The property can also be accessed through the alias **osg**.
         """
 
         result = _a.mc_ordinary_spectral_gap(self)
@@ -1128,10 +1148,7 @@ class MarkovChain(_bc.Model):
 
         r"""
         | The method computes a statistic of the absorption times of the transient states of the Markov chain:
-        | :math:`\mathbf{m} = N\mathbf{1}` where:
-
-        - :math:`\mathbf{m}` is the vector of mean absorption times;
-        - :math:`N` is the occupation matrix.
+        | :math:`T_R = \inf\{t \geq 0 : X_t \in R\}` where :math:`R` is the set of recurrent states.
 
         | **Notes:**
 
@@ -1246,7 +1263,7 @@ class MarkovChain(_bc.Model):
 
         return mc
 
-    @_dc.object_mark(aliases=['crp'])
+    @_dc.object_mark(aliases=['cmp'])
     def committor_probabilities(self, committor_type: str, states1: _ct.tstates, states2: _ct.tstates) -> _ct.oarray:
 
         r"""
@@ -1263,7 +1280,7 @@ class MarkovChain(_bc.Model):
         - The **forward** committor is the probability of reaching the second subset before the first.
         - The forward committor is 0 on the first subset and 1 on the second, while the backward committor has the opposite boundary values.
         - If the Markov chain is not **irreducible**, then for backward committor probabilities :py:obj:`None` is returned.
-        - The method can also be accessed through the alias **crp**.
+        - The method can also be accessed through the alias **cmp**.
 
         :param committor_type:
          - **backward** for the backward committor;
@@ -1293,7 +1310,12 @@ class MarkovChain(_bc.Model):
     def commute_times_between(self, statistic: str, origins: _ct.tstates, targets: _ct.tstates) -> _ct.ofloat:
 
         r"""
-        | The method computes a statistic of the commute time (round-trip duration) between the given subsets of the state space.
+        | The method computes a statistic of the commute time (round-trip duration) between the given subsets of the state space:
+        | :math:`C_{S_1,S_2} = T_{S_2} + \inf\{t \geq 0 : X_{T_{S_2}+t} \in S_1\}` where:
+
+        - :math:`S_1` is the set of origin states;
+        - :math:`S_2` is the set of target states;
+        - :math:`T_{S_2}` is the first hitting time of the target set.
 
         | **Notes:**
 
@@ -1327,7 +1349,12 @@ class MarkovChain(_bc.Model):
     def commute_times_to(self, statistic: str, targets: _ct.ostates = None) -> _ct.oarray:
 
         r"""
-        | The method computes a statistic of the commute times (round-trip durations) from every state to the given target states of the Markov chain.
+        | The method computes a statistic of the commute times (round-trip durations) from every state to the given target states of the Markov chain:
+        | :math:`C_{i,S} = T_S + \inf\{t \geq 0 : X_{T_S+t}=i\}` where:
+
+        - :math:`i` is the origin state;
+        - :math:`S` is the set of target states;
+        - :math:`T_S` is the first hitting time of the target set.
 
         | **Notes:**
 
@@ -1496,6 +1523,7 @@ class MarkovChain(_bc.Model):
 
         - The cumulative rewards include the reward at time 0 and at every subsequent step through time :math:`t`.
         - The returned vector contains one expected reward for each initial state.
+        - At 0 steps, the returned vector contains the reward value of each state.
         - The method can also be accessed through the alias **er**.
 
         :param steps: the number of steps.
@@ -1506,7 +1534,7 @@ class MarkovChain(_bc.Model):
 
         try:
 
-            steps = _v.validate_integer(steps, lower_limit=(0, True))
+            steps = _v.validate_integer(steps, lower_limit=(0, False))
             rewards = _v.validate_rewards(rewards, self.__size)
             discount_factor = _v.validate_float(discount_factor, lower_limit=(0.0, False), upper_limit=(1.0, False))
 
@@ -1634,7 +1662,7 @@ class MarkovChain(_bc.Model):
         :param steps: the number of steps.
         :param initial_state: the initial state.
         :param first_passage_states: the first passage states.
-        :param rewards: the reward value    of each state.
+        :param rewards: the reward value of each state.
         :raises ValidationError: if any input argument is not compliant or if the target states include the initial state.
         """
 
@@ -1657,7 +1685,12 @@ class MarkovChain(_bc.Model):
     def first_passage_times_between(self, statistic: str, origins: _ct.tstates, targets: _ct.tstates) -> _ct.ofloat:
 
         r"""
-        | The method computes a statistic of the first passage time between the given subsets of the state space.
+        | The method computes a statistic of the first passage time between the given subsets of the state space:
+        | :math:`T_{S_2} = \inf\{t \geq 0 : X_t \in S_2\}` with :math:`X_0 \sim \pi(\cdot \mid S_1)` where:
+
+        - :math:`S_1` is the set of origin states;
+        - :math:`S_2` is the set of target states;
+        - :math:`\pi` is the unique stationary distribution.
 
         | **Notes:**
 
@@ -1689,7 +1722,8 @@ class MarkovChain(_bc.Model):
     def first_passage_times_to(self, statistic: str, targets: _ct.ostates = None) -> _ct.oarray:
 
         """
-        | The method computes a statistic of the first passage times from every state to the given target states of the Markov chain.
+        | The method computes a statistic of the first passage times from every state to the given target states of the Markov chain:
+        | :math:`T_S = \inf\{t \geq 0 : X_t \in S\}` where :math:`S` is the set of target states.
 
         | **Notes:**
 
@@ -2196,7 +2230,7 @@ class MarkovChain(_bc.Model):
 
         return _a.mc_mixing_time(self, cutoff, maximum_iterations)
 
-    @_dc.object_mark(aliases=['mtf'])
+    @_dc.object_mark(aliases=['mt_from', 'mtf'])
     def mixing_time_from(self, initial_distribution: _ct.ovec = None, jump: int = 1, cutoff: float = 1.0 / (2.0 * _np.exp(1.0)), maximum_iterations: int = 100) -> _ct.oint:
 
         r"""
@@ -2211,7 +2245,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - If the Markov chain is not **ergodic** or the threshold is not reached within the maximum number of iterations, then :py:obj:`None` is returned.
-        - The method can also be accessed through the alias **mtf**.
+        - The method can also be accessed through the aliases **mt_from** and **mtf**.
 
         :param initial_distribution: the initial distribution of the states (*if omitted, the states are assumed to be uniformly distributed*).
         :param jump: the number of steps in each iteration.
@@ -2360,6 +2394,7 @@ class MarkovChain(_bc.Model):
 
         return _d.mc_propagate(self, steps, initial_status, output_last)
 
+    @_dc.object_mark(aliases=['rr'])
     def reaction_rate(self, states1: _ct.tstates, states2: _ct.tstates) -> _ct.ofloat:
 
         r"""
@@ -2373,6 +2408,7 @@ class MarkovChain(_bc.Model):
 
         - The reaction rate represents the expected number of reactive departures from the first subset toward the second per time step in stationarity.
         - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
+        - The method can also be accessed through the alias **rr**.
 
         :param states1: the first subset of the state space.
         :param states2: the second subset of the state space.
@@ -2394,6 +2430,7 @@ class MarkovChain(_bc.Model):
 
         return _a.mc_reaction_rate(self, states1, states2)
 
+    @_dc.object_mark(aliases=['rd'])
     def reactive_density(self, states1: _ct.tstates, states2: _ct.tstates) -> _ct.oarray:
 
         r"""
@@ -2409,6 +2446,7 @@ class MarkovChain(_bc.Model):
         - The reactive density represents the stationary probability of occupying a state along a reactive trajectory from the first subset to the second.
         - The reactive density is 0 for states belonging to either subset.
         - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
+        - The method can also be accessed through the alias **rd**.
 
         :param states1: the first subset of the state space.
         :param states2: the second subset of the state space.
@@ -2430,6 +2468,7 @@ class MarkovChain(_bc.Model):
 
         return _a.mc_reactive_density(self, states1, states2)
 
+    @_dc.object_mark(aliases=['rf'])
     def reactive_flux(self, net: bool, states1: _ct.tstates, states2: _ct.tstates) -> _ct.oarray:
 
         r"""
@@ -2444,6 +2483,7 @@ class MarkovChain(_bc.Model):
 
         - The reactive flux represents the stationary probability flow along reactive trajectories from the first subset to the second.
         - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
+        - The method can also be accessed through the alias **rf**.
 
         :param net: whether to compute the net reactive flux.
         :param states1: the first subset of the state space.
@@ -2467,6 +2507,7 @@ class MarkovChain(_bc.Model):
 
         return _a.mc_reactive_flux(self, states1, states2, net)
 
+    @_dc.object_mark(aliases=['rp'])
     def reactive_paths(self, states1: _ct.tstates, states2: _ct.tstates, maximum_paths: int = 10, output_indices: bool = False) -> _ct.orpaths:
 
         r"""
@@ -2482,6 +2523,7 @@ class MarkovChain(_bc.Model):
         - Equal-flux pathways are selected by increasing length, then lexicographically by state indices.
         - The returned flux contributions are not probabilities of individual trajectories.
         - If the Markov chain is not **irreducible**, then :py:obj:`None` is returned.
+        - The method can also be accessed through the alias **rp**.
 
         :param states1: the first subset of the state space.
         :param states2: the second subset of the state space.
@@ -2519,10 +2561,7 @@ class MarkovChain(_bc.Model):
 
         r"""
         | The method computes a statistic of the recurrence times of the Markov chain:
-        | :math:`\mathbb{E}_i[T_i^+] = \frac{1}{\pi_i}` where:
-
-        - :math:`T_i^+` is the first positive return time to state :math:`i`;
-        - :math:`\pi_i` is the stationary probability of state :math:`i` in its recurrent class.
+        | :math:`T_i^+ = \inf\{t \geq 1 : X_t=i\}` where :math:`i` is the initial state.
 
         | **Notes:**
 
@@ -2635,15 +2674,18 @@ class MarkovChain(_bc.Model):
 
         return _a.mc_sensitivity(self, state)
 
+    @_dc.object_mark(aliases=['sp'])
     def sequence_probability(self, sequence: _ct.tseq) -> float:
 
         r"""
-        | The method computes the probability of the given sequence of states:
+        | The method computes the probability of an observed sequence of states, corresponding to its likelihood under the Markov chain:
         | :math:`\mathbb{P}(X_1=i_1,\ldots,X_t=i_t \mid X_0=i_0) = \prod_{k=0}^{t-1}P_{i_k i_{k+1}}`
 
         | **Notes:**
 
         - The probability is conditional on the first state of the sequence and does not include an initial distribution.
+        - An impossible observed sequence has probability 0.
+        - The method can also be accessed through the alias **sp**.
 
         :param sequence: the observed sequence of states.
         :raises ValidationError: if any input argument is not compliant.
@@ -2755,7 +2797,7 @@ class MarkovChain(_bc.Model):
 
         return _a.mc_stationary_perturbation_bound(self, epsilon)
 
-    @_dc.object_mark(random_output=True)
+    @_dc.object_mark(aliases=['cftp'], random_output=True)
     def stationary_sampling(self, maximum_doublings: int = 10, output_index: bool = False, seed: _ct.oint = None) -> _ct.ostate:
 
         r"""
@@ -2766,6 +2808,7 @@ class MarkovChain(_bc.Model):
         - The method uses random mappings and backward coupling to sample from the stationary distribution without requiring a burn-in period.
         - If coalescence is not achieved within the maximum backward simulation horizon, :py:obj:`None` is returned.
         - The methodology is described in `Exact sampling with coupled Markov chains and applications to statistical mechanics (Propp and Wilson, 1996) <https://doi.org/10.1002/(SICI)1098-2418(199608/09)9:1/2%3C223::AID-RSA14%3E3.0.CO;2-O>`_.
+        - The method can also be accessed through the alias **cftp**.
 
         :param maximum_doublings: the maximum number of horizon doublings, corresponding to a backward simulation limit of :math:`2^{md}` steps.
         :param output_index: a boolean indicating whether to return the state index instead of the state label.
@@ -2823,7 +2866,7 @@ class MarkovChain(_bc.Model):
 
         return mc
 
-    @_dc.object_mark(aliases=['to_tempered'], instance_generator=True)
+    @_dc.object_mark(instance_generator=True)
     def temper(self, temperature: float) -> _ct.tmc:
 
         r"""
@@ -3175,15 +3218,20 @@ class MarkovChain(_bc.Model):
 
         return mc
 
+    @_dc.object_mark(aliases=['tps'])
     def transition_probabilities(self, state: _ct.tstate, steps: int = 1) -> _ct.tarray:
 
         r"""
-        | The method computes the conditional transition probabilities of the Markov chain after a given number of steps:
+        | The method computes the conditional transition probabilities between states after a given number of steps:
         | :math:`\mathbb{P}(X_t=j \mid X_0=i) = (P^t)_{ij}` where:
 
         - :math:`i` is the origin state;
         - :math:`j` is the target state;
         - :math:`t` is the number of steps.
+
+        | **Notes:**
+
+        - The method can also be accessed through the alias **tps**.
 
         :param state: the origin state.
         :param steps: the number of steps.
@@ -3202,6 +3250,7 @@ class MarkovChain(_bc.Model):
 
         return _np.copy(p[state, :])
 
+    @_dc.object_mark(aliases=['tp'])
     def transition_probability(self, state_target: _ct.tstate, state_origin: _ct.tstate, steps: int = 1) -> float:
 
         r"""
@@ -3214,7 +3263,7 @@ class MarkovChain(_bc.Model):
 
         | **Notes:**
 
-        - The probability refers to being in the target state after exactly the specified number of transitions, not necessarily reaching it for the first time.
+        - The method can also be accessed through the alias **tp**.
 
         :param state_target: the target state.
         :param state_origin: the origin state.
@@ -3467,7 +3516,7 @@ class MarkovChain(_bc.Model):
         return mc
 
     @staticmethod
-    @_dc.object_mark(instance_generator=True)
+    @_dc.object_mark(instance_generator=True, random_output=True)
     def dirichlet_process(size: int, diffusion_factor: int, states: _ct.olist_str = None, diagonal_bias_factor: _ct.ofloat = None, shift_concentration: bool = False, seed: _ct.oint = None) -> _ct.tmc:
 
         """

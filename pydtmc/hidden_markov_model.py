@@ -364,7 +364,7 @@ class HiddenMarkovModel(_bc.Model):
 
         return _a.hmm_block_entropy(self, length)
 
-    @_dc.object_mark(aliases=['conditional_distribution', 'cd', 'cp'])
+    @_dc.object_mark(aliases=['cp'])
     def conditional_probabilities(self, symbol: _ct.tstate) -> _ct.tlist_array:
 
         r"""
@@ -375,7 +375,7 @@ class HiddenMarkovModel(_bc.Model):
 
         - One probability distribution is returned for each recurrent class of the underlying Markov chain.
         - If the given emitted symbol has zero stationary probability in a recurrent class, the corresponding distribution is a zero vector.
-        - The method can also be accessed through the aliases **conditional_distribution**, **cd** and **cp**.
+        - The method can also be accessed through the alias **cp**.
 
         :param symbol: the current emitted symbol.
         :raises ValidationError: if any input argument is not compliant.
@@ -427,13 +427,21 @@ class HiddenMarkovModel(_bc.Model):
 
         return _a.hmm_decode(self.__p, self.__e, initial_status, symbols, use_scaling, True)
 
+    @_dc.object_mark(aliases=['eps'])
     def emission_probabilities(self, state: _ct.tstate) -> _ct.tarray:
 
         r"""
-        | The method computes the conditional emission probabilities of the hidden Markov model:
-        | :math:`E_{ia} = \mathbb{P}(Y_t=a \mid X_t=i)` where :math:`i` is the given hidden state.
+        | The method computes the conditional emission probabilities of emitted symbols given a hidden state:
+        | :math:`E_{ia} = \mathbb{P}(Y_t=a \mid X_t=i)` where:
 
-        :param state: the current hidden state.
+        - :math:`i` is the hidden state;
+        - :math:`a` is the emitted symbol.
+
+        | **Notes:**
+
+        - The method can also be accessed through the alias **eps**.
+
+        :param state: the conditioning hidden state.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -446,14 +454,19 @@ class HiddenMarkovModel(_bc.Model):
 
         return _np.copy(self.__e[state, :])
 
+    @_dc.object_mark(aliases=['ep'])
     def emission_probability(self, symbol: _ct.tstate, state: _ct.tstate) -> float:
 
         r"""
-        | The method computes the emission probability of a given emitted symbol conditioned on a given hidden state:
-        | :math:`E_{ia}=\mathbb{P}(Y_t=a\mid X_t=i)`, where:
+        | The method computes the conditional emission probability of an emitted symbol given a hidden state:
+        | :math:`E_{ia} = \mathbb{P}(Y_t=a \mid X_t=i)` where:
 
-        - :math:`i` is the given hidden state;
-        - :math:`a` is the given emitted symbol.
+        - :math:`i` is the hidden state;
+        - :math:`a` is the emitted symbol.
+
+        | **Notes:**
+
+        - The method can also be accessed through the alias **ep**.
 
         :param symbol: the target emitted symbol.
         :param state: the conditioning hidden state.
@@ -885,16 +898,18 @@ class HiddenMarkovModel(_bc.Model):
 
         return hmm
 
+    @_dc.object_mark(aliases=['sp'])
     def sequence_probability(self, symbols: _ct.tseq, initial_status: _ct.ostatus = None) -> float:
 
         r"""
-        | The method computes the probability of an observed sequence of emitted symbols:
+        | The method computes the probability of an observed sequence of emitted symbols, corresponding to its likelihood under the hidden Markov model:
         | :math:`\mathbb{P}(Y_1=y_1,\ldots,Y_T=y_T)`.
 
         | **Notes:**
 
         - The first observed symbol is emitted from the initial hidden state, before any transition occurs.
         - An impossible observed sequence has probability 0.
+        - The method can also be accessed through the alias **sp**.
 
         :param symbols: the observed sequence of emitted symbols.
         :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
@@ -1105,36 +1120,56 @@ class HiddenMarkovModel(_bc.Model):
 
         return _np.copy(self.__p), _np.copy(self.__e)
 
-    def transition_probabilities(self, state: _ct.tstate) -> _ct.tarray:
+    @_dc.object_mark(aliases=['tps'])
+    def transition_probabilities(self, state: _ct.tstate, steps: int = 1) -> _ct.tarray:
 
         r"""
-        | The method computes the conditional transition probabilities of the hidden Markov model:
-        | :math:`P_{ij} = \mathbb{P}(X_{t+1}=j \mid X_t=i)` where :math:`i` is the given hidden state.
+        | The method computes the conditional transition probabilities between hidden states after a given number of steps:
+        | :math:`\mathbb{P}(X_t=j \mid X_0=i) = (P^t)_{ij}` where:
 
-        :param state: the current hidden state.
+        - :math:`i` is the origin hidden state;
+        - :math:`j` is the target hidden state;
+        - :math:`t` is the number of steps.
+
+        | **Notes:**
+
+        - The method can also be accessed through the alias **tps**.
+
+        :param state: the origin hidden state.
+        :param steps: the number of steps.
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
             state = _v.validate_label(state, self.__states)
+            steps = _v.validate_integer(steps, lower_limit=(1, False))
 
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        return _np.copy(self.__p[state, :])
+        p = self.__p if steps == 1 else _npl.matrix_power(self.__p, steps)
 
-    def transition_probability(self, state_target: _ct.tstate, state_origin: _ct.tstate) -> float:
+        return _np.copy(p[state, :])
+
+    @_dc.object_mark(aliases=['tp'])
+    def transition_probability(self, state_target: _ct.tstate, state_origin: _ct.tstate, steps: int = 1) -> float:
 
         r"""
-        | The method computes the one-step transition probability between two hidden states:
-        | :math:`P_{ij}=\mathbb{P}(X_{t+1}=j\mid X_t=i)`, where:
+        | The method computes the transition probability between two hidden states after a given number of steps:
+        | :math:`\mathbb{P}(X_t=j \mid X_0=i) = (P^t)_{ij}` where:
 
         - :math:`i` is the origin hidden state;
-        - :math:`j` is the target hidden state.
+        - :math:`j` is the target hidden state;
+        - :math:`t` is the number of steps.
+
+        | **Notes:**
+
+        - The method can also be accessed through the alias **tp**.
 
         :param state_target: the target hidden state.
         :param state_origin: the origin hidden state.
+        :param steps: the number of steps.
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -1142,11 +1177,13 @@ class HiddenMarkovModel(_bc.Model):
 
             state_target = _v.validate_label(state_target, self.__states)
             state_origin = _v.validate_label(state_origin, self.__states)
+            steps = _v.validate_integer(steps, lower_limit=(1, False))
 
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        tp = float(self.__p[state_origin, state_target])
+        p = self.__p if steps == 1 else _npl.matrix_power(self.__p, steps)
+        tp = float(p[state_origin, state_target])
 
         return tp
 
