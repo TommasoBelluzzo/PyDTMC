@@ -4561,7 +4561,114 @@
       "is_valid": false
     }
   ],
+  "validate_vector_reweighting_data": [
+    {
+      "value": null,
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": -11,
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": 0.5,
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": "NaN",
+      "size": 1,
+      "is_valid": false
+    },
+    {
+      "value": "Infinity",
+      "size": 1,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "size": 0,
+      "is_valid": false
+    },
+    {
+      "value": [1.0, 1.0],
+      "size": 2,
+      "is_valid": true
+    },
+    {
+      "value": [2.0, 1.0, 3.0],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": [0.0, 0.5, 4.0],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": [0.0, 0.0, 0.0],
+      "size": 3,
+      "is_valid": true
+    },
+    {
+      "value": [3.0, 3.0, 3.0, 3.0],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [1.0, 0.0, 1.0, 0.5],
+      "size": 4,
+      "is_valid": true
+    },
+    {
+      "value": [1.0, 2.0],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [1.0, 2.0, 3.0],
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": [-0.1, -0.4, -0.2],
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": [1.0, -0.1, 2.0],
+      "size": 3,
+      "is_valid": false
+    },
+    {
+      "value": [0.5, "NaN"],
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": [1.0, "Infinity"],
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": [1.0, "-Infinity"],
+      "size": 2,
+      "is_valid": false
+    },
+    {
+      "value": [[1.0, 2.0]],
+      "size": 2,
+      "is_valid": false
+    }
+  ],
   "validate_vector_stochastic_data": [
+    {
+      "value": null,
+      "size": null,
+      "is_valid": false
+    },
     {
       "value": 2,
       "size": 3,
@@ -4580,6 +4687,11 @@
     {
       "value": "Infinity",
       "size": 1,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "size": 0,
       "is_valid": false
     },
     {
@@ -4650,16 +4762,6 @@
     {
       "value": [[0.25], [0.50], [0.25]],
       "size": 3,
-      "is_valid": false
-    },
-    {
-      "value": [],
-      "size": 0,
-      "is_valid": false
-    },
-    {
-      "value": null,
-      "size": null,
       "is_valid": false
     }
   ]

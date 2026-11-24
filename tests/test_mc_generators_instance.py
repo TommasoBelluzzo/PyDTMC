@@ -194,6 +194,18 @@ def test_reversibilize(p, method, value):
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_reweight(p, weights, value):
+
+    mc = _MarkovChain(p)
+    mc_reweighted = mc.reweight(weights)
+
+    actual = mc_reweighted.p
+    print(actual)
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_spectral_aggregation(p, method, s, value):
 
     mc = _MarkovChain(p)
@@ -260,6 +272,18 @@ def test_teleport(p, probability, distribution, value):
 
     if (probability > 0.0) and ((distribution is None) or all(x > 0.0 for x in distribution)):
         assert mc_teleport.is_ergodic
+
+
+def test_temper(p, temperature, value):
+
+    mc = _MarkovChain(p)
+    mc_tempered = mc.temper(temperature)
+
+    actual = mc_tempered.p
+    print(actual)
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_time_reversal(p, value):

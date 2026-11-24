@@ -1551,6 +1551,28 @@ def mc_large_deviation_rate(mc: _ct.tmc, target_average: float, observable: _ct.
     return ldr
 
 
+def mc_predictability_gain(mc: _ct.tmc) -> _ct.ofloat:
+
+    h = mc.entropy_rate
+
+    if h is None:
+        return None
+
+    pi = mc.pi[0]
+    positive = pi > 0.0
+    entropy = -float(_np.sum(pi[positive] * _np.log(pi[positive])))
+
+    gain = entropy - h
+
+    if -_c.FTOL < gain < 0.0:  # pragma: no cover
+        gain = 0.0
+
+    if (not _np.isfinite(gain)) or (gain < 0.0):  # pragma: no cover
+        return None
+
+    return gain
+
+
 def mc_topological_entropy(mc: _ct.tmc) -> float:
 
     ev = _n.eigenvalues_sorted(mc.adjacency_matrix)
@@ -1876,8 +1898,8 @@ def mc_recurrence_times(mc: _ct.tmc, statistic: str) -> _ct.tarray:
         mean = _np.full(mc.size, _np.inf, dtype=float)
 
         for pi in mc.pi:
-            mask = pi > 0.0
-            mean[mask] = 1.0 / pi[mask]
+            positive = pi > 0.0
+            mean[positive] = 1.0 / pi[positive]
 
         return mean
 

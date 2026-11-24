@@ -45,6 +45,7 @@ __all__ = [
     'validate_transition_function',
     'validate_transition_matrix',
     'validate_vector_birth_death',
+    'validate_vector_reweighting',
     'validate_vector_stochastic'
 ]
 
@@ -1208,6 +1209,19 @@ def validate_vector_birth_death(value: _ct.tany, vector_type: str) -> _ct.tarray
 
         if not _np.isclose(value[-1], 0.0, rtol=0.0, atol=_c.ETOL):
             raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the last index.')
+
+    return value
+
+
+def validate_vector_reweighting(value: _ct.tany, size: int) -> _ct.tarray:
+
+    value = _validate_vector(value)
+
+    if value.size != size:
+        raise ValueError(f'The "@arg@" parameter length must be equal to {size:d}.')
+
+    if not _np.all(_np.isfinite(value) & (value >= 0.0)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values greater than or equal to 0.0.')
 
     return value
 

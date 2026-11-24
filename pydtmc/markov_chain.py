@@ -925,6 +925,25 @@ class MarkovChain(_bc.Model):
         return py
 
     @_dc.cached_property
+    def predictability_gain(self) -> _ct.ofloat:
+
+        r"""
+        | A property representing the predictability gain of the Markov chain, defined as the mutual information between consecutive states under stationarity:
+        | :math:`G = H(\pi) - h` where:
+
+        - :math:`H(\pi)` is the Shannon entropy of the stationary distribution;
+        - :math:`h` is the entropy rate.
+
+        | **Notes:**
+
+        - A value of 0 indicates that knowing the current state provides no additional information about the next state.
+        - The predictability gain is expressed in nats.
+        - If the Markov chain has multiple stationary distributions or the value cannot be computed, then :py:obj:`None` is returned.
+        """
+
+        return _a.mc_predictability_gain(self)
+
+    @_dc.cached_property
     def rank(self) -> int:
 
         r"""
@@ -1337,6 +1356,40 @@ class MarkovChain(_bc.Model):
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
         return _a.mc_commute_times_to(self, statistic, targets)
+
+    @_dc.object_mark(instance_generator=True)
+    def compose_with(self, other: _ct.tmc, states: _ct.olist_str = None) -> _ct.tmc:
+
+        r"""
+        | The method composes the Markov chain with another Markov chain of the same size by applying their transition matrices sequentially:
+        | :math:`\widetilde{P} = PP\prime` where :math:`P\prime` is the transition matrix of the other chain.
+
+        | **Notes:**
+
+        - The composition applies the current Markov chain first, followed by the other Markov chain.
+        - The transition matrices are multiplied according to their state indices, without aligning their state labels.
+
+        :param other: the other Markov chain.
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            other = _v.validate_markov_chain(other, self.__size)
+
+            if states is not None:  # pragma: no cover
+                states = _v.validate_labels_input(states, self.__size)
+
+        except Exception as ex:  # pragma: no cover
+            raise _u.create_validation_error(ex, _ins.trace()) from None
+
+        p_out, states_default = _g.mc_compose(self.__p, other.p)
+        states_out = states if states is not None else states_default
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
 
     def conductance(self, states: _ct.tstates) -> _ct.ofloat:
 
@@ -2010,7 +2063,7 @@ class MarkovChain(_bc.Model):
         return mc
 
     @_dc.object_mark(instance_generator=True)
-    def merge_with(self, other: _ct.tmc, gamma: float) -> _ct.tmc:
+    def merge_with(self, other: _ct.tmc, gamma: float, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
         | The method merges the Markov chain with another Markov chain of the same size:
@@ -2026,6 +2079,7 @@ class MarkovChain(_bc.Model):
 
         :param other: the other Markov chain to be merged.
         :param gamma: the merger blending factor.
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2034,10 +2088,15 @@ class MarkovChain(_bc.Model):
             other = _v.validate_markov_chain(other, self.__size)
             gamma = _v.validate_float(gamma, lower_limit=(0.0, True), upper_limit=(1.0, True))
 
+            if states is not None:  # pragma: no cover
+                states = _v.validate_labels_input(states, self.__size)
+
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_out = _g.mc_merge(self.__p, other.p, gamma)
+        p_out, states_default = _g.mc_merge(self.__p, other.p, gamma)
+        states_out = states if states is not None else states_default
+
         mc = MarkovChain(p_out, states_out)
 
         return mc
@@ -2513,6 +2572,36 @@ class MarkovChain(_bc.Model):
 
         return mc
 
+    @_dc.object_mark(aliases=['to_reweighted'], instance_generator=True)
+    def reweight(self, weights: _ct.tvec) -> _ct.tmc:
+
+        r"""
+        | The method returns a reweighted Markov chain by adjusting the transition probabilities according to the given destination-state weights:
+        | :math:`\widetilde{P}_{ij} = \frac{P_{ij}w_j}{\sum_k P_{ik}w_k}` where :math:`w_j` is the weight assigned to destination state :math:`j`.
+
+        | **Notes:**
+
+        - For each state, at least one destination with a positive transition probability must have a positive weight.
+        - Multiplying every destination-state weight by the same strictly positive constant leaves the resulting transition matrix unchanged.
+        - Zero weights may eliminate transitions and alter the communicating classes of the Markov chain.
+
+        :param weights: the destination-state weights.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the weights assign zero total probability to all possible destinations from at least one state.
+        """
+
+        try:
+
+            weights = _v.validate_vector_reweighting(weights, self.__size)
+
+        except Exception as ex:  # pragma: no cover
+            raise _u.create_validation_error(ex, _ins.trace()) from None
+
+        p = _g.mc_reweight(self.__p, weights)
+        mc = MarkovChain(p, self.__states)
+
+        return mc
+
     def sensitivity(self, state: _ct.tstate) -> _ct.oarray:
 
         r"""
@@ -2725,6 +2814,36 @@ class MarkovChain(_bc.Model):
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
         p = _g.mc_teleport(self.__p, p_teleport, distribution)
+        mc = MarkovChain(p, self.__states)
+
+        return mc
+
+    @_dc.object_mark(aliases=['to_tempered'], instance_generator=True)
+    def temper(self, temperature: float) -> _ct.tmc:
+
+        r"""
+        | The method returns a tempered Markov chain by adjusting the concentration of its transition probabilities:
+        | :math:`\widetilde{P}_{ij} = \frac{P_{ij}^{1/\tau}}{\sum_k P_{ik}^{1/\tau}}` where :math:`\tau` is the temperature parameter.
+
+        | **Notes:**
+
+        - A temperature of 1 leaves the transition matrix unchanged.
+        - Temperatures below 1 concentrate transitions toward higher probabilities.
+        - Temperatures above 1 produce more uniform probabilities over the existing transition support.
+        - The transformation preserves zero transition probabilities.
+
+        :param temperature: the temperature to apply for the transformation.
+        :raises ValidationError: if any input argument is not compliant.
+        """
+
+        try:
+
+            temperature = _v.validate_float(temperature, lower_limit=(0.0, True))
+
+        except Exception as ex:  # pragma: no cover
+            raise _u.create_validation_error(ex, _ins.trace()) from None
+
+        p = _g.mc_temper(self.__p, temperature)
         mc = MarkovChain(p, self.__states)
 
         return mc

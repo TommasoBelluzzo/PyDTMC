@@ -880,7 +880,7 @@ def _update_graph_bounds(ax: _mplp.Axes, renderer: _ct.tany) -> bool:
 
     for artist in [*ax.patches, *ax.texts, *ax.collections]:
 
-        if not artist.get_visible():
+        if not artist.get_visible():  # pragma: no cover
             continue
 
         extent = artist.get_window_extent(renderer)

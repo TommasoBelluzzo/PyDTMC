@@ -608,7 +608,7 @@ def test_topological_entropy(p, topological_entropy):
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
-def test_uncertainty_entropy(p, entropy_rate, entropy_rate_normalized, predictability):
+def test_uncertainty(p, entropy_rate, entropy_rate_normalized, predictability, predictability_gain):
 
     mc = _MarkovChain(p)
 
@@ -630,6 +630,14 @@ def test_uncertainty_entropy(p, entropy_rate, entropy_rate_normalized, predictab
 
     actual = mc.predictability
     expected = predictability
+
+    if (actual is not None) and (expected is not None):
+        assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+    else:
+        assert actual == expected
+
+    actual = mc.predictability_gain
+    expected = predictability_gain
 
     if (actual is not None) and (expected is not None):
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)

@@ -71,6 +71,7 @@ from pydtmc._validation import (
     validate_transition_function as _validate_transition_function,
     validate_transition_matrix as _validate_transition_matrix,
     validate_vector_birth_death as _validate_vector_birth_death,
+    validate_vector_reweighting as _validate_vector_reweighting,
     validate_vector_stochastic as _validate_vector_stochastic
 )
 
@@ -666,3 +667,13 @@ def test_validate_vector_stochastic(value, size, is_valid):
     else:
         with _pt.raises(Exception):
             _validate_vector_stochastic(value, size, False)
+
+
+def test_validate_vector_reweighting(value, size, is_valid):
+
+    if is_valid:
+        result = _validate_vector_reweighting(value, size)
+        assert isinstance(result, _np.ndarray) and (result.ndim == 1) and (result.size == size)
+    else:
+        with _pt.raises(Exception):
+            _validate_vector_reweighting(value, size)

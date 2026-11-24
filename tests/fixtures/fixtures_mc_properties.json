@@ -60,6 +60,7 @@
       [0.5, 0.5]
     ],
     "predictability": 1.0,
+    "predictability_gain": 0.69314718,
     "rank": 2,
     "relaxation_rate": "Infinity",
     "stationary_current": [
@@ -133,6 +134,7 @@
       [0.625, 0.375]
     ],
     "predictability": 0.39315588,
+    "predictability_gain": 0.24093095,
     "rank": 2,
     "relaxation_rate": 2.5,
     "stationary_current": [
@@ -209,6 +211,7 @@
       [0.45714286, 0.54285714]
     ],
     "predictability": 0.47717185,
+    "predictability_gain": 0.32707234,
     "rank": 2,
     "relaxation_rate": 4.0,
     "stationary_current": [
@@ -285,6 +288,7 @@
       [0.5, 0.5]
     ],
     "predictability": 0.0,
+    "predictability_gain": 0.0,
     "rank": 1,
     "relaxation_rate": 1.0,
     "stationary_current": [
@@ -352,6 +356,7 @@
       [1.0, 0.0]
     ],
     "predictability": 1.0,
+    "predictability_gain": 0.0,
     "rank": 2,
     "relaxation_rate": null,
     "stationary_current": [
@@ -428,6 +433,7 @@
       [0.1, 0.9]
     ],
     "predictability": 0.53100441,
+    "predictability_gain": 0.0,
     "rank": 1,
     "relaxation_rate": 1.0,
     "stationary_current": [
@@ -504,6 +510,7 @@
       [0.9, 0.1]
     ],
     "predictability": 0.53100441,
+    "predictability_gain": 0.0,
     "rank": 1,
     "relaxation_rate": 1.0,
     "stationary_current": [
@@ -578,6 +585,7 @@
       [0.0, 0.0, 1.0]
     ],
     "predictability": null,
+    "predictability_gain": null,
     "rank": 3,
     "relaxation_rate": null,
     "stationary_current": [
@@ -672,6 +680,7 @@
       [0.33333333, 0.33333333, 0.33333333]
     ],
     "predictability": 1.0,
+    "predictability_gain": 1.09861229,
     "rank": 3,
     "relaxation_rate": "Infinity",
     "stationary_current": [
@@ -746,6 +755,7 @@
       [0.5, 0.5, 0.0]
     ],
     "predictability": 1.0,
+    "predictability_gain": 0.69314718,
     "rank": 3,
     "relaxation_rate": null,
     "stationary_current": [
@@ -828,6 +838,7 @@
       [0.09090909, 0.29870130, 0.61038961]
     ],
     "predictability": 0.24747408,
+    "predictability_gain": 0.05350399,
     "rank": 3,
     "relaxation_rate": 1.42857143,
     "stationary_current": [
@@ -910,6 +921,7 @@
       [0.15, 0.50, 0.35]
     ],
     "predictability": 0.721983675,
+    "predictability_gain": 0.69314718,
     "rank": 2,
     "relaxation_rate": "Infinity",
     "stationary_current": [
@@ -999,6 +1011,7 @@
       [0.285714, 0.428571, 0.285714]
     ],
     "predictability": 0.06292022,
+    "predictability_gain": 0.04950485,
     "rank": 3,
     "relaxation_rate": 1.42857143,
     "stationary_current": [
@@ -1088,6 +1101,7 @@
       [0.23214286, 0.33928571, 0.42857143]
     ],
     "predictability": 0.12308508,
+    "predictability_gain": 0.10549836,
     "rank": 3,
     "relaxation_rate": 1.28800716,
     "stationary_current": [
@@ -1177,6 +1191,7 @@
       [0.32558140, 0.53488372, 0.13953488]
     ],
     "predictability": 0.29305109,
+    "predictability_gain": 0.19817162,
     "rank": 3,
     "relaxation_rate": 1.85737662,
     "stationary_current": [
@@ -1266,6 +1281,7 @@
       [0.23214286, 0.33928571, 0.42857143]
     ],
     "predictability": 0.12308508,
+    "predictability_gain": 0.10549836,
     "rank": 3,
     "relaxation_rate": 1.28800716,
     "stationary_current": [
@@ -1348,6 +1364,7 @@
       [0.57692308, 0.14102564, 0.28205128]
     ],
     "predictability": 0.50490192,
+    "predictability_gain": 0.40663935,
     "rank": 3,
     "relaxation_rate": 1.57064291,
     "stationary_current": [
@@ -1430,6 +1447,7 @@
       [0.36263736, 0.36263736, 0.27472527]
     ],
     "predictability": 0.26941691,
+    "predictability_gain": 0.28799684,
     "rank": 3,
     "relaxation_rate": 2.64003891,
     "stationary_current": [
@@ -1512,6 +1530,7 @@
       [0.03703704, 0.59259259, 0.37037037]
     ],
     "predictability": 0.35580211,
+    "predictability_gain": 0.09228831,
     "rank": 3,
     "relaxation_rate": 1.28800716,
     "stationary_current": [
@@ -1589,6 +1608,7 @@
       [1.0, 0.0, 0.0]
     ],
     "predictability": 1.0,
+    "predictability_gain": 0.0,
     "rank": 3,
     "relaxation_rate": null,
     "stationary_current": [
@@ -1671,6 +1691,7 @@
       [0.54054054, 0.40540541, 0.05405405]
     ],
     "predictability": 0.35713626,
+    "predictability_gain": 0.15001956,
     "rank": 3,
     "relaxation_rate": 1.25,
     "stationary_current": [
@@ -1760,6 +1781,7 @@
       [0.33333333, 0.33333333, 0.33333333]
     ],
     "predictability": 0.64100375,
+    "predictability_gain": 0.7042146,
     "rank": 3,
     "relaxation_rate": 6.66666667,
     "stationary_current": [
@@ -1840,6 +1862,7 @@
       [0.0, 1.0, 0.0, 0.0]
     ],
     "predictability": null,
+    "predictability_gain": null,
     "rank": 3,
     "relaxation_rate": null,
     "stationary_current": [
@@ -1930,6 +1953,7 @@
       [0.0, 0.0, 0.0, 1.0]
     ],
     "predictability": null,
+    "predictability_gain": null,
     "rank": 4,
     "relaxation_rate": null,
     "stationary_current": [
@@ -2029,6 +2053,7 @@
       [0.25, 0.25, 0.25, 0.25]
     ],
     "predictability": 0.5,
+    "predictability_gain": 0.69314718,
     "rank": 3,
     "relaxation_rate": 3.41421356,
     "stationary_current": [
@@ -2120,6 +2145,7 @@
       [0.33333333, 0.33333333, 0.16666667, 0.16666667]
     ],
     "predictability": 0.83333333,
+    "predictability_gain": 1.09861229,
     "rank": 3,
     "relaxation_rate": "Infinity",
     "stationary_current": [
@@ -2224,6 +2250,7 @@
       [0.58878505, 0.13084112, 0.18691589, 0.09345794]
     ],
     "predictability": 0.29197569,
+    "predictability_gain": 0.1314409,
     "rank": 4,
     "relaxation_rate": 1.62191225,
     "stationary_current": [
@@ -2322,6 +2349,7 @@
       [0.16666667, 0.16666667, 0.33333333, 0.16666667, 0.16666667]
     ],
     "predictability": 0.85644115,
+    "predictability_gain": 1.32966135,
     "rank": 4,
     "relaxation_rate": "Infinity",
     "stationary_current": [
@@ -2420,6 +2448,7 @@
       [0.20000000, 0.80000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000]
     ],
     "predictability": null,
+    "predictability_gain": null,
     "rank": 6,
     "relaxation_rate": null,
     "stationary_current": [
@@ -2528,6 +2557,7 @@
       [0.00000000, 0.00000000, 0.00000000, 0.00000000, 1.00000000, 0.00000000]
     ],
     "predictability": null,
+    "predictability_gain": null,
     "rank": 6,
     "relaxation_rate": null,
     "stationary_current": [
@@ -2641,6 +2671,7 @@
       [0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
     ],
     "predictability": null,
+    "predictability_gain": null,
     "rank": 6,
     "relaxation_rate": null,
     "stationary_current": [
@@ -2811,6 +2842,7 @@
       [0.06391641, 0.20438882, 0.07254790, 0.05599217, 0.03982147, 0.08966740, 0.06729427, 0.08000223, 0.01472965, 0.10514081, 0.07687798, 0.07613945, 0.05348144]
     ],
     "predictability": 0.43821416,
+    "predictability_gain": 0.98822164,
     "rank": 13,
     "relaxation_rate": 1.6554724,
     "stationary_current": [
@@ -2983,6 +3015,7 @@
       [0.60000403, 0.24000161, 0.09600064, 0.03840026, 0.01536010, 0.00614404, 0.00245762, 0.00098305, 0.00039322, 0.00015729, 0.00006291, 0.00002517, 0.00001007]
     ],
     "predictability": 0.72237380,
+    "predictability_gain": 0.40950232,
     "rank": 13,
     "relaxation_rate": 11.63839828,
     "stationary_current": [
@@ -3132,6 +3165,7 @@
       [0.16666667, 0.16666667, 0.16666667, 0.16666667, 0.16666667, 0.16666667, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000]
     ],
     "predictability": null,
+    "predictability_gain": null,
     "rank": 13,
     "relaxation_rate": null,
     "stationary_current": [

@@ -51,6 +51,7 @@ Properties
       periods,
       pi,
       predictability,
+      predictability_gain,
       rank,
       recurrent_classes,
       recurrent_states,

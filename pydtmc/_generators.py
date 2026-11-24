@@ -42,10 +42,12 @@ __all__ = [
     'mc_random_distribution',
     'mc_random_walk',
     'mc_reversibilize',
+    'mc_reweight',
     'mc_self_attention',
     'mc_spectral_aggregation',
     'mc_sub',
     'mc_teleport',
+    'mc_temper',
     'mc_time_reversal',
     'mc_urn_model'
 ]
@@ -899,6 +901,14 @@ def mc_closest_reversible(p: _ct.tarray, initial_distribution: _ct.tarray, weigh
         raise ValueError('The closest reversible could not be computed.')
 
     return p
+
+
+def mc_compose(p1: _ct.tarray, p2: _ct.tarray) -> _ct.tmc_gen_ext:
+
+    p = _np.dot(p1, p2)
+    states = _u.create_labels(p.shape[0], prefix='C')
+
+    return p, states
 
 
 def mc_lazy(p: _ct.tarray, inertial_weights: _ct.tarray) -> _ct.tarray:
@@ -2032,6 +2042,27 @@ def mc_random_walk(size: int, topology: str, lazy: bool) -> _ct.tmc_gen_ext:
     return p, states
 
 
+def mc_reweight(p: _ct.tarray, weights: _ct.tarray) -> _ct.tarray:
+
+    log_weights = _np.full(weights.shape, -_np.inf, dtype=float)
+    _np.log(weights, out=log_weights, where=weights > 0.0)
+
+    logits = _np.full(p.shape, -_np.inf, dtype=float)
+    _np.log(p, out=logits, where=p > 0.0)
+
+    logits += log_weights[_np.newaxis, :]
+
+    if _np.any(_np.all(_np.isneginf(logits), axis=1)):
+        raise ValueError('The weights must assign positive weight to at least one reachable state from each state.')
+
+    logits -= _np.max(logits, axis=1, keepdims=True)
+
+    prw = _np.exp(logits)
+    prw /= _np.sum(prw, axis=1, keepdims=True)
+
+    return prw
+
+
 def mc_self_attention(q: _ct.tarray, k: _ct.tarray) -> _ct.tmc_gen_ext:
 
     logits = _np.matmul(q, _np.transpose(k)) / _np.sqrt(q.shape[1])
@@ -2047,6 +2078,20 @@ def mc_self_attention(q: _ct.tarray, k: _ct.tarray) -> _ct.tmc_gen_ext:
     states = _u.create_labels(p.shape[0])
 
     return p, states
+
+
+def mc_temper(p: _ct.tarray, temperature: float) -> _ct.tarray:
+
+    logits = _np.full(p.shape, -_np.inf, dtype=float)
+    _np.log(p, out=logits, where=p > 0.0)
+
+    logits -= _np.max(logits, axis=1, keepdims=True)
+    logits /= temperature
+
+    pt = _np.exp(logits)
+    pt /= _np.sum(pt, axis=1, keepdims=True)
+
+    return pt
 
 
 def mc_urn_model(model: str, n: int) -> _ct.tmc_gen_ext:
