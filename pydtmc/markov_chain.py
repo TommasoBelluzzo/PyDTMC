@@ -1691,19 +1691,19 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = _a.mc_fundamental_cycle_profile(self)
+        fcp = _a.mc_fundamental_cycle_profile(self)
 
-        if (value is not None) and output_indices:
+        if (fcp is not None) and output_indices:
 
             indices = {state: index for index, state in enumerate(self.states)}
 
-            affinities, currents = value
+            affinities, currents = fcp
             affinities = {tuple(indices[state] for state in cycle): affinity for cycle, affinity in affinities.items()}
             currents = [{tuple(indices[state] for state in cycle): coefficient for cycle, coefficient in current.items()} for current in currents]
 
-            value = affinities, currents
+            fcp = affinities, currents
 
-        return value
+        return fcp
 
     @_dc.object_mark(aliases=['hp'])
     def hitting_probabilities(self, targets: _ct.ostates = None) -> _ct.tarray:
@@ -2189,12 +2189,12 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = _d.mc_simulate(self, 1, initial_state, None, rng)[-1]
+        simulation_last = _d.mc_simulate(self, 1, initial_state, None, rng)[-1]
 
         if not output_index:
-            value = self.__states[value]
+            simulation_last = self.__states[simulation_last]
 
-        return value
+        return simulation_last
 
     def predict(self, steps: int, initial_state: _ct.tstate, output_indices: bool = False) -> _ct.oseq:
 
@@ -2223,12 +2223,12 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = _d.mc_predict(self, steps, initial_state)
+        prediction = _d.mc_predict(self, steps, initial_state)
 
-        if (value is not None) and (not output_indices):
-            value = [*map(self.__states.__getitem__, value)]
+        if (prediction is not None) and (not output_indices):
+            prediction = [*map(self.__states.__getitem__, prediction)]
 
-        return value
+        return prediction
 
     def predict_trajectory(self, steps: int, initial_state: _ct.tstate, output_indices: bool = False) -> _ct.oseq:
 
@@ -2593,12 +2593,12 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = _d.mc_simulate(self, steps, initial_state, final_state, rng)
+        simulation = _d.mc_simulate(self, steps, initial_state, final_state, rng)
 
         if not output_indices:
-            value = [*map(self.__states.__getitem__, value)]
+            simulation = [*map(self.__states.__getitem__, simulation)]
 
-        return value
+        return simulation
 
     @_dc.object_mark(instance_generator=True)
     def spectral_aggregation(self, s: int, method: str = 'adaptive') -> _ct.tmc:
@@ -2690,12 +2690,12 @@ class MarkovChain(_bc.Model):
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
         maximum_steps = 2**maximum_doublings
-        value = _d.mc_stationary_sampling(self, maximum_steps, rng)
+        state = _d.mc_stationary_sampling(self, maximum_steps, rng)
 
-        if (value is not None) and (not output_index):
-            value = self.__states[value]
+        if (state is not None) and (not output_index):
+            state = self.__states[state]
 
-        return value
+        return state
 
     @_dc.object_mark(instance_generator=True)
     def teleport(self, p_teleport: float, distribution: _ct.ovec = None) -> _ct.tmc:

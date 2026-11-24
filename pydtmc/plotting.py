@@ -20,18 +20,10 @@ __all__ = [
 # Standard
 
 import inspect as _ins
-import subprocess as _sub
 
 # Libraries
 
 import numpy as _np
-
-try:
-    import pydot as _pyd
-    _pydot_found = True
-except ImportError:  # pragma: no cover
-    _pyd = None
-    _pydot_found = False
 
 # Internal
 
@@ -57,7 +49,6 @@ from .markov_chain import (
 #############
 # FUNCTIONS #
 #############
-
 
 @_dc.interactive_plot
 def plot_comparison(models: _ct.tlist_mdl, underlying_matrices: str = 'transition', names: _ct.olist_str = None, dpi: int = 100) -> _ct.tplot:
@@ -166,10 +157,7 @@ def plot_eigenvalues(model: _ct.tmdl, dpi: int = 100) -> _ct.tplot:
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    if model.__class__.__name__ == 'MarkovChain':
-        mc = model
-    else:
-        mc = _MarkovChain(model.p, model.states)
+    mc = model if model.__class__.__name__ == 'MarkovChain' else _MarkovChain(model.p, model.states)
 
     return _r.plot_eigenvalues(mc, dpi)
 
@@ -204,19 +192,13 @@ def plot_flow(model: _ct.tmdl, steps: int, interval: int, initial_status: _ct.os
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    if model.__class__.__name__ == 'MarkovChain':
-        mc = model
-    else:
-        mc = _MarkovChain(model.p, model.states)
-
+    mc = model if model.__class__.__name__ == 'MarkovChain' else _MarkovChain(model.p, model.states)
     indices = list(range(0, (steps * interval) + 1, interval))
     distributions = mc.propagate(indices[-1], initial_status=initial_status, output_last=False)
-    distributions = _np.transpose(_np.stack([distribution for index, distribution in enumerate(distributions) if index in indices]))
 
-    return _r.plot_flow(mc, distributions, steps, interval, dpi)
+    return _r.plot_flow(mc, indices, distributions, steps, interval, dpi)
 
 
-# noinspection PyBroadException
 @_dc.interactive_plot
 def plot_graph(model: _ct.tmdl, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _ct.tplot:
 
@@ -252,22 +234,7 @@ def plot_graph(model: _ct.tmdl, nodes_color: bool = True, nodes_shape: bool = Tr
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    extended_graph = not force_standard and _pydot_found
-
-    if extended_graph:
-        try:
-            _sub.call(['dot', '-V'], stdout=_sub.PIPE, stderr=_sub.PIPE)
-        except Exception:  # pragma: no cover
-            extended_graph = False
-
-    model_mc = model.__class__.__name__ == 'MarkovChain'
-
-    if extended_graph:
-        func = _r.plot_mc_extended if model_mc else _r.plot_hmm_extended
-    else:
-        func = _r.plot_mc_standard if model_mc else _r.plot_hmm_standard
-
-    return _r.plot_graph(func, model, nodes_color, nodes_shape, edges_label, dpi)
+    return _r.plot_graph(model, nodes_color, nodes_shape, edges_label, force_standard, dpi)
 
 
 @_dc.interactive_plot
@@ -298,8 +265,8 @@ def plot_matrix(model: _ct.tmdl, underlying_matrix: str = 'transition', dpi: int
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    if underlying_matrix == 'emission' and not isinstance(model, _HiddenMarkovModel):  # pragma: no cover
-        raise _ValidationError('An emission matrix can only be plotted for a hidden Markov model.')
+    if (underlying_matrix == 'emission') and (not isinstance(model, _HiddenMarkovModel)):  # pragma: no cover
+        raise _ValidationError('Emission matrices are only available for hidden Markov models.')
 
     return _r.plot_matrix(model, underlying_matrix, dpi)
 
@@ -336,19 +303,13 @@ def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: 
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    if model.__class__.__name__ == 'MarkovChain':
-        mc = model
-    else:
-        mc = _MarkovChain(model.p, model.states)
-
+    mc = model if model.__class__.__name__ == 'MarkovChain' else _MarkovChain(model.p, model.states)
     distributions = mc.propagate(redistributions, initial_status=initial_status, output_last=False)
-    distributions_length = 1 if isinstance(distributions, _np.ndarray) else len(distributions)
-    distributions = _np.array([distributions]) if isinstance(distributions, _np.ndarray) else _np.array(distributions)
 
     if plot_type == 'heatmap':
-        return _r.plot_redistributions_heatmap(mc, distributions, distributions_length, dpi)
+        return _r.plot_redistributions_heatmap(mc, distributions, dpi)
 
-    return _r.plot_redistributions_projection(mc, distributions, distributions_length, dpi)
+    return _r.plot_redistributions_projection(mc, distributions, dpi)
 
 
 @_dc.interactive_plot
@@ -384,34 +345,11 @@ def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None,
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    model_mc = model.__class__.__name__ == 'MarkovChain'
-    model_sequence = model.simulate(steps, initial_state=initial_state, output_indices=True, seed=seed)
+    simulation = model.simulate(steps, initial_state=initial_state, output_indices=True, seed=seed)
 
-    if model_mc:
-        walk_data = (
-            steps + 1,
-            [(model.n, 'States', model.states, model_sequence)]
-        )
-    else:
-        walk_data = (
-            steps + 1,
-            [(model.n, 'States', model.states, model_sequence[0]),
-             (model.k, 'Symbols', model.symbols, model_sequence[1])]
-        )
-
-    if plot_type == 'heatmap':
-        func = _r.plot_sequence_heatmap
-    elif plot_type == 'histogram':
-        func = _r.plot_sequence_histogram
-    else:
-        func = _r.plot_sequence_matrix
-
-    figure, ax = func(walk_data, dpi)
-
-    return figure, ax
+    return _r.plot_sequence(model, simulation, steps, plot_type, dpi)
 
 
-# noinspection PyBroadException
 @_dc.interactive_plot
 def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate = None, seed: _ct.oint = None, force_standard: bool = False, dpi: int = 100) -> _ct.tplot:
 
@@ -453,32 +391,17 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate = None, se
         initial_distribution[initial_state] = 1.0
 
     _, symbols = hmm.simulate(steps, initial_state=initial_state, output_indices=True, seed=seed)
-
     decoding = hmm.decode(symbols, initial_status=initial_distribution)
 
     if decoding is None:  # pragma: no cover
         raise ValueError('The computation of backward and forward probabilities failed.')
 
     _, _, _, backward, forward, _ = decoding
-
     prediction = hmm.predict('mle', symbols, initial_status=initial_distribution, output_indices=True)
 
     if prediction is None:  # pragma: no cover
         raise ValueError('The computation of the most probable states path failed.')
 
-    _, states_path = prediction
+    _, prediction_states = prediction
 
-    extended_graph = not force_standard and _pydot_found
-
-    if extended_graph:
-        try:
-            _sub.call(['dot', '-V'], stdout=_sub.PIPE, stderr=_sub.PIPE)
-        except Exception:  # pragma: no cover
-            extended_graph = False
-
-    if extended_graph:
-        figure, ax = _r.plot_trellis_extended(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
-    else:
-        figure, ax = _r.plot_trellis_standard(hmm, initial_distribution, symbols, backward, forward, states_path, dpi)
-
-    return figure, ax
+    return _r.plot_trellis(hmm, initial_distribution, symbols, backward, forward, prediction_states, force_standard, dpi)

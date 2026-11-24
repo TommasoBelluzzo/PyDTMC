@@ -468,9 +468,9 @@ class HiddenMarkovModel(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = float(self.__e[state, symbol])
+        ep = float(self.__e[state, symbol])
 
-        return value
+        return ep
 
     @_dc.cached_method
     @_dc.object_mark(aliases=['h'])
@@ -702,15 +702,15 @@ class HiddenMarkovModel(_bc.Model):
         simulation = _d.hmm_simulate(self, 1, initial_state, None, None, rng)
 
         if target == 'state':
-            value = simulation[0][-1] if output_index else self.__states[simulation[0][-1]]
+            simulation_last = simulation[0][-1] if output_index else self.__states[simulation[0][-1]]
         elif target == 'symbol':
-            value = simulation[1][-1] if output_index else self.__symbols[simulation[1][-1]]
+            simulation_last = simulation[1][-1] if output_index else self.__symbols[simulation[1][-1]]
         else:
             v0 = simulation[0][-1] if output_index else self.__states[simulation[0][-1]]
             v1 = simulation[1][-1] if output_index else self.__symbols[simulation[1][-1]]
-            value = (v0, v1)
+            simulation_last = (v0, v1)
 
-        return value
+        return simulation_last
 
     def perplexity(self, symbols: _ct.tseq, initial_status: _ct.ostatus = None) -> float:
 
@@ -776,12 +776,12 @@ class HiddenMarkovModel(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = _d.hmm_predict(prediction_type, self.__p, self.__e, initial_status, symbols)
+        prediction = _d.hmm_predict(prediction_type, self.__p, self.__e, initial_status, symbols)
 
-        if (value is not None) and (not output_indices):
-            value = (value[0], [*map(self.__states.__getitem__, value[1])])
+        if (prediction is not None) and (not output_indices):
+            prediction = (prediction[0], [*map(self.__states.__getitem__, prediction[1])])
 
-        return value
+        return prediction
 
     def predict_trajectory(self, steps: int, initial_state: _ct.tstate, output_indices: bool = False) -> _ct.oseq:
 
@@ -950,14 +950,14 @@ class HiddenMarkovModel(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = _d.hmm_simulate(self, steps, initial_state, final_state, final_symbol, rng)
+        simulation = _d.hmm_simulate(self, steps, initial_state, final_state, final_symbol, rng)
 
         if not output_indices:
-            v0 = [*map(self.__states.__getitem__, value[0])]
-            v1 = [*map(self.__symbols.__getitem__, value[1])]
-            value = (v0, v1)
+            v0 = [*map(self.__states.__getitem__, simulation[0])]
+            v1 = [*map(self.__symbols.__getitem__, simulation[1])]
+            simulation = (v0, v1)
 
-        return value
+        return simulation
 
     @_dc.object_mark(aliases=['hs'])
     def synchronization_entropy(self, length: int) -> _ct.tarray:
@@ -1146,9 +1146,9 @@ class HiddenMarkovModel(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        value = float(self.__p[state_origin, state_target])
+        tp = float(self.__p[state_origin, state_target])
 
-        return value
+        return tp
 
     @staticmethod
     @_dc.object_mark(instance_generator=True)

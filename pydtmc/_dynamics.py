@@ -338,17 +338,17 @@ def mc_simulate(mc: _ct.tmc, steps: int, initial_state: int, final_state: _ct.oi
     cumulative[:, -1] = 1.0
 
     current_state = initial_state
-    value = [initial_state]
+    simulation = [initial_state]
 
     for _ in range(steps):
 
         current_state = int(_np.searchsorted(cumulative[current_state, :-1], rng.random_sample(), side='left'))
-        value.append(current_state)
+        simulation.append(current_state)
 
         if check_final_state and (current_state == final_state):
             break
 
-    return value
+    return simulation
 
 
 def mc_stationary_sampling(mc: _ct.tmc, maximum_steps: int, rng: _ct.trand) -> _ct.oint:
@@ -382,6 +382,7 @@ def mc_stationary_sampling(mc: _ct.tmc, maximum_steps: int, rng: _ct.trand) -> _
             trajectories = mapping[trajectories]
 
         if _np.all(trajectories == trajectories[0]):
-            return int(trajectories[0])
+            state = int(trajectories[0])
+            return state
 
     return None

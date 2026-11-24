@@ -15,11 +15,8 @@ __all__ = [
     'plot_mc_standard',
     'plot_redistributions_heatmap',
     'plot_redistributions_projection',
-    'plot_sequence_heatmap',
-    'plot_sequence_histogram',
-    'plot_sequence_matrix',
-    'plot_trellis_extended',
-    'plot_trellis_standard'
+    'plot_sequence',
+    'plot_trellis'
 ]
 
 
@@ -32,6 +29,7 @@ __all__ = [
 import copy as _cp
 import io as _io
 import math as _mt
+import subprocess as _sub
 
 # Libraries
 
@@ -699,6 +697,19 @@ def _yticks_labels(ax: _mplp.Axes, size: int, labels_name: _ct.ostr, labels: _ct
     ax.set_yticklabels(labels)
 
 
+def is_graphviz_available() -> bool:
+
+    if not _pydot_found:
+        return False
+
+    try:
+        result = _sub.run(['dot', '-V'], stdout=_sub.PIPE, stderr=_sub.PIPE, check=False)
+    except (OSError, _sub.SubprocessError):  # pragma: no cover
+        return False
+
+    return result.returncode == 0
+
+
 def plot_comparison(models: _ct.tlist_mdl, underlying_matrices: str, names: _ct.tlist_str, dpi: int) -> _ct.tplot:
     space = len(models)
     rows = int(_mt.sqrt(space))
@@ -825,7 +836,11 @@ def plot_eigenvalues(mc: _ct.tmc, dpi: int) -> _ct.tplot:
     return figure, ax
 
 
-def plot_flow(mc: _ct.tmc, distributions: _ct.tarray, steps: int, interval: int, dpi: int) -> _ct.tplot:
+def plot_flow(mc: _ct.tmc, indices: _ct.tlist_int, distributions: _ct.tarray, steps: int, interval: int, dpi: int) -> _ct.tplot:
+
+    distributions = _np.transpose(_np.stack([distribution for index, distribution in enumerate(distributions) if index in indices]))
+
+
     p = mc.p
 
     d = distributions * 0.9
@@ -871,7 +886,15 @@ def plot_flow(mc: _ct.tmc, distributions: _ct.tarray, steps: int, interval: int,
     return figure, ax
 
 
-def plot_graph(func: _ct.tany, model: _ct.tmdl, nodes_color: bool, nodes_shape: bool, edges_label: bool, dpi: int) -> _ct.tplot:
+def plot_graph(model: _ct.tmdl, nodes_color: bool, nodes_shape: bool, edges_label: bool, force_standard: bool, dpi: int) -> _ct.tplot:
+
+    model_mc = model.__class__.__name__ == 'MarkovChain'
+    extended_graph = (not force_standard) and is_graphviz_available()
+
+    if extended_graph:
+        func = plot_mc_extended if model_mc else plot_hmm_extended
+    else:
+        func = plot_mc_standard if model_mc else plot_hmm_standard
 
     figure, ax = func(model, nodes_color, nodes_shape, edges_label, dpi)
     figure.suptitle('Graph Plot', fontsize=15.0, fontweight='bold')
@@ -1233,12 +1256,15 @@ def plot_mc_standard(mc: _ct.tmc, nodes_color: bool, nodes_shape: bool, edges_la
     return f, a
 
 
-def plot_redistributions_heatmap(mc: _ct.tmc, distributions: _ct.tarray, distributions_length: int, dpi: int) -> _ct.tplot:
+def plot_redistributions_heatmap(mc: _ct.tmc, distributions: _ct.tarray, dpi: int) -> _ct.tplot:
+
+    distributions = _np.array([distributions]) if isinstance(distributions, _np.ndarray) else _np.array(distributions)
+    distributions_length = distributions.shape[0]
+
     figure, ax = _mplp.subplots(dpi=dpi)
 
     color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
-    ax_is = ax.imshow(_np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0,
-                      vmax=1.0)
+    ax_is = ax.imshow(_np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0,vmax=1.0)
 
     _xticks_steps(ax, distributions_length)
     _yticks_labels(ax, mc.size, None, mc.states)
@@ -1253,9 +1279,12 @@ def plot_redistributions_heatmap(mc: _ct.tmc, distributions: _ct.tarray, distrib
     return figure, ax
 
 
-def plot_redistributions_projection(mc: _ct.tmc, distributions: _ct.tarray, distributions_length: int, dpi: int) -> _ct.tplot:
-    figure, ax = _mplp.subplots(dpi=dpi)
+def plot_redistributions_projection(mc: _ct.tmc, distributions: _ct.tarray, dpi: int) -> _ct.tplot:
 
+    distributions = _np.array([distributions]) if isinstance(distributions, _np.ndarray) else _np.array(distributions)
+    distributions_length = distributions.shape[0]
+
+    figure, ax = _mplp.subplots(dpi=dpi)
     ax.set_prop_cycle('color', _COLORS)
 
     for i in range(mc.size):
@@ -1291,7 +1320,32 @@ def plot_redistributions_projection(mc: _ct.tmc, distributions: _ct.tarray, dist
     return figure, ax
 
 
+def plot_sequence(model: _ct.tmdl, simulation: _ct.tany, steps: int, plot_type: str, dpi: int) -> _ct.tplot:
+
+    if model.__class__.__name__ == 'MarkovChain':
+        walk_data = (
+            steps + 1,
+            [(model.n, 'States', model.states, simulation)]
+        )
+    else:
+        walk_data = (
+            steps + 1,
+            [(model.n, 'States', model.states, simulation[0]),
+             (model.k, 'Symbols', model.symbols, simulation[1])]
+        )
+
+    if plot_type == 'heatmap':
+        func = plot_sequence_heatmap
+    elif plot_type == 'histogram':
+        func = plot_sequence_histogram
+    else:
+        func = plot_sequence_matrix
+
+    return func(walk_data, dpi)
+
+
 def plot_sequence_heatmap(walk_data: tuple, dpi: int) -> _ct.tplot:
+
     walk_steps, walks = walk_data
     plots_count = len(walks)
 
@@ -1375,6 +1429,18 @@ def plot_sequence_matrix(walk_data: tuple, dpi: int) -> _ct.tplot:
     f.suptitle('Sequence Plot (Matrix)', fontsize=15.0, fontweight='bold')
 
     return f, a
+
+
+def plot_trellis(hmm: _ct.thmm, initial_distribution: _ct.tarray, symbols: _ct.tarray,
+                 backward: _ct.tarray, forward: _ct.tarray, prediction_states: _ct.tlist_int,
+                 force_standard: bool, dpi: int) -> _ct.tplot:
+
+    extended_graph = (not force_standard) and is_graphviz_available()
+
+    if extended_graph:
+        return plot_trellis_extended(hmm, initial_distribution, symbols, backward, forward, prediction_states, dpi)
+
+    return plot_trellis_standard(hmm, initial_distribution, symbols, backward, forward, prediction_states, dpi)
 
 
 def plot_trellis_extended(hmm: _ct.thmm, initial_distribution: _ct.tarray, symbols: _ct.tarray, backward: _ct.tarray, forward: _ct.tarray, states_path: _ct.tarray, dpi: int) -> _ct.tplot:
