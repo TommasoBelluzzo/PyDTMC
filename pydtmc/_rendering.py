@@ -13,8 +13,7 @@ __all__ = [
     'plot_matrix',
     'plot_mc_extended',
     'plot_mc_standard',
-    'plot_redistributions_heatmap',
-    'plot_redistributions_projection',
+    'plot_redistributions',
     'plot_sequence',
     'plot_trellis'
 ]
