@@ -117,10 +117,7 @@ def plot_convergence(model: _ct.tmdl, steps: int, initial_status: _ct.ostatus = 
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    if model.__class__.__name__ == 'MarkovChain':
-        mc = model
-    else:
-        mc = _MarkovChain(model.p, model.states)
+    mc = model if model.__class__.__name__ == 'MarkovChain' else _MarkovChain(model.p, model.states)
 
     if not mc.is_ergodic:  # pragma: no cover
         raise _ValidationError('The underlying Markov chain must be ergodic in order to plot convergence.')

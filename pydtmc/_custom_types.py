@@ -100,7 +100,8 @@ __all__ = [
     'tmc_dict', 'omc_dict',
     'tmc_dict_f', 'omc_dict_f',
     'tfcprof', 'ofcprof',
-    'trpaths', 'orpaths'
+    'trpaths', 'orpaths',
+    'trpaths_str', 'orpaths_str'
 ]
 
 
@@ -437,3 +438,5 @@ _rpaths = _tp.List[_tp.Tuple[_rpk, float]]
 
 trpaths = _tp.Union[_rpaths[ttup_int], _rpaths[ttup_str]]
 orpaths = _tp.Optional[trpaths]
+trpaths_str = _rpaths[ttup_str]
+orpaths_str = _tp.Optional[trpaths_str]

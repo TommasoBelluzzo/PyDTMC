@@ -2417,7 +2417,7 @@ def mc_reactive_flux(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int
     return rf
 
 
-def mc_reactive_paths(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int, maximum_paths: int) -> _ct.orpaths:
+def mc_reactive_paths(mc: _ct.tmc, states1: _ct.tlist_int, states2: _ct.tlist_int, maximum_paths: int) -> _ct.orpaths_str:
 
     if not mc.is_irreducible:
         return None
