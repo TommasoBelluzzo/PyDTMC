@@ -14,13 +14,18 @@
       "params": {
         "block_entropy": [3],
         "conditional_probabilities": [0],
+        "emission_probabilities": [1],
+        "emission_probability": [0, 2],
         "entropy": ["symbols", false],
         "excess_entropy": [2],
         "hitting_probabilities": [null],
         "information_criterion": ["aic", [0, 0, 1, 0, 1, 1, 1, 0, 0, 0]],
         "mutual_information": ["states", "symbols", 0],
+        "sequence_probability": [[0, 2, 1, 2, 1, 0, 0, 2, 1, 2, 1, 0]],
         "synchronization_entropy": [1],
-        "synchronization_information": null
+        "synchronization_information": null,
+        "transition_probabilities": [0, 3],
+        "transition_probability": [0, 2, 3]
       }
     },
     {
@@ -37,13 +42,18 @@
       "params": {
         "block_entropy": [4],
         "conditional_probabilities": [1],
+        "emission_probabilities": [0],
+        "emission_probability": [1, 0],
         "entropy": ["states", true],
         "excess_entropy": [3],
         "hitting_probabilities": [null],
         "information_criterion": ["bic", [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0 ,0]],
         "mutual_information": ["symbols", "symbols", 2],
+        "sequence_probability": [[0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]],
         "synchronization_entropy": [2],
-        "synchronization_information": null
+        "synchronization_information": null,
+        "transition_probabilities": [2, 1],
+        "transition_probability": [2, 1, 1]
       }
     },
     {
@@ -62,13 +72,18 @@
       "params": {
         "block_entropy": [2],
         "conditional_probabilities": [0],
+        "emission_probabilities": [1],
+        "emission_probability": [1, 0],
         "entropy": ["symbols", false],
         "excess_entropy": [2],
         "hitting_probabilities": [null],
         "information_criterion": ["bic", [0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0 ,0]],
         "mutual_information": ["states", "symbols", 1],
+        "sequence_probability": [[0, 0, 0, 0, 0, 1, 1]],
         "synchronization_entropy": [1],
-        "synchronization_information": null
+        "synchronization_information": null,
+        "transition_probabilities": [2, 1],
+        "transition_probability": [3, 0, 5]
       }
     }
   ],
@@ -98,14 +113,21 @@
         "information_criterion": ["bic", [0, 2, 2, 0, 1, 2, 2, 1, 1, 0, 2]],
         "mixing_time": [0.01],
         "mixing_time_from": [null, 3, 0.185],
+        "reaction_rate": [0, 1],
+        "reactive_density": [2, 1],
+        "reactive_flux": [true, 1, 2],
+        "reactive_paths": [0, 1],
         "recurrence_times": ["mean"],
+        "sequence_probability": [[0, 1, 1, 1, 1, 0, 1, 1, 0]],
         "time_correlations": [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], null, [1, 10, 100]],
         "time_relaxations": [[0, 1, 1, 1, 1, 0], null, [1, 10, 100]],
         "to_bounded_chain": ["absorbing"],
         "to_canonical_form": null,
         "to_lazy_chain": [0.6],
         "to_nth_order": [3],
-        "to_subchain": [[1, 2]]
+        "to_subchain": [[1, 2]],
+        "transition_probabilities": [1, 8],
+        "transition_probability": [1, 2, 2]
       }
     },
     {
@@ -133,14 +155,21 @@
         "information_criterion": ["aic", [0, 2, 2, 2, 1, 2, 2, 0, 1, 2, 2, 1, 1, 0, 2, 1, 1]],
         "mixing_time": [0.33],
         "mixing_time_from": [null, 12, 0.3],
+        "reaction_rate": [0, 1],
+        "reactive_density": [2, 0],
+        "reactive_flux": [false, 0, 2],
+        "reactive_paths": [0, 1],
         "recurrence_times": ["mean"],
+        "sequence_probability": [[1, 0, 0, 1, 0, 0, 1, 0, 0]],
         "time_correlations": [[0, 0, 0, 1, 2, 2, 2, 2, 2], null, 50],
         "time_relaxations": [[0, 1, 1, 1, 1, 0], null, 50],
         "to_bounded_chain": ["reflecting"],
         "to_canonical_form": null,
         "to_lazy_chain": [[0.1, 0.2, 0.1]],
         "to_nth_order": [6],
-        "to_subchain": [[0, 2]]
+        "to_subchain": [[0, 2]],
+        "transition_probabilities": [0, 5],
+        "transition_probability": [2, 1, 1]
       }
     }    ,
     {
@@ -171,14 +200,21 @@
         "information_criterion": ["bic", [5, 1, 3, 3, 2, 4, 2, 0, 1, 1, 3, 2, 4, 0, 5, 1, 1]],
         "mixing_time": [0.25],
         "mixing_time_from": [[0.4, 0.0, 0.2, 0.2, 0.2, 0.0], 5, 0.125],
+        "reaction_rate": [1, [0, 3]],
+        "reactive_density": [0, [2, 3]],
+        "reactive_flux": [false, [0, 2], [1, 3]],
+        "reactive_paths": [[1, 3], [2, 4]],
         "recurrence_times": ["mean"],
+        "sequence_probability": [[3, 2, 1, 1, 0, 2, 1, 3, 3, 2, 4, 0, 0]],
         "time_correlations": [[0, 1, 1, 1, 1, 0], [2, 2, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 1, 2, 3, 4, 5]],
         "time_relaxations": [[0, 1, 1, 1, 1, 0], [0.0, 0.0, 0.8, 0.0, 0.0, 0.2], [0, 1, 2, 3, 4, 5]],
         "to_bounded_chain": [0.75],
         "to_canonical_form": null,
         "to_lazy_chain": [0.1],
         "to_nth_order": [2],
-        "to_subchain": [[1, 2, 3]]
+        "to_subchain": [[1, 2, 3]],
+        "transition_probabilities": [2, 4],
+        "transition_probability": [4, 3, 4]
       }
     }
   ],
