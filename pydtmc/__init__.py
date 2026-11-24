@@ -159,4 +159,19 @@ hmm = HiddenMarkovModel(
     symbols=['X', 'Y', 'Z']
 )
 
-plot_all(hmm)
+hmm1 = HiddenMarkovModel(
+    np.array([
+        [0.80, 0.15, 0.05],
+        [0.10, 0.80, 0.10],
+        [0.05, 0.15, 0.80]
+    ]),
+    np.array([
+        [0.70, 0.20, 0.10],
+        [0.20, 0.60, 0.20],
+        [0.10, 0.30, 0.60]
+    ]),
+    states=['S1', 'S2', 'S3'],
+    symbols=['X', 'Y', 'Z']
+)
+
+plot_all([hmm, hmm1])
