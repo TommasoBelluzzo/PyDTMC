@@ -87,6 +87,18 @@ def test_closest_reversible(p, distribution, weighted, value):
         _npt.assert_allclose(flow, _np.transpose(flow), rtol=1e-5, atol=1e-8)
 
 
+def test_compose_with(p, p_other, value):
+
+    mc_current = _MarkovChain(p)
+    mc_other = _MarkovChain(p_other)
+    mc = mc_current.compose_with(mc_other)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_lazy(p, inertial_weights, value):
 
     mc = _MarkovChain(p)
@@ -200,7 +212,6 @@ def test_reweight(p, weights, value):
     mc_reweighted = mc.reweight(weights)
 
     actual = mc_reweighted.p
-    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -280,7 +291,6 @@ def test_temper(p, temperature, value):
     mc_tempered = mc.temper(temperature)
 
     actual = mc_tempered.p
-    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
