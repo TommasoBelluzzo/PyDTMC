@@ -26,6 +26,7 @@ __all__ = [
     # Lists
     'tlist_any', 'olist_any',
     'tlist_array', 'olist_array',
+    'tlist_cal', 'olist_cal',
     'tlist_float', 'olist_float',
     'tlist_int', 'olist_int',
     'tlist_str', 'olist_str',
@@ -35,6 +36,7 @@ __all__ = [
     # Lists of Lists
     'tlists_any', 'olists_any',
     'tlists_array', 'olists_array',
+    'tlists_cal', 'olists_cal',
     'tlists_float', 'olists_float',
     'tlists_int', 'olists_int',
     'tlists_str', 'olists_str',
@@ -215,6 +217,9 @@ olist_any = _tp.Optional[tlist_any]
 tlist_array = _tp.List[tarray]
 olist_array = _tp.Optional[tlist_array]
 
+tlist_cal = _tp.List[_tp.Callable[..., _tp.Any]]
+olist_cal = _tp.Optional[tlist_cal]
+
 tlist_float = _tp.List[float]
 olist_float = _tp.Optional[tlist_float]
 
@@ -240,6 +245,9 @@ olists_any = _tp.Optional[tlists_any]
 
 tlists_array = _tp.List[tlist_array]
 olists_array = _tp.Optional[tlists_array]
+
+tlists_cal = _tp.List[tlist_cal]
+olists_cal = _tp.Optional[tlists_cal]
 
 tlists_float = _tp.List[tlist_float]
 olists_float = _tp.Optional[tlists_float]
