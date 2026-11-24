@@ -42,6 +42,7 @@ __all__ = [
     'mc_random_distribution',
     'mc_random_walk',
     'mc_reversibilize',
+    'mc_self_attention',
     'mc_spectral_aggregation',
     'mc_sub',
     'mc_teleport',
@@ -2027,6 +2028,23 @@ def mc_random_walk(size: int, topology: str, lazy: bool) -> _ct.tmc_gen_ext:
         _np.fill_diagonal(p, 0.5)
 
     states = _u.create_labels(size)
+
+    return p, states
+
+
+def mc_self_attention(q: _ct.tarray, k: _ct.tarray) -> _ct.tmc_gen_ext:
+
+    logits = _np.matmul(q, _np.transpose(k)) / _np.sqrt(q.shape[1])
+
+    if not _np.all(_np.isfinite(logits)):
+        raise ValueError('The computed attention scores are not finite.')
+
+    logits -= _np.max(logits, axis=1, keepdims=True)
+
+    p = _np.exp(logits)
+    p /= _np.sum(p, axis=1, keepdims=True)
+
+    states = _u.create_labels(p.shape[0])
 
     return p, states
 

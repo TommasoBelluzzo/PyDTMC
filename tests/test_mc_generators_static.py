@@ -217,6 +217,16 @@ def test_random_walk(size, topology, lazy, value):
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_self_attention(q, k, value):
+
+    mc = _MarkovChain.self_attention(q, k)
+
+    actual = mc.p
+    expected = _np.array(value)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
 def test_urn_model(model, n, value):
 
     mc = _MarkovChain.urn_model(model, n)

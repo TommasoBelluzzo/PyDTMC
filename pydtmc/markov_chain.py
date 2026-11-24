@@ -4186,6 +4186,44 @@ class MarkovChain(_bc.Model):
 
     @staticmethod
     @_dc.object_mark(instance_generator=True)
+    def self_attention(q: _ct.tmat, k: _ct.tmat, states: _ct.olist_str = None) -> _ct.tmc:
+
+        r"""
+        | The method generates a Markov chain from self-attention query and key matrices:
+        | :math:`P = \operatorname{softmax}(QK^\top/\sqrt{d})`, with row-wise softmax.
+
+        | **Notes:**
+
+        - The query and key matrices must have the same shape :math:`(m, d)`, where :math:`m` is the number of states (at least 2) and :math:`d` is the number of features (at least 1).
+        - Matrix entries may be negative, but must be finite real numbers.
+
+        :param q: the query matrix.
+        :param k: the key matrix.
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the computed attention scores are not finite.
+        """
+
+        try:
+
+            q = _v.validate_attention_component(q)
+            k = _v.validate_attention_component(k, states=q.shape[0], features=q.shape[1])
+
+            if states is not None:  # pragma: no cover
+                states = _v.validate_labels_input(states, q.shape[0])
+
+        except Exception as ex:  # pragma: no cover
+            raise _u.create_validation_error(ex, _ins.trace()) from None
+
+        p_out, states_default = _g.mc_self_attention(q, k)
+        states_out = states if states is not None else states_default
+
+        mc = MarkovChain(p_out, states_out)
+
+        return mc
+
+    @staticmethod
+    @_dc.object_mark(instance_generator=True)
     def urn_model(model: str, n: int, states: _ct.olist_str = None) -> _ct.tmc:
 
         """

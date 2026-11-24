@@ -1,4 +1,171 @@
 {
+  "validate_attention_component_data": [
+    {
+      "value": null,
+      "states": null,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": "matrix",
+      "states": null,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": 1,
+      "states": null,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": -3.5,
+      "states": null,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": [],
+      "states": null,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": [
+        [], []
+      ],
+      "states": null,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": [1, 2],
+      "states": null,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": [
+        [[1]],
+        [[2]]
+      ],
+      "states": null,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": [
+        [1, 2]
+      ],
+      "states": null,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": [
+        [1, 2],
+        [3]
+      ],
+      "states": null,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": [
+        [-1,  2, 3],
+        [ 4, -5, 6]
+      ],
+      "states": null,
+      "features": null,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [0.0, 0.0],
+        [0.0, 0.0]
+      ],
+      "states": null,
+      "features": null,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [1.0, -2.0],
+        [3.0,  0.0]
+      ],
+      "states": null,
+      "features": null,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [0.0],
+        [1.0]
+      ],
+      "states": null,
+      "features": null,
+      "is_valid": true
+    },
+
+    {
+      "value": [
+        [1.0, 2.0],
+        [3.0, 4.0],
+        [5.0, 6.0]
+      ],
+      "states": 3,
+      "features": null,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [1.0, 2.0],
+        [3.0, 4.0],
+        [5.0, 6.0]
+      ],
+      "states": null,
+      "features": 2,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [1.0, 2.0],
+        [3.0, 4.0],
+        [5.0, 6.0]
+      ],
+      "states": 3,
+      "features": 2,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [2.0],
+        [4.0],
+        [6.0]
+      ],
+      "states": 3,
+      "features": 1,
+      "is_valid": true
+    },
+    {
+      "value": [
+        ["NaN", 2.0],
+        [3.0, 4.0]
+      ],
+      "states": null,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": [
+        ["Infinity", 2.0],
+        [3.0, 4.0]
+      ],
+      "states": null,
+      "features": null,
+      "is_valid": false
+    }
+  ],
   "validate_boolean_data": [
     {
       "value": false,

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'validate_attention_component',
     'validate_boolean',
     'validate_boundary_condition',
     'validate_dictionary_hmm',
@@ -235,6 +236,28 @@ def _validate_vector(value: _ct.tany) -> _ct.tarray:
         raise ValueError('The "@arg@" parameter must be a valid vector.')
 
     value = _np.ravel(value)
+
+    return value
+
+
+def validate_attention_component(value: _ct.tany, states: _ct.oint = None, features: _ct.oint = None) -> _ct.tarray:
+
+    try:
+        value = _u.extract_numeric(value, float)
+    except Exception as ex:
+        raise TypeError('The "@arg@" parameter is null or wrongly typed.') from ex
+
+    if (value.ndim != 2) or (value.shape[0] < 2) or (value.shape[1] < 1):
+        raise ValueError('The "@arg@" parameter must be a 2d matrix with at least 2 rows and 1 column.')
+
+    if (states is not None) and (value.shape[0] != states):
+        raise ValueError(f'The "@arg@" parameter must have {states:d} rows.')
+
+    if (features is not None) and (value.shape[1] != features):
+        raise ValueError(f'The "@arg@" parameter must have {features:d} columns.')
+
+    if not _np.all(_np.isfinite(value)):
+        raise ValueError('The "@arg@" parameter must contain only finite real values.')
 
     return value
 

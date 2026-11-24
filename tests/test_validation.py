@@ -27,6 +27,7 @@ from pydtmc import (
 
 # noinspection PyProtectedMember
 from pydtmc._validation import (
+    validate_attention_component as _validate_attention_component,
     validate_boolean as _validate_boolean,
     validate_boundary_condition as _validate_boundary_condition,
     validate_dictionary_hmm as _validate_dictionary_hmm,
@@ -89,6 +90,16 @@ _BASE_DIRECTORY = _osp.abspath(_osp.dirname(__file__))
 #########
 # TESTS #
 #########
+
+def test_validate_attention_component(value, states, features, is_valid):
+
+    if is_valid:
+        result = _validate_attention_component(value, states, features)
+        assert isinstance(result, _np.ndarray) and (result.ndim == 2)
+    else:
+        with _pt.raises(Exception):
+            _validate_attention_component(value, states, features)
+
 
 def test_validate_boolean(value, is_valid):
 
