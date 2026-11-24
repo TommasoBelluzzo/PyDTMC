@@ -745,14 +745,20 @@ def plot_comparison(models: _ct.tlist_mdl, underlying_matrices: str, names: _ct.
     return figure, axes
 
 
-def plot_convergence(distances: _ct.tarray, dpi: int, full_scale: bool) -> _ct.tplot:
+def plot_convergence(mc: _ct.tmc, steps: int, initial_status: _ct.oarray, dpi: int, full_scale: bool) -> _ct.tplot:
+
+    stationary_distribution = mc.pi[0]
+    distributions = mc.propagate(steps, initial_status=initial_status, output_last=False)
+    distributions = _np.asarray(distributions, dtype=float)
+    distances = 0.5 * _np.sum(_np.abs(distributions - stationary_distribution), axis=1)
+
     figure, ax = _mplp.subplots(dpi=dpi)
 
     ax.plot(_np.arange(distances.size), distances, color=_COLORS[0], linewidth=1.75)
 
     ax.set_xlim(0, distances.size - 1)
-
     ax.set_ylabel('Total Variation Distance', fontsize=13.0)
+
     if full_scale:
         ax.set_ylim(0.0, 1.0)
     else:
@@ -767,6 +773,7 @@ def plot_convergence(distances: _ct.tarray, dpi: int, full_scale: bool) -> _ct.t
 
 
 def plot_eigenvalues(mc: _ct.tmc, dpi: int) -> _ct.tplot:
+
     figure, ax = _mplp.subplots(dpi=dpi)
 
     handles, labels = [], []
@@ -836,26 +843,28 @@ def plot_eigenvalues(mc: _ct.tmc, dpi: int) -> _ct.tplot:
     return figure, ax
 
 
-def plot_flow(mc: _ct.tmc, indices: _ct.tlist_int, distributions: _ct.tarray, steps: int, interval: int, dpi: int) -> _ct.tplot:
+def plot_flow(mc: _ct.tmc, steps: int, interval: int, initial_status: _ct.oarray, dpi: int) -> _ct.tplot:
 
+    indices = list(range(0, (steps * interval) + 1, interval))
+    distributions = mc.propagate(indices[-1], initial_status=initial_status, output_last=False)
     distributions = _np.transpose(_np.stack([distribution for index, distribution in enumerate(distributions) if index in indices]))
 
-
     p = mc.p
-
     d = distributions * 0.9
+
     bb, bt = _get_boundaries(d)
     bm = (bb + bt) / 2.0
-    c = _get_colors(d)
 
-    lh = []
-    ll = mc.states
+    colors = _get_colors(d)
 
-    for i, label in enumerate(ll):
-        lh.append(_mplpc.Patch(color=c[i, :], label=label))
+    legend_handlers = []
+    legend_labels = mc.states
 
-    polygons_bars = _get_polygons_bars(d, bb, bt, c)
-    polygons_flows = _get_polygons_flows(p, d, bb, c, interval)
+    for i, label in enumerate(legend_labels):
+        legend_handlers.append(_mplpc.Patch(color=colors[i, :], label=label))
+
+    polygons_bars = _get_polygons_bars(d, bb, bt, colors)
+    polygons_flows = _get_polygons_flows(p, d, bb, colors, interval)
 
     figure, ax = _mplp.subplots(dpi=dpi)
 
@@ -878,7 +887,7 @@ def plot_flow(mc: _ct.tmc, indices: _ct.tlist_int, distributions: _ct.tarray, st
     ax.set_ylim(0.0, 1.0)
     ax.invert_yaxis()
 
-    ax.legend(lh, ll, bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=len(lh))
+    ax.legend(legend_handlers, legend_labels, bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=len(legend_handlers))
     ax.set_title('Flow Plot', fontsize=15.0, fontweight='bold')
 
     _mplp.subplots_adjust(bottom=0.2)
@@ -1256,6 +1265,16 @@ def plot_mc_standard(mc: _ct.tmc, nodes_color: bool, nodes_shape: bool, edges_la
     return f, a
 
 
+def plot_redistributions(plot_type: str, mc: _ct.tmc, redistributions: int, initial_status: _ct.ostatus, dpi: int) -> _ct.tplot:
+
+    distributions = mc.propagate(redistributions, initial_status=initial_status, output_last=False)
+
+    if plot_type == 'heatmap':
+        return plot_redistributions_heatmap(mc, distributions, dpi)
+
+    return plot_redistributions_projection(mc, distributions, dpi)
+
+
 def plot_redistributions_heatmap(mc: _ct.tmc, distributions: _ct.tarray, dpi: int) -> _ct.tplot:
 
     distributions = _np.array([distributions]) if isinstance(distributions, _np.ndarray) else _np.array(distributions)
@@ -1320,7 +1339,9 @@ def plot_redistributions_projection(mc: _ct.tmc, distributions: _ct.tarray, dpi:
     return figure, ax
 
 
-def plot_sequence(model: _ct.tmdl, simulation: _ct.tany, steps: int, plot_type: str, dpi: int) -> _ct.tplot:
+def plot_sequence(plot_type: str, model: _ct.tmdl, steps: int, initial_state: _ct.ostate, seed: _ct.oint, dpi: int) -> _ct.tplot:
+
+    simulation = model.simulate(steps, initial_state=initial_state, output_indices=True, seed=seed)
 
     if model.__class__.__name__ == 'MarkovChain':
         walk_data = (
@@ -1431,9 +1452,28 @@ def plot_sequence_matrix(walk_data: tuple, dpi: int) -> _ct.tplot:
     return f, a
 
 
-def plot_trellis(hmm: _ct.thmm, initial_distribution: _ct.tarray, symbols: _ct.tarray,
-                 backward: _ct.tarray, forward: _ct.tarray, prediction_states: _ct.tlist_int,
-                 force_standard: bool, dpi: int) -> _ct.tplot:
+def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate,
+                 seed: _ct.oint, force_standard: bool, dpi: int) -> _ct.tplot:
+
+    if initial_state is None:
+        initial_distribution = _np.full(hmm.n, 1.0 / hmm.n, dtype=float)
+    else:
+        initial_distribution = _np.zeros(hmm.n, dtype=float)
+        initial_distribution[initial_state] = 1.0
+
+    _, symbols = hmm.simulate(steps, initial_state=initial_state, output_indices=True, seed=seed)
+    decoding = hmm.decode(symbols, initial_status=initial_distribution)
+
+    if decoding is None:  # pragma: no cover
+        raise ValueError('The computation of backward and forward probabilities failed.')
+
+    _, _, _, backward, forward, _ = decoding
+    prediction = hmm.predict('mle', symbols, initial_status=initial_distribution, output_indices=True)
+
+    if prediction is None:  # pragma: no cover
+        raise ValueError('The computation of the most probable states path failed.')
+
+    _, prediction_states = prediction
 
     extended_graph = (not force_standard) and is_graphviz_available()
 

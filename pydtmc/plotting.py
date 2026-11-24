@@ -21,10 +21,6 @@ __all__ = [
 
 import inspect as _ins
 
-# Libraries
-
-import numpy as _np
-
 # Internal
 
 from . import _custom_types as _ct
@@ -122,12 +118,7 @@ def plot_convergence(model: _ct.tmdl, steps: int, initial_status: _ct.ostatus = 
     if not mc.is_ergodic:  # pragma: no cover
         raise _ValidationError('The underlying Markov chain must be ergodic in order to plot convergence.')
 
-    stationary_distribution = mc.pi[0]
-    distributions = mc.propagate(steps, initial_status=initial_status, output_last=False)
-    distributions = _np.asarray(distributions, dtype=float)
-    distances = 0.5 * _np.sum(_np.abs(distributions - stationary_distribution), axis=1)
-
-    return _r.plot_convergence(distances, dpi, full_scale)
+    return _r.plot_convergence(mc, steps, initial_status, dpi, full_scale)
 
 
 @_dc.interactive_plot
@@ -190,10 +181,8 @@ def plot_flow(model: _ct.tmdl, steps: int, interval: int, initial_status: _ct.os
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
     mc = model if model.__class__.__name__ == 'MarkovChain' else _MarkovChain(model.p, model.states)
-    indices = list(range(0, (steps * interval) + 1, interval))
-    distributions = mc.propagate(indices[-1], initial_status=initial_status, output_last=False)
 
-    return _r.plot_flow(mc, indices, distributions, steps, interval, dpi)
+    return _r.plot_flow(mc, steps, interval, initial_status, dpi)
 
 
 @_dc.interactive_plot
@@ -301,12 +290,8 @@ def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: 
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
     mc = model if model.__class__.__name__ == 'MarkovChain' else _MarkovChain(model.p, model.states)
-    distributions = mc.propagate(redistributions, initial_status=initial_status, output_last=False)
 
-    if plot_type == 'heatmap':
-        return _r.plot_redistributions_heatmap(mc, distributions, dpi)
-
-    return _r.plot_redistributions_projection(mc, distributions, dpi)
+    return _r.plot_redistributions(plot_type, mc, redistributions, initial_status, dpi)
 
 
 @_dc.interactive_plot
@@ -342,9 +327,7 @@ def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None,
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    simulation = model.simulate(steps, initial_state=initial_state, output_indices=True, seed=seed)
-
-    return _r.plot_sequence(model, simulation, steps, plot_type, dpi)
+    return _r.plot_sequence(plot_type, model, steps, initial_state, seed, dpi)
 
 
 @_dc.interactive_plot
@@ -381,24 +364,4 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate = None, se
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    if initial_state is None:
-        initial_distribution = _np.full(hmm.n, 1.0 / hmm.n, dtype=float)
-    else:
-        initial_distribution = _np.zeros(hmm.n, dtype=float)
-        initial_distribution[initial_state] = 1.0
-
-    _, symbols = hmm.simulate(steps, initial_state=initial_state, output_indices=True, seed=seed)
-    decoding = hmm.decode(symbols, initial_status=initial_distribution)
-
-    if decoding is None:  # pragma: no cover
-        raise ValueError('The computation of backward and forward probabilities failed.')
-
-    _, _, _, backward, forward, _ = decoding
-    prediction = hmm.predict('mle', symbols, initial_status=initial_distribution, output_indices=True)
-
-    if prediction is None:  # pragma: no cover
-        raise ValueError('The computation of the most probable states path failed.')
-
-    _, prediction_states = prediction
-
-    return _r.plot_trellis(hmm, initial_distribution, symbols, backward, forward, prediction_states, force_standard, dpi)
+    return _r.plot_trellis(hmm, steps, initial_state, seed, force_standard, dpi)
