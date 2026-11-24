@@ -106,47 +106,6 @@
       "features": null,
       "is_valid": true
     },
-
-    {
-      "value": [
-        [1.0, 2.0],
-        [3.0, 4.0],
-        [5.0, 6.0]
-      ],
-      "states": 3,
-      "features": null,
-      "is_valid": true
-    },
-    {
-      "value": [
-        [1.0, 2.0],
-        [3.0, 4.0],
-        [5.0, 6.0]
-      ],
-      "states": null,
-      "features": 2,
-      "is_valid": true
-    },
-    {
-      "value": [
-        [1.0, 2.0],
-        [3.0, 4.0],
-        [5.0, 6.0]
-      ],
-      "states": 3,
-      "features": 2,
-      "is_valid": true
-    },
-    {
-      "value": [
-        [2.0],
-        [4.0],
-        [6.0]
-      ],
-      "states": 3,
-      "features": 1,
-      "is_valid": true
-    },
     {
       "value": [
         ["NaN", 2.0],
@@ -163,6 +122,54 @@
       ],
       "states": null,
       "features": null,
+      "is_valid": false
+    },
+    {
+      "value": [
+        [1.0, 2.0],
+        [3.0, 4.0],
+        [5.0, 6.0]
+      ],
+      "states": 3,
+      "features": null,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [1.0, 2.0],
+        [3.0, 4.0],
+        [5.0, 6.0]
+      ],
+      "states": null,
+      "features": 2,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [1.0, 2.0],
+        [3.0, 4.0],
+        [5.0, 6.0]
+      ],
+      "states": 3,
+      "features": 2,
+      "is_valid": true
+    },
+    {
+      "value": [
+        [0.31, 4.75],
+        [2.27, 0.66]
+      ],
+      "states": 3,
+      "features": null,
+      "is_valid": false
+    },
+    {
+      "value": [
+        [0.31, 4.75],
+        [2.27, 0.66]
+      ],
+      "states": null,
+      "features": 3,
       "is_valid": false
     }
   ],

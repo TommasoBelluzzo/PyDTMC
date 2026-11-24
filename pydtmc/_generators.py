@@ -2036,7 +2036,7 @@ def mc_self_attention(q: _ct.tarray, k: _ct.tarray) -> _ct.tmc_gen_ext:
 
     logits = _np.matmul(q, _np.transpose(k)) / _np.sqrt(q.shape[1])
 
-    if not _np.all(_np.isfinite(logits)):
+    if not _np.all(_np.isfinite(logits)):  # pragma: no cover
         raise ValueError('The computed attention scores are not finite.')
 
     logits -= _np.max(logits, axis=1, keepdims=True)

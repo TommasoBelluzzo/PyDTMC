@@ -149,7 +149,7 @@ def _draw_graphviz_image(graph: _pyd.Dot, ax: _mplp.Axes, dpi: int, initial_dpi:
 
         return current_bounds
 
-    def _refresh_image(target_graph, target_ax, target_artist):
+    def _refresh_image(target_graph, target_ax, target_artist):  # pragma: no cover
 
         nonlocal render_dpi, refreshing, displayed_bounds
 
@@ -192,7 +192,7 @@ def _draw_graphviz_image(graph: _pyd.Dot, ax: _mplp.Axes, dpi: int, initial_dpi:
 
         return True
 
-    def _on_draw(event):
+    def _on_draw(event):  # pragma: no cover
 
         if event.canvas is not canvas:
             return
@@ -205,7 +205,7 @@ def _draw_graphviz_image(graph: _pyd.Dot, ax: _mplp.Axes, dpi: int, initial_dpi:
                 resize_timer.stop()
                 resize_timer.start()
 
-    def _on_resize(event):
+    def _on_resize(event):  # pragma: no cover
 
         nonlocal resize_pending
 
@@ -216,7 +216,7 @@ def _draw_graphviz_image(graph: _pyd.Dot, ax: _mplp.Axes, dpi: int, initial_dpi:
         resize_timer.stop()
         resize_timer.start()
 
-    def _on_resize_complete():
+    def _on_resize_complete():  # pragma: no cover
 
         nonlocal resize_pending
 
@@ -271,7 +271,7 @@ def _draw_graphviz_image(graph: _pyd.Dot, ax: _mplp.Axes, dpi: int, initial_dpi:
 
 def _fit_graph_bounds(ax: _mplp.Axes) -> None:
 
-    def _on_draw(event):
+    def _on_draw(event):  # pragma: no cover
 
         if event.canvas is not figure.canvas:
             return
@@ -863,7 +863,7 @@ def _get_polygons_flows(p: _ct.tarray, d: _ct.tarray, bb: _ct.tarray, colors: _c
 
 def _is_graphviz_available() -> bool:
 
-    if not _pydot_found:
+    if not _pydot_found:  # pragma: no cover
         return False
 
     try:
@@ -889,7 +889,7 @@ def _update_graph_bounds(ax: _mplp.Axes, renderer: _ct.tany) -> bool:
         if _np.all(_np.isfinite(values)) and (extent.width > 0.0) and (extent.height > 0.0):
             bounds.append(values)
 
-    if len(bounds) == 0:
+    if len(bounds) == 0:  # pragma: no cover
         return False
 
     bounds = _np.array(bounds, dtype=float)

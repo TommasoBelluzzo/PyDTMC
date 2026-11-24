@@ -155,12 +155,20 @@ def test_plot_comparison(seed, runs, maximum_models, maximum_size):
         assert exception is False
 
 
+# noinspection PyBroadException
 @_pt.mark.slow
 def test_plot_convergence(seed, runs, maximum_size, maximum_steps):
 
-    models = _generate_models(seed, runs, maximum_size)
+    def _params_generator():
 
-    for model in models:
+        p_full_scale = _rd.randint(0, 1)
+
+        yield from [p_full_scale]
+
+    models = _generate_models(seed, runs, maximum_size)
+    configs = _generate_configs(seed, runs, _params_generator)
+
+    for model, (full_scale,) in zip(models, configs):
 
         mc = model if isinstance(model, _MarkovChain) else _MarkovChain(model.p, model.states)
 
@@ -169,7 +177,7 @@ def test_plot_convergence(seed, runs, maximum_size, maximum_steps):
 
         try:
 
-            figure, _ = _plot_convergence(model, maximum_steps)
+            figure, _ = _plot_convergence(model, maximum_steps, full_scale=bool(full_scale))
             figure.clear()
             _mplp.close(figure)
 
