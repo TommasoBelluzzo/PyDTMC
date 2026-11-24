@@ -1358,25 +1358,28 @@ class MarkovChain(_bc.Model):
         return _a.mc_commute_times_to(self, statistic, targets)
 
     @_dc.object_mark(instance_generator=True)
-    def compose_with(self, other: _ct.tmc, states: _ct.olist_str = None) -> _ct.tmc:
+    def compose_with(self, others: _ct.tmcs, states: _ct.olist_str = None) -> _ct.tmc:
 
         r"""
-        | The method composes the Markov chain with another Markov chain of the same size by applying their transition matrices sequentially:
-        | :math:`\widetilde{P} = PP\prime` where :math:`P\prime` is the transition matrix of the other chain.
+        | The method composes the Markov chain with one or more Markov chains of the same size by applying their transition matrices sequentially:
+        | :math:`\widetilde{P} = PP_1P_2 \cdots P_k` where:
+
+        - :math:`\widetilde{P}` is the transition matrix of the composed chain;
+        - :math:`P_i` is the transition matrix of the i-th additional chain, for :math:`i = 1, \ldots, k`.
 
         | **Notes:**
 
-        - The composition applies the current Markov chain first, followed by the other Markov chain.
+        - The transition matrices are multiplied in the specified order, starting with the current Markov chain.
         - The transition matrices are multiplied according to their state indices, without aligning their state labels.
 
-        :param other: the other Markov chain.
+        :param others: the Markov chain or list of Markov chains to be composed with the current one.
         :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
         try:
 
-            other = _v.validate_markov_chain(other, self.__size)
+            others = _v.validate_markov_chains(others, 1, size=self.__size)
 
             if states is not None:  # pragma: no cover
                 states = _v.validate_labels_input(states, self.__size)
@@ -1384,7 +1387,9 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p_out, states_default = _g.mc_compose(self.__p, other.p)
+        ps = [self.__p] + [other.p for other in others]
+
+        p_out, states_default = _g.mc_compose(ps)
         states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
@@ -2077,7 +2082,7 @@ class MarkovChain(_bc.Model):
 
         - The returned Markov chain is assigned newly generated state labels.
 
-        :param other: the other Markov chain to be merged.
+        :param other: the Markov chain to be merged with the current one.
         :param gamma: the merger blending factor.
         :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
         :raises ValidationError: if any input argument is not compliant.
@@ -2572,7 +2577,7 @@ class MarkovChain(_bc.Model):
 
         return mc
 
-    @_dc.object_mark(aliases=['to_reweighted'], instance_generator=True)
+    @_dc.object_mark(instance_generator=True)
     def reweight(self, weights: _ct.tvec) -> _ct.tmc:
 
         r"""

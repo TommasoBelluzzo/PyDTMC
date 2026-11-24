@@ -67,7 +67,7 @@ def plot_comparison(models: _ct.tlist_mdl, underlying_matrices: str = 'transitio
 
     try:
 
-        models = _v.validate_models(models)
+        models = _v.validate_models(models, 2)
         underlying_matrices = _v.validate_enumerator(underlying_matrices, ['emission', 'transition'])
         names = _u.create_models_names(models) if names is None else _v.validate_strings(names, size=len(models))
         dpi = _v.validate_dpi(dpi)

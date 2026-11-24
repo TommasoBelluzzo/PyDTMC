@@ -21,8 +21,14 @@ __all__ = [
     'tmat', 'omat',
     # Library Types
     'thmm', 'ohmm',
+    'thmms', 'ohmms',
     'tmc', 'omc',
+    'tmcs', 'omcs',
     'tmdl', 'omdl',
+    'tmdls', 'omdls',
+    'tlist_hmm', 'olist_hmm',
+    'tlist_mc', 'olist_mc',
+    'tlist_mdl', 'olist_mdl',
     # Lists
     'tlist_any', 'olist_any',
     'tlist_array', 'olist_array',
@@ -30,9 +36,6 @@ __all__ = [
     'tlist_float', 'olist_float',
     'tlist_int', 'olist_int',
     'tlist_str', 'olist_str',
-    'tlist_hmm', 'olist_hmm',
-    'tlist_mc', 'olist_mc',
-    'tlist_mdl', 'olist_mdl',
     # Lists of Lists
     'tlists_any', 'olists_any',
     'tlists_array', 'olists_array',
@@ -70,7 +73,7 @@ __all__ = [
     'tbcond', 'obcond',
     'thmm_dec', 'ohmm_dec',
     'thmm_gen', 'ohmm_gen',
-    'thmm_gen_ext', 'ohmm_gen_ext',
+    'thmm_gen_x', 'ohmm_gen_x',
     'thmm_pred', 'ohmm_pred',
     'thmm_seq', 'ohmm_seq',
     'thmm_seq_f', 'ohmm_seq_f',
@@ -78,7 +81,7 @@ __all__ = [
     'thmm_sym', 'ohmm_sym',
     'thmm_sym_x', 'ohmm_sym_x',
     'tmc_gen', 'omc_gen',
-    'tmc_gen_ext', 'omc_gen_ext',
+    'tmc_gen_x', 'omc_gen_x',
     'tobs', 'oobs',
     'tobsv', 'oobsv',
     'tpart', 'opart',
@@ -209,6 +212,24 @@ omc = _tp.Optional[tmc]
 tmdl = _tp.Union[thmm, tmc]
 omdl = _tp.Optional[tmdl]
 
+tlist_hmm = _tp.List[thmm]
+olist_hmm = _tp.Optional[tlist_hmm]
+
+tlist_mc = _tp.List[tmc]
+olist_mc = _tp.Optional[tlist_mc]
+
+tlist_mdl = _tp.List[tmdl]
+olist_mdl = _tp.Optional[tlist_mdl]
+
+thmms = _tp.Union[thmm, tlist_hmm]
+ohmms = _tp.Optional[thmms]
+
+tmcs = _tp.Union[tmc, tlist_mc]
+omcs = _tp.Optional[tmcs]
+
+tmdls = _tp.Union[tmdl, tlist_mdl]
+omdls = _tp.Optional[tmdls]
+
 # LISTS
 
 tlist_any = _tp.List[tany]
@@ -228,15 +249,6 @@ olist_int = _tp.Optional[tlist_int]
 
 tlist_str = _tp.List[str]
 olist_str = _tp.Optional[tlist_str]
-
-tlist_hmm = _tp.List[thmm]
-olist_hmm = _tp.Optional[tlist_hmm]
-
-tlist_mc = _tp.List[tmc]
-olist_mc = _tp.Optional[tlist_mc]
-
-tlist_mdl = _tp.List[tmdl]
-olist_mdl = _tp.Optional[tlist_mdl]
 
 # LISTS OF LISTS
 
@@ -344,8 +356,8 @@ ohmm_dec = _tp.Optional[thmm_dec]
 thmm_gen = _tp.Tuple[tarray, tarray]
 ohmm_gen = _tp.Optional[thmm_gen]
 
-thmm_gen_ext = _tp.Tuple[tarray, tarray, tlist_str, tlist_str]
-ohmm_gen_ext = _tp.Optional[thmm_gen_ext]
+thmm_gen_x = _tp.Tuple[tarray, tarray, tlist_str, tlist_str]
+ohmm_gen_x = _tp.Optional[thmm_gen_x]
 
 thmm_pred = _tp.Tuple[float, _tp.Union[tlist_int, tlist_str]]
 ohmm_pred = _tp.Optional[thmm_pred]
@@ -368,8 +380,8 @@ ohmm_sym_x = _tp.Optional[thmm_sym_x]
 tmc_gen = tarray
 omc_gen = _tp.Optional[tmc_gen]
 
-tmc_gen_ext = _tp.Tuple[tarray, tlist_str]
-omc_gen_ext = _tp.Optional[tmc_gen_ext]
+tmc_gen_x = _tp.Tuple[tarray, tlist_str]
+omc_gen_x = _tp.Optional[tmc_gen_x]
 
 tobs = _tp.Union[str, tmat]
 oobs = _tp.Optional[tobs]

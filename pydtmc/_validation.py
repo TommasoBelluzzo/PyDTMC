@@ -187,15 +187,15 @@ def _validate_limits(value: _ct.tnum, value_type: str, lower_limit: _ct.olim_num
                 raise ValueError(f'The "@arg@" parameter must be less than or equal to {_get_limit_text(value_type, upper_limit_value)}.')
 
 
-def _validate_models(value: _ct.tany, validator: _ct.trfunc) -> _ct.tany:
+def _validate_models(value: _ct.tany, validator: _ct.trfunc, minimum_length: int) -> _ct.tany:
 
     if not _u.is_list(value):
         raise ValueError('The "@arg@" parameter must be a list.')
 
     value_length = len(value)
 
-    if value_length < 2:
-        raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
+    if value_length < minimum_length:
+        raise ValueError(f'The "@arg@" parameter must contain at least {minimum_length:d} elements.')
 
     for i in range(value_length):
         try:
@@ -540,9 +540,12 @@ def validate_hidden_markov_model(value: _ct.tany) -> _ct.thmm:
     return value
 
 
-def validate_hidden_markov_models(value: _ct.tany) -> _ct.tlist_hmm:
+def validate_hidden_markov_models(value: _ct.tany, minimum_length: int) -> _ct.tlist_hmm:
 
-    value = _validate_models(value, validate_hidden_markov_model)
+    if not _u.is_list(value):
+        value = [value]
+
+    value = _validate_models(value, validate_hidden_markov_model, minimum_length)
 
     return value
 
@@ -738,9 +741,12 @@ def validate_markov_chain(value: _ct.tany, size: _ct.oint = None) -> _ct.tmc:
     return value
 
 
-def validate_markov_chains(value: _ct.tany) -> _ct.tlist_mc:
+def validate_markov_chains(value: _ct.tany, minimum_length: int, size: _ct.oint = None) -> _ct.tlist_mc:
 
-    value = _validate_models(value, validate_markov_chain)
+    if not _u.is_list(value):
+        value = [value]
+
+    value = _validate_models(value, lambda mc: validate_markov_chain(mc, size), minimum_length)
 
     return value
 
@@ -818,9 +824,12 @@ def validate_model(value: _ct.tany) -> _ct.tmdl:
     return value
 
 
-def validate_models(value: _ct.tany) -> _ct.tlist_mdl:
+def validate_models(value: _ct.tany, minimum_length: int) -> _ct.tlist_mdl:
 
-    value = _validate_models(value, validate_model)
+    if not _u.is_list(value):
+        value = [value]
+
+    value = _validate_models(value, validate_model, minimum_length)
 
     return value
 

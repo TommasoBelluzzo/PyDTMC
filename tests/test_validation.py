@@ -297,7 +297,7 @@ def test_validate_hidden_markov_model(value, is_valid):
                 _validate_hidden_markov_model(value)
 
 
-def test_validate_hidden_markov_models(value, is_valid):
+def test_validate_hidden_markov_models(value, minimum_length, is_valid):
 
     if isinstance(value, str):
         value, skip = _evaluate(value)
@@ -308,11 +308,11 @@ def test_validate_hidden_markov_models(value, is_valid):
         _pt.skip('Pandas library could not be imported.')
     else:
         if is_valid:
-            result = _validate_hidden_markov_models(value)
+            result = _validate_hidden_markov_models(value, minimum_length)
             assert isinstance(result, list) and all(isinstance(v, _HiddenMarkovModel) for v in result)
         else:
             with _pt.raises(Exception):
-                _validate_hidden_markov_models(value)
+                _validate_hidden_markov_models(value, minimum_length)
 
 
 def test_validate_hyperparameter(value, size, is_valid):
@@ -424,7 +424,7 @@ def test_validate_markov_chain(value, size, is_valid):
                 _validate_markov_chain(value, size)
 
 
-def test_validate_markov_chains(value, is_valid):
+def test_validate_markov_chains(value, minimum_length, size, is_valid):
 
     if isinstance(value, str):
         value, skip = _evaluate(value)
@@ -435,11 +435,11 @@ def test_validate_markov_chains(value, is_valid):
         _pt.skip('Pandas library could not be imported.')
     else:
         if is_valid:
-            result = _validate_markov_chains(value)
+            result = _validate_markov_chains(value, minimum_length, size)
             assert isinstance(result, list) and all(isinstance(v, _MarkovChain) for v in result)
         else:
             with _pt.raises(Exception):
-                _validate_markov_chains(value)
+                _validate_markov_chains(value, minimum_length, size)
 
 
 def test_validate_mask(value, rows, columns, is_valid):
@@ -484,7 +484,7 @@ def test_validate_model(value, is_valid):
                 _validate_model(value)
 
 
-def test_validate_models(value, is_valid):
+def test_validate_models(value, minimum_length, is_valid):
 
     if isinstance(value, str):
         value, skip = _evaluate(value)
@@ -495,11 +495,11 @@ def test_validate_models(value, is_valid):
         _pt.skip('Pandas library could not be imported.')
     else:
         if is_valid:
-            result = _validate_models(value)
+            result = _validate_models(value, minimum_length)
             assert isinstance(result, list) and all(isinstance(v, (_HiddenMarkovModel, _MarkovChain)) for v in result)
         else:
             with _pt.raises(Exception):
-                _validate_models(value)
+                _validate_models(value, minimum_length)
 
 
 def test_validate_none(value, is_valid):

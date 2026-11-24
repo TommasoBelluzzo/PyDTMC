@@ -140,7 +140,7 @@ def _permutation_index(permutation: tuple) -> int:
     return index
 
 
-def _spectral_aggregation_bottom_up(p: _ct.tarray, pi: _ct.tarray, s: int) -> _ct.tmc_gen_ext:
+def _spectral_aggregation_bottom_up(p: _ct.tarray, pi: _ct.tarray, s: int) -> _ct.tmc_gen_x:
 
     def _calculate_q(cq_p, cq_pi, cq_phi):
 
@@ -230,7 +230,7 @@ def _spectral_aggregation_bottom_up(p: _ct.tarray, pi: _ct.tarray, s: int) -> _c
     return q, states
 
 
-def _spectral_aggregation_top_down(p: _ct.tarray, pi: _ct.tarray, s: int) -> _ct.tmc_gen_ext:
+def _spectral_aggregation_top_down(p: _ct.tarray, pi: _ct.tarray, s: int) -> _ct.tmc_gen_x:
 
     def _calculate_invariant(ci_q):
 
@@ -348,7 +348,7 @@ def _spectral_aggregation_top_down(p: _ct.tarray, pi: _ct.tarray, s: int) -> _ct
 
 # HMM INSTANCE GENERATORS
 
-def hmm_restrict(p: _ct.tarray, e: _ct.tarray, states: _ct.tlist_str, symbols: _ct.tlist_str, sub_states: _ct.tlist_int, sub_symbols: _ct.tlist_int) -> _ct.thmm_gen_ext:
+def hmm_restrict(p: _ct.tarray, e: _ct.tarray, states: _ct.tlist_str, symbols: _ct.tlist_str, sub_states: _ct.tlist_int, sub_symbols: _ct.tlist_int) -> _ct.thmm_gen_x:
 
     p, e = _np.copy(p), _np.copy(e)
 
@@ -373,7 +373,7 @@ def hmm_restrict(p: _ct.tarray, e: _ct.tarray, states: _ct.tlist_str, symbols: _
 
 # HMM STATIC GENERATORS
 
-def hmm_cpg_islands(p_enter: float, p_exit: float, island_transitions: _ct.tarray, background_transitions: _ct.tarray) -> _ct.thmm_gen_ext:
+def hmm_cpg_islands(p_enter: float, p_exit: float, island_transitions: _ct.tarray, background_transitions: _ct.tarray) -> _ct.thmm_gen_x:
 
     regime = _np.array([[1.0 - p_exit, p_exit], [p_enter, 1.0 - p_enter]], dtype=float)
     transitions = (island_transitions, background_transitions)
@@ -391,7 +391,7 @@ def hmm_cpg_islands(p_enter: float, p_exit: float, island_transitions: _ct.tarra
     return p, e, states, symbols
 
 
-def hmm_dishonest_casino(p_switch: float, p_return: float, p_six: float) -> _ct.thmm_gen_ext:
+def hmm_dishonest_casino(p_switch: float, p_return: float, p_six: float) -> _ct.thmm_gen_x:
 
     p1 = [1.0 - p_switch, p_switch]
     p2 = [p_return, 1.0 - p_return]
@@ -438,7 +438,7 @@ def hmm_estimate(n: int, k: int, states: _ct.tlist_int, symbols: _ct.tlist_int, 
     return p, e
 
 
-def hmm_from_dictionary(d: _ct.thmm_dict_f) -> _ct.thmm_gen_ext:
+def hmm_from_dictionary(d: _ct.thmm_dict_f) -> _ct.thmm_gen_x:
 
     states = [key[1] for key in d.keys() if (key[0] == 'P') and (key[1] == key[2])]
     n = len(states)
@@ -471,7 +471,7 @@ def hmm_from_dictionary(d: _ct.thmm_dict_f) -> _ct.thmm_gen_ext:
 
 
 # noinspection PyBroadException
-def hmm_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.thmm_gen_ext:
+def hmm_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.thmm_gen_x:
 
     if file_extension == '.csv':
         d = _io.read_csv(False, file_path)
@@ -492,7 +492,7 @@ def hmm_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.thmm_gen_ext
     return p, e, states, symbols
 
 
-def hmm_from_graph(graph: _ct.tgraphs) -> _ct.thmm_gen_ext:
+def hmm_from_graph(graph: _ct.tgraphs) -> _ct.thmm_gen_x:
 
     nodes = graph.nodes(data='layer', default=-1)
     states = [node[0] for node in nodes if node[1] == 1]
@@ -525,7 +525,7 @@ def hmm_from_graph(graph: _ct.tgraphs) -> _ct.thmm_gen_ext:
     return p, e, states, symbols
 
 
-def hmm_from_matrices(mp: _ct.tarray, me: _ct.tarray) -> _ct.thmm_gen_ext:
+def hmm_from_matrices(mp: _ct.tarray, me: _ct.tarray) -> _ct.thmm_gen_x:
 
     p = _normalize_matrix(mp)
     e = _normalize_matrix(me)
@@ -536,7 +536,7 @@ def hmm_from_matrices(mp: _ct.tarray, me: _ct.tarray) -> _ct.thmm_gen_ext:
     return p, e, states, symbols
 
 
-def hmm_gilbert_elliott(p_good_bad: float, p_bad_good: float, error_good: float, error_bad: float) -> _ct.thmm_gen_ext:
+def hmm_gilbert_elliott(p_good_bad: float, p_bad_good: float, error_good: float, error_bad: float) -> _ct.thmm_gen_x:
 
     p = [[1.0 - p_good_bad, p_good_bad], [p_bad_good, 1.0 - p_bad_good]]
     p = _np.array(p, dtype=float)
@@ -550,7 +550,7 @@ def hmm_gilbert_elliott(p_good_bad: float, p_bad_good: float, error_good: float,
     return p, e, states, symbols
 
 
-def hmm_random(rng: _ct.trand, n: int, k: int, p_zeros: int, p_mask: _ct.tarray, e_zeros: int, e_mask: _ct.tarray) -> _ct.thmm_gen_ext:
+def hmm_random(rng: _ct.trand, n: int, k: int, p_zeros: int, p_mask: _ct.tarray, e_zeros: int, e_mask: _ct.tarray) -> _ct.thmm_gen_x:
 
     def process_matrix(pm_rows, pm_columns, pm_mask, pm_full_rows, pm_mask_unassigned, pm_zeros, pm_zeros_required):
 
@@ -673,7 +673,7 @@ def mc_canonical(p: _ct.tarray, recurrent_classes_indices: _ct.tlists_int, trans
     return p
 
 
-def mc_censor(p: _ct.tarray, states: _ct.tlist_str, retained_states: _ct.tlist_int) -> _ct.tmc_gen_ext:
+def mc_censor(p: _ct.tarray, states: _ct.tlist_str, retained_states: _ct.tlist_int) -> _ct.tmc_gen_x:
 
     size = p.shape[0]
 
@@ -903,9 +903,13 @@ def mc_closest_reversible(p: _ct.tarray, initial_distribution: _ct.tarray, weigh
     return p
 
 
-def mc_compose(p1: _ct.tarray, p2: _ct.tarray) -> _ct.tmc_gen_ext:
+def mc_compose(ps: _ct.tlist_array) -> _ct.tmc_gen_x:
 
-    p = _np.dot(p1, p2)
+    p = ps[0]
+
+    for p_other in ps[1:]:
+        p = _np.dot(p, p_other)
+
     states = _u.create_labels(p.shape[0], prefix='C')
 
     return p, states
@@ -923,7 +927,7 @@ def mc_lazy(p: _ct.tarray, inertial_weights: _ct.tarray) -> _ct.tarray:
 
 
 # noinspection PyBroadException
-def mc_lump(p: _ct.tarray, states: _ct.tlist_str, partitions: _ct.tlists_int) -> _ct.tmc_gen_ext:
+def mc_lump(p: _ct.tarray, states: _ct.tlist_str, partitions: _ct.tlists_int) -> _ct.tmc_gen_x:
 
     size = p.shape[0]
 
@@ -956,7 +960,7 @@ def mc_lump(p: _ct.tarray, states: _ct.tlist_str, partitions: _ct.tlists_int) ->
     return p_lump, states_final
 
 
-def mc_merge(p1: _ct.tarray, p2: _ct.tarray, gamma: float) -> _ct.tmc_gen_ext:
+def mc_merge(p1: _ct.tarray, p2: _ct.tarray, gamma: float) -> _ct.tmc_gen_x:
 
     p = ((1.0 - gamma) * p1) + (gamma * p2)
     states = _u.create_labels(p.shape[0], prefix='M')
@@ -964,7 +968,7 @@ def mc_merge(p1: _ct.tarray, p2: _ct.tarray, gamma: float) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducible: bool, is_reversible: bool, s: int, robust: bool) -> _ct.tmc_gen_ext:  # pylint: disable=too-many-return-statements
+def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducible: bool, is_reversible: bool, s: int, robust: bool) -> _ct.tmc_gen_x:  # pylint: disable=too-many-return-statements
 
     def _memberships(m_flat, m_x, m_s):
 
@@ -1165,7 +1169,7 @@ def mc_reversibilize(p: _ct.tarray, recurrent_classes_indices: _ct.tlists_int, t
     return result
 
 
-def mc_spectral_aggregation(method: str, p: _ct.tarray, is_ergodic: bool, pi: _ct.tlist_array, s: int) -> _ct.tmc_gen_ext:
+def mc_spectral_aggregation(method: str, p: _ct.tarray, is_ergodic: bool, pi: _ct.tlist_array, s: int) -> _ct.tmc_gen_x:
 
     size = p.shape[0]
 
@@ -1187,7 +1191,7 @@ def mc_spectral_aggregation(method: str, p: _ct.tarray, is_ergodic: bool, pi: _c
     return q, states
 
 
-def mc_sub(p: _ct.tarray, states: _ct.tlist_str, adjacency_matrix: _ct.tarray, sub_states: _ct.tlist_int) -> _ct.tmc_gen_ext:
+def mc_sub(p: _ct.tarray, states: _ct.tlist_str, adjacency_matrix: _ct.tarray, sub_states: _ct.tlist_int) -> _ct.tmc_gen_x:
 
     size = p.shape[0]
 
@@ -1245,7 +1249,7 @@ def mc_time_reversal(method: str, p: _ct.tarray, recurrent_classes_indices: _ct.
 
 # MC STATIC GENERATORS
 
-def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ct.ofloat) -> _ct.tmc_gen_ext:
+def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ct.ofloat) -> _ct.tmc_gen_x:
 
     def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
 
@@ -1418,7 +1422,7 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
     return p, states
 
 
-def mc_bernoulli_trials(n: int, p_success: float) -> _ct.tmc_gen_ext:
+def mc_bernoulli_trials(n: int, p_success: float) -> _ct.tmc_gen_x:
 
     p = _np.zeros((n + 1, n + 1), dtype=float)
 
@@ -1433,7 +1437,7 @@ def mc_bernoulli_trials(n: int, p_success: float) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_birth_death(p: _ct.tarray, q: _ct.tarray) -> _ct.tmc_gen_ext:
+def mc_birth_death(p: _ct.tarray, q: _ct.tarray) -> _ct.tmc_gen_x:
 
     r = 1.0 - q - p
 
@@ -1447,7 +1451,7 @@ def mc_birth_death(p: _ct.tarray, q: _ct.tarray) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_card_shuffling(model: str, n: int) -> _ct.tmc_gen_ext:
+def mc_card_shuffling(model: str, n: int) -> _ct.tmc_gen_x:
 
     def _transitions():
 
@@ -1523,7 +1527,7 @@ def mc_card_shuffling(model: str, n: int) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_coupon_collector(n: int) -> _ct.tmc_gen_ext:
+def mc_coupon_collector(n: int) -> _ct.tmc_gen_x:
 
     p = _np.zeros((n + 1, n + 1), dtype=float)
 
@@ -1538,7 +1542,7 @@ def mc_coupon_collector(n: int) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_dirichlet_process(rng: _ct.trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ct.ofloat, shift_concentration: bool) -> _ct.tmc_gen_ext:
+def mc_dirichlet_process(rng: _ct.trand, size: int, diffusion_factor: float, diagonal_bias_factor: _ct.ofloat, shift_concentration: bool) -> _ct.tmc_gen_x:
 
     def _gem_allocation(ga_draws):
 
@@ -1571,7 +1575,7 @@ def mc_dirichlet_process(rng: _ct.trand, size: int, diffusion_factor: float, dia
     return p, states
 
 
-def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery_probability: _ct.ofloat) -> _ct.tmc_gen_ext:
+def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery_probability: _ct.ofloat) -> _ct.tmc_gen_x:
 
     if model == 'si':
 
@@ -1640,7 +1644,7 @@ def mc_epidemic_model(model: str, n: int, infection_probability: float, recovery
     return p, states
 
 
-def mc_exclusion_process(n: int, k: int, p_right: float) -> _ct.tmc_gen_ext:
+def mc_exclusion_process(n: int, k: int, p_right: float) -> _ct.tmc_gen_x:
 
     size = _mt.comb(n, k)
     p = _np.zeros((size, size), dtype=float)
@@ -1674,7 +1678,7 @@ def mc_exclusion_process(n: int, k: int, p_right: float) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_from_dictionary(d: _ct.tmc_dict_f) -> _ct.tmc_gen_ext:
+def mc_from_dictionary(d: _ct.tmc_dict_f) -> _ct.tmc_gen_x:
 
     states = [key[0] for key in d.keys() if key[0] == key[1]]
     size = len(states)
@@ -1694,7 +1698,7 @@ def mc_from_dictionary(d: _ct.tmc_dict_f) -> _ct.tmc_gen_ext:
 
 
 # noinspection PyBroadException
-def mc_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.tmc_gen_ext:
+def mc_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.tmc_gen_x:
 
     if file_extension == '.csv':
         d = _io.read_csv(True, file_path)
@@ -1715,7 +1719,7 @@ def mc_from_file(file_path: _ct.tpath, file_extension: str) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_from_graph(graph: _ct.tgraphs) -> _ct.tmc_gen_ext:
+def mc_from_graph(graph: _ct.tgraphs) -> _ct.tmc_gen_x:
 
     states = list(graph.nodes)
     size = len(states)
@@ -1736,7 +1740,7 @@ def mc_from_graph(graph: _ct.tgraphs) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_from_matrix(m: _ct.tarray) -> _ct.tmc_gen_ext:
+def mc_from_matrix(m: _ct.tarray) -> _ct.tmc_gen_x:
 
     p = _normalize_matrix(m)
     states = _u.create_labels(p.shape[0])
@@ -1744,7 +1748,7 @@ def mc_from_matrix(m: _ct.tarray) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_gamblers_ruin(size: int, w: float) -> _ct.tmc_gen_ext:
+def mc_gamblers_ruin(size: int, w: float) -> _ct.tmc_gen_x:
 
     wc = 1.0 - w
 
@@ -1761,7 +1765,7 @@ def mc_gamblers_ruin(size: int, w: float) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_gibbs_sampling(dimensions: _ct.tlist_int, target_pi: _ct.tarray) -> _ct.tmc_gen_ext:
+def mc_gibbs_sampling(dimensions: _ct.tlist_int, target_pi: _ct.tarray) -> _ct.tmc_gen_x:
 
     dimensions_count = len(dimensions)
     size = target_pi.size
@@ -1788,7 +1792,7 @@ def mc_gibbs_sampling(dimensions: _ct.tlist_int, target_pi: _ct.tarray) -> _ct.t
     return p, states
 
 
-def mc_identity(size: int) -> _ct.tmc_gen_ext:
+def mc_identity(size: int) -> _ct.tmc_gen_x:
 
     p = _np.eye(size)
     states = _u.create_labels(size)
@@ -1796,7 +1800,7 @@ def mc_identity(size: int) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _ct.tmc_gen_ext:
+def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _ct.tmc_gen_x:
 
     size = 2**n
     p = _np.zeros((size, size), dtype=float)
@@ -1853,7 +1857,7 @@ def mc_ising_model(model: str, n: int, beta: float, j: float, h: float) -> _ct.t
     return p, states
 
 
-def mc_metropolis_hastings(target: _ct.tarray, proposal: _ct.oarray) -> _ct.tmc_gen_ext:
+def mc_metropolis_hastings(target: _ct.tarray, proposal: _ct.oarray) -> _ct.tmc_gen_x:
 
     size = target.size
     p = _np.zeros((size, size), dtype=float)
@@ -1889,7 +1893,7 @@ def mc_metropolis_hastings(target: _ct.tarray, proposal: _ct.oarray) -> _ct.tmc_
     return p, states
 
 
-def mc_pattern_matching(pattern: str, probabilities: dict) -> _ct.tmc_gen_ext:
+def mc_pattern_matching(pattern: str, probabilities: dict) -> _ct.tmc_gen_x:
 
     size = len(pattern)
     p = _np.zeros((size + 1, size + 1), dtype=float)
@@ -1910,7 +1914,7 @@ def mc_pattern_matching(pattern: str, probabilities: dict) -> _ct.tmc_gen_ext:
     return p, states
 
 
-def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _ct.tmc_gen_ext:
+def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: float) -> _ct.tmc_gen_x:
 
     size = n + 1
 
@@ -1956,7 +1960,7 @@ def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: floa
     return p, states
 
 
-def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tmc_gen_ext:
+def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tmc_gen_x:
 
     full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0, rtol=0.0, atol=_c.ETOL)
 
@@ -2006,7 +2010,7 @@ def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tm
     return p, states
 
 
-def mc_random_distribution(size: int, f: _ct.trfunc, kwargs: dict) -> _ct.tmc_gen_ext:
+def mc_random_distribution(size: int, f: _ct.trfunc, kwargs: dict) -> _ct.tmc_gen_x:
 
     p = f(size=(size, size), **kwargs).astype(float)
     p = _np.clip(_np.nan_to_num(p, copy=False), 0.0, None)
@@ -2018,7 +2022,7 @@ def mc_random_distribution(size: int, f: _ct.trfunc, kwargs: dict) -> _ct.tmc_ge
     return p, states
 
 
-def mc_random_walk(size: int, topology: str, lazy: bool) -> _ct.tmc_gen_ext:
+def mc_random_walk(size: int, topology: str, lazy: bool) -> _ct.tmc_gen_x:
 
     p = _np.zeros((size, size), dtype=float)
 
@@ -2063,7 +2067,7 @@ def mc_reweight(p: _ct.tarray, weights: _ct.tarray) -> _ct.tarray:
     return prw
 
 
-def mc_self_attention(q: _ct.tarray, k: _ct.tarray) -> _ct.tmc_gen_ext:
+def mc_self_attention(q: _ct.tarray, k: _ct.tarray) -> _ct.tmc_gen_x:
 
     logits = _np.matmul(q, _np.transpose(k)) / _np.sqrt(q.shape[1])
 
@@ -2094,7 +2098,7 @@ def mc_temper(p: _ct.tarray, temperature: float) -> _ct.tarray:
     return pt
 
 
-def mc_urn_model(model: str, n: int) -> _ct.tmc_gen_ext:
+def mc_urn_model(model: str, n: int) -> _ct.tmc_gen_x:
 
     dn = n * 2
     size = dn + 1
