@@ -21,6 +21,7 @@ __all__ = [
 
 # Standard
 
+import functools as _ft
 import io as _io
 import math as _mt
 import subprocess as _sub
@@ -595,30 +596,42 @@ def _generate_trellis_extended(
 
     n, f = hmm.n, len(symbols)
 
-    g = _pyd.Dot(graph_type='digraph', layout='neato', overlap='true', splines='line', outputorder='edgesfirst',
-                 margin='0', fontname='Arial', node_fontname='Arial')
+    g = _pyd.Dot(
+        graph_type='digraph', layout='neato',
+        overlap='true', splines='line', outputorder='edgesfirst', margin='0',
+        fontname='Arial'
+    )
 
     for row in range(n):
-        sub_label = hmm.states[row]
-        g.add_node(
-            _pyd.Node(f'state{row}', color='transparent', label=sub_label, shape='plaintext', pos=f'0.4,{n - row}!',
-                      pin='true'))
+        g.add_node(_pyd.Node(
+            f'state{row}',
+            label=hmm.states[row], shape='plaintext',
+            pos=f'0.4,{n - row}!'
+        ))
 
     for col in range(f):
 
         path_current = prediction_states[col]
         col_position = (col + 1) * 1.1
 
-        sub_label = "<T<FONT POINT-SIZE='8'><SUB>0</SUB></FONT>>" if col == 0 else hmm.symbols[symbols[col]]
-        g.add_node(_pyd.Node(f'header{col}', color='transparent', label=sub_label, shape='plaintext',
-                             pos=f'{col_position},{n + 0.6}!', pin='true'))
+        header_label = "<T<FONT POINT-SIZE='8'><SUB>0</SUB></FONT>>" if col == 0 else hmm.symbols[symbols[col]]
+
+        g.add_node(_pyd.Node(
+            f'header{col}',
+            label=header_label, shape='plaintext',
+            pos=f'{col_position},{n + 0.6}!'
+        ))
 
         for row in range(n):
+
             node_index = (row * f) + col
             node_color = _DEFAULT_COLOR_PATH if path_current == row else _DEFAULT_COLOR_NODE
-            g.add_node(
-                _pyd.Node(f'node{node_index}', fillcolor=node_color, label=f'{float(matrix[row, col]):.2f}',
-                          style='filled', pos=f'{col_position},{n - row}!', pin='true'))
+
+            g.add_node(_pyd.Node(
+                f'node{node_index}',
+                fillcolor=node_color, label=f'{float(matrix[row, col]):.2f}', style='filled',
+                pos=f'{col_position},{n - row}!'
+            ))
 
     for row in range(n):
 
@@ -643,7 +656,7 @@ def _generate_trellis_extended(
                     edge_color = _DEFAULT_COLOR_PATH if prediction_states[col] == row and prediction_states[
                         col + 1] == row_next else _COLOR_BLACK
 
-                    g.add_edge(_pyd.Edge(edge_from, edge_to, color=edge_color, constraint='false'))
+                    g.add_edge(_pyd.Edge(edge_from, edge_to, color=edge_color))
 
     return g
 
@@ -861,15 +874,24 @@ def _get_polygons_flows(p: _ct.tarray, d: _ct.tarray, bb: _ct.tarray, colors: _c
     return polygons
 
 
-def _is_graphviz_available() -> bool:
+def _is_graphviz_available(layout: _ct.ostr = None) -> bool:
 
     if not _pydot_found:  # pragma: no cover
         return False
 
-    try:
-        result = _sub.run(['dot', '-V'], stdout=_sub.PIPE, stderr=_sub.PIPE, check=False)
-    except (OSError, _sub.SubprocessError):  # pragma: no cover
-        return False
+    if layout is None:
+
+        try:
+            result = _sub.run(['dot', '-V'], stdout=_sub.PIPE, stderr=_sub.PIPE, check=False)
+        except (OSError, _sub.SubprocessError):  # pragma: no cover
+            return False
+
+    else:
+
+        try:
+            result = _sub.run(['dot', f'-K{layout}', '-Tpng'], input=b'digraph { A -> B }', stdout=_sub.PIPE, stderr=_sub.PIPE, check=False)
+        except (OSError, _sub.SubprocessError):  # pragma: no cover
+            return False
 
     return result.returncode == 0
 
@@ -1288,11 +1310,19 @@ def plot_redistributions(plot_type: str, mc: _ct.tmc, redistributions: int, init
         for i in range(mc.size):
 
             overlaps = [j for j in range(mc.size) if _np.allclose(distributions[:, i], distributions[:, j], rtol=1e-12, atol=1e-14)]
-            line_style = ('-', '--', ':', '-.')[overlaps.index(i) % 4]
+            overlap_index = overlaps.index(i)
+
+            marker = 'o' if distributions_length == 2 else None
+            line_style = '-'
+
+            if len(overlaps) > 1:
+                line_style = ('-', '--', ':', '-.')[overlap_index % 4]
+                if overlap_index > 0:
+                    marker = ('o', 's', '^', 'D')[((overlap_index - 1) // 4) % 4]
 
             ax.plot(
                 _np.arange(0.0, distributions_length, 1.0), distributions[:, i],
-                label=mc.states[i], linewidth=1.75, linestyle=line_style, marker=None,
+                label=mc.states[i], linewidth=1.75, linestyle=line_style, marker=marker,
                 markevery=max(1, distributions_length // 8), markersize=4.0
             )
 
@@ -1420,7 +1450,7 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate, seed: _ct
 
     _, prediction_states = prediction
 
-    extended_graph = (not force_standard) and _is_graphviz_available()
+    extended_graph = (not force_standard) and _is_graphviz_available('neato')
 
     if extended_graph:
 

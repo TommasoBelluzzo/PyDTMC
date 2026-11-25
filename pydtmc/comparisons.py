@@ -5,7 +5,7 @@ __all__ = [
     'calculate_stationary_distance',
     'calculate_stationary_divergence',
     'calculate_transition_distance',
-    'calculate_transition_divergence',
+    'calculate_transition_divergence'
 ]
 
 
