@@ -2056,7 +2056,7 @@ def mc_reweight(p: _ct.tarray, weights: _ct.tarray) -> _ct.tarray:
 
     logits += log_weights[_np.newaxis, :]
 
-    if _np.any(_np.all(_np.isneginf(logits), axis=1)):
+    if _np.any(_np.all(_np.isneginf(logits), axis=1)):  # pragma: no cover
         raise ValueError('The weights must assign positive weight to at least one reachable state from each state.')
 
     logits -= _np.max(logits, axis=1, keepdims=True)

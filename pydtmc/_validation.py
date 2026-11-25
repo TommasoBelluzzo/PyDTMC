@@ -542,7 +542,7 @@ def validate_hidden_markov_model(value: _ct.tany) -> _ct.thmm:
 
 def validate_hidden_markov_models(value: _ct.tany, minimum_length: int) -> _ct.tlist_hmm:
 
-    if not _u.is_list(value):
+    if (minimum_length == 1) and (not _u.is_list(value)):
         value = [value]
 
     value = _validate_models(value, validate_hidden_markov_model, minimum_length)
@@ -743,7 +743,7 @@ def validate_markov_chain(value: _ct.tany, size: _ct.oint = None) -> _ct.tmc:
 
 def validate_markov_chains(value: _ct.tany, minimum_length: int, size: _ct.oint = None) -> _ct.tlist_mc:
 
-    if not _u.is_list(value):
+    if (minimum_length == 1) and (not _u.is_list(value)):
         value = [value]
 
     value = _validate_models(value, lambda mc: validate_markov_chain(mc, size), minimum_length)
@@ -826,7 +826,7 @@ def validate_model(value: _ct.tany) -> _ct.tmdl:
 
 def validate_models(value: _ct.tany, minimum_length: int) -> _ct.tlist_mdl:
 
-    if not _u.is_list(value):
+    if (minimum_length == 1) and (not _u.is_list(value)):
         value = [value]
 
     value = _validate_models(value, validate_model, minimum_length)
