@@ -21,7 +21,6 @@ __all__ = [
 
 # Standard
 
-import functools as _ft
 import io as _io
 import math as _mt
 import subprocess as _sub

@@ -20,8 +20,7 @@ from pydtmc.comparisons import (
 )
 
 from pydtmc import (
-    MarkovChain as _MarkovChain,
-    ValidationError as _ValidationError
+    MarkovChain as _MarkovChain
 )
 
 
@@ -46,7 +45,7 @@ def test_calculate_first_passage_distance(p1, p2, value_f, value_m):
 
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-        actual = _calculate_first_passage_distance(distance_type, model2, model1)
+        actual = _calculate_first_passage_distance(distance_type, model2, model1)  # pylint: disable=arguments-out-of-order
         expected = distance_value
 
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -69,7 +68,7 @@ def test_calculate_stationary_distance(p1, p2, value_h, value_tv):
 
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-        actual = _calculate_stationary_distance(distance_type, model2, model1)
+        actual = _calculate_stationary_distance(distance_type, model2, model1)  # pylint: disable=arguments-out-of-order
         expected = distance_value
 
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -85,7 +84,7 @@ def test_calculate_stationary_divergence(p1, p2, value_js, value_kl):
 
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-    actual = _calculate_stationary_divergence('js', model2, model1)
+    actual = _calculate_stationary_divergence('js', model2, model1)  # pylint: disable=arguments-out-of-order
     expected = value_js
 
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -116,7 +115,7 @@ def test_calculate_transition_distance(p1, p2, steps, value_f, value_h, value_m,
 
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-        actual = _calculate_transition_distance(distance_type, model2, model1, steps)
+        actual = _calculate_transition_distance(distance_type, model2, model1, steps)  # pylint: disable=arguments-out-of-order
         expected = distance_value
 
         assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -132,7 +131,7 @@ def test_calculate_transition_divergence(p1, p2, steps, value_js, value_kl):
 
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-    actual = _calculate_transition_divergence('js', model2, model1, steps)
+    actual = _calculate_transition_divergence('js', model2, model1, steps)  # pylint: disable=arguments-out-of-order
     expected = value_js
 
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
