@@ -137,9 +137,9 @@ print(mc.simulate(10, seed=32))
 **Visualization**
 
 ```python
-from pydtmc import plot_eigenvalues, plot_graph, plot_redistributions, plot_sequence, plot_trellis
+from pydtmc import plot_graph, plot_redistributions, plot_sequence, plot_spectrum
 
-plot_eigenvalues(mc, dpi=300)
+plot_spectrum(mc, dpi=300)
 plot_graph(mc, dpi=300)
 plot_sequence(mc, 10, plot_type='histogram', dpi=300)
 plot_sequence(mc, 10, plot_type='heatmap', dpi=300)

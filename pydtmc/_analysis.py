@@ -11,6 +11,7 @@ __all__ = [
     'hmm_hitting_probabilities',
     'hmm_information_criterion',
     'hmm_mutual_information',
+    'hmm_residuals',
     'hmm_synchronization_entropy',
     'hmm_synchronization_information',
     'mc_absolute_spectral_gap',
@@ -59,6 +60,7 @@ __all__ = [
     'mc_reactive_flux',
     'mc_recurrence_times',
     'mc_relaxation_rate',
+    'mc_residuals',
     'mc_sensitivity',
     'mc_stationary_current',
     'mc_stationary_distributions',
@@ -202,81 +204,6 @@ def _synchronization_entropies_iterator(p: _ct.tarray, e: _ct.tarray, pi: _ct.ta
                     next_sequences.append(updated)
 
         sequences = next_sequences
-
-
-# HMM INFERENCE
-
-def hmm_decode(p: _ct.tarray, e: _ct.tarray, initial_distribution: _ct.tarray, symbols: _ct.tlist_int, use_scaling: bool, compute_transitions: bool) -> _ct.ohmm_dec:
-
-    n, f = p.shape[1], len(symbols)
-
-    scaling_factors = _np.zeros(f)
-
-    forward = _np.zeros((n, f), dtype=float)
-    forward[:, 0] = initial_distribution * e[:, symbols[0]]
-
-    scaling_factor = _np.sum(forward[:, 0])
-
-    if scaling_factor == 0.0:  # pragma: no cover
-        return None
-
-    scaling_factors[0] = scaling_factor
-    forward[:, 0] /= scaling_factor
-
-    for i in range(1, f):
-
-        symbol = symbols[i]
-        forward_i = forward[:, i - 1]
-
-        forward[:, i] = e[:, symbol] * _np.dot(forward_i, p)
-
-        scaling_factor = _np.sum(forward[:, i])
-
-        if scaling_factor == 0.0:  # pragma: no cover
-            return None
-
-        scaling_factors[i] = scaling_factor
-        forward[:, i] /= scaling_factor
-
-    backward = _np.ones((n, f), dtype=float)
-
-    for i in reversed(range(f - 1)):
-
-        symbol = symbols[i + 1]
-        e_i = e[:, symbol]
-        scaling_factor = scaling_factors[i + 1]
-        backward_i = backward[:, i + 1]
-
-        backward[:, i] = _np.dot(p, backward_i * e_i) / scaling_factor
-
-    if not compute_transitions:
-        posterior_transitions = None
-    else:
-
-        posterior_transitions = _np.zeros((n, n, f - 1), dtype=float)
-
-        for i in range(1, f):
-
-            source = forward[:, i - 1, _np.newaxis]
-            destination = (e[:, symbols[i]] * backward[:, i])[_np.newaxis, :]
-
-            posterior_transitions[:, :, i - 1] = (source * p * destination) / scaling_factors[i]
-
-    posterior = _np.multiply(backward, forward)
-
-    log_prob = float(_np.sum(_np.log(scaling_factors)))
-
-    if not use_scaling:
-
-        backward_scale = _np.fliplr(_np.hstack((_np.ones((1, 1), dtype=float), _np.cumprod(scaling_factors[_np.newaxis, :0:-1], axis=1))))
-        backward = _np.multiply(backward, _np.tile(backward_scale, (n, 1)))
-
-        forward_scale = _np.cumprod(scaling_factors[_np.newaxis, :], axis=1)
-        forward = _np.multiply(forward, _np.tile(forward_scale, (n, 1)))
-
-        scaling_factors = None
-
-    return log_prob, posterior, posterior_transitions, backward, forward, scaling_factors
 
 
 # ABSORPTION & PASSAGE
@@ -877,6 +804,42 @@ def mc_doeblin_coefficient(mc: _ct.tmc) -> float:
     return dc
 
 
+# DIAGNOSTICS
+
+def hmm_residuals(hmm: _ct.thmm, symbols: _ct.tlist_int, initial_distribution: _ct.tarray, rng: _ct.trand) -> _ct.tarray:
+
+    p, e = hmm.p, hmm.e
+
+    size = len(symbols)
+    probabilities = _np.zeros((size, hmm.k), dtype=float)
+
+    distribution = _np.copy(initial_distribution)
+
+    for i, symbol in enumerate(symbols):
+
+        probabilities[i, :] = distribution @ e
+
+        probability = probabilities[i, symbol]
+
+        if probability <= 0.0:
+            raise ValueError(f'The observed symbol at index {i:d} has zero predictive probability.')
+
+        distribution = (distribution * e[:, symbol]) / probability
+        distribution = distribution @ p
+
+    residuals = _n.randomized_quantile_residuals(probabilities, symbols, rng)
+
+    return residuals
+
+
+def mc_residuals(mc: _ct.tmc, states: _ct.tlist_int, rng: _ct.trand) -> _ct.tarray:
+
+    probabilities = mc.p[states[:-1], :]
+    residuals = _n.randomized_quantile_residuals(probabilities, states[1:], rng)
+
+    return residuals
+
+
 # DISTRIBUTIONS & PROBABILITIES
 
 def hmm_conditional_probabilities(hmm: _ct.thmm, symbol: int) -> _ct.tlist_array:
@@ -946,6 +909,81 @@ def mc_information_criterion(mc: _ct.tmc, criterion: str, states: _ct.tlist_int)
     ic = _n.information_criterion(criterion, log_probability, parameters, observations)
 
     return ic
+
+
+# INFERENCE
+
+def hmm_decode(p: _ct.tarray, e: _ct.tarray, initial_distribution: _ct.tarray, symbols: _ct.tlist_int, use_scaling: bool, compute_transitions: bool) -> _ct.ohmm_dec:
+
+    n, f = p.shape[1], len(symbols)
+
+    scaling_factors = _np.zeros(f)
+
+    forward = _np.zeros((n, f), dtype=float)
+    forward[:, 0] = initial_distribution * e[:, symbols[0]]
+
+    scaling_factor = _np.sum(forward[:, 0])
+
+    if scaling_factor == 0.0:  # pragma: no cover
+        return None
+
+    scaling_factors[0] = scaling_factor
+    forward[:, 0] /= scaling_factor
+
+    for i in range(1, f):
+
+        symbol = symbols[i]
+        forward_i = forward[:, i - 1]
+
+        forward[:, i] = e[:, symbol] * _np.dot(forward_i, p)
+
+        scaling_factor = _np.sum(forward[:, i])
+
+        if scaling_factor == 0.0:  # pragma: no cover
+            return None
+
+        scaling_factors[i] = scaling_factor
+        forward[:, i] /= scaling_factor
+
+    backward = _np.ones((n, f), dtype=float)
+
+    for i in reversed(range(f - 1)):
+
+        symbol = symbols[i + 1]
+        e_i = e[:, symbol]
+        scaling_factor = scaling_factors[i + 1]
+        backward_i = backward[:, i + 1]
+
+        backward[:, i] = _np.dot(p, backward_i * e_i) / scaling_factor
+
+    if not compute_transitions:
+        posterior_transitions = None
+    else:
+
+        posterior_transitions = _np.zeros((n, n, f - 1), dtype=float)
+
+        for i in range(1, f):
+
+            source = forward[:, i - 1, _np.newaxis]
+            destination = (e[:, symbols[i]] * backward[:, i])[_np.newaxis, :]
+
+            posterior_transitions[:, :, i - 1] = (source * p * destination) / scaling_factors[i]
+
+    posterior = _np.multiply(backward, forward)
+
+    log_prob = float(_np.sum(_np.log(scaling_factors)))
+
+    if not use_scaling:
+
+        backward_scale = _np.fliplr(_np.hstack((_np.ones((1, 1), dtype=float), _np.cumprod(scaling_factors[_np.newaxis, :0:-1], axis=1))))
+        backward = _np.multiply(backward, _np.tile(backward_scale, (n, 1)))
+
+        forward_scale = _np.cumprod(scaling_factors[_np.newaxis, :], axis=1)
+        forward = _np.multiply(forward, _np.tile(forward_scale, (n, 1)))
+
+        scaling_factors = None
+
+    return log_prob, posterior, posterior_transitions, backward, forward, scaling_factors
 
 
 # INFORMATION THEORY

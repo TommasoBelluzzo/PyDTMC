@@ -5,12 +5,13 @@ from __future__ import annotations
 __all__ = [
     'plot_comparison',
     'plot_convergence',
-    'plot_eigenvalues',
     'plot_flow',
     'plot_graph',
     'plot_matrix',
     'plot_redistributions',
+    'plot_residuals',
     'plot_sequence',
+    'plot_spectrum',
     'plot_trellis'
 ]
 
@@ -36,6 +37,7 @@ import matplotlib.ticker as _mplt
 import networkx as _nx
 import numpy as _np
 import numpy.linalg as _npl
+import scipy.special as _sps
 
 try:
     import pydot as _pyd
@@ -1012,7 +1014,7 @@ def plot_comparison(models: _ct.tlist_mdl, underlying_matrices: str, names: _ct.
         matrix = model.e if underlying_matrices == 'emission' else model.p
 
         ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
-        ax.set_title(name, fontsize=9.0, fontweight='normal', pad=1)
+        ax.set_title(name, fontsize=12.0, fontweight='normal', pad=1)
 
         ax.set_xticks([])
         ax.set_xticks([], minor=True)
@@ -1038,7 +1040,8 @@ def plot_convergence(mc: _ct.tmc, steps: int, initial_status: _ct.oarray, dpi: i
     distributions = _np.asarray(distributions, dtype=float)
     distances = 0.5 * _np.sum(_np.abs(distributions - stationary_distribution), axis=1)
 
-    figure, ax = _mplp.subplots(dpi=dpi)
+    figure_width, figure_height = _mplp.rcParams['figure.figsize']
+    figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
 
     ax.plot(_np.arange(distances.size), distances, color=_COLORS[0], linewidth=1.75)
 
@@ -1053,77 +1056,7 @@ def plot_convergence(mc: _ct.tmc, steps: int, initial_status: _ct.oarray, dpi: i
 
     ax.grid()
 
-    ax.set_title('Convergence Plot', fontsize=15.0, fontweight='bold')
-
-    return figure, ax
-
-
-def plot_eigenvalues(mc: _ct.tmc, dpi: int) -> _ct.tplot:
-
-    figure, ax = _mplp.subplots(dpi=dpi)
-
-    theta = _np.linspace(0.0, 2.0 * _np.pi, 200)
-
-    evalues = _npl.eigvals(mc.p).astype(complex)
-    evalues_final = _np.copy(evalues)
-
-    argmin_index = _np.argmin(_np.abs(evalues_final - 1.0))
-
-    if _np.isclose(evalues_final[argmin_index], 1.0):
-        evalues_final[argmin_index] = 1.0 + 0.0j
-    else:  # pragma: no cover
-        evalues_final = _np.append(evalues_final, 1.0 + 0.0j)
-
-    evalues_final = _np.unique(evalues_final)
-
-    x_unit_circle = _np.cos(theta)
-    y_unit_circle = _np.sin(theta)
-
-    handles, labels = [], []
-
-    if mc.is_irreducible:
-
-        mu = _n.slem(mc.p)
-
-        if not _np.isclose(mu, 0.0):
-
-            x_slem_circle = mu * x_unit_circle
-            y_slem_circle = mu * y_unit_circle
-
-            if not _np.isclose(mu, 1.0):
-
-                cs = _np.linspace(-1.1, 1.1, 201)
-                x_spectral_gap, y_spectral_gap = _np.meshgrid(cs, cs)
-                z_spectral_gap = x_spectral_gap ** 2.0 + y_spectral_gap ** 2.0
-
-                h = ax.contourf(x_spectral_gap, y_spectral_gap, z_spectral_gap, alpha=0.2, colors='r', levels=[mu ** 2.0, 1.0])
-                handles.append(_mplp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.get_facecolor()[0]))
-                labels.append('Spectral Gap')
-
-            ax.plot(x_slem_circle, y_slem_circle, color='red', linestyle='--', linewidth=1.5)
-
-    ax.plot(x_unit_circle, y_unit_circle, color='red', linestyle='-', linewidth=3.0)
-
-    h, = ax.plot(_np.real(evalues_final), _np.imag(evalues_final), color='blue', linestyle='None', marker='*', markersize=12.5)
-    handles.append(h)
-    labels.append('Eigenvalues')
-
-    ax.set_xlim(-1.1, 1.1)
-    ax.set_ylim(-1.1, 1.1)
-    ax.set_aspect('equal')
-
-    formatter = _mplt.FormatStrFormatter('%g')
-    ax.xaxis.set_major_formatter(formatter)
-    ax.yaxis.set_major_formatter(formatter)
-    ax.set_xticks(_np.linspace(-1.0, 1.0, 9), minor=False)
-    ax.set_yticks(_np.linspace(-1.0, 1.0, 9), minor=False)
-
-    ax.grid(which='major')
-
-    figure.legend(handles[::-1], labels[::-1], loc='lower center', bbox_to_anchor=(0.5, 0.02), ncol=len(handles))
-    ax.set_title('Eigenvalues Plot', fontsize=15.0, fontweight='bold')
-
-    figure.subplots_adjust(bottom=0.2)
+    figure.suptitle('Convergence Plot', fontsize=15.0, fontweight='bold')
 
     return figure, ax
 
@@ -1150,7 +1083,8 @@ def plot_flow(mc: _ct.tmc, steps: int, interval: int, initial_status: _ct.oarray
     polygons_bars = _get_polygons_bars(d, boundaries_bottom, boundaries_top, colors)
     polygons_flows = _get_polygons_flows(p, d, boundaries_bottom, colors, interval)
 
-    figure, ax = _mplp.subplots(dpi=dpi)
+    figure_width, figure_height = _mplp.rcParams['figure.figsize']
+    figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
 
     for e in polygons_flows:
         ax.add_patch(e)
@@ -1172,8 +1106,7 @@ def plot_flow(mc: _ct.tmc, steps: int, interval: int, initial_status: _ct.oarray
     ax.invert_yaxis()
 
     figure.legend(legend_handlers, legend_labels, loc='lower center', bbox_to_anchor=(0.5, 0.02), ncol=len(legend_handlers))
-    ax.set_title('Flow Plot', fontsize=15.0, fontweight='bold')
-
+    figure.suptitle('Flow Plot', fontsize=15.0, fontweight='bold')
     figure.subplots_adjust(bottom=0.2)
 
     return figure, ax
@@ -1215,7 +1148,8 @@ def plot_graph(model: _ct.tmdl, nodes_color: bool, nodes_shape: bool, edges_labe
 
         graph, positions, node_data, edge_data, edge_labels_straight, edge_labels_symbol, edge_labels_curved = graph_data
 
-        figure, ax = _mplp.subplots(dpi=dpi)
+        figure_width, figure_height = _mplp.rcParams['figure.figsize']
+        figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
 
         for node, node_color, node_shape in node_data:
             _nx.draw_networkx_nodes(
@@ -1261,7 +1195,8 @@ def plot_matrix(model: _ct.tmdl, underlying_matrix: str, dpi: int) -> _ct.tplot:
     matrix = model.e if underlying_matrix == 'emission' else model.p
     labels_x = model.symbols if underlying_matrix == 'emission' else model.states
 
-    figure, ax = _mplp.subplots(dpi=dpi)
+    figure_width, figure_height = _mplp.rcParams['figure.figsize']
+    figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
 
     color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
     ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
@@ -1274,7 +1209,7 @@ def plot_matrix(model: _ct.tmdl, underlying_matrix: str, dpi: int) -> _ct.tplot:
     cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
     cb.ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
 
-    ax.set_title('Matrix Plot (' + underlying_matrix.capitalize() + ')', fontsize=15.0, fontweight='bold')
+    figure.suptitle('Matrix Plot (' + underlying_matrix.capitalize() + ')', fontsize=15.0, fontweight='bold')
 
     return figure, ax
 
@@ -1285,7 +1220,8 @@ def plot_redistributions(plot_type: str, mc: _ct.tmc, redistributions: int, init
     distributions = _np.asarray(distributions, dtype=float)
     distributions_length = distributions.shape[0]
 
-    figure, ax = _mplp.subplots(dpi=dpi)
+    figure_width, figure_height = _mplp.rcParams['figure.figsize']
+    figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
 
     if plot_type == 'heatmap':
 
@@ -1300,7 +1236,7 @@ def plot_redistributions(plot_type: str, mc: _ct.tmc, redistributions: int, init
         cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
         cb.ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
 
-        ax.set_title(f'Redistributions Plot ({plot_type.capitalize()})', fontsize=15.0, fontweight='bold')
+        figure.suptitle(f'Redistributions Plot ({plot_type.capitalize()})', fontsize=15.0, fontweight='bold')
 
     else:
 
@@ -1314,15 +1250,16 @@ def plot_redistributions(plot_type: str, mc: _ct.tmc, redistributions: int, init
             marker = 'o' if distributions_length == 2 else None
             line_style = '-'
 
-            if len(overlaps) > 1:
+            if len(overlaps) > 1:  # pragma: no cover
                 line_style = ('-', '--', ':', '-.')[overlap_index % 4]
                 if overlap_index > 0:
                     marker = ('o', 's', '^', 'D')[((overlap_index - 1) // 4) % 4]
 
             ax.plot(
                 _np.arange(0.0, distributions_length, 1.0), distributions[:, i],
-                label=mc.states[i], linewidth=1.75, linestyle=line_style, marker=marker,
-                markevery=max(1, distributions_length // 8), markersize=4.0
+                label=mc.states[i],
+                linewidth=1.75, linestyle=line_style,
+                marker=marker, markersize=4.0, markevery=max(1, distributions_length // 8)
             )
 
         if _np.allclose(distributions[0, :], _np.ones(mc.size, dtype=float) / mc.size):
@@ -1337,11 +1274,76 @@ def plot_redistributions(plot_type: str, mc: _ct.tmc, redistributions: int, init
         ax.grid()
 
         figure.legend(*ax.get_legend_handles_labels(), loc='lower center', bbox_to_anchor=(0.5, 0.02), ncol=legend_size)
-        ax.set_title(f'Redistributions Plot ({plot_type.capitalize()})', fontsize=15.0, fontweight='bold')
-
+        figure.suptitle(f'Redistributions Plot ({plot_type.capitalize()})', fontsize=15.0, fontweight='bold')
         figure.subplots_adjust(bottom=0.2)
 
     return figure, ax
+
+
+def plot_residuals(residuals: _ct.tarray, dpi: int) -> _ct.tplot:
+
+    size = residuals.size
+    residuals_sorted = _np.sort(residuals)
+    quantiles = _sps.ndtri((_np.arange(1, size + 1) - 0.5) / size)  # pylint: disable=no-member
+
+    figure_width, figure_height = _mplp.rcParams['figure.figsize']
+    figure, axes = _mplp.subplots(nrows=2, ncols=2, figsize=(figure_width * 1.5, figure_height * 1.5), tight_layout=True, dpi=dpi)
+    axes = list(axes.flat)
+    ax_residuals, ax_quantiles, ax_distribution, ax_autocorrelation = axes
+
+    ax_residuals.scatter(_np.arange(1, size + 1), residuals, color=_COLORS[0], s=12.0)
+    ax_residuals.axhline(0.0, color=_COLORS[4], linestyle='--')
+    ax_residuals.grid(alpha=0.5)
+    ax_residuals.set_title('Residuals', fontsize=12.0, fontweight='normal')
+
+    lower = min(quantiles[0], residuals_sorted[0])
+    upper = max(quantiles[-1], residuals_sorted[-1])
+
+    ax_quantiles.scatter(quantiles, residuals_sorted, color=_COLORS[0], s=12.0)
+    ax_quantiles.plot([lower, upper], [lower, upper], color=_COLORS[4], linestyle='--')
+    ax_quantiles.grid(alpha=0.5)
+    ax_quantiles.set_title('Q-Q Plot', fontsize=12.0, fontweight='normal')
+
+    lower = min(-4.0, _np.min(residuals))
+    upper = max(4.0, _np.max(residuals))
+    x = _np.linspace(lower, upper, 200)
+    y = _np.exp(-0.5 * x ** 2.0) / _np.sqrt(2.0 * _np.pi)
+
+    ax_distribution.hist(residuals, bins='auto', density=True, edgecolor=_COLOR_BLACK, facecolor=_COLORS[0])
+    ax_distribution.plot(x, y, color=_COLORS[4], linewidth=1.75)
+    ax_distribution.grid(alpha=0.5)
+    ax_distribution.set_title('Distribution', fontsize=12.0, fontweight='normal')
+
+    maximum_lag = min(20, size - 1)
+    centered = residuals - _np.mean(residuals)
+    denominator = _np.dot(centered, centered)
+
+    if (maximum_lag > 0) and (denominator > 0.0):
+
+        lags = _np.arange(1, maximum_lag + 1)
+        correlations = _np.array([_np.dot(centered[:-lag], centered[lag:]) / denominator for lag in lags])
+        threshold = _sps.ndtri(0.975) / _np.sqrt(size)  # pylint: disable=no-member
+        limit = min(1.0, max(_np.max(_np.abs(correlations)), threshold) * 1.1)
+
+        ax_autocorrelation.axhspan(-threshold, threshold, color=_COLORS[0], alpha=0.2)
+        ax_autocorrelation.vlines(lags, 0.0, correlations, color=_COLORS[0], linewidth=1.75)
+        ax_autocorrelation.scatter(lags, correlations, color=_COLORS[0], s=12.0)
+        ax_autocorrelation.set_xlim(0.5, maximum_lag + 0.5)
+        ax_autocorrelation.set_ylim(-limit, limit)
+        ax_autocorrelation.xaxis.set_major_locator(_mplt.MaxNLocator(integer=True))
+
+    else:
+        ax_autocorrelation.text(0.5, 0.5, 'Autocorrelation unavailable', horizontalalignment='center', verticalalignment='center', transform=ax_autocorrelation.transAxes)
+        ax_autocorrelation.set_ylim(-1.0, 1.0)
+        ax_autocorrelation.set_xticks([])
+
+    ax_autocorrelation.axhline(0.0, color=_COLORS[4], linestyle='--')
+    ax_autocorrelation.grid(alpha=0.5)
+    ax_autocorrelation.set_title('Autocorrelation', fontsize=12.0, fontweight='normal')
+
+    figure.suptitle('Residuals Plot', fontsize=15.0, fontweight='bold')
+
+    return figure, axes
 
 
 def plot_sequence(plot_type: str, model: _ct.tmdl, steps: int, initial_state: _ct.ostate, seed: _ct.oint, dpi: int) -> _ct.tplot:
@@ -1423,6 +1425,104 @@ def plot_sequence(plot_type: str, model: _ct.tmdl, steps: int, initial_state: _c
             a_current.grid(which='minor', color='k')
 
     figure.suptitle(f'Sequence Plot ({plot_type.capitalize()})', fontsize=15.0, fontweight='bold')
+
+    return figure, axes
+
+
+def plot_spectrum(mc: _ct.tmc, dpi: int) -> _ct.tplot:
+
+    evalues, evectors = _npl.eig(mc.p)
+    evalues = evalues.astype(complex)
+    evectors = evectors.astype(complex)
+
+    evalues_final = _np.copy(evalues)
+    argmin_index = _np.argmin(_np.abs(evalues_final - 1.0))
+
+    if _np.isclose(evalues_final[argmin_index], 1.0):
+        evalues_final[argmin_index] = 1.0 + 0.0j
+    else:  # pragma: no cover
+        evalues_final = _np.append(evalues_final, 1.0 + 0.0j)
+
+    evalues_final = _np.unique(evalues_final)
+
+    evectors_indices = _np.argsort(-_np.abs(evalues), kind='stable')
+    evectors_indices = evectors_indices[evectors_indices != argmin_index]
+    evectors_indices = _np.insert(evectors_indices, 0, argmin_index)
+
+    evectors = evectors[:, evectors_indices]
+
+    for i in range(evectors.shape[1]):
+
+        evector = evectors[:, i]
+        index = _np.argmax(_np.abs(evector))
+        phase = _np.angle(evector[index])
+
+        evectors[:, i] *= _np.exp(-1.0j * phase)
+
+    evectors_components = _np.real(evectors)
+
+    theta = _np.linspace(0.0, 2.0 * _np.pi, 200)
+    x_unit_circle = _np.cos(theta)
+    y_unit_circle = _np.sin(theta)
+
+    formatter = _mplt.FormatStrFormatter('%g')
+
+    figure_width, figure_height = _mplp.rcParams['figure.figsize']
+    figure, axes = _mplp.subplots(ncols=2, figsize=(figure_width * 1.5, figure_height), dpi=dpi)
+    axes = list(axes.flat)
+    ax_evalues, ax_evectors = axes
+
+    handles, labels = [], []
+
+    if mc.is_irreducible:
+
+        mu = _n.slem(mc.p)
+
+        if not _np.isclose(mu, 0.0):
+
+            x_slem_circle = mu * x_unit_circle
+            y_slem_circle = mu * y_unit_circle
+
+            if not _np.isclose(mu, 1.0):
+
+                cs = _np.linspace(-1.1, 1.1, 201)
+                x_spectral_gap, y_spectral_gap = _np.meshgrid(cs, cs)
+                z_spectral_gap = x_spectral_gap ** 2.0 + y_spectral_gap ** 2.0
+
+                h = ax_evalues.contourf(x_spectral_gap, y_spectral_gap, z_spectral_gap, alpha=0.2, colors=_COLORS[4], levels=[mu ** 2.0, 1.0])
+                handles.append(_mplp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.get_facecolor()[0]))
+                labels.append('Spectral Gap')
+
+            ax_evalues.plot(x_slem_circle, y_slem_circle, color=_COLORS[4], linestyle='--', linewidth=1.5)
+
+    ax_evalues.plot(x_unit_circle, y_unit_circle, color=_COLORS[4], linestyle='-', linewidth=3.0)
+
+    h, = ax_evalues.plot(_np.real(evalues_final), _np.imag(evalues_final), color=_COLORS[0], linestyle='None', marker='*', markersize=12.5)
+    handles.append(h)
+    labels.append('Eigenvalues')
+
+    ax_evalues.set_xlim(-1.1, 1.1)
+    ax_evalues.set_ylim(-1.1, 1.1)
+    ax_evalues.set_aspect('equal')
+    ax_evalues.xaxis.set_major_formatter(formatter)
+    ax_evalues.yaxis.set_major_formatter(formatter)
+    ax_evalues.set_xticks(_np.linspace(-1.0, 1.0, 9), minor=False)
+    ax_evalues.set_yticks(_np.linspace(-1.0, 1.0, 9), minor=False)
+    ax_evalues.grid(which='major')
+    ax_evalues.legend(handles[::-1], labels[::-1], loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=len(handles), bbox_transform=ax_evalues.transAxes)
+    ax_evalues.set_title('Eigenvalues', fontsize=12.0, fontweight='normal')
+
+    color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLORS[6], _COLOR_WHITE, _COLORS[0]], 21)
+    ax_is = ax_evectors.imshow(evectors_components, aspect='equal', cmap=color_map, interpolation='none', vmin=-1.0, vmax=1.0)
+    _xticks_labels(ax_evectors, mc.size, None, [str(i + 1) for i in range(mc.size)], True)
+    _yticks_labels(ax_evectors, mc.size, 'States', mc.states)
+    ax_evectors.grid(which='minor', color='k')
+    cb = figure.colorbar(ax_is, ax=ax_evectors, drawedges=True, orientation='vertical', ticks=[-1.0, -0.5, 0.0, 0.5, 1.0])
+    cb.ax.set_yticklabels(['-1.0', '-0.5', '0.0', '0.5', '1.0'])
+    ax_evectors.set_title('Eigenvectors', fontsize=12.0, fontweight='normal')
+
+    figure.suptitle('Spectrum Plot', fontsize=15.0, fontweight='bold')
+    figure.subplots_adjust(bottom=0.2)
 
     return figure, axes
 

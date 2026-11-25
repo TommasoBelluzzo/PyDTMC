@@ -3,12 +3,13 @@
 __all__ = [
     'plot_comparison',
     'plot_convergence',
-    'plot_eigenvalues',
     'plot_flow',
     'plot_graph',
     'plot_matrix',
     'plot_redistributions',
+    'plot_residuals',
     'plot_sequence',
+    'plot_spectrum',
     'plot_trellis'
 ]
 
@@ -119,35 +120,6 @@ def plot_convergence(model: _ct.tmdl, steps: int, initial_status: _ct.ostatus = 
         raise _ValidationError('The underlying Markov chain must be ergodic in order to plot convergence.')
 
     return _r.plot_convergence(mc, steps, initial_status, dpi, full_scale)
-
-
-@_dc.interactive_plot
-def plot_eigenvalues(model: _ct.tmdl, dpi: int = 100) -> _ct.tplot:
-
-    """
-    | The function plots the eigenvalues of the transition matrix of the given model on the complex plane.
-
-    | **Notes:**
-
-    - For **irreducible** models, the plot also illustrates the second-largest eigenvalue modulus and the corresponding spectral gap.
-    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
-
-    :param model: the model.
-    :param dpi: the resolution of the plot expressed in dots per inch.
-    :raises ValidationError: if any input argument is not compliant.
-    """
-
-    try:
-
-        model = _v.validate_model(model)
-        dpi = _v.validate_dpi(dpi)
-
-    except Exception as ex:  # pragma: no cover
-        raise _u.create_validation_error(ex, _ins.trace()) from None
-
-    mc = model if model.__class__.__name__ == 'MarkovChain' else _MarkovChain(model.p, model.states)
-
-    return _r.plot_eigenvalues(mc, dpi)
 
 
 @_dc.interactive_plot
@@ -295,6 +267,43 @@ def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: 
 
 
 @_dc.interactive_plot
+def plot_residuals(model: _ct.tmdl, sequence: _ct.tseq, initial_status: _ct.ostatus = None, seed: _ct.oint = None, dpi: int = 100) -> _ct.tplot:
+
+    """
+    | The function plots diagnostic diagrams of the randomized quantile residuals of an observed sequence.
+
+    | **Notes:**
+
+    - The plot includes the residual sequence, the normal quantile-quantile diagram, the empirical residual distribution and the residual autocorrelation function.
+    - The observed sequence consists of states or emitted symbols for Markov chains and hidden Markov models, respectively.
+    - The autocorrelation confidence bounds are approximate and pointwise.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
+
+    :param model: the model.
+    :param sequence: the observed sequence.
+    :param initial_status: the initial hidden state or initial hidden-state distribution (*only applicable to hidden Markov models; if omitted, the hidden states are assumed to be uniformly distributed*).
+    :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+    :param dpi: the resolution of the plot expressed in dots per inch.
+    :raises ValidationError: if any input argument is not compliant.
+    :raises ValueError: if the observed sequence has zero probability under the model.
+    """
+
+    try:
+
+        model = _v.validate_model(model)
+        model_mc = model.__class__.__name__ == 'MarkovChain'
+        initial_status = _v.validate_none(initial_status) if model_mc else initial_status
+        dpi = _v.validate_dpi(dpi)
+
+    except Exception as ex:  # pragma: no cover
+        raise _u.create_validation_error(ex, _ins.trace()) from None
+
+    residuals = model.residuals(sequence, seed=seed) if model_mc else model.residuals(sequence, initial_status, seed)
+
+    return _r.plot_residuals(residuals, dpi)
+
+
+@_dc.interactive_plot
 def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None, plot_type: str = 'histogram', seed: _ct.oint = None, dpi: int = 100) -> _ct.tplot:
 
     """
@@ -306,7 +315,7 @@ def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None,
 
     :param model: the model.
     :param steps: the number of steps to simulate.
-    :param initial_state: the initial state of the sequence (*if omitted, it is chosen uniformly at random*).
+    :param initial_state: the initial state (*if omitted, it is chosen uniformly at random*).
     :param plot_type:
      - **heatmap** for displaying the relative frequencies of observed transitions between consecutive states or symbols;
      - **histogram** for displaying the empirical frequencies of states or symbols;
@@ -328,6 +337,37 @@ def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None,
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
     return _r.plot_sequence(plot_type, model, steps, initial_state, seed, dpi)
+
+
+@_dc.interactive_plot
+def plot_spectrum(model: _ct.tmdl, dpi: int = 100) -> _ct.tplot:
+
+    """
+    | The function plots the eigenvalues and eigenvector components of the transition matrix of the given model.
+
+    | **Notes:**
+
+    - The eigenvalues are displayed on the complex plane.
+    - The eigenvalues plot, for **irreducible** models, also illustrates the second-largest eigenvalue modulus and the corresponding spectral gap.
+    - The eigenvector components heatmap displays the real components of the normalized right eigenvectors, ordered by decreasing eigenvalue modulus, with the eigenvalue 1 placed first.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
+
+    :param model: the model.
+    :param dpi: the resolution of the plot expressed in dots per inch.
+    :raises ValidationError: if any input argument is not compliant.
+    """
+
+    try:
+
+        model = _v.validate_model(model)
+        dpi = _v.validate_dpi(dpi)
+
+    except Exception as ex:  # pragma: no cover
+        raise _u.create_validation_error(ex, _ins.trace()) from None
+
+    mc = model if model.__class__.__name__ == 'MarkovChain' else _MarkovChain(model.p, model.states)
+
+    return _r.plot_spectrum(mc, dpi)
 
 
 @_dc.interactive_plot

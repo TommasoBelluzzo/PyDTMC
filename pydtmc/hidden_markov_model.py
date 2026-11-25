@@ -866,6 +866,37 @@ class HiddenMarkovModel(_bc.Model):
 
         return _d.hmm_propagate(self, target, steps, initial_status, output_last)
 
+    @_dc.object_mark(random_output=True)
+    def residuals(self, symbols: _ct.tseq, initial_status: _ct.ostatus = None, seed: _ct.oint = None) -> _ct.tarray:
+
+        r"""
+        | The method computes the randomized quantile residuals of an observed sequence of emitted symbols using the one-step-ahead predictive distributions.
+
+        | **Notes:**
+
+        - The predictive distributions are computed using the initial hidden-state distribution and the recursively updated filtering distributions.
+        - The residuals depend on the ordering of the emitted symbols and on the randomization.
+        - Under a correctly specified model with known parameters, the residuals are independently and standard normally distributed.
+        - An observed sequence of length :math:`T` produces :math:`T` residuals.
+
+        :param symbols: the observed sequence of emitted symbols.
+        :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
+        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the observed sequence contains emitted symbols with zero predictive probability.
+        """
+
+        try:
+
+            rng = _u.create_rng(seed)
+            symbols = _v.validate_sequence(symbols, self.__symbols)
+            initial_status = _v.validate_status(initial_status, self.__states, True)
+
+        except Exception as ex:  # pragma: no cover
+            raise _u.create_validation_error(ex, _ins.trace()) from None
+
+        return _a.hmm_residuals(self, symbols, initial_status, rng)
+
     @_dc.object_mark(instance_generator=True)
     def restrict(self, states: _ct.ostates = None, symbols: _ct.ostates = None) -> _ct.thmm:
 

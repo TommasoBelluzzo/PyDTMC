@@ -21,12 +21,12 @@ from pydtmc import (
     MarkovChain as _MarkovChain,
     plot_comparison as _plot_comparison,
     plot_convergence as _plot_convergence,
-    plot_eigenvalues as _plot_eigenvalues,
     plot_flow as _plot_flow,
     plot_graph as _plot_graph,
     plot_matrix as _plot_matrix,
     plot_redistributions as _plot_redistributions,
     plot_sequence as _plot_sequence,
+    plot_spectrum as _plot_spectrum,
     plot_trellis as _plot_trellis
 )
 
@@ -191,28 +191,6 @@ def test_plot_convergence(seed, runs, maximum_size, maximum_steps):
 
 # noinspection PyBroadException
 @_pt.mark.slow
-def test_plot_eigenvalues(seed, runs, maximum_size):
-
-    models = _generate_models(seed, runs, maximum_size)
-
-    for model in models:
-
-        try:
-
-            figure, _ = _plot_eigenvalues(model)
-            figure.clear()
-            _mplp.close(figure)
-
-            exception = False
-
-        except Exception:
-            exception = True
-
-        assert exception is False
-
-
-# noinspection PyBroadException
-@_pt.mark.slow
 def test_plot_flow(seed, runs, maximum_size, maximum_steps):
 
     def _params_generator():
@@ -352,6 +330,28 @@ def test_plot_sequence(seed, runs, maximum_size, maximum_steps):
         try:
 
             figure, _ = _plot_sequence(model, steps, plot_type=plot_type, seed=seed)
+            figure.clear()
+            _mplp.close(figure)
+
+            exception = False
+
+        except Exception:
+            exception = True
+
+        assert exception is False
+
+
+# noinspection PyBroadException
+@_pt.mark.slow
+def test_plot_spectrum(seed, runs, maximum_size):
+
+    models = _generate_models(seed, runs, maximum_size)
+
+    for model in models:
+
+        try:
+
+            figure, _ = _plot_spectrum(model)
             figure.clear()
             _mplp.close(figure)
 

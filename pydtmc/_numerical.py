@@ -360,6 +360,28 @@ def is_stochastically_monotone(m: _ct.tarray) -> bool:
     return result
 
 
+def randomized_quantile_residuals(probabilities: _ct.tarray, observations: _ct.tlist_int, rng: _ct.trand) -> _ct.tarray:
+
+    size = len(observations)
+    indices = _np.arange(size)
+
+    cumulative = _np.cumsum(probabilities, axis=1)
+    observed = probabilities[indices, observations]
+
+    if _np.any(observed <= 0.0):
+        raise ValueError('The observed sequence contains observations with zero predictive probability.')
+
+    upper = cumulative[indices, observations]
+    lower = upper - observed
+
+    values = lower + (observed * rng.random_sample(size))
+    values = _np.clip(values, _np.nextafter(0.0, 1.0), _np.nextafter(1.0, 0.0))
+
+    residuals = _sps.ndtri(values)  # pylint: disable=no-member
+
+    return residuals
+
+
 def verify_reachability(p: _ct.tarray, targets: _ct.tarray) -> _ct.tarray:
 
     size = p.shape[0]

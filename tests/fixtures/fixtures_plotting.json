@@ -11,11 +11,6 @@
     "maximum_size": 10,
     "maximum_steps": 20
   },
-  "plot_eigenvalues_data": {
-    "seed": 7331,
-    "runs": 20,
-    "maximum_size": 10
-  },
   "plot_flow_data": {
     "seed": 7331,
     "runs": 20,
@@ -43,6 +38,11 @@
     "runs": 20,
     "maximum_size": 10,
     "maximum_steps": 20
+  },
+  "plot_spectrum_data": {
+    "seed": 7331,
+    "runs": 20,
+    "maximum_size": 10
   },
   "plot_trellis_data": {
     "seed": 7331,

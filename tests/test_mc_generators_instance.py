@@ -90,7 +90,12 @@ def test_closest_reversible(p, distribution, weighted, value):
 def test_compose_with(p, p_other, value):
 
     mc_current = _MarkovChain(p)
-    mc_other = _MarkovChain(p_other)
+
+    if _np.ndim(p_other) == 2:
+        mc_other = _MarkovChain(p_other)
+    else:
+        mc_other = [_MarkovChain(po) for po in p_other]
+
     mc = mc_current.compose_with(mc_other)
 
     actual = mc.p

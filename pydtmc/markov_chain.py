@@ -2585,6 +2585,35 @@ class MarkovChain(_bc.Model):
 
         return _a.mc_recurrence_times(self, statistic)
 
+    @_dc.object_mark(random_output=True)
+    def residuals(self, states: _ct.tseq, seed: _ct.oint = None) -> _ct.tarray:
+
+        r"""
+        | The method computes the randomized quantile residuals of an observed sequence of states using the one-step-ahead predictive distributions.
+
+        | **Notes:**
+
+        - The residuals are conditional on the first state of the sequence, which does not produce a residual.
+        - The residuals depend on the ordering of the states and on the randomization.
+        - Under a correctly specified model with known parameters, the residuals are independently and standard normally distributed.
+        - An observed sequence of length :math:`T` produces :math:`T-1` residuals.
+
+        :param states: the observed sequence of states.
+        :param seed: a seed to be used as RNG initializer for reproducibility purposes.
+        :raises ValidationError: if any input argument is not compliant.
+        :raises ValueError: if the observed sequence of states contains transitions with zero probability.
+        """
+
+        try:
+
+            rng = _u.create_rng(seed)
+            states = _v.validate_sequence(states, self.__states)
+
+        except Exception as ex:  # pragma: no cover
+            raise _u.create_validation_error(ex, _ins.trace()) from None
+
+        return _a.mc_residuals(self, states, rng)
+
     @_dc.object_mark(instance_generator=True)
     def reversibilize(self, method: str = 'additive') -> _ct.tmc:
 

@@ -19,18 +19,21 @@ __all__ = [
     'assess_time_homogeneity',
     'assess_vamp_score',
     # Comparisons
+    'calculate_first_passage_distance',
     'calculate_stationary_distance',
+    'calculate_stationary_divergence',
     'calculate_transition_distance',
     'calculate_transition_divergence',
     # Plotting
     'plot_comparison',
     'plot_convergence',
-    'plot_eigenvalues',
     'plot_flow',
     'plot_graph',
     'plot_matrix',
     'plot_redistributions',
+    'plot_residuals',
     'plot_sequence',
+    'plot_spectrum',
     'plot_trellis'
 ]
 
@@ -60,7 +63,9 @@ from pydtmc.assessments import (
 )
 
 from pydtmc.comparisons import (
+    calculate_first_passage_distance,
     calculate_stationary_distance,
+    calculate_stationary_divergence,
     calculate_transition_distance,
     calculate_transition_divergence
 )
@@ -68,11 +73,12 @@ from pydtmc.comparisons import (
 from pydtmc.plotting import (
     plot_comparison,
     plot_convergence,
-    plot_eigenvalues,
     plot_flow,
     plot_graph,
     plot_matrix,
     plot_redistributions,
+    plot_residuals,
     plot_sequence,
+    plot_spectrum,
     plot_trellis
 )
