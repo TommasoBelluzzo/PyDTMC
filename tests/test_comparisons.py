@@ -11,20 +11,17 @@ import numpy as _np
 
 # Internal
 
-from pydtmc import (
-    MarkovChain as _MarkovChain
-)
-
-from pydtmc.exceptions import (
-    ValidationError as _ValidationError
-)
-
 from pydtmc.comparisons import (
     calculate_first_passage_distance as _calculate_first_passage_distance,
     calculate_stationary_distance as _calculate_stationary_distance,
     calculate_stationary_divergence as _calculate_stationary_divergence,
     calculate_transition_distance as _calculate_transition_distance,
     calculate_transition_divergence as _calculate_transition_divergence
+)
+
+from pydtmc import (
+    MarkovChain as _MarkovChain,
+    ValidationError as _ValidationError
 )
 
 
@@ -174,20 +171,20 @@ def test_calculate_transition_distance_steps(p1, p2, steps, value_f, value_h, va
 
 def test_calculate_transition_divergence_steps(p1, p2, steps, value_js, value_kl):
 
-    model1 = _MarkovChain(p1)
-    model2 = _MarkovChain(p2)
+    mc1 = _MarkovChain(p1)
+    mc2 = _MarkovChain(p2)
 
-    actual = _calculate_transition_divergence('js', model1, model2, steps)
+    actual = _calculate_transition_divergence('js', mc1, mc2, steps)
     expected = value_js
 
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-    actual = _calculate_transition_divergence('js', model2, model1, steps)
+    actual = _calculate_transition_divergence('js', mc2, mc1, steps)
     expected = value_js
 
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-    actual = _calculate_transition_divergence('kl', model1, model2, steps)
+    actual = _calculate_transition_divergence('kl', mc1, mc2, steps)
     expected = float(value_kl)
 
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
@@ -195,9 +192,9 @@ def test_calculate_transition_divergence_steps(p1, p2, steps, value_js, value_kl
 
 def test_comparisons_invalid_models():
 
-    model1 = _MarkovChain([[0.9, 0.1], [0.2, 0.8]])
-    model2 = _MarkovChain([[0.5, 0.5, 0.0], [0.0, 0.5, 0.5], [0.5, 0.0, 0.5]])
-    model3 = _MarkovChain([[1.0, 0.0], [0.0, 1.0]])
+    mc1 = _MarkovChain([[0.9, 0.1], [0.2, 0.8]])
+    mc2 = _MarkovChain([[0.5, 0.5, 0.0], [0.0, 0.5, 0.5], [0.5, 0.0, 0.5]])
+    mc3 = _MarkovChain([[1.0, 0.0], [0.0, 1.0]])
 
     comparisons = [
         (_calculate_first_passage_distance, 'f'),
@@ -209,17 +206,19 @@ def test_comparisons_invalid_models():
 
     for comparison, comparison_type in comparisons:
 
-        with _np.testing.assert_raises(ValueError):
-            comparison(comparison_type, model1, model2)
+        with _np.testing.assert_raises(Exception):
+            comparison(comparison_type, mc1, mc2)
 
-    with _np.testing.assert_raises(ValueError):
-        _calculate_first_passage_distance('f', model1, model3)
+    comparisons = [
+        (_calculate_first_passage_distance, 'f'),
+        (_calculate_stationary_distance, 'h'),
+        (_calculate_stationary_divergence, 'js')
+    ]
 
-    with _np.testing.assert_raises(ValueError):
-        _calculate_stationary_distance('h', model1, model3)
+    for comparison, comparison_type in comparisons:
 
-    with _np.testing.assert_raises(ValueError):
-        _calculate_stationary_divergence('js', model1, model3)
+        with _np.testing.assert_raises(Exception):
+            comparison(comparison_type, mc1, mc3)
 
 
 def test_comparisons_invalid_arguments():

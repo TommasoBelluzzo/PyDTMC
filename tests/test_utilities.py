@@ -21,10 +21,6 @@ import pytest as _pt
 
 # Internal
 
-from pydtmc.exceptions import (
-    ValidationError as _ValidationError
-)
-
 # noinspection PyProtectedMember
 from pydtmc._utilities import (
     create_labels_from_data as _create_labels_from_data,
@@ -32,6 +28,10 @@ from pydtmc._utilities import (
     extract_numeric as _extract_numeric,
     get_instance_generators as _get_instance_generators,
     get_numpy_random_distributions as _get_numpy_random_distributions
+)
+
+from pydtmc.exceptions import (
+    ValidationError as _ValidationError
 )
 
 from tests.utilities import (

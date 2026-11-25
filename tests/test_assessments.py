@@ -24,7 +24,7 @@ from pydtmc.assessments import (
     assess_vamp_score as _assess_vamp_score
 )
 
-from pydtmc.markov_chain import (
+from pydtmc import (
     MarkovChain as _MarkovChain
 )
 
