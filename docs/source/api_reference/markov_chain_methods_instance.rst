@@ -48,6 +48,7 @@ Instance Methods
       reactive_paths,
       reaction_rate,
       recurrence_times,
+      residuals,
       reversibilize,
       reweight,
       sensitivity,

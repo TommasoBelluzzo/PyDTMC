@@ -22,6 +22,7 @@ Instance Methods
       predict,
       predict_trajectory,
       propagate,
+      residuals,
       restrict,
       sequence_probability,
       simulate,
