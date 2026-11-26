@@ -109,7 +109,7 @@ _LINE_WIDTH_REFERENCE = 1.50
 _LINE_WIDTH_EMPHASIZED = 3.00
 
 _MARKER_SIZE = 4.0
-_MARKET_SCATTER_SIZE = 12.0
+_MARKER_SCATTER_SIZE = 12.0
 
 _MAXIMUM_TICKS = 11
 
@@ -149,16 +149,18 @@ def _decode_graphviz_image(graph: _pyd.Dot, dpi: int, oversampling: int = 1) -> 
 
         height, width = img.shape[:2]
 
-        img = img.reshape(
+        img = img.reshape((
             height // oversampling, oversampling,
             width // oversampling, oversampling,
             channels
-        ).mean(axis=(1, 3))
+        )).mean(axis=(1, 3))
 
     return img
 
 
 def _draw_colorbar(figure: _mplp.Figure, image: _ct.tany, axes: _ct.tany, orientation: str, signed: bool = False) -> None:
+
+    locator = None
 
     def _locate_colorbar(ax, renderer):
 
@@ -1759,7 +1761,7 @@ def plot_residuals(model: _ct.tmdl, sequence: _ct.tlist_int, seed: _ct.oint, dpi
     axes = list(axes.flat)
     ax_residuals, ax_quantiles, ax_distribution, ax_autocorrelation = axes
 
-    ax_residuals.scatter(x_residuals, residuals, color=_DEFAULT_COLOR_DATA, s=_MARKET_SCATTER_SIZE)
+    ax_residuals.scatter(x_residuals, residuals, color=_DEFAULT_COLOR_DATA, s=_MARKER_SCATTER_SIZE)
     ax_residuals.axhline(0.0, color=_DEFAULT_COLOR_REFERENCE, linestyle='--', linewidth=_LINE_WIDTH_REFERENCE)
 
     _xticks_steps(ax_residuals, ticks_residuals, None)
@@ -1768,7 +1770,7 @@ def plot_residuals(model: _ct.tmdl, sequence: _ct.tlist_int, seed: _ct.oint, dpi
 
     ax_residuals.set_title('Residuals', fontsize=_FONT_SIZE_AXES_TITLE, fontweight=_FONT_WEIGHT_AXES_TITLE, pad=_PAD_AXES_TITLE)
 
-    ax_quantiles.scatter(quantiles, residuals_sorted, color=_DEFAULT_COLOR_DATA, s=_MARKET_SCATTER_SIZE)
+    ax_quantiles.scatter(quantiles, residuals_sorted, color=_DEFAULT_COLOR_DATA, s=_MARKER_SCATTER_SIZE)
     ax_quantiles.plot(quantiles_limits, quantiles_limits, color=_DEFAULT_COLOR_REFERENCE, linestyle='--', linewidth=_LINE_WIDTH_REFERENCE)
 
     ax_quantiles.grid(which='major', color=_DEFAULT_COLOR_GRID, linewidth=_GRID_LINE_WIDTH, alpha=_GRID_ALPHA)
@@ -1786,7 +1788,7 @@ def plot_residuals(model: _ct.tmdl, sequence: _ct.tlist_int, seed: _ct.oint, dpi
 
         ax_autocorrelation.axhspan(-threshold, threshold, color=_DEFAULT_COLOR_REFERENCE, alpha=0.2)
         ax_autocorrelation.vlines(lags, 0.0, correlations, color=_DEFAULT_COLOR_DATA, linewidth=_LINE_WIDTH)
-        ax_autocorrelation.scatter(lags, correlations, color=_DEFAULT_COLOR_DATA, s=_MARKET_SCATTER_SIZE)
+        ax_autocorrelation.scatter(lags, correlations, color=_DEFAULT_COLOR_DATA, s=_MARKER_SCATTER_SIZE)
         ax_autocorrelation.axhline(0.0, color=_DEFAULT_COLOR_REFERENCE, linestyle='--', linewidth=_LINE_WIDTH_REFERENCE)
 
         _xticks_steps(ax_autocorrelation, ticks_lags, None)
@@ -2034,8 +2036,8 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate, seed: _ct
     extended_graph = (not force_standard) and _is_graphviz_available('neato')
     titles = ('Backward Trellis', 'Forward Trellis')
 
-    k = len(symbols)
-    horizontal = k <= hmm.n * 1.25
+    n, f = hmm.n, len(symbols)
+    horizontal = f <= hmm.n * 1.25
     rows, columns = (1, 2) if horizontal else (2, 1)
 
     if extended_graph:
@@ -2045,12 +2047,11 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate, seed: _ct
             _generate_trellis_extended(hmm, initial_distribution, symbols, True, forward, prediction_states)
         ]
 
-        figure_width = max(_FIGURE_WIDTH, min(_FIGURE_WIDTH * 3.0, max(_FIGURE_WIDTH * 1.25, len(symbols) * 1.1)))
-        figure_height = max(_FIGURE_HEIGHT, min(_FIGURE_HEIGHT * 2.5, (hmm.n * 0.9) + 1.0))
+        figure_width = max(_FIGURE_WIDTH, min(_FIGURE_WIDTH * 3.0, max(_FIGURE_WIDTH * 1.25, f * 1.1)))
+        figure_height = max(_FIGURE_HEIGHT, min(_FIGURE_HEIGHT * 2.5, (n * 0.9) + 1.0))
 
         if horizontal:
             figure_width = min(_FIGURE_WIDTH * 3.0, figure_width * 2.0)
-            figure_height = max(_FIGURE_HEIGHT, figure_height / 2.0)
 
         figure, axes = _mplp.subplots(nrows=rows, ncols=columns, figsize=(figure_width, figure_height), tight_layout=True, dpi=dpi)
         axes = list(axes.flat)
@@ -2086,15 +2087,14 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate, seed: _ct
         label_offset = (_mt.sqrt(_NODE_SIZE) / 2.0) + _PAD_LABEL
         title_offset = label_offset + _FONT_SIZE_GRAPH_LABEL + _PAD_AXES_TITLE
 
-        x_limits = (0.5, k + 0.5)
-        y_limits = (0.0, hmm.n + 0.5)
+        x_limits = (0.5, f + 0.5)
+        y_limits = (0.0, n + 0.5)
 
-        figure_width = max(_FIGURE_WIDTH, min(_FIGURE_WIDTH * 3.0, len(symbols) * 0.65))
-        figure_height = max(_FIGURE_HEIGHT, min(_FIGURE_HEIGHT * 2.5, (hmm.n * 0.9) + 1.0))
+        figure_width = max(_FIGURE_WIDTH, min(_FIGURE_WIDTH * 3.0, f * 0.65))
+        figure_height = max(_FIGURE_HEIGHT, min(_FIGURE_HEIGHT * 2.5, (n * 0.9) + 1.0))
 
         if horizontal:
             figure_width = min(_FIGURE_WIDTH * 3.0, figure_width * 2.0)
-            figure_height = max(_FIGURE_HEIGHT, figure_height / 2.0)
 
         figure, axes = _mplp.subplots(nrows=rows, ncols=columns, figsize=(figure_width, figure_height), constrained_layout=True, dpi=dpi)
         axes = list(axes.flat)
@@ -2110,7 +2110,7 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate, seed: _ct
 
             for col, header in enumerate(headers):
                 ax.annotate(
-                    header, (col + 1.0, hmm.n),
+                    header, (col + 1.0, n),
                     xytext=(0.0, label_offset), textcoords='offset points',
                     fontsize=_FONT_SIZE_GRAPH_LABEL, fontweight=_FONT_WEIGHT_AXES_LABEL,
                     horizontalalignment='center', verticalalignment='bottom',
@@ -2119,7 +2119,7 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate, seed: _ct
 
             for row, label in enumerate(labels):
                 ax.annotate(
-                    label, (1.0, hmm.n - row),
+                    label, (1.0, n - row),
                     xytext=(-label_offset, 0.0), textcoords='offset points',
                     fontsize=_FONT_SIZE_GRAPH_LABEL, fontweight=_FONT_WEIGHT_AXES_LABEL,
                     horizontalalignment='right', verticalalignment='center',
@@ -2134,7 +2134,7 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate, seed: _ct
                 collection.set_clip_on(False)
 
             ax.set_title(
-                title, y=float(hmm.n),
+                title, y=float(n),
                 fontsize=_FONT_SIZE_AXES_TITLE, fontweight=_FONT_WEIGHT_AXES_TITLE,
                 verticalalignment='bottom', pad=0.0
             )
