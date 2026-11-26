@@ -75,8 +75,12 @@ jobs:
     - name: Coverage Artifact Upload
       uses: actions/upload-artifact@v7
       with:
-        name: coverage-data-${{ matrix.os }}-${{ matrix.python-version }}
-        path: .coverage.${{ matrix.os }}.${{ matrix.python-version }}
+        name: coverage
+        path: |
+          htmlcov/
+          .coverage
+          coverage.xml
+          coverage.lcov
         include-hidden-files: true
         if-no-files-found: error
         overwrite: true
@@ -123,6 +127,5 @@ jobs:
     - name: Coverage Submission
       uses: coverallsapp/github-action@v2
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        format: cobertura
-        file: coverage.xml
+        format: lcov
+        file: coverage.lcov

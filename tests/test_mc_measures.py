@@ -13,6 +13,7 @@ import ast as _ast
 
 import numpy as _np
 import numpy.testing as _npt
+import pytest as _pt
 
 # Internal
 
@@ -493,6 +494,25 @@ def test_recurrence_times(p, value_mean, value_variance):
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8, equal_nan=True)
     else:
         assert actual == expected
+
+
+def test_residuals(p, states, seed, value):
+
+    mc = _MarkovChain(p)
+
+    if value is None:
+
+        with _pt.raises(ValueError):
+            mc.residuals(states, seed)
+
+    else:
+
+        actual = mc.residuals(states, seed)
+        print(actual)
+        expected = _np.array(value)
+
+        assert actual.shape == (len(states) - 1,)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_sensitivity(p, state, value):
