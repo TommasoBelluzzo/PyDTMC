@@ -508,7 +508,6 @@ def test_residuals(p, states, seed, value):
     else:
 
         actual = mc.residuals(states, seed)
-        print(actual)
         expected = _np.array(value)
 
         assert actual.shape == (len(states) - 1,)
