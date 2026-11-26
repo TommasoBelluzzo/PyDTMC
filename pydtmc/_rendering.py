@@ -162,7 +162,7 @@ def _draw_colorbar(figure: _mplp.Figure, image: _ct.tany, axes: _ct.tany, orient
 
     locator = None
 
-    def _locate_colorbar(ax, renderer):
+    def _locate_colorbar(ax, renderer):  # pragma: no cover
 
         bounds = locator(ax, renderer) if locator is not None else ax.get_position(original=True)
 

@@ -9,6 +9,7 @@
 
 import numpy as _np
 import numpy.testing as _npt
+import pytest as _pt
 
 # Internal
 
@@ -133,6 +134,24 @@ def test_perplexity(p, e, symbols, initial_status, value):
     expected = value
 
     assert _np.isclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_residuals(p, e, symbols, initial_status, seed, value):
+
+    hmm = _HiddenMarkovModel(p, e)
+
+    if value is None:
+
+        with _pt.raises(ValueError):
+            hmm.residuals(symbols, initial_status, seed)
+
+    else:
+
+        actual = hmm.residuals(symbols, initial_status, seed)
+        expected = _np.array(value)
+
+        assert actual.shape == (len(symbols),)
+        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
 def test_synchronization_entropy(p, e, length, value):
