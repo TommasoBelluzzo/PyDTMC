@@ -50,6 +50,7 @@ from pydtmc._validation import (
     validate_labels_current as _validate_labels_current,
     validate_labels_pair as _validate_labels_pair,
     validate_labels_input as _validate_labels_input,
+    validate_lags as _validate_lags,
     validate_markov_chain as _validate_markov_chain,
     validate_markov_chains as _validate_markov_chains,
     validate_mask as _validate_mask,
@@ -404,6 +405,16 @@ def test_validate_labels_pair(value, labels, is_valid):
     else:
         with _pt.raises(Exception):
             _validate_labels_pair(value, labels)
+
+
+def test_validate_lags(value, size, is_valid):
+
+    if is_valid:
+        result = _validate_lags(value, size)
+        assert isinstance(result, list) and all(isinstance(v, int) for v in result) and (result == sorted(result))
+    else:
+        with _pt.raises(Exception):
+            _validate_lags(value, size)
 
 
 def test_validate_markov_chain(value, size, is_valid):

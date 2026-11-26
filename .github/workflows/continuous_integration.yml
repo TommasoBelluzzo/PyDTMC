@@ -15,7 +15,7 @@ defaults:
     shell: bash
 
 jobs:
-  continuous_integration:
+  tests:
     name: Continuous Integration
     runs-on: ${{ matrix.os }}
     strategy:
@@ -82,7 +82,7 @@ jobs:
         overwrite: true
   coverage:
     name: Coverage
-    needs: continuous_integration
+    needs: tests
     runs-on: ubuntu-latest
     env:
       COVERAGE_RCFILE: setup.cfg
