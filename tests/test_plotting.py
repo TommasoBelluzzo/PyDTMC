@@ -24,6 +24,7 @@ from pydtmc import (
     plot_decoding as _plot_decoding,
     plot_flow as _plot_flow,
     plot_graph as _plot_graph,
+    plot_implied_timescales as _plot_implied_timescales,
     plot_matrix as _plot_matrix,
     plot_posterior as _plot_posterior,
     plot_redistributions as _plot_redistributions,
@@ -190,8 +191,9 @@ def test_plot_decoding(seed, runs, maximum_size, maximum_steps):
     for size, size_multiplier, zeros, steps, initial_state in configs:
 
         hmm = _HiddenMarkovModel.random(size, size * size_multiplier, p_zeros=zeros, e_zeros=zeros * size_multiplier, seed=seed)
+        _, symbols = hmm.simulate(steps, initial_state=initial_state, seed=seed)
 
-        figure, _ = _plot_decoding(hmm, steps, initial_state=initial_state, seed=seed, force_standard=True)
+        figure, _ = _plot_decoding(hmm, symbols, initial_status=initial_state)
         figure.clear()
         _mplp.close(figure)
 
@@ -240,6 +242,29 @@ def test_plot_graph(seed, runs, maximum_size):
 
 
 @_pt.mark.slow
+def test_plot_implied_timescales(seed, runs, maximum_size, maximum_steps, maximum_lag):
+
+    def _params_generator():
+
+        p_size = _rd.randint(2, maximum_size)
+        p_lags = [1] + sorted(_rd.sample(range(2, maximum_lag + 1), _rd.randint(0, maximum_lag - 1)))
+        p_fitting_type = _rd.choice(('map', 'mle', 'rmle'))
+
+        yield from [p_size, p_lags, p_fitting_type]
+
+    configs = _generate_configs(seed, runs, _params_generator)
+
+    for size, lags, fitting_type in configs:
+
+        mc = _MarkovChain.random(size, seed=seed)
+        states = mc.simulate(maximum_steps, seed=seed)
+
+        figure, _ = _plot_implied_timescales(lags, fitting_type, mc.states, states)
+        figure.clear()
+        _mplp.close(figure)
+
+
+@_pt.mark.slow
 def test_plot_matrix(seed, runs, maximum_size):
 
     models = _generate_models(seed, runs, maximum_size)
@@ -254,6 +279,32 @@ def test_plot_matrix(seed, runs, maximum_size):
             figure, _ = _plot_matrix(model, underlying_matrix='emission')
             figure.clear()
             _mplp.close(figure)
+
+
+@_pt.mark.slow
+def test_plot_posterior(seed, runs, maximum_size, maximum_steps):
+
+    def _params_generator():
+
+        p_size = _rd.randint(2, maximum_size)
+        p_size_multiplier = _rd.randint(1, 3)
+        p_zeros = _rd.randint(0, p_size)
+        p_steps = _rd.randint(2, maximum_steps)
+        p_initial_state = _rd.choice((None,) + tuple(range(p_size)))
+        p_plot_type = _rd.choice(('heatmap', 'projection'))
+
+        yield from [p_size, p_size_multiplier, p_zeros, p_steps, p_initial_state, p_plot_type]
+
+    configs = _generate_configs(seed, runs, _params_generator)
+
+    for size, size_multiplier, zeros, steps, initial_state, plot_type in configs:
+
+        hmm = _HiddenMarkovModel.random(size, size * size_multiplier, p_zeros=zeros, e_zeros=zeros * size_multiplier, seed=seed)
+        _, symbols = hmm.simulate(steps, initial_state=initial_state, seed=seed)
+
+        figure, _ = _plot_posterior(hmm, symbols, initial_status=initial_state, plot_type=plot_type)
+        figure.clear()
+        _mplp.close(figure)
 
 
 @_pt.mark.slow

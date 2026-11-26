@@ -19,7 +19,7 @@ jobs:
     name: Continuous Integration
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
         python-version: [ '3.12', '3.13', '3.14', '3.15' ]
@@ -52,6 +52,7 @@ jobs:
           brew install graphviz
         fi
     - name: Linting
+      if: runner.os == 'Linux'
       run: |
         python -m flake8 .
         python -m pylint docs/
@@ -66,10 +67,62 @@ jobs:
     - name: Build
       run: |
         python -m build
-    - name: Testing & Coverage
+    - name: Testing
       env:
-        COVERALLS_SERVICE_NAME: github-actions
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        COVERAGE_FILE: .coverage.${{ matrix.os }}.${{ matrix.python-version }}
       run: |
-        python -m pytest --capture=no --benchmark-skip --cov=pydtmc tests/
-        python -m coveralls
+        python -m pytest --capture=no --benchmark-skip --cov --cov-config=setup.cfg tests/
+    - name: Coverage Artifact Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage-data-${{ matrix.os }}-${{ matrix.python-version }}
+        path: .coverage.${{ matrix.os }}.${{ matrix.python-version }}
+        include-hidden-files: true
+        if-no-files-found: error
+        overwrite: true
+  coverage:
+    name: Coverage
+    needs: continuous_integration
+    runs-on: ubuntu-latest
+    env:
+      COVERAGE_RCFILE: setup.cfg
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v7
+    - name: Python Setup
+      uses: actions/setup-python@v7
+      with:
+        python-version: '3.15'
+    - name: Dependencies Installation
+      run: |
+        python -m pip install --quiet --upgrade pip
+        python -m pip install --quiet --upgrade coverage
+    - name: Coverage Download
+      uses: actions/download-artifact@v8
+      with:
+        pattern: coverage-data-*
+        path: coverage/
+        merge-multiple: true
+    - name: Coverage Combination
+      run: |
+        python -m coverage combine coverage/
+        python -m coverage report
+        python -m coverage xml
+        python -m coverage html
+    - name: Coverage Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage
+        path: |
+          .coverage
+          coverage.xml
+          htmlcov/
+        include-hidden-files: true
+        if-no-files-found: error
+        overwrite: true
+    - name: Coverage Submission
+      uses: coverallsapp/github-action@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        format: cobertura
+        file: coverage.xml

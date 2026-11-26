@@ -28,10 +28,23 @@
     "runs": 20,
     "maximum_size": 5
   },
+  "plot_implied_timescales_data": {
+    "seed": 7331,
+    "runs": 20,
+    "maximum_size": 5,
+    "maximum_steps": 200,
+    "maximum_lag": 5
+  },
   "plot_matrix_data": {
     "seed": 7331,
     "runs": 50,
     "maximum_size": 25
+  },
+  "plot_posterior_data": {
+    "seed": 7331,
+    "runs": 20,
+    "maximum_size": 10,
+    "maximum_steps": 20
   },
   "plot_redistributions_data": {
     "seed": 7331,

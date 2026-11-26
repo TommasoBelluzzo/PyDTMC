@@ -50,6 +50,7 @@ __all__ = [
     'tpair_int', 'opair_int',
     'tpair_str', 'opair_str',
     # Tuples
+    'ttup_any', 'otup_any',
     'ttup_array', 'otup_array',
     'ttup_bool', 'otup_bool',
     'ttup_float', 'otup_float',
@@ -288,6 +289,9 @@ tpair_str = _tp.Tuple[str, str]
 opair_str = _tp.Optional[tpair_str]
 
 # TUPLES
+
+ttup_any = _tp.Tuple[tany, ...]
+otup_any = _tp.Optional[ttup_any]
 
 ttup_array = _tp.Tuple[tarray, ...]
 otup_array = _tp.Optional[ttup_array]
