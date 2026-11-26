@@ -30,4 +30,5 @@ Static Methods
       random,
       random_distribution,
       random_walk,
+      self_attention,
       urn_model

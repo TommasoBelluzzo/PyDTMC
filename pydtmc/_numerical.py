@@ -16,6 +16,7 @@ __all__ = [
     'is_stochastically_monotone',
     'kullback_leibler_divergence',
     'matrix_geometric_sum',
+    'randomized_quantile_residuals',
     'slem',
     'verify_reachability'
 ]

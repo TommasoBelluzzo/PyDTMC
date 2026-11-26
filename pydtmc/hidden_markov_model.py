@@ -117,7 +117,13 @@ class HiddenMarkovModel(_bc.Model):
 
     def __hash__(self) -> int:
 
-        return hash((self.p.tobytes(), self.e.tobytes(), tuple(self.states), tuple(self.symbols)))
+        p = self.p
+        p[p == 0.0] = 0.0
+
+        e = self.e
+        e[e == 0.0] = 0.0
+
+        return hash((p.tobytes(), e.tobytes(), tuple(self.__states), tuple(self.__symbols)))
 
     def __repr__(self) -> str:
 
@@ -1651,6 +1657,7 @@ class HiddenMarkovModel(_bc.Model):
 
         - In the masks, *NaN* entries represent unspecified transition or emission probabilities.
         - Specified mask entries remain fixed, while the remaining probability mass is distributed among unspecified entries.
+        - Mask rows whose specified probabilities sum to less than 1, within numerical tolerance, must contain at least one unspecified entry.
 
         :param n: the number of hidden states of the hidden Markov model.
         :param k: the number of emitted symbols of the hidden Markov model.

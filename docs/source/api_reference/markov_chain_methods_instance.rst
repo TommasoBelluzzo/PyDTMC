@@ -14,6 +14,7 @@ Instance Methods
       committor_probabilities,
       commute_times_between,
       commute_times_to,
+      compose_with,
       conductance,
       cumulants,
       expected_rewards,

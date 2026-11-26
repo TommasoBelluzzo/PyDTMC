@@ -138,6 +138,11 @@
       "is_valid": false
     },
     {
+      "value": "[1.0, 2.0 + 3.0j, 4.0]",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
       "value": "tuple([5, 8, 0])",
       "evaluate": true,
       "is_valid": false
@@ -163,6 +168,11 @@
       "is_valid": true
     },
     {
+      "value": "np.array([[0.5 + 1.0j, 0.5], [0.5, 0.5]])",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
       "value": "spsp.coo_matrix((np.array([4, 5, 7, 9]), (np.array([0, 3, 1, 0]), np.array([0, 3, 1, 2]))), shape=(4, 4))",
       "evaluate": true,
       "is_valid": true
@@ -178,9 +188,19 @@
       "is_valid": true
     },
     {
+      "value": "pd.Series([1.0, 2.0 + 3.0j, 4.0])",
+      "evaluate": true,
+      "is_valid": false
+    },
+    {
       "value": "pd.DataFrame([{'a': 1, 'b': 2}, {'a': 5, 'b': 10, 'c': 20}])",
       "evaluate": true,
       "is_valid": true
+    },
+    {
+      "value": "pd.DataFrame({'A': [1.0, 2.0], 'B': [3.0 + 4.0j, 5.0]})",
+      "evaluate": true,
+      "is_valid": false
     },
     {
       "value": null,

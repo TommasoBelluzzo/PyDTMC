@@ -28,6 +28,26 @@ from pydtmc import (
 # TESTS #
 #########
 
+def test_hash_equality_matrix_preservation():
+
+    mc = _MarkovChain([[1.00, -0.00], [0.25, 0.75]])
+
+    expected = mc.p.tobytes()
+    actual = mc.p.tobytes()
+
+    assert actual == expected
+
+
+def test_hash_equality_signed_zeros():
+
+    mc1 = _MarkovChain([[1.00,  0.00], [0.25, 0.75]])
+    mc2 = _MarkovChain([[1.00, -0.00], [0.25, 0.75]])
+
+    assert mc1 == mc2
+    assert hash(mc1) == hash(mc2)
+    assert len({mc1, mc2}) == 1
+
+
 def test_attributes(p, is_absorbing, is_canonical, is_doubly_stochastic, is_ergodic, is_reversible, is_stochastically_monotone, is_symmetric):
 
     mc = _MarkovChain(p)

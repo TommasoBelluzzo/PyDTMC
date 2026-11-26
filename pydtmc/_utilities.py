@@ -187,7 +187,7 @@ def extract_numeric(data: _ct.tany, dtype: _ct.odtype = None) -> _ct.tarray:
     else:
         output = None
 
-    if (output is None) or (not _np.issubdtype(output.dtype, _np.number)):
+    if (output is None) or (not _np.issubdtype(output.dtype, _np.number)) or _np.iscomplexobj(output):
         raise TypeError('The data type is not supported.')
 
     if dtype is not None:
@@ -248,39 +248,40 @@ def get_full_name(obj: _ct.tany) -> str:
 
 def get_numpy_random_distributions() -> _ct.tlist_str:
 
-    try:
-        from numpydoc.docscrape import NumpyDocString
-    except ImportError:  # pragma: no cover
-        return []
+    supported_distributions = (
+        'beta',
+        'binomial',
+        'chisquare',
+        'exponential',
+        'f',
+        'gamma',
+        'geometric',
+        'gumbel',
+        'hypergeometric',
+        'laplace',
+        'logistic',
+        'lognormal',
+        'logseries',
+        'negative_binomial',
+        'noncentral_chisquare',
+        'noncentral_f',
+        'normal',
+        'pareto',
+        'poisson',
+        'power',
+        'rayleigh',
+        'triangular',
+        'uniform',
+        'vonmises',
+        'wald',
+        'weibull',
+        'zipf'
+    )
 
-    excluded_funcs = ('dirichlet', 'multinomial', 'multivariate_normal')
-    valid_summaries = ('DRAW RANDOM SAMPLES', 'DRAW SAMPLES', 'DRAWS SAMPLES')
-
-    random_distributions = []
-
-    for func_name in dir(_npr.RandomState):  # pylint: disable=no-member
-
-        func = getattr(_npr.RandomState, func_name)  # pylint: disable=no-member
-
-        if not callable(func) or func_name.startswith('_') or func_name.startswith('standard_') or func_name in excluded_funcs:
-            continue
-
-        doc = NumpyDocString(func.__doc__)
-
-        if 'Summary' not in doc:  # pragma: no cover
-            continue
-
-        doc_summary = doc['Summary']
-
-        if not isinstance(doc_summary, list) or (len(doc_summary) == 0) or not isinstance(doc_summary[0], str):
-            continue
-
-        doc_summary_first = doc_summary[0].upper()
-
-        for valid_summary in valid_summaries:
-            if doc_summary_first.startswith(valid_summary):
-                random_distributions.append(func_name)
-                break
+    random_distributions = [
+        name for name in supported_distributions
+        if callable(getattr(_npr.RandomState, name, None))
+    ]
 
     return random_distributions
 

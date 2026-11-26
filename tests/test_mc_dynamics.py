@@ -64,7 +64,7 @@ def test_propagate(p, steps, initial_status, output_last, value):
 
     _npt.assert_allclose(actual, expected)
 
-    if initial_status is not None:
+    if (initial_status is not None) and (not output_last):
 
         actual = distributions[0]
 

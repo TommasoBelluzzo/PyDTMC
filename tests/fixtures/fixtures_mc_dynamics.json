@@ -6,6 +6,18 @@
       [0.0, 1.0]
     ],
     "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 0,
+        "output_index": false,
+        "value": "1"
+      },
+      {
+        "initial_state": 1,
+        "output_index": true,
+        "value": 1
+      }
+    ],
     "predict_data": [
       {
         "steps": 8,
@@ -32,18 +44,6 @@
         "initial_state": 1,
         "output_indices": true,
         "value": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-      }
-    ],
-    "next_data": [
-      {
-        "initial_state": 0,
-        "output_index": false,
-        "value": "1"
-      },
-      {
-        "initial_state": 1,
-        "output_index": true,
-        "value": 1
       }
     ],
     "propagate_data": [
@@ -135,6 +135,18 @@
       [0.45, 0.55]
     ],
     "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 0,
+        "output_index": false,
+        "value": "2"
+      },
+      {
+        "initial_state": 1,
+        "output_index": true,
+        "value": 0
+      }
+    ],
     "predict_data": [
       {
         "steps": 11,
@@ -161,18 +173,6 @@
         "initial_state": 1,
         "output_indices": true,
         "value": [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
-      }
-    ],
-    "next_data": [
-      {
-        "initial_state": 0,
-        "output_index": false,
-        "value": "2"
-      },
-      {
-        "initial_state": 1,
-        "output_index": true,
-        "value": 0
       }
     ],
     "propagate_data": [
@@ -263,6 +263,18 @@
       [0.75, 0.05, 0.20]
     ],
     "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 0,
+        "output_index": false,
+        "value": "3"
+      },
+      {
+        "initial_state": 2,
+        "output_index": true,
+        "value": 0
+      }
+    ],
     "predict_data": [
       {
         "steps": 6,
@@ -289,18 +301,6 @@
         "initial_state": 2,
         "output_indices": true,
         "value": [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-      }
-    ],
-    "next_data": [
-      {
-        "initial_state": 0,
-        "output_index": false,
-        "value": "3"
-      },
-      {
-        "initial_state": 2,
-        "output_index": true,
-        "value": 0
       }
     ],
     "propagate_data": [
@@ -395,6 +395,18 @@
       [0.00000000, 0.50000000, 0.50000000]
     ],
     "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 1,
+        "output_index": false,
+        "value": "2"
+      },
+      {
+        "initial_state": 2,
+        "output_index": true,
+        "value": 1
+      }
+    ],
     "predict_data": [
       {
         "steps": 15,
@@ -421,18 +433,6 @@
         "initial_state": 2,
         "output_indices": true,
         "value": null
-      }
-    ],
-    "next_data": [
-      {
-        "initial_state": 1,
-        "output_index": false,
-        "value": "2"
-      },
-      {
-        "initial_state": 2,
-        "output_index": true,
-        "value": 1
       }
     ],
     "propagate_data": [
@@ -523,6 +523,18 @@
       [0.2, 0.5, 0.3]
     ],
     "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 0,
+        "output_index": false,
+        "value": "2"
+      },
+      {
+        "initial_state": 1,
+        "output_index": true,
+        "value": 2
+      }
+    ],
     "predict_data": [
       {
         "steps": 14,
@@ -549,18 +561,6 @@
         "initial_state": 2,
         "output_indices": true,
         "value": [2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1]
-      }
-    ],
-    "next_data": [
-      {
-        "initial_state": 0,
-        "output_index": false,
-        "value": "2"
-      },
-      {
-        "initial_state": 1,
-        "output_index": true,
-        "value": 2
       }
     ],
     "propagate_data": [
@@ -653,6 +653,18 @@
       [0.0, 1.0, 0.0]
     ],
     "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 1,
+        "output_index": false,
+        "value": "1"
+      },
+      {
+        "initial_state": 2,
+        "output_index": true,
+        "value": 1
+      }
+    ],
     "predict_data": [
       {
         "steps": 14,
@@ -679,18 +691,6 @@
         "initial_state": 2,
         "output_indices": true,
         "value": [2, 1, 0, 2, 1, 0, 2, 1, 0, 2]
-      }
-    ],
-    "next_data": [
-      {
-        "initial_state": 1,
-        "output_index": false,
-        "value": "1"
-      },
-      {
-        "initial_state": 2,
-        "output_index": true,
-        "value": 1
       }
     ],
     "propagate_data": [
@@ -784,6 +784,18 @@
       [0.5, 0.0, 0.0, 0.5]
     ],
     "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 2,
+        "output_index": false,
+        "value": "1"
+      },
+      {
+        "initial_state": 3,
+        "output_index": true,
+        "value": 0
+      }
+    ],
     "predict_data": [
       {
         "steps": 17,
@@ -810,18 +822,6 @@
         "initial_state": 2,
         "output_indices": true,
         "value": [2, 0, 1, 2, 0]
-      }
-    ],
-    "next_data": [
-      {
-        "initial_state": 2,
-        "output_index": false,
-        "value": "1"
-      },
-      {
-        "initial_state": 3,
-        "output_index": true,
-        "value": 0
       }
     ],
     "propagate_data": [
@@ -912,6 +912,18 @@
       [0.00, 0.00, 0.00, 1.00, 0.00]
     ],
     "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 0,
+        "output_index": false,
+        "value": "2"
+      },
+      {
+        "initial_state": 3,
+        "output_index": true,
+        "value": 2
+      }
+    ],
     "predict_data": [
       {
         "steps": 9,
@@ -938,18 +950,6 @@
         "initial_state": 4,
         "output_indices": true,
         "value": null
-      }
-    ],
-    "next_data": [
-      {
-        "initial_state": 0,
-        "output_index": false,
-        "value": "2"
-      },
-      {
-        "initial_state": 3,
-        "output_index": true,
-        "value": 2
       }
     ],
     "propagate_data": [
@@ -1044,6 +1044,18 @@
       [0.00, 0.00, 0.00, 0.00, 1.00]
     ],
     "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 3,
+        "output_index": false,
+        "value": "3"
+      },
+      {
+        "initial_state": 2,
+        "output_index": true,
+        "value": 1
+      }
+    ],
     "predict_data": [
       {
         "steps": 14,
@@ -1070,18 +1082,6 @@
         "initial_state": 4,
         "output_indices": true,
         "value": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
-      }
-    ],
-    "next_data": [
-      {
-        "initial_state": 3,
-        "output_index": false,
-        "value": "3"
-      },
-      {
-        "initial_state": 2,
-        "output_index": true,
-        "value": 1
       }
     ],
     "propagate_data": [
@@ -1177,6 +1177,18 @@
       [0.00, 0.00, 0.00, 0.00, 1.00, 0.00]
     ],
     "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 2,
+        "output_index": false,
+        "value": "2"
+      },
+      {
+        "initial_state": 5,
+        "output_index": true,
+        "value": 4
+      }
+    ],
     "predict_data": [
       {
         "steps": 42,
@@ -1203,18 +1215,6 @@
         "initial_state": 3,
         "output_indices": true,
         "value": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
-      }
-    ],
-    "next_data": [
-      {
-        "initial_state": 2,
-        "output_index": false,
-        "value": "2"
-      },
-      {
-        "initial_state": 5,
-        "output_index": true,
-        "value": 4
       }
     ],
     "propagate_data": [
@@ -1298,6 +1298,390 @@
         "maximum_doublings": 4,
         "output_index": false,
         "value": "5"
+      }
+    ]
+  },
+  {
+    "id": "#11",
+    "p": [
+      [0.375, 0.375, 0.250],
+      [0.625, 0.125, 0.250],
+      [0.250, 0.625, 0.125]
+    ],
+    "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 1,
+        "output_index": false,
+        "value": "1"
+      },
+      {
+        "initial_state": 2,
+        "output_index": true,
+        "value": 1
+      }
+    ],
+    "predict_data": [
+      {
+        "steps": 5,
+        "initial_state": 0,
+        "output_indices": false,
+        "value": null
+      },
+      {
+        "steps": 5,
+        "initial_state": 1,
+        "output_indices": true,
+        "value": null
+      }
+    ],
+    "predict_trajectory_data": [
+      {
+        "steps": 5,
+        "initial_state": 0,
+        "output_indices": true,
+        "value": null
+      },
+      {
+        "steps": 5,
+        "initial_state": 2,
+        "output_indices": false,
+        "value": ["3", "2", "1", "3", "2", "1"]
+      }
+    ],
+    "propagate_data": [
+      {
+        "steps": 6,
+        "initial_status": null,
+        "output_last": true,
+        "value": [
+          [0.43338903, 0.34438833, 0.22222265]
+        ]
+      },
+      {
+        "steps": 18,
+        "initial_status": 1,
+        "output_last": true,
+        "value": [
+          [0.43333333, 0.34444444, 0.22222222]
+        ]
+      },
+      {
+        "steps": 33,
+        "initial_status": 2,
+        "output_last": true,
+        "value": [
+          [0.43333333, 0.34444444, 0.22222222]
+        ]
+      }
+    ],
+    "sequence_probability_data": [
+      {
+        "states": ["1", "1", "2", "2", "2"],
+        "value": 0.00219727
+      },
+      {
+        "states": [0, 1, 0, 0],
+        "value": 0.087890625
+      },
+      {
+        "states": [1, 0, 1, 1],
+        "value": 0.029296875
+      }
+    ],
+    "simulate_data": [
+      {
+        "steps": 5,
+        "initial_state": null,
+        "final_state": "2",
+        "output_indices": false,
+        "value": ["3", "2"]
+      },
+      {
+        "steps": 12,
+        "initial_state": 0,
+        "final_state": 1,
+        "output_indices": true,
+        "value": [0, 1]
+      },
+      {
+        "steps": 12,
+        "initial_state": 0,
+        "final_state": 2,
+        "output_indices": true,
+        "value": [0, 1, 0, 1, 0, 0, 2]
+      }
+    ],
+    "stationary_sampling_data": [
+      {
+        "maximum_doublings": 2,
+        "output_index": false,
+        "value": null
+      },
+      {
+        "maximum_doublings": 8,
+        "output_index": true,
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "#12",
+    "p": [
+      [0.25, 0.25, 0.50],
+      [0.00, 0.00, 1.00],
+      [0.00, 0.00, 1.00]
+    ],
+    "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 0,
+        "output_index": false,
+        "value": "2"
+      },
+      {
+        "initial_state": 2,
+        "output_index": true,
+        "value": 2
+      }
+    ],
+    "predict_data": [
+      {
+        "steps": 5,
+        "initial_state": 0,
+        "output_indices": false,
+        "value": ["1", "3", "3", "3", "3", "3"]
+      },
+      {
+        "steps": 5,
+        "initial_state": 1,
+        "output_indices": true,
+        "value": [1, 2, 2, 2, 2, 2]
+      }
+    ],
+    "predict_trajectory_data": [
+      {
+        "steps": 2,
+        "initial_state": 0,
+        "output_indices": false,
+        "value": ["1", "3", "3"]
+      },
+      {
+        "steps": 7,
+        "initial_state": 2,
+        "output_indices": true,
+        "value": [2, 2, 2, 2, 2, 2, 2, 2]
+      }
+    ],
+    "propagate_data": [
+      {
+        "steps": 3,
+        "initial_status": null,
+        "output_last": true,
+        "value": [
+          [0.005208333333, 0.005208333333, 0.989583333333]
+        ]
+      },
+      {
+        "steps": 5,
+        "initial_status": 0,
+        "output_last": true,
+        "value": [
+          [0.0009765625, 0.0009765625, 0.9980468750]
+        ]
+      },
+      {
+        "steps": 7,
+        "initial_status": 2,
+        "output_last": true,
+        "value": [
+          [0.0, 0.0, 1.0]
+        ]
+      }
+    ],
+    "sequence_probability_data": [
+      {
+        "states": ["1", "3", "1"],
+        "value": 0.0
+      },
+      {
+        "states": [0, 1, 0, 0, 2, 2, 2],
+        "value": 0.0
+      },
+      {
+        "states": [0, 1, 0, 0, 2, 2, 2],
+        "value": 0.0
+      }
+    ],
+    "simulate_data": [
+      {
+        "steps": 8,
+        "initial_state": null,
+        "final_state": "1",
+        "output_indices": false,
+        "value": ["3", "3", "3", "3", "3", "3", "3", "3", "3"]
+      },
+      {
+        "steps": 8,
+        "initial_state": 1,
+        "final_state": null,
+        "output_indices": true,
+        "value": [1, 2, 2, 2, 2, 2, 2, 2, 2]
+      },
+      {
+        "steps": 8,
+        "initial_state": 2,
+        "final_state": null,
+        "output_indices": true,
+        "value": [2, 2, 2, 2, 2, 2, 2, 2, 2]
+      }
+    ],
+    "stationary_sampling_data": [
+      {
+        "maximum_doublings": 4,
+        "output_index": false,
+        "value": null
+      },
+      {
+        "maximum_doublings": 8,
+        "output_index": false,
+        "value": null
+      }
+    ]
+  },
+  {
+    "id": "#13",
+    "p": [
+      [0.375, 0.125, 0.500],
+      [0.125, 0.750, 0.125],
+      [0.375, 0.250, 0.375]
+    ],
+    "seed": 7331,
+    "next_data": [
+      {
+        "initial_state": 0,
+        "output_index": false,
+        "value": "2"
+      },
+      {
+        "initial_state": 2,
+        "output_index": true,
+        "value": 1
+      }
+    ],
+    "predict_data": [
+      {
+        "steps": 3,
+        "initial_state": 0,
+        "output_indices": false,
+        "value": null
+      },
+      {
+        "steps": 5,
+        "initial_state": 1,
+        "output_indices": true,
+        "value": [1, 1, 1, 1, 1, 1]
+      }
+    ],
+    "predict_trajectory_data": [
+      {
+        "steps": 3,
+        "initial_state": 0,
+        "output_indices": true,
+        "value": null
+      },
+      {
+        "steps": 3,
+        "initial_state": 0,
+        "output_indices": false,
+        "value": null
+      },
+      {
+        "steps": 4,
+        "initial_state": 1,
+        "output_indices": true,
+        "value": [1, 1, 1, 1, 1]
+      }
+    ],
+    "propagate_data": [
+      {
+        "steps": 3,
+        "initial_status": null,
+        "output_last": true,
+        "value": [
+          [0.27473958, 0.41536458, 0.30989583]
+        ]
+      },
+      {
+        "steps": 3,
+        "initial_status": 0,
+        "output_last": false,
+        "value": [
+          [1.00000000, 0.00000000, 0.00000000],
+          [0.37500000, 0.12500000, 0.50000000],
+          [0.34375000, 0.26562500, 0.39062500],
+          [0.30859375, 0.33984375, 0.35156250]
+        ]
+      },
+      {
+        "steps": 3,
+        "initial_status": [0.25, 0.50, 0.25],
+        "output_last": false,
+        "value": [
+          [0.25000000, 0.50000000, 0.25000000],
+          [0.25000000, 0.46875000, 0.28125000],
+          [0.25781250, 0.45312500, 0.28906250],
+          [0.26171875, 0.44433594, 0.29394531]
+        ]
+      }
+    ],
+    "sequence_probability_data": [
+      {
+        "states": ["1", "3", "1", "3"],
+        "value": 0.09375
+      },
+      {
+        "states": [0, 2, 1, 1],
+        "value": 0.09375
+      },
+      {
+        "states": [1, 1, 1, 1, 1],
+        "value": 0.31640625
+      }
+    ],
+    "simulate_data": [
+      {
+        "steps": 8,
+        "initial_state": null,
+        "final_state": "2",
+        "output_indices": false,
+        "value": ["3", "3", "1", "1", "3", "1", "2"]
+      },
+      {
+        "steps": 8,
+        "initial_state": 0,
+        "final_state": null,
+        "output_indices": true,
+        "value": [0, 1, 1, 1, 1, 1, 1, 2, 2]
+      },
+      {
+        "steps": 8,
+        "initial_state": 2,
+        "final_state": null,
+        "output_indices": true,
+        "value": [2, 1, 1, 1, 1, 1, 1, 2, 2]
+      }
+    ],
+    "stationary_sampling_data": [
+      {
+        "maximum_doublings": 0,
+        "output_index": false,
+        "value": "2"
+      },
+      {
+        "maximum_doublings": 4,
+        "output_index": true,
+        "value": 1
       }
     ]
   }

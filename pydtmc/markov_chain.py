@@ -103,7 +103,10 @@ class MarkovChain(_bc.Model):
 
     def __hash__(self) -> int:
 
-        return hash((self.p.tobytes(), tuple(self.__states)))
+        p = self.p
+        p[p == 0.0] = 0.0
+
+        return hash((p.tobytes(), tuple(self.__states)))
 
     def __repr__(self) -> str:
 
@@ -1400,7 +1403,7 @@ class MarkovChain(_bc.Model):
         - The transition matrices are multiplied according to their state indices, without aligning their state labels.
 
         :param others: the Markov chain or list of Markov chains to be composed with the current one.
-        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 and with prefix C is generated*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2119,7 +2122,7 @@ class MarkovChain(_bc.Model):
 
         :param other: the Markov chain to be merged with the current one.
         :param gamma: the merger blending factor.
-        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 with prefix M is generated*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -3714,7 +3717,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - The transition function receives 4 arguments, in order: **x_index**, **x_value**, **y_index** and **y_value**, representing the indices and values of the origin and destination quadrature nodes.
-        - The transition function must return a finite real scalar.
+        - The transition function must return a finite, non-negative real scalar.
         - If all transition weights in a row are 0, a uniform transition distribution is assigned.
 
         :param quadrature_type:
@@ -4269,6 +4272,7 @@ class MarkovChain(_bc.Model):
 
         - In the mask, *NaN* entries represent unspecified transition probabilities.
         - Specified mask entries remain fixed, while the remaining probability mass is distributed among unspecified entries.
+        - Mask rows whose specified probabilities sum to less than 1, within numerical tolerance, must contain at least one unspecified entry.
 
         :param size: the number of states of the Markov chain.
         :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).

@@ -206,6 +206,11 @@ def test_random_distribution(seed, size, f, args, value):
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
+    actual = _np.sum(actual, axis=1)
+    expected = _np.ones(mc.size, dtype=float)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
 
 def test_random_walk(size, topology, lazy, value):
 

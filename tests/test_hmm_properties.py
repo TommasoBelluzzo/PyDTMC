@@ -21,6 +21,61 @@ from pydtmc import (
 # TESTS #
 #########
 
+def test_hash_equality_matrix_preservation():
+
+    p = _np.array([[1.00, -0.00], [0.25, 0.75]])
+    e = _np.array([[0.50, 0.50, -0.00], [-0.00, 0.25, 0.75]])
+    hmm = _HiddenMarkovModel(p, e)
+
+    expected = (hmm.p.tobytes(), hmm.e.tobytes())
+    actual = (hmm.p.tobytes(), hmm.e.tobytes())
+
+    assert actual == expected
+
+
+def test_hash_equality_signed_zeros_emission():
+
+    p = [[1.00, 0.00], [0.25, 0.75]]
+    e1 = [[0.50, 0.50,  0.00], [ 0.00, 0.25, 0.75]]
+    e2 = [[0.50, 0.50, -0.00], [-0.00, 0.25, 0.75]]
+
+    hmm1 = _HiddenMarkovModel(p, e1)
+    hmm2 = _HiddenMarkovModel(p, e2)
+
+    assert hmm1 == hmm2
+    assert hash(hmm1) == hash(hmm2)
+    assert len({hmm1, hmm2}) == 1
+
+
+def test_hash_equality_signed_zeros_transition():
+
+    p1 = [[1.00,  0.00], [0.25, 0.75]]
+    p2 = [[1.00, -0.00], [0.25, 0.75]]
+    e = [[0.50, 0.50, 0.00], [0.00, 0.25, 0.75]]
+
+    hmm1 = _HiddenMarkovModel(p1, e)
+    hmm2 = _HiddenMarkovModel(p2, e)
+
+    assert hmm1 == hmm2
+    assert hash(hmm1) == hash(hmm2)
+    assert len({hmm1, hmm2}) == 1
+
+
+def test_hash_equality_signed_zeros_both():
+
+    p1 = [[1.00,  0.00], [0.25, 0.75]]
+    e1 = [[0.50, 0.50,  0.00], [ 0.00, 0.25, 0.75]]
+    hmm1 = _HiddenMarkovModel(p1, e1)
+
+    p2 = [[1.00, -0.00], [0.25, 0.75]]
+    e2 = [[0.50, 0.50, -0.00], [-0.00, 0.25, 0.75]]
+    hmm2 = _HiddenMarkovModel(p2, e2)
+
+    assert hmm1 == hmm2
+    assert hash(hmm1) == hash(hmm2)
+    assert len({hmm1, hmm2}) == 1
+
+
 def test_emissive_overlap(p, e, value):
 
     hmm = _HiddenMarkovModel(p, e)

@@ -253,7 +253,7 @@ def mc_predict_trajectory(mc: _ct.tmc, steps: int, initial_state: int) -> _ct.ol
             if not _np.isfinite(best_candidate):
                 continue
 
-            origins = _np.flatnonzero(candidates == best_candidate)
+            origins = _np.flatnonzero(_np.isclose(candidates, best_candidate, rtol=0.0, atol=1e-12))
             next_scores[j] = best_candidate
 
             if len(origins) == 1:
@@ -265,7 +265,7 @@ def mc_predict_trajectory(mc: _ct.tmc, steps: int, initial_state: int) -> _ct.ol
         unique = next_unique
 
     best_score = _np.max(scores)
-    destinations = _np.flatnonzero(scores == best_score)
+    destinations = _np.flatnonzero(_np.isclose(scores, best_score, rtol=0.0, atol=1e-12))
 
     if (len(destinations) != 1) or (not unique[destinations[0]]):
         return None

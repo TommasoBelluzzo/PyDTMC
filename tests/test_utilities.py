@@ -147,75 +147,60 @@ def test_get_numpy_random_distributions():
 
     class FakeRandomState:  # pylint: disable=missing-class-docstring
 
-        def _private(self):
-            """Draw random samples."""
-
-        def empty_summary(self):
-            """EMPTY_SUMMARY"""
-
-        def invalid_summary(self):
-            """INVALID_SUMMARY"""
-
-        def missing_summary(self):
-            """MISSING_SUMMARY"""
-
         def beta(self):
-            """Draw random samples."""
-
-        def dirichlet(self):
-            """Draw random samples."""
+            """Supported distribution."""
 
         def gamma(self):
-            """Draw random samples."""
+            """Supported distribution."""
 
-        def multinomial(self):
-            """Draw random samples."""
-
-        def multivariate_normal(self):
-            """Draw random samples."""
+        def geometric(self):
+            """Supported distribution."""
 
         def poisson(self):
-            """Draw random samples."""
+            """Supported distribution."""
+
+        def dirichlet(self):
+            """Unsupported distribution."""
 
         def standard_normal(self):
-            """Draw random samples."""
+            """Unsupported distribution."""
 
-        def uniform(self):
-            """Generate random values."""
+        def shuffle(self):
+            """Unsupported method."""
 
-        constant = 42
+        def seed(self):
+            """Unsupported method."""
 
-    class FakeNumpyDocString(dict):  # pylint: disable=missing-class-docstring
-
-        def __init__(self, doc):
-
-            super().__init__()
-
-            if doc == 'MISSING_SUMMARY':
-                return
-
-            if doc == 'EMPTY_SUMMARY':
-                self['Summary'] = []
-            elif doc == 'INVALID_SUMMARY':
-                self['Summary'] = [None]
-            else:
-                self['Summary'] = [doc]
-
-    numpydoc = _types.ModuleType('numpydoc')
-    docscrape = _types.ModuleType('numpydoc.docscrape')
-
-    numpydoc.__path__ = []
-    numpydoc.docscrape = docscrape
-    docscrape.NumpyDocString = FakeNumpyDocString
+        uniform = None
 
     fake_random = _types.SimpleNamespace(RandomState=FakeRandomState)
 
-    with (
-        _patch.dict(_sys.modules, {'numpydoc': numpydoc, 'numpydoc.docscrape': docscrape}),
-        _patch('pydtmc._utilities._npr', fake_random)
-    ):
+    with _patch('pydtmc._utilities._npr', fake_random):
         actual = _get_numpy_random_distributions()
 
-    expected = ['beta', 'gamma', 'poisson']
+    expected = ['beta', 'gamma', 'geometric', 'poisson']
 
+    assert actual == expected
+
+
+def test_get_numpy_random_distributions_empty():
+
+    fake_random = _types.SimpleNamespace(RandomState=object)
+
+    with _patch('pydtmc._utilities._npr', fake_random):
+        actual = _get_numpy_random_distributions()
+
+    expected = []
+
+    assert actual == expected
+
+
+def test_get_numpy_random_distributions_without_numpydoc():
+
+    expected = _get_numpy_random_distributions()
+
+    with _patch.dict(_sys.modules, {'numpydoc': None, 'numpydoc.docscrape': None}):
+        actual = _get_numpy_random_distributions()
+
+    assert len(actual) > 0
     assert actual == expected

@@ -3125,6 +3125,54 @@
       "rows": 4,
       "columns": 2,
       "is_valid": false
+    },
+    {
+      "value": [[0.2, 0.3, 0.1], ["NaN", "NaN", "NaN"], ["NaN", "NaN", "NaN"]],
+      "rows": 3,
+      "columns": 3,
+      "is_valid": false
+    },
+    {
+      "value": [[0.0, 0.0], ["NaN", "NaN"]],
+      "rows": 2,
+      "columns": 2,
+      "is_valid": false
+    },
+    {
+      "value": [[0.2, 0.3, 0.1], [0.2, "NaN", 0.3]],
+      "rows": 2,
+      "columns": 3,
+      "is_valid": false
+    },
+    {
+      "value": [[0.2, 0.3, "NaN"], [0.0, 0.0, "NaN"]],
+      "rows": 2,
+      "columns": 3,
+      "is_valid": true
+    },
+    {
+      "value": [[1.00, "NaN"], [0.25, 0.75]],
+      "rows": 2,
+      "columns": 2,
+      "is_valid": true
+    },
+    {
+      "value": [[0.50000000, 0.49999999], [0.00000000, 1.00000000]],
+      "rows": 2,
+      "columns": 2,
+      "is_valid": true
+    },
+    {
+      "value": [[0.50000000, 0.49999998], [0.00000000, 1.00000000]],
+      "rows": 2,
+      "columns": 2,
+      "is_valid": false
+    },
+    {
+      "value": [[0.50000000, 0.50000001], [0.00000000, 1.00000000]],
+      "rows": 2,
+      "columns": 2,
+      "is_valid": false
     }
   ],
   "validate_matrix_data": [
@@ -3708,9 +3756,54 @@
       "is_valid": false
     },
     {
+      "value": "bytes",
+      "accepted_values": [],
+      "is_valid": false
+    },
+    {
+      "value": "seed",
+      "accepted_values": [],
+      "is_valid": false
+    },
+    {
+      "value": "get_state",
+      "accepted_values": [],
+      "is_valid": false
+    },
+    {
+      "value": "set_state",
+      "accepted_values": [],
+      "is_valid": false
+    },
+    {
+      "value": "shuffle",
+      "accepted_values": [],
+      "is_valid": false
+    },
+    {
+      "value": "permutation",
+      "accepted_values": [],
+      "is_valid": false
+    },
+    {
+      "value": "undefined",
+      "accepted_values": [],
+      "is_valid": false
+    },
+    {
+      "value": "undefined",
+      "accepted_values": ["noncentral_chisquare", "noncentral_f"],
+      "is_valid": false
+    },
+    {
+      "value": "undefined",
+      "accepted_values": ["beta", "gamma", "undefined"],
+      "is_valid": false
+    },
+    {
       "value": "beta",
       "accepted_values": [],
-      "is_valid": true
+      "is_valid": false
     },
     {
       "value": "beta",
@@ -3728,18 +3821,28 @@
       "is_valid": false
     },
     {
-      "value": "undefined",
-      "accepted_values": [],
+      "value": "geometric",
+      "accepted_values": ["beta", "gamma", "geometric"],
+      "is_valid": true
+    },
+    {
+      "value": "dirichlet",
+      "accepted_values": ["beta", "gamma", "geometric"],
       "is_valid": false
     },
     {
-      "value": "undefined",
-      "accepted_values": ["noncentral_chisquare", "noncentral_f"],
+      "value": "multinomial",
+      "accepted_values": ["beta", "gamma", "geometric"],
       "is_valid": false
     },
     {
-      "value": "undefined",
-      "accepted_values": ["beta", "gamma", "undefined"],
+      "value": "multivariate_normal",
+      "accepted_values": ["beta", "gamma", "geometric"],
+      "is_valid": false
+    },
+    {
+      "value": "standard_normal",
+      "accepted_values": ["beta", "gamma", "geometric"],
       "is_valid": false
     }
   ],

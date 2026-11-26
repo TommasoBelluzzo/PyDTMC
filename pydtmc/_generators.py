@@ -19,6 +19,7 @@ __all__ = [
     'mc_card_shuffling',
     'mc_censor',
     'mc_closest_reversible',
+    'mc_compose',
     'mc_coupon_collector',
     'mc_dirichlet_process',
     'mc_epidemic_model',
@@ -2013,8 +2014,11 @@ def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tm
 def mc_random_distribution(size: int, f: _ct.trfunc, kwargs: dict) -> _ct.tmc_gen_x:
 
     p = f(size=(size, size), **kwargs).astype(float)
+
     p = _np.clip(_np.nan_to_num(p, copy=False), 0.0, None)
     p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
+
+    p /= _np.max(p, axis=1, keepdims=True)
     p /= _np.sum(p, axis=1, keepdims=True)
 
     states = _u.create_labels(size)

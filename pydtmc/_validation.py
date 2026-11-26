@@ -793,8 +793,16 @@ def validate_mask(value: _ct.tany, rows: int, columns: int) -> _ct.tarray:
     if not _np.all(_np.isnan(value) | (_np.isfinite(value) & (value >= 0.0) & (value <= 1.0))):
         raise ValueError('The "@arg@" parameter can contain only NaNs and finite real values between 0.0 and 1.0.')
 
-    if not _np.all(_np.nansum(value, axis=1, dtype=float) <= 1.0):
+    row_sums = _np.nansum(value, axis=1, dtype=float)
+
+    if not _np.all(row_sums <= 1.0):
         raise ValueError('The "@arg@" parameter row sums must not exceed 1.')
+
+    full_rows = _np.isclose(row_sums, 1.0, rtol=0.0, atol=_c.ETOL)
+    unspecified_rows = _np.any(_np.isnan(value), axis=1)
+
+    if not _np.all(full_rows | unspecified_rows):
+        raise ValueError('The "@arg@" parameter rows whose values do not sum to 1 must contain at least one NaN.')
 
     return value
 
@@ -984,7 +992,7 @@ def validate_random_distribution(value: _ct.tany, rng: _ct.trand, accepted_value
         if value not in dir(rng):
             raise ValueError('The "@arg@" parameter, when specified as a callable function, must reference a valid "numpy.random" module object.')
 
-        if len(accepted_values) > 0 and value not in accepted_values:
+        if value not in accepted_values:
             raise ValueError(f'The "@arg@" parameter, when specified as a callable function, must reference one of the following "numpy.random" module objects: {", ".join(accepted_values)}.')
 
         value = getattr(rng, value)
@@ -993,10 +1001,10 @@ def validate_random_distribution(value: _ct.tany, rng: _ct.trand, accepted_value
 
     if _u.is_string(value):
 
-        if value is None or value not in dir(rng):
+        if value not in dir(rng):
             raise ValueError('The "@arg@" parameter, when specified as a string, must reference a valid "numpy.random" module object.')
 
-        if len(accepted_values) > 0 and value not in accepted_values:
+        if value not in accepted_values:
             raise ValueError(f'The "@arg@" parameter, when specified as a string, must reference one of the following "numpy.random" module objects: {", ".join(accepted_values)}.')
 
         value = getattr(rng, value)
