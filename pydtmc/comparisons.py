@@ -45,7 +45,7 @@ def _extract_mean_first_passage_times_to(model1: _ct.tmdl, model2: _ct.tmdl) -> 
 
     mc1, mc2 = _MarkovChain(p1), _MarkovChain(p2)
 
-    if (not mc1.is_irreducible) or (not mc2.is_irreducible):
+    if (not mc1.is_irreducible) or (not mc2.is_irreducible):  # pragma: no cover
         raise ValueError("The models' transition matrices must be irreducible in order to compare their first-passage times.")
 
     mfptt1 = mc1.first_passage_times_to('mean')

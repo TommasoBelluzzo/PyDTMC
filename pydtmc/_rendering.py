@@ -1749,7 +1749,7 @@ def plot_residuals(model: _ct.tmdl, sequence: _ct.tlist_int, seed: _ct.oint, dpi
         threshold = _sps.ndtri(0.975) / _np.sqrt(size)  # pylint: disable=no-member
         limit = min(1.0, max(_np.max(_np.abs(correlations)), threshold) * 1.1)
         ticks_lags = _get_ticks_steps(maximum_lag, offset=1)
-    else:
+    else:  # pragma: no cover
         lags, correlations = _np.array([]), _np.array([])
         threshold, limit, ticks_lags = None, None, None
 

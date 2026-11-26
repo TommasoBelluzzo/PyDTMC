@@ -268,7 +268,7 @@ def plot_implied_timescales(lags: _ct.tlist_int, fitting_type: str, possible_sta
         possible_states = _v.validate_labels_input(possible_states)
         states = _v.validate_sequence(states, possible_states)
 
-        if fitting_param is not None:
+        if fitting_param is not None:  # pragma: no cover
             if fitting_type == 'map':
                 fitting_param = _v.validate_hyperparameter(fitting_param, len(possible_states))
             elif fitting_type == 'mle':
