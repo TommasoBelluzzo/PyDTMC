@@ -30,7 +30,6 @@ import subprocess as _sub
 
 # Libraries
 
-import matplotlib.colorbar as _mplcb
 import matplotlib.colors as _mplcr
 import matplotlib.image as _mpli
 import matplotlib.patches as _mplpc
@@ -69,12 +68,18 @@ _DEFAULT_COLOR_NEGATIVE = _COLORS[6]
 _DEFAULT_COLOR_POSITIVE = _COLORS[0]
 _DEFAULT_COLOR_EDGE = _COLOR_BLACK
 _DEFAULT_COLOR_NODE = _COLOR_WHITE
-_DEFAULT_COLOR_PATH = _COLORS[0]
+_DEFAULT_COLOR_PATH = _DEFAULT_COLOR_DATA
 _DEFAULT_COLOR_SYMBOL = _COLOR_GRAY
+_DEFAULT_COLOR_GRID = _mplp.rcParams['grid.color']
+
+_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT = tuple(_mplp.rcParams['figure.figsize'])
 
 _DEFAULT_FONT_SIZE_AXES_LABEL = 12.0
 _DEFAULT_FONT_SIZE_AXES_TITLE = 13.0
 _DEFAULT_FONT_SIZE_FIGURE_TITLE = 15.0
+_DEFAULT_FONT_SIZE_GRAPH_LABEL = 10.0
+_DEFAULT_FONT_SIZE_EDGE_LABEL = 9.0
+_DEFAULT_FONT_SIZE_LEGEND = _mplp.rcParams['legend.fontsize']
 
 _DEFAULT_FONT_WEIGHT_AXES_LABEL = 'normal'
 _DEFAULT_FONT_WEIGHT_AXES_TITLE = 'normal'
@@ -91,6 +96,16 @@ _DEFAULT_MARKER_SIZE = 4.0
 _DEFAULT_SCATTER_SIZE = 12.0
 
 _DEFAULT_NODE_SIZE = 600
+_DEFAULT_AXES_TITLE_PAD = 6.0
+_DEFAULT_LABEL_PAD = 4.0
+_DEFAULT_SIDE_LABEL_PAD = 10.0
+_DEFAULT_LEGEND_BOTTOM = 0.02
+_DEFAULT_LEGEND_MARGIN = 0.2
+_DEFAULT_LEGEND_SIDE_ANCHOR = (1.02, 0.5)
+_DEFAULT_LEGEND_MAXIMUM_ROWS = 4
+
+_COLORBAR_TICKS_PROBABILITY = (0.0, 0.25, 0.5, 0.75, 1.0)
+_COLORBAR_TICKS_SIGNED = (-1.0, -0.5, 0.0, 0.5, 1.0)
 
 _MAXIMUM_TICKS = 11
 
@@ -114,6 +129,17 @@ def _decode_graphviz_image(graph: _pyd.Dot, dpi: int) -> tuple:
     img_yo = ((img_yi - img_y) / 2.0) * dpi
 
     return img, img_x, img_xo, img_y, img_yo
+
+
+def _draw_colorbar(figure: _mplp.Figure, image: _ct.tany, axes: _ct.tany, orientation: str, signed: bool = False) -> None:
+
+    ticks = _COLORBAR_TICKS_SIGNED if signed else _COLORBAR_TICKS_PROBABILITY
+    labels = [f'{value:.2f}'.rstrip('0').rstrip('.') if value % 1.0 else f'{value:.1f}' for value in ticks]
+    fraction = 0.05 if orientation == 'vertical' else 0.10
+    pad = 0.05 if orientation == 'vertical' else 0.10
+
+    cb = figure.colorbar(image, ax=axes, drawedges=True, orientation=orientation, ticks=ticks, fraction=fraction, pad=pad, aspect=20)
+    cb.set_ticklabels(labels)
 
 
 def _draw_edge_labels_curved(ax: _mplp.Axes, positions: dict, edge_labels: dict) -> None:
@@ -148,13 +174,13 @@ def _draw_edge_labels_curved(ax: _mplp.Axes, positions: dict, edge_labels: dict)
 
         bbox = {
             'boxstyle': 'round',
-            'ec': (1.0, 1.0, 1.0),
-            'fc': (1.0, 1.0, 1.0)
+            'ec': _COLOR_WHITE,
+            'fc': _COLOR_WHITE
         }
 
         ax.text(
             x, y, label,
-            color='k', family='sans-serif', size=10, weight='normal',
+            color=_DEFAULT_COLOR_EDGE, family='sans-serif', size=_DEFAULT_FONT_SIZE_EDGE_LABEL, weight=_DEFAULT_FONT_WEIGHT_AXES_LABEL,
             horizontalalignment='center', verticalalignment='center',
             bbox=bbox, clip_on=True, rotation=rotation, transform=transform, zorder=1
         )
@@ -298,6 +324,50 @@ def _draw_graphviz_image(graph: _pyd.Dot, ax: _mplp.Axes, dpi: int, initial_dpi:
     return image
 
 
+def _draw_legend_bottom(figure: _mplp.Figure, handles: list, labels: _ct.tlist_str) -> float:
+
+    columns = len(handles)
+    if columns == 0:
+        return _DEFAULT_LEGEND_MARGIN
+
+    while True:
+
+        legend = figure.legend(handles, labels, loc='lower center', bbox_to_anchor=(0.5, _DEFAULT_LEGEND_BOTTOM), ncol=columns, fontsize=_DEFAULT_FONT_SIZE_LEGEND)
+        figure.canvas.draw()
+        bounds = legend.get_window_extent()
+
+        if (bounds.width <= figure.bbox.width * 0.96) or (columns == 1):
+            break
+
+        legend.remove()
+        columns -= 1
+
+    # Reserve room for the x-axis decorations as well as the legend.
+    width, height = figure.get_size_inches()
+    width = max(width, bounds.width / (figure.dpi * 0.96))
+    height = max(height, (bounds.height / figure.dpi) / 0.35)
+    figure.set_size_inches(width, height)
+
+    return max(_DEFAULT_LEGEND_MARGIN, _DEFAULT_LEGEND_BOTTOM + bounds.height / (height * figure.dpi) + 0.12)
+
+
+def _draw_legend_side(ax: _mplp.Axes, handles: list) -> None:
+
+    columns = max(1, int(_mt.ceil(len(handles) / float(_DEFAULT_LEGEND_MAXIMUM_ROWS))))
+    ax.legend(handles=handles, loc='center left', bbox_to_anchor=_DEFAULT_LEGEND_SIDE_ANCHOR, ncol=columns, fontsize=_DEFAULT_FONT_SIZE_LEGEND)
+
+
+def _draw_matrix_grid(ax: _mplp.Axes, length: _ct.oint = None, horizontal: bool = True) -> None:
+
+    if horizontal:
+        ax.grid(axis='y', which='minor', color=_COLOR_BLACK, linewidth=_DEFAULT_GRID_LINE_WIDTH, alpha=1.0)
+
+    if (length is None) or (length <= _MAXIMUM_TICKS):
+        ax.grid(axis='x', which='minor', color=_COLOR_BLACK, linewidth=_DEFAULT_GRID_LINE_WIDTH, alpha=1.0)
+    else:
+        ax.tick_params(axis='x', which='minor', bottom=False)
+
+
 def _fit_graph_bounds(ax: _mplp.Axes) -> None:
 
     def _on_draw(event):  # pragma: no cover
@@ -333,6 +403,8 @@ def _generate_hmm_extended(hmm: _ct.thmm, nodes_color: bool, nodes_shape: bool, 
     edge_colors = list(node_colors) if nodes_color else []
 
     g = _pyd.Dot(graph_type='digraph')
+    g.set_node_defaults(fontsize=_DEFAULT_FONT_SIZE_GRAPH_LABEL, fontname='sans-serif')
+    g.set_edge_defaults(fontsize=_DEFAULT_FONT_SIZE_EDGE_LABEL, fontname='sans-serif')
 
     g_sub1 = _pyd.Subgraph()
     g.add_subgraph(g_sub1)
@@ -387,7 +459,7 @@ def _generate_hmm_extended(hmm: _ct.thmm, nodes_color: bool, nodes_shape: bool, 
 
                 if edges_label:
                     edge_attributes['label'] = f' {round(tp, magnitude):.{magnitude}f} '
-                    edge_attributes['fontsize'] = 9
+                    edge_attributes['fontsize'] = _DEFAULT_FONT_SIZE_EDGE_LABEL
 
                 g.add_edge(_pyd.Edge(state_i, state_j, **edge_attributes))
 
@@ -406,7 +478,7 @@ def _generate_hmm_extended(hmm: _ct.thmm, nodes_color: bool, nodes_shape: bool, 
 
                 if edges_label:
                     edge_attributes['label'] = f' {round(ep, magnitude):.{magnitude}f} '
-                    edge_attributes['fontsize'] = 9
+                    edge_attributes['fontsize'] = _DEFAULT_FONT_SIZE_EDGE_LABEL
 
                 g.add_edge(_pyd.Edge(state_i, symbol, **edge_attributes))
 
@@ -424,11 +496,11 @@ def _generate_hmm_standard(hmm: _ct.thmm, nodes_color: bool, nodes_shape: bool, 
 
     node_data = []
 
-    for i, node in enumerate(g.nodes):
+    for node in g.nodes:
 
         if nodes_color:
             if node in hmm.states:
-                node_color = node_colors[i]
+                node_color = node_colors[hmm.states.index(node)]
             else:
                 node_color = _DEFAULT_COLOR_SYMBOL
         else:
@@ -505,6 +577,8 @@ def _generate_mc_extended(mc: _ct.tmc, nodes_color: bool, nodes_shape: bool, edg
     node_colors = _get_colors(len(mc.communicating_classes)) if nodes_color else []
 
     g = _pyd.Dot(graph_type='digraph')
+    g.set_node_defaults(fontsize=_DEFAULT_FONT_SIZE_GRAPH_LABEL, fontname='sans-serif')
+    g.set_edge_defaults(fontsize=_DEFAULT_FONT_SIZE_EDGE_LABEL, fontname='sans-serif')
 
     for i in range(mc.size):
 
@@ -542,7 +616,7 @@ def _generate_mc_extended(mc: _ct.tmc, nodes_color: bool, nodes_shape: bool, edg
 
                 if edges_label:
                     edge_attributes['label'] = f' {round(tp, magnitude):.{magnitude}f} '
-                    edge_attributes['fontsize'] = 9
+                    edge_attributes['fontsize'] = _DEFAULT_FONT_SIZE_EDGE_LABEL
 
                 g.add_edge(_pyd.Edge(state_i, state_j, **edge_attributes))
 
@@ -627,8 +701,10 @@ def _generate_trellis_extended(
     g = _pyd.Dot(
         graph_type='digraph', layout='neato',
         overlap='true', splines='line', outputorder='edgesfirst', margin='0',
-        fontname='Arial'
+        fontname='sans-serif'
     )
+
+    g.set_node_defaults(fontsize=_DEFAULT_FONT_SIZE_GRAPH_LABEL, fontname='sans-serif')
 
     for row in range(n):
         g.add_node(_pyd.Node(
@@ -682,7 +758,7 @@ def _generate_trellis_extended(
                         edge_to = f'node{row_offset + col}'
 
                     edge_color = _DEFAULT_COLOR_PATH if prediction_states[col] == row and prediction_states[
-                        col + 1] == row_next else _COLOR_BLACK
+                        col + 1] == row_next else _DEFAULT_COLOR_EDGE
 
                     g.add_edge(_pyd.Edge(edge_from, edge_to, color=edge_color))
 
@@ -715,7 +791,7 @@ def _generate_trellis_standard(
             else:
                 node_colors.append(_DEFAULT_COLOR_NODE)
 
-            node_edges.append(_COLOR_BLACK)
+            node_edges.append(_DEFAULT_COLOR_EDGE)
             node_labels[node_index] = f'{float(matrix[row, col]):.2f}'
             node_positions[node_index] = (col + 1.0, row_offset)
 
@@ -742,7 +818,7 @@ def _generate_trellis_standard(
                     if (prediction_states[col] == row) and (prediction_states[col + 1] == row_next):
                         edge_color = _DEFAULT_COLOR_PATH
                     else:
-                        edge_color = _COLOR_BLACK
+                        edge_color = _DEFAULT_COLOR_EDGE
 
                     trellis.add_edge(*edge, color=edge_color)
 
@@ -792,6 +868,16 @@ def _get_boundaries(d: _ct.tarray) -> _ct.tpair_array:
     return bottom, top
 
 
+def _get_colormap(signed: bool = False, binary: bool = False) -> _mplcr.LinearSegmentedColormap:
+
+    if signed:
+        colors, count = [_DEFAULT_COLOR_NEGATIVE, _COLOR_WHITE, _DEFAULT_COLOR_POSITIVE], 21
+    else:
+        colors, count = [_COLOR_WHITE, _DEFAULT_COLOR_DATA], 2 if binary else 20
+
+    return _mplcr.LinearSegmentedColormap.from_list('ColorMap', colors, count)
+
+
 def _get_colors(count: int) -> _ct.tlist_str:
 
     colors = []
@@ -830,6 +916,29 @@ def _get_curves(n: int, x1: float, y1: _ct.tarray, x2: float, y2: _ct.tarray) ->
     cy = _np.tile(y1, (15, 1)) + (_np.tile(y2 - y1, (15, 1)) * _np.tile(_np.transpose(ty), (1, n)))
 
     return cx, cy
+
+
+def _get_line_styles(matrix: _ct.tarray) -> list:
+
+    count, length = matrix.shape
+    styles = []
+
+    for i in range(count):
+
+        overlaps = [j for j in range(count) if _np.allclose(matrix[i, :], matrix[j, :], rtol=1e-12, atol=1e-14)]
+        overlap_index = overlaps.index(i)
+
+        marker = 'o' if length == 2 else None
+        line_style = '-'
+
+        if len(overlaps) > 1:  # pragma: no cover
+            line_style = ('-', '--', ':', '-.')[overlap_index % 4]
+            if overlap_index > 0:
+                marker = ('o', 's', '^', 'D')[((overlap_index - 1) // 4) % 4]
+
+        styles.append((line_style, marker))
+
+    return styles
 
 
 def _get_polygons_bars(d: _ct.tarray, bb: _ct.tarray, bt: _ct.tarray, colors: _ct.tlist_str) -> _ct.tlist_any:
@@ -898,6 +1007,29 @@ def _get_polygons_flows(p: _ct.tarray, d: _ct.tarray, bb: _ct.tarray, colors: _c
     return polygons
 
 
+def _get_ticks_steps(length: int, interval: int = 1, offset: int = 0, cell_boundaries: bool = False) -> tuple:
+
+    tick_step = 1
+
+    if length > _MAXIMUM_TICKS:
+
+        target_step = (length - 1) / (_MAXIMUM_TICKS - 1)
+        magnitude = 10.0 ** _mt.floor(_mt.log10(target_step))
+
+        for multiplier in (1, 2, 5, 10):
+
+            tick_step = int(multiplier * magnitude)
+
+            if tick_step >= target_step:
+                break
+
+    ticks = _np.arange(offset, length + offset, tick_step)
+    ticks_minor = _np.arange(offset - 0.5, length + offset, 1.0) if cell_boundaries and length <= _MAXIMUM_TICKS else []
+    limits = (offset - 0.5, length + offset - 0.5)
+
+    return ticks, ticks_minor, ticks * interval, limits
+
+
 def _is_graphviz_available(layout: _ct.ostr = None) -> bool:
 
     if not _pydot_found:  # pragma: no cover
@@ -963,95 +1095,83 @@ def _update_graph_bounds(ax: _mplp.Axes, renderer: _ct.tany) -> bool:
     return True
 
 
-def _xticks_labels(ax: _mplp.Axes, size: int, labels_name: _ct.ostr, labels: _ct.tlist_str, minor_major: bool) -> None:
+def _xticks_labels(ax: _mplp.Axes, labels_name: _ct.ostr, labels: _ct.tlist_str, cell_boundaries: bool = False) -> None:
 
-    if labels_name is not None:
-        ax.set_xlabel(labels_name, fontsize=13.0)
+    size = len(labels)
 
-    if minor_major:
-        ax.set_xticks(_np.arange(0.0, size, 1.0), minor=False)
-        ax.set_xticks(_np.arange(-0.5, size, 1.0), minor=True)
-    else:
-        ax.set_xticks(_np.arange(0.0, size, 1.0))
-
+    ax.set_xticks(_np.arange(0.0, size, 1.0), minor=False)
+    ax.set_xticks(_np.arange(-0.5, size, 1.0) if cell_boundaries else [], minor=True)
     ax.set_xticklabels(labels)
 
+    if labels_name is not None:
+        ax.set_xlabel(labels_name, fontsize=_DEFAULT_FONT_SIZE_AXES_LABEL, fontweight=_DEFAULT_FONT_WEIGHT_AXES_LABEL, labelpad=_DEFAULT_LABEL_PAD)
 
-def _xticks_steps(ax: _mplp.Axes, length: int, interval: int = 1) -> None:
 
-    ax.set_xlabel('Steps', fontsize=13.0)
+def _xticks_steps(ax: _mplp.Axes, ticks_data: tuple, labels_name: _ct.ostr = 'Steps') -> None:
 
-    tick_step = 1
+    ticks, ticks_minor, tick_labels, limits = ticks_data
 
-    if length > _MAXIMUM_TICKS:
-
-        target_step = (length - 1) / (_MAXIMUM_TICKS - 1)
-        magnitude = 10.0 ** _mt.floor(_mt.log10(target_step))
-
-        for multiplier in (1, 2, 5, 10):
-
-            tick_step = int(multiplier * magnitude)
-
-            if tick_step >= target_step:
-                break
-
-    ticks = _np.arange(0, length, tick_step)
-
+    ax.set_xlim(*limits)
     ax.set_xticks(ticks, minor=False)
-    ax.set_xticks(_np.arange(-0.5, length, 1.0), minor=True)
-    ax.set_xticklabels(ticks * interval)
-    ax.set_xlim(-0.5, length - 0.5)
-
-
-def _yticks_frequency(ax: _mplp.Axes, bottom: float, top: float) -> None:
-
-    ax.set_ylabel('Frequency', fontsize=13.0)
-    ax.set_yticks(_np.linspace(0.0, 1.0, 11))
-    ax.set_ylim(bottom, top)
-
-
-def _yticks_labels(ax: _mplp.Axes, size: int, labels_name: _ct.ostr, labels: _ct.tlist_str) -> None:
+    ax.set_xticks(ticks_minor, minor=True)
+    ax.set_xticklabels(tick_labels)
 
     if labels_name is not None:
-        ax.set_ylabel(labels_name, fontsize=13.0)
+        ax.set_xlabel(labels_name, fontsize=_DEFAULT_FONT_SIZE_AXES_LABEL, fontweight=_DEFAULT_FONT_WEIGHT_AXES_LABEL, labelpad=_DEFAULT_LABEL_PAD)
+
+
+def _yticks_frequency(ax: _mplp.Axes, bottom: float, top: float, labels_name: _ct.ostr = 'Frequency') -> None:
+
+    ax.set_ylim(bottom, top)
+    ax.set_yticks(_np.linspace(0.0, 1.0, 11))
+
+    if labels_name is not None:
+        ax.set_ylabel(labels_name, fontsize=_DEFAULT_FONT_SIZE_AXES_LABEL, fontweight=_DEFAULT_FONT_WEIGHT_AXES_LABEL, labelpad=_DEFAULT_LABEL_PAD)
+
+
+def _yticks_labels(ax: _mplp.Axes, labels_name: _ct.ostr, labels: _ct.tlist_str) -> None:
+
+    size = len(labels)
 
     ax.set_yticks(_np.arange(0.0, size, 1.0), minor=False)
     ax.set_yticks(_np.arange(-0.5, size, 1.0), minor=True)
     ax.set_yticklabels(labels)
 
+    if labels_name is not None:
+        ax.set_ylabel(labels_name, fontsize=_DEFAULT_FONT_SIZE_AXES_LABEL, fontweight=_DEFAULT_FONT_WEIGHT_AXES_LABEL, labelpad=_DEFAULT_LABEL_PAD)
+
 
 def plot_comparison(models: _ct.tlist_mdl, underlying_matrices: str, names: _ct.tlist_str, dpi: int) -> _ct.tplot:
+
+    matrices = [model.e if underlying_matrices == 'emission' else model.p for model in models]
 
     space = len(models)
     rows = int(_mt.sqrt(space))
     columns = int(_mt.ceil(space / float(rows)))
+    color_map = _get_colormap()
 
-    figure, axes = _mplp.subplots(nrows=rows, ncols=columns, constrained_layout=True, dpi=dpi)
+    figure, axes = _mplp.subplots(nrows=rows, ncols=columns, figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), squeeze=False, constrained_layout=True, dpi=dpi)
     axes = list(axes.flat)
     ax_is = None
 
-    color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
-
-    for ax, model, name in zip(axes, models, names):
-
-        matrix = model.e if underlying_matrices == 'emission' else model.p
+    for ax, matrix in zip(axes, matrices):
 
         ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
-        ax.set_title(name, fontsize=12.0, fontweight='normal', pad=1)
 
-        ax.set_xticks([])
+        ax.set_xticks([], minor=False)
         ax.set_xticks([], minor=True)
-        ax.set_yticks([])
+        ax.set_yticks([], minor=False)
         ax.set_yticks([], minor=True)
 
-    for ax in axes[len(models):]:
+    for ax in axes[space:]:
         ax.set_visible(False)
 
-    color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(axes[:len(models)], drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
-    figure.colorbar(ax_is, cax=color_map_ax, **color_map_ax_kwargs)
-    color_map_ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
+    _draw_colorbar(figure, ax_is, axes[:space], 'horizontal')
 
-    figure.suptitle('Comparison Plot', fontsize=15.0, fontweight='bold')
+    for ax, name in zip(axes, names):
+        ax.set_title(name, fontsize=_DEFAULT_FONT_SIZE_AXES_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_AXES_TITLE, pad=_DEFAULT_AXES_TITLE_PAD)
+
+    figure.suptitle('Comparison Plot', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
 
     return figure, axes
 
@@ -1063,23 +1183,23 @@ def plot_convergence(mc: _ct.tmc, steps: int, initial_status: _ct.oarray, dpi: i
     distributions = _np.asarray(distributions, dtype=float)
     distances = 0.5 * _np.sum(_np.abs(distributions - stationary_distribution), axis=1)
 
-    figure_width, figure_height = _mplp.rcParams['figure.figsize']
-    figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
+    size = distances.size
+    x = _np.arange(size)
+    ticks_data = _get_ticks_steps(size)
+    distance_max = _np.max(distances)
+    y_max = 1.0 if full_scale or distance_max == 0.0 else min(1.0, distance_max * 1.1)
 
-    ax.plot(_np.arange(distances.size), distances, color=_COLORS[0], linewidth=1.75)
+    figure, ax = _mplp.subplots(figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), dpi=dpi)
 
-    _xticks_steps(ax, distances.size)
-    ax.set_ylabel('Total Variation Distance', fontsize=13.0)
+    ax.plot(x, distances, color=_DEFAULT_COLOR_DATA, linewidth=_DEFAULT_LINE_WIDTH)
 
-    if full_scale:
-        ax.set_ylim(0.0, 1.0)
-    else:
-        distance_max = _np.max(distances)
-        ax.set_ylim(0.0, min(1.0, distance_max * 1.1) if distance_max > 0.0 else 1.0)
+    _xticks_steps(ax, ticks_data)
+    ax.set_ylim(0.0, y_max)
+    ax.set_ylabel('Total Variation Distance', fontsize=_DEFAULT_FONT_SIZE_AXES_LABEL, fontweight=_DEFAULT_FONT_WEIGHT_AXES_LABEL, labelpad=_DEFAULT_LABEL_PAD)
 
-    ax.grid()
+    ax.grid(which='major', color=_DEFAULT_COLOR_GRID, alpha=_DEFAULT_GRID_ALPHA, linewidth=_DEFAULT_GRID_LINE_WIDTH)
 
-    figure.suptitle('Convergence Plot', fontsize=15.0, fontweight='bold')
+    figure.suptitle('Convergence Plot', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
 
     return figure, ax
 
@@ -1100,17 +1220,15 @@ def plot_decoding(hmm: _ct.thmm, symbols: _ct.tlist_int, initial_distribution: _
     disagreement = (viterbi != map_states).astype(int)
 
     size = len(symbols)
+    detailed = size <= _MAXIMUM_TICKS
+    ticks_data = _get_ticks_steps(size, cell_boundaries=True)
 
     colors_states = _get_colors(hmm.n)
     colors_symbols = _mplp.get_cmap('Greys')(_np.linspace(0.25, 0.75, hmm.k))
 
     color_map_states = _mplcr.ListedColormap(colors_states)
     color_map_symbols = _mplcr.ListedColormap(colors_symbols)
-    color_map_disagreement = _mplcr.ListedColormap([_COLOR_WHITE, _COLORS[6]])
-
-    figure_width, figure_height = _mplp.rcParams['figure.figsize']
-    figure, axes = _mplp.subplots(figsize=(figure_width * 1.5, figure_height), nrows=4, tight_layout=True, sharex=True, dpi=dpi)
-    axes = list(axes.flat)
+    color_map_disagreement = _mplcr.ListedColormap([_COLOR_WHITE, _DEFAULT_COLOR_NEGATIVE])
 
     sequences = [
         ('Observed', symbols, hmm.symbols, color_map_symbols),
@@ -1119,44 +1237,55 @@ def plot_decoding(hmm: _ct.thmm, symbols: _ct.tlist_int, initial_distribution: _
         ('Disagreement', disagreement, None, color_map_disagreement)
     ]
 
-    for ax, (name, sequence, labels, color_map) in zip(axes, sequences):
+    panels = []
+
+    for name, sequence, labels, color_map in sequences:
 
         matrix = _np.asarray(sequence, dtype=int).reshape(1, -1)
-        colors_count = color_map.N
+        annotations = []
 
-        ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=-0.5, vmax=colors_count - 0.5)
+        if detailed and (labels is not None):
+            for i, value in enumerate(sequence):
+                color = color_map(int(value))
+                luminance = (0.299 * color[0]) + (0.587 * color[1]) + (0.114 * color[2])
+                text_color = _COLOR_BLACK if luminance > 0.5 else _COLOR_WHITE
+                annotations.append((i, labels[value], text_color))
 
-        ax.set_ylabel(name, fontsize=12.0, rotation=0, labelpad=10.0, horizontalalignment='right', verticalalignment='center')
-        ax.set_yticks([])
+        panels.append((name, matrix, color_map, annotations))
 
-        if size <= _MAXIMUM_TICKS:
+    legend_handlers_symbols, legend_handlers_states = [], []
 
-            ax.grid(which='minor', color='k', linewidth=0.5)
-
-            if labels is not None:
-
-                for i, value in enumerate(sequence):
-
-                    color = color_map(value)
-                    luminance = (0.299 * color[0]) + (0.587 * color[1]) + (0.114 * color[2])
-                    text_color = _COLOR_BLACK if luminance > 0.5 else _COLOR_WHITE
-
-                    ax.text(i, 0.0, labels[value], color=text_color, horizontalalignment='center', verticalalignment='center')
-
-        ax.tick_params(axis='x', which='both', bottom=False, labelbottom=False)
-
-    _xticks_steps(axes[-1], size)
-    axes[-1].tick_params(axis='x', which='major', bottom=True, labelbottom=True)
-    axes[-1].set_xlabel('Observations', fontsize=13.0)
-
-    if size > _MAXIMUM_TICKS:
+    if not detailed:
         legend_handlers_symbols = [_mplpc.Patch(facecolor=color_map_symbols(i), label=label) for i, label in enumerate(hmm.symbols)]
         legend_handlers_states = [_mplpc.Patch(facecolor=color_map_states(i), label=label) for i, label in enumerate(hmm.states)]
-        axes[0].legend(handles=legend_handlers_symbols, loc='center left', bbox_to_anchor=(1.02, 0.5), ncol=int(_mt.ceil(hmm.k / 4.0)))
-        axes[1].legend(handles=legend_handlers_states, loc='center left', bbox_to_anchor=(1.02, 0.5), ncol=int(_mt.ceil(hmm.n / 4.0)))
 
+    figure, axes = _mplp.subplots(nrows=4, figsize=(_DEFAULT_FIGURE_WIDTH * 1.5, _DEFAULT_FIGURE_HEIGHT), tight_layout=True, sharex=True, dpi=dpi)
+    axes = list(axes.flat)
+
+    for ax, (name, matrix, color_map, annotations) in zip(axes, panels):
+
+        ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=-0.5, vmax=color_map.N - 0.5)
+
+        for i, label, color in annotations:
+            ax.text(i, 0.0, label, color=color, horizontalalignment='center', verticalalignment='center')
+
+        _xticks_steps(ax, ticks_data, 'Observations' if ax is axes[-1] else None)
+        ax.set_yticks([], minor=False)
+        ax.set_yticks([], minor=True)
+        ax.set_ylabel(name, fontsize=_DEFAULT_FONT_SIZE_AXES_LABEL, fontweight=_DEFAULT_FONT_WEIGHT_AXES_LABEL, rotation=0, labelpad=_DEFAULT_SIDE_LABEL_PAD, horizontalalignment='right', verticalalignment='center')
+        ax.tick_params(axis='x', which='both', bottom=False, labelbottom=False)
+
+        if detailed:
+            _draw_matrix_grid(ax, size, horizontal=False)
+
+    axes[-1].tick_params(axis='x', which='major', bottom=True, labelbottom=True)
+
+    if not detailed:
+        _draw_legend_side(axes[0], legend_handlers_symbols)
+        _draw_legend_side(axes[1], legend_handlers_states)
+
+    figure.suptitle('Decoding Plot', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
     figure.align_ylabels(axes)
-    figure.suptitle('Decoding Plot', fontsize=15.0, fontweight='bold')
 
     return figure, axes
 
@@ -1173,18 +1302,21 @@ def plot_flow(mc: _ct.tmc, steps: int, interval: int, initial_status: _ct.oarray
     boundaries_middle = (boundaries_bottom + boundaries_top) / 2.0
 
     colors = _get_colors(mc.size)
-
-    legend_handlers = []
+    ticks_data = _get_ticks_steps(steps + 1, interval)
     legend_labels = mc.states
-
-    for i, label in enumerate(legend_labels):
-        legend_handlers.append(_mplpc.Patch(color=colors[i], label=label))
+    legend_handlers = [_mplpc.Patch(color=colors[i], label=label) for i, label in enumerate(legend_labels)]
 
     polygons_bars = _get_polygons_bars(d, boundaries_bottom, boundaries_top, colors)
     polygons_flows = _get_polygons_flows(p, d, boundaries_bottom, colors, interval)
+    annotations = []
 
-    figure_width, figure_height = _mplp.rcParams['figure.figsize']
-    figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
+    for ai in range(distributions.shape[0]):
+        for aj in range(distributions.shape[1]):
+            dv = distributions[ai, aj]
+            if dv > 0.05:
+                annotations.append((aj, float(boundaries_middle[ai, aj]), f'{dv:.3f}'))
+
+    figure, ax = _mplp.subplots(figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), dpi=dpi)
 
     for e in polygons_flows:
         ax.add_patch(e)
@@ -1192,22 +1324,17 @@ def plot_flow(mc: _ct.tmc, steps: int, interval: int, initial_status: _ct.oarray
     for e in polygons_bars:
         ax.add_patch(e)
 
-    for ai in range(distributions.shape[0]):
-        for aj in range(distributions.shape[1]):
+    for x, y, label in annotations:
+        ax.text(x, y, label, horizontalalignment='center', verticalalignment='center')
 
-            dv = distributions[ai, aj]
-
-            if dv > 0.05:
-                ax.text(aj, float(boundaries_middle[ai, aj]), f'{dv:.3f}', horizontalalignment='center', verticalalignment='center')
-
-    _xticks_steps(ax, steps + 1, interval)
-
+    _xticks_steps(ax, ticks_data)
     ax.set_ylim(0.0, 1.0)
     ax.invert_yaxis()
 
-    figure.legend(legend_handlers, legend_labels, loc='lower center', bbox_to_anchor=(0.5, 0.02), ncol=len(legend_handlers))
-    figure.suptitle('Flow Plot', fontsize=15.0, fontweight='bold')
-    figure.subplots_adjust(bottom=0.2)
+    legend_margin = _draw_legend_bottom(figure, legend_handlers, legend_labels)
+
+    figure.suptitle('Flow Plot', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
+    figure.subplots_adjust(bottom=legend_margin)
 
     return figure, ax
 
@@ -1228,10 +1355,11 @@ def plot_graph(model: _ct.tmdl, nodes_color: bool, nodes_shape: bool, edges_labe
 
         preview, img_height, _, img_width, _ = _decode_graphviz_image(graph, dpi)
 
-        figure, ax = _mplp.subplots(figsize=(img_width * 1.5, img_height * 1.5), dpi=dpi)
+        figure, ax = _mplp.subplots(figsize=(max(_DEFAULT_FIGURE_WIDTH, img_width * 1.5), max(_DEFAULT_FIGURE_HEIGHT, img_height * 1.5)), dpi=dpi)
         figure.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.90)
 
         ax.axis('off')
+        figure.suptitle('Graph Plot', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
         figure.canvas.draw()
 
         bounds = ax.get_window_extent()
@@ -1248,17 +1376,16 @@ def plot_graph(model: _ct.tmdl, nodes_color: bool, nodes_shape: bool, edges_labe
 
         graph, positions, node_data, edge_data, edge_labels_straight, edge_labels_symbol, edge_labels_curved = graph_data
 
-        figure_width, figure_height = _mplp.rcParams['figure.figsize']
-        figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
+        figure, ax = _mplp.subplots(figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), dpi=dpi)
 
         for node, node_color, node_shape in node_data:
             _nx.draw_networkx_nodes(
                 graph, positions, ax=ax,
                 nodelist=[node], node_color=node_color, node_shape=node_shape, node_size=_DEFAULT_NODE_SIZE,
-                edgecolors=_COLOR_BLACK
+                edgecolors=_DEFAULT_COLOR_EDGE
             )
 
-        _nx.draw_networkx_labels(graph, positions, ax=ax)
+        _nx.draw_networkx_labels(graph, positions, ax=ax, font_size=_DEFAULT_FONT_SIZE_GRAPH_LABEL, font_weight=_DEFAULT_FONT_WEIGHT_AXES_LABEL)
 
         for edge, edge_color, edge_attributes in edge_data:
             _nx.draw_networkx_edges(
@@ -1269,23 +1396,24 @@ def plot_graph(model: _ct.tmdl, nodes_color: bool, nodes_shape: bool, edges_labe
         if len(edge_labels_straight) > 0:
             _nx.draw_networkx_edge_labels(
                 graph, positions, ax=ax,
-                edge_labels=edge_labels_straight
+                edge_labels=edge_labels_straight,
+                font_size=_DEFAULT_FONT_SIZE_EDGE_LABEL
             )
 
         if len(edge_labels_symbol) > 0:
             _nx.draw_networkx_edge_labels(
                 graph, positions, ax=ax,
-                edge_labels=edge_labels_symbol,
-                label_pos=0.25
+                edge_labels=edge_labels_symbol, label_pos=0.25,
+                font_size=_DEFAULT_FONT_SIZE_EDGE_LABEL
             )
 
         if len(edge_labels_curved) > 0:
             _draw_edge_labels_curved(ax, positions, edge_labels_curved)
 
         ax.set_aspect('equal')
+        ax.axis('off')
+        figure.suptitle('Graph Plot', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
         _fit_graph_bounds(ax)
-
-    figure.suptitle('Graph Plot', fontsize=15.0, fontweight='bold')
 
     return figure, ax
 
@@ -1294,22 +1422,21 @@ def plot_matrix(model: _ct.tmdl, underlying_matrix: str, dpi: int) -> _ct.tplot:
 
     matrix = model.e if underlying_matrix == 'emission' else model.p
     labels_x = model.symbols if underlying_matrix == 'emission' else model.states
+    labels_y = model.states
+    labels_name = 'Symbols' if underlying_matrix == 'emission' else 'States'
+    color_map = _get_colormap()
 
-    figure_width, figure_height = _mplp.rcParams['figure.figsize']
-    figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
+    figure, ax = _mplp.subplots(figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), constrained_layout=True, dpi=dpi)
 
-    color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
     ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
-    _xticks_labels(ax, len(labels_x), 'Symbols' if underlying_matrix == 'emission' else 'States', labels_x, True)
-    _yticks_labels(ax, len(model.states), 'States', model.states)
+    _xticks_labels(ax, labels_name, labels_x, True)
+    _yticks_labels(ax, 'States', labels_y)
 
-    ax.grid(which='minor', color='k')
+    _draw_matrix_grid(ax)
+    _draw_colorbar(figure, ax_is, ax, 'horizontal')
 
-    cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
-    cb.ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
-
-    figure.suptitle('Matrix Plot (' + underlying_matrix.capitalize() + ')', fontsize=15.0, fontweight='bold')
+    figure.suptitle(f'Matrix Plot ({underlying_matrix.capitalize()})', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
 
     return figure, ax
 
@@ -1324,76 +1451,69 @@ def plot_posterior(plot_type: str, hmm: _ct.thmm, symbols: _ct.tlist_int, initia
     _, posterior, _, _, forward, _ = decoding
 
     size = len(symbols)
-    figure_width, figure_height = _mplp.rcParams['figure.figsize']
+    labels = hmm.states
+
+    legend_margin = None
 
     if plot_type == 'heatmap':
 
-        figure, axes = _mplp.subplots(figsize=(figure_width, figure_height), nrows=2, constrained_layout=True, dpi=dpi)
-        axes = list(axes.flat)
+        ticks_data = _get_ticks_steps(size, cell_boundaries=True)
+        color_map = _get_colormap()
+        panels = [('Filtering', forward), ('Smoothing', posterior)]
 
-        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
+        figure, axes = _mplp.subplots(nrows=2, figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), constrained_layout=True, dpi=dpi)
+        axes = list(axes.flat)
         is_axes = []
 
-        for ax, (name, matrix) in zip(axes, [('Filtering', forward), ('Smoothing', posterior)]):
+        for ax, (_, matrix) in zip(axes, panels):
 
             ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
             is_axes.append(ax_is)
 
-            _xticks_steps(ax, size)
-            _yticks_labels(ax, hmm.n, 'States', hmm.states)
+            _xticks_steps(ax, ticks_data)
+            _yticks_labels(ax, 'States', labels)
 
-            if size <= _MAXIMUM_TICKS:
-                ax.grid(which='minor', color='k')
-            else:
-                ax.tick_params(axis='x', which='minor', bottom=False)
-                ax.grid(axis='y', which='minor', color='k')
+            _draw_matrix_grid(ax, size)
 
-            ax.set_title(name, fontsize=12.0, fontweight='normal')
+        _draw_colorbar(figure, is_axes[0], axes, 'vertical')
 
-        color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(axes, drawedges=True, orientation='vertical', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
-        figure.colorbar(is_axes[0], cax=color_map_ax, **color_map_ax_kwargs)
+        for ax, (name, _) in zip(axes, panels):
+            ax.set_title(name, fontsize=_DEFAULT_FONT_SIZE_AXES_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_AXES_TITLE, pad=_DEFAULT_AXES_TITLE_PAD)
 
     else:
 
-        figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
-
-        colors = _get_colors(hmm.n)
         x = _np.arange(size)
+        ticks_data = _get_ticks_steps(size)
+        colors = _get_colors(hmm.n)
+        styles = _get_line_styles(posterior)
+        marker_interval = max(1, size // 8)
+
+        figure, ax = _mplp.subplots(figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), dpi=dpi)
 
         for i in range(hmm.n):
-
-            overlaps = [j for j in range(hmm.n) if _np.allclose(posterior[i, :], posterior[j, :], rtol=1e-12, atol=1e-14)]
-            overlap_index = overlaps.index(i)
-
-            marker = 'o' if size == 2 else None
-            line_style = '-'
-
-            if len(overlaps) > 1:  # pragma: no cover
-                line_style = ('-', '--', ':', '-.')[overlap_index % 4]
-                if overlap_index > 0:
-                    marker = ('o', 's', '^', 'D')[((overlap_index - 1) // 4) % 4]
-
             ax.fill_between(x, 0.0, posterior[i, :], color=colors[i], alpha=0.35)
 
+        for i, (line_style, marker) in enumerate(styles):
             ax.plot(
                 x, posterior[i, :],
-                color=colors[i], label=hmm.states[i],
-                linewidth=1.75, linestyle=line_style,
-                marker=marker, markersize=4.0, markevery=max(1, size // 8)
+                color=colors[i], label=labels[i],
+                linewidth=_DEFAULT_LINE_WIDTH, linestyle=line_style,
+                marker=marker, markersize=_DEFAULT_MARKER_SIZE, markevery=marker_interval
             )
 
-        _xticks_steps(ax, size)
-        _yticks_frequency(ax, 0.0, 1.0)
-        ax.set_ylabel('Probability', fontsize=13.0)
+        _xticks_steps(ax, ticks_data)
+        _yticks_frequency(ax, 0.0, 1.0, 'Probability')
 
-        ax.grid()
+        ax.grid(which='major', color=_DEFAULT_COLOR_GRID, alpha=_DEFAULT_GRID_ALPHA, linewidth=_DEFAULT_GRID_LINE_WIDTH)
 
-        figure.legend(*ax.get_legend_handles_labels(), loc='lower center', bbox_to_anchor=(0.5, 0.02), ncol=hmm.n)
-        figure.subplots_adjust(bottom=0.2)
+        legend_margin = _draw_legend_bottom(figure, *ax.get_legend_handles_labels())
 
         axes = ax
 
-    figure.suptitle(f'Posterior Plot ({plot_type.capitalize()})', fontsize=15.0, fontweight='bold')
+    figure.suptitle(f'Posterior Plot ({plot_type.capitalize()})', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
+
+    if legend_margin is not None:
+        figure.subplots_adjust(bottom=legend_margin)
 
     return figure, axes
 
@@ -1403,63 +1523,59 @@ def plot_redistributions(plot_type: str, mc: _ct.tmc, redistributions: int, init
     distributions = mc.propagate(redistributions, initial_status=initial_status, output_last=False)
     distributions = _np.asarray(distributions, dtype=float)
     distributions_length = distributions.shape[0]
+    labels = mc.states
 
-    figure_width, figure_height = _mplp.rcParams['figure.figsize']
-    figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
+    legend_margin = None
 
     if plot_type == 'heatmap':
 
-        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
-        ax_is = ax.imshow(_np.transpose(distributions), aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+        matrix = _np.transpose(distributions)
+        ticks_data = _get_ticks_steps(distributions_length, cell_boundaries=True)
+        color_map = _get_colormap()
 
-        _xticks_steps(ax, distributions_length)
-        _yticks_labels(ax, mc.size, None, mc.states)
+        figure, ax = _mplp.subplots(figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), constrained_layout=True, dpi=dpi)
 
-        ax.grid(which='minor', color='k')
+        ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
 
-        cb = figure.colorbar(ax_is, drawedges=True, orientation='horizontal', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
-        cb.ax.set_xticklabels(['0.0', '0.25', '0.5', '0.75', '1.0'])
+        _xticks_steps(ax, ticks_data)
+        _yticks_labels(ax, None, labels)
 
-        figure.suptitle(f'Redistributions Plot ({plot_type.capitalize()})', fontsize=15.0, fontweight='bold')
+        _draw_matrix_grid(ax, distributions_length)
+        _draw_colorbar(figure, ax_is, ax, 'horizontal')
 
     else:
 
-        ax.set_prop_cycle('color', _get_colors(mc.size))
+        x = _np.arange(0.0, distributions_length, 1.0)
+        ticks_data = _get_ticks_steps(distributions_length)
+        colors = _get_colors(mc.size)
+        styles = _get_line_styles(_np.transpose(distributions))
+        marker_interval = max(1, distributions_length // 8)
+        uniform_start = _np.allclose(distributions[0, :], _np.ones(mc.size, dtype=float) / mc.size)
 
-        for i in range(mc.size):
+        figure, ax = _mplp.subplots(figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), dpi=dpi)
 
-            overlaps = [j for j in range(mc.size) if _np.allclose(distributions[:, i], distributions[:, j], rtol=1e-12, atol=1e-14)]
-            overlap_index = overlaps.index(i)
-
-            marker = 'o' if distributions_length == 2 else None
-            line_style = '-'
-
-            if len(overlaps) > 1:  # pragma: no cover
-                line_style = ('-', '--', ':', '-.')[overlap_index % 4]
-                if overlap_index > 0:
-                    marker = ('o', 's', '^', 'D')[((overlap_index - 1) // 4) % 4]
-
+        for i, (line_style, marker) in enumerate(styles):
             ax.plot(
-                _np.arange(0.0, distributions_length, 1.0), distributions[:, i],
-                label=mc.states[i],
-                linewidth=1.75, linestyle=line_style,
-                marker=marker, markersize=4.0, markevery=max(1, distributions_length // 8)
+                x, distributions[:, i],
+                color=colors[i], label=labels[i],
+                linewidth=_DEFAULT_LINE_WIDTH, linestyle=line_style,
+                marker=marker, markersize=_DEFAULT_MARKER_SIZE, markevery=marker_interval
             )
 
-        if _np.allclose(distributions[0, :], _np.ones(mc.size, dtype=float) / mc.size):
-            ax.plot(0.0, distributions[0, 0], color=_COLOR_BLACK, label="Start", marker='o', markeredgecolor=_COLOR_BLACK, markerfacecolor=_COLOR_BLACK)
-            legend_size = mc.size + 1
-        else:  # pragma: no cover
-            legend_size = mc.size
+        if uniform_start:
+            ax.plot(0.0, distributions[0, 0], color=_COLOR_BLACK, label='Start', marker='o', markersize=_DEFAULT_MARKER_SIZE, markeredgecolor=_COLOR_BLACK, markerfacecolor=_COLOR_BLACK)
 
-        _xticks_steps(ax, distributions_length)
+        _xticks_steps(ax, ticks_data)
         _yticks_frequency(ax, -0.05, 1.05)
 
-        ax.grid()
+        ax.grid(which='major', color=_DEFAULT_COLOR_GRID, alpha=_DEFAULT_GRID_ALPHA, linewidth=_DEFAULT_GRID_LINE_WIDTH)
 
-        figure.legend(*ax.get_legend_handles_labels(), loc='lower center', bbox_to_anchor=(0.5, 0.02), ncol=legend_size)
-        figure.suptitle(f'Redistributions Plot ({plot_type.capitalize()})', fontsize=15.0, fontweight='bold')
-        figure.subplots_adjust(bottom=0.2)
+        legend_margin = _draw_legend_bottom(figure, *ax.get_legend_handles_labels())
+
+    figure.suptitle(f'Redistributions Plot ({plot_type.capitalize()})', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
+
+    if legend_margin is not None:
+        figure.subplots_adjust(bottom=legend_margin)
 
     return figure, ax
 
@@ -1471,67 +1587,76 @@ def plot_residuals(model: _ct.tmdl, sequence: _ct.tlist_int, seed: _ct.oint, dpi
     size = residuals.size
 
     quantiles = _sps.ndtri((_np.arange(1, size + 1) - 0.5) / size)  # pylint: disable=no-member
-
-    figure_width, figure_height = _mplp.rcParams['figure.figsize']
-    figure, axes = _mplp.subplots(figsize=(figure_width * 1.5, figure_height * 1.5), nrows=2, ncols=2, tight_layout=True, dpi=dpi)
-    axes = list(axes.flat)
-    ax_residuals, ax_quantiles, ax_distribution, ax_autocorrelation = axes
-
-    offset = 1 if model.__class__.__name__ == 'MarkovChain' else 0
-
-    ax_residuals.scatter(_np.arange(offset, size + offset), residuals, color=_COLORS[0], s=12.0)
-    ax_residuals.axhline(0.0, color=_COLORS[4], linestyle='--')
-    ax_residuals.set_xlim(offset - 0.5, size + offset - 0.5)
-    ax_residuals.xaxis.set_major_locator(_mplt.MaxNLocator(nbins=_MAXIMUM_TICKS - 1, integer=True, min_n_ticks=1))
-    ax_residuals.grid(alpha=0.5)
-    ax_residuals.set_title('Residuals', fontsize=12.0, fontweight='normal')
-
-    lower = min(quantiles[0], residuals_sorted[0])
-    upper = max(quantiles[-1], residuals_sorted[-1])
-
-    ax_quantiles.scatter(quantiles, residuals_sorted, color=_COLORS[0], s=12.0)
-    ax_quantiles.plot([lower, upper], [lower, upper], color=_COLORS[4], linestyle='--')
-    ax_quantiles.grid(alpha=0.5)
-    ax_quantiles.set_title('Q-Q Plot', fontsize=12.0, fontweight='normal')
+    quantiles_limits = [min(quantiles[0], residuals_sorted[0]), max(quantiles[-1], residuals_sorted[-1])]
 
     lower = min(-4.0, _np.min(residuals))
     upper = max(4.0, _np.max(residuals))
-    x = _np.linspace(lower, upper, 200)
-    y = _np.exp(-0.5 * x ** 2.0) / _np.sqrt(2.0 * _np.pi)
-
-    ax_distribution.hist(residuals, bins='auto', density=True, edgecolor=_COLOR_BLACK, facecolor=_COLORS[0])
-    ax_distribution.plot(x, y, color=_COLORS[4], linewidth=1.75)
-    ax_distribution.grid(alpha=0.5)
-    ax_distribution.set_title('Distribution', fontsize=12.0, fontweight='normal')
+    x_distribution = _np.linspace(lower, upper, 200)
+    y_distribution = _np.exp(-0.5 * x_distribution ** 2.0) / _np.sqrt(2.0 * _np.pi)
+    histogram_bins = _np.histogram_bin_edges(residuals, bins='auto')
 
     maximum_lag = min(20, size - 1)
     centered = residuals - _np.mean(residuals)
     denominator = _np.dot(centered, centered)
+    autocorrelation_available = (maximum_lag > 0) and (denominator > 0.0)
 
-    if (maximum_lag > 0) and (denominator > 0.0):
-
+    if autocorrelation_available:
         lags = _np.arange(1, maximum_lag + 1)
         correlations = _np.array([_np.dot(centered[:-lag], centered[lag:]) / denominator for lag in lags])
         threshold = _sps.ndtri(0.975) / _np.sqrt(size)  # pylint: disable=no-member
         limit = min(1.0, max(_np.max(_np.abs(correlations)), threshold) * 1.1)
+        ticks_lags = _get_ticks_steps(maximum_lag, offset=1)
+    else:
+        lags, correlations = _np.array([]), _np.array([])
+        threshold, limit, ticks_lags = 0.0, 1.0, None
 
-        ax_autocorrelation.axhspan(-threshold, threshold, color=_COLORS[0], alpha=0.2)
-        ax_autocorrelation.vlines(lags, 0.0, correlations, color=_COLORS[0], linewidth=1.75)
-        ax_autocorrelation.scatter(lags, correlations, color=_COLORS[0], s=12.0)
-        ax_autocorrelation.set_xlim(0.5, maximum_lag + 0.5)
-        ax_autocorrelation.set_ylim(-limit, limit)
-        ax_autocorrelation.xaxis.set_major_locator(_mplt.MaxNLocator(nbins=_MAXIMUM_TICKS - 1, integer=True, min_n_ticks=1))
+    offset = 1 if model.__class__.__name__ == 'MarkovChain' else 0
+    x_residuals = _np.arange(offset, size + offset)
+    ticks_residuals = _get_ticks_steps(size, offset=offset)
 
+    figure, axes = _mplp.subplots(nrows=2, ncols=2, figsize=(_DEFAULT_FIGURE_WIDTH * 1.5, _DEFAULT_FIGURE_HEIGHT * 1.5), tight_layout=True, dpi=dpi)
+    axes = list(axes.flat)
+    ax_residuals, ax_quantiles, ax_distribution, ax_autocorrelation = axes
+
+    ax_residuals.scatter(x_residuals, residuals, color=_DEFAULT_COLOR_DATA, s=_DEFAULT_SCATTER_SIZE)
+    ax_residuals.axhline(0.0, color=_DEFAULT_COLOR_REFERENCE, linestyle='--', linewidth=_DEFAULT_LINE_WIDTH_REFERENCE)
+
+    _xticks_steps(ax_residuals, ticks_residuals, None)
+
+    ax_residuals.grid(which='major', color=_DEFAULT_COLOR_GRID, alpha=_DEFAULT_GRID_ALPHA, linewidth=_DEFAULT_GRID_LINE_WIDTH)
+
+    ax_quantiles.scatter(quantiles, residuals_sorted, color=_DEFAULT_COLOR_DATA, s=_DEFAULT_SCATTER_SIZE)
+    ax_quantiles.plot(quantiles_limits, quantiles_limits, color=_DEFAULT_COLOR_REFERENCE, linestyle='--', linewidth=_DEFAULT_LINE_WIDTH_REFERENCE)
+
+    ax_quantiles.grid(which='major', color=_DEFAULT_COLOR_GRID, alpha=_DEFAULT_GRID_ALPHA, linewidth=_DEFAULT_GRID_LINE_WIDTH)
+
+    ax_distribution.hist(residuals, bins=histogram_bins, density=True, edgecolor=_DEFAULT_COLOR_EDGE, facecolor=_DEFAULT_COLOR_DATA)
+    ax_distribution.plot(x_distribution, y_distribution, color=_DEFAULT_COLOR_REFERENCE, linewidth=_DEFAULT_LINE_WIDTH_REFERENCE)
+
+    ax_distribution.grid(which='major', color=_DEFAULT_COLOR_GRID, alpha=_DEFAULT_GRID_ALPHA, linewidth=_DEFAULT_GRID_LINE_WIDTH)
+
+    if autocorrelation_available:
+        ax_autocorrelation.axhspan(-threshold, threshold, color=_DEFAULT_COLOR_REFERENCE, alpha=0.2)
+        ax_autocorrelation.vlines(lags, 0.0, correlations, color=_DEFAULT_COLOR_DATA, linewidth=_DEFAULT_LINE_WIDTH)
+        ax_autocorrelation.scatter(lags, correlations, color=_DEFAULT_COLOR_DATA, s=_DEFAULT_SCATTER_SIZE)
     else:
         ax_autocorrelation.text(0.5, 0.5, 'Autocorrelation Unavailable', horizontalalignment='center', verticalalignment='center', transform=ax_autocorrelation.transAxes)
-        ax_autocorrelation.set_ylim(-1.0, 1.0)
+
+    ax_autocorrelation.axhline(0.0, color=_DEFAULT_COLOR_REFERENCE, linestyle='--', linewidth=_DEFAULT_LINE_WIDTH_REFERENCE)
+
+    if ticks_lags is not None:
+        _xticks_steps(ax_autocorrelation, ticks_lags, None)
+    else:
         ax_autocorrelation.set_xticks([])
 
-    ax_autocorrelation.axhline(0.0, color=_COLORS[4], linestyle='--')
-    ax_autocorrelation.grid(alpha=0.5)
-    ax_autocorrelation.set_title('Autocorrelation', fontsize=12.0, fontweight='normal')
+    ax_autocorrelation.set_ylim(-limit, limit)
 
-    figure.suptitle('Residuals Plot', fontsize=15.0, fontweight='bold')
+    ax_autocorrelation.grid(which='major', color=_DEFAULT_COLOR_GRID, alpha=_DEFAULT_GRID_ALPHA, linewidth=_DEFAULT_GRID_LINE_WIDTH)
+
+    for ax, title in zip(axes, ('Residuals', 'Q-Q Plot', 'Distribution', 'Autocorrelation')):
+        ax.set_title(title, fontsize=_DEFAULT_FONT_SIZE_AXES_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_AXES_TITLE, pad=_DEFAULT_AXES_TITLE_PAD)
+
+    figure.suptitle('Residuals Plot', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
 
     return figure, axes
 
@@ -1549,16 +1674,11 @@ def plot_sequence(plot_type: str, model: _ct.tmdl, steps: int, initial_state: _c
         walks.append((model.k, 'Symbols', model.symbols, simulation[1]))
 
     plots_count = len(walks)
+    panels = []
 
     if plot_type == 'heatmap':
 
-        figure, axes = _mplp.subplots(nrows=plots_count, constrained_layout=True, dpi=dpi)
-        axes = [axes] if plots_count == 1 else list(axes.flat)
-
-        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
-        is_axes = []
-
-        for a_current, (size, labels_name, labels, sequence) in zip(axes, walks):
+        for size, labels_name, labels, sequence in walks:
 
             sequence_matrix = _np.zeros((size, size), dtype=float)
 
@@ -1566,55 +1686,71 @@ def plot_sequence(plot_type: str, model: _ct.tmdl, steps: int, initial_state: _c
                 sequence_matrix[sequence[i - 1], sequence[i]] += 1.0
 
             sequence_matrix /= _np.sum(sequence_matrix)
+            panels.append((labels_name, labels, sequence_matrix))
 
-            a_current_is = a_current.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
-            is_axes.append(a_current_is)
+        color_map = _get_colormap()
 
-            _xticks_labels(a_current, size, labels_name, labels, True)
-            _yticks_labels(a_current, size, labels_name, labels)
+        figure, axes = _mplp.subplots(nrows=plots_count, figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), squeeze=False, constrained_layout=True, dpi=dpi)
+        axes = list(axes.flat)
+        is_axes = []
 
-            a_current.grid(which='minor', color='k')
+        for ax, (labels_name, labels, matrix) in zip(axes, panels):
 
-        color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(axes, drawedges=True, orientation='vertical', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
-        figure.colorbar(is_axes[0], cax=color_map_ax, **color_map_ax_kwargs)
+            ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+            is_axes.append(ax_is)
+
+            _xticks_labels(ax, labels_name, labels, True)
+            _yticks_labels(ax, labels_name, labels)
+
+            _draw_matrix_grid(ax)
+
+        _draw_colorbar(figure, is_axes[0], axes, 'vertical')
 
     elif plot_type == 'histogram':
 
-        figure, axes = _mplp.subplots(nrows=plots_count, tight_layout=True, dpi=dpi)
-        axes = [axes] if plots_count == 1 else list(axes.flat)
-
-        for a_current, (size, labels_name, labels, sequence) in zip(axes, walks):
+        for size, labels_name, labels, sequence in walks:
 
             sequence_histogram = _np.bincount(sequence, minlength=size).astype(float)
             sequence_histogram /= _np.sum(sequence_histogram)
+            panels.append((labels_name, labels, _np.arange(0.0, size, 1.0), sequence_histogram))
 
-            a_current.bar(_np.arange(0.0, size, 1.0), sequence_histogram, edgecolor=_COLOR_BLACK, facecolor=_COLORS[0])
+        figure, axes = _mplp.subplots(nrows=plots_count, figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), squeeze=False, tight_layout=True, dpi=dpi)
+        axes = list(axes.flat)
 
-            _xticks_labels(a_current, size, labels_name, labels, False)
-            _yticks_frequency(a_current, 0.0, 1.0)
+        for ax, (labels_name, labels, x, histogram) in zip(axes, panels):
+
+            ax.bar(x, histogram, edgecolor=_DEFAULT_COLOR_EDGE, facecolor=_DEFAULT_COLOR_DATA)
+
+            _xticks_labels(ax, labels_name, labels)
+            _yticks_frequency(ax, 0.0, 1.0)
 
     else:
 
-        figure, axes = _mplp.subplots(nrows=plots_count, tight_layout=True, dpi=dpi)
-        axes = [axes] if plots_count == 1 else list(axes.flat)
-
-        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 2)
-
-        for a_current, (size, labels_name, labels, sequence) in zip(axes, walks):
+        for size, labels_name, labels, sequence in walks:
 
             sequence_matrix = _np.zeros((size, steps + 1), dtype=float)
 
             for index, state in enumerate(sequence):
                 sequence_matrix[state, index] = 1.0
 
-            a_current.imshow(sequence_matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+            panels.append((labels_name, labels, sequence_matrix))
 
-            _xticks_steps(a_current, steps + 1)
-            _yticks_labels(a_current, size, labels_name, labels)
+        ticks_data = _get_ticks_steps(steps + 1, cell_boundaries=True)
+        color_map = _get_colormap(binary=True)
 
-            a_current.grid(which='minor', color='k')
+        figure, axes = _mplp.subplots(nrows=plots_count, figsize=(_DEFAULT_FIGURE_WIDTH, _DEFAULT_FIGURE_HEIGHT), squeeze=False, tight_layout=True, dpi=dpi)
+        axes = list(axes.flat)
 
-    figure.suptitle(f'Sequence Plot ({plot_type.capitalize()})', fontsize=15.0, fontweight='bold')
+        for ax, (labels_name, labels, matrix) in zip(axes, panels):
+
+            ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+
+            _xticks_steps(ax, ticks_data)
+            _yticks_labels(ax, labels_name, labels)
+
+            _draw_matrix_grid(ax, steps + 1)
+
+    figure.suptitle(f'Sequence Plot ({plot_type.capitalize()})', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
 
     return figure, axes
 
@@ -1650,67 +1786,74 @@ def plot_spectrum(mc: _ct.tmc, dpi: int) -> _ct.tplot:
         evectors[:, i] *= _np.exp(-1.0j * phase)
 
     evectors_components = _np.real(evectors)
+    mu = _n.slem(mc.p) if mc.is_irreducible else None
 
     theta = _np.linspace(0.0, 2.0 * _np.pi, 200)
     x_unit_circle = _np.cos(theta)
     y_unit_circle = _np.sin(theta)
+    spectral_gap = (mu is not None) and (not _np.isclose(mu, 1.0))
+    slem_circle = (mu is not None) and (not _np.isclose(mu, 0.0))
 
-    figure_width, figure_height = _mplp.rcParams['figure.figsize']
-    figure, axes = _mplp.subplots(ncols=2, figsize=(figure_width * 1.5, figure_height), dpi=dpi)
+    if spectral_gap:
+        cs = _np.linspace(-1.1, 1.1, 201)
+        x_spectral_gap, y_spectral_gap = _np.meshgrid(cs, cs)
+        z_spectral_gap = x_spectral_gap ** 2.0 + y_spectral_gap ** 2.0
+        levels = [mu ** 2.0, 1.0]
+
+    if slem_circle:
+        x_slem_circle = mu * x_unit_circle
+        y_slem_circle = mu * y_unit_circle
+
+    x_evalues, y_evalues = _np.real(evalues_final), _np.imag(evalues_final)
+    ticks = _np.linspace(-1.0, 1.0, 9)
+    labels_x = [str(i + 1) for i in range(mc.size)]
+    labels_y = mc.states
+    color_map = _get_colormap(signed=True)
+
+    figure, axes = _mplp.subplots(ncols=2, figsize=(_DEFAULT_FIGURE_WIDTH * 1.5, _DEFAULT_FIGURE_HEIGHT), dpi=dpi)
     axes = list(axes.flat)
     ax_evalues, ax_evectors = axes
-
     handles, labels = [], []
 
-    if mc.is_irreducible:
+    if spectral_gap:
+        ax_evalues.contourf(x_spectral_gap, y_spectral_gap, z_spectral_gap, alpha=0.2, colors=_DEFAULT_COLOR_REFERENCE, levels=levels)
+        handles.append(_mplpc.Patch(facecolor=_DEFAULT_COLOR_REFERENCE, alpha=0.2))
+        labels.append('Spectral Gap')
 
-        mu = _n.slem(mc.p)
+    if slem_circle:
+        ax_evalues.plot(x_slem_circle, y_slem_circle, color=_DEFAULT_COLOR_REFERENCE, linestyle='--', linewidth=_DEFAULT_LINE_WIDTH_REFERENCE)
 
-        if not _np.isclose(mu, 1.0):
+    ax_evalues.plot(x_unit_circle, y_unit_circle, color=_DEFAULT_COLOR_REFERENCE, linestyle='-', linewidth=_DEFAULT_LINE_WIDTH_EMPHASIZED)
 
-            cs = _np.linspace(-1.1, 1.1, 201)
-            x_spectral_gap, y_spectral_gap = _np.meshgrid(cs, cs)
-            z_spectral_gap = x_spectral_gap ** 2.0 + y_spectral_gap ** 2.0
-
-            h = ax_evalues.contourf(x_spectral_gap, y_spectral_gap, z_spectral_gap, alpha=0.2, colors=_COLORS[4], levels=[mu ** 2.0, 1.0])
-            handles.append(_mplp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.get_facecolor()[0]))
-            labels.append('Spectral Gap')
-
-        if not _np.isclose(mu, 0.0):
-
-            x_slem_circle = mu * x_unit_circle
-            y_slem_circle = mu * y_unit_circle
-
-            ax_evalues.plot(x_slem_circle, y_slem_circle, color=_COLORS[4], linestyle='--', linewidth=1.5)
-
-    ax_evalues.plot(x_unit_circle, y_unit_circle, color=_COLORS[4], linestyle='-', linewidth=3.0)
-
-    h, = ax_evalues.plot(_np.real(evalues_final), _np.imag(evalues_final), color=_COLORS[0], linestyle='None', marker='*', markersize=12.5)
+    h, = ax_evalues.plot(x_evalues, y_evalues, color=_DEFAULT_COLOR_DATA, linestyle='None', marker='*', markersize=12.5)
     handles.append(h)
     labels.append('Eigenvalues')
 
     ax_evalues.set_xlim(-1.1, 1.1)
-    ax_evalues.set_ylim(-1.1, 1.1)
-    ax_evalues.set_aspect('equal')
+    ax_evalues.set_xticks(ticks, minor=False)
     ax_evalues.xaxis.set_major_formatter(_mplt.FormatStrFormatter('%g'))
+    ax_evalues.set_ylim(-1.1, 1.1)
+    ax_evalues.set_yticks(ticks, minor=False)
     ax_evalues.yaxis.set_major_formatter(_mplt.FormatStrFormatter('%g'))
-    ax_evalues.set_xticks(_np.linspace(-1.0, 1.0, 9), minor=False)
-    ax_evalues.set_yticks(_np.linspace(-1.0, 1.0, 9), minor=False)
-    ax_evalues.grid(which='major')
-    ax_evalues.legend(handles[::-1], labels[::-1], loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=len(handles), bbox_transform=ax_evalues.transAxes)
-    ax_evalues.set_title('Eigenvalues', fontsize=12.0, fontweight='normal')
+    ax_evalues.set_aspect('equal')
 
-    color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLORS[6], _COLOR_WHITE, _COLORS[0]], 21)
+    ax_evalues.grid(which='major', color=_DEFAULT_COLOR_GRID, alpha=_DEFAULT_GRID_ALPHA, linewidth=_DEFAULT_GRID_LINE_WIDTH)
+
     ax_is = ax_evectors.imshow(evectors_components, aspect='equal', cmap=color_map, interpolation='none', vmin=-1.0, vmax=1.0)
-    _xticks_labels(ax_evectors, mc.size, None, [str(i + 1) for i in range(mc.size)], True)
-    _yticks_labels(ax_evectors, mc.size, 'States', mc.states)
-    ax_evectors.grid(which='minor', color='k')
-    cb = figure.colorbar(ax_is, ax=ax_evectors, drawedges=True, orientation='vertical', ticks=[-1.0, -0.5, 0.0, 0.5, 1.0])
-    cb.ax.set_yticklabels(['-1.0', '-0.5', '0.0', '0.5', '1.0'])
-    ax_evectors.set_title('Eigenvectors', fontsize=12.0, fontweight='normal')
 
-    figure.suptitle('Spectrum Plot', fontsize=15.0, fontweight='bold')
-    figure.subplots_adjust(bottom=0.2)
+    _xticks_labels(ax_evectors, None, labels_x, True)
+    _yticks_labels(ax_evectors, 'States', labels_y)
+
+    _draw_matrix_grid(ax_evectors)
+    _draw_colorbar(figure, ax_is, ax_evectors, 'vertical', signed=True)
+
+    ax_evalues.legend(handles[::-1], labels[::-1], loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=len(handles), bbox_transform=ax_evalues.transAxes, fontsize=_DEFAULT_FONT_SIZE_LEGEND)
+
+    ax_evalues.set_title('Eigenvalues', fontsize=_DEFAULT_FONT_SIZE_AXES_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_AXES_TITLE, pad=_DEFAULT_AXES_TITLE_PAD)
+    ax_evectors.set_title('Eigenvectors', fontsize=_DEFAULT_FONT_SIZE_AXES_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_AXES_TITLE, pad=_DEFAULT_AXES_TITLE_PAD)
+
+    figure.suptitle('Spectrum Plot', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
+    figure.subplots_adjust(bottom=_DEFAULT_LEGEND_MARGIN)
 
     return figure, axes
 
@@ -1738,27 +1881,33 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate, seed: _ct
     _, prediction_states = prediction
 
     extended_graph = (not force_standard) and _is_graphviz_available('neato')
+    titles = ('Backward Trellis', 'Forward Trellis')
 
     if extended_graph:
 
-        figure_width = min(18.0, max(8.0, len(symbols) * 1.1))
-        figure, axes = _mplp.subplots(figsize=(figure_width, 7.5), nrows=2, tight_layout=True, dpi=dpi)
+        trellises = [
+            _generate_trellis_extended(hmm, initial_distribution, symbols, False, backward, prediction_states),
+            _generate_trellis_extended(hmm, initial_distribution, symbols, True, forward, prediction_states)
+        ]
+
+        figure_width = max(_DEFAULT_FIGURE_WIDTH, min(_DEFAULT_FIGURE_WIDTH * 3.0, max(_DEFAULT_FIGURE_WIDTH * 1.25, len(symbols) * 1.1)))
+        figure_height = _DEFAULT_FIGURE_HEIGHT * 1.6
+
+        figure, axes = _mplp.subplots(nrows=2, figsize=(figure_width, figure_height), tight_layout=True, dpi=dpi)
         axes = list(axes.flat)
 
-        axes[0].axis('off')
-        axes[0].set_title('Backward Trellis', fontsize=15.0, fontweight='normal', pad=1)
-        axes[1].axis('off')
-        axes[1].set_title('Forward Trellis', fontsize=15.0, fontweight='normal', pad=1)
+        # Graphviz images need final axes bounds, including the title space, before rasterization.
+        for ax, title in zip(axes, titles):
+            ax.axis('off')
+            ax.set_title(title, fontsize=_DEFAULT_FONT_SIZE_AXES_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_AXES_TITLE, pad=_DEFAULT_AXES_TITLE_PAD)
 
+        figure.suptitle('Trellis Plot', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
         figure.canvas.draw()
 
         callbacks = []
 
-        trellis = _generate_trellis_extended(hmm, initial_distribution, symbols, False, backward, prediction_states)
-        _draw_graphviz_image(trellis, axes[0], dpi, callbacks=callbacks)
-
-        trellis = _generate_trellis_extended(hmm, initial_distribution, symbols, True, forward, prediction_states)
-        _draw_graphviz_image(trellis, axes[1], dpi, callbacks=callbacks)
+        for ax, trellis in zip(axes, trellises):
+            _draw_graphviz_image(trellis, ax, dpi, callbacks=callbacks)
 
         figure.canvas.draw()
 
@@ -1767,47 +1916,33 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate, seed: _ct
 
     else:
 
-        y_top = hmm.n + 0.5
+        trellises = [
+            _generate_trellis_standard(hmm, initial_distribution, symbols, False, backward, prediction_states),
+            _generate_trellis_standard(hmm, initial_distribution, symbols, True, forward, prediction_states)
+        ]
 
-        figure, axes = _mplp.subplots(nrows=2, tight_layout=True, dpi=dpi)
+        y_top = hmm.n + 0.5
+        figure_width = max(_DEFAULT_FIGURE_WIDTH, min(_DEFAULT_FIGURE_WIDTH * 3.0, len(symbols) * 0.65))
+        figure_height = max(_DEFAULT_FIGURE_HEIGHT, min(_DEFAULT_FIGURE_HEIGHT * 2.5, hmm.n * 0.9 + 1.0))
+
+        figure, axes = _mplp.subplots(nrows=2, figsize=(figure_width, figure_height), tight_layout=True, dpi=dpi)
         axes = list(axes.flat)
 
-        trellis, node_colors, node_edges, node_labels, node_positions, edge_colors = _generate_trellis_standard(
-            hmm, initial_distribution, symbols,
-            False, backward,
-            prediction_states
-        )
+        for ax, (trellis, node_colors, node_edges, node_labels, node_positions, edge_colors) in zip(axes, trellises):
 
-        ax_current = axes[0]
+            _nx.draw_networkx(
+                trellis, node_positions, ax=ax,
+                edgecolors=node_edges, edge_color=edge_colors,
+                node_color=node_colors, node_size=_DEFAULT_NODE_SIZE,
+                labels=node_labels, font_size=_DEFAULT_FONT_SIZE_GRAPH_LABEL, font_weight=_DEFAULT_FONT_WEIGHT_AXES_LABEL
+            )
 
-        _nx.draw_networkx(
-            trellis, node_positions, ax=ax_current,
-            edgecolors=node_edges, edge_color=edge_colors,
-            node_color=node_colors, node_size=_DEFAULT_NODE_SIZE,
-            labels=node_labels, font_size=9
-        )
+            ax.set_ylim(0.5, y_top)
+            ax.axis('off')
 
-        ax_current.set_ylim(0.5, y_top)
-        ax_current.axis('off')
-        ax_current.set_title('Backward Trellis', fontsize=15.0, fontweight='normal', pad=1)
+        for ax, title in zip(axes, titles):
+            ax.set_title(title, fontsize=_DEFAULT_FONT_SIZE_AXES_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_AXES_TITLE, pad=_DEFAULT_AXES_TITLE_PAD)
 
-        trellis, node_colors, node_edges, node_labels, node_positions, edge_colors = _generate_trellis_standard(
-            hmm, initial_distribution, symbols,
-            True, forward,
-            prediction_states
-        )
-
-        ax_current = axes[1]
-
-        _nx.draw_networkx(
-            trellis, node_positions, ax=ax_current,
-            edgecolors=node_edges, edge_color=edge_colors,
-            node_color=node_colors, node_size=_DEFAULT_NODE_SIZE,
-            labels=node_labels, font_size=9
-        )
-
-        ax_current.set_ylim(0.5, y_top)
-        ax_current.axis('off')
-        ax_current.set_title('Forward Trellis', fontsize=15.0, fontweight='normal', pad=1)
+        figure.suptitle('Trellis Plot', fontsize=_DEFAULT_FONT_SIZE_FIGURE_TITLE, fontweight=_DEFAULT_FONT_WEIGHT_FIGURE_TITLE)
 
     return figure, axes
