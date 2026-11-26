@@ -21,9 +21,11 @@ from pydtmc import (
     MarkovChain as _MarkovChain,
     plot_comparison as _plot_comparison,
     plot_convergence as _plot_convergence,
+    plot_decoding as _plot_decoding,
     plot_flow as _plot_flow,
     plot_graph as _plot_graph,
     plot_matrix as _plot_matrix,
+    plot_posterior as _plot_posterior,
     plot_redistributions as _plot_redistributions,
     plot_residuals as _plot_residuals,
     plot_sequence as _plot_sequence,
@@ -171,6 +173,30 @@ def test_plot_convergence(seed, runs, maximum_size, maximum_steps):
 
 
 @_pt.mark.slow
+def test_plot_decoding(seed, runs, maximum_size, maximum_steps):
+
+    def _params_generator():
+
+        p_size = _rd.randint(2, maximum_size)
+        p_size_multiplier = _rd.randint(1, 3)
+        p_zeros = _rd.randint(0, p_size)
+        p_steps = _rd.randint(2, maximum_steps)
+        p_initial_state = _rd.choice((None,) + tuple(range(p_size)))
+
+        yield from [p_size, p_size_multiplier, p_zeros, p_steps, p_initial_state]
+
+    configs = _generate_configs(seed, runs, _params_generator)
+
+    for size, size_multiplier, zeros, steps, initial_state in configs:
+
+        hmm = _HiddenMarkovModel.random(size, size * size_multiplier, p_zeros=zeros, e_zeros=zeros * size_multiplier, seed=seed)
+
+        figure, _ = _plot_decoding(hmm, steps, initial_state=initial_state, seed=seed, force_standard=True)
+        figure.clear()
+        _mplp.close(figure)
+
+
+@_pt.mark.slow
 def test_plot_flow(seed, runs, maximum_size, maximum_steps):
 
     def _params_generator():
@@ -204,13 +230,11 @@ def test_plot_graph(seed, runs, maximum_size):
     configs = _generate_configs(seed, runs, _params_generator)
 
     for model, (nodes_color, nodes_shape, edges_label) in zip(models, configs):
-        figure, _ = _plot_graph(model, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label,
-                                force_standard=True)
+        figure, _ = _plot_graph(model, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label, force_standard=True)
         figure.clear()
         _mplp.close(figure)
 
-        figure, _ = _plot_graph(model, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label,
-                                force_standard=False)
+        figure, _ = _plot_graph(model, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label, force_standard=False)
         figure.clear()
         _mplp.close(figure)
 

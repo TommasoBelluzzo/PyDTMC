@@ -11,6 +11,12 @@
     "maximum_size": 10,
     "maximum_steps": 20
   },
+  "plot_decoding_data": {
+    "seed": 7331,
+    "runs": 20,
+    "maximum_size": 10,
+    "maximum_steps": 20
+  },
   "plot_flow_data": {
     "seed": 7331,
     "runs": 20,

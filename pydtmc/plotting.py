@@ -3,9 +3,11 @@
 __all__ = [
     'plot_comparison',
     'plot_convergence',
+    'plot_decoding',
     'plot_flow',
     'plot_graph',
     'plot_matrix',
+    'plot_posterior',
     'plot_redistributions',
     'plot_residuals',
     'plot_sequence',
