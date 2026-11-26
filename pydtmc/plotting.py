@@ -6,6 +6,7 @@ __all__ = [
     'plot_decoding',
     'plot_flow',
     'plot_graph',
+    'plot_implied_timescales',
     'plot_matrix',
     'plot_posterior',
     'plot_redistributions',
@@ -52,7 +53,7 @@ from .markov_chain import (
 @_dc.interactive_plot
 def plot_comparison(models: _ct.tlist_mdl, underlying_matrices: str = 'transition', names: _ct.olist_str = None, dpi: int = 100) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots a heatmap comparison of the transition or emission matrices of the given models.
 
     | **Notes:**
@@ -87,7 +88,7 @@ def plot_comparison(models: _ct.tlist_mdl, underlying_matrices: str = 'transitio
 @_dc.interactive_plot
 def plot_convergence(model: _ct.tmdl, steps: int, initial_status: _ct.ostatus = None, dpi: int = 100, full_scale: bool = False) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots the total variation distance between the evolving state distribution and the stationary distribution of the given model.
 
     | **Notes:**
@@ -127,11 +128,12 @@ def plot_convergence(model: _ct.tmdl, steps: int, initial_status: _ct.ostatus = 
 @_dc.interactive_plot
 def plot_decoding(hmm: _ct.thmm, symbols: _ct.tseq, initial_status: _ct.ostatus = None, dpi: int = 100) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots an observed sequence of emitted symbols alongside the corresponding decoded sequences of hidden states.
 
     | **Notes:**
 
+    - The decoded sequences are obtained using the Viterbi algorithm and the maximum a posteriori prediction.
     - Observations for which the two decoding methods produce different hidden states are highlighted.
     - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
@@ -159,7 +161,7 @@ def plot_decoding(hmm: _ct.thmm, symbols: _ct.tseq, initial_status: _ct.ostatus 
 @_dc.interactive_plot
 def plot_flow(model: _ct.tmdl, steps: int, interval: int, initial_status: _ct.ostatus = None, dpi: int = 100) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots an alluvial diagram representing the evolution of state probabilities and their redistribution between displayed time points.
 
     | **Notes:**
@@ -194,7 +196,7 @@ def plot_flow(model: _ct.tmdl, steps: int, interval: int, initial_status: _ct.os
 @_dc.interactive_plot
 def plot_graph(model: _ct.tmdl, nodes_color: bool = True, nodes_shape: bool = True, edges_label: bool = True, force_standard: bool = False, dpi: int = 100) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots the directed graph of the given model, representing state transitions and, for hidden Markov models, symbol emissions.
 
     | **Notes:**
@@ -230,9 +232,64 @@ def plot_graph(model: _ct.tmdl, nodes_color: bool = True, nodes_shape: bool = Tr
 
 
 @_dc.interactive_plot
+def plot_implied_timescales(lags: _ct.tlist_int, fitting_type: str, possible_states: _ct.tlist_str, states: _ct.tseq, fitting_param: _ct.tany = None, dpi: int = 100) -> _ct.tplot:
+
+    r"""
+    | The function plots the implied timescales estimated from an observed sequence of states and the given lags.
+
+    | **Notes:**
+
+    - A Markov chain is independently fitted for each lag using the subsampled observed sequence of states.
+    - The implied timescales are expressed in units of the original observation steps.
+    - The plot displays the non-trivial implied timescales ordered by decreasing eigenvalue modulus at each lag.
+    - Undefined, zero and infinite implied timescales are not displayed.
+    - The shaded region identifies timescales shorter than the corresponding lag.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
+
+    :param lags: the lags.
+    :param fitting_type:
+     - **map** for maximum a posteriori estimation;
+     - **mle** for maximum-likelihood estimation;
+     - **rmle** for reversible maximum-likelihood estimation.
+    :param possible_states: the possible states of the process.
+    :param states: the observed sequence of states.
+    :param fitting_param:
+     - For **map**, a matrix of Dirichlet prior parameters (*if omitted, all entries are set to 1*).
+     - For **mle**, a boolean indicating whether to apply additive smoothing (*if omitted, smoothing is disabled*).
+     - For **rmle**, a positive integer specifying the maximum number of iterations (*if omitted, 100000 iterations are used*).
+    :param dpi: the resolution of the plot expressed in dots per inch.
+    :raises ValidationError: if any input argument is not compliant.
+    :raises ValueError: if the implied timescales cannot be computed.
+    """
+
+    try:
+
+        fitting_type = _v.validate_enumerator(fitting_type, ['map', 'mle', 'rmle'])
+        possible_states = _v.validate_labels_input(possible_states)
+        states = _v.validate_sequence(states, possible_states)
+
+        if fitting_param is not None:
+            if fitting_type == 'map':
+                fitting_param = _v.validate_hyperparameter(fitting_param, len(possible_states))
+            elif fitting_type == 'mle':
+                fitting_param = _v.validate_boolean(fitting_param)
+            else:
+                fitting_param = _v.validate_integer(fitting_param, lower_limit=(1000, False))
+
+        lags = _v.validate_lags(lags, len(states))
+
+        dpi = _v.validate_dpi(dpi)
+
+    except Exception as ex:  # pragma: no cover
+        raise _u.create_validation_error(ex, _ins.trace()) from None
+
+    return _r.plot_implied_timescales(lags, fitting_type, fitting_param, possible_states, states, dpi)
+
+
+@_dc.interactive_plot
 def plot_matrix(model: _ct.tmdl, underlying_matrix: str = 'transition', dpi: int = 100) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots a heatmap of the transition or emission matrix of the given model.
 
     | **Notes:**
@@ -266,7 +323,7 @@ def plot_matrix(model: _ct.tmdl, underlying_matrix: str = 'transition', dpi: int
 @_dc.interactive_plot
 def plot_posterior(hmm: _ct.thmm, symbols: _ct.tseq, initial_status: _ct.ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots the posterior probabilities of the hidden states given an observed sequence of emitted symbols.
 
     | **Notes:**
@@ -303,7 +360,7 @@ def plot_posterior(hmm: _ct.thmm, symbols: _ct.tseq, initial_status: _ct.ostatus
 @_dc.interactive_plot
 def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: _ct.ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots the evolution of the state probability distribution over successive steps of the given model.
 
     | **Notes:**
@@ -340,7 +397,7 @@ def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: 
 @_dc.interactive_plot
 def plot_residuals(model: _ct.tmdl, sequence: _ct.tseq, seed: _ct.oint = None, dpi: int = 100) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots diagnostic diagrams of the randomized quantile residuals of an observed sequence.
 
     | **Notes:**
@@ -348,7 +405,7 @@ def plot_residuals(model: _ct.tmdl, sequence: _ct.tseq, seed: _ct.oint = None, d
     - The plot includes the residual sequence, the normal quantile-quantile diagram, the empirical residual distribution and the residual autocorrelation function.
     - The observed sequence consists of states or emitted symbols for Markov chains and hidden Markov models, respectively.
     - For hidden Markov models, the initial hidden states are assumed to be uniformly distributed.
-    - The autocorrelation, confidence bounds are approximate and pointwise.
+    - The autocorrelation confidence bounds are approximate and pointwise.
     - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
@@ -375,7 +432,7 @@ def plot_residuals(model: _ct.tmdl, sequence: _ct.tseq, seed: _ct.oint = None, d
 @_dc.interactive_plot
 def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None, plot_type: str = 'histogram', seed: _ct.oint = None, dpi: int = 100) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots a random sequence of states for Markov chains, and of hidden states and emitted symbols for hidden Markov models.
 
     | **Notes:**
@@ -412,7 +469,7 @@ def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None,
 @_dc.interactive_plot
 def plot_spectrum(model: _ct.tmdl, dpi: int = 100) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots the eigenvalues and eigenvector components of the transition matrix of the given model.
 
     | **Notes:**
@@ -443,7 +500,7 @@ def plot_spectrum(model: _ct.tmdl, dpi: int = 100) -> _ct.tplot:
 @_dc.interactive_plot
 def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate = None, seed: _ct.oint = None, force_standard: bool = False, dpi: int = 100) -> _ct.tplot:
 
-    """
+    r"""
     | The function plots the forward and backward trellis diagrams of a simulated observation sequence on the given hidden Markov model.
 
     | **Notes:**

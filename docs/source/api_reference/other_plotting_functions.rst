@@ -5,9 +5,12 @@ Plotting Functions
 
 .. autofunction:: plot_comparison
 .. autofunction:: plot_convergence
+.. autofunction:: plot_decoding
 .. autofunction:: plot_flow
 .. autofunction:: plot_graph
+.. autofunction:: plot_implied_timescales
 .. autofunction:: plot_matrix
+.. autofunction:: plot_posterior
 .. autofunction:: plot_redistributions
 .. autofunction:: plot_residuals
 .. autofunction:: plot_sequence

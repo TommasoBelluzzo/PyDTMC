@@ -3780,9 +3780,9 @@ class MarkovChain(_bc.Model):
 
         try:
 
+            fitting_type = _v.validate_enumerator(fitting_type, ['map', 'mle', 'rmle'])
             possible_states = _v.validate_labels_input(possible_states)
             states = _v.validate_sequence(states, possible_states)
-            fitting_type = _v.validate_enumerator(fitting_type, ['map', 'mle', 'rmle'])
 
             if fitting_param is not None:
                 if fitting_type == 'map':

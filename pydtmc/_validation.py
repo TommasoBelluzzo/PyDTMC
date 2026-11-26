@@ -24,6 +24,7 @@ __all__ = [
     'validate_labels_current',
     'validate_labels_pair',
     'validate_labels_input',
+    'validate_lags',
     'validate_markov_chain',
     'validate_markov_chains',
     'validate_mask',
@@ -357,7 +358,7 @@ def validate_dimensions(value: _ct.tany) -> _ct.tlist_int:
     if not all(_u.is_integer(v) for v in value):
         raise TypeError('The "@arg@" parameter must contain only integers.')
 
-    value = [int(v) for v in value]
+    value = [int(dimension) for dimension in value]
 
     if any(v < 2 for v in value):
         raise ValueError('The "@arg@" parameter values must be greater than or equal to 2.')
@@ -717,15 +718,38 @@ def validate_labels_input(value: _ct.tany, size: _ct.oint = None) -> _ct.tlist_s
     if labels_length < 2:
         raise ValueError('The "@arg@" parameter must contain at least 2 elements.')
 
-    labels_unique_length = len(set(value))
-
-    if labels_unique_length < labels_length:
+    if len(set(value)) < labels_length:
         raise ValueError('The "@arg@" parameter must contain only unique values.')
 
-    if size is not None and labels_length != size:
+    if (size is not None) and (labels_length != size):
         raise ValueError(f'The "@arg@" parameter must contain a number of elements equal to {size:d}.')
 
     value = value.copy()
+
+    return value
+
+
+def validate_lags(value: _ct.tany, size: int) -> _ct.tlist_int:
+
+    if not _u.is_list(value):
+        raise TypeError('The "@arg@" parameter must be a list.')
+
+    if not all(_u.is_integer(lag) for lag in value):
+        raise TypeError('The "@arg@" parameter must contain only integers.')
+
+    value = [int(lag) for lag in value]
+    value_length = len(value)
+
+    if value_length < 1:
+        raise ValueError('The "@arg@" parameter must contain at least an element.')
+
+    if len(set(value)) < value_length:
+        raise ValueError('The "@arg@" parameter must contain only unique values.')
+
+    if any((lag < 1) or (lag >= size) for lag in value):
+        raise ValueError(f'The "@arg@" parameter must contain only values between 1 and {size - 1:d}.')
+
+    value = sorted(value)
 
     return value
 
