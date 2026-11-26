@@ -182,18 +182,10 @@ def main():
     for name, model in mcs + hmms:
 
         is_hmm = isinstance(model, HiddenMarkovModel)
-        show_plot(f'{name} | matrix | transition', 'matrix', plot_matrix, model)
-        show_plot(f'{name} | spectrum', 'spectrum', plot_spectrum, model)
-
-        if is_hmm:
-            show_plot(f'{name} | matrix | emission', 'matrix', plot_matrix, model, underlying_matrix='emission')
 
         for force_standard in (True, False):
             mode = 'standard' if force_standard else 'automatic backend'
             show_plot(f'{name} | graph | {mode}', 'graph', plot_graph, model, force_standard=force_standard)
-
-        for steps in (3, 12):
-            show_plot(f'{name} | flow | {steps} steps', 'flow', plot_flow, model, steps, 1)
 
         for steps in STEPS:
 
