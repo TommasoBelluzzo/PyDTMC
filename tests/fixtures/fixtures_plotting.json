@@ -19,7 +19,7 @@
   },
   "plot_graph_data": {
     "seed": 7331,
-    "runs": 50,
+    "runs": 20,
     "maximum_size": 5
   },
   "plot_matrix_data": {
@@ -32,6 +32,12 @@
     "runs": 20,
     "maximum_size": 10,
     "maximum_redistributions": 20
+  },
+  "plot_residuals_data": {
+    "seed": 7331,
+    "runs": 10,
+    "maximum_size": 5,
+    "maximum_steps": 20
   },
   "plot_sequence_data": {
     "seed": 7331,
@@ -48,6 +54,6 @@
     "seed": 7331,
     "runs": 10,
     "maximum_size": 5,
-    "maximum_steps": 20
+    "maximum_steps": 10
   }
 }

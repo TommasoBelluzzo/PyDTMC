@@ -5,9 +5,11 @@ from __future__ import annotations
 __all__ = [
     'plot_comparison',
     'plot_convergence',
+    'plot_decoding',
     'plot_flow',
     'plot_graph',
     'plot_matrix',
+    'plot_posterior',
     'plot_redistributions',
     'plot_residuals',
     'plot_sequence',
@@ -61,11 +63,36 @@ _COLOR_GRAY = '#E0E0E0'
 _COLOR_WHITE = '#FFFFFF'
 _COLORS = ('#80B1D3', '#FFED6F', '#B3DE69', '#BEBADA', '#FDB462', '#8DD3C7', '#FB8072', '#FCCDE5', '#E5C494')
 
+_DEFAULT_COLOR_DATA = _COLORS[0]
+_DEFAULT_COLOR_REFERENCE = _COLORS[4]
+_DEFAULT_COLOR_NEGATIVE = _COLORS[6]
+_DEFAULT_COLOR_POSITIVE = _COLORS[0]
 _DEFAULT_COLOR_EDGE = _COLOR_BLACK
 _DEFAULT_COLOR_NODE = _COLOR_WHITE
 _DEFAULT_COLOR_PATH = _COLORS[0]
 _DEFAULT_COLOR_SYMBOL = _COLOR_GRAY
+
+_DEFAULT_FONT_SIZE_AXES_LABEL = 12.0
+_DEFAULT_FONT_SIZE_AXES_TITLE = 13.0
+_DEFAULT_FONT_SIZE_FIGURE_TITLE = 15.0
+
+_DEFAULT_FONT_WEIGHT_AXES_LABEL = 'normal'
+_DEFAULT_FONT_WEIGHT_AXES_TITLE = 'normal'
+_DEFAULT_FONT_WEIGHT_FIGURE_TITLE = 'bold'
+
+_DEFAULT_LINE_WIDTH = 1.75
+_DEFAULT_LINE_WIDTH_REFERENCE = 1.50
+_DEFAULT_LINE_WIDTH_EMPHASIZED = 3.00
+
+_DEFAULT_GRID_ALPHA = 0.5
+_DEFAULT_GRID_LINE_WIDTH = 0.5
+
+_DEFAULT_MARKER_SIZE = 4.0
+_DEFAULT_SCATTER_SIZE = 12.0
+
 _DEFAULT_NODE_SIZE = 600
+
+_MAXIMUM_TICKS = 11
 
 
 #############
@@ -302,7 +329,7 @@ def _fit_graph_bounds(ax: _mplp.Axes) -> None:
 def _generate_hmm_extended(hmm: _ct.thmm, nodes_color: bool, nodes_shape: bool, edges_label: bool) -> _pyd.Dot:
 
     magnitude = _n.calculate_magnitude(hmm.p, hmm.e)
-    node_colors = _get_node_colors(hmm.n) if nodes_color else []
+    node_colors = _get_colors(hmm.n) if nodes_color else []
     edge_colors = list(node_colors) if nodes_color else []
 
     g = _pyd.Dot(graph_type='digraph')
@@ -389,7 +416,7 @@ def _generate_hmm_extended(hmm: _ct.thmm, nodes_color: bool, nodes_shape: bool, 
 def _generate_hmm_standard(hmm: _ct.thmm, nodes_color: bool, nodes_shape: bool, edges_label: bool) -> tuple:
 
     magnitude = _n.calculate_magnitude(hmm.p, hmm.e)
-    node_colors = _get_node_colors(hmm.n) if nodes_color else []
+    node_colors = _get_colors(hmm.n) if nodes_color else []
     edge_colors = list(node_colors) if nodes_color else []
 
     g = hmm.to_graph()
@@ -435,7 +462,7 @@ def _generate_hmm_standard(hmm: _ct.thmm, nodes_color: bool, nodes_shape: bool, 
                 edge = (state_i, state_j)
                 edge_color = _DEFAULT_COLOR_EDGE
 
-                if (i != j) and (reversed(edge) in g.edges):
+                if (i != j) and ((edge[1], edge[0]) in g.edges):
 
                     edge_length = abs(i - j)
                     edge_rad = 0.15 if edge_length == 1 else edge_length * 0.25
@@ -475,7 +502,7 @@ def _generate_hmm_standard(hmm: _ct.thmm, nodes_color: bool, nodes_shape: bool, 
 def _generate_mc_extended(mc: _ct.tmc, nodes_color: bool, nodes_shape: bool, edges_label: bool) -> _pyd.Dot:
 
     magnitude = _n.calculate_magnitude(mc.p)
-    node_colors = _get_node_colors(len(mc.communicating_classes)) if nodes_color else []
+    node_colors = _get_colors(len(mc.communicating_classes)) if nodes_color else []
 
     g = _pyd.Dot(graph_type='digraph')
 
@@ -525,7 +552,7 @@ def _generate_mc_extended(mc: _ct.tmc, nodes_color: bool, nodes_shape: bool, edg
 def _generate_mc_standard(mc: _ct.tmc, nodes_color: bool, nodes_shape: bool, edges_label: bool) -> tuple:
 
     magnitude = _n.calculate_magnitude(mc.p)
-    node_colors = _get_node_colors(len(mc.communicating_classes)) if nodes_color else []
+    node_colors = _get_colors(len(mc.communicating_classes)) if nodes_color else []
 
     g = mc.to_graph()
     positions = _nx.spring_layout(g, seed=0)
@@ -570,7 +597,7 @@ def _generate_mc_standard(mc: _ct.tmc, nodes_color: bool, nodes_shape: bool, edg
                 edge = (state_i, state_j)
                 edge_color = _DEFAULT_COLOR_EDGE
 
-                if (i != j) and (reversed(edge) in g.edges):
+                if (i != j) and ((edge[1], edge[0]) in g.edges):
 
                     edge_connection = 'arc3, rad=0.1'
 
@@ -765,31 +792,31 @@ def _get_boundaries(d: _ct.tarray) -> _ct.tpair_array:
     return bottom, top
 
 
-def _get_colors(d: _ct.tarray) -> _ct.tarray:
+def _get_colors(count: int) -> _ct.tlist_str:
 
-    i = d.shape[0]
+    colors = []
     colors_count = len(_COLORS)
 
-    colors = _np.zeros((i, 4), dtype=float)
+    for index in range(count):
 
-    for index in range(i):
-
-        base_color = _np.array(_mplcr.to_rgb(_COLORS[index % colors_count]))
+        base_color = _COLORS[index % colors_count]
         cycle = index // colors_count
 
         if cycle == 0:
             color = base_color
         else:  # pragma: no cover
 
+            base_color_rgb = _np.array(_mplcr.to_rgb(base_color))
             variation = min(0.12 * ((cycle + 1) // 2), 0.36)
 
             if (cycle % 2) == 1:
-                color = base_color + ((1.0 - base_color) * variation)
+                color_rgb = base_color_rgb + ((1.0 - base_color_rgb) * variation)
             else:
-                color = base_color * (1.0 - variation)
+                color_rgb = base_color_rgb * (1.0 - variation)
 
-        colors[index, :3] = color
-        colors[index, 3] = 1.0
+            color = _mplcr.to_hex(color_rgb).upper()
+
+        colors.append(color)
 
     return colors
 
@@ -805,12 +832,7 @@ def _get_curves(n: int, x1: float, y1: _ct.tarray, x2: float, y2: _ct.tarray) ->
     return cx, cy
 
 
-def _get_node_colors(count: int) -> _ct.tlist_str:
-
-    return [_COLORS[i % len(_COLORS)] for i in range(count)]
-
-
-def _get_polygons_bars(d: _ct.tarray, bb: _ct.tarray, bt: _ct.tarray, colors: _ct.tarray) -> _ct.tlist_any:
+def _get_polygons_bars(d: _ct.tarray, bb: _ct.tarray, bt: _ct.tarray, colors: _ct.tlist_str) -> _ct.tlist_any:
 
     i, j = d.shape
     w = j / 40.0
@@ -823,18 +845,19 @@ def _get_polygons_bars(d: _ct.tarray, bb: _ct.tarray, bt: _ct.tarray, colors: _c
         xp = oj + w
 
         for oi in range(i):
+
             yb = bb[oi, oj]
             yt = bt[oi, oj]
 
             x = [xm, xp, xp, xm]
             y = [yb, yb, yt, yt]
 
-            polygons.append(_mplpc.Polygon(list(zip(x, y)), edgecolor=None, facecolor=colors[oi, :], alpha=0.8))
+            polygons.append(_mplpc.Polygon(list(zip(x, y)), edgecolor=None, facecolor=colors[oi], alpha=0.8))
 
     return polygons
 
 
-def _get_polygons_flows(p: _ct.tarray, d: _ct.tarray, bb: _ct.tarray, colors: _ct.tarray, interval: int) -> _ct.tlist_any:
+def _get_polygons_flows(p: _ct.tarray, d: _ct.tarray, bb: _ct.tarray, colors: _ct.tlist_str, interval: int) -> _ct.tlist_any:
 
     i, j = d.shape
     w = j / 40.0
@@ -870,7 +893,7 @@ def _get_polygons_flows(p: _ct.tarray, d: _ct.tarray, bb: _ct.tarray, colors: _c
             y = _np.concatenate([bottom_y, top_y], axis=0)
 
             for z in range(x.shape[1]):
-                polygons.append(_mplpc.Polygon(list(zip(x[:, z], y[:, z])), edgecolor=None, facecolor=colors[oi, :], alpha=0.3))
+                polygons.append(_mplpc.Polygon(list(zip(x[:, z], y[:, z])), edgecolor=None, facecolor=colors[oi], alpha=0.3))
 
     return polygons
 
@@ -954,15 +977,15 @@ def _xticks_labels(ax: _mplp.Axes, size: int, labels_name: _ct.ostr, labels: _ct
     ax.set_xticklabels(labels)
 
 
-def _xticks_steps(ax: _mplp.Axes, length: int, interval: int = 1, maximum_ticks: int = 11) -> None:
+def _xticks_steps(ax: _mplp.Axes, length: int, interval: int = 1) -> None:
 
     ax.set_xlabel('Steps', fontsize=13.0)
 
     tick_step = 1
 
-    if length > maximum_ticks:
+    if length > _MAXIMUM_TICKS:
 
-        target_step = (length - 1) / (maximum_ticks - 1)
+        target_step = (length - 1) / (_MAXIMUM_TICKS - 1)
         magnitude = 10.0 ** _mt.floor(_mt.log10(target_step))
 
         for multiplier in (1, 2, 5, 10):
@@ -1045,7 +1068,7 @@ def plot_convergence(mc: _ct.tmc, steps: int, initial_status: _ct.oarray, dpi: i
 
     ax.plot(_np.arange(distances.size), distances, color=_COLORS[0], linewidth=1.75)
 
-    ax.set_xlim(0, distances.size - 1)
+    _xticks_steps(ax, distances.size)
     ax.set_ylabel('Total Variation Distance', fontsize=13.0)
 
     if full_scale:
@@ -1061,6 +1084,83 @@ def plot_convergence(mc: _ct.tmc, steps: int, initial_status: _ct.oarray, dpi: i
     return figure, ax
 
 
+def plot_decoding(hmm: _ct.thmm, symbols: _ct.tlist_int, initial_distribution: _ct.tarray, dpi: int) -> _ct.tplot:
+
+    decoding = hmm.decode(symbols, initial_status=initial_distribution)
+    prediction = hmm.predict('mle', symbols, initial_status=initial_distribution, output_indices=True)
+
+    if (decoding is None) or (prediction is None):  # pragma: no cover
+        raise ValueError('The computation of the decoded sequences failed.')
+
+    _, posterior, _, _, _, _ = decoding
+    _, viterbi = prediction
+
+    viterbi = _np.asarray(viterbi, dtype=int)
+    map_states = _np.argmax(posterior, axis=0)
+    disagreement = (viterbi != map_states).astype(int)
+
+    size = len(symbols)
+
+    colors_states = _get_colors(hmm.n)
+    colors_symbols = _mplp.get_cmap('Greys')(_np.linspace(0.25, 0.75, hmm.k))
+
+    color_map_states = _mplcr.ListedColormap(colors_states)
+    color_map_symbols = _mplcr.ListedColormap(colors_symbols)
+    color_map_disagreement = _mplcr.ListedColormap([_COLOR_WHITE, _COLORS[6]])
+
+    figure_width, figure_height = _mplp.rcParams['figure.figsize']
+    figure, axes = _mplp.subplots(figsize=(figure_width * 1.5, figure_height), nrows=4, tight_layout=True, sharex=True, dpi=dpi)
+    axes = list(axes.flat)
+
+    sequences = [
+        ('Observed', symbols, hmm.symbols, color_map_symbols),
+        ('Viterbi', viterbi, hmm.states, color_map_states),
+        ('MAP', map_states, hmm.states, color_map_states),
+        ('Disagreement', disagreement, None, color_map_disagreement)
+    ]
+
+    for ax, (name, sequence, labels, color_map) in zip(axes, sequences):
+
+        matrix = _np.asarray(sequence, dtype=int).reshape(1, -1)
+        colors_count = color_map.N
+
+        ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=-0.5, vmax=colors_count - 0.5)
+
+        ax.set_ylabel(name, fontsize=12.0, rotation=0, labelpad=10.0, horizontalalignment='right', verticalalignment='center')
+        ax.set_yticks([])
+
+        if size <= _MAXIMUM_TICKS:
+
+            ax.grid(which='minor', color='k', linewidth=0.5)
+
+            if labels is not None:
+
+                for i, value in enumerate(sequence):
+
+                    color = color_map(value)
+                    luminance = (0.299 * color[0]) + (0.587 * color[1]) + (0.114 * color[2])
+                    text_color = _COLOR_BLACK if luminance > 0.5 else _COLOR_WHITE
+
+                    ax.text(i, 0.0, labels[value], color=text_color, horizontalalignment='center', verticalalignment='center')
+
+        ax.tick_params(axis='x', which='both', bottom=False, labelbottom=False)
+
+    _xticks_steps(axes[-1], size)
+    axes[-1].tick_params(axis='x', which='major', bottom=True, labelbottom=True)
+    axes[-1].set_xlabel('Observations', fontsize=13.0)
+
+    if size > _MAXIMUM_TICKS:
+        legend_handlers_symbols = [_mplpc.Patch(facecolor=color_map_symbols(i), label=label) for i, label in enumerate(hmm.symbols)]
+        legend_handlers_states = [_mplpc.Patch(facecolor=color_map_states(i), label=label) for i, label in enumerate(hmm.states)]
+        axes[0].legend(handles=legend_handlers_symbols, loc='center left', bbox_to_anchor=(1.02, 0.5), ncol=int(_mt.ceil(hmm.k / 4.0)))
+        axes[1].legend(handles=legend_handlers_states, loc='center left', bbox_to_anchor=(1.02, 0.5), ncol=int(_mt.ceil(hmm.n / 4.0)))
+
+    figure.align_ylabels(axes)
+    figure.suptitle('Decoding Plot', fontsize=15.0, fontweight='bold')
+
+    return figure, axes
+
+
 def plot_flow(mc: _ct.tmc, steps: int, interval: int, initial_status: _ct.oarray, dpi: int) -> _ct.tplot:
 
     distributions = mc.propagate(steps * interval, initial_status=initial_status, output_last=False)
@@ -1072,13 +1172,13 @@ def plot_flow(mc: _ct.tmc, steps: int, interval: int, initial_status: _ct.oarray
     boundaries_bottom, boundaries_top = _get_boundaries(d)
     boundaries_middle = (boundaries_bottom + boundaries_top) / 2.0
 
-    colors = _get_colors(d)
+    colors = _get_colors(mc.size)
 
     legend_handlers = []
     legend_labels = mc.states
 
     for i, label in enumerate(legend_labels):
-        legend_handlers.append(_mplpc.Patch(color=colors[i, :].tolist(), label=label))
+        legend_handlers.append(_mplpc.Patch(color=colors[i], label=label))
 
     polygons_bars = _get_polygons_bars(d, boundaries_bottom, boundaries_top, colors)
     polygons_flows = _get_polygons_flows(p, d, boundaries_bottom, colors, interval)
@@ -1214,6 +1314,90 @@ def plot_matrix(model: _ct.tmdl, underlying_matrix: str, dpi: int) -> _ct.tplot:
     return figure, ax
 
 
+def plot_posterior(plot_type: str, hmm: _ct.thmm, symbols: _ct.tlist_int, initial_distribution: _ct.tarray, dpi: int) -> _ct.tplot:
+
+    decoding = hmm.decode(symbols, initial_status=initial_distribution)
+
+    if decoding is None:  # pragma: no cover
+        raise ValueError('The computation of the posterior probabilities failed.')
+
+    _, posterior, _, _, forward, _ = decoding
+
+    size = len(symbols)
+    figure_width, figure_height = _mplp.rcParams['figure.figsize']
+
+    if plot_type == 'heatmap':
+
+        figure, axes = _mplp.subplots(figsize=(figure_width, figure_height), nrows=2, constrained_layout=True, dpi=dpi)
+        axes = list(axes.flat)
+
+        color_map = _mplcr.LinearSegmentedColormap.from_list('ColorMap', [_COLOR_WHITE, _COLORS[0]], 20)
+        is_axes = []
+
+        for ax, (name, matrix) in zip(axes, [('Filtering', forward), ('Smoothing', posterior)]):
+
+            ax_is = ax.imshow(matrix, aspect='auto', cmap=color_map, interpolation='none', vmin=0.0, vmax=1.0)
+            is_axes.append(ax_is)
+
+            _xticks_steps(ax, size)
+            _yticks_labels(ax, hmm.n, 'States', hmm.states)
+
+            if size <= _MAXIMUM_TICKS:
+                ax.grid(which='minor', color='k')
+            else:
+                ax.tick_params(axis='x', which='minor', bottom=False)
+                ax.grid(axis='y', which='minor', color='k')
+
+            ax.set_title(name, fontsize=12.0, fontweight='normal')
+
+        color_map_ax, color_map_ax_kwargs = _mplcb.make_axes(axes, drawedges=True, orientation='vertical', ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
+        figure.colorbar(is_axes[0], cax=color_map_ax, **color_map_ax_kwargs)
+
+    else:
+
+        figure, ax = _mplp.subplots(figsize=(figure_width, figure_height), dpi=dpi)
+
+        colors = _get_colors(hmm.n)
+        x = _np.arange(size)
+
+        for i in range(hmm.n):
+
+            overlaps = [j for j in range(hmm.n) if _np.allclose(posterior[i, :], posterior[j, :], rtol=1e-12, atol=1e-14)]
+            overlap_index = overlaps.index(i)
+
+            marker = 'o' if size == 2 else None
+            line_style = '-'
+
+            if len(overlaps) > 1:  # pragma: no cover
+                line_style = ('-', '--', ':', '-.')[overlap_index % 4]
+                if overlap_index > 0:
+                    marker = ('o', 's', '^', 'D')[((overlap_index - 1) // 4) % 4]
+
+            ax.fill_between(x, 0.0, posterior[i, :], color=colors[i], alpha=0.35)
+
+            ax.plot(
+                x, posterior[i, :],
+                color=colors[i], label=hmm.states[i],
+                linewidth=1.75, linestyle=line_style,
+                marker=marker, markersize=4.0, markevery=max(1, size // 8)
+            )
+
+        _xticks_steps(ax, size)
+        _yticks_frequency(ax, 0.0, 1.0)
+        ax.set_ylabel('Probability', fontsize=13.0)
+
+        ax.grid()
+
+        figure.legend(*ax.get_legend_handles_labels(), loc='lower center', bbox_to_anchor=(0.5, 0.02), ncol=hmm.n)
+        figure.subplots_adjust(bottom=0.2)
+
+        axes = ax
+
+    figure.suptitle(f'Posterior Plot ({plot_type.capitalize()})', fontsize=15.0, fontweight='bold')
+
+    return figure, axes
+
+
 def plot_redistributions(plot_type: str, mc: _ct.tmc, redistributions: int, initial_status: _ct.ostatus, dpi: int) -> _ct.tplot:
 
     distributions = mc.propagate(redistributions, initial_status=initial_status, output_last=False)
@@ -1240,7 +1424,7 @@ def plot_redistributions(plot_type: str, mc: _ct.tmc, redistributions: int, init
 
     else:
 
-        ax.set_prop_cycle('color', _COLORS)
+        ax.set_prop_cycle('color', _get_colors(mc.size))
 
         for i in range(mc.size):
 
@@ -1280,19 +1464,25 @@ def plot_redistributions(plot_type: str, mc: _ct.tmc, redistributions: int, init
     return figure, ax
 
 
-def plot_residuals(residuals: _ct.tarray, dpi: int) -> _ct.tplot:
+def plot_residuals(model: _ct.tmdl, sequence: _ct.tlist_int, seed: _ct.oint, dpi: int) -> _ct.tplot:
 
-    size = residuals.size
+    residuals = model.residuals(sequence, seed=seed)
     residuals_sorted = _np.sort(residuals)
+    size = residuals.size
+
     quantiles = _sps.ndtri((_np.arange(1, size + 1) - 0.5) / size)  # pylint: disable=no-member
 
     figure_width, figure_height = _mplp.rcParams['figure.figsize']
-    figure, axes = _mplp.subplots(nrows=2, ncols=2, figsize=(figure_width * 1.5, figure_height * 1.5), tight_layout=True, dpi=dpi)
+    figure, axes = _mplp.subplots(figsize=(figure_width * 1.5, figure_height * 1.5), nrows=2, ncols=2, tight_layout=True, dpi=dpi)
     axes = list(axes.flat)
     ax_residuals, ax_quantiles, ax_distribution, ax_autocorrelation = axes
 
-    ax_residuals.scatter(_np.arange(1, size + 1), residuals, color=_COLORS[0], s=12.0)
+    offset = 1 if model.__class__.__name__ == 'MarkovChain' else 0
+
+    ax_residuals.scatter(_np.arange(offset, size + offset), residuals, color=_COLORS[0], s=12.0)
     ax_residuals.axhline(0.0, color=_COLORS[4], linestyle='--')
+    ax_residuals.set_xlim(offset - 0.5, size + offset - 0.5)
+    ax_residuals.xaxis.set_major_locator(_mplt.MaxNLocator(nbins=_MAXIMUM_TICKS - 1, integer=True, min_n_ticks=1))
     ax_residuals.grid(alpha=0.5)
     ax_residuals.set_title('Residuals', fontsize=12.0, fontweight='normal')
 
@@ -1330,10 +1520,10 @@ def plot_residuals(residuals: _ct.tarray, dpi: int) -> _ct.tplot:
         ax_autocorrelation.scatter(lags, correlations, color=_COLORS[0], s=12.0)
         ax_autocorrelation.set_xlim(0.5, maximum_lag + 0.5)
         ax_autocorrelation.set_ylim(-limit, limit)
-        ax_autocorrelation.xaxis.set_major_locator(_mplt.MaxNLocator(integer=True))
+        ax_autocorrelation.xaxis.set_major_locator(_mplt.MaxNLocator(nbins=_MAXIMUM_TICKS - 1, integer=True, min_n_ticks=1))
 
     else:
-        ax_autocorrelation.text(0.5, 0.5, 'Autocorrelation unavailable', horizontalalignment='center', verticalalignment='center', transform=ax_autocorrelation.transAxes)
+        ax_autocorrelation.text(0.5, 0.5, 'Autocorrelation Unavailable', horizontalalignment='center', verticalalignment='center', transform=ax_autocorrelation.transAxes)
         ax_autocorrelation.set_ylim(-1.0, 1.0)
         ax_autocorrelation.set_xticks([])
 
@@ -1465,8 +1655,6 @@ def plot_spectrum(mc: _ct.tmc, dpi: int) -> _ct.tplot:
     x_unit_circle = _np.cos(theta)
     y_unit_circle = _np.sin(theta)
 
-    formatter = _mplt.FormatStrFormatter('%g')
-
     figure_width, figure_height = _mplp.rcParams['figure.figsize']
     figure, axes = _mplp.subplots(ncols=2, figsize=(figure_width * 1.5, figure_height), dpi=dpi)
     axes = list(axes.flat)
@@ -1478,20 +1666,20 @@ def plot_spectrum(mc: _ct.tmc, dpi: int) -> _ct.tplot:
 
         mu = _n.slem(mc.p)
 
+        if not _np.isclose(mu, 1.0):
+
+            cs = _np.linspace(-1.1, 1.1, 201)
+            x_spectral_gap, y_spectral_gap = _np.meshgrid(cs, cs)
+            z_spectral_gap = x_spectral_gap ** 2.0 + y_spectral_gap ** 2.0
+
+            h = ax_evalues.contourf(x_spectral_gap, y_spectral_gap, z_spectral_gap, alpha=0.2, colors=_COLORS[4], levels=[mu ** 2.0, 1.0])
+            handles.append(_mplp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.get_facecolor()[0]))
+            labels.append('Spectral Gap')
+
         if not _np.isclose(mu, 0.0):
 
             x_slem_circle = mu * x_unit_circle
             y_slem_circle = mu * y_unit_circle
-
-            if not _np.isclose(mu, 1.0):
-
-                cs = _np.linspace(-1.1, 1.1, 201)
-                x_spectral_gap, y_spectral_gap = _np.meshgrid(cs, cs)
-                z_spectral_gap = x_spectral_gap ** 2.0 + y_spectral_gap ** 2.0
-
-                h = ax_evalues.contourf(x_spectral_gap, y_spectral_gap, z_spectral_gap, alpha=0.2, colors=_COLORS[4], levels=[mu ** 2.0, 1.0])
-                handles.append(_mplp.Rectangle((0.0, 0.0), 1.0, 1.0, fc=h.get_facecolor()[0]))
-                labels.append('Spectral Gap')
 
             ax_evalues.plot(x_slem_circle, y_slem_circle, color=_COLORS[4], linestyle='--', linewidth=1.5)
 
@@ -1504,8 +1692,8 @@ def plot_spectrum(mc: _ct.tmc, dpi: int) -> _ct.tplot:
     ax_evalues.set_xlim(-1.1, 1.1)
     ax_evalues.set_ylim(-1.1, 1.1)
     ax_evalues.set_aspect('equal')
-    ax_evalues.xaxis.set_major_formatter(formatter)
-    ax_evalues.yaxis.set_major_formatter(formatter)
+    ax_evalues.xaxis.set_major_formatter(_mplt.FormatStrFormatter('%g'))
+    ax_evalues.yaxis.set_major_formatter(_mplt.FormatStrFormatter('%g'))
     ax_evalues.set_xticks(_np.linspace(-1.0, 1.0, 9), minor=False)
     ax_evalues.set_yticks(_np.linspace(-1.0, 1.0, 9), minor=False)
     ax_evalues.grid(which='major')
@@ -1554,7 +1742,7 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate, seed: _ct
     if extended_graph:
 
         figure_width = min(18.0, max(8.0, len(symbols) * 1.1))
-        figure, axes = _mplp.subplots(nrows=2, figsize=(figure_width, 7.5), tight_layout=True, dpi=dpi)
+        figure, axes = _mplp.subplots(figsize=(figure_width, 7.5), nrows=2, tight_layout=True, dpi=dpi)
         axes = list(axes.flat)
 
         axes[0].axis('off')

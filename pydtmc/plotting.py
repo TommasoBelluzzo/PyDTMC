@@ -123,6 +123,38 @@ def plot_convergence(model: _ct.tmdl, steps: int, initial_status: _ct.ostatus = 
 
 
 @_dc.interactive_plot
+def plot_decoding(hmm: _ct.thmm, symbols: _ct.tseq, initial_status: _ct.ostatus = None, dpi: int = 100) -> _ct.tplot:
+
+    """
+    | The function plots an observed sequence of emitted symbols alongside the corresponding decoded sequences of hidden states.
+
+    | **Notes:**
+
+    - Observations for which the two decoding methods produce different hidden states are highlighted.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
+
+    :param hmm: the hidden Markov model.
+    :param symbols: the observed sequence of emitted symbols.
+    :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
+    :param dpi: the resolution of the plot expressed in dots per inch.
+    :raises ValidationError: if any input argument is not compliant.
+    :raises ValueError: if the computation of the decoded sequences fails.
+    """
+
+    try:
+
+        hmm = _v.validate_hidden_markov_model(hmm)
+        symbols = _v.validate_sequence(symbols, hmm.symbols)
+        initial_status = _v.validate_status(initial_status, hmm.states, True)
+        dpi = _v.validate_dpi(dpi)
+
+    except Exception as ex:  # pragma: no cover
+        raise _u.create_validation_error(ex, _ins.trace()) from None
+
+    return _r.plot_decoding(hmm, symbols, initial_status, dpi)
+
+
+@_dc.interactive_plot
 def plot_flow(model: _ct.tmdl, steps: int, interval: int, initial_status: _ct.ostatus = None, dpi: int = 100) -> _ct.tplot:
 
     """
@@ -230,6 +262,43 @@ def plot_matrix(model: _ct.tmdl, underlying_matrix: str = 'transition', dpi: int
 
 
 @_dc.interactive_plot
+def plot_posterior(hmm: _ct.thmm, symbols: _ct.tseq, initial_status: _ct.ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _ct.tplot:
+
+    """
+    | The function plots the posterior probabilities of the hidden states given an observed sequence of emitted symbols.
+
+    | **Notes:**
+
+    - Filtering considers only the observations available up to the current step, whereas smoothing considers the entire observed sequence.
+    - Both probability distributions are computed using the forward-backward algorithm.
+    - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
+
+    :param hmm: the hidden Markov model.
+    :param symbols: the observed sequence of emitted symbols.
+    :param initial_status: the initial hidden state or initial hidden-state distribution (*if omitted, the hidden states are assumed to be uniformly distributed*).
+    :param plot_type:
+     - **heatmap** for displaying the filtered and smoothed posterior probabilities across successive steps;
+     - **projection** for displaying the evolution of the smoothed posterior probabilities of each hidden state.
+    :param dpi: the resolution of the plot expressed in dots per inch.
+    :raises ValidationError: if any input argument is not compliant.
+    :raises ValueError: if the computation of the posterior probabilities fails.
+    """
+
+    try:
+
+        hmm = _v.validate_hidden_markov_model(hmm)
+        symbols = _v.validate_sequence(symbols, hmm.symbols)
+        initial_status = _v.validate_status(initial_status, hmm.states, True)
+        plot_type = _v.validate_enumerator(plot_type, ['heatmap', 'projection'])
+        dpi = _v.validate_dpi(dpi)
+
+    except Exception as ex:  # pragma: no cover
+        raise _u.create_validation_error(ex, _ins.trace()) from None
+
+    return _r.plot_posterior(plot_type, hmm, symbols, initial_status, dpi)
+
+
+@_dc.interactive_plot
 def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: _ct.ostatus = None, plot_type: str = 'projection', dpi: int = 100) -> _ct.tplot:
 
     """
@@ -267,7 +336,7 @@ def plot_redistributions(model: _ct.tmdl, redistributions: int, initial_status: 
 
 
 @_dc.interactive_plot
-def plot_residuals(model: _ct.tmdl, sequence: _ct.tseq, initial_status: _ct.ostatus = None, seed: _ct.oint = None, dpi: int = 100) -> _ct.tplot:
+def plot_residuals(model: _ct.tmdl, sequence: _ct.tseq, seed: _ct.oint = None, dpi: int = 100) -> _ct.tplot:
 
     """
     | The function plots diagnostic diagrams of the randomized quantile residuals of an observed sequence.
@@ -276,12 +345,12 @@ def plot_residuals(model: _ct.tmdl, sequence: _ct.tseq, initial_status: _ct.osta
 
     - The plot includes the residual sequence, the normal quantile-quantile diagram, the empirical residual distribution and the residual autocorrelation function.
     - The observed sequence consists of states or emitted symbols for Markov chains and hidden Markov models, respectively.
-    - The autocorrelation confidence bounds are approximate and pointwise.
+    - For hidden Markov models, the initial hidden states are assumed to be uniformly distributed.
+    - The autocorrelation, confidence bounds are approximate and pointwise.
     - If `Matplotlib <https://matplotlib.org/>`_ is in `interactive mode <https://matplotlib.org/stable/users/interactive.html>`_, the plot is immediately displayed.
 
     :param model: the model.
     :param sequence: the observed sequence.
-    :param initial_status: the initial hidden state or initial hidden-state distribution (*only applicable to hidden Markov models; if omitted, the hidden states are assumed to be uniformly distributed*).
     :param seed: a seed to be used as RNG initializer for reproducibility purposes.
     :param dpi: the resolution of the plot expressed in dots per inch.
     :raises ValidationError: if any input argument is not compliant.
@@ -291,23 +360,21 @@ def plot_residuals(model: _ct.tmdl, sequence: _ct.tseq, initial_status: _ct.osta
     try:
 
         model = _v.validate_model(model)
-        model_mc = model.__class__.__name__ == 'MarkovChain'
-        initial_status = _v.validate_none(initial_status) if model_mc else initial_status
+        sequence = _v.validate_sequence(sequence, model.states if model.__class__.__name__ == 'MarkovChain' else model.symbols)
+        seed = None if seed is None else _v.validate_integer(seed, lower_limit=(0, False), upper_limit=(2**32 - 1, False))
         dpi = _v.validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
         raise _u.create_validation_error(ex, _ins.trace()) from None
 
-    residuals = model.residuals(sequence, seed=seed) if model_mc else model.residuals(sequence, initial_status, seed)
-
-    return _r.plot_residuals(residuals, dpi)
+    return _r.plot_residuals(model, sequence, seed, dpi)
 
 
 @_dc.interactive_plot
 def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None, plot_type: str = 'histogram', seed: _ct.oint = None, dpi: int = 100) -> _ct.tplot:
 
     """
-    | The function plots a random sequence of states and, for hidden Markov models, emitted symbols.
+    | The function plots a random sequence of states for Markov chains, and of hidden states and emitted symbols for hidden Markov models.
 
     | **Notes:**
 
@@ -331,6 +398,7 @@ def plot_sequence(model: _ct.tmdl, steps: int, initial_state: _ct.ostate = None,
         steps = _v.validate_integer(steps, lower_limit=(2, False))
         initial_state = None if initial_state is None else _v.validate_label(initial_state, model.states)
         plot_type = _v.validate_enumerator(plot_type, ['heatmap', 'histogram', 'matrix'])
+        seed = None if seed is None else _v.validate_integer(seed, lower_limit=(0, False), upper_limit=(2**32 - 1, False))
         dpi = _v.validate_dpi(dpi)
 
     except Exception as ex:  # pragma: no cover
@@ -398,6 +466,7 @@ def plot_trellis(hmm: _ct.thmm, steps: int, initial_state: _ct.ostate = None, se
         hmm = _v.validate_hidden_markov_model(hmm)
         steps = _v.validate_integer(steps, lower_limit=(2, False))
         initial_state = None if initial_state is None else _v.validate_label(initial_state, hmm.states)
+        seed = None if seed is None else _v.validate_integer(seed, lower_limit=(0, False), upper_limit=(2**32 - 1, False))
         force_standard = _v.validate_boolean(force_standard)
         dpi = _v.validate_dpi(dpi)
 

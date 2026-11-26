@@ -25,6 +25,7 @@ from pydtmc import (
     plot_graph as _plot_graph,
     plot_matrix as _plot_matrix,
     plot_redistributions as _plot_redistributions,
+    plot_residuals as _plot_residuals,
     plot_sequence as _plot_sequence,
     plot_spectrum as _plot_spectrum,
     plot_trellis as _plot_trellis
@@ -131,7 +132,6 @@ def _generate_models_lists(seed, count, maximum_models, maximum_size):
 # TESTS #
 #########
 
-# noinspection PyBroadException
 @_pt.mark.slow
 def test_plot_comparison(seed, runs, maximum_models, maximum_size):
 
@@ -141,21 +141,11 @@ def test_plot_comparison(seed, runs, maximum_models, maximum_size):
 
         underlying_matrices = 'emission' if models_list_type == 'HiddenMarkovModel' else 'transition'
 
-        try:
-
-            figure, _ = _plot_comparison(models_list, underlying_matrices=underlying_matrices)
-            figure.clear()
-            _mplp.close(figure)
-
-            exception = False
-
-        except Exception:
-            exception = True
-
-        assert exception is False
+        figure, _ = _plot_comparison(models_list, underlying_matrices=underlying_matrices)
+        figure.clear()
+        _mplp.close(figure)
 
 
-# noinspection PyBroadException
 @_pt.mark.slow
 def test_plot_convergence(seed, runs, maximum_size, maximum_steps):
 
@@ -175,21 +165,11 @@ def test_plot_convergence(seed, runs, maximum_size, maximum_steps):
         if not mc.is_ergodic:
             continue
 
-        try:
-
-            figure, _ = _plot_convergence(model, maximum_steps, full_scale=bool(full_scale))
-            figure.clear()
-            _mplp.close(figure)
-
-            exception = False
-
-        except Exception:
-            exception = True
-
-        assert exception is False
+        figure, _ = _plot_convergence(model, maximum_steps, full_scale=bool(full_scale))
+        figure.clear()
+        _mplp.close(figure)
 
 
-# noinspection PyBroadException
 @_pt.mark.slow
 def test_plot_flow(seed, runs, maximum_size, maximum_steps):
 
@@ -204,22 +184,11 @@ def test_plot_flow(seed, runs, maximum_size, maximum_steps):
     configs = _generate_configs(seed, runs, _params_generator)
 
     for model, (steps, interval) in zip(models, configs):
-
-        try:
-
-            figure, _ = _plot_flow(model, steps, interval)
-            figure.clear()
-            _mplp.close(figure)
-
-            exception = False
-
-        except Exception:
-            exception = True
-
-        assert exception is False
+        figure, _ = _plot_flow(model, steps, interval)
+        figure.clear()
+        _mplp.close(figure)
 
 
-# noinspection PyArgumentEqualDefault, PyBroadException
 @_pt.mark.slow
 def test_plot_graph(seed, runs, maximum_size):
 
@@ -235,26 +204,17 @@ def test_plot_graph(seed, runs, maximum_size):
     configs = _generate_configs(seed, runs, _params_generator)
 
     for model, (nodes_color, nodes_shape, edges_label) in zip(models, configs):
+        figure, _ = _plot_graph(model, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label,
+                                force_standard=True)
+        figure.clear()
+        _mplp.close(figure)
 
-        try:
-
-            figure, _ = _plot_graph(model, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label, force_standard=True)
-            figure.clear()
-            _mplp.close(figure)
-
-            figure, _ = _plot_graph(model, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label, force_standard=False)
-            figure.clear()
-            _mplp.close(figure)
-
-            exception = False
-
-        except Exception:
-            exception = True
-
-        assert exception is False
+        figure, _ = _plot_graph(model, nodes_color=nodes_color, nodes_shape=nodes_shape, edges_label=edges_label,
+                                force_standard=False)
+        figure.clear()
+        _mplp.close(figure)
 
 
-# noinspection PyBroadException
 @_pt.mark.slow
 def test_plot_matrix(seed, runs, maximum_size):
 
@@ -262,26 +222,16 @@ def test_plot_matrix(seed, runs, maximum_size):
 
     for model in models:
 
-        try:
+        figure, _ = _plot_matrix(model)
+        figure.clear()
+        _mplp.close(figure)
 
-            figure, _ = _plot_matrix(model)
+        if isinstance(model, _HiddenMarkovModel):
+            figure, _ = _plot_matrix(model, underlying_matrix='emission')
             figure.clear()
             _mplp.close(figure)
 
-            if isinstance(model, _HiddenMarkovModel):
-                figure, _ = _plot_matrix(model, underlying_matrix='emission')
-                figure.clear()
-                _mplp.close(figure)
 
-            exception = False
-
-        except Exception:
-            exception = True
-
-        assert exception is False
-
-
-# noinspection PyBroadException
 @_pt.mark.slow
 def test_plot_redistributions(seed, runs, maximum_size, maximum_redistributions):
 
@@ -296,22 +246,28 @@ def test_plot_redistributions(seed, runs, maximum_size, maximum_redistributions)
     configs = _generate_configs(seed, runs, _params_generator)
 
     for model, (redistributions, plot_type) in zip(models, configs):
-
-        try:
-
-            figure, _ = _plot_redistributions(model, redistributions, plot_type=plot_type)
-            figure.clear()
-            _mplp.close(figure)
-
-            exception = False
-
-        except Exception:
-            exception = True
-
-        assert exception is False
+        figure, _ = _plot_redistributions(model, redistributions, plot_type=plot_type)
+        figure.clear()
+        _mplp.close(figure)
 
 
-# noinspection PyBroadException
+@_pt.mark.slow
+def test_plot_residuals(seed, runs, maximum_size, maximum_steps):
+
+    models = _generate_models(seed, runs, maximum_size)
+
+    for model in models:
+
+        if isinstance(model, _HiddenMarkovModel):
+            _, sequence = model.simulate(maximum_steps, seed=seed)
+        else:
+            sequence = model.simulate(maximum_steps, seed=seed)
+
+        figure, _ = _plot_residuals(model, sequence, seed=seed)
+        figure.clear()
+        _mplp.close(figure)
+
+
 @_pt.mark.slow
 def test_plot_sequence(seed, runs, maximum_size, maximum_steps):
 
@@ -326,44 +282,22 @@ def test_plot_sequence(seed, runs, maximum_size, maximum_steps):
     configs = _generate_configs(seed, runs, _params_generator)
 
     for model, (steps, plot_type) in zip(models, configs):
-
-        try:
-
-            figure, _ = _plot_sequence(model, steps, plot_type=plot_type, seed=seed)
-            figure.clear()
-            _mplp.close(figure)
-
-            exception = False
-
-        except Exception:
-            exception = True
-
-        assert exception is False
+        figure, _ = _plot_sequence(model, steps, plot_type=plot_type, seed=seed)
+        figure.clear()
+        _mplp.close(figure)
 
 
-# noinspection PyBroadException
 @_pt.mark.slow
 def test_plot_spectrum(seed, runs, maximum_size):
 
     models = _generate_models(seed, runs, maximum_size)
 
     for model in models:
-
-        try:
-
-            figure, _ = _plot_spectrum(model)
-            figure.clear()
-            _mplp.close(figure)
-
-            exception = False
-
-        except Exception:
-            exception = True
-
-        assert exception is False
+        figure, _ = _plot_spectrum(model)
+        figure.clear()
+        _mplp.close(figure)
 
 
-# noinspection PyArgumentEqualDefault, PyBroadException
 @_pt.mark.slow
 def test_plot_trellis(seed, runs, maximum_size, maximum_steps):
 
@@ -383,19 +317,10 @@ def test_plot_trellis(seed, runs, maximum_size, maximum_steps):
 
         hmm = _HiddenMarkovModel.random(size, size * size_multiplier, p_zeros=zeros, e_zeros=zeros * size_multiplier, seed=seed)
 
-        try:
+        figure, _ = _plot_trellis(hmm, steps, initial_state=initial_state, seed=seed, force_standard=True)
+        figure.clear()
+        _mplp.close(figure)
 
-            figure, _ = _plot_trellis(hmm, steps, initial_state=initial_state, seed=seed, force_standard=True)
-            figure.clear()
-            _mplp.close(figure)
-
-            figure, _ = _plot_trellis(hmm, steps, initial_state=initial_state, seed=seed, force_standard=False)
-            figure.clear()
-            _mplp.close(figure)
-
-            exception = False
-
-        except Exception:
-            exception = True
-
-        assert exception is False
+        figure, _ = _plot_trellis(hmm, steps, initial_state=initial_state, seed=seed, force_standard=False)
+        figure.clear()
+        _mplp.close(figure)
