@@ -16,6 +16,10 @@ from pydtmc import (
     MarkovChain as _MarkovChain
 )
 
+from tests.utilities import (
+    assert_stochastic_matrix as _assert_stochastic_matrix
+)
+
 
 #########
 # TESTS #
@@ -29,6 +33,7 @@ def test_approximation(size, approximation_type, alpha, sigma, rho, k, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_bernoulli_trials(n, p_success, value):
@@ -39,6 +44,7 @@ def test_bernoulli_trials(n, p_success, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_birth_death(p, q, value):
@@ -49,6 +55,7 @@ def test_birth_death(p, q, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_card_shuffling(model, n, value):
@@ -59,6 +66,7 @@ def test_card_shuffling(model, n, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_coupon_collector(n, value):
@@ -69,6 +77,7 @@ def test_coupon_collector(n, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_dirichlet_process(seed, size, diffusion_factor, diagonal_bias_factor, shift_concentration, value):
@@ -79,6 +88,7 @@ def test_dirichlet_process(seed, size, diffusion_factor, diagonal_bias_factor, s
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_epidemic_model(model, n, p_infection, p_recovery, value):
@@ -89,6 +99,7 @@ def test_epidemic_model(model, n, p_infection, p_recovery, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_exclusion_process(model, n, k, p_right, value):
@@ -99,6 +110,7 @@ def test_exclusion_process(model, n, k, p_right, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_gamblers_ruin(size, w, value):
@@ -109,6 +121,7 @@ def test_gamblers_ruin(size, w, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_gibbs_sampling(dimensions, target_pi, value):
@@ -119,6 +132,7 @@ def test_gibbs_sampling(dimensions, target_pi, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_identity(size, value):
@@ -129,6 +143,7 @@ def test_identity(size, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_ising_model(model, n, beta, j, h, value):
@@ -139,6 +154,7 @@ def test_ising_model(model, n, beta, j, h, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_metropolis_hastings(size, target_pi, proposal, value):
@@ -149,6 +165,7 @@ def test_metropolis_hastings(size, target_pi, proposal, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_pattern_matching(pattern, probabilities, value):
@@ -159,6 +176,7 @@ def test_pattern_matching(pattern, probabilities, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_population_genetics_model(model, n, s, u, v, value):
@@ -169,6 +187,7 @@ def test_population_genetics_model(model, n, s, u, v, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_random(seed, size, zeros, mask, value):
@@ -179,6 +198,7 @@ def test_random(seed, size, zeros, mask, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
     if zeros > 0 and mask is None:
 
@@ -205,11 +225,7 @@ def test_random_distribution(seed, size, f, args, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-
-    actual = _np.sum(actual, axis=1)
-    expected = _np.ones(mc.size, dtype=float)
-
-    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_random_walk(size, topology, lazy, value):
@@ -220,6 +236,7 @@ def test_random_walk(size, topology, lazy, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_self_attention(q, k, value):
@@ -230,6 +247,7 @@ def test_self_attention(q, k, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_urn_model(model, n, value):
@@ -240,3 +258,4 @@ def test_urn_model(model, n, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)

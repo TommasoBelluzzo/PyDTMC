@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
+    'assert_stochastic_matrix',
     'evaluate',
     'hasattr_deep',
     'string_to_function'
@@ -21,8 +22,8 @@ import types as _tp
 # noinspection PyUnresolvedReferences
 import networkx as _nx  # noqa: F401
 
-# noinspection PyUnresolvedReferences
-import numpy as _np  # noqa: F401
+import numpy as _np
+import numpy.testing as _npt
 
 # noinspection PyUnresolvedReferences
 import scipy.sparse as _spsp  # noqa: F401
@@ -36,6 +37,11 @@ except ImportError:  # pragma: no cover
 
 # Internal
 
+# noinspection PyProtectedMember
+from pydtmc._constants import (
+    FTOL as _FTOL
+)
+
 # noinspection PyUnresolvedReferences
 from pydtmc import (  # noqa
     HiddenMarkovModel as _HiddenMarkovModel,
@@ -47,6 +53,18 @@ from pydtmc import (  # noqa
 #############
 # FUNCTIONS #
 #############
+
+def assert_stochastic_matrix(matrix):
+
+    assert matrix.ndim == 2
+    assert matrix.shape[0] >= 2
+    assert matrix.shape[1] >= 2
+
+    assert _np.all(_np.isfinite(matrix))
+    assert _np.all((matrix >= 0.0) & (matrix <= 1.0))
+
+    _npt.assert_allclose(_np.sum(matrix, axis=1), 1.0, rtol=0.0, atol=_FTOL)
+
 
 def evaluate(value):
 

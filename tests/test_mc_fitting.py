@@ -16,6 +16,10 @@ from pydtmc import (
     MarkovChain as _MarkovChain
 )
 
+from tests.utilities import (
+    assert_stochastic_matrix as _assert_stochastic_matrix
+)
+
 
 #########
 # TESTS #
@@ -32,11 +36,7 @@ def test_fit_function(f, possible_states, quadrature_type, quadrature_interval, 
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-
-    assert _np.all(_np.isfinite(actual))
-    assert _np.all((actual >= 0.0) & (actual <= 1.0))
-
-    _npt.assert_allclose(_np.sum(actual, axis=1), 1.0)
+    _assert_stochastic_matrix(actual)
 
 
 def test_fit_sequence(possible_states, states, fitting_type, fitting_param, value):
@@ -47,3 +47,4 @@ def test_fit_sequence(possible_states, states, fitting_type, fitting_param, valu
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)

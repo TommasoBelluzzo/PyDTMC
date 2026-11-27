@@ -16,6 +16,10 @@ from pydtmc import (
     HiddenMarkovModel as _HiddenMarkovModel
 )
 
+from tests.utilities import (
+    assert_stochastic_matrix as _assert_stochastic_matrix
+)
+
 
 #########
 # TESTS #
@@ -44,8 +48,10 @@ def test_restrict(p, e, states, symbols, value):
         expected = _np.array(value[0])
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)
 
         actual = hmm_restricted.e
         expected = _np.array(value[1])
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)

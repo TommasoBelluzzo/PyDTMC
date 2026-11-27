@@ -16,6 +16,10 @@ from pydtmc import (
     HiddenMarkovModel as _HiddenMarkovModel
 )
 
+from tests.utilities import (
+    assert_stochastic_matrix as _assert_stochastic_matrix
+)
+
 
 #########
 # TESTS #
@@ -37,11 +41,13 @@ def test_estimate(possible_states, possible_symbols, states, symbols, value):
         expected = _np.array(value[0])
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)
 
         actual = hmm.e
         expected = _np.array(value[1])
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)
 
 
 # noinspection PyBroadException
@@ -68,11 +74,13 @@ def test_fit(fitting_type, possible_states, possible_symbols, p_guess, e_guess, 
         expected = _np.array(value[0])
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)
 
         actual = hmm_fit.e
         expected = _np.array(value[1])
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)
 
 
 def test_fit_baum_welch_monotonicity():
@@ -168,5 +176,5 @@ def test_fit_baum_welch_monotonicity():
         p = transition_counts / transition_sums
         e = emission_counts / emission_sums
 
-        _npt.assert_allclose(_np.sum(p, axis=1), 1.0, atol=1e-12)
-        _npt.assert_allclose(_np.sum(e, axis=1), 1.0, atol=1e-12)
+        _assert_stochastic_matrix(p)
+        _assert_stochastic_matrix(e)

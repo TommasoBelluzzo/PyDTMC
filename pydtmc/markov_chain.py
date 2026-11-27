@@ -138,7 +138,10 @@ class MarkovChain(_bc.Model):
     @_dc.cached_property
     def __absorbing_states_indices(self) -> _ct.tlist_int:
 
-        indices = [index for index in range(self.__size) if self.__p[index, index] == 1.0]
+        indices = [
+            index for index in range(self.__size)
+            if (self.__p[index, index] > 0.0) and (_np.count_nonzero(self.__p[index, :]) == 1)
+        ]
 
         return indices
 
@@ -593,7 +596,7 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - A Markov chain is absorbing if it contains at least one absorbing state and every state can reach an absorbing state.
-        - An absorbing state has a self-transition probability equal to 1.
+        - An absorbing state has no positive-probability transition to any other state.
         """
 
         return _a.mc_is_absorbing(self.__digraph, self.__states, self.__absorbing_states_indices)
@@ -1906,7 +1909,7 @@ class MarkovChain(_bc.Model):
 
         | **Notes:**
 
-        - An absorbing state has a self-transition probability equal to 1.
+        - An absorbing state has no positive-probability transition to any other state.
 
         :param state: the target state.
         :raises ValidationError: if any input argument is not compliant.
@@ -3215,7 +3218,7 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        p = _npl.matrix_power(self.__p, order)
+        p = _g.mc_nth(self.__p, order)
         mc = MarkovChain(p, self.__states)
 
         return mc

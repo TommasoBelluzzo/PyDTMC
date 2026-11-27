@@ -376,6 +376,45 @@
         [0.3, 0.3, 0.0, 0.4],
         [0.3, 0.3, 0.4, 0.0]
       ]
+    },
+    {
+      "possible_states": ["A", "B"],
+      "states": ["A", "A", "A"],
+      "fitting_type": "map",
+      "fitting_param": [
+        [1.0, 1.0],
+        [1.0, 1.0]
+      ],
+      "value": [
+        [1.0, 0.0],
+        [0.5, 0.5]
+      ]
+    },
+    {
+      "possible_states": ["A", "B"],
+      "states": ["A", "A", "A"],
+      "fitting_type": "map",
+      "fitting_param": [
+        [1.0, 1.0],
+        [2.0, 4.0]
+      ],
+      "value": [
+        [1.00, 0.00],
+        [0.25, 0.75]
+      ]
+    },
+    {
+      "possible_states": ["A", "B"],
+      "states": ["A", "B", "A"],
+      "fitting_type": "map",
+      "fitting_param": [
+        [1.0e308, 1.5e308],
+        [1.0e308, 1.0e308]
+      ],
+      "value": [
+        [0.4, 0.6],
+        [0.5, 0.5]
+      ]
     }
   ]
 }

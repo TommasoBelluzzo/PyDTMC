@@ -37,6 +37,7 @@ __all__ = [
     'mc_merge',
     'mc_metastable_aggregation',
     'mc_metropolis_hastings',
+    'mc_nth',
     'mc_pattern_matching',
     'mc_population_genetics_model',
     'mc_random',
@@ -462,10 +463,10 @@ def hmm_from_dictionary(d: _ct.thmm_dict_f) -> _ct.thmm_gen_x:
         else:
             p[states.index(element_from), states.index(element_to)] = probability
 
-    if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_c.ETOL):  # pragma: no cover
+    if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_c.FTOL):  # pragma: no cover
         raise ValueError('The rows of the transition matrix must sum to 1.0.')
 
-    if not _np.allclose(_np.sum(e, axis=1), 1.0, rtol=0.0, atol=_c.ETOL):  # pragma: no cover
+    if not _np.allclose(_np.sum(e, axis=1), 1.0, rtol=0.0, atol=_c.FTOL):  # pragma: no cover
         raise ValueError('The rows of the emission matrix must sum to 1.0.')
 
     return p, e, states, symbols
@@ -594,7 +595,7 @@ def hmm_random(rng: _ct.trand, n: int, k: int, p_zeros: int, p_mask: _ct.tarray,
 
         pz_mask_internal = _np.copy(pz_mask)
 
-        full_rows = _np.isclose(_np.nansum(pz_mask_internal, axis=1, dtype=float), 1.0, rtol=0.0, atol=_c.ETOL)
+        full_rows = _np.isclose(_np.nansum(pz_mask_internal, axis=1, dtype=float), 1.0, rtol=0.0, atol=_c.FTOL)
 
         mask_full = _np.transpose(_np.array([full_rows] * pz_columns))
         pz_mask_internal[_np.isnan(pz_mask_internal) & mask_full] = 0.0
@@ -895,14 +896,23 @@ def mc_closest_reversible(p: _ct.tarray, initial_distribution: _ct.tarray, weigh
     for i in range(m):
         p += solution[i] * basis_vectors[i]
 
-    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
-    p /= _np.sum(p, axis=1, keepdims=True)
+    if (not _np.all(_np.isfinite(p))) or (_np.min(p) < -_c.ETOL) or (not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_c.ETOL)):  # pragma: no cover
+        raise ValueError('The closest reversible could not be computed.')
+
+    _np.fill_diagonal(p, 0.0)
+    p[p < 0.0] = 0.0
+
+    maximum = _np.max(_np.sum(p, axis=1))
+
+    if maximum > 1.0:  # pragma: no cover
+        p /= maximum
+
+    _np.fill_diagonal(p, _np.maximum(1.0 - _np.sum(p, axis=1), 0.0))
 
     if not _is_reversible_with(p, initial_distribution, _c.ETOL):  # pragma: no cover
         raise ValueError('The closest reversible could not be computed.')
 
     return p
-
 
 def mc_compose(ps: _ct.tlist_array) -> _ct.tmc_gen_x:
 
@@ -1154,6 +1164,28 @@ def mc_metastable_aggregation(p: _ct.tarray, states: _ct.tlist_str, is_irreducib
     state_final = [','.join(map(states.__getitem__, partition)) for partition in partitions]
 
     return p, state_final
+
+
+def mc_nth(p: _ct.tarray, order: int) -> _ct.tarray:
+
+    base = _np.copy(p)
+    base /= _np.sum(base, axis=1, keepdims=True)
+
+    p = None
+
+    while order > 0:
+
+        if (order % 2) == 1:
+            p = _np.copy(base) if p is None else _np.matmul(p, base)
+            p /= _np.sum(p, axis=1, keepdims=True)
+
+        order //= 2
+
+        if order > 0:
+            base = _np.matmul(base, base)
+            base /= _np.sum(base, axis=1, keepdims=True)
+
+    return p
 
 
 def mc_reversibilize(p: _ct.tarray, recurrent_classes_indices: _ct.tlists_int, transient_states: _ct.tlist_str, pi: _ct.tlist_array, method: str) -> _ct.tarray:
@@ -1692,7 +1724,7 @@ def mc_from_dictionary(d: _ct.tmc_dict_f) -> _ct.tmc_gen_x:
     for (state_from, state_to), probability in d.items():
         p[states.index(state_from), states.index(state_to)] = probability
 
-    if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_c.ETOL):  # pragma: no cover
+    if not _np.allclose(_np.sum(p, axis=1), 1.0, rtol=0.0, atol=_c.FTOL):  # pragma: no cover
         raise ValueError('The rows of the transition matrix must sum to 1.0.')
 
     return p, states
@@ -1963,7 +1995,7 @@ def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: floa
 
 def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tmc_gen_x:
 
-    full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0, rtol=0.0, atol=_c.ETOL)
+    full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0, rtol=0.0, atol=_c.FTOL)
 
     mask_full = _np.transpose(_np.array([full_rows] * size))
     mask[_np.isnan(mask) & mask_full] = 0.0

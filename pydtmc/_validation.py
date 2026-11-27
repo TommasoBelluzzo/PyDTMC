@@ -218,10 +218,10 @@ def _validate_probabilities(value: _ct.tarray, stochastic: bool) -> None:
         return
 
     if value.ndim == 1:
-        if not _np.isclose(_np.sum(value), 1.0, rtol=0.0, atol=_c.ETOL):
+        if not _np.isclose(_np.sum(value), 1.0, rtol=0.0, atol=_c.FTOL):
             raise ValueError('The "@arg@" parameter values must sum to 1.0.')
     else:
-        if not _np.allclose(_np.sum(value, axis=1), 1.0, rtol=0.0, atol=_c.ETOL):
+        if not _np.allclose(_np.sum(value, axis=1), 1.0, rtol=0.0, atol=_c.FTOL):
             raise ValueError('The "@arg@" parameter rows must sum to 1.0.')
 
 
@@ -798,7 +798,7 @@ def validate_mask(value: _ct.tany, rows: int, columns: int) -> _ct.tarray:
     if not _np.all(row_sums <= 1.0):
         raise ValueError('The "@arg@" parameter row sums must not exceed 1.')
 
-    full_rows = _np.isclose(row_sums, 1.0, rtol=0.0, atol=_c.ETOL)
+    full_rows = _np.isclose(row_sums, 1.0, rtol=0.0, atol=_c.FTOL)
     unspecified_rows = _np.any(_np.isnan(value), axis=1)
 
     if not _np.all(full_rows | unspecified_rows):
@@ -969,7 +969,7 @@ def validate_pattern_probabilities(value: _ct.tany) -> _ct.tpprobs:
     if not all(_u.is_number(v) and _np.isfinite(v) and (0.0 <= v <= 1.0) for v in value.values()):
         raise ValueError('The "@arg@" parameter values must be finite real numbers between 0.0 and 1.0.')
 
-    if not _np.isclose(sum(value.values()), 1.0, rtol=0.0, atol=_c.ETOL):
+    if not _np.isclose(sum(value.values()), 1.0, rtol=0.0, atol=_c.FTOL):
         raise ValueError('The "@arg@" parameter values must sum to 1.0.')
 
     value = {k: float(v) for k, v in value.items()}

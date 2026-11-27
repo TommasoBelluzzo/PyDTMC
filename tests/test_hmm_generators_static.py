@@ -16,6 +16,10 @@ from pydtmc import (
     HiddenMarkovModel as _HiddenMarkovModel
 )
 
+from tests.utilities import (
+    assert_stochastic_matrix as _assert_stochastic_matrix
+)
+
 
 #########
 # TESTS #
@@ -30,11 +34,13 @@ def test_cpg_islands(p_enter, p_exit, island_transitions, background_transitions
     expected = _np.array(value_p)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
     actual = hmm.e
     expected = _np.array(value_e)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_dishonest_casino(p_switch, p_return, p_six, value_p, value_e):
@@ -45,11 +51,13 @@ def test_dishonest_casino(p_switch, p_return, p_six, value_p, value_e):
     expected = _np.array(value_p)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
     actual = hmm.e
     expected = _np.array(value_e)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_gilbert_elliott(p_good_bad, p_bad_good, error_good, error_bad, value_p, value_e):
@@ -60,11 +68,13 @@ def test_gilbert_elliott(p_good_bad, p_bad_good, error_good, error_bad, value_p,
     expected = _np.array(value_p)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
     actual = hmm.e
     expected = _np.array(value_e)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
@@ -77,6 +87,7 @@ def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
     expected = _np.array(value[0])
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
     if (p_zeros > 0) and (p_mask is None):
 
@@ -98,6 +109,7 @@ def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
     expected = _np.array(value[1])
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
     if e_zeros > 0 and e_mask is None:
 
@@ -115,15 +127,12 @@ def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
-    atol = _np.sqrt(_np.finfo(_np.float64).eps)  # pylint: disable=no-member
-
     for matrix, mask, zeros in ((hmm.p, p_mask, p_zeros), (hmm.e, e_mask, e_zeros)):
 
         if mask is not None:
 
             mask = _np.array(mask)
-
-            full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0, rtol=0.0, atol=atol)
+            full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0, rtol=0.0, atol=1e-8)
             indices = _np.isnan(mask) & (~full_rows[:, _np.newaxis])
 
             actual = _np.count_nonzero((matrix == 0.0) & indices)

@@ -21,6 +21,30 @@ from pydtmc import (
 # TESTS #
 #########
 
+def test_absorbing_state_positive_escape():
+
+    mc = _MarkovChain([
+        [1.0, 1e-16],
+        [0.0,  1.0]
+    ], ['A', 'B'])
+
+    assert mc.absorbing_states == ['B']
+    assert mc.is_absorbing_state('A') is False
+    assert mc.is_absorbing_state('B') is True
+
+
+def test_absorbing_state_rounding():
+
+    mc = _MarkovChain([
+        [0.99999999999999, 0.00000000000000],
+        [0.25000000000000, 0.75000000000000]
+    ], ['A', 'B'])
+
+    assert mc.absorbing_states == ['A']
+    assert mc.is_absorbing_state('A') is True
+    assert mc.is_absorbing_state('B') is False
+
+
 def test_classes_communicating(p, communicating_classes):
 
     mc = _MarkovChain(p)

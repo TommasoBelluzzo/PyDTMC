@@ -453,18 +453,8 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states:
         if fitting_type == 'map':
 
             f = _np.zeros((size, size), dtype=int)
-            eq_prob = 1.0 / size
-
             _np.add.at(f, (states[:-1], states[1:]), 1)
-
-            counts = f + fitting_param
-            rt = _np.sum(counts, axis=1)
-
-            uniform = rt == size
-            non_uniform = ~uniform
-
-            p[uniform, :] = eq_prob
-            p[non_uniform, :] = (counts[non_uniform, :] - 1.0) / (rt[non_uniform, _np.newaxis] - size)
+            p = f + (fitting_param - 1.0)
 
         else:
 
@@ -474,6 +464,7 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states:
                 p += 0.001
 
         p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
+        p /= _np.max(p, axis=1, keepdims=True)
         p /= _np.sum(p, axis=1, keepdims=True)
 
     return p

@@ -17,6 +17,15 @@ from pydtmc import (
     MarkovChain as _MarkovChain
 )
 
+# noinspection PyProtectedMember
+from pydtmc._constants import (
+    FTOL as _FTOL
+)
+
+from tests.utilities import (
+    assert_stochastic_matrix as _assert_stochastic_matrix
+)
+
 
 #########
 # TESTS #
@@ -31,6 +40,7 @@ def test_bounded(p, boundary_condition, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_canonical(p, canonical_form):
@@ -46,6 +56,7 @@ def test_canonical(p, canonical_form):
         expected = _np.array(canonical_form)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_censor(p, states, value):
@@ -65,6 +76,7 @@ def test_censor(p, states, value):
         expected = _np.array(value)
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)
 
 
 def test_closest_reversible(p, distribution, weighted, value):
@@ -76,15 +88,14 @@ def test_closest_reversible(p, distribution, weighted, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
     assert mc_closest_reversible.is_reversible
 
-    if distribution is not None:
+    distribution = _np.full(mc.size, 1.0 / mc.size, dtype=float) if distribution is None else _np.array(distribution)
+    flow = distribution[:, _np.newaxis] * mc_closest_reversible.p
 
-        distribution = _np.array(distribution)
-        flow = distribution[:, _np.newaxis] * mc_closest_reversible.p
-
-        _npt.assert_allclose(flow, _np.transpose(flow), rtol=1e-5, atol=1e-8)
+    _npt.assert_allclose(flow, _np.transpose(flow), rtol=0.0, atol=_FTOL)
 
 
 def test_compose_with(p, p_other, value):
@@ -102,6 +113,7 @@ def test_compose_with(p, p_other, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_lazy(p, inertial_weights, value):
@@ -113,6 +125,7 @@ def test_lazy(p, inertial_weights, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_lump(p, partition, value):
@@ -136,6 +149,7 @@ def test_lump(p, partition, value):
         expected = _np.array(value)
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)
 
 
 def test_merge_with(p, p_other, gamma, value):
@@ -148,6 +162,7 @@ def test_merge_with(p, p_other, gamma, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_metastable_aggregation(p, s, robust, value):
@@ -167,6 +182,7 @@ def test_metastable_aggregation(p, s, robust, value):
         expected = _np.array(value)
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)
 
 
 def test_nth_order(p, order, value):
@@ -178,6 +194,31 @@ def test_nth_order(p, order, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
+
+
+def test_nth_order_large_exponent():
+
+    mc = _MarkovChain([[1.0, 1e-14], [0.0, 1.0]])
+    mc_nth = mc.to_nth_order(2**60)
+
+    actual = mc_nth.p
+    expected = _np.array([[0.0, 1.0], [0.0, 1.0]])
+
+    _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
+
+
+def test_nth_order_periodicity():
+
+    mc = _MarkovChain([[0.0, 1.0], [1.0, 0.0]])
+    mc_nth = mc.to_nth_order(2**60 + 1)
+
+    actual = mc_nth.p
+    expected = mc.p
+
+    _npt.assert_array_equal(actual, expected)
+    _assert_stochastic_matrix(actual)
 
 
 def test_reversibilize(p, method, value):
@@ -197,11 +238,7 @@ def test_reversibilize(p, method, value):
         expected = _np.array(value)
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-
-        actual = _np.sum(mc_reversibilized.p, axis=1)
-        expected = _np.ones(mc.size, dtype=float)
-
-        _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)
 
         for pi in mc.pi:
 
@@ -220,6 +257,7 @@ def test_reweight(p, weights, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_spectral_aggregation(p, method, s, value):
@@ -239,6 +277,7 @@ def test_spectral_aggregation(p, method, s, value):
         expected = _np.array(value)
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)
 
 
 def test_sub(p, states, value):
@@ -267,6 +306,7 @@ def test_sub(p, states, value):
         expected = _np.array(value)
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+        _assert_stochastic_matrix(actual)
 
         if mc.is_ergodic:
 
@@ -285,6 +325,7 @@ def test_teleport(p, probability, distribution, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
     if (probability > 0.0) and ((distribution is None) or all(x > 0.0 for x in distribution)):
         assert mc_teleport.is_ergodic
@@ -299,6 +340,7 @@ def test_temper(p, temperature, value):
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+    _assert_stochastic_matrix(actual)
 
 
 def test_time_reversal(p, value):
@@ -319,13 +361,14 @@ def test_time_reversal(p, value):
             expected = _np.array(value)
 
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
-            _npt.assert_allclose(_np.sum(actual, axis=1), 1.0, rtol=1e-5, atol=1e-8)
+            _assert_stochastic_matrix(actual)
 
             mc_rereversed = mc_reversed.time_reversal(method)
             actual = mc_rereversed.p
             expected = mc.p
 
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+            _assert_stochastic_matrix(actual)
 
             if mc.is_irreducible:
 
