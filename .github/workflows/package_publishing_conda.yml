@@ -66,6 +66,15 @@ jobs:
           echo "CONDA VERSION ALREADY PUBLISHED ($VERSION)"
           exit 1
         fi
+    - name: Conda Setup
+      uses: conda-incubator/setup-miniconda@v4
+      with:
+        miniforge-version: latest
+        activate-environment: conda-build-env
+        python-version: '3.15'
+        channels: conda-forge
+        channel-priority: strict
+        conda-remove-defaults: 'true'
     - name: Conda Publishing
       env:
         VERSION: ${{ steps.version.outputs.version }}
