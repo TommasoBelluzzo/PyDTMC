@@ -153,6 +153,7 @@ def test_cached(p):
         if (not isinstance(member, property)) or (not hasattr(member.fget, '_aliases')) or (member_name in getattr(member.fget, '_aliases')):
             continue
 
+        # noinspection PyTypeChecker
         g['member_name'] = member_name
 
         time1 = round(_ti.timeit("statement(mc, member_name)", number=1, globals=g), 10)
@@ -461,6 +462,43 @@ def test_pi(p, stationary_distributions):
         expected = stationary_distribution
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_pi_extreme_probabilities():
+
+    mc = _MarkovChain([
+        [1.0, 1e-310],
+        [0.5, 0.5]
+    ])
+
+    actual = mc.pi[0]
+
+    assert _np.all(_np.isfinite(actual))
+    assert _np.all(actual > 0.0)
+
+    expected = _np.array([1.0, 2e-310], dtype=float)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-10, atol=0.0)
+    _npt.assert_allclose(_np.dot(actual, mc.p), actual, rtol=1e-10, atol=0.0)
+
+
+def test_pi_subnormal_flux():
+
+    mc = _MarkovChain([
+        [1.0, 1e-250, 1e-250],
+        [0.5, 0.5, 1e-100],
+        [0.5, 1e-100, 0.5]
+    ])
+
+    actual = mc.pi[0]
+
+    assert _np.all(_np.isfinite(actual))
+    assert _np.all(actual > 0.0)
+
+    expected = _np.array([1.0, 2e-250, 2e-250], dtype=float)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-10, atol=0.0)
+    _npt.assert_allclose(_np.dot(actual, mc.p), actual, rtol=1e-10, atol=0.0)
 
 
 def test_spectral_gaps(p, absolute_spectral_gap, ordinary_spectral_gap):

@@ -199,6 +199,8 @@ class MarkovChain(_bc.Model):
 
         if not self.is_irreducible:
             slem = None
+        elif self.period > 1:
+            slem = 1.0
         else:
             slem = _n.slem(self.__p)
 
@@ -638,7 +640,7 @@ class MarkovChain(_bc.Model):
         | :math:`\sum_i P_{ij} = 1` for every state :math:`j`.
         """
 
-        result = _np.allclose(_np.sum(self.__p, axis=0), 1.0, rtol=0.0, atol=_c.ETOL)
+        result = _np.allclose(_np.sum(self.__p, axis=0), 1.0, rtol=0.0, atol=_c.FTOL)
 
         return result
 
@@ -2307,7 +2309,7 @@ class MarkovChain(_bc.Model):
 
         - The method does not necessarily maximize the probability of the entire sequence, unlike **predict_trajectory**.
         - The returned sequence includes the initial state.
-        - If multiple states share the highest transition probability at any step, then :py:obj:`None` is returned.
+        - If multiple states share exactly the same highest transition probability at any step, then :py:obj:`None` is returned.
 
         :param steps: the number of transitions.
         :param initial_state: the initial state.
@@ -3018,12 +3020,13 @@ class MarkovChain(_bc.Model):
 
         - For **reducible** chains, the reversal is computed independently within each recurrent class.
         - The time-reversed chain preserves the stationary distributions of the original chain.
+        - The **standard** method automatically falls back to the logarithmic calculation if a floating-point error is detected.
 
         :param method:
          - **standard** for the direct vectorized calculation;
          - **log** for the logarithmic calculation.
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Markov chain has transient states.
+        :raises ValueError: if the Markov chain has transient states or if its stationary distribution cannot be represented using strictly positive finite probabilities within the corresponding recurrent classes.
         """
 
         try:
@@ -3319,11 +3322,17 @@ class MarkovChain(_bc.Model):
 
     @staticmethod
     @_dc.object_mark(instance_generator=True)
-    def approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, states: _ct.olist_str = None, k: _ct.ofloat = None) -> _ct.tmc:
+    def approximation(size: int, approximation_type: str, sigma: float, rho: float, states: _ct.olist_str = None, k: _ct.ofloat = None) -> _ct.tmc:
 
         r"""
-        | The method approximates a first-order autoregressive process with a finite-state Markov chain:
-        | :math:`y_t = (1-\rho)\alpha + \rho y_{t-1} + \varepsilon_t` where :math:`\varepsilon_t \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0,\sigma^2)`.
+        | The method approximates a centered first-order autoregressive process with a finite-state Markov chain:
+        | :math:`y_t = \rho y_{t-1} + \varepsilon_t` where :math:`\varepsilon_t \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0,\sigma^2)`.
+
+        | **Notes:**
+
+        - The transition probabilities are invariant under translations of the underlying autoregressive process.
+        - For the Adda-Cooper, Rouwenhorst and Tauchen approximations, the boundary values of the autoregressive coefficient produce the corresponding limiting transition matrices.
+        - The Tauchen-Hussey approximation requires an explicit quadrature standard deviation when the autoregressive coefficient is equal to -1 or 1.
 
         :param size: the number of states of the approximating Markov chain.
         :param approximation_type:
@@ -3331,7 +3340,6 @@ class MarkovChain(_bc.Model):
          - **rouwenhorst** for the Rouwenhorst approximation;
          - **tauchen** for the Tauchen approximation;
          - **tauchen-hussey** for the Tauchen-Hussey approximation.
-        :param alpha: the unconditional mean of the process.
         :param sigma: the standard deviation of the innovation term.
         :param rho: the autoregressive coefficient of the process.
         :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 is generated*).
@@ -3339,14 +3347,13 @@ class MarkovChain(_bc.Model):
          - For the Tauchen approximation, the number of standard deviations defining the discretization range (*if omitted, 3 is used*);
          - For the Tauchen-Hussey approximation, the standard deviation used for Gaussian quadrature (*if omitted, an automatically computed value is used*).
         :raises ValidationError: if any input argument is not compliant.
-        :raises ValueError: if the Gaussian quadrature fails to converge in the Tauchen-Hussey approximation.
+        :raises ValueError: if the approximation fails to produce a valid transition matrix.
         """
 
         try:
 
             size = _v.validate_integer(size, lower_limit=(2, False))
             approximation_type = _v.validate_enumerator(approximation_type, ['adda-cooper', 'rouwenhorst', 'tauchen', 'tauchen-hussey'])
-            alpha = _v.validate_float(alpha)
             sigma = _v.validate_float(sigma, lower_limit=(0.0, True))
             rho = _v.validate_float(rho, lower_limit=(-1.0, False), upper_limit=(1.0, False))
 
@@ -3362,13 +3369,10 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        if k is None:
-            if approximation_type == 'tauchen':
-                k = 3.0
-            elif approximation_type == 'tauchen-hussey':
-                k = ((0.5 + (rho / 4.0)) * sigma) + ((1 - (0.5 + (rho / 4.0))) * (sigma / _np.sqrt(1.0 - rho**2.0)))
+        if (k is None) and (approximation_type == 'tauchen-hussey') and (abs(rho) == 1.0):
+            raise _ValidationError('The Tauchen-Hussey approximation requires an explicit quadrature standard deviation when the autoregressive coefficient is equal to -1 or 1.')
 
-        p_out, states_default = _g.mc_approximation(size, approximation_type, alpha, sigma, rho, k)
+        p_out, states_default = _g.mc_approximation(size, approximation_type, sigma, rho, k)
         states_out = states if states is not None else states_default
 
         mc = MarkovChain(p_out, states_out)
@@ -4225,6 +4229,7 @@ class MarkovChain(_bc.Model):
         - The boundary states, corresponding to allele loss and fixation, are absorbing regardless of the mutation rates.
         - The Moran model permits changes of at most one allele count per transition.
         - The Wright-Fisher model uses binomially distributed allele counts in each generation.
+        - The selection intensity must be in the interval [-1, 1] for the Moran model, greater than or equal to -1 for the Wright-Fisher model.
 
         :param model:
          - **moran** for the Moran model;
@@ -4241,7 +4246,12 @@ class MarkovChain(_bc.Model):
 
             model = _v.validate_enumerator(model, ['moran', 'wright-fisher'])
             n = _v.validate_integer(n, lower_limit=(2, False), upper_limit=(500, False))
-            s = _v.validate_float(s, lower_limit=(-1.0, False))
+
+            if model == 'moran':
+                s = _v.validate_float(s, lower_limit=(-1.0, False), upper_limit=(1.0, False))
+            else:
+                s = _v.validate_float(s, lower_limit=(-1.0, False))
+
             u = _v.validate_float(u, lower_limit=(0.0, False), upper_limit=(1.0, False))
             v = _v.validate_float(v, lower_limit=(0.0, False), upper_limit=(1.0, False))
 

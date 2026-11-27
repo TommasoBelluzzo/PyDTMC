@@ -25,7 +25,7 @@ def test_absorbing_state_positive_escape():
 
     mc = _MarkovChain([
         [1.0, 1e-16],
-        [0.0,  1.0]
+        [0.0, 1.0]
     ], ['A', 'B'])
 
     assert mc.absorbing_states == ['B']

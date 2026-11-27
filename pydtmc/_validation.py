@@ -1242,13 +1242,10 @@ def validate_vector_birth_death(value: _ct.tany, vector_type: str) -> _ct.tarray
     _validate_probabilities(value, False)
 
     if vector_type == 'annihilation':
-
-        if not _np.isclose(value[0], 0.0, rtol=0.0, atol=_c.ETOL):
+        if value[0] != 0.0:
             raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the first index.')
-
     else:
-
-        if not _np.isclose(value[-1], 0.0, rtol=0.0, atol=_c.ETOL):
+        if value[-1] != 0.0:
             raise ValueError('The "@arg@" parameter must contain a value equal to 0 in the last index.')
 
     return value

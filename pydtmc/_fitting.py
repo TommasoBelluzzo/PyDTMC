@@ -25,6 +25,7 @@ from . import _analysis as _a
 from . import _custom_types as _ct
 from . import _dynamics as _d
 from . import _generators as _g
+from . import _numerical as _n
 from . import _utilities as _u
 
 
@@ -73,29 +74,8 @@ def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial
             if not _np.all(_np.isfinite(ci_p)) or not _np.all(_np.isfinite(ci_e)):  # pragma: no cover
                 raise ValueError('The fitting algorithm produced non-finite expected counts.')
 
-            if ci_regularization > 0.0:
-                ci_p = (ci_p + ci_regularization) * ci_p_support
-                ci_e = (ci_e + ci_regularization) * ci_e_support
-
-            ci_total_transitions = _np.sum(ci_p, axis=1, keepdims=True)
-
-            if not _np.all(_np.isfinite(ci_total_transitions)):  # pragma: no cover
-                raise ValueError('The fitting algorithm produced non-finite transition counts.')
-
-            if _np.any(ci_total_transitions == 0.0):  # pragma: no cover
-                raise ValueError('The fitting algorithm produced zero total transition counts for at least one state.')
-
-            ci_p_guess = ci_p / ci_total_transitions
-
-            ci_total_emissions = _np.sum(ci_e, axis=1, keepdims=True)
-
-            if not _np.all(_np.isfinite(ci_total_emissions)):  # pragma: no cover
-                raise ValueError('The fitting algorithm produced non-finite emission counts.')
-
-            if _np.any(ci_total_emissions == 0.0):  # pragma: no cover
-                raise ValueError('The fitting algorithm produced zero total emission counts for at least one state.')
-
-            ci_e_guess = ci_e / ci_total_emissions
+            ci_p_guess = _normalize_counts(ci_p, ci_p_support, ci_regularization, 'transition')
+            ci_e_guess = _normalize_counts(ci_e, ci_e_support, ci_regularization, 'emission')
 
             if not _np.all(_np.isfinite(ci_p_guess)) or not _np.all(_np.isfinite(ci_e_guess)):  # pragma: no cover
                 raise ValueError('The fitting algorithm produced non-finite parameter estimates.')
@@ -210,21 +190,8 @@ def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial
                 if (not _np.all(_np.isfinite(oem_p))) or (not _np.all(_np.isfinite(oem_e))):  # pragma: no cover
                     raise ValueError('The fitting algorithm produced non-finite expected counts.')
 
-                if oem_regularization > 0.0:
-                    oem_p = (oem_p + oem_regularization) * oem_p_support
-                    oem_e = (oem_e + oem_regularization) * oem_e_support
-
-                oem_p_totals = _np.sum(oem_p, axis=1, keepdims=True)
-                oem_e_totals = _np.sum(oem_e, axis=1, keepdims=True)
-
-                if _np.any(~_np.isfinite(oem_p_totals)) or _np.any(oem_p_totals <= 0.0):  # pragma: no cover
-                    raise ValueError('The fitting algorithm produced invalid transition counts.')
-
-                if _np.any(~_np.isfinite(oem_e_totals)) or _np.any(oem_e_totals <= 0.0):  # pragma: no cover
-                    raise ValueError('The fitting algorithm produced invalid emission counts.')
-
-                oem_p_guess = oem_p / oem_p_totals
-                oem_e_guess = oem_e / oem_e_totals
+                oem_p_guess = _normalize_counts(oem_p, oem_p_support, oem_regularization, 'transition')
+                oem_e_guess = _normalize_counts(oem_e, oem_e_support, oem_regularization, 'emission')
 
                 if (not _np.all(_np.isfinite(oem_p_guess))) or (not _np.all(_np.isfinite(oem_e_guess))):  # pragma: no cover
                     raise ValueError('The fitting algorithm produced non-finite parameter estimates.')
@@ -245,6 +212,35 @@ def hmm_fit(fitting_type: str, p_guess: _ct.tarray, e_guess: _ct.tarray, initial
         fp_pc, fp_ec = _g.hmm_estimate(fp_n, fp_k, fp_states, fp_symbols, False)
 
         return fp_log_prob, fp_pc, fp_ec
+
+    def _normalize_counts(nc_counts, nc_support, nc_regularization, nc_type):
+
+        if (not _np.all(_np.isfinite(nc_counts))) or _np.any(nc_counts < 0.0):  # pragma: no cover
+            raise ValueError(f'The fitting algorithm produced invalid {nc_type} counts.')
+
+        nc_weights = _np.copy(nc_counts)
+
+        if nc_regularization > 0.0:
+            nc_weights[~nc_support] = 0.0
+
+        nc_scale = _np.maximum(_np.max(nc_weights, axis=1, keepdims=True), nc_regularization)
+
+        if _np.any(nc_scale <= 0.0):  # pragma: no cover
+            raise ValueError(f'The fitting algorithm produced zero total {nc_type} counts for at least one state.')
+
+        nc_weights /= nc_scale
+
+        if nc_regularization > 0.0:
+            nc_weights += (nc_regularization / nc_scale) * nc_support
+
+        nc_totals = _np.sum(nc_weights, axis=1, keepdims=True)
+
+        if _np.any(nc_totals <= 0.0):  # pragma: no cover
+            raise ValueError(f'The fitting algorithm produced zero total {nc_type} counts for at least one state.')
+
+        nc_weights /= nc_totals
+
+        return nc_weights
 
     if fitting_type == 'bw':
         result = _common_iterator(_fit_baum_welch, fitting_type, p_guess, e_guess, initial_distribution, symbols, regularization, fitting_param)
@@ -379,9 +375,7 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possib
 
             p[i, j] = weight
 
-    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
-    p /= _np.max(p, axis=1, keepdims=True)
-    p /= _np.sum(p, axis=1, keepdims=True)
+    p = _n.normalize_matrix(p, 'uniform')
 
     return p
 
@@ -463,8 +457,6 @@ def mc_fit_sequence(fitting_type: str, fitting_param: _ct.tany, possible_states:
             if fitting_param:
                 p += 0.001
 
-        p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
-        p /= _np.max(p, axis=1, keepdims=True)
-        p /= _np.sum(p, axis=1, keepdims=True)
+        p = _n.normalize_matrix(p, 'uniform')
 
     return p

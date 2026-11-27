@@ -178,3 +178,51 @@ def test_fit_baum_welch_monotonicity():
 
         _assert_stochastic_matrix(p)
         _assert_stochastic_matrix(e)
+
+
+def test_fit_extreme_regularization():
+
+    possible_states = ['A', 'B']
+    possible_symbols = ['X', 'Y']
+
+    p_guess = _np.full((2, 2), 0.5, dtype=float)
+    e_guess = _np.full((2, 2), 0.5, dtype=float)
+
+    symbols = ['X', 'Y', 'X', 'Y']
+
+    for fitting_type in ('bw', 'oem'):
+
+        hmm = _HiddenMarkovModel.fit(
+            fitting_type, possible_states, possible_symbols,
+            p_guess, e_guess, symbols, regularization=1e308
+        )
+
+        _npt.assert_allclose(hmm.p, p_guess, rtol=0.0, atol=1e-14)
+        _npt.assert_allclose(hmm.e, e_guess, rtol=0.0, atol=1e-14)
+
+        _assert_stochastic_matrix(hmm.p)
+        _assert_stochastic_matrix(hmm.e)
+
+
+def test_fit_extreme_regularization_support():
+
+    possible_states = ['A', 'B']
+    possible_symbols = ['X', 'Y']
+
+    p_guess = _np.eye(2)
+    e_guess = _np.full((2, 2), 0.5, dtype=float)
+
+    symbols = ['X', 'Y', 'X', 'Y']
+
+    for fitting_type in ('bw', 'oem'):
+
+        hmm = _HiddenMarkovModel.fit(
+            fitting_type, possible_states, possible_symbols,
+            p_guess, e_guess, symbols, regularization=1e308
+        )
+
+        _npt.assert_array_equal(hmm.p, p_guess)
+        _npt.assert_allclose(hmm.e, e_guess, rtol=0.0, atol=1e-14)
+
+        _assert_stochastic_matrix(hmm.p)
+        _assert_stochastic_matrix(hmm.e)

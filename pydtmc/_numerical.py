@@ -16,6 +16,7 @@ __all__ = [
     'is_stochastically_monotone',
     'kullback_leibler_divergence',
     'matrix_geometric_sum',
+    'normalize_matrix',
     'randomized_quantile_residuals',
     'slem',
     'verify_reachability'
@@ -244,18 +245,19 @@ def find_lumping_partitions(p: _ct.tarray) -> _ct.tparts:
             if len(lumping) == 1:
                 continue
 
-            rows = p[lumping[1:], :]
-            reference = p[lumping[0], :]
+            rows = p[lumping, :]
 
             for block in partition:
 
                 start = block[0]
                 stop = block[-1] + 1
 
-                expected = _np.sum(reference[start:stop])
                 actual = _np.sum(rows[:, start:stop], axis=1)
 
-                if not _np.allclose(actual, expected, rtol=0.0, atol=_c.ETOL):
+                minimum = _np.min(actual)
+                maximum = _np.max(actual)
+
+                if not _np.isclose(minimum, maximum, rtol=_c.FTOL, atol=0.0):
                     is_lumpable = False
                     break
 
@@ -291,21 +293,24 @@ def find_redundant_states(p: _ct.tarray, e: _ct.tarray) -> _ct.tlist_int:
 
         for group in classes:
 
-            signatures = []
-            subgroups = []
+            signatures, subgroups = [], []
 
             for i in group:
 
-                signature = tuple(_np.sum(p[i, c]) for c in classes)
+                signature = _np.array([_np.sum(p[i, c]) for c in classes])
 
-                for j, previous in enumerate(signatures):
+                for j, (lower, upper) in enumerate(signatures):
 
-                    if signature == previous:
+                    minimum = _np.minimum(signature, lower)
+                    maximum = _np.maximum(signature, upper)
+
+                    if _np.allclose(minimum, maximum, rtol=_c.FTOL, atol=0.0):
+                        signatures[j] = (minimum, maximum)
                         subgroups[j].append(i)
                         break
 
                 else:
-                    signatures.append(signature)
+                    signatures.append((signature, signature))
                     subgroups.append([i])
 
             refined.extend(subgroups)
@@ -356,7 +361,10 @@ def information_criterion(criterion: str, log_probability: float, parameters: in
 def is_stochastically_monotone(m: _ct.tarray) -> bool:
 
     cumulative = _np.cumsum(m[:, ::-1], axis=1)[:, ::-1]
-    result = bool(_np.all(_np.diff(cumulative[:, 1:], axis=0) >= 0.0))
+    lower = cumulative[:-1, 1:]
+    upper = cumulative[1:, 1:]
+
+    result = bool(_np.all((upper >= lower) | _np.isclose(upper, lower, rtol=_c.FTOL, atol=0.0)))
 
     return result
 
@@ -424,7 +432,7 @@ def eigenvalues_sorted(m: _ct.tarray) -> _ct.tarray:
 def slem(m: _ct.tarray) -> _ct.ofloat:
 
     ev = eigenvalues_sorted(m)
-    value = float(ev[-2])
+    value = min(1.0, float(ev[-2]))
 
     if value <= _c.FTOL:
         value = 0.0
@@ -436,27 +444,81 @@ def slem(m: _ct.tarray) -> _ct.ofloat:
 
 def gth_solve(p: _ct.tarray) -> _ct.tarray:
 
-    a = _np.copy(p)
-    n = a.shape[0]
+    def _solve_log(sl_p):
 
-    for i in range(n - 1):
+        with _np.errstate(under='ignore'):
 
-        scale = _np.sum(a[i, i + 1:n])
+            sl_a = _np.full(sl_p.shape, -_np.inf, dtype=float)
+            _np.log(sl_p, out=sl_a, where=sl_p > 0.0)
+            _np.fill_diagonal(sl_a, -_np.inf)
 
-        if scale <= 0.0:  # pragma: no cover
-            n = i + 1
-            break
+            sl_n = sl_a.shape[0]
 
-        a[i + 1:n, i] /= scale
-        a[i + 1:n, i + 1:n] += _np.dot(a[i + 1:n, i:i + 1], a[i:i + 1, i + 1:n])
+            for sl_i in range(sl_n - 1):
 
-    x = _np.zeros(n, dtype=float)
-    x[n - 1] = 1.0
+                sl_scale = _sps.logsumexp(sl_a[sl_i, sl_i + 1:sl_n])
 
-    for i in range(n - 2, -1, -1):
-        x[i] = _np.dot(x[i + 1:n], a[i + 1:n, i])
+                if _np.isneginf(sl_scale):  # pragma: no cover
+                    sl_n = sl_i + 1
+                    break
 
-    x /= _np.sum(x)
+                sl_a[sl_i + 1:sl_n, sl_i] -= sl_scale
+
+                sl_a[sl_i + 1:sl_n, sl_i + 1:sl_n] = _np.logaddexp(
+                    sl_a[sl_i + 1:sl_n, sl_i + 1:sl_n],
+                    sl_a[sl_i + 1:sl_n, sl_i:sl_i + 1] + sl_a[sl_i:sl_i + 1, sl_i + 1:sl_n]
+                )
+
+            sl_x = _np.full(sl_n, -_np.inf, dtype=float)
+            sl_x[sl_n - 1] = 0.0
+
+            for sl_i in range(sl_n - 2, -1, -1):
+                sl_x[sl_i] = _sps.logsumexp(sl_x[sl_i + 1:sl_n] + sl_a[sl_i + 1:sl_n, sl_i])
+
+            sl_x = _np.exp(sl_x - _np.max(sl_x))
+            sl_x /= _np.sum(sl_x)
+
+        return sl_x
+
+    try:
+
+        with _np.errstate(divide='raise', invalid='raise', over='raise', under='raise'):
+
+            a = _np.copy(p)
+            n = a.shape[0]
+
+            for i in range(n - 1):
+
+                scale = _np.sum(a[i, i + 1:n])
+
+                if scale <= 0.0:  # pragma: no cover
+                    n = i + 1
+                    break
+
+                a[i + 1:n, i] /= scale
+                a[i + 1:n, i + 1:n] += _np.dot(a[i + 1:n, i:i + 1], a[i:i + 1, i + 1:n])
+
+            x = _np.zeros(n, dtype=float)
+            x[n - 1] = 1.0
+
+            for i in range(n - 2, -1, -1):
+                x[i] = _np.dot(x[i + 1:n], a[i + 1:n, i])
+
+            total = _np.sum(x)
+
+            if (not _np.isfinite(total)) or (total <= 0.0):  # pragma: no cover
+                raise FloatingPointError
+
+            x /= total
+
+    except FloatingPointError:
+
+        x = _solve_log(p)
+
+    else:
+
+        if _np.any(x == 0.0):  # pragma: no cover
+            x = _solve_log(p)
 
     return x
 
@@ -485,6 +547,38 @@ def matrix_geometric_sum(m: _ct.tarray, terms: int) -> _ct.tarray:
             block_power = _np.dot(block_power, block_power)
 
     return result_sum
+
+
+def normalize_matrix(m: _ct.tarray, zero_policy: str = 'raise') -> _ct.tarray:
+
+    with _np.errstate(over='ignore'):
+        totals = _np.sum(m, axis=1, keepdims=True)
+
+    overflow = _np.isinf(totals[:, 0])
+
+    if _np.any(overflow):
+
+        rows = m[overflow, :]
+        rows /= _np.max(rows, axis=1, keepdims=True)
+
+        m[overflow, :] = rows
+        totals[overflow, :] = _np.sum(rows, axis=1, keepdims=True)
+
+    zeros = totals[:, 0] == 0.0
+
+    if _np.any(zeros):
+
+        if zero_policy == 'raise':
+            raise ValueError('The matrix contains rows with zero total weight.')
+
+        if zero_policy == 'uniform':
+            m[zeros, :] = 1.0 / m.shape[1]
+
+        totals[zeros, :] = 1.0
+
+    m /= totals
+
+    return m
 
 
 # INFORMATION THEORY

@@ -25,15 +25,81 @@ from tests.utilities import (
 # TESTS #
 #########
 
-def test_approximation(size, approximation_type, alpha, sigma, rho, k, value):
+def test_approximation(size, approximation_type, sigma, rho, k, value):
 
-    mc = _MarkovChain.approximation(size, approximation_type, alpha, sigma, rho, k=k)
+    mc = _MarkovChain.approximation(size, approximation_type, sigma, rho, k=k)
 
     actual = mc.p
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     _assert_stochastic_matrix(actual)
+
+
+def test_approximation_adda_cooper_scale_invariance():
+
+    mc = _MarkovChain.approximation(3, 'adda-cooper', 1.0, 0.9)
+    expected = mc.p
+
+    for sigma in [1e-5, 1e-200, 1e200]:
+
+        mc = _MarkovChain.approximation(3, 'adda-cooper', sigma, 0.9)
+        actual = mc.p
+
+        _npt.assert_allclose(actual, expected, rtol=1e-12, atol=1e-14)
+        _assert_stochastic_matrix(actual)
+
+
+def test_approximation_boundary_coefficients():
+
+    for approximation_type in ('adda-cooper', 'rouwenhorst', 'tauchen'):
+
+        mc = _MarkovChain.approximation(3, approximation_type, 1.0, 1.0)
+        actual = mc.p
+        expected = _np.eye(3, dtype=float)
+
+        _npt.assert_array_equal(actual, expected)
+        _assert_stochastic_matrix(actual)
+
+        mc = _MarkovChain.approximation(3, approximation_type, 1.0, -1.0)
+        actual = mc.p
+        expected = _np.fliplr(_np.eye(3, dtype=float))
+
+        _npt.assert_array_equal(actual, expected)
+        _assert_stochastic_matrix(actual)
+
+
+def test_approximation_tauchen_hussey_extreme_scale():
+
+    mc = _MarkovChain.approximation(3, 'tauchen-hussey', 1e-200, 0.5, k=1e200)
+    p = mc.p
+
+    _assert_stochastic_matrix(p)
+
+
+def test_approximation_tauchen_hussey_underflow():
+
+    mc = _MarkovChain.approximation(2, 'tauchen-hussey', 0.001, 0.0, k=1.0)
+
+    actual = mc.p
+    expected = _np.full((2, 2), 0.5, dtype=float)
+
+    _npt.assert_allclose(actual, expected, rtol=1e-12, atol=1e-14)
+    _assert_stochastic_matrix(actual)
+
+
+def test_approximation_tauchen_scale_invariance():
+
+    mc = _MarkovChain.approximation(3, 'tauchen', 1.0, 0.7)
+    expected = mc.p
+
+    for sigma in [1e-200, 1e200]:
+
+        mc = _MarkovChain.approximation(3, 'tauchen', sigma, 0.7)
+        actual = mc.p
+
+        _npt.assert_allclose(actual, expected, rtol=1e-12, atol=1e-14)
+        _assert_stochastic_matrix(actual)
 
 
 def test_bernoulli_trials(n, p_success, value):
@@ -179,11 +245,23 @@ def test_pattern_matching(pattern, probabilities, value):
     _assert_stochastic_matrix(actual)
 
 
+def test_pattern_matching_probability_accumulation():
+
+    mc = _MarkovChain.pattern_matching('A', {'A': 0.0, 'B': 1.0, 'C': 1e-14})
+
+    actual = mc.p
+    expected = _np.eye(2, dtype=float)
+
+    _npt.assert_array_equal(actual, expected)
+    _assert_stochastic_matrix(actual)
+
+
 def test_population_genetics_model(model, n, s, u, v, value):
 
     mc = _MarkovChain.population_genetics_model(model, n, s, u, v)
 
     actual = mc.p
+    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)

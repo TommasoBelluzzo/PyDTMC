@@ -1403,7 +1403,7 @@ def mc_entropy_rate_normalized(mc: _ct.tmc) -> _ct.ofloat:
 
     ht = mc.topological_entropy
 
-    if (h <= _c.FTOL) or (ht <= _c.FTOL):
+    if (h == 0.0) or (ht == 0.0):
         hn = 0.0
     else:
         hn = h / ht
@@ -1631,9 +1631,9 @@ def mc_mixing_rate(slem: _ct.ofloat) -> _ct.ofloat:
 
     if slem is None:
         mr = None
-    elif slem <= _c.FTOL:
+    elif slem == 0.0:
         mr = 0.0
-    elif slem >= (1.0 - _c.FTOL):
+    elif slem >= 1.0:
         mr = _np.inf
     else:
         mr = -1.0 / _np.log(slem)
@@ -1696,7 +1696,7 @@ def mc_relaxation_rate(mc: _ct.tmc) -> _ct.ofloat:
 
     if asg is None:
         rr = None
-    elif asg <= _c.FTOL:
+    elif asg <= 0.0:
         rr = _np.inf
     else:
         rr = 1.0 / asg
@@ -2134,7 +2134,7 @@ def mc_implied_timescales(mc: _ct.tmc) -> _ct.oarray:
     remaining = ev[1:]
     timescales = _np.zeros(remaining.shape, dtype=float)
 
-    infinite_mask = _np.zeros(remaining.shape, dtype=bool)
+    infinite_mask = remaining >= 1.0
     infinite_mask[:mc.period - 1] = True
 
     zero_mask = (remaining <= _c.FTOL) & ~infinite_mask
@@ -2142,7 +2142,7 @@ def mc_implied_timescales(mc: _ct.tmc) -> _ct.oarray:
 
     timescales[infinite_mask] = _np.inf
     timescales[zero_mask] = 0.0
-    timescales[finite_mask] = -1.0 / _np.log1p(remaining[finite_mask] - 1.0)
+    timescales[finite_mask] = -1.0 / _np.log(remaining[finite_mask])
 
     it = _np.append(_np.inf, timescales)
 
@@ -2172,6 +2172,12 @@ def mc_is_reversible(mc: _ct.tmc, recurrent_classes_indices: _ct.tlists_int) -> 
     for indices in recurrent_classes_indices:
 
         pr = p[_np.ix_(indices, indices)]
+
+        support = pr > 0.0
+
+        if not _np.array_equal(support, _np.transpose(support)):
+            return False
+
         pi = _n.gth_solve(pr)
 
         flow = pi[:, _np.newaxis] * pr
@@ -2272,12 +2278,12 @@ def mc_quasi_stationary_distribution(mc: _ct.tmc) -> _ct.oarray:  # pylint: disa
 
     for index, radius in enumerate(radii):
 
-        if radius <= _c.FTOL:
+        if radius <= 0.0:
             continue
 
         descendants = _nx.descendants(dag, index)
 
-        if any(0.0 < abs(radius - radii[j]) <= _c.FTOL for j in descendants):  # pragma: no cover
+        if any((radius != radii[j]) and _np.isclose(min(radius, radii[j]), max(radius, radii[j]), rtol=_c.FTOL, atol=0.0) for j in descendants):  # pragma: no cover
             return None
 
         if all(radius > radii[j] for j in descendants):  # pragma: no cover
@@ -2291,7 +2297,7 @@ def mc_quasi_stationary_distribution(mc: _ct.tmc) -> _ct.oarray:  # pylint: disa
     index = _np.argmin(_np.abs(evalues - survival))
     evalue, evector = evalues[index], evectors[:, index]
 
-    if (_np.abs(evalue.imag) > _c.FTOL) or (_np.abs(evalue.real - survival) > _c.FTOL) or (_np.max(_np.abs(evector.imag)) > _c.FTOL):  # pragma: no cover
+    if (_np.abs(evalue.imag) / survival > _c.FTOL) or (_np.abs(evalue.real - survival) / survival > _c.FTOL) or (_np.max(_np.abs(evector.imag)) > _c.FTOL):  # pragma: no cover
         return None
 
     evector = evector.real
@@ -2305,12 +2311,15 @@ def mc_quasi_stationary_distribution(mc: _ct.tmc) -> _ct.oarray:  # pylint: disa
     evector = _np.maximum(evector, 0.0)
     evector /= evector.sum()
 
-    actual_survival = float(_np.sum(_np.dot(evector, q)))
+    updated = _np.dot(evector, q)
+    actual_survival = float(_np.sum(updated))
 
     if not 0.0 < actual_survival < 1.0:  # pragma: no cover
         return None
 
-    if not _np.allclose(_np.dot(evector, q), actual_survival * evector, rtol=_c.FTOL, atol=_c.FTOL):  # pragma: no cover
+    updated /= actual_survival
+
+    if not _np.allclose(updated, evector, rtol=_c.FTOL, atol=_c.FTOL):  # pragma: no cover
         return None
 
     nu = _np.zeros(size, dtype=float)
@@ -2405,19 +2414,32 @@ def mc_stationary_perturbation_bound(mc: _ct.tmc, epsilon: float) -> _ct.ofloat:
 
 def mc_time_reversal(method: str, p: _ct.tarray, pi: _ct.tarray) -> _ct.tarray:
 
+    if (not _np.all(_np.isfinite(pi))) or _np.any(pi <= 0.0):  # pragma: no cover
+        raise ValueError('The stationary distribution contains invalid probabilities.')
+
     if method == 'standard':
 
-        pr = _np.transpose(p) * pi[_np.newaxis, :]
-        pr /= pi[:, _np.newaxis]
+        try:
 
-    else:
+            with _np.errstate(divide='raise', invalid='raise', over='raise', under='raise'):
+                pr = _np.transpose(p) * pi[_np.newaxis, :]
+                pr /= _np.sum(pr, axis=1, keepdims=True)
 
-        with _np.errstate(divide='ignore'):
-            log_p = _np.log(p)
-            log_pi = _np.log(pi)
+            return pr
 
-        log_pr = _np.transpose(log_p) + log_pi[_np.newaxis, :] - log_pi[:, _np.newaxis]
+        except FloatingPointError:  # pragma: no cover
+            pass
+
+    with _np.errstate(divide='ignore', under='ignore'):
+
+        log_p = _np.log(p)
+        log_pi = _np.log(pi)
+
+        log_pr = _np.transpose(log_p) + log_pi[_np.newaxis, :]
+        log_pr -= _np.max(log_pr, axis=1, keepdims=True)
+
         pr = _np.exp(log_pr)
+        pr /= _np.sum(pr, axis=1, keepdims=True)
 
     return pr
 

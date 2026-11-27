@@ -72,6 +72,7 @@ import numpy.linalg as _npl
 import scipy.integrate as _spi
 import scipy.linalg as _spl
 import scipy.optimize as _spo
+import scipy.special as _spc
 import scipy.stats as _sps
 
 # Internal
@@ -104,25 +105,6 @@ def _combination_index(combination: tuple, n: int) -> int:
         index -= _mt.comb(n - value - 1, k - i)
 
     return index
-
-
-def _normalize_matrix(m: _ct.tarray) -> _ct.tarray:
-
-    rows, columns = m.shape
-
-    mc = _np.copy(m)
-
-    for i in range(rows):
-
-        maximum = _np.max(mc[i, :])
-
-        if maximum == 0.0:  # pragma: no cover
-            mc[i, :] = _np.ones(columns, dtype=float) / columns
-        else:
-            mc[i, :] /= maximum
-            mc[i, :] /= _np.sum(mc[i, :])
-
-    return mc
 
 
 def _permutation_index(permutation: tuple) -> int:
@@ -358,14 +340,10 @@ def hmm_restrict(p: _ct.tarray, e: _ct.tarray, states: _ct.tlist_str, symbols: _
     e_decrease = p_decrease or len(sub_symbols) < e.shape[1]
 
     if p_decrease:
-        p = p[_np.ix_(sub_states, sub_states)]
-        p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[1], dtype=float)
-        p /= _np.sum(p, axis=1, keepdims=True)
+        p = _n.normalize_matrix(p[_np.ix_(sub_states, sub_states)], 'uniform')
 
     if e_decrease:
-        e = e[_np.ix_(sub_states, sub_symbols)]
-        e[_np.where(~e.any(axis=1)), :] = _np.ones(e.shape[1], dtype=float)
-        e /= _np.sum(e, axis=1, keepdims=True)
+        e = _n.normalize_matrix(e[_np.ix_(sub_states, sub_symbols)], 'uniform')
 
     state_names = [*map(states.__getitem__, sub_states)]
     symbol_names = [*map(symbols.__getitem__, sub_symbols)]
@@ -419,23 +397,9 @@ def hmm_estimate(n: int, k: int, states: _ct.tlist_int, symbols: _ct.tlist_int, 
     _np.add.at(p, (states_array[:-1], states_array[1:]), 1.0)
     _np.add.at(e, (states_array, symbols_array), 1.0)
 
-    if handle_nulls:
-
-        p[_np.where(~p.any(axis=1)), :] = _np.ones(n, dtype=float)
-        p /= _np.sum(p, axis=1, keepdims=True)
-
-        e[_np.where(~e.any(axis=1)), :] = _np.ones(k, dtype=float)
-        e /= _np.sum(e, axis=1, keepdims=True)
-
-    else:
-
-        p_rows = _np.sum(p, axis=1, keepdims=True)
-        p_rows[p_rows == 0.0] = -_np.inf
-        p = _np.abs(p / p_rows)
-
-        e_rows = _np.sum(e, axis=1, keepdims=True)
-        e_rows[e_rows == 0.0] = -_np.inf
-        e = _np.abs(e / e_rows)
+    zero_policy = 'uniform' if handle_nulls else 'preserve'
+    p = _n.normalize_matrix(p, zero_policy)
+    e = _n.normalize_matrix(e, zero_policy)
 
     return p, e
 
@@ -529,8 +493,8 @@ def hmm_from_graph(graph: _ct.tgraphs) -> _ct.thmm_gen_x:
 
 def hmm_from_matrices(mp: _ct.tarray, me: _ct.tarray) -> _ct.thmm_gen_x:
 
-    p = _normalize_matrix(mp)
-    e = _normalize_matrix(me)
+    p = _n.normalize_matrix(_np.copy(mp), 'uniform')
+    e = _n.normalize_matrix(_np.copy(me), 'uniform')
 
     states = _u.create_labels(mp.shape[1], prefix='P')
     symbols = _u.create_labels(me.shape[1], prefix='E')
@@ -684,19 +648,27 @@ def mc_censor(p: _ct.tarray, states: _ct.tlist_str, retained_states: _ct.tlist_i
 
     removed_states = [i for i in range(size) if i not in retained_states]
 
-    p_aa = p[_np.ix_(retained_states, retained_states)]
-    p_ab = p[_np.ix_(retained_states, removed_states)]
-    p_ba = p[_np.ix_(removed_states, retained_states)]
-    p_bb = p[_np.ix_(removed_states, removed_states)]
+    p = _np.copy(p)
+    active_states = list(range(size))
 
-    i = _np.eye(len(removed_states), dtype=float)
+    for index in removed_states:
 
-    try:
-        x = _npl.solve(i - p_bb, p_ba)
-    except _npl.LinAlgError:  # pragma: no cover
-        raise ValueError('The Markov chain cannot be censored because the stochastic complement is not defined for the given states.') from None
+        active_states.remove(index)
 
-    p_censored = p_aa + _np.dot(p_ab, x)
+        outgoing = p[index, active_states]
+        total = _np.sum(outgoing)
+
+        if total <= 0.0:  # pragma: no cover
+            raise ValueError('The Markov chain cannot be censored because the stochastic complement is not defined for the given states.')
+
+        outgoing /= total
+
+        indices = _np.ix_(active_states, active_states)
+        p[indices] += _np.outer(p[active_states, index], outgoing)
+
+    p_censored = p[_np.ix_(retained_states, retained_states)]
+    p_censored /= _np.sum(p_censored, axis=1, keepdims=True)
+
     states_final = [*map(states.__getitem__, retained_states)]
 
     return p_censored, states_final
@@ -706,8 +678,13 @@ def mc_closest_reversible(p: _ct.tarray, initial_distribution: _ct.tarray, weigh
 
     def _is_reversible_with(irw_p, irw_d, irw_tolerance):
 
-        flow = irw_d[:, _np.newaxis] * irw_p
-        result = _np.max(_np.abs(flow - _np.transpose(flow))) <= irw_tolerance
+        irw_support = (irw_d[:, _np.newaxis] > 0.0) & (irw_p > 0.0)
+
+        if not _np.array_equal(irw_support, _np.transpose(irw_support)):
+            return False
+
+        irw_flow = irw_d[:, _np.newaxis] * irw_p
+        result = _np.max(_np.abs(irw_flow - _np.transpose(irw_flow))) <= irw_tolerance
 
         return result
 
@@ -914,12 +891,14 @@ def mc_closest_reversible(p: _ct.tarray, initial_distribution: _ct.tarray, weigh
 
     return p
 
+
 def mc_compose(ps: _ct.tlist_array) -> _ct.tmc_gen_x:
 
     p = ps[0]
 
     for p_other in ps[1:]:
         p = _np.dot(p, p_other)
+        p /= _np.sum(p, axis=1, keepdims=True)
 
     states = _u.create_labels(p.shape[0], prefix='C')
 
@@ -958,14 +937,22 @@ def mc_lump(p: _ct.tarray, states: _ct.tlist_str, partitions: _ct.tlists_int) ->
     except Exception:  # pragma: no cover
         raise ValueError('The Markov chain is not lumpable with respect to the given partitions.') from None
 
-    left = _np.dot(_np.dot(_np.dot(r, k), p), r)
-    right = _np.dot(p, r)
-    is_lumpable = _np.allclose(left, right, rtol=0.0, atol=_c.ETOL)
+    aggregated = _np.dot(p, r)
 
-    if not is_lumpable:  # pragma: no cover
-        raise ValueError('The Markov chain is not lumpable with respect to the given partitions.') from None
+    for partition in partitions:
 
-    p_lump = _np.dot(_np.dot(k, p), r)
+        if len(partition) == 1:
+            continue
+
+        rows = aggregated[partition, :]
+        minimum = _np.min(rows, axis=0)
+        maximum = _np.max(rows, axis=0)
+
+        if not _np.allclose(minimum, maximum, rtol=_c.FTOL, atol=0.0):  # pragma: no cover
+            raise ValueError('The Markov chain is not lumpable with respect to the given partitions.') from None
+
+    p_lump = _np.dot(k, aggregated)
+
     states_final = [','.join(list(map(states.__getitem__, partition))) for partition in partitions]
 
     return p_lump, states_final
@@ -1199,6 +1186,8 @@ def mc_reversibilize(p: _ct.tarray, recurrent_classes_indices: _ct.tlists_int, t
     else:
         result = _np.dot(pr, p)
 
+    result /= _np.sum(result, axis=1, keepdims=True)
+
     return result
 
 
@@ -1248,7 +1237,7 @@ def mc_sub(p: _ct.tarray, states: _ct.tlist_str, adjacency_matrix: _ct.tarray, s
 
     p = _np.copy(p)
     p = p[_np.ix_(sub_states, sub_states)]
-    p /= _np.sum(p, axis=1, keepdims=True)
+    p = _n.normalize_matrix(p)
 
     if p.size == 1:  # pragma: no cover
         raise ValueError('The subchain is not a valid Markov chain.')
@@ -1282,14 +1271,19 @@ def mc_time_reversal(method: str, p: _ct.tarray, recurrent_classes_indices: _ct.
 
 # MC STATIC GENERATORS
 
-def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: float, rho: float, k: _ct.ofloat) -> _ct.tmc_gen_x:
+def mc_approximation(size: int, approximation_type: str, sigma: float, rho: float, k: _ct.ofloat) -> _ct.tmc_gen_x:
 
-    def _adda_cooper_integrand(aci_x, aci_sigma_z, aci_sigma, aci_rho, aci_alpha, z_j, z_jp1):
+    def _adda_cooper_integrand(aci_x, aci_scale, aci_rho, z_j, z_jp1):
 
-        t1 = _np.exp((-1.0 * (aci_x - aci_alpha)**2.0) / (2.0 * aci_sigma_z**2.0))
-        t2 = _sps.norm.cdf((z_jp1 - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
-        t3 = _sps.norm.cdf((z_j - (aci_alpha * (1.0 - aci_rho)) - (aci_rho * aci_x)) / aci_sigma)
-        output = t1 * (t2 - t3)
+        lower = (z_j - aci_rho * aci_x) / aci_scale
+        upper = (z_jp1 - aci_rho * aci_x) / aci_scale
+
+        if lower >= 0.0:
+            probability = _sps.norm.sf(lower) - _sps.norm.sf(upper)
+        else:
+            probability = _sps.norm.cdf(upper) - _sps.norm.cdf(lower)
+
+        output = _sps.norm.pdf(aci_x) * probability
 
         return output
 
@@ -1316,12 +1310,17 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
 
         return output
 
-    if approximation_type == 'adda-cooper':
+    if (approximation_type in ['adda-cooper', 'tauchen']) and (abs(rho) == 1.0):
 
-        z_sigma = sigma / (1.0 - rho**2.0)**0.5
-        z_sigma_factor = size / _np.sqrt(2.0 * _np.pi * z_sigma**2.0)
+        p = _np.eye(size, dtype=float)
 
-        z = (z_sigma * _sps.norm.ppf(_np.arange(size + 1) / size)) + alpha
+        if rho < 0.0:
+            p = _np.fliplr(p)
+
+    elif approximation_type == 'adda-cooper':
+
+        scale = _np.sqrt((1.0 - rho) * (1.0 + rho))
+        z = _sps.norm.ppf(_np.arange(size + 1) / size)
 
         p = _np.zeros((size, size), dtype=float)
 
@@ -1331,8 +1330,8 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
             z_ip = z[i + 1]
 
             for j in range(size):
-                iq = _spi.quad(_adda_cooper_integrand, z_i, z_ip, args=(z_sigma, sigma, rho, alpha, z[j], z[j + 1]))
-                p[i, j] = z_sigma_factor * iq[0]
+                iq = _spi.quad(_adda_cooper_integrand, z_i, z_ip, args=(scale, rho, z[j], z[j + 1]), epsabs=1e-12, epsrel=1e-10)
+                p[i, j] = size * iq[0]
 
     elif approximation_type == 'rouwenhorst':
 
@@ -1341,114 +1340,74 @@ def mc_approximation(size: int, approximation_type: str, alpha: float, sigma: fl
 
     elif approximation_type == 'tauchen-hussey':
 
-        size_m1 = size - 1
-        size_p1 = size + 1
+        nodes, weights = _spc.roots_hermite(size)
+        nodes *= 2.0
 
-        n = int(_np.trunc(size_p1 / 2))
+        if (not _np.all(_np.isfinite(nodes))) or (not _np.all(_np.isfinite(weights))) or _np.any(weights <= 0.0):  # pragma: no cover
+            raise ValueError('The gaussian quadrature produced invalid nodes or weights.')
 
-        p1_const = 1.0 / _np.pi**0.25
-        p2_const = 0.0
-        pp_base = _np.sqrt(2.0 * size)
+        if k is None:
+            weight = 0.5 + rho / 4.0
+            scale = _np.sqrt((1.0 - rho) * (1.0 + rho))
+            log_ratio = _np.log(weight + (1.0 - weight) / scale)
+        else:
+            log_ratio = _np.log(k) - _np.log(sigma)
 
-        k_factor = _np.sqrt(2.0) * _np.sqrt(2.0 * k**2.0)
-        w_factor = _np.sqrt(_np.pi)**2.0
+        log_weights = _np.log(weights) + 0.5 * nodes**2.0
 
-        nodes = _np.zeros(size, dtype=float)
-        weights = _np.zeros(size, dtype=float)
-
-        pp = 0.0
-        z = 0.0
-
-        for i in range(n):
-
-            if i == 0:
-                sf = (2.0 * size) + 1.0
-                z = _np.sqrt(sf) - (1.85575 * sf**-0.16393)
-            elif i == 1:
-                z = z - ((1.14 * size**0.426) / z)
-            elif i == 2:
-                z = (1.86 * z) + (0.86 * nodes[0])
-            elif i == 3:
-                z = (1.91 * z) + (0.91 * nodes[1])
-            else:
-                z = (2.0 * z) + nodes[i - 2]
-
-            iterations = 0
-
-            while iterations < 100:
-
-                iterations += 1
-
-                p1 = p1_const
-                p2 = p2_const
-
-                for j in range(1, size_p1):
-                    p3 = p2
-                    p2 = p1
-                    p1 = (z * _np.sqrt(2.0 / j) * p2) - (_np.sqrt((j - 1.0) / j) * p3)
-
-                pp = pp_base * p2
-
-                z1 = z
-                z = z1 - p1 / pp
-
-                if _np.abs(z - z1) < 1e-14:
-                    break
-
-            if iterations == 100:  # pragma: no cover
-                raise ValueError('The gaussian quadrature failed to converge.')
-
-            offset = size_m1 - i
-
-            nodes[i] = -z
-            nodes[offset] = z
-
-            weights[i] = 2.0 / pp**2.0
-            weights[offset] = weights[i]
-
-        nodes = (nodes * k_factor) + alpha
-        weights = weights / w_factor
-
-        prime_left = (1.0 - rho) * alpha
         p = _np.zeros((size, size), dtype=float)
 
         for i in range(size):
-            prime_right = rho * nodes[i]
-            prime = prime_left + prime_right
 
-            for j in range(size):
-                p[i, j] = (weights[j] * _sps.norm.pdf(nodes[j], prime, sigma) / _sps.norm.pdf(nodes[j], alpha, k))
+            distances = _np.abs(nodes - rho * nodes[i])
+            minimum = _np.min(distances)
 
-        p /= _np.sum(p, axis=1, keepdims=True)
+            with _np.errstate(divide='ignore', over='ignore', under='ignore'):
+
+                log_penalties = 2.0 * log_ratio + _np.log(distances - minimum) + _np.log(distances + minimum) - _np.log(2.0)
+                logits = log_weights - _np.exp(log_penalties)
+                logits -= _np.max(logits)
+
+                p[i, :] = _np.exp(logits)
 
     else:
 
-        size_m1 = size - 1
+        if k is None:
+            k = 3.0
 
-        if _np.isclose(rho, 1.0):
-            rho = 1.0 - 1e-8
+        x = _np.linspace(-1.0, 1.0, size)
+        step = 1.0 / (size - 1)
+        scale = _np.sqrt((1.0 - rho) * (1.0 + rho))
 
-        y_std = _np.sqrt(sigma**2.0 / (1.0 - rho**2.0))
-
-        x_max = y_std * k
-        x_min = -x_max
-        x = _np.linspace(x_min, x_max, size)
-
-        x_0 = x[0]
-        x_sm1 = x[size_m1]
-
-        step = 0.5 * ((x_max - x_min) / size_m1)
         p = _np.zeros((size, size), dtype=float)
 
-        for i in range(size):
-            rx = rho * x[i]
+        with _np.errstate(over='ignore', under='ignore'):
 
-            p[i, 0] = _sps.norm.cdf((x_0 - rx + step) / sigma)
-            p[i, size_m1] = 1.0 - _sps.norm.cdf((x_sm1 - rx - step) / sigma)
+            for i in range(size):
 
-            for j in range(1, size_m1):
-                z = x[j] - rx
-                p[i, j] = _sps.norm.cdf((z + step) / sigma) - _sps.norm.cdf((z - step) / sigma)
+                distances = x - rho * x[i]
+
+                lower = ((distances - step) * k) / scale
+                upper = ((distances + step) * k) / scale
+
+                p[i, :] = _np.where(
+                    lower >= 0.0,
+                    _sps.norm.sf(lower) - _sps.norm.sf(upper),
+                    _sps.norm.cdf(upper) - _sps.norm.cdf(lower)
+                )
+
+                p[i, 0] = _sps.norm.cdf(upper[0])
+                p[i, -1] = _sps.norm.sf(lower[-1])
+
+    if (not _np.all(_np.isfinite(p))) or _np.any(p < 0.0):  # pragma: no cover
+        raise ValueError('The approximation produced invalid transition probabilities.')
+
+    totals = _np.sum(p, axis=1, keepdims=True)
+
+    if _np.any(totals <= 0.0):  # pragma: no cover
+        raise ValueError('The approximation produced a row with zero probability mass.')
+
+    p /= totals
 
     states = _u.create_labels(size)
 
@@ -1476,8 +1435,7 @@ def mc_birth_death(p: _ct.tarray, q: _ct.tarray) -> _ct.tmc_gen_x:
 
     p = _np.diag(r) + _np.diag(p[0:-1], k=1) + _np.diag(q[1:], k=-1)
     p[(p < 0.0) & (p >= -_c.FTOL)] = 0.0
-    p[_np.where(~p.any(axis=1)), :] = _np.ones(p.shape[0], dtype=float)
-    p /= _np.sum(p, axis=1, keepdims=True)
+    p = _n.normalize_matrix(p, 'uniform')
 
     states = _u.create_labels(p.shape[0])
 
@@ -1775,7 +1733,7 @@ def mc_from_graph(graph: _ct.tgraphs) -> _ct.tmc_gen_x:
 
 def mc_from_matrix(m: _ct.tarray) -> _ct.tmc_gen_x:
 
-    p = _normalize_matrix(m)
+    p = _n.normalize_matrix(_np.copy(m), 'uniform')
     states = _u.create_labels(p.shape[0])
 
     return p, states
@@ -1941,6 +1899,7 @@ def mc_pattern_matching(pattern: str, probabilities: dict) -> _ct.tmc_gen_x:
             p[i, next_state] += probability
 
     p[size, size] = 1.0
+    p /= _np.sum(p, axis=1, keepdims=True)
 
     states = ['∅'] + [pattern[:i] for i in range(1, len(pattern) + 1)]
 
@@ -1970,7 +1929,7 @@ def mc_population_genetics_model(model: str, n: int, s: float, u: float, v: floa
             pp1 = (nmi / n) * (((ri * ui) + (nmi * v)) / (ri + nmi))
 
             p[i, i - 1] = pm1
-            p[i, i] = 1.0 - pm1 - pp1
+            p[i, i] = max(0.0, 1.0 - pm1 - pp1)
             p[i, i + 1] = pp1
 
     else:
@@ -2046,12 +2005,8 @@ def mc_random(rng: _ct.trand, size: int, zeros: int, mask: _ct.tarray) -> _ct.tm
 def mc_random_distribution(size: int, f: _ct.trfunc, kwargs: dict) -> _ct.tmc_gen_x:
 
     p = f(size=(size, size), **kwargs).astype(float)
-
     p = _np.clip(_np.nan_to_num(p, copy=False), 0.0, None)
-    p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
-
-    p /= _np.max(p, axis=1, keepdims=True)
-    p /= _np.sum(p, axis=1, keepdims=True)
+    p = _n.normalize_matrix(p, 'uniform')
 
     states = _u.create_labels(size)
 

@@ -79,6 +79,42 @@ def test_censor(p, states, value):
         _assert_stochastic_matrix(actual)
 
 
+def test_censor_nearly_closed_subset():
+
+    x = 1e-20
+
+    mc = _MarkovChain([
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+        [x, 0.0, 1.0, 0.0]
+    ])
+
+    actual = mc.censor([0, 1]).p
+    expected = _np.eye(2)
+
+    _npt.assert_array_equal(actual, expected)
+    _assert_stochastic_matrix(actual)
+
+
+def test_censor_small_exit_probability():
+
+    x = 1e-20
+    y = 1.0 - x
+
+    mc = _MarkovChain([
+        [0.0, 0.0, 1.0],
+        [0.0, 1.0, 0.0],
+        [x, 0.0, y]
+    ])
+
+    actual = mc.censor([0, 1]).p
+    expected = _np.eye(2)
+
+    _npt.assert_array_equal(actual, expected)
+    _assert_stochastic_matrix(actual)
+
+
 def test_closest_reversible(p, distribution, weighted, value):
 
     mc = _MarkovChain(p)
@@ -114,6 +150,22 @@ def test_compose_with(p, p_other, value):
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
     _assert_stochastic_matrix(actual)
+
+
+def test_compose_with_probability_drift():
+
+    mc = _MarkovChain([[1.0, 1e-14], [0.0, 1.0]])
+
+    original = mc.p
+    actual = mc.compose_with([mc] * 9).p
+
+    _assert_stochastic_matrix(actual)
+
+    assert actual[0, 1] > 0.0
+    assert actual[1, 0] == 0.0
+
+    _npt.assert_allclose(actual[0, 1], 1e-13, rtol=1e-12, atol=0.0)
+    _npt.assert_array_equal(mc.p, original)
 
 
 def test_lazy(p, inertial_weights, value):
@@ -248,6 +300,27 @@ def test_reversibilize(p, method, value):
             _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
 
+def test_reversibilize_extreme_stationary_probabilities():
+
+    mc = _MarkovChain([
+        [1.0, 1e-250, 1e-250],
+        [0.5, 0.5, 1e-100],
+        [0.5, 1e-100, 0.5]
+    ])
+
+    for method in ['additive', 'multiplicative', 'multiplicative-reverse']:
+
+        mc_reversibilized = mc.reversibilize(method)
+        p = mc_reversibilized.p
+
+        _assert_stochastic_matrix(p)
+
+        actual = _np.dot(mc.pi[0], p)
+        expected = mc.pi[0]
+
+        _npt.assert_allclose(actual, expected, rtol=1e-10, atol=0.0)
+
+
 def test_reweight(p, weights, value):
 
     mc = _MarkovChain(p)
@@ -379,3 +452,31 @@ def test_time_reversal(p, value):
                 expected = mc_reversed.committor_probabilities('forward', states2, states1)
 
                 _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+
+def test_time_reversal_extreme_stationary_probabilities():
+
+    mc = _MarkovChain([
+        [1.0, 1e-250, 1e-250],
+        [0.5, 0.5, 1e-100],
+        [0.5, 1e-100, 0.5]
+    ])
+
+    for method in ('standard', 'log'):
+
+        mc_reversed = mc.time_reversal(method)
+
+        actual = mc_reversed.p
+        expected = mc.p
+
+        _npt.assert_allclose(actual, expected, rtol=1e-10, atol=0.0)
+        _assert_stochastic_matrix(actual)
+
+        assert actual[1, 2] > 0.0
+        assert actual[2, 1] > 0.0
+
+        actual = mc_reversed.time_reversal(method).p
+        expected = mc.p
+
+        _npt.assert_allclose(actual, expected, rtol=1e-10, atol=0.0)
+        _assert_stochastic_matrix(actual)

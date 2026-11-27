@@ -299,9 +299,10 @@ class HiddenMarkovModel(_bc.Model):
 
         | **Notes:**
 
-        - A hidden state is considered redundant when it is behaviorally equivalent to another hidden state and can be merged without changing the emitted-symbol sequence distributions.
-        - Two hidden states are behaviorally equivalent when they have identical emission distributions and aggregate transition probabilities into every equivalence class.
+        - A hidden state is considered redundant when it is behaviorally equivalent to another hidden state within the adopted numerical tolerance.
+        - Two hidden states are considered behaviorally equivalent when they have identical emission distributions and numerically equivalent aggregate transition probabilities into every equivalence class.
         - Equivalence classes are determined through iterative partition refinement.
+        - Numerical equivalence is enforced between all members of each equivalence class: in numerically ambiguous cases, the resulting equivalence classes may depend on the original state ordering.
         - For each equivalence class containing multiple states, the first state is retained as its representative, and the remaining states are considered redundant.
         - The absence of redundant states does not necessarily imply that the hidden Markov model has a minimal representation.
         """
