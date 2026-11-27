@@ -261,7 +261,6 @@ def test_population_genetics_model(model, n, s, u, v, value):
     mc = _MarkovChain.population_genetics_model(model, n, s, u, v)
 
     actual = mc.p
-    print(actual)
     expected = _np.array(value)
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
