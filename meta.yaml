@@ -26,7 +26,7 @@ requirements:
     - python {{ data['python_requires'] }}
 {% for dep in data['install_requires'] %}
 {% if dep.lower().startswith('matplotlib') %}
-    - matplotlib-base
+    - {{ ('matplotlib-base ' ~ dep[10:].strip()).strip() }}
 {% else %}
     - {{ dep.lower() }}
 {% endif %}

@@ -61,6 +61,7 @@ jobs:
     - name: Documentation
       if: runner.os == 'Linux'
       run: |
+        make -C docs/ html SPHINX_OPTS="-anW --keep-going"
         make -C docs/ doctest SPHINX_OPTS=-an
         make -C docs/ linkcheck SPHINX_OPTS=-an
         make -C docs/ coverage SPHINX_OPTS=-an
@@ -80,9 +81,39 @@ jobs:
         include-hidden-files: true
         if-no-files-found: error
         overwrite: true
+  minimal_installation:
+    name: Minimal Installation
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Repository Checkout
+      uses: actions/checkout@v7
+    - name: Python Setup
+      uses: actions/setup-python@v7
+      with:
+        python-version: '3.13'
+        architecture: x64
+        cache: pip
+        cache-dependency-path: |
+          requirements.txt
+          setup.cfg
+    - name: Dependencies Installation
+      run: |
+        python -m pip install --quiet --upgrade pip
+        python -m pip install --quiet --upgrade build
+    - name: Build
+      run: |
+        python -m build --wheel
+    - name: Minimal Installation
+      run: |
+        python -m venv "$RUNNER_TEMP/minimal"
+        source "$RUNNER_TEMP/minimal/bin/activate"
+        python -m pip install --quiet --upgrade pip
+        python -m pip install --quiet dist/*.whl
+        python -m pip check
   coverage:
     name: Coverage
-    needs: tests
+    needs: minimal_installation
     runs-on: ubuntu-latest
     env:
       COVERAGE_RCFILE: setup.cfg

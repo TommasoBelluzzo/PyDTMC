@@ -98,7 +98,14 @@ jobs:
       run: |
         python -m pip install --quiet --upgrade pip
         python -m pip install --quiet --upgrade -r requirements.txt
-        python -m pip install --quiet --upgrade -e ".[build]"
+        python -m pip install --quiet --upgrade -e ".[package,build,tests]"
+    - name: Libraries Installation
+      run: |
+        sudo apt update --quiet --yes
+        sudo apt-get install --quiet --yes graphviz
+    - name: Testing
+      run: |
+        python -m pytest --capture=no --benchmark-skip -m "not slow" tests/
     - name: PyPI Publishing
       env:
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
