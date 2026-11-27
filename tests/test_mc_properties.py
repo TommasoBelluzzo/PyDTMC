@@ -40,7 +40,7 @@ def test_hash_equality_matrix_preservation():
 
 def test_hash_equality_signed_zeros():
 
-    mc1 = _MarkovChain([[1.00,  0.00], [0.25, 0.75]])
+    mc1 = _MarkovChain([[1.00, 0.00], [0.25, 0.75]])
     mc2 = _MarkovChain([[1.00, -0.00], [0.25, 0.75]])
 
     assert mc1 == mc2

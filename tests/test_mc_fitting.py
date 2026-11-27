@@ -33,6 +33,11 @@ def test_fit_function(f, possible_states, quadrature_type, quadrature_interval, 
 
     _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
 
+    assert _np.all(_np.isfinite(actual))
+    assert _np.all((actual >= 0.0) & (actual <= 1.0))
+
+    _npt.assert_allclose(_np.sum(actual, axis=1), 1.0)
+
 
 def test_fit_sequence(possible_states, states, fitting_type, fitting_param, value):
 

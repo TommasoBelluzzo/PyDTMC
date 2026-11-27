@@ -280,7 +280,7 @@ def get_numpy_random_distributions() -> _ct.tlist_str:
 
     random_distributions = [
         name for name in supported_distributions
-        if callable(getattr(_npr.RandomState, name, None))
+        if callable(getattr(_npr.RandomState, name, None))  # pylint: disable=no-member
     ]
 
     return random_distributions

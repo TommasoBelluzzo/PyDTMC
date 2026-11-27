@@ -347,6 +347,12 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possib
         nodes = a + (_np.arange(size) + 0.5) * bandwidth
         weights = _np.repeat(bandwidth, size)
 
+    if not _np.all(_np.isfinite(nodes)):
+        raise ValueError('The quadrature produced invalid nodes.')
+
+    if not _np.all(_np.isfinite(weights) & (weights >= 0.0)):
+        raise ValueError('The quadrature produced invalid weights.')
+
     p = _np.zeros((size, size), dtype=float)
 
     for i in range(size):
@@ -359,15 +365,22 @@ def mc_fit_function(quadrature_type: str, quadrature_interval: _ct.tival, possib
 
             try:
                 f_result = f(i, node_i, j, node_j)
-            except Exception:  # pragma: no cover
+            except Exception:
                 raise ValueError('The transition function returned an invalid value.') from None
 
-            if (not _u.is_number(f_result)) or (not _np.isfinite(f_result)):  # pragma: no cover
+            if (not _u.is_number(f_result)) or (not _np.isfinite(f_result)) or (f_result < 0.0):
                 raise ValueError('The transition function returned an invalid value.')
 
-            p[i, j] = float(f_result * weights[j])
+            with _np.errstate(over='ignore', invalid='ignore'):
+                weight = float(f_result * weights[j])
+
+            if (not _np.isfinite(weight)) or (weight < 0.0):  # pragma: no cover
+                raise ValueError('The transition function produced an invalid transition weight.')
+
+            p[i, j] = weight
 
     p[_np.where(~p.any(axis=1)), :] = _np.ones(size, dtype=float)
+    p /= _np.max(p, axis=1, keepdims=True)
     p /= _np.sum(p, axis=1, keepdims=True)
 
     return p

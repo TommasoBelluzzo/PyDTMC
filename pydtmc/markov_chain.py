@@ -2116,13 +2116,9 @@ class MarkovChain(_bc.Model):
         - :math:`P\prime` is the transition matrix of the other chain;
         - :math:`\gamma` is the blending factor.
 
-        | **Notes:**
-
-        - The returned Markov chain is assigned newly generated state labels.
-
         :param other: the Markov chain to be merged with the current one.
         :param gamma: the merger blending factor.
-        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 with prefix M is generated*).
+        :param states: the state names (*if omitted, an increasing sequence of integers starting at 1 and with prefix M is generated*).
         :raises ValidationError: if any input argument is not compliant.
         """
 
@@ -2843,7 +2839,7 @@ class MarkovChain(_bc.Model):
         - The methodology is described in `Exact sampling with coupled Markov chains and applications to statistical mechanics (Propp and Wilson, 1996) <https://doi.org/10.1002/(SICI)1098-2418(199608/09)9:1/2%3C223::AID-RSA14%3E3.0.CO;2-O>`_.
         - The method can also be accessed through the alias **cftp**.
 
-        :param maximum_doublings: the maximum number of horizon doublings, corresponding to a backward simulation limit of :math:`2^{md}` steps.
+        :param maximum_doublings: the maximum number of horizon doublings :math:`md`, corresponding to a backward simulation limit of :math:`2^{md}` steps.
         :param output_index: a boolean indicating whether to return the state index instead of the state label.
         :param seed: a seed to be used as RNG initializer for reproducibility purposes.
         :raises ValidationError: if any input argument is not compliant.
@@ -3731,7 +3727,7 @@ class MarkovChain(_bc.Model):
         :param f: the transition function of the process.
         :param quadrature_interval: the quadrature interval used to compute the nodes and weights (*if omitted, the interval [0, 1] is used*).
         :raises ValidationError: if any input argument is not compliant or if Simpson quadrature is requested with an even number of states.
-        :raises ValueError: if the transition function returns an invalid value or the Gauss-Legendre quadrature fails to converge.
+        :raises ValueError: if the transition function returns an invalid value, if the quadrature produces invalid nodes or weights, if any transition weight is invalid or if the Gauss-Legendre quadrature fails to converge.
         """
 
         try:
@@ -3763,7 +3759,8 @@ class MarkovChain(_bc.Model):
         | **Notes:**
 
         - For **map** and **mle** approaches, transition probabilities are estimated independently for each origin state.
-        - For **map** and **mle** approaches, states with no observed outgoing transitions are assigned a uniform transition distribution.
+        - For the **map** approach, states with no observed outgoing transitions are assigned a transition distribution determined by the Dirichlet prior parameters.
+        - For the **mle** approach, states with no observed outgoing transitions are assigned a uniform transition distribution.
         - The **mle** approach optionally supports additive smoothing.
         - The **rmle** approach enforces detailed balance during estimation and requires at least one observed outgoing transition from every state.
 

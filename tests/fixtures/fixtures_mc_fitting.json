@@ -109,6 +109,36 @@
         [0.00000000, 1.00000000],
         [0.33333333, 0.66666667]
       ]
+    },
+    {
+      "possible_states": ["A", "B"],
+      "f": "1e308",
+      "quadrature_type": "trapezoid-rule",
+      "quadrature_interval": [0, 2],
+      "value": [
+        [0.5, 0.5],
+        [0.5, 0.5]
+      ]
+    },
+    {
+      "possible_states": ["A", "B"],
+      "f": "1.5e308 if y_index == 0 else 1e308",
+      "quadrature_type": "trapezoid-rule",
+      "quadrature_interval": [0, 2],
+      "value": [
+        [0.6, 0.4],
+        [0.6, 0.4]
+      ]
+    },
+    {
+      "possible_states": ["A", "B"],
+      "f": "0.0 if (x_index == 0) or (y_index == 0) else 2.0",
+      "quadrature_type": "trapezoid-rule",
+      "quadrature_interval": null,
+      "value": [
+        [0.5, 0.5],
+        [0.0, 1.0]
+      ]
     }
   ],
   "fit_sequence_data": [

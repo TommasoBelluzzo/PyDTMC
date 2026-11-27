@@ -603,14 +603,14 @@ def hmm_random(rng: _ct.trand, n: int, k: int, p_zeros: int, p_mask: _ct.tarray,
         zeros_required = int(_np.sum(mask_unassigned) - _np.sum(~full_rows))
         result = pz_zeros > zeros_required
 
-        return full_rows, mask_unassigned, zeros_required, result
+        return pz_mask_internal, full_rows, mask_unassigned, zeros_required, result
 
-    p_full_rows, p_mask_unassigned, p_zeros_required, p_result = process_zeros(n, p_zeros, p_mask)
+    p_mask, p_full_rows, p_mask_unassigned, p_zeros_required, p_result = process_zeros(n, p_zeros, p_mask)
 
     if p_result:  # pragma: no cover
         raise _ValidationError(f'The number of null transition probabilities exceeds the maximum threshold of {p_zeros_required:d}.')
 
-    e_full_rows, e_mask_unassigned, e_zeros_required, e_result = process_zeros(k, e_zeros, e_mask)
+    e_mask, e_full_rows, e_mask_unassigned, e_zeros_required, e_result = process_zeros(k, e_zeros, e_mask)
 
     if e_result:  # pragma: no cover
         raise _ValidationError(f'The number of null emission probabilities exceeds the maximum threshold of {e_zeros_required:d}.')

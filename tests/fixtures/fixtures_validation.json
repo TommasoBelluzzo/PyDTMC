@@ -4708,6 +4708,10 @@
   ],
   "validate_transition_function_data": [
     {
+      "value": null,
+      "is_valid": false
+    },
+    {
       "value": "def f(x_index, x_value, y_index, y_value): return 0",
       "is_valid": true
     },
@@ -4744,8 +4748,28 @@
       "is_valid": false
     },
     {
-      "value": null,
+      "value": "lambda x_index, x_value, y_index, y_value: -1.0",
       "is_valid": false
+    },
+    {
+      "value": "lambda x_index, x_value, y_index, y_value: -1",
+      "is_valid": false
+    },
+    {
+      "value": "lambda x_index, x_value, y_index, y_value: -1e-16",
+      "is_valid": false
+    },
+    {
+      "value": "lambda x_index, x_value, y_index, y_value: -0.0",
+      "is_valid": true
+    },
+    {
+      "value": "lambda x_index, x_value, y_index, y_value: float('nan')",
+      "is_valid": false
+    },
+    {
+      "value": "lambda x_index, x_value, y_index, y_value: 1e308",
+      "is_valid": true
     }
   ],
   "validate_transition_matrix_data": [

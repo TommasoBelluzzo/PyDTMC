@@ -36,7 +36,7 @@ def test_hash_equality_matrix_preservation():
 def test_hash_equality_signed_zeros_emission():
 
     p = [[1.00, 0.00], [0.25, 0.75]]
-    e1 = [[0.50, 0.50,  0.00], [ 0.00, 0.25, 0.75]]
+    e1 = [[0.50, 0.50, 0.00], [0.00, 0.25, 0.75]]
     e2 = [[0.50, 0.50, -0.00], [-0.00, 0.25, 0.75]]
 
     hmm1 = _HiddenMarkovModel(p, e1)
@@ -49,7 +49,7 @@ def test_hash_equality_signed_zeros_emission():
 
 def test_hash_equality_signed_zeros_transition():
 
-    p1 = [[1.00,  0.00], [0.25, 0.75]]
+    p1 = [[1.00, 0.00], [0.25, 0.75]]
     p2 = [[1.00, -0.00], [0.25, 0.75]]
     e = [[0.50, 0.50, 0.00], [0.00, 0.25, 0.75]]
 
@@ -63,8 +63,8 @@ def test_hash_equality_signed_zeros_transition():
 
 def test_hash_equality_signed_zeros_both():
 
-    p1 = [[1.00,  0.00], [0.25, 0.75]]
-    e1 = [[0.50, 0.50,  0.00], [ 0.00, 0.25, 0.75]]
+    p1 = [[1.00, 0.00], [0.25, 0.75]]
+    e1 = [[0.50, 0.50, 0.00], [0.00, 0.25, 0.75]]
     hmm1 = _HiddenMarkovModel(p1, e1)
 
     p2 = [[1.00, -0.00], [0.25, 0.75]]

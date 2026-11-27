@@ -114,3 +114,19 @@ def test_random(seed, n, k, p_zeros, p_mask, e_zeros, e_mask, value):
         expected = _np.array(value[1])[indices]
 
         _npt.assert_allclose(actual, expected, rtol=1e-5, atol=1e-8)
+
+    atol = _np.sqrt(_np.finfo(_np.float64).eps)  # pylint: disable=no-member
+
+    for matrix, mask, zeros in ((hmm.p, p_mask, p_zeros), (hmm.e, e_mask, e_zeros)):
+
+        if mask is not None:
+
+            mask = _np.array(mask)
+
+            full_rows = _np.isclose(_np.nansum(mask, axis=1, dtype=float), 1.0, rtol=0.0, atol=atol)
+            indices = _np.isnan(mask) & (~full_rows[:, _np.newaxis])
+
+            actual = _np.count_nonzero((matrix == 0.0) & indices)
+            expected = zeros
+
+            assert actual == expected

@@ -478,7 +478,7 @@ def validate_float(value: _ct.tany, lower_limit: _ct.olim_float = None, upper_li
     value = float(value)
 
     if not _np.isfinite(value):
-        raise ValueError('The "@arg@" parameter be a finite real value.')
+        raise ValueError('The "@arg@" parameter must be a finite real value.')
 
     _validate_limits(value, 'float', lower_limit, upper_limit)
 
@@ -1211,7 +1211,7 @@ def validate_transition_function(value: _ct.tany) -> _ct.ttfunc:
     except Exception as ex:  # pragma: no cover
         raise ValueError('The "@arg@" parameter behavior is not compliant.') from ex
 
-    if (not _u.is_number(result)) or (not _np.isfinite(result)):
+    if (not _u.is_number(result)) or (not _np.isfinite(result)) or (result < 0.0):
         raise ValueError('The "@arg@" parameter behavior is not compliant.')
 
     return value
