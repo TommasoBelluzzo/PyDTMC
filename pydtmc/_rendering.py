@@ -369,7 +369,8 @@ def _draw_graphviz_image(graph: _pyd.Dot, ax: _mplp.Axes, dpi: int, initial_dpi:
 def _draw_legend_bottom(figure: _mplp.Figure, handles: list, labels: _ct.tlist_str, tight_layout: bool = False) -> float:
 
     columns = len(handles)
-    if columns == 0:
+
+    if columns == 0:  # pragma: no cover
         return _LEGEND_MARGIN
 
     while True:
@@ -1507,9 +1508,11 @@ def plot_implied_timescales(lags: _ct.tlist_int, fitting_type: str, fitting_para
 
         try:
             mc = _MarkovChain.fit_sequence(fitting_type, possible_states, states[::lag], fitting_param)
-        except ValueError:
+        except ValueError:  # pragma: no cover
+
             if fitting_type != 'rmle':
                 raise
+
             continue
 
         values = mc.implied_timescales
@@ -1520,7 +1523,7 @@ def plot_implied_timescales(lags: _ct.tlist_int, fitting_type: str, fitting_para
     timescales[~_np.isfinite(timescales) | (timescales <= 0.0)] = _np.nan
     finite_timescales = timescales[_np.isfinite(timescales)]
 
-    if finite_timescales.size == 0:
+    if finite_timescales.size == 0:  # pragma: no cover
         raise ValueError('The implied timescales cannot be computed for the supplied sequence and lags.')
 
     x = _np.asarray(lags, dtype=int)
@@ -1796,7 +1799,7 @@ def plot_residuals(model: _ct.tmdl, sequence: _ct.tlist_int, seed: _ct.oint, dpi
 
         ax_autocorrelation.grid(which='major', color=_DEFAULT_COLOR_GRID, linewidth=_GRID_LINE_WIDTH, alpha=_GRID_ALPHA)
 
-    else:
+    else:  # pragma: no cover
         ax_autocorrelation.set_xticks([])
         ax_autocorrelation.set_yticks([])
 
