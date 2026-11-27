@@ -298,6 +298,9 @@ def pytest_generate_tests(metafunc):
         elif isinstance(fixtures, list):
             values, ids = _parse_fixtures_list(fixtures, names, func)
 
+    if len(values) == 0:
+        raise ValueError(f'No valid fixture data found for "{module}.{func}".')
+
     metafunc.parametrize(names, values, indirect=False, ids=ids)
 
 

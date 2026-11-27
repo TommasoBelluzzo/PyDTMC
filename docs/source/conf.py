@@ -41,7 +41,7 @@ _sys.path.insert(0, _osp.abspath('../..'))
 _base_directory = _osp.abspath(_osp.dirname(__file__))
 _init_file = _osp.join(_base_directory, '../../pydtmc/__init__.py')
 
-with open(_init_file, 'r') as _file:
+with open(_init_file, mode='r', encoding='utf-8') as _file:
 
     _file_content = _file.read()
 

@@ -25,6 +25,10 @@ from pydtmc import (
     MarkovChain as _MarkovChain
 )
 
+from tests.utilities import (
+    assert_stochastic_matrix as _assert_stochastic_matrix
+)
+
 
 #############
 # FUNCTIONS #
@@ -94,8 +98,11 @@ def test_dictionary(seed, runs, maximum_size):
         obj_from_matrices = to_matrices(obj_from)
 
         for index, obj_matrix in enumerate(obj_matrices):
+
             obj_from_matrix = obj_from_matrices[index]
+
             _npt.assert_allclose(obj_from_matrix, obj_matrix, rtol=1e-5, atol=1e-8)
+            _assert_stochastic_matrix(obj_from_matrix)
 
 
 @_pt.mark.slow

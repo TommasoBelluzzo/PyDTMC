@@ -750,6 +750,7 @@ class MarkovChain(_bc.Model):
 
         - The search considers partitions into contiguous blocks of state indices.
         - Partitions consisting of only 1 block or 1 block per state are excluded.
+        - The lumpability criterion is evaluated within numerical tolerance.
         """
 
         partitions = _n.find_lumping_partitions(self.__p)
@@ -2089,9 +2090,9 @@ class MarkovChain(_bc.Model):
 
         | **Notes:**
 
-        - The partition must satisfy the ordinary lumpability criterion.
+        - The partition must satisfy the ordinary lumpability criterion within numerical tolerance.
         - Each block of the partition corresponds to a state of the reduced Markov chain.
-        - The resulting Markov chain preserves the aggregated transition probabilities independently of the initial state within each block.
+        - The resulting Markov chain preserves the aggregated transition probabilities within numerical tolerance, independently of the initial state within each block.
 
         :param partition: the partition of the state space.
         :raises ValidationError: if any input argument is not compliant.

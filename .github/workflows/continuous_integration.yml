@@ -37,7 +37,6 @@ jobs:
     - name: Dependencies Installation
       run: |
         python -m pip install --quiet --upgrade pip
-        python -m pip install --quiet --upgrade -r requirements.txt
         python -m pip install --quiet --upgrade -e ".[lint,docs,package,build,tests]"
     - name: Libraries Installation
       run: |

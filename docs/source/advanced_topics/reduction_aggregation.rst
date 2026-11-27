@@ -98,7 +98,7 @@ The ``lump`` method constructs the reduced Markov chain from the partition:
 
 | The resulting chain has two states, one for each group in the partition.
 | Its transition probabilities agree with the reduced matrix above.
-| Unlike an approximation, valid lumping preserves the exact probabilities of transitions between groups.
+| Unlike spectral aggregation, valid lumping preserves the probabilities of transitions between groups within numerical tolerance.
 
 Long-Term Behavior
 ------------------

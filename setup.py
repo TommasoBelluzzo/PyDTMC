@@ -29,7 +29,7 @@ if _sys.version_info < (3, 12):
 
 # Version
 
-with open('pydtmc/__init__.py', 'r') as _file:
+with open('pydtmc/__init__.py', mode='r', encoding='utf-8') as _file:
     _file_content = _file.read()
     _matches = _re.search(r'^__version__ = \'([0-9]+\.[0-9]+\.[0-9]+)\'$', _file_content, flags=_re.MULTILINE)
     _current_version = _matches.group(1)
@@ -38,7 +38,7 @@ with open('pydtmc/__init__.py', 'r') as _file:
 
 _base_directory = _osp.abspath(_osp.dirname(__file__))
 
-with open(_osp.join(_base_directory, 'README.md'), encoding='utf-8') as _file:
+with open(_osp.join(_base_directory, 'README.md'), mode='r', encoding='utf-8') as _file:
     _long_description_text = _file.read()
     _long_description_text = _long_description_text[_long_description_text.index('\n') + 1:].strip()
 
