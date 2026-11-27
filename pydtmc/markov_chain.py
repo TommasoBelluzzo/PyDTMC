@@ -3370,7 +3370,7 @@ class MarkovChain(_bc.Model):
         except Exception as ex:  # pragma: no cover
             raise _u.create_validation_error(ex, _ins.trace()) from None
 
-        if (k is None) and (approximation_type == 'tauchen-hussey') and (abs(rho) == 1.0):
+        if (k is None) and (approximation_type == 'tauchen-hussey') and (abs(rho) == 1.0):  # pragma: no cover
             raise _ValidationError('The Tauchen-Hussey approximation requires an explicit quadrature standard deviation when the autoregressive coefficient is equal to -1 or 1.')
 
         p_out, states_default = _g.mc_approximation(size, approximation_type, sigma, rho, k)

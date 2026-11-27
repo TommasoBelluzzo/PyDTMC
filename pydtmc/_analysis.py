@@ -1987,7 +1987,7 @@ def mc_absolute_spectral_gap(slem: _ct.ofloat) -> _ct.ofloat:
 
         asg = 1.0 - slem
 
-        if -_c.FTOL < asg < 0.0:
+        if -_c.FTOL < asg < 0.0:  # pragma: no cover
             asg = 0.0
 
     return asg

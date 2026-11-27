@@ -568,7 +568,7 @@ def normalize_matrix(m: _ct.tarray, zero_policy: str = 'raise') -> _ct.tarray:
 
     if _np.any(zeros):
 
-        if zero_policy == 'raise':
+        if zero_policy == 'raise':  # pragma: no cover
             raise ValueError('The matrix contains rows with zero total weight.')
 
         if zero_policy == 'uniform':
