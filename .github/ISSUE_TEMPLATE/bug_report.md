@@ -1,4 +1,3 @@
-
 ---
 name: Bug Report
 about: Report unexpected behavior or incorrect results.
